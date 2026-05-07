@@ -197,6 +197,8 @@ php .tools/bin/check-distributions.php 2026.05.001
 
 Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터리에 놓인 절차형 PHP 파일과 DB에 저장된 설치/활성 상태로 동작합니다.
 
+외부 모듈을 처음 만든다면 [외부 모듈 제작 빠른 시작](docs/external-module-quickstart.md)을 먼저 봅니다. zip 배포 전 확인 항목은 [모듈 체크리스트](docs/module-checklist.md)에 있고, GitHub Actions 자동 점검은 [모듈 자동 점검 빠른 시작](docs/module-ci-quickstart.md)에 따로 정리되어 있습니다.
+
 ```text
 modules/{module_key}/
 - module.php

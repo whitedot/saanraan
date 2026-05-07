@@ -12,6 +12,8 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 - 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
 - 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
+외부 모듈을 처음 만든다면 이 문서보다 [외부 모듈 제작 빠른 시작](external-module-quickstart.md)을 먼저 본다. zip 배포 전에는 [모듈 체크리스트](module-checklist.md)를 확인한다. GitHub Actions 자동 점검은 [모듈 자동 점검 빠른 시작](module-ci-quickstart.md)을 참고한다.
+
 별도 리포지토리에서 모듈을 관리하는 배포 전략은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 함께 따른다.
 
 ## 1. 모듈 판단 기준
@@ -235,7 +237,7 @@ return [
 
 `module.php`는 Service Provider가 아니다. 정보 파일이다.
 
-외부 모듈 저장소는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사해 CI에서 `toycore.module_contract`와 기본 모듈 구조를 검증한다. 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`는 모듈 저장소에 맞게 바꾼다.
+외부 모듈 저장소는 먼저 로컬에서 `.tools/bin/check-external-module.php`로 점검한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈 저장소에 맞게 바꾼다.
 
 ## 5. 의존성 선언
 
