@@ -14,7 +14,7 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 
 외부 모듈을 처음 만든다면 이 문서보다 [외부 모듈 제작 빠른 시작](external-module-quickstart.md)을 먼저 본다. 처음에는 모듈 폴더와 zip 업로드 흐름만 이해하면 된다. zip 배포 전에는 [모듈 체크리스트](module-checklist.md)를 확인한다. GitHub Actions 자동 점검은 필요해진 뒤 [모듈 자동 점검 빠른 시작](module-ci-quickstart.md)을 참고한다.
 
-모듈 저장 위치와 배포 기준은 [모듈 저장 위치 기준](module-repository-strategy.md)을 따른다. Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다.
+모듈 저장 위치와 배포 기준은 [모듈 저장 위치 기준](module-storage-policy.md)을 따른다. Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다.
 
 ## 1. 모듈 판단 기준
 
@@ -1082,7 +1082,7 @@ banner-2026.05.001.zip
    - views/
 ```
 
-새 모듈을 추가할 때는 먼저 `modules/{module_key}` 폴더 안에서 책임 경계를 잡는다. 별도 저장소 분리는 기본 전략이 아니며, 저장소 분리가 필요하더라도 Toycore 런타임은 최종 배치된 모듈 폴더만 읽는다.
+새 모듈을 추가할 때는 먼저 `modules/{module_key}` 폴더 안에서 책임 경계를 잡는다. Toycore 런타임은 최종 배치된 모듈 폴더만 읽는다.
 
 ## 25. 금지하는 방향
 

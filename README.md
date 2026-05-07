@@ -90,7 +90,7 @@ standard: core + member + admin + seo + site_menu + banner
 ops: standard + popup_layer + point + deposit + reward + notification
 ```
 
-현재 공식 배포본은 외부 모듈 저장소를 조립하지 않고, toycore.git 안의 `modules/{module_key}` 폴더만 패키징합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.
+현재 공식 배포본은 toycore.git 안의 `modules/{module_key}` 폴더만 패키징합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.
 
 - `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
@@ -132,7 +132,7 @@ php .tools/bin/smoke-http.php http://127.0.0.1:8080
 
 릴리스 zip은 Git, SSH, CLI를 사용할 수 없는 저가형 호스팅을 위한 기본 배포 수단입니다. 설치는 편하지만, 운영 서버에 Git 이력이 없으므로 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 어렵습니다.
 
-Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 단, 현재 `toycore.git` 본체를 그대로 clone하면 선택 모듈이 포함되지 않은 minimal 수준입니다.
+Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 현재 `toycore.git` 본체에는 공식 선택 모듈 코드도 `modules/` 아래에 함께 들어 있습니다.
 
 ```sh
 git clone https://github.com/whitedot/toycore.git toycore
@@ -140,7 +140,7 @@ cd toycore
 git checkout v0.1.1
 ```
 
-위의 `v0.1.1`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다. `standard`나 `ops` 구성을 Git으로 바로 설치하려면 조립 완료된 release zip, 배포 브랜치, 또는 별도 배포 저장소처럼 선택 모듈이 이미 포함된 기준점이 필요합니다.
+위의 `v0.1.1`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다. `standard`나 `ops` 배포본도 toycore.git 안의 현재 파일을 기준으로 조립합니다.
 
 운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 운영자가 로컬 수정, 전용 모듈, 호스팅별 설정 파일, 배포 스크립트를 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
 
@@ -281,7 +281,7 @@ module -> point -> slot -> subject
 - [릴리스 절차](docs/release-process.md)
 - [현재 구현 상태](docs/current-implementation-status.md)
 - [모듈 작성 가이드](docs/module-guide.md)
-- [모듈 저장 위치 기준](docs/module-repository-strategy.md)
+- [모듈 저장 위치 기준](docs/module-storage-policy.md)
 - [모듈 설치 소스와 업데이트 보완 계획](docs/module-update-and-source-plan.md)
 - [회원 모듈 상세 계획](docs/member-plan.md)
 - [관리자 모듈 상세 계획](docs/admin-plan.md)

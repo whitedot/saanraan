@@ -1,6 +1,6 @@
 # MODULE_NAME
 
-이 프로젝트는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. Git 저장소로 관리해도 되고, 단순 작업 폴더로 관리해도 된다. Toycore에 업로드되는 실제 런타임 파일은 `module/` 아래에 둔다.
+이 프로젝트는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. Toycore에 업로드되는 실제 런타임 파일은 `module/` 아래에 둔다.
 
 ## 지원 버전
 
@@ -47,7 +47,7 @@ git checkout TOYCORE_REF
 그 다음 이 프로젝트 루트에서 Toycore 소스 경로를 지정해 점검한다.
 
 ```sh
-cd /path/to/MODULE_REPOSITORY
+cd /path/to/MODULE_PROJECT
 TOYCORE=/path/to/toycore
 php "$TOYCORE/.tools/bin/check-external-module.php" module MODULE_KEY
 ```
@@ -55,7 +55,7 @@ php "$TOYCORE/.tools/bin/check-external-module.php" module MODULE_KEY
 Windows PowerShell:
 
 ```powershell
-Set-Location C:\path\to\MODULE_REPOSITORY
+Set-Location C:\path\to\MODULE_PROJECT
 $env:TOYCORE = 'C:\path\to\toycore'
 php "$env:TOYCORE\.tools\bin\check-external-module.php" module MODULE_KEY
 ```
@@ -95,11 +95,11 @@ php .tools/bin/package-module 2026.05.001
 5. /admin/updates에서 미적용 SQL 확인
 ```
 
-## 선택: Git과 자동 점검
+## 선택: 자동 점검
 
-혼자 만들고 zip으로 업로드하는 모듈은 별도 Git 저장소나 GitHub Actions 없이도 시작할 수 있다.
+혼자 만들고 zip으로 업로드하는 모듈은 Git이나 GitHub Actions 없이도 시작할 수 있다.
 
-다음 상황에서는 Git 저장소와 자동 점검을 고려한다.
+다음 상황에서는 로컬 점검 명령을 자동화하는 GitHub Actions를 고려한다.
 
 - 팀이 함께 개발한다.
 - 공개 배포나 유료 배포를 한다.

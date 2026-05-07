@@ -7,9 +7,9 @@ $root = dirname(__DIR__, 2);
 chdir($root);
 
 $workRoot = $root . '/storage/check-create-external-module-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
-$targetDir = $workRoot . '/toycore-module-banner';
-$noCiTargetDir = $workRoot . '/toycore-module-popup';
-$badMenuTargetDir = $workRoot . '/toycore-module-bad-menu';
+$targetDir = $workRoot . '/banner-module';
+$noCiTargetDir = $workRoot . '/popup-module';
+$badMenuTargetDir = $workRoot . '/bad-menu-module';
 
 function toy_check_create_external_module_remove_directory(string $directory): void
 {
@@ -85,7 +85,7 @@ try {
         || !str_contains($readme, 'git checkout v0.1.1')
         || !str_contains($readme, 'TOYCORE=/path/to/toycore')
         || !str_contains($readme, 'php "$TOYCORE/.tools/bin/check-external-module.php" module banner')
-        || !str_contains($readme, 'Set-Location C:\path\to\toycore-module-banner')
+        || !str_contains($readme, 'Set-Location C:\path\to\banner-module')
         || !str_contains($agents, 'Toycore 외부 모듈 `banner`')
         || !str_contains($agents, 'AI 코딩 도구에 작업을 맡길 때')
         || !str_contains($agents, 'php "$TOYCORE/.tools/bin/check-external-module.php" module banner')
@@ -95,7 +95,7 @@ try {
     ) {
         throw new RuntimeException('scaffold templates were not replaced.');
     }
-    foreach (['MODULE_NAME', 'MODULE_KEY', 'MODULE_REPOSITORY', 'TOYCORE_VERSION', 'TOYCORE_REF', 'MODULE_CONTRACT_VERSION'] as $placeholder) {
+    foreach (['MODULE_NAME', 'MODULE_KEY', 'MODULE_PROJECT', 'TOYCORE_VERSION', 'TOYCORE_REF', 'MODULE_CONTRACT_VERSION'] as $placeholder) {
         if (str_contains($readme, $placeholder)) {
             throw new RuntimeException('scaffold README still has placeholder: ' . $placeholder);
         }

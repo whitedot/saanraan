@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout module
+      - name: Checkout module project
         uses: actions/checkout@v4
         with:
-          path: module-repo
+          path: module-project
 
       - name: Checkout Toycore
         uses: actions/checkout@v4
@@ -31,4 +31,4 @@ jobs:
           php-version: '8.3'
 
       - name: Check module contract
-        run: php toycore/.tools/bin/check-external-module.php module-repo/module "${TOYCORE_MODULE_KEY}"
+        run: php toycore/.tools/bin/check-external-module.php module-project/module "${TOYCORE_MODULE_KEY}"

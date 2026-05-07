@@ -50,7 +50,7 @@ toycore-ops
 - notification
 ```
 
-standard/ops는 외부 모듈 저장소를 checkout하지 않고, 현재 toycore.git 안의 `modules/{module_key}` 폴더를 그대로 패키징합니다. 필요한 모듈을 따로 받은 경우에도 설치 후 zip 업로드나 FTP/SFTP로 `modules/{module_key}`에 배치하고 `/admin/modules`에서 설치합니다.
+standard/ops는 현재 toycore.git 안의 `modules/{module_key}` 폴더를 그대로 패키징합니다. 필요한 모듈을 따로 받은 경우에도 설치 후 zip 업로드나 FTP/SFTP로 `modules/{module_key}`에 배치하고 `/admin/modules`에서 설치합니다.
 
 릴리스 제작 결과:
 

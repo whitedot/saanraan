@@ -42,7 +42,7 @@ copy_base() {
         docs/distributions.json \
         docs/install-plan.md \
         docs/module-guide.md \
-        docs/module-repository-strategy.md \
+        docs/module-storage-policy.md \
         docs/release-process.md \
         docs/security-checklist.md \
         docs/shared-hosting-install.md \

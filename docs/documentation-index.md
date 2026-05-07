@@ -16,7 +16,7 @@
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
 | `module-ci-template.yml` | 모듈 CI 템플릿 | 외부 모듈 프로젝트용 GitHub Actions 호환성 검사 예시 |
 | `distributions.json` | 배포 조합 정책 | minimal/standard/ops 포함 모듈과 기본 선택 모듈 기준 |
-| `module-repository-strategy.md` | 배포 전략 | 모듈을 `modules/{module_key}` 폴더 기준으로 다루는 저장 위치 기준 |
+| `module-storage-policy.md` | 저장 위치 | 모듈을 `modules/{module_key}` 폴더 기준으로 다루는 기준 |
 | `module-update-and-source-plan.md` | 모듈 운영 | 모듈 배치, zip 업로드, 설치/업데이트 책임 기준 |
 | `legacy-maintainer-improvement-plan.md` | 운영 개선 | 레거시 운영자 관점의 개선 순서와 완료 기준 |
 | `database-access-policy.md` | DB 접근 규약 | PDO 사용, prepared statement, raw SQL 허용 범위 |

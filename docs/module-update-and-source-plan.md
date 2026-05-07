@@ -84,7 +84,7 @@ zip 업로드는 DB 업데이트를 자동 실행하지 않는다.
 5. SQL이 없거나 적용 완료되면 설치 버전을 코드 버전으로 맞춤
 ```
 
-`/admin/updates`는 현재 배치된 파일만 읽는다. 원격 저장소나 release 정보를 조회하지 않는다.
+`/admin/updates`는 현재 배치된 파일만 읽는다. 원격 위치나 외부 배포 정보를 조회하지 않는다.
 
 ## 버전 의미
 
@@ -100,10 +100,10 @@ zip 업로드는 DB 업데이트를 자동 실행하지 않는다.
 
 다음은 기본 구현에서 제외한다.
 
-- 공식 모듈 registry 다운로드
-- GitHub repository archive 반영
-- repository ref 선택 UI
-- release zip checksum registry 관리
-- 여러 모듈 저장소를 조립하는 기본 배포 흐름
+- 외부 모듈 목록에서 다운로드
+- 원격 archive 반영
+- 원격 ref 선택 UI
+- 배포 zip checksum 색인 관리
+- 여러 외부 위치의 모듈을 조립하는 기본 배포 흐름
 
 필요한 경우 릴리스 담당자가 Toycore 밖의 도구로 처리하고, Toycore에는 최종 `modules/{module_key}` 폴더만 배치한다.

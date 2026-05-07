@@ -74,7 +74,7 @@ modules/{module_key}/updates/2026.05.001.sql
 9. 완료 로그 기록
 ```
 
-모듈 파일 업데이트와 DB 업데이트는 분리합니다. 새 모듈 zip 또는 release zip으로 `modules/{module_key}/` 파일을 교체한 뒤, `/admin/updates`에서 미적용 SQL을 명시적으로 실행합니다. 설치 소스별 검증과 운영자 UX 보완 계획은 [모듈 설치 소스와 업데이트 보완 계획](module-update-and-source-plan.md)을 따릅니다.
+모듈 파일 업데이트와 DB 업데이트는 분리합니다. 새 모듈 파일을 zip, FTP, SFTP 등으로 `modules/{module_key}/`에 배치한 뒤, `/admin/updates`에서 미적용 SQL을 명시적으로 실행합니다. 설치 소스별 검증과 운영자 UX 보완 계획은 [모듈 설치 소스와 업데이트 보완 계획](module-update-and-source-plan.md)을 따릅니다.
 
 ## 실행 원칙
 

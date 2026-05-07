@@ -16,13 +16,13 @@
 create-external-module.php -> README/AGENTS/package-module 생성 -> 로컬 점검 -> zip 생성
 
 자동 점검 경로:
-Git 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
+GitHub Actions가 로컬 점검 명령을 자동 실행
 
 배포 경로:
 모듈 zip 업로드 또는 modules/{module_key} 폴더 배치
 ```
 
-기본 안내에서는 Git 저장소나 CI를 먼저 요구하지 않는다. CI는 GitHub가 로컬 점검 명령을 대신 실행해 주는 자동 점검으로 설명한다.
+기본 안내에서는 Git이나 CI를 먼저 요구하지 않는다. CI는 GitHub가 로컬 점검 명령을 대신 실행해 주는 자동 점검으로 설명한다.
 
 ## 진행 상태
 

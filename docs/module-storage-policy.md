@@ -17,18 +17,17 @@ Toycore가 아는 것:
 - toy_schema_versions 적용 상태
 
 Toycore가 기본으로 관리하지 않는 것:
-- 모듈이 어느 Git 저장소에서 왔는지
-- 어떤 GitHub Release asset인지
-- 공식 registry와 checksum
-- repository archive ref
-- 모듈별 CI와 release workflow
+- 모듈 파일의 외부 출처
+- 외부 배포 산출물의 URL이나 ref
+- 외부 배포 산출물의 checksum 색인
+- 모듈별 CI와 배포 workflow
 ```
 
 ## 저장소 정책
 
 기본 모듈과 공식 배포에 포함할 모듈은 toycore.git 안의 `modules/` 아래에 둔다.
 
-도메인 책임은 계속 모듈로 분리한다. 하지만 그 분리를 곧바로 별도 Git 리포지토리 분리로 해석하지 않는다. 저장소 분리는 Toycore의 기본 방향이 아니라 특수한 운영 선택지다.
+도메인 책임은 계속 모듈로 분리한다. 하지만 그 분리는 `modules/{module_key}` 폴더와 모듈 계약으로 표현한다.
 
 ```text
 좋은 분리:
@@ -36,7 +35,7 @@ Toycore가 기본으로 관리하지 않는 것:
 모듈이 자기 테이블, 화면, 설정, 업데이트를 가진다.
 
 피할 분리:
-모듈을 저장소, registry, release, checksum 단위의 별도 제품처럼 다룬다.
+모듈을 저장소, 릴리스, checksum 색인 단위의 별도 제품처럼 다룬다.
 ```
 
 ## 외부에서 만든 모듈
@@ -51,11 +50,11 @@ Toycore가 기본으로 관리하지 않는 것:
 5. /admin/updates에서 미적용 SQL을 확인한다.
 ```
 
-반복 배포나 팀 개발 때문에 별도 저장소를 쓰더라도, Toycore 런타임으로 들어오는 산출물은 `modules/{module_key}` 폴더여야 한다. Toycore 본체는 그 저장소의 ref, release, checksum을 추적하지 않는다.
+Toycore 밖에서 모듈 파일을 만들더라도, Toycore 런타임으로 들어오는 산출물은 `modules/{module_key}` 폴더여야 한다. Toycore 본체는 파일의 출처나 외부 배포 생명주기를 추적하지 않는다.
 
 ## 배포 패키지
 
-`package-distributions`는 현재 toycore.git 안에 있는 파일만 패키징한다. 패키징 도구는 형제 디렉터리의 `toycore-module-*` 저장소를 찾아 조립하지 않는다.
+`package-distributions`는 현재 toycore.git 안에 있는 파일만 패키징한다. 패키징 도구는 형제 디렉터리나 다른 작업 공간의 모듈 저장소를 찾아 조립하지 않는다.
 
 현재 배포 패키지는 toycore.git 안의 `modules/` 폴더에 있는 모듈만 사용해 조립한다.
 
@@ -81,10 +80,10 @@ ops: standard + popup_layer + point + deposit + reward + notification
 
 기본 책임 밖:
 
-- 공식 registry 다운로드
-- GitHub repository archive 다운로드
-- repository ref 선택
-- 모듈 release asset checksum 관리
+- 외부 모듈 목록에서 내려받기
+- 원격 archive 내려받기
+- 원격 ref 선택
+- 외부 배포 산출물 checksum 색인 관리
 
 ## 판단 질문
 

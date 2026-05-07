@@ -44,13 +44,13 @@ function toy_module_enabled(PDO $pdo, string $moduleKey): bool
     return in_array($moduleKey, toy_enabled_module_keys($pdo), true);
 }
 
-function toy_module_registry_status(PDO $pdo, string $moduleKey): string
+function toy_module_record_status(PDO $pdo, string $moduleKey): string
 {
-    $module = toy_module_registry_entry($pdo, $moduleKey);
+    $module = toy_module_record_entry($pdo, $moduleKey);
     return is_array($module) ? (string) ($module['status'] ?? '') : '';
 }
 
-function toy_module_registry_entry(PDO $pdo, string $moduleKey): ?array
+function toy_module_record_entry(PDO $pdo, string $moduleKey): ?array
 {
     if (!toy_is_safe_module_key($moduleKey)) {
         return null;
@@ -382,7 +382,7 @@ function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metad
             continue;
         }
 
-        $requiredModule = toy_module_registry_entry($pdo, $requiredModuleKey);
+        $requiredModule = toy_module_record_entry($pdo, $requiredModuleKey);
         if (!is_array($requiredModule) || (string) ($requiredModule['status'] ?? '') !== 'enabled') {
             $errors[] = $requiredModuleKey . ' 모듈을 먼저 활성화해야 합니다.';
             continue;
@@ -408,7 +408,7 @@ function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metad
             continue;
         }
 
-        if (toy_module_registry_status($pdo, $requiredModuleKey) !== 'enabled') {
+        if (toy_module_record_status($pdo, $requiredModuleKey) !== 'enabled') {
             $errors[] = $requiredModuleKey . ' 모듈을 먼저 활성화해야 합니다.';
             continue;
         }

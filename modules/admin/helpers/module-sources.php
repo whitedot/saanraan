@@ -293,10 +293,6 @@ function toy_admin_infer_module_key_from_filename(string $filename): string
     $name = is_string($name) ? trim($name, '-_.') : '';
     $name = preg_replace('/-\d{4}\.\d{2}\.\d{3}\z/', '', $name);
     $name = is_string($name) ? $name : '';
-    if (str_starts_with($name, 'toycore-module-')) {
-        $name = substr($name, strlen('toycore-module-'));
-    }
-
     $moduleKey = str_replace('-', '_', $name);
     return toy_is_safe_module_key($moduleKey) ? $moduleKey : '';
 }
@@ -622,7 +618,7 @@ function toy_admin_module_upload_version_errors(PDO $pdo, string $moduleKey, arr
         return [];
     }
 
-    $module = toy_module_registry_entry($pdo, $moduleKey);
+    $module = toy_module_record_entry($pdo, $moduleKey);
     if (!is_array($module)) {
         return [];
     }

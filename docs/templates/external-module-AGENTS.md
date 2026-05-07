@@ -1,6 +1,6 @@
 # AGENTS.md
 
-이 프로젝트는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. Git 저장소로 관리해도 되고, 단순 작업 폴더로 관리해도 된다. 실제 런타임 모듈 코드는 `module/` 아래에 두고, Toycore 설치본에는 릴리스 zip을 통해 `modules/MODULE_KEY/` 구조로 반영한다.
+이 프로젝트는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. 실제 런타임 모듈 코드는 `module/` 아래에 두고, Toycore 설치본에는 zip 업로드나 파일 배치를 통해 `modules/MODULE_KEY/` 구조로 반영한다.
 
 ## 기준 문서
 
@@ -19,7 +19,7 @@
 - AI가 만든 변경도 로컬 점검과 체크리스트를 통과하기 전에는 배포하지 않는다.
 - AI가 제안한 코어 테이블 변경, 자동 등록, 숨은 dispatcher, Composer 런타임 의존성은 기본적으로 거절하고 모듈 소유 구조로 다시 설계한다.
 
-## 저장소/작업 폴더 구조
+## 작업 폴더 구조
 
 권장 구조:
 
@@ -176,11 +176,11 @@ MODULE_KEY-2026.05.001.zip
 
 운영 반영 후에는 Toycore 관리자에서 `/admin/modules`와 `/admin/updates`를 확인한다.
 
-## Git과 CI
+## 자동 점검
 
-- 별도 Git 저장소는 팀 작업, 공개 배포, 반복 배포가 필요할 때만 사용한다.
-- 혼자 만들고 zip으로 업로드하는 모듈은 Git 저장소나 CI 없이 시작해도 된다.
+- 혼자 만들고 zip으로 업로드하는 모듈은 Git이나 CI 없이 시작해도 된다.
 - GitHub Actions는 배포가 아니라 로컬 점검을 push 때 자동 실행하는 선택 기능이다.
+- 자동 점검을 쓰더라도 Toycore에 들어가는 최종 형태는 `modules/MODULE_KEY/` 폴더다.
 
 ## 개발 방향
 

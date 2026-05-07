@@ -161,11 +161,11 @@ PHP;
 }
 
 $moduleName = toy_create_external_module_title($moduleKey);
-$repositoryName = basename(str_replace('\\', '/', rtrim($targetDir, "/\\")));
+$projectName = basename(str_replace('\\', '/', rtrim($targetDir, "/\\")));
 $replacements = [
     'MODULE_NAME' => $moduleName,
     'MODULE_KEY' => $moduleKey,
-    'MODULE_REPOSITORY' => $repositoryName,
+    'MODULE_PROJECT' => $projectName,
     'TOYCORE_VERSION' => TOY_CORE_VERSION,
     'TOYCORE_REF' => $toycoreRef,
     'MODULE_CONTRACT_VERSION' => TOY_MODULE_CONTRACT_VERSION,
