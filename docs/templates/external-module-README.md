@@ -13,6 +13,9 @@ Toycore 검증 버전: TOYCORE_VERSION
 ## 구조
 
 ```text
+AGENTS.md
+README.md
+CHANGELOG.md
 module/
 - module.php
 - install.sql
@@ -20,6 +23,16 @@ module/
 ```
 
 Toycore에 업로드되는 실제 모듈 파일은 `module/` 아래에 둔다.
+
+## 구현 규칙과 AI 보조 작업
+
+구현 규칙은 이 저장소의 `AGENTS.md`를 기준으로 한다. `AGENTS.md`는 사람이 직접 구현할 때의 체크 기준이면서, AI 코딩 도구에 작업을 맡길 때도 같은 기준으로 쓰는 파일이다.
+
+AI 보조 작업 예:
+
+- `AGENTS.md 기준으로 module/paths.php와 관리자 action을 추가해줘.`
+- `AGENTS.md와 module-checklist.md 기준으로 릴리스 전 위험을 점검해줘.`
+- `AGENTS.md 기준으로 output-slots.php가 외부 CI에서 실패하지 않는지 확인해줘.`
 
 ## 로컬 점검
 

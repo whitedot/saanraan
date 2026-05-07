@@ -62,7 +62,7 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 완료 항목:
 
-- `create-external-module.php`로 README, CHANGELOG, `.tools/bin/package-module`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml` 생성
+- `create-external-module.php`로 `AGENTS.md`, README, CHANGELOG, `.tools/bin/package-module`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml` 생성
 - `--no-ci` 옵션으로 GitHub Actions 파일 없이 최소 구조 생성 가능
 - 기존 파일을 덮어쓰지 않도록 빈 target 디렉터리만 허용
 - 생성 결과를 `check-external-module.php`로 검증
@@ -79,6 +79,7 @@ php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner
 ```text
 toycore-module-banner/
 - README.md
+- AGENTS.md
 - CHANGELOG.md
 - .tools/
   - bin/

@@ -51,7 +51,7 @@
 - `.tools/bin/update-module-index --repository-refs`로 운영용 repository archive commit SHA/checksum 등록 가능
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
 - `.tools/bin/clone-official-modules.php`로 공식 모듈 리포지토리 checkout 가능
-- `.tools/bin/create-external-module.php`로 외부 모듈 저장소 최소 구조, zip 패키징 스크립트, 선택적 CI workflow 생성 가능
+- `.tools/bin/create-external-module.php`로 외부 모듈 저장소 최소 구조, AGENTS 규칙 파일, zip 패키징 스크립트, 선택적 CI workflow 생성 가능
 - Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 - standard/ops 배포 패키지는 기본 탐색 위치 또는 `TOYCORE_MODULE_REPO_ROOT`로 지정한 외부 모듈 리포지토리에서 선택 모듈을 조립

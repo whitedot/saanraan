@@ -6,6 +6,7 @@
 
 - `module/module.php`가 있다.
 - `module/install.sql`이 있다.
+- `AGENTS.md`가 있고 구현 규칙과 점검 기준이 현재 Toycore 문서와 맞다.
 - `README.md`가 있다.
 - `CHANGELOG.md`가 있다.
 - 스캐폴딩 도구를 사용했다면 `.tools/bin/package-module`이 있다.

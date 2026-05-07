@@ -182,6 +182,8 @@ if (file_exists($targetDir)) {
 
 $readmeTemplate = $root . '/docs/templates/external-module-README.md';
 $readme = toy_create_external_module_template($readmeTemplate, $replacements);
+$agentsTemplate = $root . '/docs/templates/external-module-AGENTS.md';
+$agents = toy_create_external_module_template($agentsTemplate, $replacements);
 $ciTemplate = toy_create_external_module_template($root . '/docs/module-ci-template.yml', [
     'TOYCORE_MODULE_KEY: example' => 'TOYCORE_MODULE_KEY: ' . $moduleKey,
     'TOYCORE_REF: main' => 'TOYCORE_REF: ' . $toycoreRef,
@@ -200,6 +202,7 @@ $modulePhp = "<?php\n\nreturn [\n"
     . "];\n";
 
 toy_create_external_module_write_file($targetDir . '/README.md', $readme);
+toy_create_external_module_write_file($targetDir . '/AGENTS.md', $agents);
 toy_create_external_module_write_file($targetDir . '/CHANGELOG.md', "# Changelog\n\n## 2026.05.001\n\n- Initial module scaffold.\n");
 toy_create_external_module_write_file($targetDir . '/module/module.php', $modulePhp);
 toy_create_external_module_write_file($targetDir . '/module/install.sql', '-- ' . $moduleName . " module has no tables yet.\n");

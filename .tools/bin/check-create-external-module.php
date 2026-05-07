@@ -62,6 +62,7 @@ try {
 
     foreach ([
         'README.md',
+        'AGENTS.md',
         'CHANGELOG.md',
         'module/module.php',
         'module/install.sql',
@@ -74,13 +75,21 @@ try {
     }
 
     $readme = (string) file_get_contents($targetDir . '/README.md');
+    $agents = (string) file_get_contents($targetDir . '/AGENTS.md');
     $ci = (string) file_get_contents($targetDir . '/.github/workflows/check.yml');
     if (
         !str_contains($readme, 'Toycore 외부 모듈 `banner`')
+        || !str_contains($readme, '구현 규칙은 이 저장소의 `AGENTS.md`를 기준으로 한다')
+        || !str_contains($readme, 'AGENTS.md 기준으로 module/paths.php와 관리자 action을 추가해줘')
         || !str_contains($readme, 'git checkout v0.1.1')
         || !str_contains($readme, 'TOYCORE_REPO=/path/to/toycore')
         || !str_contains($readme, 'php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner')
         || !str_contains($readme, 'Set-Location C:\path\to\toycore-module-banner')
+        || !str_contains($agents, 'Toycore 외부 모듈 `banner`')
+        || !str_contains($agents, 'AI 코딩 도구에 작업을 맡길 때')
+        || !str_contains($agents, 'php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner')
+        || !str_contains($agents, 'toy_banner_items')
+        || !str_contains($agents, 'toy_banner_...')
         || !str_contains($ci, 'TOYCORE_MODULE_KEY: banner')
     ) {
         throw new RuntimeException('scaffold templates were not replaced.');
@@ -88,6 +97,9 @@ try {
     foreach (['MODULE_NAME', 'MODULE_KEY', 'MODULE_REPOSITORY', 'TOYCORE_VERSION', 'TOYCORE_REF', 'MODULE_CONTRACT_VERSION'] as $placeholder) {
         if (str_contains($readme, $placeholder)) {
             throw new RuntimeException('scaffold README still has placeholder: ' . $placeholder);
+        }
+        if (str_contains($agents, $placeholder)) {
+            throw new RuntimeException('scaffold AGENTS still has placeholder: ' . $placeholder);
         }
     }
 
@@ -122,7 +134,11 @@ try {
     if (is_file($noCiTargetDir . '/.github/workflows/check.yml')) {
         throw new RuntimeException('CI workflow should not be created with --no-ci.');
     }
-    if (!is_file($noCiTargetDir . '/module/module.php') || !is_file($noCiTargetDir . '/.tools/bin/package-module')) {
+    if (
+        !is_file($noCiTargetDir . '/AGENTS.md')
+        || !is_file($noCiTargetDir . '/module/module.php')
+        || !is_file($noCiTargetDir . '/.tools/bin/package-module')
+    ) {
         throw new RuntimeException('no-ci scaffold is incomplete.');
     }
 
