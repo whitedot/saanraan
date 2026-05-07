@@ -96,6 +96,12 @@ function toy_admin_handle_modules_post(
         }
 
         if ($errors === []) {
+            foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                $errors[] = $metadataError;
+            }
+        }
+
+        if ($errors === []) {
             foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
                 $errors[] = $requirementError;
             }
@@ -124,21 +130,43 @@ function toy_admin_handle_modules_post(
 
         if ($errors === [] && $intent === 'status' && $status === 'enabled') {
             $metadata = toy_module_metadata($moduleKey);
-            foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
-                $errors[] = $requirementError;
+            if ($metadata === []) {
+                $errors[] = '모듈 메타데이터를 찾을 수 없습니다.';
+            }
+
+            if ($errors === []) {
+                foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                    $errors[] = $metadataError;
+                }
+            }
+
+            if ($errors === []) {
+                foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
+                    $errors[] = $requirementError;
+                }
             }
         }
 
         if ($errors === [] && $intent === 'sync_module_version') {
             $metadata = toy_module_metadata($moduleKey);
-            $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-            $pendingCounts = toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo));
-            if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) !== 1) {
-                $errors[] = '코드 버전 형식이 올바르지 않습니다.';
-            } elseif ((int) ($pendingCounts[$moduleKey] ?? 0) > 0) {
-                $errors[] = '미적용 SQL이 있는 모듈은 업데이트 화면에서 먼저 DB 업데이트를 실행하세요.';
-            } elseif (strcmp($codeVersion, (string) $module['version']) <= 0) {
-                $errors[] = '설치 버전에 반영할 새 코드 버전이 없습니다.';
+            if ($metadata === []) {
+                $errors[] = '모듈 메타데이터를 찾을 수 없습니다.';
+            }
+
+            if ($errors === []) {
+                foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                    $errors[] = $metadataError;
+                }
+            }
+
+            if ($errors === []) {
+                $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+                $pendingCounts = toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo));
+                if ((int) ($pendingCounts[$moduleKey] ?? 0) > 0) {
+                    $errors[] = '미적용 SQL이 있는 모듈은 업데이트 화면에서 먼저 DB 업데이트를 실행하세요.';
+                } elseif (strcmp($codeVersion, (string) $module['version']) <= 0) {
+                    $errors[] = '설치 버전에 반영할 새 코드 버전이 없습니다.';
+                }
             }
         }
     }

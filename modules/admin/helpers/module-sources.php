@@ -845,6 +845,16 @@ function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, 
         $errors[] = 'install.sql 파일이 필요합니다.';
     }
 
+    foreach (toy_admin_module_metadata_errors($metadata) as $error) {
+        $errors[] = $error;
+    }
+
+    return $errors;
+}
+
+function toy_admin_module_metadata_errors(array $metadata): array
+{
+    $errors = [];
     $version = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
     if ($version === '' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
         $errors[] = 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.';

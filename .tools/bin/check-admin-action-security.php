@@ -425,6 +425,13 @@ if (is_string($adminModuleSourcesHelper) && (
     $errors[] = 'Admin module source registry downloads and repository archives must require compatible module contracts.';
 }
 if (is_string($adminModuleSourcesHelper) && (
+    strpos($adminModuleSourcesHelper, 'function toy_admin_module_metadata_errors') === false
+    || strpos($adminModuleSourcesHelper, 'toy_module_contract_errors($metadata)') === false
+    || strpos($adminModuleSourcesHelper, 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.') === false
+)) {
+    $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
+}
+if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_install_module_source_files') === false
     || strpos($adminModuleSourcesHelper, '!rename($backupDir, $targetDir)') === false
     || strpos($adminModuleSourcesHelper, "throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, \$exception)") === false
@@ -442,6 +449,9 @@ if (!is_string($adminModuleActionsHelper)) {
     || substr_count($adminModuleActionsHelper, 'toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))') < 2
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
+}
+if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper, 'toy_admin_module_metadata_errors($metadata)') < 3) {
+    $errors[] = 'Admin module install, enable, and version sync actions must validate module metadata contracts server-side.';
 }
 
 $adminUpdatesHelper = file_get_contents($root . '/modules/admin/helpers/updates.php');
