@@ -50,13 +50,9 @@ toycore-ops
 - notification
 ```
 
-패키지 생성:
+이 배포 패키지는 일반 설치자가 직접 만드는 대상이 아니라 릴리스 제작자가 조립해 제공하는 설치용 결과물이다.
 
-```sh
-./.tools/bin/package-distributions 2026.05.001
-```
-
-생성 위치:
+릴리스 제작 결과:
 
 ```text
 dist/toycore-minimal
@@ -66,7 +62,97 @@ dist/toycore-ops
 
 `zip` 명령을 사용할 수 있으면 같은 이름의 zip 파일도 생성됩니다. minimal 배포본에는 선택 모듈 코드가 없으므로 설치 화면에서 선택 모듈 목록이 비어 있을 수 있습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 `/admin/modules`에서 설치합니다.
 
-standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 상위 디렉터리를 지정합니다.
+릴리스 제작자가 standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
+
+```mermaid
+flowchart TD
+    core["toycore.git<br/>core + member + admin"] --> maker["릴리스 제작자"]
+    modules["toycore-module-* 저장소"] --> maker
+    maker --> package["package-distributions"]
+    package --> minimal["toycore-minimal.zip"]
+    package --> standard["toycore-standard.zip"]
+    package --> ops["toycore-ops.zip"]
+    minimal --> user["사용자 설치"]
+    standard --> user
+    ops --> user
+    user --> install["웹 설치 화면"]
+```
+
+## 설치 방식 선택
+
+릴리스 zip 설치는 Git을 사용할 수 없는 호스팅에서 가장 단순하다. 하지만 zip만 업로드한 운영 서버는 Git 이력이 없으므로, 현재 운영 파일이 어떤 태그에서 왔는지 확인하거나 다음 릴리스와의 차이를 검토하기 어렵다. 업데이트를 반복할 운영 사이트라면 Git 기반 설치를 우선 검토한다.
+
+권장 기준:
+
+```text
+Git 사용 가능, SSH 또는 배포 자동화 가능
+-> clone 또는 fork 기반 설치
+
+Git 불가, FTP/SFTP 또는 파일 관리자만 가능
+-> release zip 설치
+```
+
+현재 `toycore.git` 본체를 그대로 clone하면 core/member/admin 중심의 minimal 수준이다. `standard`나 `ops`까지 Git으로 바로 설치하려면 선택 모듈이 이미 포함된 release zip, 배포 브랜치, 또는 별도 배포 저장소 같은 조립 완료 기준점이 필요하다.
+
+공식 코드를 그대로 운영하고 서버에서 직접 수정하지 않는 minimal 설치라면 clone으로 충분하다.
+
+```sh
+git clone https://github.com/whitedot/toycore.git toycore
+cd toycore
+git checkout v0.1.0
+```
+
+위의 `v0.1.0`은 현재 공개 릴리스 예시다. 실제 설치할 때는 원하는 릴리스 태그를 사용한다.
+
+운영자가 자체 패치, 전용 모듈 조립, 호스팅별 배포 스크립트를 함께 관리해야 한다면 fork를 만든 뒤 fork를 운영 기준 저장소로 둔다. 공식 저장소는 `upstream`으로 추가해 새 릴리스를 가져온다.
+
+```sh
+git clone git@github.com:your-org/toycore.git toycore
+cd toycore
+git remote add upstream https://github.com/whitedot/toycore.git
+git fetch upstream --tags
+git checkout -b release/<release-tag> <release-tag>
+```
+
+릴리스 업데이트 절차:
+
+```text
+1. 운영 DB와 파일 백업
+2. 스테이징에서 git fetch upstream --tags
+3. 새 릴리스 태그 병합 또는 rebase
+4. 충돌과 로컬 패치 확인
+5. 웹 설치 상태와 관리자 로그인 확인
+6. /admin/updates에서 미적용 SQL 검토 후 실행
+7. 운영 서버에 같은 commit 배포
+```
+
+운영 서버에서 바로 `main`을 따라가지 않는다. 운영 반영 기준은 릴리스 태그 또는 검증된 운영 브랜치의 commit SHA로 고정한다. `config/config.php`, `storage/installed.lock`, `storage/logs`, `storage/module-backups`는 Git에 포함하지 않는다.
+
+릴리스 zip만 사용할 수 있는 호스팅에서는 업로드한 zip 파일명, 릴리스 태그, `distribution-manifest.json`, 적용 일자를 운영 기록으로 남긴다. 다음 업데이트 때는 기존 파일을 덮어쓰기 전에 파일 백업을 만들고, zip 교체 후 `/admin/updates`에서 DB 업데이트를 실행한다.
+
+## 릴리스 제작자용 패키징
+
+`package-distributions`는 사용자 설치 명령이 아니라 릴리스 제작 명령이다. toycore 본체와 선택 모듈 저장소를 같은 상위 디렉터리에 둔 뒤 실행한다.
+
+```text
+workspace/
+- toycore/
+- toycore-module-seo/
+- toycore-module-site-menu/
+- toycore-module-banner/
+- toycore-module-popup-layer/
+- toycore-module-point/
+- toycore-module-deposit/
+- toycore-module-reward/
+- toycore-module-notification/
+```
+
+```sh
+cd toycore
+./.tools/bin/package-distributions 2026.05.001
+```
+
+이 명령은 각 모듈 저장소의 `module/` 디렉터리를 읽어 `dist/toycore-standard`와 `dist/toycore-ops`의 `modules/{module_key}` 아래로 복사한다. 생성된 `dist/`는 운영 사이트가 계속 참조하는 디렉터리가 아니라, zip으로 배포하거나 운영 위치에 배치할 설치용 결과물이다.
 
 ## PHP 내장 서버
 

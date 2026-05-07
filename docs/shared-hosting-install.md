@@ -31,11 +31,9 @@ ZipArchive 확장 사용 가능 여부
 php .tools/bin/check.php
 ```
 
-배포 패키지를 만들어 올릴 경우 다음 명령을 사용한다.
+공식 배포 패키지를 사용할 경우 릴리스 페이지에서 `toycore-standard.zip` 또는 필요한 배포 zip을 내려받아 압축을 푼다. `package-distributions`는 릴리스 제작자용 명령이므로, 일반 공유호스팅 설치자가 직접 실행할 필요는 없다.
 
-```sh
-./.tools/bin/package-distributions 2026.05.001
-```
+서버에서 Git을 사용할 수 있다면 릴리스 zip 업로드보다 clone 또는 fork 기반 설치가 업데이트 관리에 유리하다. zip 설치는 Git, SSH, CLI를 사용할 수 없는 호스팅을 위한 경로로 보고, Git 사용 가능 환경의 구체 절차는 [서버별 배포 예시](deployment-examples.md)의 설치 방식 선택을 따른다.
 
 테스트 설치라면 현재 저장소를 그대로 업로드할 수 있다. 운영 설치에서는 `.git/`, 로컬 로그, 임시 파일, 개발 중 생성된 `dist/` 외 파일을 올리지 않는다.
 

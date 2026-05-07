@@ -129,7 +129,51 @@ php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
 php .tools/bin/smoke-http.php http://127.0.0.1:8080
 ```
 
-배포 패키지는 다음 명령으로 만들 수 있습니다.
+## 설치 방식 선택
+
+일반 설치자는 `package-distributions`를 직접 실행하지 않습니다. 이 명령은 공식 배포 zip을 만드는 릴리스 제작자용 도구입니다.
+
+```text
+릴리스 제작자
+-> toycore.git과 선택 모듈 저장소를 모아 minimal/standard/ops 배포본 생성
+
+일반 설치자
+-> 이미 만들어진 release zip 또는 Git 릴리스 태그를 받아 설치
+```
+
+릴리스 zip은 Git, SSH, CLI를 사용할 수 없는 저가형 호스팅을 위한 기본 배포 수단입니다. 설치는 편하지만, 운영 서버에 Git 이력이 없으므로 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 어렵습니다.
+
+Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 단, 현재 `toycore.git` 본체를 그대로 clone하면 선택 모듈이 포함되지 않은 minimal 수준입니다.
+
+```sh
+git clone https://github.com/whitedot/toycore.git toycore
+cd toycore
+git checkout v0.1.0
+```
+
+위의 `v0.1.0`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다. `standard`나 `ops` 구성을 Git으로 바로 설치하려면 조립 완료된 release zip, 배포 브랜치, 또는 별도 배포 저장소처럼 선택 모듈이 이미 포함된 기준점이 필요합니다.
+
+운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 운영자가 로컬 수정, 전용 모듈, 호스팅별 설정 파일, 배포 스크립트를 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
+
+```sh
+git remote -v
+git remote add upstream https://github.com/whitedot/toycore.git
+git fetch upstream --tags
+git checkout -b release/<release-tag> <release-tag>
+```
+
+업데이트는 새 릴리스 태그를 가져온 뒤 스테이징에서 병합 또는 rebase로 검토하고, 파일 반영 후 `/admin/updates`에서 DB 업데이트를 명시적으로 실행합니다.
+
+```sh
+git fetch upstream --tags
+git merge <next-release-tag>
+```
+
+`config/config.php`, `storage/installed.lock`, 로그, 백업 파일은 Git에 커밋하지 않습니다. Git 기반 설치에서도 DB 백업, 파일 백업, 스테이징 검증 후 운영 반영 순서를 지켜야 합니다. Git을 사용할 수 없는 호스팅에서는 릴리스 zip을 사용하되, 업로드한 zip 파일명, 릴리스 태그, `distribution-manifest.json`을 운영 기록으로 남깁니다.
+
+## 릴리스 제작
+
+배포 패키지는 릴리스 제작자 환경에서 다음 명령으로 만듭니다.
 
 ```sh
 ./.tools/bin/package-distributions 2026.05.001

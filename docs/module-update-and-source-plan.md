@@ -21,8 +21,10 @@
 - 모듈 리포지토리 분리 전략은 유지하되, 일반 운영자의 기본 설치 경험에는 repository 분리를 노출하지 않는다.
 - 일반 운영자의 기본 다운로드 대상은 `toycore-standard.zip`으로 둔다.
 - `toycore-minimal.zip`은 작게 시작하려는 고급 선택지로 설명한다.
-- 기본 설치와 업데이트는 Git 없이 가능해야 한다.
-- Git 또는 public repository 가져오기는 기본 경로가 아니라 owner 전용 고급 경로로 둔다.
+- Git을 사용할 수 없는 호스팅도 지원해야 하므로 release zip 설치와 업데이트 경로는 유지한다.
+- Git을 사용할 수 있는 운영 환경에서는 clone 또는 fork 기반 설치를 권장하고, 릴리스 태그 또는 검증된 commit SHA를 배포 기준으로 둔다. 단, 현재 `toycore.git` 본체만 clone하면 minimal 수준이며, standard/ops Git 설치를 쉽게 하려면 조립 완료된 배포 브랜치나 별도 배포 저장소 같은 기준점이 필요하다.
+- 관리자 화면의 public repository 가져오기는 기본 경로가 아니라 owner 전용 고급 경로로 둔다.
+- `package-distributions`는 일반 설치자용 명령이 아니라 릴리스 제작자가 공식 zip과 manifest를 만드는 명령으로 둔다.
 - 어떤 소스에서 가져오든 최종 설치 구조는 항상 `modules/{module_key}/`여야 한다.
 - 파일 교체와 DB 업데이트 실행은 분리한다.
 - 모듈 코드 버전과 DB 적용 버전을 화면에서 동시에 확인할 수 있어야 한다.
@@ -50,7 +52,7 @@ toycore-ops.zip
 - 운영 기능까지 한 번에 검토할 때 사용
 ```
 
-따라서 일반 운영자에게 "toycore.git을 clone하고 필요한 모듈 repository도 각각 clone하라"고 안내하지 않는다. Git clone과 모듈 조립은 릴리스 담당자 또는 개발자 역할이다.
+따라서 Git을 사용할 수 없는 일반 운영자에게 "toycore.git을 clone하고 필요한 모듈 repository도 각각 clone하라"고 안내하지 않는다. 다만 Git을 사용할 수 있는 운영자에게는 릴리스 zip보다 clone 또는 fork 기반 설치를 권장한다. 이 경우 운영 반영 기준은 `main` 같은 이동 브랜치가 아니라 릴리스 태그 또는 검증된 commit SHA다. 여러 모듈 저장소를 모아 `dist/`를 만드는 작업은 설치 절차가 아니라 공식 배포물을 만드는 릴리스 제작 절차다.
 
 운영자에게 보여줄 기본 흐름:
 
