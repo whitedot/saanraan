@@ -164,15 +164,21 @@ function toy_render_output_slot(PDO $pdo, array $context): string
     $context['slot_key'] = $slotKey;
 
     $output = [];
-    foreach (toy_enabled_module_contract_files($pdo, 'output-slots.php', [$moduleKey]) as $file) {
-        $renderer = include $file;
+    foreach (toy_enabled_module_contract_files($pdo, 'output-slots.php', [$moduleKey]) as $rendererModuleKey => $file) {
+        $renderer = toy_load_module_contract_file($rendererModuleKey, $file);
         if (!is_callable($renderer)) {
             continue;
         }
 
-        $rendered = $renderer($pdo, $context);
-        if (is_string($rendered) && $rendered !== '') {
-            $output[] = $rendered;
+        try {
+            $rendered = $renderer($pdo, $context);
+            if (is_string($rendered) && $rendered !== '') {
+                $output[] = $rendered;
+            }
+        } catch (Throwable $exception) {
+            if (function_exists('toy_log_exception')) {
+                toy_log_exception($exception, 'module_output_slot_failed_' . $rendererModuleKey);
+            }
         }
     }
 

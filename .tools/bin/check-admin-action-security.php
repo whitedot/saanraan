@@ -374,13 +374,21 @@ if (is_string($coreSettingsHelper) && (
 )) {
     $errors[] = 'Core module metadata loading must fail closed when module.php throws.';
 }
+if (is_string($coreSettingsHelper) && (
+    strpos($coreSettingsHelper, 'function toy_load_module_contract_file') === false
+    || strpos($coreSettingsHelper, 'include $realFile') === false
+    || strpos($coreSettingsHelper, "toy_log_exception(\$exception, 'module_contract_load_failed_' . \$moduleKey . '_' . \$contractLabel)") === false
+    || strpos($coreSettingsHelper, 'return null;') === false
+)) {
+    $errors[] = 'Core module contract file loading must fail closed when contract files throw.';
+}
 
 $frontController = file_get_contents($root . '/index.php');
 if (!is_string($frontController)) {
     $errors[] = 'Front controller cannot be read.';
 } elseif (
     strpos($frontController, "toy_enabled_module_contract_files(\$pdo, 'paths.php')") === false
-    || strpos($frontController, '$paths = include $pathsFile;') === false
+    || strpos($frontController, 'toy_load_module_contract_file($moduleKey, $pathsFile)') === false
 ) {
     $errors[] = 'Front controller must load module paths.php through the contract file loader.';
 }
@@ -391,7 +399,8 @@ if (!is_string($adminNavigationHelper)) {
 } elseif (
     strpos($adminNavigationHelper, "toy_enabled_module_contract_files(\$pdo, 'admin-menu.php', ['admin'])") === false
     || strpos($adminNavigationHelper, "toy_enabled_module_contract_files(\$pdo, 'paths.php', ['admin'])") === false
-    || strpos($adminNavigationHelper, '$paths = $pathsFile !== \'\' ? include $pathsFile : [];') === false
+    || strpos($adminNavigationHelper, 'toy_load_module_contract_file($moduleKey, $file)') === false
+    || strpos($adminNavigationHelper, 'toy_load_module_contract_file($moduleKey, $pathsFile)') === false
 ) {
     $errors[] = 'Admin navigation must load module paths.php through the contract file loader.';
 }

@@ -190,7 +190,7 @@ function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
     $exports = [];
     foreach (toy_enabled_module_contract_files($pdo, 'privacy-export.php', ['member']) as $moduleKey => $exportFile) {
         try {
-            $moduleExport = include $exportFile;
+            $moduleExport = toy_load_module_contract_file($moduleKey, $exportFile);
             if (is_callable($moduleExport)) {
                 $moduleExportData = $moduleExport($pdo, $accountId);
                 if (is_array($moduleExportData)) {

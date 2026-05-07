@@ -82,7 +82,7 @@ $routeMatches = [];
 foreach (toy_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $pathsFile) {
     $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
 
-    $paths = include $pathsFile;
+    $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
     if (!is_array($paths)) {
         continue;
     }

@@ -112,6 +112,33 @@ function toy_enabled_module_contract_files(PDO $pdo, string $contractFile, array
     return $files;
 }
 
+function toy_load_module_contract_file(string $moduleKey, string $file): mixed
+{
+    if (!toy_is_safe_module_key($moduleKey) || !is_file($file)) {
+        return null;
+    }
+
+    $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
+    $realModuleDir = realpath($moduleDir);
+    $realFile = realpath($file);
+    if ($realModuleDir === false || $realFile === false || strpos($realFile, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
+        return null;
+    }
+
+    try {
+        return include $realFile;
+    } catch (Throwable $exception) {
+        if (function_exists('toy_log_exception')) {
+            $contractFile = strtolower(basename($realFile));
+            $contractLabel = preg_replace('/[^a-z0-9_]+/', '_', $contractFile);
+            $contractLabel = is_string($contractLabel) ? trim($contractLabel, '_') : 'contract';
+            toy_log_exception($exception, 'module_contract_load_failed_' . $moduleKey . '_' . $contractLabel);
+        }
+
+        return null;
+    }
+}
+
 function toy_site_settings(PDO $pdo): array
 {
     static $cache = [];

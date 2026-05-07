@@ -9,13 +9,13 @@ function toy_admin_module_menu_items(PDO $pdo): array
     $pathFiles = toy_enabled_module_contract_files($pdo, 'paths.php', ['admin']);
 
     foreach ($menuFiles as $moduleKey => $file) {
-        $menu = include $file;
+        $menu = toy_load_module_contract_file($moduleKey, $file);
         if (!is_array($menu)) {
             continue;
         }
 
         $pathsFile = (string) ($pathFiles[$moduleKey] ?? '');
-        $paths = $pathsFile !== '' ? include $pathsFile : [];
+        $paths = $pathsFile !== '' ? toy_load_module_contract_file($moduleKey, $pathsFile) : [];
         $paths = is_array($paths) ? $paths : [];
 
         $rawItems = isset($menu['items']) && is_array($menu['items']) ? $menu['items'] : $menu;

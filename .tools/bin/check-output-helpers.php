@@ -109,6 +109,16 @@ toy_output_helper_assert(
     'Untruncated GET helper should reject array values.'
 );
 
+$outputHelper = file_get_contents($root . '/core/helpers/output.php');
+if (is_string($outputHelper)) {
+    toy_output_helper_assert(
+        strpos($outputHelper, 'toy_load_module_contract_file($rendererModuleKey, $file)') !== false
+            && strpos($outputHelper, 'catch (Throwable $exception)') !== false
+            && strpos($outputHelper, "toy_log_exception(\$exception, 'module_output_slot_failed_' . \$rendererModuleKey)") !== false,
+        'Output slot rendering should fail closed for broken module contract files and renderers.'
+    );
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "output helper checks failed:\n");
     foreach ($errors as $error) {
