@@ -51,7 +51,7 @@
 - `.tools/bin/update-module-index --repository-refs`로 운영용 repository archive commit SHA/checksum 등록 가능
 - `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
 - `.tools/bin/clone-official-modules.php`로 공식 모듈 리포지토리 checkout 가능
-- `.tools/bin/create-external-module.php`로 외부 모듈 저장소 최소 구조 생성 가능
+- `.tools/bin/create-external-module.php`로 외부 모듈 저장소 최소 구조, zip 패키징 스크립트, 선택적 CI workflow 생성 가능
 - Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 - standard/ops 배포 패키지는 같은 상위 디렉터리의 외부 모듈 리포지토리에서 선택 모듈을 조립
@@ -381,7 +381,7 @@
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
 - 공식 모듈 registry 구조 검사
 - 배포 manifest 항목 생성 결과 검사
-- 외부 모듈 스캐폴딩 생성 결과 검사
+- 외부 모듈 스캐폴딩 생성 결과와 CI 제외 옵션 검사
 - 클라우드 인증 런타임 정적 검사
 - trusted proxy와 app key 런타임 helper 동작 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행

@@ -80,6 +80,9 @@ php .tools/bin/create-external-module.php banner ../toycore-module-banner
 toycore-module-banner/
 - README.md
 - CHANGELOG.md
+- .tools/
+  - bin/
+    - package-module
 - module/
   - module.php
   - install.sql
@@ -88,7 +91,11 @@ toycore-module-banner/
     - check.yml
 ```
 
-처음 구현에서는 최소 구조만 생성한다. 관리자 화면, public route, output slot 같은 선택 파일은 이후 옵션으로 확장한다.
+`.github/workflows/check.yml`은 기본 생성되지만, CI가 아직 익숙하지 않은 개발자는 `--no-ci` 옵션으로 생략할 수 있다. 이 경우에도 로컬에서 `php /path/to/toycore/.tools/bin/check-external-module.php . banner`로 같은 기준을 직접 점검할 수 있다.
+
+생성된 `.tools/bin/package-module`은 모듈 저장소의 `module/` 디렉터리를 `{module_key}-{version}.zip`으로 묶는다. 이 zip은 Toycore 관리자 모듈 화면에서 업로드하거나, 공식 모듈 registry에 등록할 release 산출물로 사용할 수 있다.
+
+처음 구현에서는 최소 구조와 zip 패키징까지만 생성한다. 관리자 화면, public route, output slot 같은 선택 파일은 이후 옵션으로 확장한다.
 
 ## 3차 작업
 

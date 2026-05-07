@@ -243,9 +243,9 @@ return [
 ];
 ```
 
-`toycore.module_contract`는 관리자 모듈 zip 업로드와 외부 모듈 CI에서 현재 코어의 `TOY_MODULE_CONTRACT_VERSION`과 비교한다. 코어가 모듈 파일 구조나 메타데이터 정책을 호환되지 않게 바꾸면 이 값을 올리고, 외부 모듈은 새 계약에 맞춘 뒤 메타데이터를 갱신한다.
+`toycore.module_contract`는 관리자 모듈 zip 업로드, 로컬 외부 모듈 점검, 외부 모듈 CI에서 현재 코어의 `TOY_MODULE_CONTRACT_VERSION`과 비교한다. 코어가 모듈 파일 구조나 메타데이터 정책을 호환되지 않게 바꾸면 이 값을 올리고, 외부 모듈은 새 계약에 맞춘 뒤 메타데이터를 갱신한다.
 
-외부 모듈 저장소는 `docs/module-ci-template.yml`을 `.github/workflows/check.yml`로 복사해 Toycore 코어와의 기본 호환성을 자동 검증한다.
+외부 모듈 저장소는 먼저 로컬에서 `check-external-module.php`로 점검한다. GitHub Actions가 익숙한 제작자는 `docs/module-ci-template.yml`을 `.github/workflows/check.yml`로 복사해 같은 점검을 push 때 자동 실행할 수 있다.
 
 ## 6. 버전 정책
 
