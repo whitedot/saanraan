@@ -10,6 +10,7 @@ $sourceIndexPath = $root . '/docs/module-index.json';
 $workRoot = $root . '/storage/check-module-index-update-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 $indexPath = $workRoot . '/module-index.json';
 $zipDirectory = $workRoot . '/modules';
+$moduleRepositoryRoot = $workRoot . '/module-repos';
 $version = '2099.01.001';
 $releaseBaseUrl = 'https://example.com/releases';
 $updateModuleIndexTool = $root . '/.tools/bin/update-module-index';
@@ -91,7 +92,7 @@ try {
         throw new RuntimeException('module index update tool must not follow repository archive redirects.');
     }
 
-    if (!mkdir($zipDirectory, 0755, true)) {
+    if (!mkdir($zipDirectory, 0755, true) || !mkdir($moduleRepositoryRoot, 0755, true)) {
         throw new RuntimeException('work directory cannot be created.');
     }
 
@@ -118,6 +119,24 @@ try {
             throw new RuntimeException('test zip cannot be written: ' . $zipName);
         }
 
+        $moduleRepoDir = $moduleRepositoryRoot . '/toycore-module-' . str_replace('_', '-', $moduleKey) . '/module';
+        if (!mkdir($moduleRepoDir, 0755, true)) {
+            throw new RuntimeException('test module repository cannot be created: ' . $moduleKey);
+        }
+
+        $moduleMetadata = "<?php\n\nreturn [\n"
+            . "    'name' => '" . addslashes($moduleKey) . "',\n"
+            . "    'version' => '" . $version . "',\n"
+            . "    'type' => 'module',\n"
+            . "    'toycore' => [\n"
+            . "        'min_version' => '0.1.1',\n"
+            . "        'module_contract' => '1.0',\n"
+            . "    ],\n"
+            . "];\n";
+        if (file_put_contents($moduleRepoDir . '/module.php', $moduleMetadata, LOCK_EX) === false) {
+            throw new RuntimeException('test module metadata cannot be written: ' . $moduleKey);
+        }
+
         $checksum = hash_file('sha256', $zipPath);
         if (!is_string($checksum)) {
             throw new RuntimeException('test zip checksum cannot be calculated: ' . $zipName);
@@ -129,7 +148,10 @@ try {
     toy_check_module_index_update_run(
         escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/update-module-index') . ' '
             . escapeshellarg($version) . ' ' . escapeshellarg($releaseBaseUrl) . ' ' . escapeshellarg($zipDirectory),
-        ['TOYCORE_MODULE_INDEX_PATH' => $indexPath]
+        [
+            'TOYCORE_MODULE_INDEX_PATH' => $indexPath,
+            'TOYCORE_MODULE_REPO_ROOT' => $moduleRepositoryRoot,
+        ]
     );
     toy_check_module_index_update_run(
         escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-index.php') . ' ' . escapeshellarg($indexPath)
@@ -155,6 +177,8 @@ try {
             (string) ($module['latest_version'] ?? '') !== $version
             || (string) ($module['zip_url'] ?? '') !== $expectedZipUrl
             || (string) ($module['checksum'] ?? '') !== $expectedChecksums[$moduleKey]
+            || (string) ($module['min_toycore_version'] ?? '') !== '0.1.1'
+            || (string) ($module['module_contract'] ?? '') !== '1.0'
         ) {
             throw new RuntimeException('module index update result is invalid: ' . $moduleKey);
         }

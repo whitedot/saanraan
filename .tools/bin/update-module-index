@@ -9,6 +9,7 @@ $releaseBaseUrl = rtrim((string) ($argv[2] ?? ''), '/');
 $zipDirectory = $root . '/dist/modules';
 $updateRepositoryRefs = false;
 $repositoryRoot = '';
+$moduleMetadataRoot = (string) (getenv('TOYCORE_MODULE_REPO_ROOT') ?: dirname($root));
 $arguments = array_slice($argv, 3);
 if (($arguments[0] ?? '') !== '' && $arguments[0] !== '--repository-refs') {
     $zipDirectory = (string) array_shift($arguments);
@@ -29,6 +30,9 @@ if ($zipDirectory !== '' && !str_starts_with($zipDirectory, '/') && preg_match('
 }
 if ($repositoryRoot !== '' && !str_starts_with($repositoryRoot, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $repositoryRoot) !== 1) {
     $repositoryRoot = $root . '/' . $repositoryRoot;
+}
+if ($moduleMetadataRoot !== '' && !str_starts_with($moduleMetadataRoot, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $moduleMetadataRoot) !== 1) {
+    $moduleMetadataRoot = $root . '/' . $moduleMetadataRoot;
 }
 
 if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
@@ -241,7 +245,7 @@ foreach ($index['modules'] as $position => $module) {
     $index['modules'][$position]['latest_version'] = $version;
     $index['modules'][$position]['zip_url'] = $releaseBaseUrl . '/' . rawurlencode($zipName);
     $index['modules'][$position]['checksum'] = $checksum;
-    $metadata = toy_update_module_index_module_metadata($repositoryRoot !== '' ? $repositoryRoot : dirname($root), $moduleKey);
+    $metadata = toy_update_module_index_module_metadata($moduleMetadataRoot, $moduleKey);
     $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
     if (is_string($toycoreMetadata['min_version'] ?? null)) {
         $index['modules'][$position]['min_toycore_version'] = (string) $toycoreMetadata['min_version'];
