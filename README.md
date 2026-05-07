@@ -131,10 +131,10 @@ php .tools/bin/smoke-http.php http://127.0.0.1:8080
 
 ## 설치 방식 선택
 
-일반 설치자는 `package-distributions`를 직접 실행하지 않습니다. 이 명령은 공식 배포 zip을 만드는 릴리스 제작자용 도구입니다.
+일반 설치자는 `package-distributions`를 직접 실행하지 않습니다. 이 명령은 공식 배포 zip을 만드는 Toycore 공식 maintainer용 도구입니다.
 
 ```text
-릴리스 제작자
+공식 maintainer
 -> toycore.git과 선택 모듈 저장소를 모아 minimal/standard/ops 배포본 생성
 
 일반 설치자
@@ -173,7 +173,9 @@ git merge <next-release-tag>
 
 ## 릴리스 제작
 
-배포 패키지는 릴리스 제작자 환경에서 다음 명령으로 만듭니다.
+공식 배포 조합은 [distributions.json](docs/distributions.json)에 정의합니다. 이 파일이 `minimal`, `standard`, `ops` 포함 모듈과 설치 화면의 기본 선택 모듈을 정하는 기준입니다.
+
+배포 패키지는 공식 maintainer 환경에서 다음 명령으로 만듭니다.
 
 ```sh
 ./.tools/bin/package-distributions 2026.05.001
@@ -185,6 +187,7 @@ git merge <next-release-tag>
 생성된 배포 디렉터리, manifest, 설치 화면 선택 모듈 구성은 다음 명령으로 확인할 수 있습니다.
 
 ```sh
+php .tools/bin/check-distribution-policy.php
 php .tools/bin/check-distributions.php 2026.05.001
 ```
 

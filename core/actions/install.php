@@ -26,6 +26,18 @@ $optionalModules = [
         'label' => 'SEO',
         'description' => 'robots.txt, sitemap.xml, 기본 meta 설정 화면을 설치합니다.',
     ],
+    'site_menu' => [
+        'name' => 'Site Menu',
+        'version' => '2026.04.003',
+        'label' => '사이트 메뉴',
+        'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
+    ],
+    'banner' => [
+        'name' => 'Banner',
+        'version' => '2026.04.001',
+        'label' => '배너',
+        'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
+    ],
     'popup_layer' => [
         'name' => 'Popup Layer',
         'version' => '2026.04.001',
@@ -50,18 +62,6 @@ $optionalModules = [
         'label' => '적립금',
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
-    'site_menu' => [
-        'name' => 'Site Menu',
-        'version' => '2026.04.003',
-        'label' => '사이트 메뉴',
-        'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
-    ],
-    'banner' => [
-        'name' => 'Banner',
-        'version' => '2026.04.001',
-        'label' => '배너',
-        'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
-    ],
     'notification' => [
         'name' => 'Notification',
         'version' => '2026.04.001',
@@ -75,7 +75,30 @@ foreach (array_keys($optionalModules) as $moduleKey) {
     }
 }
 
-$selectedOptionalModuleKeys = ['seo', 'site_menu', 'banner'];
+function toy_install_default_optional_module_keys(): array
+{
+    $path = TOY_ROOT . '/docs/distributions.json';
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        return [];
+    }
+
+    $data = json_decode($content, true);
+    if (!is_array($data) || !is_array($data['default_optional_modules'] ?? null)) {
+        return [];
+    }
+
+    $moduleKeys = [];
+    foreach ($data['default_optional_modules'] as $moduleKey) {
+        if (is_string($moduleKey) && preg_match('/\A[a-z0-9_]+\z/', $moduleKey) === 1) {
+            $moduleKeys[] = $moduleKey;
+        }
+    }
+
+    return $moduleKeys;
+}
+
+$selectedOptionalModuleKeys = toy_install_default_optional_module_keys();
 $selectedOptionalModuleKeys = array_values(array_intersect($selectedOptionalModuleKeys, array_keys($optionalModules)));
 $values = [
     'db_host' => 'localhost',

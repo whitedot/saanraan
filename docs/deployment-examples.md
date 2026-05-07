@@ -28,6 +28,7 @@ storage/installed.lock
 ## 배포 패키지 종류
 
 Toycore 본체 소스는 core/member/admin 중심으로 유지하고, 배포 산출물은 필요에 따라 선택 모듈을 조립해 나눕니다.
+공식 배포 조합은 `docs/distributions.json`을 기준으로 하며, 패키징과 검증, 설치 화면 기본 선택값이 이 파일을 읽습니다.
 
 ```text
 toycore-minimal
@@ -50,7 +51,7 @@ toycore-ops
 - notification
 ```
 
-이 배포 패키지는 일반 설치자가 직접 만드는 대상이 아니라 릴리스 제작자가 조립해 제공하는 설치용 결과물이다.
+이 배포 패키지는 일반 설치자가 직접 만드는 대상이 아니라 Toycore 공식 maintainer가 조립해 제공하는 설치용 결과물이다.
 
 릴리스 제작 결과:
 
@@ -62,11 +63,11 @@ dist/toycore-ops
 
 `zip` 명령을 사용할 수 있으면 같은 이름의 zip 파일도 생성됩니다. minimal 배포본에는 선택 모듈 코드가 없으므로 설치 화면에서 선택 모듈 목록이 비어 있을 수 있습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 `/admin/modules`에서 설치합니다.
 
-릴리스 제작자가 standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
+공식 maintainer가 standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
 
 ```mermaid
 flowchart TD
-    core["toycore.git<br/>core + member + admin"] --> maker["릴리스 제작자"]
+    core["toycore.git<br/>core + member + admin"] --> maker["공식 maintainer"]
     modules["toycore-module-* 저장소"] --> maker
     maker --> package["package-distributions"]
     package --> minimal["toycore-minimal.zip"]
@@ -130,7 +131,7 @@ git checkout -b release/<release-tag> <release-tag>
 
 릴리스 zip만 사용할 수 있는 호스팅에서는 업로드한 zip 파일명, 릴리스 태그, `distribution-manifest.json`, 적용 일자를 운영 기록으로 남긴다. 다음 업데이트 때는 기존 파일을 덮어쓰기 전에 파일 백업을 만들고, zip 교체 후 `/admin/updates`에서 DB 업데이트를 실행한다.
 
-## 릴리스 제작자용 패키징
+## Maintainer 패키징
 
 `package-distributions`는 사용자 설치 명령이 아니라 릴리스 제작 명령이다. toycore 본체와 선택 모듈 저장소를 같은 상위 디렉터리에 둔 뒤 실행한다.
 

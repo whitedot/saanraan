@@ -278,13 +278,7 @@ Toycore에서 Git 리포지토리는 개발과 릴리스 관리를 위한 도구
 - Toycore는 `/admin/modules`와 `/admin/updates`로 설치/활성화/업데이트를 처리한다.
 - Git, Composer, SSH, CLI가 없어도 설치할 수 있어야 한다.
 
-Toycore 본체 배포 패키지:
-
-```text
-minimal = core + member + admin
-standard = minimal + seo + site_menu + banner
-ops = standard + popup_layer + point + deposit + reward + notification
-```
+Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눈다. 공식 포함 모듈과 설치 화면 기본 선택 모듈은 `docs/distributions.json`을 기준으로 한다.
 
 패키지 생성 명령:
 
@@ -587,8 +581,8 @@ notification
 코어는 최소 배포와 번들 배포를 구분한다.
 
 ```text
-minimal = core + member + admin
-standard = minimal + 검증된 선택 모듈 묶음
+minimal = 필수 실행 기반
+standard/ops = 검증된 선택 모듈 묶음
 ```
 
 설치 화면은 번들 모듈을 선택할 수 있지만, 코어 설계상 필수로 보지 않는다.

@@ -24,7 +24,7 @@
 - Git을 사용할 수 없는 호스팅도 지원해야 하므로 release zip 설치와 업데이트 경로는 유지한다.
 - Git을 사용할 수 있는 운영 환경에서는 clone 또는 fork 기반 설치를 권장하고, 릴리스 태그 또는 검증된 commit SHA를 배포 기준으로 둔다. 단, 현재 `toycore.git` 본체만 clone하면 minimal 수준이며, standard/ops Git 설치를 쉽게 하려면 조립 완료된 배포 브랜치나 별도 배포 저장소 같은 기준점이 필요하다.
 - 관리자 화면의 public repository 가져오기는 기본 경로가 아니라 owner 전용 고급 경로로 둔다.
-- `package-distributions`는 일반 설치자용 명령이 아니라 릴리스 제작자가 공식 zip과 manifest를 만드는 명령으로 둔다.
+- `package-distributions`는 일반 설치자용 명령이 아니라 Toycore 공식 maintainer가 공식 zip과 manifest를 만드는 명령으로 둔다.
 - 어떤 소스에서 가져오든 최종 설치 구조는 항상 `modules/{module_key}/`여야 한다.
 - 파일 교체와 DB 업데이트 실행은 분리한다.
 - 모듈 코드 버전과 DB 적용 버전을 화면에서 동시에 확인할 수 있어야 한다.

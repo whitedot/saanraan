@@ -9,6 +9,7 @@
 - 다른 위치를 쓰면 `TOYCORE_MODULE_REPO_ROOT`에 모듈 리포지토리 상위 디렉터리를 지정한다.
 - 각 모듈의 `module/module.php` version과 `CHANGELOG.md`를 확인한다.
 - 공식 모듈 registry 구조는 `php .tools/bin/check-module-index.php`로 확인한다.
+- 공식 배포 조합은 `docs/distributions.json`에서 확인하고, `php .tools/bin/check-distribution-policy.php`로 검증한다.
 
 ## 2. 본체 배포 패키지 생성
 
@@ -32,6 +33,7 @@ dist/toycore-ops-2026.05.001.zip
 배포 디렉터리, manifest, 설치 화면 선택 모듈 구성의 기본 구조는 다음 명령으로 검증한다.
 
 ```sh
+php .tools/bin/check-distribution-policy.php
 php .tools/bin/check-distributions.php 2026.05.001
 ```
 

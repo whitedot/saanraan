@@ -5,6 +5,7 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 DIST="${ROOT}/dist"
 VERSION="${1:-dev}"
 MODULE_REPO_ROOT="${TOYCORE_MODULE_REPO_ROOT:-$(dirname "${ROOT}")}"
+DISTRIBUTION_POLICY="${ROOT}/docs/distributions.json"
 
 copy_path() {
     source_path="$1"
@@ -33,6 +34,7 @@ copy_base() {
         storage/.gitignore \
         docs/deployment-examples.md \
         docs/deployment-protection.md \
+        docs/distributions.json \
         docs/install-plan.md \
         docs/module-index.json \
         docs/module-guide.md \
@@ -77,6 +79,48 @@ copy_modules() {
     done
 }
 
+distribution_modules() {
+    distribution_key="$1"
+
+    php -r '
+        $path = $argv[1];
+        $distributionKey = $argv[2];
+        $content = file_get_contents($path);
+        $data = is_string($content) ? json_decode($content, true) : null;
+        if (!is_array($data) || !isset($data["packages"][$distributionKey]) || !is_array($data["packages"][$distributionKey])) {
+            fwrite(STDERR, "Invalid distribution policy: " . $distributionKey . PHP_EOL);
+            exit(1);
+        }
+        echo implode(" ", $data["packages"][$distributionKey]);
+    ' "${DISTRIBUTION_POLICY}" "${distribution_key}"
+}
+
+distribution_optional_modules() {
+    distribution_key="$1"
+
+    php -r '
+        $path = $argv[1];
+        $distributionKey = $argv[2];
+        $content = file_get_contents($path);
+        $data = is_string($content) ? json_decode($content, true) : null;
+        if (!is_array($data) || !isset($data["packages"][$distributionKey]) || !is_array($data["packages"][$distributionKey])) {
+            fwrite(STDERR, "Invalid distribution policy: " . $distributionKey . PHP_EOL);
+            exit(1);
+        }
+        $modules = array_values(array_diff($data["packages"][$distributionKey], ["member", "admin"]));
+        echo implode(" ", $modules);
+    ' "${DISTRIBUTION_POLICY}" "${distribution_key}"
+}
+
+copy_distribution_modules() {
+    target_root="$1"
+    distribution_key="$2"
+
+    for module_key in $(distribution_optional_modules "${distribution_key}"); do
+        copy_module "${target_root}" "${module_key}"
+    done
+}
+
 module_version() {
     module_root="$1"
 
@@ -100,7 +144,7 @@ write_manifest() {
         printf '  "version": "%s",\n' "${VERSION}"
         printf '  "modules": [\n'
         first=1
-        for module_key in member admin "$@"; do
+        for module_key in "$@"; do
             version="$(module_version "${package_root}/modules/${module_key}")"
             if [ "${first}" -eq 0 ]; then
                 printf ',\n'
@@ -134,15 +178,15 @@ standard_root="${DIST}/toycore-standard"
 ops_root="${DIST}/toycore-ops"
 
 copy_base "${minimal_root}"
-write_manifest toycore-minimal "${minimal_root}"
+write_manifest toycore-minimal "${minimal_root}" $(distribution_modules minimal)
 
 copy_base "${standard_root}"
-copy_modules "${standard_root}" seo site_menu banner
-write_manifest toycore-standard "${standard_root}" seo site_menu banner
+copy_distribution_modules "${standard_root}" standard
+write_manifest toycore-standard "${standard_root}" $(distribution_modules standard)
 
 copy_base "${ops_root}"
-copy_modules "${ops_root}" seo site_menu banner popup_layer point deposit reward notification
-write_manifest toycore-ops "${ops_root}" seo site_menu banner popup_layer point deposit reward notification
+copy_distribution_modules "${ops_root}" ops
+write_manifest toycore-ops "${ops_root}" $(distribution_modules ops)
 
 make_zip toycore-minimal "${minimal_root}"
 make_zip toycore-standard "${standard_root}"

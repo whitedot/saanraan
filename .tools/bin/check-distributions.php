@@ -12,12 +12,6 @@ if ($expectedVersion !== '' && preg_match('/\A(?:dev|\d{4}\.\d{2}\.\d{3})\z/', $
     exit(1);
 }
 
-$packages = [
-    'toycore-minimal' => ['member', 'admin'],
-    'toycore-standard' => ['member', 'admin', 'seo', 'site_menu', 'banner'],
-    'toycore-ops' => ['member', 'admin', 'seo', 'site_menu', 'banner', 'popup_layer', 'point', 'deposit', 'reward', 'notification'],
-];
-
 $errors = [];
 
 function toy_distribution_error(string $message): void
@@ -41,6 +35,63 @@ function toy_distribution_read_json(string $path): array
     }
 
     return $decoded;
+}
+
+function toy_distribution_read_policy(string $root): array
+{
+    $policy = toy_distribution_read_json($root . '/docs/distributions.json');
+    if (!is_array($policy['packages'] ?? null)) {
+        toy_distribution_error('Distribution policy packages are missing.');
+        return [
+            'packages' => [],
+            'default_optional_modules' => [],
+        ];
+    }
+
+    $packages = [];
+    foreach ($policy['packages'] as $packageKey => $modules) {
+        if (!is_string($packageKey) || !is_array($modules)) {
+            toy_distribution_error('Distribution policy package entry is invalid.');
+            continue;
+        }
+
+        $moduleKeys = [];
+        foreach ($modules as $moduleKey) {
+            if (!is_string($moduleKey) || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+                toy_distribution_error('Distribution policy module key is invalid: ' . (string) $moduleKey);
+                continue;
+            }
+
+            $moduleKeys[] = $moduleKey;
+        }
+
+        $packages['toycore-' . $packageKey] = $moduleKeys;
+    }
+
+    $defaultOptionalModules = [];
+    if (!is_array($policy['default_optional_modules'] ?? null)) {
+        toy_distribution_error('Distribution policy default optional modules are missing.');
+    } else {
+        foreach ($policy['default_optional_modules'] as $moduleKey) {
+            if (!is_string($moduleKey) || preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+                toy_distribution_error('Distribution policy default optional module key is invalid: ' . (string) $moduleKey);
+                continue;
+            }
+
+            $defaultOptionalModules[] = $moduleKey;
+        }
+    }
+
+    foreach (['toycore-minimal', 'toycore-standard', 'toycore-ops'] as $packageName) {
+        if (!array_key_exists($packageName, $packages)) {
+            toy_distribution_error('Distribution policy package is missing: ' . $packageName);
+        }
+    }
+
+    return [
+        'packages' => $packages,
+        'default_optional_modules' => $defaultOptionalModules,
+    ];
 }
 
 function toy_distribution_module_version(string $moduleDir): string
@@ -86,20 +137,6 @@ function toy_distribution_install_optional_modules(string $root): array
 
     $block = toy_distribution_install_array_block($content, 'optionalModules');
     preg_match_all("/'([a-z0-9_]+)'\\s*=>\\s*\\[/", $block, $matches);
-    return $matches[1] ?? [];
-}
-
-function toy_distribution_install_default_optional_modules(string $root): array
-{
-    $installAction = $root . '/core/actions/install.php';
-    $content = file_get_contents($installAction);
-    if (!is_string($content)) {
-        toy_distribution_error('Install action cannot be read: ' . $installAction);
-        return [];
-    }
-
-    $block = toy_distribution_install_array_block($content, 'selectedOptionalModuleKeys');
-    preg_match_all("/'([a-z0-9_]+)'/", $block, $matches);
     return $matches[1] ?? [];
 }
 
@@ -195,13 +232,18 @@ function toy_distribution_validate_manifest(string $packageName, string $package
     }
 }
 
-function toy_distribution_validate_install_sets(array $packages, array $installOptionalModules, array $installDefaultOptionalModules): void
+function toy_distribution_validate_install_sets(array $packages, array $installOptionalModules, array $policyDefaultOptionalModules): void
 {
+    if (!isset($packages['toycore-standard'], $packages['toycore-ops'])) {
+        toy_distribution_error('Distribution policy must define standard and ops packages.');
+        return;
+    }
+
     $standardOptionalModules = array_values(array_diff($packages['toycore-standard'], ['member', 'admin']));
     $opsOptionalModules = array_values(array_diff($packages['toycore-ops'], ['member', 'admin']));
 
-    if ($standardOptionalModules !== $installDefaultOptionalModules) {
-        toy_distribution_error('Standard package modules must match default optional install modules.');
+    if ($standardOptionalModules !== $policyDefaultOptionalModules) {
+        toy_distribution_error('Standard package modules must match distribution policy default optional modules.');
     }
 
     if ($opsOptionalModules !== $installOptionalModules) {
@@ -215,8 +257,9 @@ if (!is_dir($distRoot)) {
 }
 
 $installOptionalModules = toy_distribution_install_optional_modules($root);
-$installDefaultOptionalModules = toy_distribution_install_default_optional_modules($root);
-toy_distribution_validate_install_sets($packages, $installOptionalModules, $installDefaultOptionalModules);
+$policy = toy_distribution_read_policy($root);
+$packages = $policy['packages'];
+toy_distribution_validate_install_sets($packages, $installOptionalModules, $policy['default_optional_modules']);
 
 foreach ($packages as $packageName => $expectedModules) {
     $packageRoot = $distRoot . '/' . $packageName;
