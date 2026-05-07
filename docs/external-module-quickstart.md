@@ -124,6 +124,12 @@ module/
 ./.tools/bin/package-module 2026.05.001
 ```
 
+Windows처럼 실행 권한 개념이 다른 환경에서는 다음처럼 실행해도 된다.
+
+```sh
+php .tools/bin/package-module 2026.05.001
+```
+
 이 명령은 `dist/{module_key}-2026.05.001.zip`을 만든다. PHP `ZipArchive` 확장이 없는 환경에서는 수동으로 같은 구조의 zip을 만든다.
 
 ## 6. 관리자에서 업로드

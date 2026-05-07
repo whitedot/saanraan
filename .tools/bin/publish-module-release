@@ -57,14 +57,21 @@ for module_key in ${module_keys}; do
         exit 1
     fi
 
-    if [ ! -x "${package_script}" ]; then
-        echo "module package script is missing or not executable: ${package_script}" >&2
+    if [ ! -f "${package_script}" ]; then
+        echo "module package script is missing: ${package_script}" >&2
         exit 1
     fi
 
     (
         cd "${module_repo}"
-        "${package_script}" "${VERSION}"
+        if [ -x "${package_script}" ]; then
+            "${package_script}" "${VERSION}"
+        elif head -n 2 "${package_script}" | grep -Eq "<\\?php|^#!.*[[:space:]/]php([[:space:]]|$)"; then
+            php "${package_script}" "${VERSION}"
+        else
+            echo "module package script is not executable: ${package_script}" >&2
+            exit 1
+        fi
     )
 
     zip_path="$(find "${module_repo}" -path "${module_repo}/.git" -prune -o -type f -name "${zip_name}" -print | sed -n '1p')"

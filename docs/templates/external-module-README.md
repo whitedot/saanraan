@@ -49,6 +49,12 @@ MODULE_KEY-2026.05.001.zip
 ./.tools/bin/package-module 2026.05.001
 ```
 
+Windows처럼 실행 권한 개념이 다른 환경에서는 다음처럼 실행해도 된다.
+
+```sh
+php .tools/bin/package-module 2026.05.001
+```
+
 ## Toycore 관리자 업로드
 
 ```text
