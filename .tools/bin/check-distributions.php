@@ -194,13 +194,46 @@ function toy_distribution_validate_manifest(string $packageName, string $package
     $manifestModules = [];
     foreach ($manifest['modules'] as $module) {
         if (!is_array($module)) {
+            toy_distribution_error('Distribution manifest module entry is invalid: ' . $manifestPath);
             continue;
         }
 
-        $manifestModules[(string) ($module['module_key'] ?? '')] = [
-            'version' => (string) ($module['version'] ?? ''),
-            'min_toycore_version' => (string) ($module['min_toycore_version'] ?? ''),
-            'module_contract' => (string) ($module['module_contract'] ?? ''),
+        $moduleKey = is_string($module['module_key'] ?? null) ? (string) $module['module_key'] : '';
+        if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
+            toy_distribution_error('Distribution manifest module key is invalid: ' . $manifestPath);
+            continue;
+        }
+
+        if (isset($manifestModules[$moduleKey])) {
+            toy_distribution_error('Distribution manifest module key is duplicated: ' . $manifestPath . ' ' . $moduleKey);
+            continue;
+        }
+
+        foreach (['version', 'min_toycore_version', 'module_contract'] as $field) {
+            if (!array_key_exists($field, $module) || !is_string($module[$field])) {
+                toy_distribution_error('Distribution manifest module field must be a string: ' . $manifestPath . ' ' . $moduleKey . ' ' . $field);
+            }
+        }
+
+        $moduleVersion = is_string($module['version'] ?? null) ? (string) $module['version'] : '';
+        if ($moduleVersion !== '' && preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $moduleVersion) !== 1) {
+            toy_distribution_error('Distribution manifest module version is invalid: ' . $manifestPath . ' ' . $moduleKey);
+        }
+
+        $minToycoreVersion = is_string($module['min_toycore_version'] ?? null) ? (string) $module['min_toycore_version'] : '';
+        if ($minToycoreVersion !== '' && preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minToycoreVersion) !== 1) {
+            toy_distribution_error('Distribution manifest module min Toycore version is invalid: ' . $manifestPath . ' ' . $moduleKey);
+        }
+
+        $moduleContract = is_string($module['module_contract'] ?? null) ? (string) $module['module_contract'] : '';
+        if ($moduleContract !== '' && preg_match('/\A\d+\.\d+\z/', $moduleContract) !== 1) {
+            toy_distribution_error('Distribution manifest module contract is invalid: ' . $manifestPath . ' ' . $moduleKey);
+        }
+
+        $manifestModules[$moduleKey] = [
+            'version' => $moduleVersion,
+            'min_toycore_version' => $minToycoreVersion,
+            'module_contract' => $moduleContract,
         ];
     }
 
