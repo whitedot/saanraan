@@ -71,6 +71,7 @@ fi
 "${PHP_BIN}" .tools/bin/check-module-index-update.php
 "${PHP_BIN}" .tools/bin/check-official-module-checkout.php
 "${PHP_BIN}" .tools/bin/check-distribution-manifest-entry.php
+"${PHP_BIN}" .tools/bin/check-create-external-module.php
 "${PHP_BIN}" .tools/bin/check-distribution-policy.php
 "${PHP_BIN}" .tools/bin/check-retention-targets.php
 "${PHP_BIN}" .tools/bin/check-auth-runtime.php

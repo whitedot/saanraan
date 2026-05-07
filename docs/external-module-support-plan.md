@@ -25,7 +25,7 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 ```text
 1차 문서 진입점 정리: 완료
-2차 스캐폴딩 도구: 대기
+2차 스캐폴딩 도구: 완료
 3차 샘플 모듈 계약 정리: 대기
 ```
 
@@ -46,7 +46,7 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 ## 2차 작업
 
-상태: 대기
+상태: 완료
 
 목표:
 
@@ -59,6 +59,13 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 .tools/bin/create-external-module.php
 .tools/bin/check-create-external-module.php
 ```
+
+완료 항목:
+
+- `create-external-module.php`로 README, CHANGELOG, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml` 생성
+- 기존 파일을 덮어쓰지 않도록 빈 target 디렉터리만 허용
+- 생성 결과를 `check-external-module.php`로 검증
+- `check-create-external-module.php`를 전체 검사에 연결
 
 기본 사용 예:
 
