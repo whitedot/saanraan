@@ -100,10 +100,10 @@ Git 불가, FTP/SFTP 또는 파일 관리자만 가능
 ```sh
 git clone https://github.com/whitedot/toycore.git toycore
 cd toycore
-git checkout v0.1.0
+git checkout v0.1.1
 ```
 
-위의 `v0.1.0`은 현재 공개 릴리스 예시다. 실제 설치할 때는 원하는 릴리스 태그를 사용한다.
+위의 `v0.1.1`은 현재 공개 릴리스 예시다. 실제 설치할 때는 원하는 릴리스 태그를 사용한다.
 
 운영자가 자체 패치, 전용 모듈 조립, 호스팅별 배포 스크립트를 함께 관리해야 한다면 fork를 만든 뒤 fork를 운영 기준 저장소로 둔다. 공식 저장소는 `upstream`으로 추가해 새 릴리스를 가져온다.
 
