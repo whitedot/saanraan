@@ -102,7 +102,7 @@ demo2026_
 
 하위 디렉터리에 배포하는 경우도 지원합니다. 예를 들어 `https://example.com/toycore/`에서 설치하면 앱은 `SCRIPT_NAME` 기준으로 base path를 계산하고, CSS/JavaScript/form/link/redirect 경로를 `/toycore/...` 형태로 출력합니다. 설치 화면의 기본 URL도 현재 접속 base path를 포함한 값으로 제안합니다.
 
-Toycore는 특정 서버용 보호 파일을 기본 배포 산출물로 제공하지 않습니다. `config/`, `storage/`, `database/`, `core/`, `modules/`, `docs/`, `examples/` 같은 내부 디렉터리는 호스팅 제어판, 서버 설정, 상위 디렉터리 배치 등 운영 환경의 방식으로 직접 접근을 차단해야 합니다. 설치기는 이 조건을 안내하고, 공개 라우팅 가능한 현재 URL에서는 직접 접근 가능 여부를 점검합니다.
+Toycore는 특정 서버용 보호 파일을 기본 배포 산출물로 제공하지 않습니다. `config/`, `storage/`, `database/`, `core/`, `modules/`, `docs/`, `examples/`, `.git/`, `.tools/`, `AGENTS.md`, `README.md` 같은 내부 경로와 문서는 호스팅 제어판, 서버 설정, 상위 디렉터리 배치 등 운영 환경의 방식으로 직접 접근을 차단해야 합니다. 설치기는 이 조건을 안내하고, 공개 라우팅 가능한 현재 URL에서는 직접 접근 가능 여부를 점검합니다.
 
 테스트나 평가 목적의 설치는 공개 도메인의 HTTP URL에서도 진행할 수 있습니다. 다만 설치 화면은 HTTP 사용을 경고로 표시하고, 실제 운영 전에는 HTTPS 전환을 안내합니다. 내부 경로 점검 URL이 실제로 열리는 경우에는 HTTPS 여부와 관계없이 설치를 중단합니다.
 

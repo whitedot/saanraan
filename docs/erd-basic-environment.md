@@ -63,6 +63,17 @@ erDiagram
         datetime updated_at
     }
 
+    toy_rate_limits {
+        bigint id PK
+        varchar rate_key UK
+        varchar bucket
+        varchar subject_hash
+        int attempt_count
+        datetime expires_at
+        datetime created_at
+        datetime updated_at
+    }
+
     toy_schema_versions {
         bigint id PK
         varchar scope
@@ -478,6 +489,14 @@ PHP 런타임 세션 payload를 DB에 저장해 다중 인스턴스와 공유호
 `session_id_hash`에는 브라우저 쿠키에 들어가는 PHP session ID 원문이 아니라 SHA-256 hash를 저장합니다. DB가 유출되어도 이 값만으로 session ID 원문을 재구성해 쿠키로 사용할 수 없어야 합니다.
 
 이 테이블은 PHP 세션 payload 저장소이며, 로그인 세션 관리와 강제 폐기는 `member` 모듈의 `toy_member_sessions`가 담당합니다.
+
+### `toy_rate_limits`
+
+인증, 회원가입, 이메일 인증, 비밀번호 재설정처럼 반복 요청 제한이 필요한 기능의 카운터를 저장합니다.
+
+`rate_key`와 `subject_hash`는 원문 IP, 계정 식별자, 이메일, 토큰 값을 그대로 저장하지 않고 HMAC hash 기반 값으로 저장합니다. `bucket`은 제한 정책 단위를 구분하는 문자열이며, `expires_at`이 지난 row는 보관 정리 대상입니다.
+
+이 테이블이 없는 기존 설치에서는 `member` 모듈이 인증 로그 기반 제한으로 fallback할 수 있지만, 현재 설치 SQL 기준의 기본 구조에는 포함됩니다.
 
 ## 회원 인증 모듈
 

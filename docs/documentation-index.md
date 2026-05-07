@@ -6,6 +6,7 @@
 
 | 문서 | 종류 | 용도 |
 | --- | --- | --- |
+| `documentation-index.md` | 문서 분류 | `docs/` 아래 문서의 현재 용도와 우선순위 |
 | `core-decisions.md` | 핵심 결정 로그 | 구현 판단이 갈릴 때 우선하는 설계 결정 |
 | `current-implementation-status.md` | 현재 상태 | 코드 기준 구현 범위와 검증 기준 |
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
@@ -25,6 +26,7 @@
 | `install-plan.md` | 설치 흐름 | 웹 설치, 필수/선택 모듈 설치, 실패 재시도 기준 |
 | `update-plan.md` | 업데이트 흐름 | SQL 파일 기반 스키마 업데이트와 복구 기준 |
 | `runtime-ops-plan.md` | 운영 정책 | 실행 모드, 오류 화면, 로그, 복구 marker 기준 |
+| `implementation-security-plan.md` | 구현/보안 방향 | 초기 구현 방향, 보안 기준, 주요 리스크 정리 |
 | `operations-modules-plan.md` | 운영 모듈 | 메뉴, 배너, 알림, 관리자 작업 로그의 모듈화 기준 |
 | `audit-log-plan.md` | 감사 로그 | 감사 로그 기록 대상과 보관 기준 |
 | `security-checklist.md` | 보안 점검 | 기능 추가와 리뷰 시 확인할 보안 항목 |
