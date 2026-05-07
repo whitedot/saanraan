@@ -188,6 +188,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td>
                             <?php if (!empty($module['download_ready'])) { ?>
                                 checksum <code><?php echo toy_e(substr((string) $module['checksum'], 0, 16)); ?></code>
+                            <?php } elseif (empty($module['contract_ready'])) { ?>
+                                계약 불일치
                             <?php } else { ?>
                                 미등록
                             <?php } ?>

@@ -199,7 +199,8 @@ function toy_admin_module_registry_entry(string $moduleKey): ?array
 function toy_admin_registry_entry_download_ready(array $entry): bool
 {
     return toy_admin_is_https_public_url((string) ($entry['zip_url'] ?? ''))
-        && preg_match('/\A[a-f0-9]{64}\z/', (string) ($entry['checksum'] ?? '')) === 1;
+        && preg_match('/\A[a-f0-9]{64}\z/', (string) ($entry['checksum'] ?? '')) === 1
+        && toy_admin_registry_entry_contract_ready($entry);
 }
 
 function toy_admin_registry_entry_repository_ready(array $entry): bool
@@ -211,7 +212,15 @@ function toy_admin_registry_entry_repository_ready(array $entry): bool
 
     $host = strtolower((string) parse_url($repository, PHP_URL_HOST));
     $path = trim((string) parse_url($repository, PHP_URL_PATH), '/');
-    return $host === 'github.com' && preg_match('/\Awhitedot\/toycore-module-[a-z0-9-]+\z/', $path) === 1;
+    return $host === 'github.com'
+        && preg_match('/\Awhitedot\/toycore-module-[a-z0-9-]+\z/', $path) === 1
+        && toy_admin_registry_entry_contract_ready($entry);
+}
+
+function toy_admin_registry_entry_contract_ready(array $entry): bool
+{
+    $moduleContract = (string) ($entry['module_contract'] ?? '');
+    return $moduleContract === '' || $moduleContract === TOY_MODULE_CONTRACT_VERSION;
 }
 
 function toy_admin_is_https_public_url(string $url): bool

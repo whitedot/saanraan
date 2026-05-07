@@ -651,6 +651,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     foreach (toy_admin_module_registry_entries() as $entry) {
         $moduleKey = (string) $entry['module_key'];
         $entry['installed'] = isset($installedModuleKeys[$moduleKey]);
+        $entry['contract_ready'] = toy_admin_registry_entry_contract_ready($entry);
         $entry['download_ready'] = toy_admin_registry_entry_download_ready($entry);
         $entry['repository_ready'] = toy_admin_registry_entry_repository_ready($entry);
         $entry['repository_archive_ready'] = toy_admin_repository_archive_ready($entry, $runtimeConfig);
