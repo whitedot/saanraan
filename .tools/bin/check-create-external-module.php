@@ -77,6 +77,7 @@ try {
     if (
         !str_contains($readme, 'Toycore 외부 모듈 `banner`')
         || !str_contains($readme, 'git checkout v0.1.1')
+        || !str_contains($readme, 'work/')
         || !str_contains($ci, 'TOYCORE_MODULE_KEY: banner')
     ) {
         throw new RuntimeException('scaffold templates were not replaced.');

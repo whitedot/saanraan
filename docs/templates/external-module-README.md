@@ -25,12 +25,22 @@ Toycore에 업로드되는 실제 모듈 파일은 `module/` 아래에 둔다.
 
 zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한다.
 
+아래 명령은 Toycore 저장소와 이 모듈 저장소가 같은 상위 폴더에 나란히 있는 구조를 기준으로 한다.
+
+```text
+work/
+- toycore/
+- MODULE_REPOSITORY/
+```
+
 ```sh
 git clone https://github.com/whitedot/toycore.git toycore
 cd toycore
 git checkout TOYCORE_REF
 php .tools/bin/check-external-module.php ../MODULE_REPOSITORY/module MODULE_KEY
 ```
+
+이미 `toycore` 저장소가 있다면 마지막 명령만 실행하면 된다. 모듈 저장소 위치가 다르면 `../MODULE_REPOSITORY/module` 부분만 실제 `module/` 폴더 경로로 바꾼다.
 
 ## zip 구조
 

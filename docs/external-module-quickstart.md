@@ -91,12 +91,22 @@ CREATE TABLE IF NOT EXISTS toy_banner_items (
 
 zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한다.
 
+아래 예시는 `toycore`와 모듈 저장소가 같은 상위 폴더에 나란히 있는 구조를 기준으로 한다.
+
+```text
+work/
+- toycore/
+- toycore-module-banner/
+```
+
 ```sh
 git clone https://github.com/whitedot/toycore.git toycore
 cd toycore
 git checkout v0.1.1
 php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
 ```
+
+이미 `toycore` 저장소 안에 있다면 마지막 명령만 실행하면 된다. 모듈 저장소 위치가 다르면 `../toycore-module-banner/module` 부분만 실제 `module/` 폴더 경로로 바꾼다.
 
 이 명령이 성공하면 최소한 다음이 맞다는 뜻이다.
 
