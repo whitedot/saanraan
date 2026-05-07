@@ -1,0 +1,76 @@
+name: Release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Distribution version, for example 2026.05.001'
+        required: true
+        type: string
+      toycore_ref:
+        description: 'Toycore ref to package'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Toycore
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.toycore_ref }}
+          path: toycore
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Checkout official modules
+        run: |
+          php -r '
+          $index = json_decode(file_get_contents("docs/module-index.json"), true);
+          if (!is_array($index) || !is_array($index["modules"] ?? null)) {
+              fwrite(STDERR, "module-index.json is invalid\n");
+              exit(1);
+          }
+          foreach ($index["modules"] as $module) {
+              if (!is_array($module)) {
+                  continue;
+              }
+              $repository = (string) ($module["repository"] ?? "");
+              if ($repository === "") {
+                  continue;
+              }
+              $name = basename(parse_url($repository, PHP_URL_PATH));
+              $target = "../" . $name;
+              passthru("git clone --depth=1 " . escapeshellarg($repository) . " " . escapeshellarg($target), $exitCode);
+              if ($exitCode !== 0) {
+                  exit($exitCode);
+              }
+          }
+          '
+        working-directory: toycore
+
+      - name: Run checks
+        run: ./.tools/bin/check
+        working-directory: toycore
+
+      - name: Package distributions
+        run: ./.tools/bin/package-distributions "${{ inputs.version }}"
+        working-directory: toycore
+
+      - name: Check distributions
+        run: php .tools/bin/check-distributions.php "${{ inputs.version }}"
+        working-directory: toycore
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: toycore-distributions-${{ inputs.version }}
+          path: |
+            toycore/dist/toycore-*

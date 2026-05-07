@@ -13,6 +13,10 @@
 
 ## 2. 본체 배포 패키지 생성
 
+GitHub Actions를 사용할 수 있으면 `Release packages` workflow를 수동 실행한다. 이 workflow는 `docs/module-index.json`의 공식 모듈 저장소를 checkout하고, 전체 점검과 `package-distributions`, `check-distributions`를 실행한 뒤 `dist/toycore-*` 산출물을 artifact로 업로드한다.
+
+로컬 maintainer 환경에서는 다음 명령을 사용한다.
+
 ```sh
 ./.tools/bin/package-distributions 2026.05.001
 ```
