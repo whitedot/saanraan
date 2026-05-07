@@ -61,16 +61,16 @@ banner-2026.05.001.zip
 
 ## 로컬 점검
 
-zip을 만들기 전에 다음 명령을 실행한다.
-
-```sh
-php toycore/.tools/bin/check-external-module.php module banner
-```
-
-명령 위치가 Toycore 저장소라면 다음처럼 실행한다.
+zip을 만들기 전에 Toycore 저장소 루트에서 다음 명령을 실행한다.
 
 ```sh
 php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
+```
+
+모듈 저장소 루트에서 실행한다면 Toycore 점검 스크립트 경로와 현재 모듈의 `module/` 경로를 함께 지정한다.
+
+```sh
+php ../toycore/.tools/bin/check-external-module.php module banner
 ```
 
 GitHub Actions를 쓰는 저장소라면 `.github/workflows/check.yml`의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`가 현재 모듈과 지원 Toycore 버전에 맞는지 확인한다.
