@@ -140,6 +140,7 @@ function toy_admin_normalize_registry_entry(array $entry): ?array
         'repository' => (string) ($entry['repository'] ?? ''),
         'latest_version' => (string) ($entry['latest_version'] ?? ''),
         'min_toycore_version' => (string) ($entry['min_toycore_version'] ?? ''),
+        'module_contract' => (string) ($entry['module_contract'] ?? ''),
         'category' => (string) ($entry['category'] ?? ''),
         'zip_url' => (string) ($entry['zip_url'] ?? ''),
         'checksum' => $checksum,

@@ -6,6 +6,7 @@
       "repository": "https://github.com/whitedot/toycore-module-banner",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "operations",
       "zip_url": "",
       "checksum": ""
@@ -16,6 +17,7 @@
       "repository": "https://github.com/whitedot/toycore-module-deposit",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "member",
       "zip_url": "",
       "checksum": ""
@@ -26,6 +28,7 @@
       "repository": "https://github.com/whitedot/toycore-module-notification",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "operations",
       "zip_url": "",
       "checksum": ""
@@ -36,6 +39,7 @@
       "repository": "https://github.com/whitedot/toycore-module-point",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "member",
       "zip_url": "",
       "checksum": ""
@@ -46,6 +50,7 @@
       "repository": "https://github.com/whitedot/toycore-module-popup-layer",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "marketing",
       "zip_url": "",
       "checksum": ""
@@ -56,6 +61,7 @@
       "repository": "https://github.com/whitedot/toycore-module-reward",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "member",
       "zip_url": "",
       "checksum": ""
@@ -66,6 +72,7 @@
       "repository": "https://github.com/whitedot/toycore-module-seo",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "site",
       "zip_url": "",
       "checksum": ""
@@ -76,6 +83,7 @@
       "repository": "https://github.com/whitedot/toycore-module-site-menu",
       "latest_version": "",
       "min_toycore_version": "",
+      "module_contract": "",
       "category": "site",
       "zip_url": "",
       "checksum": ""

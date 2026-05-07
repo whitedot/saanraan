@@ -480,6 +480,7 @@ toycore-module-index
       "repository": "https://github.com/example/toycore-module-board",
       "latest_version": "2026.05.001",
       "min_toycore_version": "2026.04.005",
+      "module_contract": "1.0",
       "type": "module",
       "category": "content"
     }

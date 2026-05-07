@@ -101,7 +101,7 @@ module.zip
 - registry에 등록된 모듈만 다운로드
 - release zip URL과 checksum 확인
 - 다운로드 후 zip 업로드와 동일한 구조 검증 적용
-- registry에는 최소한 `module_key`, `latest_version`, `min_toycore_version`, `zip_url`, `checksum`을 둔다.
+- registry에는 최소한 `module_key`, `latest_version`, `min_toycore_version`, `module_contract`, `zip_url`, `checksum`을 둔다.
 
 ### 3순위: public repository 가져오기
 

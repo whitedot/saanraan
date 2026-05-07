@@ -83,8 +83,13 @@ function toy_module_index_validate_entry(array $entry, array &$seenModuleKeys): 
     }
 
     $minToycoreVersion = toy_module_index_string($entry, 'min_toycore_version', $moduleKey);
-    if ($minToycoreVersion !== '' && preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $minToycoreVersion) !== 1) {
+    if ($minToycoreVersion !== '' && preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minToycoreVersion) !== 1) {
         toy_module_index_error('module-index min_toycore_version is invalid: ' . $moduleKey);
+    }
+
+    $moduleContract = toy_module_index_string($entry, 'module_contract', $moduleKey);
+    if ($moduleContract !== '' && preg_match('/\A\d+\.\d+\z/', $moduleContract) !== 1) {
+        toy_module_index_error('module-index module_contract is invalid: ' . $moduleKey);
     }
 
     $zipUrl = toy_module_index_string($entry, 'zip_url', $moduleKey);

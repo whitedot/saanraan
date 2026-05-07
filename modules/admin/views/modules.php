@@ -169,6 +169,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>이름</th>
                     <th>최신 버전</th>
                     <th>Toycore 최소</th>
+                    <th>계약</th>
                     <th>상태</th>
                     <th>Release zip</th>
                     <th>Release 반영</th>
@@ -182,6 +183,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $module['name']); ?></td>
                         <td><?php echo toy_e((string) ($module['latest_version'] !== '' ? $module['latest_version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['min_toycore_version'] !== '' ? $module['min_toycore_version'] : '-')); ?></td>
+                        <td><?php echo toy_e((string) (($module['module_contract'] ?? '') !== '' ? $module['module_contract'] : '-')); ?></td>
                         <td><?php echo !empty($module['installed']) ? 'installed' : 'not installed'; ?></td>
                         <td>
                             <?php if (!empty($module['download_ready'])) { ?>

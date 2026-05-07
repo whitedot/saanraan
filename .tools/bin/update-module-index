@@ -81,6 +81,21 @@ function toy_update_module_index_archive_url(string $repository, string $commit)
     return 'https://codeload.github.com/' . $path . '/zip/' . rawurlencode($commit);
 }
 
+function toy_update_module_index_module_metadata(string $repositoryRoot, string $moduleKey): array
+{
+    if ($repositoryRoot === '') {
+        return [];
+    }
+
+    $moduleFile = toy_update_module_index_module_repo_path($repositoryRoot, $moduleKey) . '/module/module.php';
+    if (!is_file($moduleFile)) {
+        return [];
+    }
+
+    $metadata = include $moduleFile;
+    return is_array($metadata) ? $metadata : [];
+}
+
 function toy_update_module_index_http_status(array $headers): int
 {
     $status = 0;
@@ -226,6 +241,14 @@ foreach ($index['modules'] as $position => $module) {
     $index['modules'][$position]['latest_version'] = $version;
     $index['modules'][$position]['zip_url'] = $releaseBaseUrl . '/' . rawurlencode($zipName);
     $index['modules'][$position]['checksum'] = $checksum;
+    $metadata = toy_update_module_index_module_metadata($repositoryRoot !== '' ? $repositoryRoot : dirname($root), $moduleKey);
+    $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+    if (is_string($toycoreMetadata['min_version'] ?? null)) {
+        $index['modules'][$position]['min_toycore_version'] = (string) $toycoreMetadata['min_version'];
+    }
+    if (is_string($toycoreMetadata['module_contract'] ?? null)) {
+        $index['modules'][$position]['module_contract'] = (string) $toycoreMetadata['module_contract'];
+    }
 
     if ($updateRepositoryRefs) {
         try {
