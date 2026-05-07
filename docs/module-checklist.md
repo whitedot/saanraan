@@ -8,6 +8,7 @@
 - `module/install.sql`이 있다.
 - `README.md`가 있다.
 - `CHANGELOG.md`가 있다.
+- 스캐폴딩 도구를 사용했다면 `.tools/bin/package-module`이 있다.
 
 ## module.php
 
@@ -33,6 +34,12 @@
 - 상태 변경은 감사 로그를 남긴다.
 
 ## zip 구조
+
+스캐폴딩 도구로 만든 저장소라면 zip을 만들기 전에 다음 명령을 실행한다.
+
+```sh
+php .tools/bin/package-module 2026.05.001
+```
 
 좋은 구조:
 
@@ -65,6 +72,8 @@ php toycore/.tools/bin/check-external-module.php module banner
 ```sh
 php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
 ```
+
+GitHub Actions를 쓰는 저장소라면 `.github/workflows/check.yml`의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`가 현재 모듈과 지원 Toycore 버전에 맞는지 확인한다.
 
 ## 운영 반영
 

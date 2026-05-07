@@ -81,6 +81,11 @@ try {
     ) {
         throw new RuntimeException('scaffold templates were not replaced.');
     }
+    foreach (['MODULE_NAME', 'MODULE_KEY', 'MODULE_REPOSITORY', 'TOYCORE_VERSION', 'TOYCORE_REF', 'MODULE_CONTRACT_VERSION'] as $placeholder) {
+        if (str_contains($readme, $placeholder)) {
+            throw new RuntimeException('scaffold README still has placeholder: ' . $placeholder);
+        }
+    }
 
     toy_check_create_external_module_run(
         escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' '

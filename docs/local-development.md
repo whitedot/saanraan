@@ -54,6 +54,32 @@ php .tools/bin/check.php
 php .tools/bin/check-module-index.php
 ```
 
+## 외부 모듈 제작
+
+외부 모듈 저장소의 최소 구조를 만들 때:
+
+```sh
+php .tools/bin/create-external-module.php banner ../toycore-module-banner
+```
+
+GitHub Actions 자동 점검 파일 없이 시작하려면:
+
+```sh
+php .tools/bin/create-external-module.php banner ../toycore-module-banner --no-ci
+```
+
+zip을 만들기 전 모듈 구조를 확인할 때:
+
+```sh
+php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
+```
+
+스캐폴딩 도구가 만든 모듈 저장소에서는 다음 명령으로 업로드용 zip을 만들 수 있다.
+
+```sh
+php .tools/bin/package-module 2026.05.001
+```
+
 ## HTTP 스모크 점검
 
 내장 서버를 실행한 뒤 최소 HTTP 점검을 실행할 수 있다.
