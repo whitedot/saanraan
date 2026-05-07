@@ -130,7 +130,7 @@ TOYCORE_UPDATE_REPOSITORY_REFS=1 ./.tools/bin/publish-module-release 2026.05.001
 ## 6. 배포 후 확인
 
 - `toycore-standard.zip`으로 신규 설치가 가능한지 확인한다.
-- `php .tools/bin/check-distributions.php 2026.05.001`로 `minimal`, `standard`, `ops` manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성을 확인한다.
+- `php .tools/bin/check-distributions.php 2026.05.001`로 `minimal`, `standard`, `ops` manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성을 확인한다.
 - `/admin/modules`에서 설치 버전과 코드 버전이 일치하는지 확인한다.
 - `/admin/updates`에 미적용 SQL이 남아 있지 않은지 확인한다.
 - 공식 registry 항목의 checksum 불일치가 없는지 확인한다.
