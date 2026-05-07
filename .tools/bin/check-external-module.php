@@ -74,8 +74,8 @@ if (!is_string($realModuleDir) || !is_dir($realModuleDir)) {
         $path = $realModuleDir . '/' . $contractFile;
         if (is_file($path)) {
             $loaded = include $path;
-            if (!is_array($loaded)) {
-                toy_external_module_error($errors, $contractFile . ' must return an array.');
+            if (!is_array($loaded) && !is_callable($loaded)) {
+                toy_external_module_error($errors, $contractFile . ' must return an array or callable.');
             }
         }
     }

@@ -26,7 +26,7 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 ```text
 1차 문서 진입점 정리: 완료
 2차 스캐폴딩 도구: 완료
-3차 샘플 모듈 계약 정리: 대기
+3차 샘플 모듈 계약 정리: 완료
 ```
 
 ## 1차 작업
@@ -91,7 +91,7 @@ toycore-module-banner/
 
 ## 3차 작업
 
-상태: 대기
+상태: 완료
 
 목표:
 
@@ -106,6 +106,12 @@ toycore-module-banner/
 - `install.sql` 있음
 - `admin-menu.php`가 있으면 `paths.php`도 있음
 - `php .tools/bin/check-external-module.php examples/sample_module sample_notice` 통과
+
+완료 항목:
+
+- 샘플 모듈 `module.php`에 현재 Toycore 계약 메타데이터 추가
+- 외부 모듈 검사에서 계약 파일의 array/callable 반환 규칙 반영
+- 샘플 모듈을 전체 검사에 연결
 
 ## 운영 원칙
 

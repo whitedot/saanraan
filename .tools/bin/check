@@ -79,6 +79,7 @@ fi
 "${PHP_BIN}" .tools/bin/check-output-helpers.php
 "${PHP_BIN}" .tools/bin/check-external-module.php modules/member member
 "${PHP_BIN}" .tools/bin/check-external-module.php modules/admin admin
+"${PHP_BIN}" .tools/bin/check-external-module.php examples/sample_module sample_notice
 "${PHP_BIN}" .tools/bin/check-member-auth-policy.php
 "${PHP_BIN}" .tools/bin/check-admin-action-security.php
 
