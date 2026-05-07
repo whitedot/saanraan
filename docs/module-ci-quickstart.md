@@ -12,6 +12,8 @@ CI는 GitHub가 대신 실행해 주는 자동 점검이다. 배포가 아니며
 php toycore/.tools/bin/check-external-module.php module-repo/module banner
 ```
 
+여기서 `toycore`와 `module-repo`는 GitHub Actions workflow가 checkout한 작업 디렉터리 이름이다. 로컬 디렉터리 배치가 Toycore 저장소와 모듈 저장소를 같은 상위 폴더에 두어야 한다는 뜻이 아니다.
+
 성공하면 최소 모듈 구조, 메타데이터, Toycore 계약 버전, PHP 문법이 맞는지 확인한 것이다.
 
 ## 설정 순서

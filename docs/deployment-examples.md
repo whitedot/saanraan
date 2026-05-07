@@ -63,7 +63,7 @@ dist/toycore-ops
 
 `zip` 명령을 사용할 수 있으면 같은 이름의 zip 파일도 생성됩니다. minimal 배포본에는 선택 모듈 코드가 없으므로 설치 화면에서 선택 모듈 목록이 비어 있을 수 있습니다. 설치 후 필요한 모듈 zip을 `modules/{module_key}`에 업로드하고 `/admin/modules`에서 설치합니다.
 
-공식 maintainer가 standard/ops 패키지를 만들 때는 toycore.git과 같은 상위 디렉터리에 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 리포지토리가 있어야 합니다. 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
+공식 maintainer가 standard/ops 패키지를 만들 때는 `toycore-module-seo`, `toycore-module-popup-layer` 같은 외부 모듈 Git 저장소 위치를 명시한다. 기본 탐색 위치는 toycore.git과 같은 상위 디렉터리지만, 다른 위치에 있다면 `TOYCORE_MODULE_REPO_ROOT` 환경변수로 모듈 리포지토리 상위 디렉터리를 지정합니다.
 
 ```mermaid
 flowchart TD
@@ -133,7 +133,7 @@ git checkout -b release/<release-tag> <release-tag>
 
 ## Maintainer 패키징
 
-`package-distributions`는 사용자 설치 명령이 아니라 릴리스 제작 명령이다. toycore 본체와 선택 모듈 저장소를 같은 상위 디렉터리에 둔 뒤 실행한다.
+`package-distributions`는 사용자 설치 명령이 아니라 릴리스 제작 명령이다. 선택 모듈 저장소를 기본 탐색 위치에 두거나, 다른 위치를 쓴다면 `TOYCORE_MODULE_REPO_ROOT`로 모듈 리포지토리 상위 디렉터리를 지정한 뒤 실행한다.
 
 ```text
 workspace/

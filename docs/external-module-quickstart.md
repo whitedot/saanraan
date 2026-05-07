@@ -27,10 +27,10 @@ banner-2026.05.001.zip
    - install.sql
 ```
 
-Toycore 저장소가 이미 있다면 기본 구조를 스캐폴딩 도구로 만들 수 있다.
+Toycore Git 저장소가 이미 있다면 기본 구조를 스캐폴딩 도구로 만들 수 있다. 대상 경로는 Toycore 저장소와 같은 디렉터리에 있을 필요가 없다.
 
 ```sh
-php .tools/bin/create-external-module.php banner ../toycore-module-banner
+php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner
 ```
 
 이 명령은 `README.md`, `CHANGELOG.md`, `.tools/bin/package-module`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml`을 만든다. 기존 파일은 덮어쓰지 않으므로 빈 디렉터리를 대상으로 실행한다.
@@ -38,7 +38,7 @@ php .tools/bin/create-external-module.php banner ../toycore-module-banner
 GitHub Actions를 아직 쓰지 않으려면 자동 점검 파일을 빼고 만든다.
 
 ```sh
-php .tools/bin/create-external-module.php banner ../toycore-module-banner --no-ci
+php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner --no-ci
 ```
 
 ## 2. module.php 작성
@@ -89,24 +89,38 @@ CREATE TABLE IF NOT EXISTS toy_banner_items (
 
 ## 4. 로컬 점검
 
-zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한다.
+zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한다. 점검은 Toycore Git 저장소와 모듈 Git 저장소가 같은 상위 디렉터리에 있다는 가정에 기대지 않는다. 필요한 것은 현재 모듈 저장소의 `module/` 경로와 점검에 사용할 Toycore 저장소 경로다.
 
-아래 예시는 `toycore`와 모듈 저장소가 같은 상위 폴더에 나란히 있는 구조를 기준으로 한다.
-
-```text
-work/
-- toycore/
-- toycore-module-banner/
-```
+Toycore 저장소가 없다면 원하는 위치에 clone하고, 모듈이 지원할 Toycore ref로 맞춘다.
 
 ```sh
-git clone https://github.com/whitedot/toycore.git toycore
-cd toycore
+git clone https://github.com/whitedot/toycore.git /path/to/toycore
+cd /path/to/toycore
 git checkout v0.1.1
-php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
 ```
 
-이미 `toycore` 저장소 안에 있다면 마지막 명령만 실행하면 된다. 모듈 저장소 위치가 다르면 `../toycore-module-banner/module` 부분만 실제 `module/` 폴더 경로로 바꾼다.
+그 다음 모듈 저장소 루트에서 Toycore 저장소 경로를 지정해 점검한다.
+
+```sh
+cd /path/to/toycore-module-banner
+TOYCORE_REPO=/path/to/toycore
+php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner
+```
+
+Windows PowerShell에서는 다음처럼 실행한다.
+
+```powershell
+Set-Location C:\path\to\toycore-module-banner
+$env:TOYCORE_REPO = 'C:\path\to\toycore'
+php "$env:TOYCORE_REPO\.tools\bin\check-external-module.php" module banner
+```
+
+Toycore 저장소 루트에서 실행하고 싶다면 모듈 저장소의 `module/` 경로를 절대 경로 또는 명시적 상대 경로로 넘긴다.
+
+```sh
+cd /path/to/toycore
+php .tools/bin/check-external-module.php /path/to/toycore-module-banner/module banner
+```
 
 이 명령이 성공하면 최소한 다음이 맞다는 뜻이다.
 

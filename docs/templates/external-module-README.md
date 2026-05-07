@@ -25,22 +25,31 @@ Toycore에 업로드되는 실제 모듈 파일은 `module/` 아래에 둔다.
 
 zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한다.
 
-아래 명령은 Toycore 저장소와 이 모듈 저장소가 같은 상위 폴더에 나란히 있는 구조를 기준으로 한다.
+점검은 Toycore Git 저장소와 이 모듈 Git 저장소가 같은 상위 디렉터리에 있다는 가정에 기대지 않는다. 필요한 것은 이 모듈 저장소의 `module/` 경로와 점검에 사용할 Toycore 저장소 경로다.
 
-```text
-work/
-- toycore/
-- MODULE_REPOSITORY/
-```
+Toycore 저장소가 없다면 원하는 위치에 clone하고, 모듈이 지원할 Toycore ref로 맞춘다.
 
 ```sh
-git clone https://github.com/whitedot/toycore.git toycore
-cd toycore
+git clone https://github.com/whitedot/toycore.git /path/to/toycore
+cd /path/to/toycore
 git checkout TOYCORE_REF
-php .tools/bin/check-external-module.php ../MODULE_REPOSITORY/module MODULE_KEY
 ```
 
-이미 `toycore` 저장소가 있다면 마지막 명령만 실행하면 된다. 모듈 저장소 위치가 다르면 `../MODULE_REPOSITORY/module` 부분만 실제 `module/` 폴더 경로로 바꾼다.
+그 다음 이 모듈 저장소 루트에서 Toycore 저장소 경로를 지정해 점검한다.
+
+```sh
+cd /path/to/MODULE_REPOSITORY
+TOYCORE_REPO=/path/to/toycore
+php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module MODULE_KEY
+```
+
+Windows PowerShell에서는 다음처럼 실행한다.
+
+```powershell
+Set-Location C:\path\to\MODULE_REPOSITORY
+$env:TOYCORE_REPO = 'C:\path\to\toycore'
+php "$env:TOYCORE_REPO\.tools\bin\check-external-module.php" module MODULE_KEY
+```
 
 이 점검은 `module.php`, `install.sql`, Toycore 계약 버전, PHP 문법, `paths.php` action 파일, 관리자 메뉴 route, 주요 계약 파일 반환 구조를 확인한다.
 

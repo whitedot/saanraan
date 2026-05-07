@@ -5,8 +5,8 @@
 ## 1. 준비
 
 - `main` 브랜치가 배포할 커밋을 가리키는지 확인한다.
-- 외부 모듈 리포지토리가 toycore.git과 같은 상위 디렉터리에 있는지 확인한다.
-- 다른 위치를 쓰면 `TOYCORE_MODULE_REPO_ROOT`에 모듈 리포지토리 상위 디렉터리를 지정한다.
+- 로컬 릴리스 패키징에서 외부 모듈 리포지토리 위치를 확인한다.
+- 기본 탐색 위치가 아닌 곳에 모듈 리포지토리가 있으면 `TOYCORE_MODULE_REPO_ROOT`에 모듈 리포지토리 상위 디렉터리를 지정한다.
 - 각 모듈의 `module/module.php` version과 `CHANGELOG.md`를 확인한다.
 - 공식 모듈 registry 구조는 `php .tools/bin/check-module-index.php`로 확인한다.
 - 공식 배포 조합은 `docs/distributions.json`에서 확인하고, `php .tools/bin/check-distribution-policy.php`로 검증한다.

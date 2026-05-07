@@ -59,19 +59,26 @@ php .tools/bin/check-module-index.php
 외부 모듈 저장소의 최소 구조를 만들 때:
 
 ```sh
-php .tools/bin/create-external-module.php banner ../toycore-module-banner
+php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner
 ```
 
 GitHub Actions 자동 점검 파일 없이 시작하려면:
 
 ```sh
-php .tools/bin/create-external-module.php banner ../toycore-module-banner --no-ci
+php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner --no-ci
 ```
 
-zip을 만들기 전 모듈 구조를 확인할 때:
+zip을 만들기 전 모듈 구조를 확인할 때는 Toycore Git 저장소와 모듈 Git 저장소의 상대 위치를 가정하지 않는다. Toycore 저장소 루트에서 실행한다면 모듈 저장소의 `module/` 경로를 명시한다.
 
 ```sh
-php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
+php .tools/bin/check-external-module.php /path/to/toycore-module-banner/module banner
+```
+
+모듈 저장소 루트에서 실행한다면 Toycore 저장소 경로를 지정한다.
+
+```sh
+TOYCORE_REPO=/path/to/toycore
+php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner
 ```
 
 스캐폴딩 도구가 만든 모듈 저장소에서는 다음 명령으로 업로드용 zip을 만들 수 있다.

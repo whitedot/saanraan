@@ -78,9 +78,9 @@ try {
     if (
         !str_contains($readme, 'Toycore 외부 모듈 `banner`')
         || !str_contains($readme, 'git checkout v0.1.1')
-        || !str_contains($readme, 'php .tools/bin/check-external-module.php ../toycore-module-banner/module banner')
-        || !str_contains($readme, '`../toycore-module-banner/module` 부분만 실제 `module/` 폴더 경로로 바꾼다')
-        || !str_contains($readme, 'work/')
+        || !str_contains($readme, 'TOYCORE_REPO=/path/to/toycore')
+        || !str_contains($readme, 'php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner')
+        || !str_contains($readme, 'Set-Location C:\path\to\toycore-module-banner')
         || !str_contains($ci, 'TOYCORE_MODULE_KEY: banner')
     ) {
         throw new RuntimeException('scaffold templates were not replaced.');

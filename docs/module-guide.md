@@ -239,7 +239,7 @@ return [
 
 `module.php`는 Service Provider가 아니다. 정보 파일이다.
 
-외부 모듈 저장소는 먼저 로컬에서 `.tools/bin/check-external-module.php`로 점검한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈 저장소에 맞게 바꾼다.
+외부 모듈 저장소는 먼저 Toycore Git 저장소의 `.tools/bin/check-external-module.php`로 점검한다. Toycore 저장소와 모듈 저장소가 같은 상위 디렉터리에 있을 필요는 없으며, 모듈 저장소 루트에서 `TOYCORE_REPO=/path/to/toycore`처럼 점검에 사용할 Toycore 저장소 경로를 명시한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈 저장소에 맞게 바꾼다.
 
 ## 5. 의존성 선언
 
