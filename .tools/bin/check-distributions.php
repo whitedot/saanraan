@@ -197,7 +197,11 @@ function toy_distribution_validate_manifest(string $packageName, string $package
             continue;
         }
 
-        $manifestModules[(string) ($module['module_key'] ?? '')] = (string) ($module['version'] ?? '');
+        $manifestModules[(string) ($module['module_key'] ?? '')] = [
+            'version' => (string) ($module['version'] ?? ''),
+            'min_toycore_version' => (string) ($module['min_toycore_version'] ?? ''),
+            'module_contract' => (string) ($module['module_contract'] ?? ''),
+        ];
     }
 
     if (array_keys($manifestModules) !== $expectedModules) {
@@ -218,10 +222,21 @@ function toy_distribution_validate_manifest(string $packageName, string $package
             continue;
         }
 
+        $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+        $minToycoreVersion = is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '';
+        $moduleContract = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
         toy_distribution_validate_module_contract($moduleDir, $metadata);
 
-        if (($manifestModules[$moduleKey] ?? '') !== $codeVersion) {
+        if (($manifestModules[$moduleKey]['version'] ?? '') !== $codeVersion) {
             toy_distribution_error('Distribution manifest module version mismatch: ' . $moduleDir);
+        }
+
+        if (($manifestModules[$moduleKey]['min_toycore_version'] ?? '') !== $minToycoreVersion) {
+            toy_distribution_error('Distribution manifest module min Toycore version mismatch: ' . $moduleDir);
+        }
+
+        if (($manifestModules[$moduleKey]['module_contract'] ?? '') !== $moduleContract) {
+            toy_distribution_error('Distribution manifest module contract mismatch: ' . $moduleDir);
         }
     }
 

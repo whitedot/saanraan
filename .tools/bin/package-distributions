@@ -121,15 +121,28 @@ copy_distribution_modules() {
     done
 }
 
-module_version() {
+module_manifest_entry() {
     module_root="$1"
+    module_key="$2"
 
     if [ ! -f "${module_root}/module.php" ]; then
-        printf ''
+        printf '{"module_key": "%s", "version": "", "min_toycore_version": "", "module_contract": ""}' "${module_key}"
         return
     fi
 
-    sed -n "s/.*'version'[[:space:]]*=>[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${module_root}/module.php" | sed -n '1p'
+    php -r '
+        $moduleKey = $argv[1];
+        $moduleFile = $argv[2];
+        $metadata = include $moduleFile;
+        $metadata = is_array($metadata) ? $metadata : [];
+        $toycore = is_array($metadata["toycore"] ?? null) ? $metadata["toycore"] : [];
+        echo json_encode([
+            "module_key" => $moduleKey,
+            "version" => is_string($metadata["version"] ?? null) ? (string) $metadata["version"] : "",
+            "min_toycore_version" => is_string($toycore["min_version"] ?? null) ? (string) $toycore["min_version"] : "",
+            "module_contract" => is_string($toycore["module_contract"] ?? null) ? (string) $toycore["module_contract"] : "",
+        ], JSON_UNESCAPED_SLASHES);
+    ' "${module_key}" "${module_root}/module.php"
 }
 
 write_manifest() {
@@ -145,12 +158,11 @@ write_manifest() {
         printf '  "modules": [\n'
         first=1
         for module_key in "$@"; do
-            version="$(module_version "${package_root}/modules/${module_key}")"
             if [ "${first}" -eq 0 ]; then
                 printf ',\n'
             fi
             first=0
-            printf '    {"module_key": "%s", "version": "%s"}' "${module_key}" "${version}"
+            printf '    %s' "$(module_manifest_entry "${package_root}/modules/${module_key}" "${module_key}")"
         done
         printf '\n  ]\n'
         printf '}\n'

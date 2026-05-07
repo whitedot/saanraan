@@ -68,7 +68,7 @@ git@github.com:whitedot/toycore-module-reward.git
 - 선택 모듈의 원본은 별도 리포지토리의 `module/` 디렉터리다.
 - Toycore 본체 배포 패키지는 `minimal`, `standard`, `ops`로 나눠 생성한다.
 - `standard`와 `ops` 패키지는 외부 모듈 리포지토리의 `module/` 디렉터리를 `modules/{module_key}`로 복사해 조립한다.
-- 각 배포 패키지는 포함 모듈 버전을 `distribution-manifest.json`에 기록한다.
+- 각 배포 패키지는 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전을 `distribution-manifest.json`에 기록한다.
 - 운영자는 `/admin/modules`에서 모듈 zip을 업로드해 신규 모듈 파일을 추가하거나 기존 모듈 파일을 교체할 수 있다.
 - 공식 release zip은 `docs/module-index.json`에 URL과 checksum을 등록하면 `/admin/modules`에서 다운로드해 같은 검증 흐름으로 반영할 수 있다.
 - GitHub repository archive 반영은 고급 경로로 둔다. 운영 환경에서는 `repository_refs`에 40자 commit SHA와 sha256 checksum 쌍이 등록된 archive만 허용하고, `main`, `develop`, tag 같은 가변 ref는 개발/스테이징에서만 사용한다.

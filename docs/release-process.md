@@ -39,7 +39,7 @@ dist/toycore-standard-2026.05.001.zip
 dist/toycore-ops-2026.05.001.zip
 ```
 
-각 배포 디렉터리의 `distribution-manifest.json`에서 포함 모듈과 버전을 확인한다.
+각 배포 디렉터리의 `distribution-manifest.json`에서 포함 모듈, 모듈 버전, Toycore 최소 버전, 모듈 계약 버전을 확인한다.
 
 배포 디렉터리, manifest, 설치 화면 선택 모듈 구성의 기본 구조는 다음 명령으로 검증한다.
 
@@ -123,6 +123,7 @@ TOYCORE_UPDATE_REPOSITORY_REFS=1 ./.tools/bin/publish-module-release 2026.05.001
 - `minimal`, `standard`, `ops` 패키지 차이
 - 각 패키지의 `distribution-manifest.json` 내용
 - 포함 모듈 버전
+- 포함 모듈의 Toycore 최소 버전과 모듈 계약 버전
 - DB update SQL이 있는 모듈 목록
 - 수동 백업과 `/admin/updates` 실행 안내
 

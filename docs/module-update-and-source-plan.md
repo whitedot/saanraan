@@ -216,7 +216,7 @@ Toycore 검증 버전
 - 선택 모듈은 별도 리포지토리에서 관리한다.
 - 각 모듈 리포지토리는 `module/` 구조와 `package-module` 스크립트를 가진다.
 - toycore 배포 패키지는 `minimal`, `standard`, `ops`로 나눌 수 있다.
-- 배포 패키지는 포함 모듈과 버전을 `distribution-manifest.json`에 남긴다.
+- 배포 패키지는 포함 모듈, 모듈 버전, Toycore 최소 버전, 모듈 계약 버전을 `distribution-manifest.json`에 남긴다.
 - `.tools/bin/check-distributions.php`로 생성된 배포 패키지의 manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성을 검증할 수 있다.
 - 공식 모듈 registry는 `docs/module-index.json`에 둔다.
 - 운영 환경에서 repository archive를 반영하려면 registry의 `repository_refs`에 40자 commit SHA와 sha256 checksum을 함께 등록한다. Branch나 tag ref는 움직일 수 있으므로 개발/스테이징용 고급 경로로만 취급한다.
