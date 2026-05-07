@@ -8,7 +8,7 @@ require_once $root . '/core/version.php';
 
 $moduleKey = (string) ($argv[1] ?? '');
 $targetDir = (string) ($argv[2] ?? '');
-$toycoreRef = (string) ($argv[3] ?? 'v0.1.1');
+$toycoreRef = (string) ($argv[3] ?? ('v' . TOY_CORE_VERSION));
 
 if ($moduleKey === '' || $targetDir === '' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
     fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref]\n");
@@ -68,7 +68,7 @@ $replacements = [
     'MODULE_NAME' => $moduleName,
     'MODULE_KEY' => $moduleKey,
     'MODULE_REPOSITORY' => $repositoryName,
-    '0.1.1' => '0.1.1',
+    '0.1.1' => TOY_CORE_VERSION,
     '1.0' => TOY_MODULE_CONTRACT_VERSION,
 ];
 
@@ -99,8 +99,8 @@ $modulePhp = "<?php\n\nreturn [\n"
     . "    'type' => 'module',\n"
     . "    'description' => '" . addslashes($moduleName) . " module.',\n"
     . "    'toycore' => [\n"
-    . "        'min_version' => '0.1.1',\n"
-    . "        'tested_with' => ['0.1.1'],\n"
+    . "        'min_version' => '" . TOY_CORE_VERSION . "',\n"
+    . "        'tested_with' => ['" . TOY_CORE_VERSION . "'],\n"
     . "        'module_contract' => '" . TOY_MODULE_CONTRACT_VERSION . "',\n"
     . "    ],\n"
     . "];\n";

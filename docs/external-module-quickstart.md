@@ -26,6 +26,14 @@ banner-2026.05.001.zip
    - install.sql
 ```
 
+Toycore 저장소가 이미 있다면 기본 구조를 스캐폴딩 도구로 만들 수 있다.
+
+```sh
+php .tools/bin/create-external-module.php banner ../toycore-module-banner
+```
+
+이 명령은 `README.md`, `CHANGELOG.md`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml`을 만든다. 기존 파일은 덮어쓰지 않으므로 빈 디렉터리를 대상으로 실행한다.
+
 ## 2. module.php 작성
 
 최소 예시는 다음과 같다.

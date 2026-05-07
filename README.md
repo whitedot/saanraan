@@ -199,6 +199,12 @@ Toycore의 모듈은 프레임워크 패키지가 아니라, 정해진 디렉터
 
 외부 모듈을 처음 만든다면 [외부 모듈 제작 빠른 시작](docs/external-module-quickstart.md)을 먼저 봅니다. zip 배포 전 확인 항목은 [모듈 체크리스트](docs/module-checklist.md)에 있고, GitHub Actions 자동 점검은 [모듈 자동 점검 빠른 시작](docs/module-ci-quickstart.md)에 따로 정리되어 있습니다.
 
+외부 모듈 저장소의 최소 구조는 다음 명령으로 만들 수 있습니다.
+
+```sh
+php .tools/bin/create-external-module.php banner ../toycore-module-banner
+```
+
 ```text
 modules/{module_key}/
 - module.php
