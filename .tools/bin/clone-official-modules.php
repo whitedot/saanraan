@@ -6,9 +6,15 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $targetRoot = (string) ($argv[1] ?? (getenv('TOYCORE_MODULE_REPO_ROOT') ?: dirname($root)));
 $sharedRef = trim((string) (getenv('TOYCORE_MODULE_REF') ?: ''));
+$indexPath = (string) (getenv('TOYCORE_MODULE_INDEX_PATH') ?: ($root . '/docs/module-index.json'));
+$dryRun = (string) getenv('TOYCORE_CLONE_OFFICIAL_MODULES_DRY_RUN') === '1';
 
 if ($targetRoot !== '' && !str_starts_with($targetRoot, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $targetRoot) !== 1) {
     $targetRoot = $root . '/' . $targetRoot;
+}
+
+if ($indexPath !== '' && !str_starts_with($indexPath, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $indexPath) !== 1) {
+    $indexPath = $root . '/' . $indexPath;
 }
 
 function toy_clone_official_modules_fail(string $message): void
@@ -28,16 +34,22 @@ function toy_clone_official_modules_safe_ref(string $ref): bool
         && preg_match('/\A[A-Za-z0-9._\/-]+\z/', $ref) === 1;
 }
 
-function toy_clone_official_modules_run(array $command): void
+function toy_clone_official_modules_run(array $command, bool $dryRun): void
 {
     $parts = [];
     foreach ($command as $part) {
         $parts[] = escapeshellarg((string) $part);
     }
 
-    passthru(implode(' ', $parts), $exitCode);
+    $commandText = implode(' ', $parts);
+    if ($dryRun) {
+        echo 'DRY RUN: ' . $commandText . "\n";
+        return;
+    }
+
+    passthru($commandText, $exitCode);
     if ($exitCode !== 0) {
-        toy_clone_official_modules_fail('Command failed: ' . implode(' ', $parts));
+        toy_clone_official_modules_fail('Command failed: ' . $commandText);
     }
 }
 
@@ -59,7 +71,6 @@ if (!is_dir($targetRoot) && !mkdir($targetRoot, 0755, true)) {
     toy_clone_official_modules_fail('Module repository root cannot be created: ' . $targetRoot);
 }
 
-$indexPath = $root . '/docs/module-index.json';
 $content = file_get_contents($indexPath);
 if (!is_string($content)) {
     toy_clone_official_modules_fail('Module index cannot be read: ' . $indexPath);
@@ -88,9 +99,9 @@ foreach ($index['modules'] as $entry) {
 
     $target = rtrim($targetRoot, "/\\") . '/toycore-module-' . str_replace('_', '-', $moduleKey);
     if (!is_dir($target . '/.git')) {
-        toy_clone_official_modules_run(['git', 'clone', $repository, $target]);
+        toy_clone_official_modules_run(['git', 'clone', $repository, $target], $dryRun);
     } else {
-        toy_clone_official_modules_run(['git', '-C', $target, 'fetch', '--tags', 'origin']);
+        toy_clone_official_modules_run(['git', '-C', $target, 'fetch', '--tags', 'origin'], $dryRun);
     }
 
     $ref = toy_clone_official_modules_ref($entry, $sharedRef);
@@ -103,8 +114,8 @@ foreach ($index['modules'] as $entry) {
         toy_clone_official_modules_fail('Unsafe module ref: ' . $moduleKey . ' ' . $ref);
     }
 
-    toy_clone_official_modules_run(['git', '-C', $target, 'fetch', '--tags', 'origin', $ref]);
-    toy_clone_official_modules_run(['git', '-C', $target, 'checkout', '--detach', $ref]);
+    toy_clone_official_modules_run(['git', '-C', $target, 'fetch', '--tags', 'origin', $ref], $dryRun);
+    toy_clone_official_modules_run(['git', '-C', $target, 'checkout', '--detach', $ref], $dryRun);
 }
 
 echo "official module repositories are ready under " . $targetRoot . "\n";
