@@ -689,6 +689,10 @@ function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, 
         $errors[] = 'module.php의 type은 module 또는 plugin이어야 합니다.';
     }
 
+    foreach (toy_module_contract_errors($metadata) as $error) {
+        $errors[] = $error;
+    }
+
     return $errors;
 }
 

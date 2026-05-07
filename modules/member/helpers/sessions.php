@@ -12,8 +12,8 @@ function toy_member_login(PDO $pdo, array $account): bool
         $_SESSION['toy_session_token_hash'] = $sessionTokenHash;
     } else {
         unset($_SESSION['toy_session_token_hash']);
+        unset($_SESSION['toy_account_id']);
         if (toy_member_sessions_table_exists($pdo)) {
-            unset($_SESSION['toy_account_id']);
             return false;
         }
     }

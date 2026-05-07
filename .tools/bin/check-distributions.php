@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $distRoot = $root . '/dist';
 $expectedVersion = (string) ($argv[1] ?? '');
+require_once $root . '/core/version.php';
 
 if ($expectedVersion !== '' && preg_match('/\A(?:dev|\d{4}\.\d{2}\.\d{3})\z/', $expectedVersion) !== 1) {
     fwrite(STDERR, "Usage: php .tools/bin/check-distributions.php [dev|YYYY.MM.NNN]\n");
@@ -94,19 +95,26 @@ function toy_distribution_read_policy(string $root): array
     ];
 }
 
-function toy_distribution_module_version(string $moduleDir): string
+function toy_distribution_module_metadata(string $moduleDir): array
 {
     $moduleFile = $moduleDir . '/module.php';
     if (!is_file($moduleFile)) {
-        return '';
+        return [];
     }
 
     $metadata = include $moduleFile;
-    if (!is_array($metadata)) {
-        return '';
-    }
+    return is_array($metadata) ? $metadata : [];
+}
 
-    return (string) ($metadata['version'] ?? '');
+function toy_distribution_validate_module_contract(string $moduleDir, array $metadata): void
+{
+    $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+    $moduleContract = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
+    if ($moduleContract === '') {
+        toy_distribution_error('Distribution module contract is missing: ' . $moduleDir);
+    } elseif ($moduleContract !== TOY_MODULE_CONTRACT_VERSION) {
+        toy_distribution_error('Distribution module contract mismatch: ' . $moduleDir);
+    }
 }
 
 function toy_distribution_install_array_block(string $content, string $variableName): string
@@ -203,11 +211,14 @@ function toy_distribution_validate_manifest(string $packageName, string $package
             continue;
         }
 
-        $codeVersion = toy_distribution_module_version($moduleDir);
+        $metadata = toy_distribution_module_metadata($moduleDir);
+        $codeVersion = (string) ($metadata['version'] ?? '');
         if ($codeVersion === '') {
             toy_distribution_error('Distribution module version is missing: ' . $moduleDir);
             continue;
         }
+
+        toy_distribution_validate_module_contract($moduleDir, $metadata);
 
         if (($manifestModules[$moduleKey] ?? '') !== $codeVersion) {
             toy_distribution_error('Distribution manifest module version mismatch: ' . $moduleDir);

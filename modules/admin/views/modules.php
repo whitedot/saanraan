@@ -27,6 +27,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <th>업데이트</th>
             <th>Toycore 최소</th>
             <th>Toycore 검증</th>
+            <th>계약</th>
             <th>상태</th>
             <th>기본 포함</th>
             <th>설치일</th>
@@ -70,6 +71,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </td>
                 <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                 <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
+                <td><?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?></td>
                 <td><?php echo toy_e((string) $module['status']); ?></td>
                 <td><?php echo !empty($module['is_bundled']) ? 'yes' : 'no'; ?></td>
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
@@ -285,6 +287,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>코드 버전</th>
                     <th>Toycore 최소</th>
                     <th>Toycore 검증</th>
+                    <th>계약</th>
                     <th>설명</th>
                     <th>설치</th>
                 </tr>
@@ -298,6 +301,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
+                        <td><?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">

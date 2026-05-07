@@ -598,6 +598,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
         $row['toycore_tested_with'] = is_array($toycoreTestedWith)
             ? implode(', ', array_map('strval', $toycoreTestedWith))
             : (is_string($toycoreTestedWith) ? $toycoreTestedWith : '');
+        $row['toycore_module_contract'] = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
         $row['pending_update_count'] = (int) ($pendingUpdateCounts[(string) $row['module_key']] ?? 0);
         $row['version_state'] = 'unknown';
         if ((string) $row['code_version'] !== '' && (string) $row['version'] !== '') {
@@ -640,6 +641,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                 'toycore_tested_with' => is_array($toycoreTestedWith)
                     ? implode(', ', array_map('strval', $toycoreTestedWith))
                     : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
+                'toycore_module_contract' => is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '',
             ];
         }
     }

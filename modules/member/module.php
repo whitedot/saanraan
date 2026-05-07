@@ -5,6 +5,11 @@ return [
     'version' => '2026.04.006',
     'type' => 'module',
     'description' => 'Member account and authentication module.',
+    'toycore' => [
+        'min_version' => '0.1.1',
+        'tested_with' => ['0.1.1'],
+        'module_contract' => '1.0',
+    ],
     'contracts' => [
         'provides' => [
             'admin-menu.php',

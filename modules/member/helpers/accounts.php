@@ -176,7 +176,7 @@ function toy_member_current_account(PDO $pdo): ?array
     }
 
     if (!toy_member_session_is_current($pdo, $accountId)) {
-        toy_member_logout();
+        toy_member_logout($pdo);
         return null;
     }
 

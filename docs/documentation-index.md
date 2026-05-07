@@ -10,6 +10,7 @@
 | `current-implementation-status.md` | 현재 상태 | 코드 기준 구현 범위와 검증 기준 |
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
+| `module-ci-template.yml` | 모듈 CI 템플릿 | 외부 모듈 저장소용 GitHub Actions 호환성 검사 예시 |
 | `distributions.json` | 배포 조합 정책 | minimal/standard/ops 포함 모듈과 기본 선택 모듈 기준 |
 | `module-index.json` | 모듈 registry | 공식 모듈 release zip checksum과 운영용 repository archive checksum 등록용 JSON |
 | `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |

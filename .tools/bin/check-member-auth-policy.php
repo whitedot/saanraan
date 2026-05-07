@@ -35,7 +35,7 @@ function toy_member_auth_policy_read(string $path): string
         return '';
     }
 
-    return $content;
+    return str_replace(["\r\n", "\r"], "\n", $content);
 }
 
 $unverifiedAccount = [

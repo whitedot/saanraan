@@ -273,6 +273,43 @@ function toy_module_metadata(string $moduleKey): array
     return $cache[$moduleKey];
 }
 
+function toy_module_toycore_metadata(array $metadata): array
+{
+    return is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
+}
+
+function toy_module_contract_errors(array $metadata): array
+{
+    $errors = [];
+    $toycoreMetadata = toy_module_toycore_metadata($metadata);
+    $moduleContract = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
+
+    if ($moduleContract === '') {
+        $errors[] = 'module.php의 toycore.module_contract가 필요합니다.';
+    } elseif ($moduleContract !== TOY_MODULE_CONTRACT_VERSION) {
+        $errors[] = 'module.php의 toycore.module_contract가 현재 코어 계약 버전(' . TOY_MODULE_CONTRACT_VERSION . ')과 맞지 않습니다.';
+    }
+
+    $minVersion = is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '';
+    if ($minVersion !== '' && preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minVersion) !== 1) {
+        $errors[] = 'module.php의 toycore.min_version 형식이 올바르지 않습니다.';
+    }
+
+    $testedWith = $toycoreMetadata['tested_with'] ?? [];
+    if ($testedWith !== [] && !is_array($testedWith)) {
+        $errors[] = 'module.php의 toycore.tested_with는 배열이어야 합니다.';
+    } elseif (is_array($testedWith)) {
+        foreach ($testedWith as $version) {
+            if (!is_string($version) || preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $version) !== 1) {
+                $errors[] = 'module.php의 toycore.tested_with 버전 형식이 올바르지 않습니다.';
+                break;
+            }
+        }
+    }
+
+    return $errors;
+}
+
 function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metadata, string $targetStatus = 'enabled'): array
 {
     if ($targetStatus !== 'enabled') {

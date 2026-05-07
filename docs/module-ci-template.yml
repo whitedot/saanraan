@@ -1,0 +1,34 @@
+name: Check Toycore module
+
+on:
+  push:
+  pull_request:
+
+env:
+  TOYCORE_MODULE_KEY: example
+  TOYCORE_REF: main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout module
+        uses: actions/checkout@v4
+        with:
+          path: module-repo
+
+      - name: Checkout Toycore
+        uses: actions/checkout@v4
+        with:
+          repository: whitedot/toycore
+          ref: ${{ env.TOYCORE_REF }}
+          path: toycore
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Check module contract
+        run: php toycore/.tools/bin/check-external-module.php module-repo/module "${TOYCORE_MODULE_KEY}"

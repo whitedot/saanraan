@@ -146,6 +146,7 @@ Git 사용 가능 환경을 위한 owner 전용 고급 기능이다.
 | 스키마 적용 버전 | 실행 완료된 SQL 파일 버전 | `toy_schema_versions` |
 | Toycore 최소 버전 | 이 모듈을 설치할 수 있는 최소 Toycore 버전 | `module.php`의 `toycore.min_version` |
 | Toycore 검증 버전 | 모듈 릴리스 시 검증한 Toycore 버전 | `module.php`의 `toycore.tested_with` |
+| 모듈 계약 버전 | 코어가 요구하는 모듈 파일/메타데이터 계약 | `module.php`의 `toycore.module_contract` |
 
 관리자 화면에서는 최소한 다음을 함께 보여준다.
 
@@ -155,6 +156,7 @@ module_key
 코드 버전
 Toycore 최소 버전
 Toycore 검증 버전
+모듈 계약 버전
 미적용 SQL 여부
 ```
 

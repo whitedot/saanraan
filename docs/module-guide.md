@@ -180,6 +180,11 @@ return [
     'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Simple board module.',
+    'toycore' => [
+        'min_version' => '0.1.1',
+        'tested_with' => ['0.1.1'],
+        'module_contract' => '1.0',
+    ],
     'requires' => [
         'modules' => [
             'member',
@@ -212,6 +217,7 @@ return [
 - `description`: 운영자가 이해할 수 있는 설명
 - `toycore.min_version`: 이 모듈을 설치할 수 있는 Toycore 최소 버전
 - `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록
+- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이다.
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일
@@ -228,6 +234,8 @@ return [
 - 활성화되지 않은 모듈의 부팅 처리
 
 `module.php`는 Service Provider가 아니다. 정보 파일이다.
+
+외부 모듈 저장소는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사해 CI에서 `toycore.module_contract`와 기본 모듈 구조를 검증한다. 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`는 모듈 저장소에 맞게 바꾼다.
 
 ## 5. 의존성 선언
 
