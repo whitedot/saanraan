@@ -6,6 +6,7 @@ function toy_admin_module_menu_items(PDO $pdo): array
 {
     $items = [];
     $menuFiles = toy_enabled_module_contract_files($pdo, 'admin-menu.php', ['admin']);
+    $pathFiles = toy_enabled_module_contract_files($pdo, 'paths.php', ['admin']);
 
     foreach ($menuFiles as $moduleKey => $file) {
         $menu = include $file;
@@ -13,8 +14,8 @@ function toy_admin_module_menu_items(PDO $pdo): array
             continue;
         }
 
-        $pathsFile = TOY_ROOT . '/modules/' . $moduleKey . '/paths.php';
-        $paths = is_file($pathsFile) ? include $pathsFile : [];
+        $pathsFile = (string) ($pathFiles[$moduleKey] ?? '');
+        $paths = $pathsFile !== '' ? include $pathsFile : [];
         $paths = is_array($paths) ? $paths : [];
 
         $rawItems = isset($menu['items']) && is_array($menu['items']) ? $menu['items'] : $menu;

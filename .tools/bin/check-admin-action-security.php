@@ -370,8 +370,22 @@ if (is_string($coreSettingsHelper) && (
 $frontController = file_get_contents($root . '/index.php');
 if (!is_string($frontController)) {
     $errors[] = 'Front controller cannot be read.';
-} elseif (strpos($frontController, 'toy_module_contract_is_loadable($moduleKey)') === false) {
-    $errors[] = 'Front controller must skip enabled modules whose current module contract is invalid.';
+} elseif (
+    strpos($frontController, "toy_enabled_module_contract_files(\$pdo, 'paths.php')") === false
+    || strpos($frontController, '$paths = include $pathsFile;') === false
+) {
+    $errors[] = 'Front controller must load module paths.php through the contract file loader.';
+}
+
+$adminNavigationHelper = file_get_contents($root . '/modules/admin/helpers/navigation.php');
+if (!is_string($adminNavigationHelper)) {
+    $errors[] = 'Admin navigation helper cannot be read.';
+} elseif (
+    strpos($adminNavigationHelper, "toy_enabled_module_contract_files(\$pdo, 'admin-menu.php', ['admin'])") === false
+    || strpos($adminNavigationHelper, "toy_enabled_module_contract_files(\$pdo, 'paths.php', ['admin'])") === false
+    || strpos($adminNavigationHelper, '$paths = $pathsFile !== \'\' ? include $pathsFile : [];') === false
+) {
+    $errors[] = 'Admin navigation must load module paths.php through the contract file loader.';
 }
 
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
