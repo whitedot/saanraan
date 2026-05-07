@@ -379,6 +379,7 @@
 - 기본 점검 스크립트
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
 - 공식 모듈 registry 구조 검사
+- 배포 manifest 항목 생성 결과 검사
 - 클라우드 인증 런타임 정적 검사
 - trusted proxy와 app key 런타임 helper 동작 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
@@ -400,6 +401,7 @@
 git diff --check
 SQL 파일 비어 있음 여부 검증
 모듈 기본 계약 파일 구성 검증
+배포 manifest 항목 생성 검증
 관리자 메뉴 path와 모듈 GET route 일치 검증
 설치/로그인/관리자 주요 화면 수동 HTTP 검증
 회원가입/비밀번호 변경/재설정/이메일 인증/탈퇴 검증
@@ -416,4 +418,4 @@ SEO meta tag 출력 검증
 내부 SQL/PHP/문서/도구/저장소 파일 직접 접근 차단 HTTP 스모크 검증
 ```
 
-최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 인증 런타임/회원 인증 정책 검사까지 통과했다.
+최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 배포 manifest 항목 생성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 인증 런타임/회원 인증 정책 검사까지 통과했다.
