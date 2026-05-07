@@ -86,8 +86,8 @@ Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문
 
 ```text
 minimal: core + member + admin
-standard: minimal + seo + popup_layer + point + deposit + reward
-ops: standard + site_menu + banner + notification
+standard: minimal + seo + site_menu + banner
+ops: standard + popup_layer + point + deposit + reward + notification
 ```
 
 선택 모듈 코드가 없는 minimal 배포본에서는 설치 화면에 선택 모듈이 표시되지 않습니다. 필요한 모듈은 별도 모듈 zip을 `modules/{module_key}`에 업로드한 뒤 `/admin/modules`에서 설치합니다.

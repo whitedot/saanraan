@@ -137,12 +137,12 @@ copy_base "${minimal_root}"
 write_manifest toycore-minimal "${minimal_root}"
 
 copy_base "${standard_root}"
-copy_modules "${standard_root}" seo popup_layer point deposit reward
-write_manifest toycore-standard "${standard_root}" seo popup_layer point deposit reward
+copy_modules "${standard_root}" seo site_menu banner
+write_manifest toycore-standard "${standard_root}" seo site_menu banner
 
 copy_base "${ops_root}"
-copy_modules "${ops_root}" seo popup_layer point deposit reward site_menu banner notification
-write_manifest toycore-ops "${ops_root}" seo popup_layer point deposit reward site_menu banner notification
+copy_modules "${ops_root}" seo site_menu banner popup_layer point deposit reward notification
+write_manifest toycore-ops "${ops_root}" seo site_menu banner popup_layer point deposit reward notification
 
 make_zip toycore-minimal "${minimal_root}"
 make_zip toycore-standard "${standard_root}"

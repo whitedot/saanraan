@@ -14,8 +14,8 @@ if ($expectedVersion !== '' && preg_match('/\A(?:dev|\d{4}\.\d{2}\.\d{3})\z/', $
 
 $packages = [
     'toycore-minimal' => ['member', 'admin'],
-    'toycore-standard' => ['member', 'admin', 'seo', 'popup_layer', 'point', 'deposit', 'reward'],
-    'toycore-ops' => ['member', 'admin', 'seo', 'popup_layer', 'point', 'deposit', 'reward', 'site_menu', 'banner', 'notification'],
+    'toycore-standard' => ['member', 'admin', 'seo', 'site_menu', 'banner'],
+    'toycore-ops' => ['member', 'admin', 'seo', 'site_menu', 'banner', 'popup_layer', 'point', 'deposit', 'reward', 'notification'],
 ];
 
 $errors = [];

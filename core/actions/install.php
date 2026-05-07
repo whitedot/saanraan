@@ -75,7 +75,7 @@ foreach (array_keys($optionalModules) as $moduleKey) {
     }
 }
 
-$selectedOptionalModuleKeys = ['seo', 'popup_layer', 'point', 'deposit', 'reward'];
+$selectedOptionalModuleKeys = ['seo', 'site_menu', 'banner'];
 $selectedOptionalModuleKeys = array_values(array_intersect($selectedOptionalModuleKeys, array_keys($optionalModules)));
 $values = [
     'db_host' => 'localhost',

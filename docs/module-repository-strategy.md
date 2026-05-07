@@ -282,8 +282,8 @@ Toycore 본체 배포 패키지:
 
 ```text
 minimal = core + member + admin
-standard = minimal + seo + popup_layer + point + deposit + reward
-ops = standard + site_menu + banner + notification
+standard = minimal + seo + site_menu + banner
+ops = standard + popup_layer + point + deposit + reward + notification
 ```
 
 패키지 생성 명령:

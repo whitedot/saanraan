@@ -38,15 +38,15 @@ toycore-minimal
 toycore-standard
 - toycore-minimal
 - seo
+- site_menu
+- banner
+
+toycore-ops
+- toycore-standard
 - popup_layer
 - point
 - deposit
 - reward
-
-toycore-ops
-- toycore-standard
-- site_menu
-- banner
 - notification
 ```
 

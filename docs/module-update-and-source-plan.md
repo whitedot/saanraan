@@ -41,12 +41,12 @@ toycore-minimal.zip
 - 선택 모듈은 설치 후 추가
 
 toycore-standard.zip
-- minimal + seo + popup_layer + point + deposit + reward
+- minimal + seo + site_menu + banner
 - 일반 운영자가 처음 설치할 때 권장
 - 최초 설치 화면에서 기본 선택 모듈 선택 가능
 
 toycore-ops.zip
-- standard + site_menu + banner + notification
+- standard + popup_layer + point + deposit + reward + notification
 - 운영 기능까지 한 번에 검토할 때 사용
 ```
 
