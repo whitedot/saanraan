@@ -14,7 +14,6 @@ php .tools/bin/check.php
 
 ```text
 git diff --check
-공식 모듈 registry 구조
 SQL 파일 비어 있음 여부
 모듈 기본 계약 파일 구성
 관리자 메뉴 path와 paths.php GET route 일치

@@ -32,9 +32,9 @@ function toy_admin_handle_modules_post(
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
-    $sourceWriteIntents = ['upload_module_zip', 'download_registry_module', 'download_repository_archive', 'sync_module_version'];
+    $sourceWriteIntents = ['upload_module_zip', 'sync_module_version'];
 
-    if (in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
+    if ($intent === 'upload_module_zip') {
         if (!$canManageModuleSources) {
             $errors[] = '모듈 소스 반영은 owner 권한이 필요합니다.';
         }
@@ -171,36 +171,13 @@ function toy_admin_handle_modules_post(
         }
     }
 
-    if ($errors === [] && in_array($intent, ['upload_module_zip', 'download_registry_module', 'download_repository_archive'], true)) {
+    if ($errors === [] && $intent === 'upload_module_zip') {
         $extractDir = '';
-        $downloadedZip = '';
-        $sourceType = $intent === 'download_repository_archive' ? 'repository' : ($intent === 'download_registry_module' ? 'registry' : 'upload');
-        $repositoryRef = '';
+        $sourceType = 'upload';
         try {
-            if ($intent === 'download_registry_module' || $intent === 'download_repository_archive') {
-                $registryEntry = toy_admin_module_registry_entry($moduleKey);
-                if (!is_array($registryEntry)) {
-                    throw new RuntimeException('registry에서 모듈을 찾을 수 없습니다.');
-                }
-
-                if ($intent === 'download_repository_archive') {
-                    $repositoryRef = toy_post_string('repository_ref', 120);
-                    if (
-                        !toy_admin_repository_archive_unchecked_enabled($pdo, toy_runtime_config())
-                        && toy_admin_repository_archive_expected_checksum($registryEntry, $repositoryRef) === ''
-                    ) {
-                        throw new RuntimeException('checksum이 registry에 등록되지 않은 repository archive는 현재 설정에서 반영할 수 없습니다.');
-                    }
-                    $upload = toy_admin_download_registry_repository_archive($registryEntry, $repositoryRef);
-                } else {
-                    $upload = toy_admin_download_registry_module_zip($registryEntry);
-                }
-                $downloadedZip = (string) ($upload['tmp_name'] ?? '');
-            } else {
-                $upload = $_FILES['module_zip'] ?? null;
-                if (!is_array($upload)) {
-                    throw new RuntimeException('업로드할 zip 파일을 선택하세요.');
-                }
+            $upload = $_FILES['module_zip'] ?? null;
+            if (!is_array($upload)) {
+                throw new RuntimeException('업로드할 zip 파일을 선택하세요.');
             }
 
             $source = toy_admin_extract_module_upload($upload, $moduleKey);
@@ -224,11 +201,11 @@ function toy_admin_handle_modules_post(
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => $intent === 'upload_module_zip' ? 'module.source.uploaded' : 'module.source.downloaded',
+                'event_type' => 'module.source.uploaded',
                 'target_type' => 'module',
                 'target_id' => $moduleKey,
                 'result' => 'success',
-                'message' => $intent === 'upload_module_zip' ? 'Module source zip uploaded.' : 'Module source zip downloaded.',
+                'message' => 'Module source zip uploaded.',
                 'metadata' => [
                     'version' => $moduleVersion,
                     'source' => $sourceType,
@@ -237,11 +214,6 @@ function toy_admin_handle_modules_post(
                     'upload_filename' => (string) ($uploadStats['filename'] ?? ''),
                     'upload_size' => (int) ($uploadStats['size'] ?? 0),
                     'upload_checksum' => (string) ($uploadStats['checksum'] ?? ''),
-                    'registry_zip_url' => (string) ($upload['registry_zip_url'] ?? ''),
-                    'repository' => (string) ($upload['repository'] ?? ''),
-                    'repository_ref' => (string) ($upload['repository_ref'] ?? ''),
-                    'repository_archive_url' => (string) ($upload['repository_archive_url'] ?? ''),
-                    'repository_archive_checksum' => (string) ($upload['repository_archive_checksum'] ?? ''),
                     'zip_entry_count' => (int) ($uploadStats['entry_count'] ?? 0),
                     'zip_uncompressed_bytes' => (int) ($uploadStats['uncompressed_bytes'] ?? 0),
                     'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
@@ -254,14 +226,13 @@ function toy_admin_handle_modules_post(
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => $intent === 'upload_module_zip' ? 'module.source.uploaded' : 'module.source.downloaded',
+                'event_type' => 'module.source.uploaded',
                 'target_type' => 'module',
                 'target_id' => $moduleKey,
                 'result' => 'failure',
-                'message' => $intent === 'upload_module_zip' ? 'Module source zip upload failed.' : 'Module source zip download failed.',
+                'message' => 'Module source zip upload failed.',
                 'metadata' => [
                     'source' => $sourceType,
-                    'repository_ref' => $repositoryRef,
                     'reason' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
                 ],
             ]);
@@ -272,9 +243,6 @@ function toy_admin_handle_modules_post(
                     toy_admin_remove_directory($extractDir);
                 } catch (Throwable $ignored) {
                 }
-            }
-            if ($downloadedZip !== '' && is_file($downloadedZip)) {
-                unlink($downloadedZip);
             }
         }
     } elseif ($errors === [] && $intent === 'install') {
@@ -674,24 +642,6 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
         }
     }
 
-    $registryModules = [];
-    $runtimeConfig = toy_runtime_config();
-    foreach (toy_admin_module_registry_entries() as $entry) {
-        $moduleKey = (string) $entry['module_key'];
-        $entry['installed'] = isset($installedModuleKeys[$moduleKey]);
-        $entry['contract_ready'] = toy_admin_registry_entry_contract_ready($entry);
-        $entry['download_ready'] = toy_admin_registry_entry_download_ready($entry);
-        $entry['repository_ready'] = toy_admin_registry_entry_repository_ready($entry);
-        $entry['repository_archive_ready'] = toy_admin_repository_archive_ready($entry, $runtimeConfig);
-        $entry['repository_archive_production'] = toy_admin_runtime_is_production($runtimeConfig);
-        $entry['repository_archive_refs'] = toy_admin_repository_archive_registered_refs($entry);
-        $registeredRefs = array_keys((array) $entry['repository_archive_refs']);
-        $entry['default_ref'] = $registeredRefs !== []
-            ? (string) $registeredRefs[0]
-            : (string) ($entry['latest_version'] !== '' ? 'v' . $entry['latest_version'] : 'main');
-        $registryModules[] = $entry;
-    }
-
     $moduleSettings = [];
     $stmt = $pdo->query(
         'SELECT m.module_key, s.setting_key, s.setting_value, s.value_type, s.updated_at
@@ -706,7 +656,6 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     return [
         'modules' => $modules,
         'installable_modules' => $installableModules,
-        'registry_modules' => $registryModules,
         'module_settings' => $moduleSettings,
     ];
 }

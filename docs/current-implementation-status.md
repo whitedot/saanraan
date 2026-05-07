@@ -20,42 +20,26 @@
 - `config/config.php` 생성, 설정 임시 파일은 PHP 확장자로 작성
 - `storage/installed.lock` 생성
 - core/member/admin 설치 SQL 실행
-- 배포본에 포함된 경우 seo/popup_layer/point/deposit/reward/site_menu/banner/notification 설치 여부 선택
+- 배포본에 포함된 선택 모듈 설치 여부 선택
 - 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - 선택 모듈 코드가 없는 배포본에서는 설치 화면에서 해당 선택 모듈 제외
 - minimal/standard/ops 배포 디렉터리와 zip 생성을 위한 패키징 스크립트 추가
 
-### 모듈 리포지토리 분리
+### 모듈 배치와 소스 반영
 
-- `banner`, `popup_layer`, `site_menu`, `notification`, `seo`, `point`, `deposit`, `reward` 8개 모듈의 별도 Git 리포지토리 생성
-- 각 모듈 리포지토리에 `module/` 하위 런타임 구조 적용
-- 각 모듈 리포지토리에 `README.md`와 `CHANGELOG.md` 추가
-- 각 모듈 리포지토리의 `module.php`에 Toycore 호환 메타데이터 추가
-- 각 모듈 리포지토리에 설치용 zip 생성 스크립트 추가
+- 모듈은 최종적으로 `modules/{module_key}` 폴더에 놓인 런타임 구조를 기준으로 처리
 - 모듈 설치/관리 화면에 설치 버전, 코드 버전, Toycore 호환 버전 표기
-- 모듈 설치/관리 화면에서 owner 전용 zip 업로드와 공식 registry release zip 다운로드 지원
+- 모듈 설치/관리 화면에서 owner 전용 zip 업로드 지원
 - 운영 환경의 모듈 소스 반영은 `admin.module_sources_enabled` bool 설정으로 명시 활성화해야 사용 가능
 - 모듈 소스 반영과 파일 버전 동기화는 owner 비밀번호 재인증 필요
-- 모듈 registry/repository zip 다운로드는 URL 검증 후 HTTP redirect를 따르지 않음
-- 모듈 registry/repository zip 다운로드는 HTTP 2xx 응답만 저장 대상으로 처리
 - 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 후 실제 파일 트리 경계, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 모듈 소스 교체 실패 시 기존 백업 복구 실패를 감지하고 실패로 처리
-- 모듈 소스 업로드/다운로드 성공과 실패를 감사 로그에 기록
-- 공식 모듈 registry는 `docs/module-index.json`에 두고 HTTPS release zip URL과 checksum이 등록된 항목만 다운로드 가능
-- `.tools/bin/check-module-index.php`로 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 가능
-- registry에 등록된 공식 GitHub repository는 owner가 고급 UI에서 ref를 지정해 archive zip으로 다운로드 가능
-- repository archive 반영은 운영 환경에서 `repository_refs`에 등록된 40자 commit SHA와 sha256 checksum 쌍만 허용하며, branch/tag ref는 개발/스테이징용으로 제한
-- checksum 미등록 repository archive 허용 설정은 개발/스테이징에서만 동작하며 bool 타입만 허용
-- `.tools/bin/update-module-index`로 release zip checksum을 계산해 공식 모듈 registry를 갱신 가능
-- `.tools/bin/update-module-index --repository-refs`로 운영용 repository archive commit SHA/checksum 등록 가능
-- `.tools/bin/publish-module-release`로 공식 모듈 zip 수집, registry 갱신, GitHub Release 업로드 보조 가능
-- `.tools/bin/clone-official-modules.php`로 공식 모듈 리포지토리 checkout 가능
+- 모듈 소스 업로드 성공과 실패를 감사 로그에 기록
 - `.tools/bin/create-external-module.php`로 반복 제작/공개 배포용 외부 모듈 프로젝트 구조, AGENTS 규칙 파일, zip 패키징 스크립트, 선택적 CI workflow 생성 가능
-- Toycore 본체에서 선택 모듈 복사본 제거
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
-- standard/ops 배포 패키지는 기본 탐색 위치 또는 `TOYCORE_MODULE_REPO_ROOT`로 지정한 외부 모듈 리포지토리에서 선택 모듈을 조립
-- GitHub Actions `Release packages` workflow로 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드 가능
+- minimal/standard/ops 배포 패키지는 현재 toycore.git 안의 `modules/` 폴더만 사용해 조립
+- GitHub Actions `Release packages` workflow로 전체 점검, 배포 패키지 조립, artifact 업로드 가능
 - `.tools/bin/check-distributions.php`로 배포 패키지 manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성 검증 가능
 
 ### 코어
@@ -379,7 +363,6 @@
 - Docker 기반 로컬 PHP 실행 래퍼
 - 기본 점검 스크립트
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
-- 공식 모듈 registry 구조 검사
 - 배포 manifest 항목 생성 결과 검사
 - 외부 모듈 스캐폴딩 생성 결과와 CI 제외 옵션 검사
 - 클라우드 인증 런타임 정적 검사

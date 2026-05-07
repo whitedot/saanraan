@@ -23,7 +23,6 @@ function toy_admin_sensitive_site_setting_keys(): array
 {
     return [
         'admin.module_sources_enabled' => true,
-        'admin.repository_archive_unchecked_enabled' => true,
     ];
 }
 

@@ -168,18 +168,8 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
         'value' => $moduleSourcesEnabled ? '허용' : '비활성화',
         'state' => $moduleSourcesEnabled && toy_admin_runtime_is_production($config) ? '주의' : '정상',
         'detail' => $moduleSourcesEnabled
-            ? 'owner 재인증 후 zip/upload/archive 반영 가능'
+            ? 'owner 재인증 후 모듈 zip 업로드 가능'
             : 'admin.module_sources_enabled 설정이 없으면 운영 환경에서 기본 비활성화',
-    ];
-
-    $uncheckedArchiveEnabled = toy_admin_repository_archive_unchecked_enabled($pdo, $config);
-    $summary[] = [
-        'label' => 'Repository archive',
-        'value' => $uncheckedArchiveEnabled ? '미등록 checksum 허용' : 'checksum 필요',
-        'state' => $uncheckedArchiveEnabled ? '확인' : '정상',
-        'detail' => $uncheckedArchiveEnabled
-            ? '개발/스테이징에서만 admin.repository_archive_unchecked_enabled 설정으로 허용'
-            : '운영 환경은 commit SHA와 registry checksum이 필요',
     ];
 
     return $summary;
@@ -245,13 +235,12 @@ function toy_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config):
 {
     $labels = [
         'admin.module_sources_enabled' => '모듈 소스 반영',
-        'admin.repository_archive_unchecked_enabled' => 'Checksum 미등록 archive',
     ];
     $settings = [];
     $stmt = $pdo->query(
         "SELECT setting_key, setting_value, value_type, updated_at
          FROM toy_site_settings
-         WHERE setting_key IN ('admin.module_sources_enabled', 'admin.repository_archive_unchecked_enabled')
+         WHERE setting_key IN ('admin.module_sources_enabled')
          ORDER BY setting_key ASC"
     );
     foreach ($stmt->fetchAll() as $row) {
@@ -272,10 +261,6 @@ function toy_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config):
             $detail = toy_admin_runtime_is_production($config)
                 ? '운영 환경에서 모듈 파일 반영 경로가 열려 있음'
                 : '개발/스테이징에서 모듈 파일 반영 경로가 열려 있음';
-        } elseif ($settingKey === 'admin.repository_archive_unchecked_enabled' && $enabled) {
-            $detail = toy_admin_runtime_is_production($config)
-                ? '운영 환경에서는 이 설정이 무시됨'
-                : 'checksum 미등록 repository archive 반영이 허용됨';
         } elseif (is_array($row) && $valueType !== 'bool') {
             $state = '주의';
             $detail = '고위험 설정은 bool 타입으로 다시 저장해야 함';

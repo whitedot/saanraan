@@ -157,7 +157,6 @@ function toy_distribution_validate_common_files(string $packageRoot): void
         'config/.gitignore',
         'core',
         'database',
-        'docs/module-index.json',
         'docs/shared-hosting-install.md',
         'modules/member/module.php',
         'modules/admin/module.php',

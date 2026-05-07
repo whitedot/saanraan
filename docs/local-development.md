@@ -48,12 +48,6 @@ php .tools/bin/check.php
 
 이 PHP 점검 도구는 `git diff --check`, 전체 PHP 문법 검사, SQL 파일 비어 있음 여부, 모듈 기본 계약 파일 구성, 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 여부, 런타임/회원 인증 정책 검사를 확인한다.
 
-공식 모듈 registry 구조만 확인할 때:
-
-```sh
-php .tools/bin/check-module-index.php
-```
-
 ## 외부 모듈 제작
 
 반복 제작이나 공개 배포를 위한 외부 모듈 프로젝트 폴더를 만들 때:

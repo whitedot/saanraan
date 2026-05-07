@@ -2,10 +2,15 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
-DIST="${ROOT}/dist"
+cd "${ROOT}"
+
+DIST="dist"
 VERSION="${1:-dev}"
-MODULE_REPO_ROOT="${TOYCORE_MODULE_REPO_ROOT:-$(dirname "${ROOT}")}"
-DISTRIBUTION_POLICY="${ROOT}/docs/distributions.json"
+DISTRIBUTION_POLICY="docs/distributions.json"
+PHP_BIN="${PHP_BIN:-php}"
+if ! command -v "${PHP_BIN}" >/dev/null 2>&1; then
+    PHP_BIN="${ROOT}/.tools/bin/php"
+fi
 
 copy_path() {
     source_path="$1"
@@ -36,7 +41,6 @@ copy_base() {
         docs/deployment-protection.md \
         docs/distributions.json \
         docs/install-plan.md \
-        docs/module-index.json \
         docs/module-guide.md \
         docs/module-repository-strategy.md \
         docs/release-process.md \
@@ -59,16 +63,9 @@ copy_module() {
         return
     fi
 
-    module_repo_key="$(printf '%s' "${module_key}" | tr '_' '-')"
-    module_repo_dir="${MODULE_REPO_ROOT}/toycore-module-${module_repo_key}/module"
-    if [ ! -d "${module_repo_dir}" ]; then
-        echo "module source not found: ${module_key}" >&2
-        echo "Expected ${ROOT}/modules/${module_key} or ${module_repo_dir}" >&2
-        exit 1
-    fi
-
-    mkdir -p "${target_root}/modules/${module_key}"
-    cp -R "${module_repo_dir}/." "${target_root}/modules/${module_key}/"
+    echo "module source not found in this tree: ${module_key}" >&2
+    echo "Expected ${ROOT}/modules/${module_key}" >&2
+    exit 1
 }
 
 copy_modules() {
@@ -82,7 +79,7 @@ copy_modules() {
 distribution_modules() {
     distribution_key="$1"
 
-    php -r '
+    "${PHP_BIN}" -r '
         $path = $argv[1];
         $distributionKey = $argv[2];
         $content = file_get_contents($path);
@@ -98,7 +95,7 @@ distribution_modules() {
 distribution_optional_modules() {
     distribution_key="$1"
 
-    php -r '
+    "${PHP_BIN}" -r '
         $path = $argv[1];
         $distributionKey = $argv[2];
         $content = file_get_contents($path);
@@ -130,7 +127,7 @@ module_manifest_entry() {
         return
     fi
 
-    php "${ROOT}/.tools/bin/distribution-manifest-entry.php" "${module_key}" "${module_root}"
+    "${PHP_BIN}" ".tools/bin/distribution-manifest-entry.php" "${module_key}" "${module_root}"
 }
 
 write_manifest() {
@@ -192,7 +189,7 @@ make_zip toycore-minimal "${minimal_root}"
 make_zip toycore-standard "${standard_root}"
 make_zip toycore-ops "${ops_root}"
 
-echo "Created distribution directories under ${DIST}"
+echo "Created distribution directories under ${ROOT}/${DIST}"
 if command -v zip >/dev/null 2>&1; then
     echo "Created zip packages for version ${VERSION}"
 else

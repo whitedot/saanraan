@@ -189,7 +189,6 @@ if (!is_string($adminSettingsHelper)) {
 if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function toy_admin_sensitive_site_setting_keys') === false
     || strpos($adminSettingsHelper, "'admin.module_sources_enabled' => true") === false
-    || strpos($adminSettingsHelper, "'admin.repository_archive_unchecked_enabled' => true") === false
     || strpos($adminSettingsHelper, 'function toy_admin_site_setting_requires_bool') === false
     || strpos($adminSettingsHelper, "toy_admin_site_setting_requires_bool(\$settingKey) && \$valueType !== 'bool'") === false
     || strpos($adminSettingsHelper, '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.') === false
@@ -438,38 +437,6 @@ if (is_string($adminModuleSourcesHelper) && (
     $errors[] = 'Admin module source extraction must verify the extracted file tree stays inside the work directory.';
 }
 if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function toy_admin_is_https_public_url') === false
-    || strpos($adminModuleSourcesHelper, "strtolower((string) parse_url(\$url, PHP_URL_SCHEME)) === 'https'") === false
-    || strpos($adminModuleSourcesHelper, "toy_admin_is_https_public_url((string) (\$entry['zip_url'] ?? ''))") === false
-    || strpos($adminModuleSourcesHelper, 'toy_admin_is_https_public_url($repository)') === false
-)) {
-    $errors[] = 'Admin module source registry URLs must be restricted to HTTPS public URLs at runtime.';
-}
-if (is_string($adminModuleSourcesHelper) && (
-    substr_count($adminModuleSourcesHelper, "'follow_location' => 0") < 2
-    || substr_count($adminModuleSourcesHelper, "'max_redirects' => 0") < 2
-)) {
-    $errors[] = 'Admin module source downloads must not follow redirects after registry URL validation.';
-}
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function toy_admin_http_stream_status_is_success') === false
-    || strpos($adminModuleSourcesHelper, 'stream_get_meta_data($stream)') === false
-    || substr_count($adminModuleSourcesHelper, 'toy_admin_http_stream_status_is_success($source)') < 2
-    || strpos($adminModuleSourcesHelper, 'registry release zip 다운로드 응답이 성공 상태가 아닙니다.') === false
-    || strpos($adminModuleSourcesHelper, 'repository archive zip 다운로드 응답이 성공 상태가 아닙니다.') === false
-)) {
-    $errors[] = 'Admin module source downloads must reject non-2xx HTTP responses before saving zip bodies.';
-}
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function toy_admin_registry_entry_contract_ready') === false
-    || strpos($adminModuleSourcesHelper, 'TOY_MODULE_CONTRACT_VERSION') === false
-    || strpos($adminModuleSourcesHelper, 'return $moduleContract === TOY_MODULE_CONTRACT_VERSION;') === false
-    || strpos($adminModuleSourcesHelper, '$moduleContract === \'\' ||') !== false
-    || substr_count($adminModuleSourcesHelper, 'toy_admin_registry_entry_contract_ready($entry)') < 2
-)) {
-    $errors[] = 'Admin module source registry downloads and repository archives must require compatible module contracts.';
-}
-if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_module_metadata_errors') === false
     || strpos($adminModuleSourcesHelper, 'toy_module_contract_errors($metadata)') === false
     || strpos($adminModuleSourcesHelper, 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.') === false
@@ -490,7 +457,6 @@ if (!is_string($adminModuleActionsHelper)) {
 } elseif (
     strpos($adminModuleActionsHelper, "'result' => 'failure'") === false
     || strpos($adminModuleActionsHelper, 'Module source zip upload failed.') === false
-    || strpos($adminModuleActionsHelper, 'Module source zip download failed.') === false
     || substr_count($adminModuleActionsHelper, 'toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))') < 2
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';

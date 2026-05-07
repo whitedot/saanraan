@@ -12,11 +12,6 @@ on:
         required: true
         default: 'main'
         type: string
-      module_ref:
-        description: 'Optional shared official module ref. Empty uses module-index latest_version tags or default branches.'
-        required: false
-        default: ''
-        type: string
 
 jobs:
   package:
@@ -34,12 +29,6 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-
-      - name: Checkout official modules
-        run: php .tools/bin/clone-official-modules.php ..
-        working-directory: toycore
-        env:
-          TOYCORE_MODULE_REF: ${{ inputs.module_ref }}
 
       - name: Run checks
         run: ./.tools/bin/check

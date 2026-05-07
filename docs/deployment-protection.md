@@ -56,7 +56,7 @@ upload_max_filesize와 post_max_size가 모듈 zip 크기보다 큰지 확인
 display_errors가 운영에서 꺼져 있는지 확인
 ```
 
-`ZipArchive`가 없으면 관리자 모듈 화면에서 zip 업로드, registry release zip 다운로드, repository archive 반영을 사용할 수 없다. 이 경우 FTP나 호스팅 파일 관리자로 모듈 파일을 배치한 뒤 관리자 화면에서 설치와 DB 업데이트를 진행한다.
+`ZipArchive`가 없으면 관리자 모듈 화면에서 zip 업로드를 사용할 수 없다. 이 경우 FTP나 호스팅 파일 관리자로 모듈 파일을 배치한 뒤 관리자 화면에서 설치와 DB 업데이트를 진행한다.
 
 `storage/`에 쓸 수 없으면 설치 잠금 파일, 오류 로그, 업데이트 실패 marker, 모듈 백업 디렉터리를 만들 수 없다. 설치 전에 쓰기 권한을 조정하고, 운영 중 권한을 바꾸는 경우 `storage/logs/error.log` 기록 여부를 다시 확인한다.
 

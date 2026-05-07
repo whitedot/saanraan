@@ -21,7 +21,7 @@ upload_max_filesize, post_max_size
 ZipArchive 확장 사용 가능 여부
 ```
 
-`ZipArchive`가 없으면 관리자 모듈 화면에서 zip 업로드, 공식 registry release zip 다운로드, repository archive 반영을 사용할 수 없다. 이 경우 모듈 파일은 FTP나 호스팅 파일 관리자로 `modules/{module_key}`에 올리고, 설치와 DB 업데이트는 관리자 화면에서 진행한다.
+`ZipArchive`가 없으면 관리자 모듈 화면에서 zip 업로드를 사용할 수 없다. 이 경우 모듈 파일은 FTP나 호스팅 파일 관리자로 `modules/{module_key}`에 올리고, 설치와 DB 업데이트는 관리자 화면에서 진행한다.
 
 ## 업로드 전 로컬 점검
 

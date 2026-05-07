@@ -16,9 +16,8 @@
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
 | `module-ci-template.yml` | 모듈 CI 템플릿 | 외부 모듈 프로젝트용 GitHub Actions 호환성 검사 예시 |
 | `distributions.json` | 배포 조합 정책 | minimal/standard/ops 포함 모듈과 기본 선택 모듈 기준 |
-| `module-index.json` | 모듈 registry | 공식 모듈 release zip checksum과 운영용 repository archive checksum 등록용 JSON |
-| `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |
-| `module-update-and-source-plan.md` | 모듈 운영 | 모듈 설치 소스, zip 업로드, repository 가져오기, 업데이트 보완 계획 |
+| `module-repository-strategy.md` | 배포 전략 | 모듈을 `modules/{module_key}` 폴더 기준으로 다루는 저장 위치 기준 |
+| `module-update-and-source-plan.md` | 모듈 운영 | 모듈 배치, zip 업로드, 설치/업데이트 책임 기준 |
 | `legacy-maintainer-improvement-plan.md` | 운영 개선 | 레거시 운영자 관점의 개선 순서와 완료 기준 |
 | `database-access-policy.md` | DB 접근 규약 | PDO 사용, prepared statement, raw SQL 허용 범위 |
 
@@ -53,7 +52,7 @@
 | --- | --- | --- |
 | `local-development.md` | 로컬 개발 | PHP 내장 서버, 기본 점검 스크립트, 문법 검사 명령 |
 | `smoke-test.md` | 스모크 테스트 | 배포 전 최소 HTTP 점검과 수동 검증 시나리오 |
-| `release-process.md` | 릴리스 절차 | 배포 zip 생성, 모듈 checksum, registry 갱신 기준 |
+| `release-process.md` | 릴리스 절차 | 배포 zip 생성과 릴리스 전후 확인 기준 |
 | `deployment-protection.md` | 배포 보호 | 내부 디렉터리 직접 접근 차단 기준 |
 | `deployment-examples.md` | 배포 예시 | PHP 내장 서버, Apache, Nginx, 공유호스팅 예시 |
 | `shared-hosting-install.md` | 저가형 호스팅 설치 | FTP/SFTP 기반 호스팅 설치 순서와 설치 전후 검증 기준 |

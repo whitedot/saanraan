@@ -1,8 +1,8 @@
 # 구현된 기능 리스트
 
-이 문서는 toycore.git 본체와 standard/ops 배포 패키지로 조립할 수 있는 기능을 사용자 관점에서 정리한다.
+이 문서는 toycore.git 본체와 배포 패키지로 제공하는 기능을 사용자 관점에서 정리한다.
 
-Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. toycore.git 본체는 core/member/admin 중심으로 유지하고, 선택 기능은 별도 모듈 리포지토리에서 관리한다.
+Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 목표로 한다. 배포 가능한 모듈은 최종적으로 `modules/{module_key}` 폴더로 존재해야 하며, Toycore는 그 폴더를 기준으로 설치와 업데이트를 처리한다.
 
 ## 설치와 실행
 
@@ -15,7 +15,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
 - core, member, admin 설치 SQL 실행
-- 배포본에 포함된 경우 seo, popup_layer, point, deposit, reward, site_menu, banner, notification 설치 여부 선택
+- 배포본에 포함된 선택 모듈 설치 여부 선택
 - 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - 설치 시 운영 URL의 HTTPS 여부 확인
@@ -28,20 +28,11 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 관리자 모듈 화면에서 owner 전용 모듈 zip 업로드
 - 운영 환경의 모듈 소스 반영 기능 기본 비활성화
 - 모듈 소스 반영과 파일 버전 동기화 owner 재인증
-- 공식 registry에 URL과 checksum이 등록된 모듈 release zip 다운로드
-- 공식 registry에 등록된 GitHub repository의 고급 ref archive zip 다운로드
-- 모듈 registry/repository zip 다운로드의 HTTP 성공 응답 검증
 - 모듈 zip 압축 해제 후 실제 파일 트리 경계 검증
 - 모듈 소스 교체 실패 시 기존 백업 복구 실패 감지
-- 모듈 소스 업로드/다운로드 성공과 실패 감사 로그 기록
-- repository archive checksum 미등록 허용 설정은 개발/스테이징에서만 동작하고 bool 타입만 허용
-- 공식 모듈 registry 구조와 release zip/checksum 쌍 검증 도구
-- 운영용 repository archive commit SHA/checksum 등록 보조 도구
+- 모듈 소스 업로드 성공과 실패 감사 로그 기록
 - 모듈 파일 교체 전 백업과 교체 확인, downgrade 차단, checksum/압축 크기 검증
-- 모듈 release zip checksum을 계산해 공식 registry를 갱신하는 도구
-- 공식 모듈 release zip 수집, registry 갱신, GitHub Release 업로드 보조 도구
-- 공식 모듈 리포지토리 checkout 도구
-- 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드용 GitHub Actions workflow
+- 전체 점검, 배포 패키지 조립, artifact 업로드용 GitHub Actions workflow
 - 반복 제작/공개 배포용 외부 모듈 프로젝트 구조와 zip 패키징 스크립트 생성 도구
 
 ## 개발 및 검증 도구
@@ -49,7 +40,6 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 기본 점검 스크립트 제공
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트 제공
-- 공식 모듈 registry 구조 검사
 - 배포 manifest 항목 생성 결과 검사
 - 외부 모듈 스캐폴딩 생성 결과와 CI 제외 옵션 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
@@ -96,7 +86,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 
 ## 선택 모듈 배포 후보
 
-standard/ops 패키지에는 외부 모듈 리포지토리의 `module/` 디렉터리를 조립해 다음 기능을 포함할 수 있다.
+선택 모듈은 Toycore 배포본의 `modules/{module_key}` 폴더에 포함되거나, 설치 후 zip/FTP/SFTP로 같은 위치에 배치할 수 있다.
 
 - `seo`: SEO meta helper, `/robots.txt`, `/sitemap.xml`, SEO 관리자 설정, 활성 모듈 `sitemap.php` 기반 sitemap URL 확장
 - `popup_layer`: 관리자 팝업 등록/수정/삭제, 출력 대상 규칙, 화면별 팝업 출력

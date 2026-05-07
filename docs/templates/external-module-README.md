@@ -105,7 +105,6 @@ php .tools/bin/package-module 2026.05.001
 - 공개 배포나 유료 배포를 한다.
 - 같은 모듈을 여러 사이트에 반복 배포한다.
 - Toycore 버전별 호환성을 자동으로 확인하고 싶다.
-- 공식 모듈 registry에 등록할 계획이 있다.
 
 GitHub Actions를 사용하려면 Toycore 본체 문서를 본다.
 
