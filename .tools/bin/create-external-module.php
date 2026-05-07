@@ -32,6 +32,19 @@ if ($moduleKey === '' || $targetDir === '' || preg_match('/\A[a-z][a-z0-9_]{1,39
     exit(1);
 }
 
+if (
+    $toycoreRef === ''
+    || strlen($toycoreRef) > 120
+    || str_contains($toycoreRef, '..')
+    || str_starts_with($toycoreRef, '/')
+    || str_ends_with($toycoreRef, '/')
+    || str_contains($toycoreRef, '//')
+    || preg_match('/\A[A-Za-z0-9._\/-]+\z/', $toycoreRef) !== 1
+) {
+    fwrite(STDERR, "Toycore ref is invalid.\n");
+    exit(1);
+}
+
 if ($targetDir !== '' && !str_starts_with($targetDir, '/') && preg_match('/\A[A-Za-z]:[\/\\\\]/', $targetDir) !== 1) {
     $targetDir = $root . '/' . $targetDir;
 }

@@ -105,6 +105,17 @@ try {
     if (!is_file($noCiTargetDir . '/module/module.php') || !is_file($noCiTargetDir . '/.tools/bin/package-module')) {
         throw new RuntimeException('no-ci scaffold is incomplete.');
     }
+
+    $output = [];
+    exec(
+        escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/create-external-module.php') . ' '
+        . escapeshellarg('bad_ref') . ' ' . escapeshellarg($workRoot . '/bad-ref') . ' ' . escapeshellarg('../main') . ' 2>&1',
+        $output,
+        $exitCode
+    );
+    if ($exitCode === 0 || !str_contains(implode("\n", $output), 'Toycore ref is invalid.')) {
+        throw new RuntimeException('invalid Toycore ref should be rejected.');
+    }
 } catch (Throwable $exception) {
     fwrite(STDERR, "external module scaffold checks failed: " . $exception->getMessage() . "\n");
     toy_check_create_external_module_remove_directory($workRoot);
