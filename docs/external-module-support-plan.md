@@ -91,7 +91,7 @@ toycore-module-banner/
     - check.yml
 ```
 
-`.github/workflows/check.yml`은 기본 생성되지만, CI가 아직 익숙하지 않은 개발자는 `--no-ci` 옵션으로 생략할 수 있다. 이 경우에도 로컬에서 `php /path/to/toycore/.tools/bin/check-external-module.php . banner`로 같은 기준을 직접 점검할 수 있다.
+`.github/workflows/check.yml`은 기본 생성되지만, CI가 아직 익숙하지 않은 개발자는 `--no-ci` 옵션으로 생략할 수 있다. 이 경우에도 모듈 저장소 루트에서 `php /path/to/toycore/.tools/bin/check-external-module.php module banner`로 같은 기준을 직접 점검할 수 있다. Toycore 저장소 루트에서는 `php .tools/bin/check-external-module.php ../toycore-module-banner/module banner`처럼 모듈 저장소의 `module/` 디렉터리를 지정한다.
 
 생성된 `.tools/bin/package-module`은 모듈 저장소의 `module/` 디렉터리를 `{module_key}-{version}.zip`으로 묶는다. 이 zip은 Toycore 관리자 모듈 화면에서 업로드하거나, 공식 모듈 registry에 등록할 release 산출물로 사용할 수 있다.
 
