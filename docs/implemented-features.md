@@ -1,6 +1,6 @@
 # 구현된 기능 리스트
 
-이 문서는 toycore.git 본체와 배포 패키지로 제공하는 기능을 사용자 관점에서 정리한다.
+이 문서는 toycore.git 본체가 제공하는 기능을 사용자 관점에서 정리한다.
 
 내부 구현 세부와 검증 기준은 [현재 구현 상태](current-implementation-status.md)를 기준으로 확인한다. 이 문서는 운영자와 모듈 제작자가 Toycore가 실제로 제공하는 기능 표면을 빠르게 파악할 수 있도록 유지한다.
 
@@ -17,7 +17,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `config/config.php` 설정 파일 생성
 - `storage/installed.lock` 설치 완료 파일 생성
 - core, member, admin 설치 SQL 실행
-- 배포본에 포함된 선택 모듈 설치 여부 선택
+- 현재 코드에 포함된 선택 모듈 설치 여부 선택
 - 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
 - 설치 시 운영 URL의 HTTPS 여부 확인
@@ -25,8 +25,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 설치 최초 관리자 비밀번호 원문 길이 초과 입력 차단
 - 기본 홈 화면과 오류 화면 제공
 - 공통 CSS 파일 제공
-- standard/ops 패키지 조립 시 선택 모듈 정적 자산 포함
-- 배포 패키지 manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성 검증 도구
+- 선택 모듈 정적 자산 제공
 - 관리자 모듈 화면에서 owner 전용 모듈 zip 업로드
 - 운영 환경의 모듈 소스 반영 기능 기본 비활성화
 - 모듈 소스 반영과 파일 버전 동기화 owner 재인증
@@ -34,14 +33,13 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 모듈 소스 교체 실패 시 기존 백업 복구 실패 감지
 - 모듈 소스 업로드 성공과 실패 감사 로그 기록
 - 모듈 파일 교체 전 백업과 교체 확인, downgrade 차단, checksum/압축 크기 검증
-- 전체 점검, 배포 패키지 조립, artifact 업로드용 GitHub Actions workflow
+- 전체 점검용 GitHub Actions workflow
 
 ## 개발 및 검증 도구
 
 - Docker 기반 로컬 PHP 실행 래퍼 제공
 - 기본 점검 스크립트 제공
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트 제공
-- 배포 manifest 항목 생성 결과 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - 로컬 PHP 또는 Docker 실행 시 전체 PHP 문법 검사

@@ -52,19 +52,11 @@ Toycore가 기본으로 관리하지 않는 것:
 
 Toycore 런타임으로 들어오는 산출물은 `modules/{module_key}` 폴더여야 한다. Toycore 본체는 파일의 출처나 배포 생명주기를 추적하지 않는다.
 
-## 배포 패키지
+## 배포 기준
 
-`package-distributions`는 현재 toycore.git 안에 있는 파일만 패키징한다. 패키징 도구는 형제 디렉터리나 다른 작업 공간의 모듈 저장소를 찾아 조립하지 않는다.
+Toycore 본체는 저장소에 포함된 현재 파일을 그대로 릴리스 기준으로 본다. 운영 환경에는 Git checkout, 릴리스 zip, FTP/SFTP 중 가능한 방식으로 같은 파일 구조를 배치한다.
 
-현재 배포 패키지는 toycore.git 안의 `modules/` 폴더에 있는 모듈만 사용해 조립한다.
-
-```text
-minimal: core + member + admin
-standard: core + member + admin + seo + site_menu + banner
-ops: standard + popup_layer + point + deposit + reward + notification
-```
-
-선택 모듈을 공식 배포에 포함하려면 해당 모듈의 런타임 파일이 먼저 toycore.git의 `modules/{module_key}` 아래에 있어야 한다.
+선택 모듈을 함께 배포하려면 해당 모듈의 런타임 파일이 toycore.git의 `modules/{module_key}` 아래에 있어야 한다. 별도 저장소나 외부 산출물에서 만든 모듈도 Toycore 안으로 들어온 뒤의 기준은 항상 `modules/{module_key}`다.
 
 ## 관리자 화면 책임
 

@@ -114,31 +114,7 @@ foreach (array_keys($optionalModules) as $moduleKey) {
     $optionalModules[$moduleKey] = toy_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
 }
 
-function toy_install_default_optional_module_keys(): array
-{
-    $path = TOY_ROOT . '/docs/distributions.json';
-    $content = file_get_contents($path);
-    if (!is_string($content)) {
-        return [];
-    }
-
-    $data = json_decode($content, true);
-    if (!is_array($data) || !is_array($data['default_optional_modules'] ?? null)) {
-        return [];
-    }
-
-    $moduleKeys = [];
-    foreach ($data['default_optional_modules'] as $moduleKey) {
-        if (is_string($moduleKey) && preg_match('/\A[a-z0-9_]+\z/', $moduleKey) === 1) {
-            $moduleKeys[] = $moduleKey;
-        }
-    }
-
-    return $moduleKeys;
-}
-
-$selectedOptionalModuleKeys = toy_install_default_optional_module_keys();
-$selectedOptionalModuleKeys = array_values(array_intersect($selectedOptionalModuleKeys, array_keys($optionalModules)));
+$selectedOptionalModuleKeys = [];
 $values = [
     'db_host' => 'localhost',
     'db_name' => '',

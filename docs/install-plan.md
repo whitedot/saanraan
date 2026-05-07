@@ -166,7 +166,7 @@ toy_schema_versions
 
 `toy_schema_versions`는 설치된 core와 모듈의 스키마 버전을 기록합니다. 관리자 업데이트 화면은 이 기록을 기준으로 아직 적용되지 않은 SQL 파일만 실행합니다.
 
-`member`, `admin`은 필수 모듈이고, `seo`, `site_menu`, `banner`는 standard 배포 패키지에 포함할 수 있는 선택 모듈입니다. `popup_layer`, `point`, `deposit`, `reward`, `notification`은 ops 배포 패키지에 포함할 수 있습니다. 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
+`member`, `admin`은 필수 모듈이고, `seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`은 현재 코드에 포함될 수 있는 선택 모듈입니다. 테이블 생성은 각 모듈의 `install.sql` 책임으로 둡니다.
 
 단일 사이트 기본값은 `toy_site_settings`의 다음 필수 키로 저장합니다.
 
@@ -189,7 +189,7 @@ admin
 
 `member`와 `admin`은 코어에 내장하지 않지만, 기본 설치에 반드시 포함되는 필수 기본 모듈입니다.
 
-다음 선택 모듈은 배포본에 코드가 포함되어 있고 설치 화면에서 선택한 경우에만 설치 SQL을 실행하고 `toy_modules`에 등록합니다.
+다음 선택 모듈은 현재 코드에 포함되어 있고 설치 화면에서 선택한 경우에만 설치 SQL을 실행하고 `toy_modules`에 등록합니다.
 
 ```text
 seo
@@ -202,9 +202,9 @@ reward
 notification
 ```
 
-선택하지 않은 모듈은 코드가 배포되어 있더라도 DB에는 등록하지 않습니다. 설치 후 `/admin/modules`에서 코드에 있지만 DB에 등록되지 않은 모듈을 설치할 수 있습니다. minimal 배포본처럼 선택 모듈 코드가 없으면 설치 화면의 선택 모듈 목록은 비어 있을 수 있습니다.
+선택하지 않은 모듈은 코드가 있어도 DB에는 등록하지 않습니다. 설치 후 `/admin/modules`에서 코드에 있지만 DB에 등록되지 않은 모듈을 설치할 수 있습니다. 선택 모듈 코드가 없으면 설치 화면의 선택 모듈 목록은 비어 있을 수 있습니다.
 
-기본 배포 설치 단위:
+기본 설치 단위:
 
 ```text
 필수: core + member + admin

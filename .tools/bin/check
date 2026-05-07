@@ -67,8 +67,6 @@ if [ "${PHP_BIN}" = "./.tools/bin/php" ]; then
     fi
 fi
 
-"${PHP_BIN}" .tools/bin/check-distribution-manifest-entry.php
-"${PHP_BIN}" .tools/bin/check-distribution-policy.php
 "${PHP_BIN}" .tools/bin/check-retention-targets.php
 "${PHP_BIN}" .tools/bin/check-auth-runtime.php
 "${PHP_BIN}" .tools/bin/check-runtime-helpers.php

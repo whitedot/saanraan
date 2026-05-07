@@ -25,50 +25,16 @@ storage/installed.lock
 
 이 파일들은 Git에 포함하지 않습니다.
 
-## 배포 패키지 종류
+## 배포 파일 기준
 
-Toycore 배포 산출물은 현재 저장소의 `modules/` 폴더를 기준으로 만듭니다. 공식 배포 조합은 `docs/distributions.json`을 기준으로 하며, 패키징과 검증, 설치 화면 기본 선택값이 이 파일을 읽습니다.
+Toycore 배포는 현재 저장소의 파일 구조를 기준으로 합니다. 필수 모듈은 `member`, `admin`이며, 선택 모듈은 `modules/{module_key}` 폴더에 코드가 있을 때 설치 화면이나 `/admin/modules`에서 설치할 수 있습니다.
 
-```text
-toycore-minimal
-- core
-- member
-- admin
-
-toycore-standard
-- toycore-minimal
-- seo
-- site_menu
-- banner
-
-toycore-ops
-- toycore-standard
-- popup_layer
-- point
-- deposit
-- reward
-- notification
-```
-
-standard/ops는 현재 toycore.git 안의 `modules/{module_key}` 폴더를 그대로 패키징합니다. 필요한 모듈을 따로 받은 경우에도 설치 후 zip 업로드나 FTP/SFTP로 `modules/{module_key}`에 배치하고 `/admin/modules`에서 설치합니다.
-
-릴리스 제작 결과:
-
-```text
-dist/toycore-minimal
-dist/toycore-standard
-dist/toycore-ops
-```
+필요한 모듈을 따로 받은 경우에도 설치 후 zip 업로드나 FTP/SFTP로 `modules/{module_key}`에 배치하고 `/admin/modules`에서 설치합니다.
 
 ```mermaid
 flowchart TD
-    repo["toycore.git"] --> package["package-distributions"]
-    package --> minimal["toycore-minimal.zip"]
-    package --> standard["toycore-standard.zip"]
-    package --> ops["toycore-ops.zip"]
-    minimal --> user["사용자 설치"]
-    standard --> user
-    ops --> user
+    repo["toycore.git"] --> release["Git tag 또는 릴리스 zip"]
+    release --> user["사용자 설치"]
     user --> install["웹 설치 화면"]
     install --> modules["modules/{module_key}"]
 ```
@@ -121,17 +87,7 @@ git checkout -b release/<release-tag> <release-tag>
 
 운영 서버에서 바로 `main`을 따라가지 않는다. 운영 반영 기준은 릴리스 태그 또는 검증된 운영 브랜치의 commit SHA로 고정한다. `config/config.php`, `storage/installed.lock`, `storage/logs`, `storage/module-backups`는 Git에 포함하지 않는다.
 
-릴리스 zip만 사용할 수 있는 호스팅에서는 업로드한 zip 파일명, 릴리스 태그, `distribution-manifest.json`의 포함 모듈 버전/계약 정보, 적용 일자를 운영 기록으로 남긴다. 다음 업데이트 때는 기존 파일을 덮어쓰기 전에 파일 백업을 만들고, zip 교체 후 `/admin/updates`에서 DB 업데이트를 실행한다.
-
-## Maintainer 패키징
-
-`package-distributions`는 사용자 설치 명령이 아니라 릴리스 제작 명령이다. 이 명령은 현재 toycore.git 안의 파일만 읽는다.
-
-```sh
-./.tools/bin/package-distributions 2026.05.001
-```
-
-생성된 `dist/`는 운영 사이트가 계속 참조하는 디렉터리가 아니라, zip으로 배포하거나 운영 위치에 배치할 설치용 결과물이다.
+릴리스 zip만 사용할 수 있는 호스팅에서는 업로드한 zip 파일명, 릴리스 태그 또는 commit SHA, 적용 일자를 운영 기록으로 남긴다. 다음 업데이트 때는 기존 파일을 덮어쓰기 전에 파일 백업을 만들고, zip 교체 후 `/admin/updates`에서 DB 업데이트를 실행한다.
 
 ## PHP 내장 서버
 

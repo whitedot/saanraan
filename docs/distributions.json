@@ -1,8 +1,0 @@
-{
-  "packages": {
-    "minimal": ["member", "admin"],
-    "standard": ["member", "admin", "seo", "site_menu", "banner"],
-    "ops": ["member", "admin", "seo", "site_menu", "banner", "popup_layer", "point", "deposit", "reward", "notification"]
-  },
-  "default_optional_modules": ["seo", "site_menu", "banner"]
-}

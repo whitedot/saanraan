@@ -22,11 +22,10 @@
 - `config/config.php` 생성, 설정 임시 파일은 PHP 확장자로 작성
 - `storage/installed.lock` 생성
 - core/member/admin 설치 SQL 실행
-- 배포본에 포함된 선택 모듈 설치 여부 선택
+- 현재 코드에 포함된 선택 모듈 설치 여부 선택
 - 선택한 선택 모듈의 설치 SQL 실행
 - 스키마 버전 기록
-- 선택 모듈 코드가 없는 배포본에서는 설치 화면에서 해당 선택 모듈 제외
-- minimal/standard/ops 배포 디렉터리와 zip 생성을 위한 패키징 스크립트 추가
+- 선택 모듈 코드가 없는 설치본에서는 설치 화면에서 해당 선택 모듈 제외
 
 ### 모듈 배치와 소스 반영
 
@@ -38,10 +37,8 @@
 - 모듈 zip은 checksum, 항목 수, symlink, 경로 제어 문자/콜론/모호한 segment, 압축 해제 후 실제 파일 트리 경계, 압축 해제 크기, module key, version, downgrade, 교체 확인을 검증
 - 모듈 소스 교체 실패 시 기존 백업 복구 실패를 감지하고 실패로 처리
 - 모듈 소스 업로드 성공과 실패를 감사 로그에 기록
-- Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
-- minimal/standard/ops 배포 패키지는 현재 toycore.git 안의 `modules/` 폴더만 사용해 조립
-- GitHub Actions `Release packages` workflow로 전체 점검, 배포 패키지 조립, artifact 업로드 가능
-- `.tools/bin/check-distributions.php`로 배포 패키지 manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성 검증 가능
+- Toycore 본체는 현재 저장소 파일 구조를 릴리스 기준으로 사용
+- GitHub Actions `Checks` workflow로 기본 점검 실행 가능
 
 ### 코어
 
@@ -364,7 +361,6 @@
 - Docker 기반 로컬 PHP 실행 래퍼
 - 기본 점검 스크립트
 - 로컬 PHP 기반 크로스플랫폼 기본 점검 스크립트
-- 배포 manifest 항목 생성 결과 검사
 - 클라우드 인증 런타임 정적 검사
 - trusted proxy와 app key 런타임 helper 동작 검사
 - Docker 없이 실행 가능한 공백, SQL 파일, 모듈 기본 구조 검사 선행

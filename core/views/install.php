@@ -262,7 +262,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
                 <h3>선택 모듈</h3>
                 <?php if ($optionalModules === []) { ?>
-                    <p>현재 배포본에는 선택 모듈 코드가 포함되어 있지 않습니다. 설치 후 필요한 모듈 zip을 <code>modules/{module_key}</code>에 업로드하고 관리자 모듈 화면에서 설치하세요.</p>
+                    <p>현재 코드에는 설치 화면에서 선택할 수 있는 선택 모듈이 없습니다. 설치 후 필요한 모듈 zip을 <code>modules/{module_key}</code>에 업로드하고 관리자 모듈 화면에서 설치하세요.</p>
                 <?php } else { ?>
                     <div class="toy-install-module-grid">
                         <?php foreach ($optionalModules as $moduleKey => $module) { ?>
