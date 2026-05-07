@@ -94,6 +94,22 @@ try {
     toy_check_create_external_module_run(
         escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($targetDir . '/.tools/bin/package-module')
     );
+    $packageOutput = [];
+    exec(
+        escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($targetDir . '/.tools/bin/package-module') . ' 2>&1',
+        $packageOutput,
+        $packageExitCode
+    );
+    if (class_exists('ZipArchive')) {
+        if ($packageExitCode !== 0) {
+            throw new RuntimeException('package-module should create a zip when ZipArchive is available: ' . implode("\n", $packageOutput));
+        }
+        if (!is_file($targetDir . '/dist/banner-2026.05.001.zip')) {
+            throw new RuntimeException('package-module did not create the expected zip.');
+        }
+    } elseif ($packageExitCode === 0 || !str_contains(implode("\n", $packageOutput), 'PHP ZipArchive extension is required')) {
+        throw new RuntimeException('package-module should explain missing ZipArchive.');
+    }
 
     toy_check_create_external_module_run(
         escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/create-external-module.php') . ' '
