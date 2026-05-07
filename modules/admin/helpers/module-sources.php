@@ -220,7 +220,7 @@ function toy_admin_registry_entry_repository_ready(array $entry): bool
 function toy_admin_registry_entry_contract_ready(array $entry): bool
 {
     $moduleContract = (string) ($entry['module_contract'] ?? '');
-    return $moduleContract === '' || $moduleContract === TOY_MODULE_CONTRACT_VERSION;
+    return $moduleContract === TOY_MODULE_CONTRACT_VERSION;
 }
 
 function toy_admin_is_https_public_url(string $url): bool

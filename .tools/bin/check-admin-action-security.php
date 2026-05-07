@@ -418,6 +418,8 @@ if (is_string($adminModuleSourcesHelper) && (
 if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_registry_entry_contract_ready') === false
     || strpos($adminModuleSourcesHelper, 'TOY_MODULE_CONTRACT_VERSION') === false
+    || strpos($adminModuleSourcesHelper, 'return $moduleContract === TOY_MODULE_CONTRACT_VERSION;') === false
+    || strpos($adminModuleSourcesHelper, '$moduleContract === \'\' ||') !== false
     || substr_count($adminModuleSourcesHelper, 'toy_admin_registry_entry_contract_ready($entry)') < 2
 )) {
     $errors[] = 'Admin module source registry downloads and repository archives must require compatible module contracts.';
