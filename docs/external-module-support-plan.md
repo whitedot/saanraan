@@ -12,14 +12,17 @@
 기본 경로:
 폴더 생성 -> module.php/install.sql 작성 -> 로컬 점검 -> zip 생성 -> 관리자 업로드
 
+프로젝트 도구 경로:
+create-external-module.php -> README/AGENTS/package-module 생성 -> 로컬 점검 -> zip 생성
+
 자동 점검 경로:
-GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
+Git 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 공식 릴리스 경로:
 코어 maintainer가 공식 모듈 ref/checksum/registry/배포 패키지 조립 관리
 ```
 
-기본 안내에서는 CI를 먼저 요구하지 않는다. CI는 GitHub가 로컬 점검 명령을 대신 실행해 주는 자동 점검으로 설명한다.
+기본 안내에서는 Git 저장소나 CI를 먼저 요구하지 않는다. CI는 GitHub가 로컬 점검 명령을 대신 실행해 주는 자동 점검으로 설명한다.
 
 ## 진행 상태
 
@@ -50,7 +53,7 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 목표:
 
-- 외부 모듈 저장소 기본 구조를 생성하는 도구를 추가한다.
+- 반복 제작이나 공개 배포를 위한 외부 모듈 프로젝트 폴더 생성 도구를 추가한다.
 - 생성 결과를 전체 검사에서 검증한다.
 
 예정 파일:
@@ -62,8 +65,8 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 
 완료 항목:
 
-- `create-external-module.php`로 `AGENTS.md`, README, CHANGELOG, `.tools/bin/package-module`, `module/module.php`, `module/install.sql`, `.github/workflows/check.yml` 생성
-- `--no-ci` 옵션으로 GitHub Actions 파일 없이 최소 구조 생성 가능
+- `create-external-module.php`로 `AGENTS.md`, README, CHANGELOG, `.tools/bin/package-module`, `module/module.php`, `module/install.sql` 생성
+- `--with-ci` 옵션으로 GitHub Actions 파일 생성 가능
 - 기존 파일을 덮어쓰지 않도록 빈 target 디렉터리만 허용
 - 생성 결과를 `check-external-module.php`로 검증
 - `check-create-external-module.php`를 전체 검사에 연결
@@ -71,13 +74,13 @@ GitHub 저장소 push -> GitHub Actions가 모듈 점검 자동 실행
 기본 사용 예:
 
 ```sh
-php .tools/bin/create-external-module.php banner /path/to/toycore-module-banner
+php .tools/bin/create-external-module.php banner /path/to/banner-module
 ```
 
 초기 생성 구조:
 
 ```text
-toycore-module-banner/
+banner-module/
 - README.md
 - AGENTS.md
 - CHANGELOG.md
@@ -87,21 +90,18 @@ toycore-module-banner/
 - module/
   - module.php
   - install.sql
-- .github/
-  - workflows/
-    - check.yml
 ```
 
-`.github/workflows/check.yml`은 기본 생성되지만, CI가 아직 익숙하지 않은 개발자는 `--no-ci` 옵션으로 생략할 수 있다. 이 경우에도 모듈 저장소 루트에서 Toycore Git 저장소 경로를 명시해 같은 기준을 직접 점검할 수 있다.
+`.github/workflows/check.yml`은 기본 생성하지 않는다. 자동 점검이 필요한 개발자는 `--with-ci` 옵션으로 생성한다. CI가 없어도 프로젝트 루트에서 Toycore 소스 경로를 명시해 같은 기준을 직접 점검할 수 있다.
 
 ```sh
-TOYCORE_REPO=/path/to/toycore
-php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module banner
+TOYCORE=/path/to/toycore
+php "$TOYCORE/.tools/bin/check-external-module.php" module banner
 ```
 
-Toycore 저장소 루트에서 실행한다면 `php .tools/bin/check-external-module.php /path/to/toycore-module-banner/module banner`처럼 모듈 저장소의 `module/` 디렉터리를 절대 경로 또는 명시적 상대 경로로 지정한다.
+Toycore 소스 루트에서 실행한다면 `php .tools/bin/check-external-module.php /path/to/banner-module/module banner`처럼 모듈 프로젝트의 `module/` 디렉터리를 절대 경로 또는 명시적 상대 경로로 지정한다.
 
-생성된 `.tools/bin/package-module`은 모듈 저장소의 `module/` 디렉터리를 `{module_key}-{version}.zip`으로 묶는다. 이 zip은 Toycore 관리자 모듈 화면에서 업로드하거나, 공식 모듈 registry에 등록할 release 산출물로 사용할 수 있다.
+생성된 `.tools/bin/package-module`은 모듈 프로젝트의 `module/` 디렉터리를 `{module_key}-{version}.zip`으로 묶는다. 이 zip은 Toycore 관리자 모듈 화면에서 업로드하거나, 공식 모듈 registry에 등록할 release 산출물로 사용할 수 있다.
 
 처음 구현에서는 최소 구조와 zip 패키징까지만 생성한다. 관리자 화면, public route, output slot 같은 선택 파일은 이후 옵션으로 확장한다.
 
@@ -131,7 +131,7 @@ Toycore 저장소 루트에서 실행한다면 `php .tools/bin/check-external-mo
 
 ## 운영 원칙
 
-- 외부 모듈 저장소는 Toycore 문서를 복사해 오래 보관하지 않는다.
+- 외부 모듈 프로젝트는 Toycore 문서를 복사해 오래 보관하지 않는다.
 - 외부 모듈 README에는 짧은 사용법과 Toycore 문서 링크를 둔다.
 - 자세한 계약 설명은 Toycore 본체 문서를 원본으로 둔다.
 - 자동 점검은 선택 경로로 설명한다.

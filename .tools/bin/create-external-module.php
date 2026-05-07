@@ -9,7 +9,7 @@ require_once $root . '/core/version.php';
 $moduleKey = (string) ($argv[1] ?? '');
 $targetDir = (string) ($argv[2] ?? '');
 $toycoreRef = 'v' . TOY_CORE_VERSION;
-$withCi = true;
+$withCi = false;
 
 for ($i = 3; $i < $argc; $i++) {
     $argument = (string) $argv[$i];
@@ -18,17 +18,22 @@ for ($i = 3; $i < $argc; $i++) {
         continue;
     }
 
+    if ($argument === '--with-ci') {
+        $withCi = true;
+        continue;
+    }
+
     if ($argument !== '' && $argument[0] !== '-') {
         $toycoreRef = $argument;
         continue;
     }
 
-    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--no-ci]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--with-ci]\n");
     exit(1);
 }
 
 if ($moduleKey === '' || $targetDir === '' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
-    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--no-ci]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/create-external-module.php <module-key> <target-dir> [toycore-ref] [--with-ci]\n");
     exit(1);
 }
 
@@ -212,4 +217,18 @@ if ($withCi) {
     toy_create_external_module_write_file($targetDir . '/.github/workflows/check.yml', $ciTemplate);
 }
 
-echo "Created external module scaffold: " . $targetDir . "\n";
+echo "Created external module project: " . $targetDir . "\n";
+echo "\n";
+echo "Next steps:\n";
+echo "1. cd " . $targetDir . "\n";
+echo "2. Implement runtime files under module/.\n";
+echo "3. Check the module with Toycore:\n";
+echo "   TOYCORE=/path/to/toycore\n";
+echo "   php \"\$TOYCORE/.tools/bin/check-external-module.php\" module " . $moduleKey . "\n";
+echo "4. Create an upload zip:\n";
+echo "   php .tools/bin/package-module\n";
+echo "5. Upload dist/" . $moduleKey . "-2026.05.001.zip in Toycore /admin/modules.\n";
+if (!$withCi) {
+    echo "\n";
+    echo "GitHub Actions was not created. Run again with --with-ci in a new empty folder when automatic checks are needed.\n";
+}

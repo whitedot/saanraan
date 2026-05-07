@@ -12,9 +12,9 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 - 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
 - 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
-외부 모듈을 처음 만든다면 이 문서보다 [외부 모듈 제작 빠른 시작](external-module-quickstart.md)을 먼저 본다. zip 배포 전에는 [모듈 체크리스트](module-checklist.md)를 확인한다. GitHub Actions 자동 점검은 [모듈 자동 점검 빠른 시작](module-ci-quickstart.md)을 참고한다.
+외부 모듈을 처음 만든다면 이 문서보다 [외부 모듈 제작 빠른 시작](external-module-quickstart.md)을 먼저 본다. 처음에는 모듈 폴더와 zip 업로드 흐름만 이해하면 된다. zip 배포 전에는 [모듈 체크리스트](module-checklist.md)를 확인한다. GitHub Actions 자동 점검은 필요해진 뒤 [모듈 자동 점검 빠른 시작](module-ci-quickstart.md)을 참고한다.
 
-별도 리포지토리에서 모듈을 관리하는 배포 전략은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 함께 따른다.
+별도 리포지토리에서 모듈을 관리하는 방식은 공개 배포, 반복 배포, 공식 모듈 관리가 필요할 때 선택한다. 배포 전략은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 따른다.
 
 ## 1. 모듈 판단 기준
 
@@ -239,7 +239,7 @@ return [
 
 `module.php`는 Service Provider가 아니다. 정보 파일이다.
 
-외부 모듈 저장소는 먼저 Toycore Git 저장소의 `.tools/bin/check-external-module.php`로 점검한다. Toycore 저장소와 모듈 저장소가 같은 상위 디렉터리에 있을 필요는 없으며, 모듈 저장소 루트에서 `TOYCORE_REPO=/path/to/toycore`처럼 점검에 사용할 Toycore 저장소 경로를 명시한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈 저장소에 맞게 바꾼다.
+외부 모듈은 먼저 Toycore 소스의 `.tools/bin/check-external-module.php`로 점검한다. Toycore 소스와 모듈 폴더가 같은 상위 디렉터리에 있을 필요는 없으며, 프로젝트 생성 도구를 쓴 폴더에서는 `TOYCORE=/path/to/toycore`처럼 점검에 사용할 Toycore 소스 경로를 명시한다. GitHub Actions를 쓰면 같은 점검을 push할 때 자동으로 실행할 수 있다. 자동 점검을 켤 때는 [module-ci-template.yml](module-ci-template.yml)을 `.github/workflows/check.yml`로 복사하고, 템플릿의 `TOYCORE_MODULE_KEY`와 `TOYCORE_REF`를 모듈에 맞게 바꾼다.
 
 ## 5. 의존성 선언
 
@@ -1057,11 +1057,11 @@ Toycore는 저가형 웹호스팅을 고려한다.
 - 배포된 update SQL 수정 대신 새 update SQL 추가
 - 릴리스 노트에 설치/업데이트/호환 버전을 적는다.
 
-별도 리포지토리 배포를 고려하는 모듈은 모듈 루트에 `README.md`, `CHANGELOG.md`, `LICENSE`를 두는 것을 권장한다. 자세한 운영안은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 따른다.
+공개 배포나 반복 배포를 고려하는 모듈은 프로젝트 루트에 `README.md`, `CHANGELOG.md`, `LICENSE`를 두는 것을 권장한다. 별도 리포지토리 운영안은 [모듈 별도 리포지토리 관리 방안](module-repository-strategy.md)을 따른다.
 
 Git을 사용할 수 없는 운영 환경을 기본 지원 대상으로 본다. 따라서 별도 리포지토리 모듈도 운영 설치는 zip 업로드 방식으로 가능해야 한다.
 
-권장 배포 흐름:
+별도 리포지토리로 관리하는 모듈의 배포 흐름:
 
 ```text
 1. 모듈 리포지토리에서 개발
@@ -1084,14 +1084,14 @@ banner-2026.05.001.zip
    - views/
 ```
 
-새 모듈을 추가할 때 다음 조건에 해당하면 구현 전에 별도 리포지토리 생성을 요청한다.
+새 모듈을 추가할 때 다음 조건에 해당하면 별도 리포지토리 생성을 고려한다. 단순한 1회성 모듈이나 개인 사이트용 모듈은 모듈 폴더와 zip 업로드만으로 시작해도 된다.
 
 - 선택 설치 성격의 도메인 모듈이다.
 - 운영/마케팅/콘텐츠/커머스/분석처럼 사이트마다 필요 여부가 갈린다.
 - 외부 서비스 연동이 있다.
 - 코어와 다른 릴리스 주기가 예상된다.
 
-요청 예:
+공식 모듈로 관리할 때의 요청 예:
 
 ```text
 새 모듈 board는 별도 리포지토리 대상입니다.

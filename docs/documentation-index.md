@@ -10,11 +10,11 @@
 | `current-implementation-status.md` | 현재 상태 | 코드 기준 구현 범위와 검증 기준 |
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
 | `external-module-support-plan.md` | 외부 모듈 지원 계획 | 외부 모듈 제작자 문서와 도구 개선 진행 상태 |
-| `external-module-quickstart.md` | 외부 모듈 시작 | CI 없이 외부 모듈을 만들고 로컬 점검하는 첫 절차 |
+| `external-module-quickstart.md` | 외부 모듈 시작 | 모듈 폴더를 만들고 zip으로 업로드하는 첫 절차 |
 | `module-checklist.md` | 모듈 확인표 | 외부 모듈 zip 배포 전 확인 항목 |
 | `module-ci-quickstart.md` | 모듈 자동 점검 | GitHub Actions 기반 자동 점검을 짧게 설명 |
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
-| `module-ci-template.yml` | 모듈 CI 템플릿 | 외부 모듈 저장소용 GitHub Actions 호환성 검사 예시 |
+| `module-ci-template.yml` | 모듈 CI 템플릿 | 외부 모듈 프로젝트용 GitHub Actions 호환성 검사 예시 |
 | `distributions.json` | 배포 조합 정책 | minimal/standard/ops 포함 모듈과 기본 선택 모듈 기준 |
 | `module-index.json` | 모듈 registry | 공식 모듈 release zip checksum과 운영용 repository archive checksum 등록용 JSON |
 | `module-repository-strategy.md` | 배포 전략 | 모듈을 별도 리포지토리에서 관리할 때의 구조와 전환 기준 |

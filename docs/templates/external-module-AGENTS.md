@@ -1,15 +1,15 @@
 # AGENTS.md
 
-이 저장소는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. 실제 런타임 모듈 코드는 `module/` 아래에 두고, Toycore 설치본에는 릴리스 zip을 통해 `modules/MODULE_KEY/` 구조로 반영한다.
+이 프로젝트는 Toycore 외부 모듈 `MODULE_KEY`를 관리한다. Git 저장소로 관리해도 되고, 단순 작업 폴더로 관리해도 된다. 실제 런타임 모듈 코드는 `module/` 아래에 두고, Toycore 설치본에는 릴리스 zip을 통해 `modules/MODULE_KEY/` 구조로 반영한다.
 
 ## 기준 문서
 
-- Toycore 본체 Git 저장소(`git@github.com:whitedot/toycore.git`)의 `docs/module-guide.md`를 모듈 작성의 기준 문서로 본다.
-- 처음 구조를 확인할 때는 Toycore 본체 Git 저장소의 `docs/external-module-quickstart.md`를 본다.
-- 배포 전에는 Toycore 본체 Git 저장소의 `docs/module-checklist.md`를 확인한다.
-- 자동 점검은 Toycore 본체 Git 저장소의 `docs/module-ci-quickstart.md`와 이 저장소의 `.github/workflows/check.yml`을 기준으로 한다.
-- 구현 판단이 애매하면 Toycore 본체 Git 저장소의 `docs/core-decisions.md`를 우선한다.
-- 로컬에서 본체 문서를 직접 볼 때도 형제 디렉터리 배치를 가정하지 말고, `TOYCORE_REPO` 또는 실제 Toycore Git 저장소 경로를 기준으로 찾는다.
+- Toycore 본체의 `docs/module-guide.md`를 모듈 작성의 기준 문서로 본다.
+- 처음 구조를 확인할 때는 Toycore 본체의 `docs/external-module-quickstart.md`를 본다.
+- 배포 전에는 Toycore 본체의 `docs/module-checklist.md`를 확인한다.
+- 자동 점검을 쓰는 경우에는 Toycore 본체의 `docs/module-ci-quickstart.md`와 이 프로젝트의 `.github/workflows/check.yml`을 기준으로 한다.
+- 구현 판단이 애매하면 Toycore 본체의 `docs/core-decisions.md`를 우선한다.
+- 로컬에서 본체 문서를 직접 볼 때도 형제 디렉터리 배치를 가정하지 말고, `TOYCORE` 또는 실제 Toycore 소스 경로를 기준으로 찾는다.
 
 ## AI 보조 작업
 
@@ -19,7 +19,7 @@
 - AI가 만든 변경도 로컬 점검과 체크리스트를 통과하기 전에는 배포하지 않는다.
 - AI가 제안한 코어 테이블 변경, 자동 등록, 숨은 dispatcher, Composer 런타임 의존성은 기본적으로 거절하고 모듈 소유 구조로 다시 설계한다.
 
-## 저장소 구조
+## 저장소/작업 폴더 구조
 
 권장 구조:
 
@@ -119,7 +119,7 @@ module/updates/
 - 계약 파일은 로드 시 상태 변경을 하지 않는다.
 - `admin-menu.php`가 있으면 같은 모듈의 `paths.php`에 `GET {path}`가 있어야 한다.
 - `menu-links.php`는 운영자가 선택할 후보 링크만 제공하고 메뉴를 자동 생성하지 않는다.
-- `output-slots.php`는 callable을 반환한다. 자기 helper를 읽을 때는 외부 CI와 로컬 점검을 위해 `__DIR__` 기준 경로를 사용한다.
+- `output-slots.php`는 callable을 반환한다. 자기 helper를 읽을 때는 외부 점검을 위해 `__DIR__` 기준 경로를 사용한다.
 - `extension-points.php`는 관리자 설정 화면에서 읽을 확장 가능 지점을 선언한다. 사용자 요청마다 비싼 탐색을 반복하지 않는다.
 - `privacy-export.php`는 특정 회원의 데이터만 반환하고 hash, token, password, secret 계열 내부 값을 내보내지 않는다.
 - `sitemap.php`는 공개 가능한 URL만 반환한다. 비공개, 삭제, 임시저장 콘텐츠는 제외한다.
@@ -145,18 +145,18 @@ module/updates/
 
 ## 배포와 점검
 
-로컬 점검은 Toycore Git 저장소와 이 모듈 Git 저장소가 같은 상위 디렉터리에 있다고 가정하지 않는다. 모듈 저장소 루트에서 Toycore 저장소 경로를 명시한다.
+로컬 점검은 Toycore 소스 경로와 이 모듈 프로젝트 경로를 명시해 실행한다. 두 폴더가 같은 상위 디렉터리에 있을 필요는 없다.
 
 ```sh
-TOYCORE_REPO=/path/to/toycore
-php "$TOYCORE_REPO/.tools/bin/check-external-module.php" module MODULE_KEY
+TOYCORE=/path/to/toycore
+php "$TOYCORE/.tools/bin/check-external-module.php" module MODULE_KEY
 ```
 
 Windows PowerShell:
 
 ```powershell
-$env:TOYCORE_REPO = 'C:\path\to\toycore'
-php "$env:TOYCORE_REPO\.tools\bin\check-external-module.php" module MODULE_KEY
+$env:TOYCORE = 'C:\path\to\toycore'
+php "$env:TOYCORE\.tools\bin\check-external-module.php" module MODULE_KEY
 ```
 
 패키징:
@@ -175,6 +175,12 @@ MODULE_KEY-2026.05.001.zip
 ```
 
 운영 반영 후에는 Toycore 관리자에서 `/admin/modules`와 `/admin/updates`를 확인한다.
+
+## Git과 CI
+
+- 별도 Git 저장소는 팀 작업, 공개 배포, 반복 배포, 공식 registry 등록이 필요할 때 사용한다.
+- 혼자 만들고 zip으로 업로드하는 모듈은 Git 저장소나 CI 없이 시작해도 된다.
+- GitHub Actions는 배포가 아니라 로컬 점검을 push 때 자동 실행하는 선택 기능이다.
 
 ## 개발 방향
 

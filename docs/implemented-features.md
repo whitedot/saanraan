@@ -42,7 +42,7 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - 공식 모듈 release zip 수집, registry 갱신, GitHub Release 업로드 보조 도구
 - 공식 모듈 리포지토리 checkout 도구
 - 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드용 GitHub Actions workflow
-- 외부 모듈 저장소 최소 구조와 zip 패키징 스크립트 생성 도구
+- 반복 제작/공개 배포용 외부 모듈 프로젝트 구조와 zip 패키징 스크립트 생성 도구
 
 ## 개발 및 검증 도구
 
