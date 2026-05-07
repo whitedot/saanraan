@@ -16,7 +16,7 @@
 - `version`은 `YYYY.MM.NNN` 형식이다.
 - `type`은 `module` 또는 `plugin`이다.
 - `toycore.min_version`이 있다.
-- `toycore.tested_with`가 배열이다.
+- `toycore.tested_with`가 비어 있지 않은 배열이다.
 - `toycore.module_contract`가 현재 Toycore 계약 버전과 맞다.
 
 ## SQL
@@ -29,6 +29,7 @@
 
 - `admin-menu.php`가 있으면 `paths.php`도 있다.
 - `admin-menu.php`의 관리자 path가 `paths.php`에 `GET` route로 있다.
+- `paths.php`의 action 경로는 `actions/...php` 형식이고 실제 파일이 있다.
 - 관리자 action 시작 부분에서 로그인과 권한을 확인한다.
 - 상태 변경 `POST`는 CSRF 검증을 한다.
 - 상태 변경은 감사 로그를 남긴다.

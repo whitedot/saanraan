@@ -113,7 +113,7 @@ modules/board/
 
 ## 3. 이름 규칙
 
-`module_key`는 영문 소문자, 숫자, 밑줄만 사용한다.
+`module_key`는 `\A[a-z][a-z0-9_]{1,39}\z` 형식을 사용한다. 즉 영문 소문자로 시작하고, 전체 길이는 2-40자이며, 이후 문자는 영문 소문자, 숫자, 밑줄만 허용한다.
 
 좋은 예:
 
@@ -128,6 +128,8 @@ payment_toss
 
 ```text
 Member
+1board
+a
 shop-order
 vendor/package
 ../admin
@@ -217,9 +219,9 @@ return [
 - `version`: 코드 기준 현재 버전
 - `type`: `module` 또는 `plugin`
 - `description`: 운영자가 이해할 수 있는 설명
-- `toycore.min_version`: 이 모듈을 설치할 수 있는 Toycore 최소 버전
-- `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록
-- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이다.
+- `toycore.min_version`: 이 모듈을 설치할 수 있는 Toycore 최소 버전. 필수다.
+- `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록. 비어 있지 않은 배열이 필요하다.
+- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이며 필수다.
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일
@@ -302,6 +304,7 @@ return [
 - key는 `METHOD /path` 형식이다.
 - method는 보통 `GET` 또는 `POST`를 사용한다.
 - action 경로는 `actions/...php`만 사용한다.
+- action 파일은 실제로 모듈 디렉터리 안에 있어야 한다.
 - path 등록 함수나 전역 dispatcher를 만들지 않는다.
 - 같은 method/path를 여러 활성 모듈이 선언하면 요청은 실패한다.
 - 관리자 화면 path는 `/admin/...` 아래에 둔다.
@@ -459,6 +462,62 @@ require_once TOY_ROOT . '/modules/board/helpers/settings.php';
 - 함수명은 `toy_{module_key}_...` prefix를 사용한다.
 - 다른 모듈의 테이블을 직접 조인하기 전에 공개 helper나 계약 파일로 대체 가능한지 본다.
 - helper가 HTML을 반환한다면 escape 책임을 helper 안에서 끝낸다.
+
+## 9-1. 정적 assets
+
+모듈 전용 CSS, JavaScript, 이미지가 필요하면 `assets/` 아래에 둔다.
+
+```text
+modules/board/
+- assets/
+  - board.css
+  - board.js
+  - empty-state.png
+```
+
+규칙:
+
+- 공개 URL은 `/modules/{module_key}/assets/...` 형태를 기준으로 한다.
+- 파일명은 영문 소문자, 숫자, 밑줄, 하이픈처럼 안전한 이름을 사용한다.
+- PHP, SQL, 설정 파일, 업로드 원본처럼 실행되거나 민감할 수 있는 파일은 `assets/`에 두지 않는다.
+- 운영 서버가 `modules/` 전체 직접 접근을 차단하는 구성이라면, 필요한 정적 파일만 허용하거나 모듈 action을 통해 응답하는 별도 방식을 둔다.
+- 사용자 업로드 파일 저장소로 `assets/`를 사용하지 않는다.
+
+## 9-2. 번역 파일
+
+모듈 UI 문구 번역은 `lang/{locale}.php` 파일로 둔다. 사용자 콘텐츠 다국어화는 각 모듈의 도메인 테이블과 화면에서 따로 설계한다.
+
+```text
+modules/board/
+- lang/
+  - ko.php
+  - en.php
+```
+
+번역 파일 예:
+
+```php
+<?php
+
+return [
+    'admin.title' => '게시판',
+    'post.saved' => '저장했습니다.',
+];
+```
+
+사용 예:
+
+```php
+<?php echo toy_e(toy_t('board::admin.title')); ?>
+```
+
+규칙:
+
+- 번역 파일은 배열만 반환한다.
+- locale 파일명은 `ko`, `en-US` 같은 locale 값과 맞춘다.
+- 최소 기본 locale 파일을 제공한다.
+- 번역 값도 화면에 출력할 때는 `toy_e()`로 escape한다.
+- 게시글 제목, 상품명 같은 사용자 콘텐츠 번역 테이블을 코어가 대신 만들지 않는다.
 
 ## 10. DB 접근
 
@@ -650,6 +709,53 @@ return [
 
 계약 파일은 자동 등록이 아니다. 소비 모듈이 필요한 시점에 명시적으로 읽는 공개 약속이다.
 
+## 15-1. 계약 파일 반환 구조
+
+외부 모듈 점검 도구는 계약 파일의 최소 반환 구조를 확인한다. 더 깊은 의미 검증은 소비 모듈이 다시 수행한다.
+
+`paths.php`:
+
+- 배열을 반환한다.
+- key는 `GET /path` 또는 `POST /path` 형식이다.
+- value는 `actions/...php` 형식의 실제 action 파일이다.
+
+`admin-menu.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `label`, `path`, 선택 `order`를 가진 배열이다.
+- `path`는 `/admin/...` 형식이어야 한다.
+- 같은 모듈의 `paths.php`에 `GET {path}`가 있어야 한다.
+
+`menu-links.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `label`, `url`을 가진 배열이다.
+- `url`은 내부 상대 경로(`/board`) 또는 허용된 `http/https` URL이다.
+
+`output-slots.php`:
+
+- callable을 반환한다.
+- callable 형식은 `function (PDO $pdo, array $context): string`이다.
+- 외부 저장소에서 로컬 점검될 수 있으므로 자기 helper를 읽을 때는 `__DIR__` 기준 경로를 사용한다.
+
+`extension-points.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `point_key`, `label`, 선택 `surface`, `output`, `slots`, `subjects`를 가진다.
+- `point_key`는 `board.post.view`처럼 모듈 안에서 안정적인 key로 둔다.
+- `slots`가 있으면 각 slot은 `slot_key`를 가진 배열이다.
+
+`privacy-export.php`:
+
+- 배열 또는 callable을 반환한다.
+- callable 형식은 `function (PDO $pdo, int $accountId): array`이다.
+
+`sitemap.php`:
+
+- 배열 또는 callable을 반환한다.
+- 배열 항목은 최소 `loc` 값을 가진다.
+- callable 형식은 `function (PDO $pdo, ?array $site): array`이다.
+
 ## 16. Output Slots
 
 화면 출력 지점에 여러 확장 모듈이 붙을 수 있을 때는 화면 소유 모듈 view에서 특정 확장 모듈 helper를 직접 호출하지 않는다.
@@ -672,7 +778,7 @@ return [
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/example_banner/helpers.php';
+require_once __DIR__ . '/helpers.php';
 
 return static function (PDO $pdo, array $context): string {
     return toy_example_banner_render($pdo, $context);

@@ -332,14 +332,18 @@ function toy_module_contract_errors(array $metadata): array
     }
 
     $minVersion = is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '';
-    if ($minVersion !== '' && preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minVersion) !== 1) {
+    if ($minVersion === '') {
+        $errors[] = 'module.php의 toycore.min_version이 필요합니다.';
+    } elseif (preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minVersion) !== 1) {
         $errors[] = 'module.php의 toycore.min_version 형식이 올바르지 않습니다.';
     }
 
-    $testedWith = $toycoreMetadata['tested_with'] ?? [];
-    if ($testedWith !== [] && !is_array($testedWith)) {
+    $testedWith = $toycoreMetadata['tested_with'] ?? null;
+    if (!is_array($testedWith)) {
         $errors[] = 'module.php의 toycore.tested_with는 배열이어야 합니다.';
-    } elseif (is_array($testedWith)) {
+    } elseif ($testedWith === []) {
+        $errors[] = 'module.php의 toycore.tested_with가 필요합니다.';
+    } else {
         foreach ($testedWith as $version) {
             if (!is_string($version) || preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $version) !== 1) {
                 $errors[] = 'module.php의 toycore.tested_with 버전 형식이 올바르지 않습니다.';

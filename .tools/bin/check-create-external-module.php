@@ -9,6 +9,7 @@ chdir($root);
 $workRoot = $root . '/storage/check-create-external-module-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 $targetDir = $workRoot . '/toycore-module-banner';
 $noCiTargetDir = $workRoot . '/toycore-module-popup';
+$badMenuTargetDir = $workRoot . '/toycore-module-bad-menu';
 
 function toy_check_create_external_module_remove_directory(string $directory): void
 {
@@ -123,6 +124,44 @@ try {
     }
     if (!is_file($noCiTargetDir . '/module/module.php') || !is_file($noCiTargetDir . '/.tools/bin/package-module')) {
         throw new RuntimeException('no-ci scaffold is incomplete.');
+    }
+
+    if (!mkdir($badMenuTargetDir . '/module/actions', 0755, true)) {
+        throw new RuntimeException('bad menu test directory cannot be created.');
+    }
+    file_put_contents(
+        $badMenuTargetDir . '/module/module.php',
+        "<?php\n\nreturn [\n"
+        . "    'name' => 'Bad Menu',\n"
+        . "    'version' => '2026.05.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'toycore' => [\n"
+        . "        'min_version' => '0.1.1',\n"
+        . "        'tested_with' => ['0.1.1'],\n"
+        . "        'module_contract' => '1.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    file_put_contents($badMenuTargetDir . '/module/install.sql', "-- Bad menu test module.\n");
+    file_put_contents($badMenuTargetDir . '/module/actions/admin-bad-menu.php', "<?php\n\n\$notice = '';\n");
+    file_put_contents(
+        $badMenuTargetDir . '/module/paths.php',
+        "<?php\n\nreturn [\n    'GET /admin/bad-menu' => 'actions/admin-bad-menu.php',\n];\n"
+    );
+    file_put_contents(
+        $badMenuTargetDir . '/module/admin-menu.php',
+        "<?php\n\nreturn [\n    ['label' => 'Bad Menu', 'path' => '/admin/missing-menu', 'order' => 50],\n];\n"
+    );
+
+    $badMenuOutput = [];
+    exec(
+        escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-external-module.php') . ' '
+        . escapeshellarg($badMenuTargetDir . '/module') . ' ' . escapeshellarg('bad_menu') . ' 2>&1',
+        $badMenuOutput,
+        $badMenuExitCode
+    );
+    if ($badMenuExitCode === 0 || !str_contains(implode("\n", $badMenuOutput), 'admin-menu.php path is missing from paths.php')) {
+        throw new RuntimeException('admin menu path mismatch should be rejected.');
     }
 
     $output = [];

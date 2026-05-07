@@ -116,7 +116,9 @@ php .tools/bin/check-external-module.php ../toycore-module-banner/module banner
 - `module.php`의 버전 형식이 맞다.
 - Toycore 계약 버전이 맞다.
 - PHP 문법 오류가 없다.
-- 관리자 메뉴가 있으면 `paths.php`와 맞는다.
+- `paths.php`의 route key와 action 파일이 맞다.
+- 관리자 메뉴가 있으면 `paths.php`의 `GET` route와 맞는다.
+- 계약 파일이 있으면 최소 반환 구조가 맞다.
 
 ## 5. zip 만들기
 

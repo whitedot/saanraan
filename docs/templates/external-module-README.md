@@ -42,6 +42,8 @@ php .tools/bin/check-external-module.php ../MODULE_REPOSITORY/module MODULE_KEY
 
 이미 `toycore` 저장소가 있다면 마지막 명령만 실행하면 된다. 모듈 저장소 위치가 다르면 `../MODULE_REPOSITORY/module` 부분만 실제 `module/` 폴더 경로로 바꾼다.
 
+이 점검은 `module.php`, `install.sql`, Toycore 계약 버전, PHP 문법, `paths.php` action 파일, 관리자 메뉴 route, 주요 계약 파일 반환 구조를 확인한다.
+
 ## zip 구조
 
 릴리스 zip은 압축을 풀었을 때 바로 모듈 키 디렉터리가 나오게 만든다.

@@ -39,6 +39,9 @@ GitHub Actions가 실패하면 로그에서 `toycore external module checks fail
 - `module.php`의 `version` 형식이 다르다.
 - `toycore.module_contract`가 현재 Toycore 계약 버전과 다르다.
 - PHP 문법 오류가 있다.
+- `paths.php`의 action 파일이 없거나 경로 형식이 다르다.
+- `admin-menu.php`의 관리자 path가 `paths.php`의 `GET` route와 맞지 않는다.
+- 계약 파일 반환 구조가 최소 형식과 다르다.
 
 ## 기억할 점
 
