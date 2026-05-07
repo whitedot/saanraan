@@ -572,6 +572,157 @@ function toy_admin_php_string_array_value(string $content, string $key): string
     return '';
 }
 
+function toy_admin_php_array_block(string $content, string $key): string
+{
+    foreach (['\'', '"'] as $quote) {
+        $quotedKey = preg_quote($key, '/');
+        $quotedQuote = preg_quote($quote, '/');
+        $pattern = '/' . $quotedQuote . $quotedKey . $quotedQuote . '\s*=>\s*(\[|array\s*\()/i';
+        if (preg_match($pattern, $content, $matches, PREG_OFFSET_CAPTURE) !== 1) {
+            continue;
+        }
+
+        $token = (string) $matches[1][0];
+        $offset = (int) $matches[1][1];
+        $openOffset = $offset;
+        if ($token !== '[') {
+            $parenOffset = strpos($token, '(');
+            if ($parenOffset === false) {
+                continue;
+            }
+
+            $openOffset += $parenOffset;
+        }
+        $block = toy_admin_php_balanced_block($content, $openOffset, $token === '[' ? '[' : '(', $token === '[' ? ']' : ')');
+        if ($block !== '') {
+            return $block;
+        }
+    }
+
+    return '';
+}
+
+function toy_admin_php_balanced_block(string $content, int $openOffset, string $openChar, string $closeChar): string
+{
+    $length = strlen($content);
+    if ($openOffset < 0 || $openOffset >= $length || $content[$openOffset] !== $openChar) {
+        return '';
+    }
+
+    $depth = 0;
+    $quote = '';
+    $lineComment = false;
+    $blockComment = false;
+    for ($i = $openOffset; $i < $length; $i++) {
+        $char = $content[$i];
+        $next = $i + 1 < $length ? $content[$i + 1] : '';
+
+        if ($lineComment) {
+            if ($char === "\n") {
+                $lineComment = false;
+            }
+            continue;
+        }
+
+        if ($blockComment) {
+            if ($char === '*' && $next === '/') {
+                $i++;
+                $blockComment = false;
+            }
+            continue;
+        }
+
+        if ($quote !== '') {
+            if ($char === '\\' && $next !== '') {
+                $i++;
+                continue;
+            }
+
+            if ($char === $quote) {
+                $quote = '';
+            }
+            continue;
+        }
+
+        if ($char === '\'' || $char === '"') {
+            $quote = $char;
+            continue;
+        }
+
+        if (($char === '/' && $next === '/') || $char === '#') {
+            $lineComment = true;
+            if ($char === '/') {
+                $i++;
+            }
+            continue;
+        }
+
+        if ($char === '/' && $next === '*') {
+            $i++;
+            $blockComment = true;
+            continue;
+        }
+
+        if ($char === $openChar) {
+            $depth++;
+            continue;
+        }
+
+        if ($char === $closeChar) {
+            $depth--;
+            if ($depth === 0) {
+                return substr($content, $openOffset, $i - $openOffset + 1);
+            }
+        }
+    }
+
+    return '';
+}
+
+function toy_admin_php_string_list_array_value(string $content, string $key): array
+{
+    $block = toy_admin_php_array_block($content, $key);
+    if ($block === '') {
+        return [];
+    }
+
+    $values = [];
+    foreach (['\'', '"'] as $quote) {
+        $quotedQuote = preg_quote($quote, '/');
+        $pattern = '/' . $quotedQuote . '((?:\\\\.|[^' . $quotedQuote . '\\\\])*)' . $quotedQuote . '/';
+        if (preg_match_all($pattern, $block, $matches) !== false) {
+            foreach ($matches[1] as $value) {
+                $values[] = stripcslashes((string) $value);
+            }
+        }
+    }
+
+    return array_values(array_unique($values));
+}
+
+function toy_admin_php_toycore_metadata(string $content): array
+{
+    $block = toy_admin_php_array_block($content, 'toycore');
+    if ($block === '') {
+        return [];
+    }
+
+    $toycore = [];
+    foreach (['min_version', 'module_contract'] as $key) {
+        $value = toy_admin_php_string_array_value($block, $key);
+        if ($value !== '') {
+            $toycore[$key] = $value;
+        }
+    }
+
+    $testedWith = toy_admin_php_string_list_array_value($block, 'tested_with');
+    if ($testedWith !== []) {
+        $toycore['tested_with'] = $testedWith;
+    }
+
+    return $toycore;
+}
+
 function toy_admin_load_module_metadata_from_file(string $file): array
 {
     if (!is_file($file)) {
@@ -589,6 +740,11 @@ function toy_admin_load_module_metadata_from_file(string $file): array
         if ($value !== '') {
             $metadata[$key] = $value;
         }
+    }
+
+    $toycore = toy_admin_php_toycore_metadata($content);
+    if ($toycore !== []) {
+        $metadata['toycore'] = $toycore;
     }
 
     return $metadata;

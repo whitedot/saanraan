@@ -69,10 +69,49 @@ $optionalModules = [
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
 ];
+
+function toy_install_module_definition(string $moduleKey, array $defaults): array
+{
+    $metadata = toy_module_metadata($moduleKey);
+    $name = is_string($metadata['name'] ?? null) && (string) $metadata['name'] !== ''
+        ? (string) $metadata['name']
+        : (string) ($defaults['name'] ?? $moduleKey);
+    $version = is_string($metadata['version'] ?? null) && preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', (string) $metadata['version']) === 1
+        ? (string) $metadata['version']
+        : (string) ($defaults['version'] ?? '2026.04.001');
+
+    $defaults['name'] = $name;
+    $defaults['version'] = $version;
+    return $defaults;
+}
+
+function toy_install_database_owner_count(PDO $pdo): int
+{
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) AS count_value FROM toy_admin_account_roles WHERE role_key = 'owner'");
+        $row = $stmt->fetch();
+    } catch (PDOException $exception) {
+        if ((string) $exception->getCode() === '42S02') {
+            return 0;
+        }
+
+        throw $exception;
+    }
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+foreach (array_keys($requiredModules) as $moduleKey) {
+    $requiredModules[$moduleKey] = toy_install_module_definition($moduleKey, $requiredModules[$moduleKey]);
+}
+
 foreach (array_keys($optionalModules) as $moduleKey) {
     if (!is_file(TOY_ROOT . '/modules/' . $moduleKey . '/module.php') || !is_file(TOY_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
         unset($optionalModules[$moduleKey]);
+        continue;
     }
+
+    $optionalModules[$moduleKey] = toy_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
 }
 
 function toy_install_default_optional_module_keys(): array
@@ -137,6 +176,7 @@ if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailureP
 }
 
 $configPath = TOY_ROOT . '/config/config.php';
+$installedLockPath = TOY_ROOT . '/storage/installed.lock';
 $configWritable = is_file($configPath)
     ? is_writable($configPath)
     : (is_dir(TOY_ROOT . '/config') ? is_writable(TOY_ROOT . '/config') : is_writable(TOY_ROOT));
@@ -241,6 +281,10 @@ if (toy_request_method() === 'POST') {
 
     if (!$storageWritable) {
         $errors[] = 'storage 디렉터리에 설치 잠금 파일을 만들 수 있도록 권한을 확인하세요.';
+    }
+
+    if (is_file($configPath) !== is_file($installedLockPath)) {
+        $errors[] = '설치 상태 파일이 일치하지 않습니다. config/config.php와 storage/installed.lock 상태를 확인한 뒤 수동 복구하세요.';
     }
 
     if ($values['db_host'] === '' || $values['db_name'] === '' || $values['db_user'] === '') {
@@ -360,13 +404,18 @@ if (toy_request_method() === 'POST') {
         ];
 
         try {
+            $installStage = 'connect_database';
+            $pdo = toy_db($config);
+
+            $installStage = 'check_existing_owner';
+            if (toy_install_database_owner_count($pdo) > 0) {
+                throw new RuntimeException('Existing owner account detected before installation lock exists.');
+            }
+
             $installStage = 'write_config';
             toy_write_config($config);
             toy_set_runtime_config($config);
             toy_apply_runtime_config($config);
-
-            $installStage = 'connect_database';
-            $pdo = toy_db($config);
 
             $installStage = 'execute_schema';
             toy_execute_sql_file($pdo, TOY_ROOT . '/database/core/install.sql');
@@ -490,6 +539,9 @@ if (toy_request_method() === 'POST') {
                 'installed_lock_written' => is_file(TOY_ROOT . '/storage/installed.lock'),
             ]);
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
+            if ($installStage === 'check_existing_owner') {
+                $errors[] = '기존 owner 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.';
+            }
             if (!empty($config['debug'])) {
                 $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));
             }
