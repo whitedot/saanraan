@@ -5,9 +5,9 @@
 ## 지원 버전
 
 ```text
-Toycore 최소 버전: 0.1.1
-Toycore 검증 버전: 0.1.1
-모듈 계약 버전: 1.0
+Toycore 최소 버전: TOYCORE_VERSION
+Toycore 검증 버전: TOYCORE_VERSION
+모듈 계약 버전: MODULE_CONTRACT_VERSION
 ```
 
 ## 구조
@@ -27,7 +27,7 @@ zip을 만들기 전에 Toycore가 이 모듈을 읽을 수 있는지 확인한�
 ```sh
 git clone https://github.com/whitedot/toycore.git toycore
 cd toycore
-git checkout v0.1.1
+git checkout TOYCORE_REF
 php .tools/bin/check-external-module.php ../MODULE_REPOSITORY/module MODULE_KEY
 ```
 

@@ -68,8 +68,9 @@ $replacements = [
     'MODULE_NAME' => $moduleName,
     'MODULE_KEY' => $moduleKey,
     'MODULE_REPOSITORY' => $repositoryName,
-    '0.1.1' => TOY_CORE_VERSION,
-    '1.0' => TOY_MODULE_CONTRACT_VERSION,
+    'TOYCORE_VERSION' => TOY_CORE_VERSION,
+    'TOYCORE_REF' => $toycoreRef,
+    'MODULE_CONTRACT_VERSION' => TOY_MODULE_CONTRACT_VERSION,
 ];
 
 if (file_exists($targetDir)) {
