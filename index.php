@@ -81,6 +81,10 @@ $routeKey = $method . ' ' . $path;
 $routeMatches = [];
 
 foreach ($moduleKeys as $moduleKey) {
+    if (!toy_module_contract_is_loadable($moduleKey)) {
+        continue;
+    }
+
     $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
     $pathsFile = $moduleDir . '/paths.php';
 

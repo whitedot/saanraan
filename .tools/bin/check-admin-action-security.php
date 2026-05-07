@@ -359,6 +359,20 @@ if (!is_string($coreSettingsHelper)) {
 } elseif (strpos($coreSettingsHelper, "/\\A[a-z][a-z0-9_]{1,39}\\z/") === false) {
     $errors[] = 'Core module key validation must require a letter prefix and bounded length.';
 }
+if (is_string($coreSettingsHelper) && (
+    strpos($coreSettingsHelper, 'function toy_module_contract_is_loadable') === false
+    || strpos($coreSettingsHelper, 'toy_module_contract_errors($metadata) === []') === false
+    || strpos($coreSettingsHelper, 'toy_module_contract_is_loadable($moduleKey)') === false
+)) {
+    $errors[] = 'Core module runtime loading must require the current module contract metadata.';
+}
+
+$frontController = file_get_contents($root . '/index.php');
+if (!is_string($frontController)) {
+    $errors[] = 'Front controller cannot be read.';
+} elseif (strpos($frontController, 'toy_module_contract_is_loadable($moduleKey)') === false) {
+    $errors[] = 'Front controller must skip enabled modules whose current module contract is invalid.';
+}
 
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
 if (!is_string($adminModuleSourcesHelper)) {

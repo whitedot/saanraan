@@ -90,6 +90,10 @@ function toy_enabled_module_contract_files(PDO $pdo, string $contractFile, array
             continue;
         }
 
+        if (!toy_module_contract_is_loadable($moduleKey)) {
+            continue;
+        }
+
         $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
         $file = $moduleDir . '/' . $contractFile;
         if (!is_file($file)) {
@@ -308,6 +312,16 @@ function toy_module_contract_errors(array $metadata): array
     }
 
     return $errors;
+}
+
+function toy_module_contract_is_loadable(string $moduleKey): bool
+{
+    if (!toy_is_safe_module_key($moduleKey)) {
+        return false;
+    }
+
+    $metadata = toy_module_metadata($moduleKey);
+    return $metadata !== [] && toy_module_contract_errors($metadata) === [];
 }
 
 function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metadata, string $targetStatus = 'enabled'): array
