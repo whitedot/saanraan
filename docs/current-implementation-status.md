@@ -55,7 +55,7 @@
 - Toycore 본체 배포 패키지는 minimal/standard/ops로 분리 가능
 - standard/ops 배포 패키지는 같은 상위 디렉터리의 외부 모듈 리포지토리에서 선택 모듈을 조립
 - GitHub Actions `Release packages` workflow로 공식 모듈 checkout, 전체 점검, 배포 패키지 조립, artifact 업로드 가능
-- `.tools/bin/check-distributions.php`로 배포 패키지 manifest, 포함 모듈 버전, 설치 화면 선택 모듈 구성 검증 가능
+- `.tools/bin/check-distributions.php`로 배포 패키지 manifest, 포함 모듈 버전, Toycore 최소 버전, 모듈 계약 버전, 설치 화면 선택 모듈 구성 검증 가능
 
 ### 코어
 
