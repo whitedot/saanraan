@@ -25,6 +25,12 @@ if (!is_int($fileSize) || $fileSize < 0 || $recordedSize < 1 || $recordedSize !=
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
+$recordedChecksum = (string) ($attachment['checksum_sha256'] ?? '');
+$actualChecksum = hash_file('sha256', $filePath);
+if (!is_string($actualChecksum) || preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || !hash_equals($recordedChecksum, $actualChecksum)) {
+    toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+}
+
 header('Content-Type: ' . toy_download_content_type($mimeType));
 header('Content-Disposition: inline; filename="' . toy_download_filename((string) $attachment['original_name']) . '"');
 header('Content-Length: ' . (string) $fileSize);
