@@ -12,6 +12,39 @@ function toy_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
     return $board;
 }
 
+function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $account): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    $policy = (string) ($board['read_policy'] ?? '');
+    if ($policy === 'public') {
+        return true;
+    }
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ($accountId < 1) {
+        return false;
+    }
+
+    if ($policy === 'member') {
+        return true;
+    }
+
+    if ($policy === 'group') {
+        $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
+        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+    }
+
+    return false;
+}
+
+function toy_community_board_requires_login(array $board): bool
+{
+    return in_array((string) ($board['read_policy'] ?? ''), ['member', 'group'], true);
+}
+
 function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20): array
 {
     $limit = max(1, min(100, $limit));
@@ -51,6 +84,37 @@ function toy_community_public_post(PDO $pdo, int $postId): ?array
     $post = $stmt->fetch();
 
     return is_array($post) ? $post : null;
+}
+
+function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?array
+{
+    if ($postId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
+         FROM toy_community_posts p
+         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         WHERE p.id = :id
+           AND p.status = 'published'
+           AND b.status = 'enabled'
+         LIMIT 1"
+    );
+    $stmt->execute(['id' => $postId]);
+    $post = $stmt->fetch();
+    if (!is_array($post)) {
+        return null;
+    }
+
+    $board = [
+        'id' => (int) $post['board_id'],
+        'status' => (string) $post['board_status'],
+        'read_policy' => (string) $post['read_policy'],
+    ];
+
+    return toy_community_account_can_read_board($pdo, $board, $account) ? $post : null;
 }
 
 function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array

@@ -7,7 +7,18 @@ require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $postIdValue = toy_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
-$post = toy_community_public_post($pdo, $postId);
+$account = toy_member_current_account($pdo);
+$post = toy_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
+if (!is_array($post)) {
+    $rawPost = toy_community_admin_post_by_id($pdo, $postId);
+    if (is_array($rawPost)) {
+        $board = toy_community_board_by_id($pdo, (int) $rawPost['board_id']);
+        if (is_array($board) && toy_community_board_requires_login($board) && !is_array($account)) {
+            $account = toy_member_require_login($pdo);
+            $post = toy_community_post_for_read($pdo, $postId, $account);
+        }
+    }
+}
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 }
@@ -15,7 +26,6 @@ if (!is_array($post)) {
 $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = toy_community_public_comments($pdo, (int) $post['id'], $commentsPerPage);
-$account = toy_member_current_account($pdo);
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
 $isScrapped = is_array($account) && toy_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
 $reportReasonKeys = toy_community_report_reason_keys();
