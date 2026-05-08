@@ -77,7 +77,9 @@ $seo = [
             <button type="submit">쪽지 신고</button>
         </form>
 
-        <p><a href="<?php echo toy_e(toy_url('/community/message/write')); ?>">쪽지 쓰기</a></p>
+        <?php if ($replyAccountId > 0) { ?>
+            <p><a href="<?php echo toy_e(toy_url('/community/message/write?to_account=' . (string) $replyAccountId)); ?>">답장 쓰기</a></p>
+        <?php } ?>
         <form method="post" action="<?php echo toy_e(toy_url('/community/message/delete')); ?>">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="message_id" value="<?php echo toy_e((string) $message['id']); ?>">

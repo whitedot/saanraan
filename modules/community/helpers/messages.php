@@ -94,7 +94,10 @@ function toy_community_mark_message_read(PDO $pdo, array $message, int $accountI
 
 function toy_community_message_input_values(): array
 {
+    $recipientAccountIdValue = toy_post_string('recipient_account_id', 20);
+
     return [
+        'recipient_account_id' => preg_match('/\A[1-9][0-9]*\z/', $recipientAccountIdValue) === 1 ? (int) $recipientAccountIdValue : 0,
         'recipient_identifier' => toy_post_string_without_truncation('recipient_identifier', 255),
         'body_text' => toy_post_string_without_truncation('body_text', 5000),
     ];
@@ -103,7 +106,8 @@ function toy_community_message_input_values(): array
 function toy_community_validate_message_input(array $values): array
 {
     $errors = [];
-    if (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '') {
+    $recipientAccountId = (int) ($values['recipient_account_id'] ?? 0);
+    if ($recipientAccountId < 1 && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
         $errors[] = '받는 회원을 입력해 주세요.';
     }
 

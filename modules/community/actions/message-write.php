@@ -8,11 +8,18 @@ require_once TOY_ROOT . '/modules/community/helpers.php';
 $account = toy_member_require_login($pdo);
 $errors = [];
 $notice = '';
+$recipientAccountIdValue = toy_get_string('to_account', 20);
+$recipientAccountId = preg_match('/\A[1-9][0-9]*\z/', $recipientAccountIdValue) === 1 ? (int) $recipientAccountIdValue : 0;
+$presetRecipient = $recipientAccountId > 0 ? toy_member_public_account_summary($pdo, $recipientAccountId) : null;
 $values = [
+    'recipient_account_id' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (int) $presetRecipient['id'] : 0,
     'recipient_identifier' => toy_get_string('to', 255),
     'body_text' => '',
 ];
-$recipientPresetNotice = $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
+$recipientPresetNotice = (int) $values['recipient_account_id'] > 0 || $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
+$recipientLabel = (int) $values['recipient_account_id'] > 0 && is_array($presetRecipient)
+    ? toy_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'])
+    : '';
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
@@ -21,13 +28,20 @@ if (toy_request_method() === 'POST') {
     $errors = toy_community_validate_message_input($values);
     $recipient = null;
     if ($errors === []) {
-        $recipient = toy_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
+        if ((int) ($values['recipient_account_id'] ?? 0) > 0) {
+            $recipient = toy_member_public_account_summary($pdo, (int) $values['recipient_account_id']);
+        } else {
+            $recipient = toy_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
+        }
         if (!is_array($recipient) || (string) $recipient['status'] !== 'active') {
             $errors[] = '받는 회원을 찾을 수 없습니다.';
         } elseif ((int) $recipient['id'] === (int) $account['id']) {
             $errors[] = '본인에게는 쪽지를 보낼 수 없습니다.';
         }
     }
+    $recipientLabel = is_array($recipient)
+        ? toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id'])
+        : $recipientLabel;
 
     $settings = toy_module_settings($pdo, 'community');
     if ($errors === [] && toy_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {

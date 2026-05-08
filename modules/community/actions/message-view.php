@@ -18,6 +18,9 @@ if ((int) $message['recipient_account_id'] === (int) $account['id'] && (string) 
     $message['read_at'] = toy_now();
 }
 $messageBox = (int) $message['sender_account_id'] === (int) $account['id'] ? 'sent' : 'inbox';
+$replyAccountId = (int) $message['sender_account_id'] === (int) $account['id']
+    ? (int) $message['recipient_account_id']
+    : (int) $message['sender_account_id'];
 $reportReasonKeys = toy_community_report_reason_keys();
 $reportErrors = [];
 $reportNotice = '';

@@ -38,9 +38,15 @@ $seo = [
         <form method="post" action="<?php echo toy_e(toy_url('/community/message/write')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
-                <label>받는 회원 이메일 또는 아이디<br>
-                    <input type="text" name="recipient_identifier" value="<?php echo toy_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required>
-                </label>
+                <?php if ((int) ($values['recipient_account_id'] ?? 0) > 0) { ?>
+                    <input type="hidden" name="recipient_account_id" value="<?php echo toy_e((string) $values['recipient_account_id']); ?>">
+                    받는 회원<br>
+                    <?php echo toy_e($recipientLabel); ?>
+                <?php } else { ?>
+                    <label>받는 회원 이메일 또는 아이디<br>
+                        <input type="text" name="recipient_identifier" value="<?php echo toy_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required>
+                    </label>
+                <?php } ?>
             </p>
             <p>
                 <label>내용<br>
