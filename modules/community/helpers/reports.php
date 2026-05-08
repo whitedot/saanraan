@@ -102,7 +102,7 @@ function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $accoun
     }
 
     $stmt = $pdo->prepare(
-        "SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+        "SELECT c.id, c.post_id, c.author_account_id, c.status,
                 p.status AS post_status,
                 b.id AS board_id, b.status AS board_status, b.read_policy
          FROM toy_community_comments c
