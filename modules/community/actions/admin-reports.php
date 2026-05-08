@@ -47,7 +47,12 @@ if (toy_request_method() === 'POST') {
             'result' => 'success',
             'message' => 'Community report status updated.',
             'metadata' => [
-                'status' => $status,
+                'before_status' => (string) $report['status'],
+                'after_status' => $status,
+                'review_note_present' => trim((string) $reviewNote) !== '',
+                'target_type' => (string) $report['target_type'],
+                'target_id' => (int) $report['target_id'],
+                'reported_account_id' => (int) $report['reported_account_id'],
             ],
         ]);
         $notice = '신고 상태를 변경했습니다.';
