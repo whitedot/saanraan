@@ -4,6 +4,19 @@ Toycore는 비즈니스 도메인을 소유하지 않는 절차형 PHP 솔루션
 
 이 문서는 모듈 작성자가 Toycore에서 무엇을 제공받고, 무엇을 직접 책임져야 하는지 구분하기 위한 기준이다.
 
+## 참고 기준
+
+Toycore의 최종 설계 판단은 [핵심 설계 결정](core-decisions.md)을 우선하지만, 보안 세부 기준은 다음 공개 기준과 충돌하지 않는 방향으로 검토한다.
+
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+- [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)
+- [European Commission GDPR principles](https://commission.europa.eu/law/law-topic/data-protection/rules-business-and-organisations/principles-gdpr_en)
+- [European Data Protection Board: GDPR FAQ](https://www.edpb.europa.eu/sme-data-protection-guide/faq-frequently-asked-questions/answer/what-gdpr_en)
+- [European Data Protection Board: individuals' rights](https://www.edpb.europa.eu/sme-data-protection-guide/respect-individuals-rights_en)
+
 ## 1. 작은 약속을 지킨다
 
 Toycore의 보안 모델은 자동 보안을 약속하지 않는다.
