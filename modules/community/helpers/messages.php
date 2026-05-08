@@ -10,7 +10,7 @@ function toy_community_message_box(PDO $pdo, int $accountId, string $box, int $l
 
     $limit = max(1, min(100, $limit));
     if ($box === 'sent') {
-        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
+        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        recipient.display_name AS other_display_name
                 FROM toy_community_messages m
                 LEFT JOIN toy_member_accounts recipient ON recipient.id = m.recipient_account_id
@@ -19,7 +19,7 @@ function toy_community_message_box(PDO $pdo, int $accountId, string $box, int $l
                 ORDER BY m.id DESC
                 LIMIT :limit_value';
     } else {
-        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
+        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        sender.display_name AS other_display_name
                 FROM toy_community_messages m
                 LEFT JOIN toy_member_accounts sender ON sender.id = m.sender_account_id
