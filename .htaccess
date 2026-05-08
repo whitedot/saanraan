@@ -1,0 +1,25 @@
+DirectoryIndex index.php
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block executable or internal files in public asset directories.
+    RewriteRule ^assets/.*\.(?:php[0-9]?|phtml|phar|sql)$ - [F,L,NC]
+    RewriteRule ^modules/[a-z][a-z0-9_]{1,39}/assets/.*\.(?:php[0-9]?|phtml|phar|sql)$ - [F,L,NC]
+
+    # Allow public static assets.
+    RewriteRule ^assets/ - [L]
+    RewriteRule ^modules/[a-z][a-z0-9_]{1,39}/assets/ - [L]
+
+    # Block internal project directories.
+    RewriteRule ^(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$) - [F,L]
+
+    # Block root-only project metadata files.
+    RewriteRule ^(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env)$ - [F,L]
+
+    # Route virtual application paths to the front controller.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

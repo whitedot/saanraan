@@ -1,6 +1,8 @@
 # 배포 보호 기준
 
-Toycore는 기본 배포 산출물에 특정 웹서버용 차단 파일을 포함하지 않는다. Apache `.htaccess`, Nginx location 규칙, 호스팅 패널 접근 제한은 운영 환경에 맞게 별도로 설정한다.
+Toycore는 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다.
+
+다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다.
 
 ## 공개 진입점
 
@@ -18,8 +20,13 @@ modules/
 storage/
 .git/
 .tools/
+.claude/
 AGENTS.md
 README.md
+LICENSE
+.gitignore
+.htaccess
+.env
 ```
 
 위 경로를 직접 열 수 있는 환경에서는 운영 설치를 진행하지 않는다.
@@ -40,7 +47,7 @@ README.md
 /.git/ 직접 접근 차단
 ```
 
-서버가 차단 규칙을 지원하지 않는다면, 문서 루트를 `index.php`만 노출되는 별도 공개 디렉터리로 조정하거나 호스팅 패널의 접근 제한 기능을 사용한다.
+Apache에서 위 경로가 열리면 루트 `.htaccess`가 적용되지 않는 상태다. 서버가 `.htaccess`를 지원하지 않는다면, 문서 루트를 `index.php`와 공개 asset만 노출되는 별도 공개 디렉터리로 조정하거나 호스팅 패널의 접근 제한 기능을 사용한다.
 
 ## 공유호스팅 체크리스트
 
@@ -62,12 +69,12 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 ## 서버별 처리
 
-서버별 예시는 프로젝트 기본 파일로 제공하지 않는다.
+Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인한다.
 
-운영자는 다음 방식 중 환경에 맞는 방법을 선택한다.
+운영자는 다음 방식 중 환경에 맞는 방법을 선택하거나 보완한다.
 
 ```text
-Apache: 가상호스트 또는 호스팅 패널의 접근 제한
+Apache: 기본 .htaccess, 가상호스트, 또는 호스팅 패널의 접근 제한
 Nginx: server/location 규칙
 공유호스팅: 파일 관리자 또는 보안 메뉴의 디렉터리 접근 차단
 ```
@@ -83,5 +90,6 @@ Nginx: server/location 규칙
 - 설정 파일과 저장소 메타데이터는 웹에서 읽을 수 없어야 한다.
 - SQL 파일과 모듈 내부 PHP 파일은 직접 실행 대상이 아니다.
 - 업로드나 생성 파일은 가능한 한 `storage/` 아래에 두고 직접 접근을 차단한다.
-- 서버별 보호 규칙은 운영 환경 문서나 배포 자동화에서 관리한다.
+- Apache 기본 보호 규칙은 루트 `.htaccess`에 포함한다.
+- 서버별 추가 보호 규칙은 운영 환경 문서나 배포 자동화에서 관리한다.
 - 웹에서 차단해야 할 경로를 차단할 수 없는 호스팅에는 운영 설치하지 않는다.

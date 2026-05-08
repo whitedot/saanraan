@@ -8,11 +8,11 @@
 
 ## 시작하기
 
-릴리스 zip은 Git, SSH, CLI를 사용할 수 없는 저가형 호스팅을 위한 기본 배포 수단입니다. 설치는 편하지만, 운영 서버에 Git 이력이 없으므로 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 어렵습니다.
+Toycore는 문서 루트에 저장소 파일 구조를 그대로 배치해 설치합니다. Git, SSH, CLI를 사용할 수 있는 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 운영 서버에 Git 이력이 남아야 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 쉽습니다.
 
-Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 현재 `toycore.git` 본체에는 공식 선택 모듈 코드도 `modules/` 아래에 함께 들어 있습니다.
+Git을 사용할 수 없는 공유호스팅에서는 릴리스 zip을 사용할 수 있습니다. 이 경우 업로드한 zip 파일명, 릴리스 태그, 적용 일자를 운영 기록으로 남기는 편이 좋습니다.
 
-운영 사이트는 보통 `https://example.com/`처럼 도메인 루트에 둡니다. `toycore`는 저장소 이름 예시일 뿐이며, 문서 루트 아래에 `toycore/` 폴더를 만들면 URL도 `https://example.com/toycore/`가 됩니다. 하위 경로 설치를 의도한 경우가 아니라면 문서 루트 자체가 Toycore 루트를 가리키게 하거나, 비어 있는 문서 루트 안에 저장소 내용을 직접 clone합니다.
+운영 사이트는 보통 `https://example.com/`처럼 도메인 루트에 둡니다. `toycore`는 저장소 이름 예시일 뿐입니다. 문서 루트 아래에 `toycore/` 폴더를 만들면 URL도 `https://example.com/toycore/`가 되므로, 하위 경로 설치를 의도한 경우가 아니라면 문서 루트 자체가 Toycore 루트를 가리키게 하거나 비어 있는 문서 루트 안에 저장소 내용을 직접 clone합니다.
 
 ```sh
 cd /path/to/document-root
@@ -20,9 +20,9 @@ git clone https://github.com/whitedot/toycore.git .
 git checkout v0.1.1
 ```
 
-위의 `v0.1.1`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다.
+위의 `v0.1.1`은 릴리스 태그 예시입니다. 실제 설치할 때는 사용할 릴리스의 태그를 선택합니다.
 
-운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 운영자가 로컬 수정, 전용 모듈, 호스팅별 설정 파일, 배포 스크립트를 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
+운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 전용 모듈, 호스팅별 설정 파일, 배포 스크립트, 운영 패치처럼 사이트별 변경을 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
 
 ```sh
 git remote -v
@@ -31,14 +31,16 @@ git fetch upstream --tags
 git checkout -b release/<release-tag> <release-tag>
 ```
 
-업데이트는 새 릴리스 태그를 가져온 뒤 스테이징에서 병합 또는 rebase로 검토하고, 파일 반영 후 `/admin/updates`에서 DB 업데이트를 명시적으로 실행합니다.
+업데이트는 새 릴리스 태그를 가져온 뒤 스테이징에서 병합 또는 rebase로 검토합니다. 파일을 반영한 뒤에는 `/admin/updates`에서 DB 업데이트를 명시적으로 실행합니다.
 
 ```sh
 git fetch upstream --tags
 git merge <next-release-tag>
 ```
 
-`config/config.php`, `storage/installed.lock`, 로그, 백업 파일은 Git에 커밋하지 않습니다. Git 기반 설치에서도 DB 백업, 파일 백업, 스테이징 검증 후 운영 반영 순서를 지켜야 합니다. Git을 사용할 수 없는 호스팅에서는 릴리스 zip을 사용하되, 업로드한 zip 파일명, 릴리스 태그, 적용 일자를 운영 기록으로 남깁니다.
+`config/config.php`, `storage/installed.lock`, 로그, 백업 파일은 Git에 커밋하지 않습니다. Git 기반 설치에서도 DB 백업, 파일 백업, 스테이징 검증 후 운영 반영 순서를 지켜야 합니다.
+
+Apache 또는 Apache 호환 공유호스팅 배포본에는 루트 `.htaccess`가 포함됩니다. 이 파일은 `config/`, `database/`, `modules/`, `storage/`, `.git/` 같은 내부 경로의 직접 접근을 막는 기본 보호 규칙입니다. 설치 전에 내부 파일이 웹에서 열리지 않는지 확인하고, `.htaccess`가 적용되지 않는 서버에서는 [배포 보호 기준](docs/deployment-protection.md)에 따라 서버 설정이나 호스팅 패널에서 같은 차단 규칙을 적용합니다.
 
 ## Toycore
 
@@ -113,7 +115,7 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 ## 현재 구현 범위
 
-현재 toycore.git 본체는 웹 설치, 기본 관리자 진입, 회원 인증, 업데이트 실행, 개인정보/감사 로그 기반을 포함합니다. 모듈은 기본적으로 이 저장소의 `modules/{module_key}` 디렉터리에 놓인 파일 묶음으로 다룹니다.
+현재 toycore.git 본체는 웹 설치, 기본 관리자 진입, 회원 인증, 업데이트 실행, 개인정보/감사 로그 기반을 포함합니다. 모듈은 이 저장소의 `modules/{module_key}` 디렉터리에 놓인 파일 묶음으로 다룹니다.
 
 Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문제가 되는 보안과 복구 흐름은 초기 구현 범위 안에서 다룹니다.
 
@@ -126,16 +128,16 @@ Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문
 - 모듈 격리: `paths.php` 기반 명시적 요청 처리, action 상대 경로 검증, 활성 모듈 route 충돌 감지, `module.php`의 `requires` 의존성 검증
 - 배포: Git/릴리스 zip 기반 설치, owner 재인증 기반 모듈 zip 업로드와 파일 교체
 
-기본 설치 흐름은 필수 모듈을 항상 설치/활성화합니다. 현재 코드에 포함된 선택 모듈은 설치 화면에서 함께 설치할 수 있고, 설치 때 선택하지 않았거나 나중에 배치한 모듈은 `/admin/modules`에서 설치합니다.
+기본 설치 흐름은 필수 모듈을 항상 설치하고 활성화합니다. 배포본에 포함된 선택 모듈은 설치 화면에서 함께 설치할 수 있고, 설치 때 선택하지 않았거나 나중에 배치한 모듈은 `/admin/modules`에서 설치합니다.
 
 ```text
 필수: core + member + admin
 선택: 설치 화면에서 선택한 포함 모듈 또는 modules/{module_key}에 배치된 모듈 폴더
 ```
 
-선택 모듈은 코어 도메인이 아닙니다. `point`, `deposit`, `reward`는 자주 쓰이는 회원 연계 도메인을 코어 밖 모듈로 분리해 둔 예시이자 기본팩이며, 설치하지 않아도 `core + member + admin` 기준선은 동작합니다.
+선택 모듈은 코어 도메인이 아닙니다. `point`, `deposit`, `reward`는 자주 쓰이는 회원 연계 도메인을 코어 밖 모듈로 분리해 둔 예시 모듈입니다. 설치하지 않아도 `core + member + admin` 기준선은 동작합니다.
 
-Toycore는 현재 저장소의 파일과 `modules/{module_key}` 폴더를 기준으로 동작합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.
+Toycore 런타임은 현재 배치된 파일과 `modules/{module_key}` 폴더를 기준으로 동작합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.
 
 - `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
@@ -148,9 +150,9 @@ Toycore는 현재 저장소의 파일과 `modules/{module_key}` 폴더를 기준
 ./.tools/bin/check
 ```
 
-Docker 또는 OrbStack이 꺼져 있어도 공백, SQL 파일, 모듈 기본 구조 검사는 먼저 실행됩니다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요합니다.
+Docker 또는 OrbStack이 실행 중이 아니어도 공백, SQL 파일, 모듈 기본 구조 검사는 먼저 실행됩니다. PHP 문법 검사는 Docker 또는 OrbStack 실행 상태가 필요합니다.
 
-Windows처럼 sh/WSL이 없는 환경에서 로컬 PHP가 있다면 같은 기본 검사를 PHP 도구로 실행할 수 있습니다.
+Windows처럼 sh/WSL을 쓰지 않는 환경에서는 로컬 PHP로 같은 기본 검사를 실행할 수 있습니다.
 
 ```sh
 php .tools/bin/check.php
