@@ -33,6 +33,18 @@ if ($errors !== []) {
     toy_redirect('/community/post?id=' . (string) $postId . '#comments');
 }
 
-toy_community_create_comment($pdo, $postId, (int) $account['id'], $values);
+$commentId = toy_community_create_comment($pdo, $postId, (int) $account['id'], $values);
 toy_community_record_comment_rate_limit($pdo, (int) $account['id'], $settings);
+toy_audit_log($pdo, [
+    'actor_account_id' => (int) $account['id'],
+    'actor_type' => 'member',
+    'event_type' => 'community.comment.created',
+    'target_type' => 'community_comment',
+    'target_id' => (string) $commentId,
+    'result' => 'success',
+    'message' => 'Community comment created.',
+    'metadata' => [
+        'post_id' => $postId,
+    ],
+]);
 toy_redirect('/community/post?id=' . (string) $postId . '#comments');

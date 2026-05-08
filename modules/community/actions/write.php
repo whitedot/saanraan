@@ -40,6 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postId = toy_community_create_post($pdo, (int) $board['id'], (int) $account['id'], $values);
         toy_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
         toy_member_group_evaluate_account($pdo, (int) $account['id'], ['source_module_key' => 'community']);
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'community.post.created',
+            'target_type' => 'community_post',
+            'target_id' => (string) $postId,
+            'result' => 'success',
+            'message' => 'Community post created.',
+            'metadata' => [
+                'board_key' => (string) $board['board_key'],
+            ],
+        ]);
         toy_redirect('/community/post?id=' . (string) $postId);
     }
 }
