@@ -22,6 +22,8 @@ if (!is_array($post)) {
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 }
+toy_community_increment_post_view_count($pdo, (int) $post['id']);
+$post['view_count'] = (int) $post['view_count'] + 1;
 
 $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));

@@ -117,6 +117,20 @@ function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?a
     return toy_community_account_can_read_board($pdo, $board, $account) ? $post : null;
 }
 
+function toy_community_increment_post_view_count(PDO $pdo, int $postId): void
+{
+    if ($postId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_posts
+         SET view_count = view_count + 1
+         WHERE id = :id'
+    );
+    $stmt->execute(['id' => $postId]);
+}
+
 function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));

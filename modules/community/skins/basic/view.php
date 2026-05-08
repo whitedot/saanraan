@@ -36,6 +36,8 @@ $seo = [
                 작성자: <?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'])); ?>
                 /
                 작성일: <?php echo toy_e((string) $post['created_at']); ?>
+                /
+                조회: <?php echo toy_e((string) $post['view_count']); ?>
             </p>
             <?php if (is_array($account)) { ?>
                 <form method="post" action="<?php echo toy_e(toy_url('/community/scrap')); ?>">
