@@ -78,8 +78,10 @@ $seo = [
                 </form>
             <?php } ?>
 
-            <?php if ($postNotice !== '') { ?>
-                <p><?php echo toy_e($postNotice); ?></p>
+            <?php foreach ($postNotices as $postNotice) { ?>
+                <?php if (is_string($postNotice) && $postNotice !== '') { ?>
+                    <p><?php echo toy_e($postNotice); ?></p>
+                <?php } ?>
             <?php } ?>
 
             <?php if ($reportNotice !== '') { ?>
