@@ -45,7 +45,7 @@ $seo = [
             </ul>
         <?php } ?>
 
-        <form method="post" action="<?php echo toy_e(toy_url($formAction)); ?>">
+        <form method="post" action="<?php echo toy_e(toy_url($formAction)); ?>"<?php echo !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 ? ' enctype="multipart/form-data"' : ''; ?>>
             <?php echo toy_csrf_field(); ?>
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo toy_e((string) $postIdField); ?>">
@@ -60,6 +60,13 @@ $seo = [
                     <textarea name="body_text" rows="12" cols="80" required><?php echo toy_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
+            <?php if (!isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1) { ?>
+                <p>
+                    <label>이미지 첨부<br>
+                        <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
+                    </label>
+                </p>
+            <?php } ?>
             <button type="submit"><?php echo toy_e($submitLabel); ?></button>
         </form>
 

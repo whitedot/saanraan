@@ -40,6 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postId = toy_community_create_post($pdo, (int) $board['id'], (int) $account['id'], $values);
         toy_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
         toy_member_group_evaluate_account($pdo, (int) $account['id'], ['source_module_key' => 'community']);
+        $attachmentId = null;
+        if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
+            try {
+                $attachmentId = toy_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
+            } catch (Throwable $exception) {
+                toy_log_exception($exception, 'community_post_image_upload');
+            }
+        }
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -50,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'message' => 'Community post created.',
             'metadata' => [
                 'board_key' => (string) $board['board_key'],
+                'attachment_id' => $attachmentId,
             ],
         ]);
         toy_redirect('/community/post?id=' . (string) $postId);
