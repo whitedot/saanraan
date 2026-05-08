@@ -1293,7 +1293,7 @@ community.board.comment_count_at_least
 ```text
 1. member 관리자 화면에서 "특정 게시판에 게시글 5개 이상" 조건을 선택한다.
 2. target group을 선택하고 evaluation_policy를 grant_only 또는 sync로 저장한다.
-3. 회원이 community 글 작성에 성공하면 community action이 member 그룹 재평가 helper를 명시 호출한다.
+3. 회원이 community 글 작성에 성공하거나 게시글 상태가 변경되어 published 집계가 달라질 수 있으면 community action이 member 그룹 재평가 helper를 명시 호출한다.
 4. member는 저장된 자동 규칙 중 source_module_key = community인 규칙만 평가한다.
 5. 조건을 만족하면 member가 자동 membership을 active로 저장한다.
 6. community 게시판 접근 helper는 member 그룹 조회 helper로 membership만 확인한다.
@@ -1301,7 +1301,7 @@ community.board.comment_count_at_least
 
 접근 요청에서는 전체 자동 조건을 다시 평가하지 않는다. 접근 제어는 저장된 membership 조회만 사용한다.
 
-이 연동은 v1 커뮤니티 구현과 병렬로 계획하되, 실제 group 정책 활성화는 member 그룹 Phase G1-G3이 끝난 뒤 Phase G4에서 붙인다.
+v1 구현은 Phase G4 범위까지 포함한다. community는 조건 후보와 게시판 접근 정책만 제공하고, membership 저장과 자동 평가 정책은 member가 소유한다.
 
 ## 17. 구현 단계
 
