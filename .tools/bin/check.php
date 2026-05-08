@@ -131,6 +131,49 @@ function toy_check_admin_menu_paths(): void
     }
 }
 
+function toy_check_module_route_conflicts(): void
+{
+    $routeOwners = [];
+    foreach (toy_check_module_dirs() as $moduleDir) {
+        $pathsFile = $moduleDir . '/paths.php';
+        if (!is_file($pathsFile)) {
+            continue;
+        }
+
+        $paths = include $pathsFile;
+        if (!is_array($paths)) {
+            toy_check_add_error('Module paths.php must return an array: ' . $pathsFile);
+            continue;
+        }
+
+        foreach ($paths as $route => $actionRelativePath) {
+            $route = (string) $route;
+            $actionRelativePath = (string) $actionRelativePath;
+            if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
+                toy_check_add_error('Route key format is invalid: ' . $pathsFile . ' ' . $route);
+                continue;
+            }
+
+            if (preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $actionRelativePath) !== 1 || strpos($actionRelativePath, '..') !== false) {
+                toy_check_add_error('Action path is invalid: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
+                continue;
+            }
+
+            if (!is_file($moduleDir . '/' . $actionRelativePath)) {
+                toy_check_add_error('Action file is missing: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
+                continue;
+            }
+
+            if (isset($routeOwners[$route])) {
+                toy_check_add_error('Module route conflict: ' . $route . ' in ' . $routeOwners[$route] . ' and ' . $moduleDir);
+                continue;
+            }
+
+            $routeOwners[$route] = $moduleDir;
+        }
+    }
+}
+
 function toy_check_php_lint(): void
 {
     $phpFiles = toy_check_files('.', 'php', ['.git', 'dist']);
@@ -169,6 +212,7 @@ toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/chec
 toy_check_sql_files();
 toy_check_module_contract_files();
 toy_check_admin_menu_paths();
+toy_check_module_route_conflicts();
 toy_check_php_lint();
 
 if ($errors !== []) {

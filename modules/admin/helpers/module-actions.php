@@ -111,6 +111,12 @@ function toy_admin_handle_modules_post(
             }
         }
 
+        if ($errors === [] && $status === 'enabled') {
+            foreach (toy_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
+                $errors[] = $routeError;
+            }
+        }
+
         if ($errors === []) {
             $stmt = $pdo->prepare('SELECT id, status FROM toy_modules WHERE module_key = :module_key LIMIT 1');
             $stmt->execute(['module_key' => $moduleKey]);
@@ -151,6 +157,12 @@ function toy_admin_handle_modules_post(
             if ($errors === []) {
                 foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
                     $errors[] = $requirementError;
+                }
+            }
+
+            if ($errors === []) {
+                foreach (toy_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
+                    $errors[] = $routeError;
                 }
             }
         }
@@ -502,6 +514,86 @@ function toy_admin_handle_modules_post(
     }
 
     return toy_admin_action_result($errors, $notice);
+}
+
+function toy_admin_module_route_conflict_errors(PDO $pdo, string $candidateModuleKey): array
+{
+    if (!toy_is_safe_module_key($candidateModuleKey)) {
+        return ['모듈 키가 올바르지 않습니다.'];
+    }
+
+    $candidateRoutes = toy_admin_module_route_map($candidateModuleKey);
+    if ($candidateRoutes['errors'] !== []) {
+        return $candidateRoutes['errors'];
+    }
+
+    $candidateRouteMap = $candidateRoutes['routes'];
+    if ($candidateRouteMap === []) {
+        return [];
+    }
+
+    $errors = [];
+    foreach (toy_enabled_module_contract_files($pdo, 'paths.php', [$candidateModuleKey]) as $moduleKey => $pathsFile) {
+        $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
+        if (!is_array($paths)) {
+            continue;
+        }
+
+        foreach ($paths as $route => $actionRelativePath) {
+            $route = (string) $route;
+            $actionRelativePath = (string) $actionRelativePath;
+            if (!isset($candidateRouteMap[$route])) {
+                continue;
+            }
+
+            if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
+                continue;
+            }
+
+            $errors[] = $candidateModuleKey . ' 모듈 route가 ' . $moduleKey . ' 모듈과 충돌합니다: ' . $route;
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
+function toy_admin_module_route_map(string $moduleKey): array
+{
+    $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
+    $pathsFile = $moduleDir . '/paths.php';
+    if (!is_file($pathsFile)) {
+        return ['routes' => [], 'errors' => []];
+    }
+
+    $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
+    if (!is_array($paths)) {
+        return ['routes' => [], 'errors' => [$moduleKey . ' 모듈의 paths.php는 배열을 반환해야 합니다.']];
+    }
+
+    $routes = [];
+    $errors = [];
+    foreach ($paths as $route => $actionRelativePath) {
+        $route = (string) $route;
+        $actionRelativePath = (string) $actionRelativePath;
+        if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
+            $errors[] = $moduleKey . ' 모듈 route 형식이 올바르지 않습니다: ' . $route;
+            continue;
+        }
+
+        if (!toy_is_safe_module_action($actionRelativePath)) {
+            $errors[] = $moduleKey . ' 모듈 action 경로가 올바르지 않습니다: ' . $route;
+            continue;
+        }
+
+        if (!is_file($moduleDir . '/' . $actionRelativePath)) {
+            $errors[] = $moduleKey . ' 모듈 action 파일을 찾을 수 없습니다: ' . $route;
+            continue;
+        }
+
+        $routes[$route] = $actionRelativePath;
+    }
+
+    return ['routes' => $routes, 'errors' => array_values(array_unique($errors))];
 }
 
 function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array
