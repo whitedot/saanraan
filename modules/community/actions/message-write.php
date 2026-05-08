@@ -27,9 +27,15 @@ if (toy_request_method() === 'POST') {
     $values = toy_community_message_input_values();
     $errors = toy_community_validate_message_input($values);
     $recipient = null;
+    $submittedRecipient = (int) ($values['recipient_account_id'] ?? 0) > 0
+        ? toy_member_public_account_summary($pdo, (int) $values['recipient_account_id'])
+        : null;
+    if (is_array($submittedRecipient)) {
+        $recipientLabel = toy_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id']);
+    }
     if ($errors === []) {
-        if ((int) ($values['recipient_account_id'] ?? 0) > 0) {
-            $recipient = toy_member_public_account_summary($pdo, (int) $values['recipient_account_id']);
+        if (is_array($submittedRecipient)) {
+            $recipient = $submittedRecipient;
         } else {
             $recipient = toy_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
         }
@@ -39,9 +45,9 @@ if (toy_request_method() === 'POST') {
             $errors[] = '본인에게는 쪽지를 보낼 수 없습니다.';
         }
     }
-    $recipientLabel = is_array($recipient)
-        ? toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id'])
-        : $recipientLabel;
+    if (is_array($recipient)) {
+        $recipientLabel = toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id']);
+    }
 
     $settings = toy_module_settings($pdo, 'community');
     if ($errors === [] && toy_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
