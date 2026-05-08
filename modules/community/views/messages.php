@@ -46,7 +46,12 @@ $seo = [
                 <tbody>
                     <?php foreach ($messages as $message) { ?>
                         <tr>
-                            <td><?php echo toy_e((string) ($message['other_display_name'] ?? '')); ?></td>
+                            <td>
+                                <?php echo toy_e(toy_community_message_account_label(
+                                    is_string($message['other_display_name'] ?? null) ? $message['other_display_name'] : null,
+                                    $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id']
+                                )); ?>
+                            </td>
                             <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음'); ?></td>
                             <td><?php echo toy_e((string) $message['created_at']); ?></td>
                             <td><a href="<?php echo toy_e(toy_url('/community/message?id=' . (string) $message['id'])); ?>">보기</a></td>

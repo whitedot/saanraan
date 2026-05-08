@@ -37,6 +37,16 @@ function toy_community_message_box(PDO $pdo, int $accountId, string $box, int $l
     return $stmt->fetchAll();
 }
 
+function toy_community_message_account_label(?string $displayName, int $accountId): string
+{
+    $label = trim((string) $displayName);
+    if ($label !== '') {
+        return $label . ' #' . (string) $accountId;
+    }
+
+    return $accountId > 0 ? '회원 #' . (string) $accountId : '알 수 없는 회원';
+}
+
 function toy_community_message_by_id_for_account(PDO $pdo, int $messageId, int $accountId): ?array
 {
     if ($messageId < 1 || $accountId < 1) {
