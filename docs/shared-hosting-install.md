@@ -60,6 +60,18 @@ README.md
 
 호스팅의 문서 루트에 Toycore 파일을 배치한다. 문서 루트 이름은 호스팅마다 다르므로, 기본 `index.html` 또는 `index.php`가 실행되는 위치를 기준으로 확인한다.
 
+운영 사이트는 보통 `https://example.com/`처럼 도메인 루트에서 실행한다. 따라서 `index.php`, `core/`, `modules/`, `storage/`가 문서 루트 바로 아래에 있어야 한다. 문서 루트 아래에 `toycore/` 폴더를 만들고 그 안에 파일을 올리면 설치 URL도 `https://example.com/toycore/`가 된다. 하위 경로 설치를 의도하지 않았다면 zip 안의 최상위 폴더를 그대로 올리지 말고 그 안의 파일과 디렉터리를 문서 루트에 펼친다.
+
+예:
+
+```text
+권장: public_html/index.php
+권장: public_html/modules/member/install.sql
+
+하위 경로 설치가 됨: public_html/toycore/index.php
+하위 경로 설치가 됨: public_html/toycore/modules/member/install.sql
+```
+
 기존 기본 페이지 파일이 있다면 삭제하지 말고 먼저 백업한다.
 
 ```text

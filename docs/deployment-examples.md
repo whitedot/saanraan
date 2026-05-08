@@ -55,9 +55,11 @@ Git 불가, FTP/SFTP 또는 파일 관리자만 가능
 
 공식 코드를 그대로 운영하고 서버에서 직접 수정하지 않는 설치라면 clone으로 충분하다.
 
+대부분의 운영 사이트는 `https://example.com/`처럼 도메인 루트에서 실행한다. `toycore`는 저장소 이름 예시일 뿐이며, 문서 루트 아래에 `toycore/` 폴더를 만들면 서비스 URL도 `https://example.com/toycore/`가 된다. 하위 경로 설치를 의도한 경우가 아니라면 문서 루트가 Toycore 루트를 가리키게 하거나, 비어 있는 문서 루트 안에 저장소 내용을 직접 clone한다.
+
 ```sh
-git clone https://github.com/whitedot/toycore.git toycore
-cd toycore
+cd /path/to/document-root
+git clone https://github.com/whitedot/toycore.git .
 git checkout v0.1.1
 ```
 
@@ -66,8 +68,8 @@ git checkout v0.1.1
 운영자가 자체 패치, 전용 모듈, 호스팅별 배포 스크립트를 함께 관리해야 한다면 fork를 만든 뒤 fork를 운영 기준 저장소로 둔다. 공식 저장소는 `upstream`으로 추가해 새 릴리스를 가져온다.
 
 ```sh
-git clone git@github.com:your-org/toycore.git toycore
-cd toycore
+cd /path/to/document-root
+git clone git@github.com:your-org/toycore.git .
 git remote add upstream https://github.com/whitedot/toycore.git
 git fetch upstream --tags
 git checkout -b release/<release-tag> <release-tag>
@@ -102,6 +104,8 @@ git checkout -b release/<release-tag> <release-tag>
 ## Apache 가상 호스트
 
 서버 설정을 직접 수정할 수 있는 환경에서는 문서 루트를 프로젝트 루트로 지정할 수 있습니다. 이 경우 `/assets/`와 `/modules/{module_key}/assets/`만 정적 파일로 열고, 나머지 내부 경로는 먼저 차단한 뒤 모든 동적 요청을 `index.php`로 전달합니다.
+
+아래 `/var/www/toycore`는 예시 경로입니다. 실제 운영에서는 `example.com`의 문서 루트가 이 디렉터리를 직접 가리키므로 사용자는 `https://example.com/`으로 접속합니다. 문서 루트의 상위 디렉터리가 `/var/www`이고 그 아래 `toycore` 폴더가 공개되는 구조라면 URL이 `/toycore/`가 되므로 의도한 배치인지 먼저 확인합니다.
 
 ```apache
 <VirtualHost *:80>

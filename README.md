@@ -12,9 +12,11 @@
 
 Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 현재 `toycore.git` 본체에는 공식 선택 모듈 코드도 `modules/` 아래에 함께 들어 있습니다.
 
+운영 사이트는 보통 `https://example.com/`처럼 도메인 루트에 둡니다. `toycore`는 저장소 이름 예시일 뿐이며, 문서 루트 아래에 `toycore/` 폴더를 만들면 URL도 `https://example.com/toycore/`가 됩니다. 하위 경로 설치를 의도한 경우가 아니라면 문서 루트 자체가 Toycore 루트를 가리키게 하거나, 비어 있는 문서 루트 안에 저장소 내용을 직접 clone합니다.
+
 ```sh
-git clone https://github.com/whitedot/toycore.git toycore
-cd toycore
+cd /path/to/document-root
+git clone https://github.com/whitedot/toycore.git .
 git checkout v0.1.1
 ```
 
