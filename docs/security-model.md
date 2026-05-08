@@ -1,0 +1,134 @@
+# Toycore 보안 모델
+
+Toycore는 비즈니스 도메인을 소유하지 않는 절차형 PHP 솔루션 베이스다. 대신 설치, 회원 인증, 관리자 권한, 감사 로그, 개인정보 내보내기, 업데이트 같은 운영 도메인을 코어 기준선으로 제공하고, helper, 정적 검사, dispatch contract 세 층으로 그 기준선을 받친다.
+
+이 문서는 모듈 작성자가 Toycore에서 무엇을 제공받고, 무엇을 직접 책임져야 하는지 구분하기 위한 기준이다.
+
+## 1. 작은 약속을 지킨다
+
+Toycore의 보안 모델은 자동 보안을 약속하지 않는다.
+
+```text
+Toycore는 운영·보안 기준선의 호출 누락을 런타임에서 잡는다.
+비즈니스 정책의 의미 판단은 모듈이 명시적으로 책임진다.
+```
+
+이 구분을 다음처럼 부른다.
+
+```text
+call-site contract: 필요한 helper가 요청 흐름에서 호출되었는지 확인하는 계약
+semantic contract: 어떤 계정이 어떤 대상에 어떤 작업을 할 수 있는지 판단하는 계약
+```
+
+코어는 call-site contract를 보강한다. semantic contract는 모듈 action과 helper가 책임진다.
+
+예를 들어 관리자 POST action에서 `toy_require_csrf()`, `toy_member_require_login()`, `toy_admin_require_role()` 호출이 빠지면 코어가 잡을 수 있다. 하지만 `owner`만 처리해야 하는 특정 요청에 `admin`을 허용해도 되는지, 게시글 작성자가 자기 글만 수정할 수 있는지, 주문 상태를 어떤 순서로 바꿀 수 있는지는 해당 모듈의 정책이다.
+
+## 2. 세 층의 기준선
+
+Toycore는 운영·보안 기준선을 한 helper에만 맡기지 않는다.
+
+```text
+1. helper
+   - CSRF, 로그인, 관리자 권한, redirect, 오류 응답, 감사 로그 같은 공통 도구 제공
+
+2. 정적 검사
+   - .tools/bin/check.php와 세부 검사 도구가 action 파일의 누락과 위험한 패턴 확인
+
+3. dispatch contract
+   - index.php가 action include 전후로 요청 계약을 만들고 런타임에서 호출 누락 확인
+```
+
+이 구조는 프레임워크식 middleware 체인을 만들기 위한 것이 아니다. action 파일은 여전히 절차형 PHP 파일이고, 요청 흐름은 `index.php`, 모듈 `paths.php`, action 파일을 열어 추적한다.
+
+## 3. 요청 흐름과 contract
+
+설치 후 일반 요청은 다음 흐름을 따른다.
+
+```text
+index.php
+-> toy_request_method(), toy_request_path()로 method/path 정규화
+-> 활성 모듈의 paths.php 배열 읽기
+-> METHOD /path와 일치하는 action 파일 검증
+-> toy_start_request_contract(...)
+-> action include
+-> toy_enforce_request_contract('after_action')
+```
+
+contract는 현재 요청의 method, 정규화된 path, module key, action 파일, 관리자 요청 여부를 저장한다.
+
+런타임 확인 기준:
+
+- `POST` action은 `toy_require_csrf()`를 호출해야 한다.
+- `/admin`과 `/admin/...` action은 `toy_member_require_login()`을 호출해야 한다.
+- `/admin`과 `/admin/...` action은 `toy_admin_require_role()`을 호출해야 한다.
+- 인증, 권한, CSRF guard가 요청을 막은 경우에는 의도된 차단으로 기록한다.
+- 검사 누락 상태로 action이 끝나거나 응답 종료 지점에 도달하면 contract 위반으로 처리한다.
+
+contract 위반은 낮은 층에서 직접 로그를 남기고 평문 500 응답으로 종료한다. 이 실패 처리 안에서는 `toy_render_error()`나 `toy_redirect()` 같은 상위 helper를 다시 호출하지 않는다.
+
+## 4. 허용된 응답 종료 지점
+
+action 파일에서 직접 `exit` 또는 `die`를 호출하지 않는다. 응답을 끝내야 한다면 다음 helper 중 하나를 사용한다.
+
+```text
+toy_redirect()
+toy_render_error()
+toy_finish_response()
+```
+
+`header('Location: ...')`도 action에서 직접 호출하지 않는다. redirect는 `toy_redirect()`를 통과해야 안전한 상대 URL 검증과 contract 검사를 함께 받는다.
+
+허용되는 예:
+
+```text
+header('Content-Type: ...') 같은 응답 메타 제어
+http_response_code() 단독 호출
+toy_redirect(), toy_render_error(), toy_finish_response()
+```
+
+금지되는 예:
+
+```text
+exit, die 직접 호출
+header('Location: ...') 직접 호출
+http_response_code(...); exit; 패턴
+```
+
+정적 검사는 `paths.php`에 등록된 action 파일에서 이 패턴을 확인한다.
+
+`toy_request_contract_mark()`와 `toy_request_contract_guard_blocked()`는 코어와 공통 guard helper가 사용하는 낮은 층의 함수다. action 파일은 이 함수를 직접 호출하지 않고 `toy_require_csrf()`, `toy_member_require_login()`, `toy_admin_require_role()` 같은 공개 helper를 통과한다.
+
+## 5. 정규화된 path 기준
+
+인증, 권한, 요청 계약 판단은 정규화된 request key를 기준으로 한다.
+
+```text
+$method = toy_request_method();
+$path = toy_request_path();
+$routeKey = $method . ' ' . $path;
+```
+
+action이나 helper가 권한 판단을 위해 `$_SERVER['REQUEST_URI']` 원문을 직접 해석하지 않는다. 공유호스팅 fallback처럼 URL 표현을 추가로 지원하더라도, 최종 권한 판단은 같은 정규화된 method/path 값으로 수렴해야 한다.
+
+## 6. paths.php는 무엇이고 무엇이 아닌가
+
+`paths.php`는 URL 요청을 action 파일로 연결하는 단순 배열이다. Toycore는 요청 매핑을 사용하지만, 프레임워크식 라우팅 시스템으로 확장하지 않는다.
+
+| 항목 | Toycore 기준 |
+| --- | --- |
+| 등록 API | `toy_route()` 같은 등록 함수 없음 |
+| 컨트롤러 클래스 | 없음 |
+| 자동 스캔/리플렉션 | 없음 |
+| 서비스 프로바이더 | 없음 |
+| middleware 체인 | 없음 |
+| 라우트 모델 바인딩 | 없음 |
+| 요청 흐름 | `index.php`와 `paths.php`, action include로 추적 |
+
+코어는 매핑 파일을 읽고 안전한 action 파일인지 검증한다. action 안에서 어떤 데이터를 읽고, 어떤 정책을 적용하고, 어떤 view를 include할지는 모듈이 명시적으로 작성한다.
+
+## 7. 배포 보호와의 관계
+
+dispatch contract는 애플리케이션 요청 흐름 안의 기준선이다. `config/`, `storage/`, `database/`, `core/`, `modules/`, `docs/`, `.tools/` 같은 내부 파일이 웹에서 직접 열리지 않도록 막는 배포 보호를 대체하지 않는다.
+
+운영 환경에서는 루트 `index.php`만 공개 진입점으로 사용해야 한다. 이 조건을 만족하지 못하는 호스팅에는 운영 설치하지 않는다.

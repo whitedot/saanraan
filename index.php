@@ -126,7 +126,9 @@ if (count($routeMatches) > 1) {
 }
 
 if (count($routeMatches) === 1) {
+    toy_start_request_contract($method, $path, (string) $routeMatches[0]['module_key'], (string) $routeMatches[0]['action_file']);
     include $routeMatches[0]['action_file'];
+    toy_enforce_request_contract('after_action');
     exit;
 }
 

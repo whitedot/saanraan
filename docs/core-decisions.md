@@ -113,7 +113,22 @@ return [
 
 코어는 이 배열을 읽은 뒤, 모듈 활성 상태와 action 파일 경로를 검증하고 include합니다.
 
-## 1-1. DB 접근은 PDO prepared statement를 기본으로 한다
+## 1-1. 운영·보안 기준선은 호출 누락을 잡되 의미 판단은 모듈에 둔다
+
+Toycore는 비즈니스 도메인을 소유하지 않습니다. 대신 설치, 회원 인증, 관리자 권한, 감사 로그, 개인정보 내보내기, 업데이트처럼 운영 중 사고가 잦은 기준선은 helper, 정적 검사, dispatch contract 세 층으로 받칩니다.
+
+기본 구분:
+
+```text
+call-site contract: 필요한 helper가 요청 흐름에서 호출되었는지 확인
+semantic contract: 어떤 대상에 어떤 작업을 허용할지 판단
+```
+
+코어는 call-site contract를 강화합니다. `POST` action의 `toy_require_csrf()`, 관리자 action의 `toy_member_require_login()`과 `toy_admin_require_role()` 호출 누락은 정적 검사와 dispatch contract에서 잡습니다. 하지만 권한 배열에 어떤 role을 넣을지, 소유자만 수정 가능한 대상인지, 도메인 상태 전이가 올바른지는 모듈 action과 helper가 명시적으로 책임집니다.
+
+action 파일은 응답 종료를 `toy_redirect()`, `toy_render_error()`, `toy_finish_response()`로 통과시킵니다. 직접 `exit`/`die` 호출이나 `header('Location: ...')` 직접 호출은 요청 contract를 우회하므로 사용하지 않습니다.
+
+## 1-2. DB 접근은 PDO prepared statement를 기본으로 한다
 
 Toycore는 절차형 PHP와 직접 include 구조를 유지하므로 DB 접근 규칙을 코드 작성자가 바로 확인할 수 있어야 합니다.
 

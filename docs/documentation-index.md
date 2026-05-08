@@ -10,6 +10,7 @@
 | `core-decisions.md` | 핵심 결정 로그 | 구현 판단이 갈릴 때 우선하는 설계 결정 |
 | `current-implementation-status.md` | 현재 상태 | 코드 기준 구현 범위와 검증 기준 |
 | `implemented-features.md` | 기능 목록 | 사용자 관점에서 확인 가능한 구현 기능 |
+| `security-model.md` | 보안 모델 | helper, 정적 검사, dispatch contract의 책임 경계 |
 | `module-checklist.md` | 모듈 확인표 | 모듈 zip 업로드 전 확인 항목 |
 | `module-guide.md` | 작성 규칙 | 모듈/플러그인 작성 방식과 파일 역할 |
 | `module-storage-policy.md` | 저장 위치 | 모듈을 `modules/{module_key}` 폴더 기준으로 다루는 기준 |

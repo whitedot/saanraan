@@ -37,6 +37,74 @@ function toy_admin_action_security_path_is_safe(string $path): bool
     return preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $path) === 1;
 }
 
+function toy_admin_action_security_next_code_token(array $tokens, int $start): array
+{
+    $count = count($tokens);
+    for ($i = $start; $i < $count; $i++) {
+        $token = $tokens[$i];
+        if (is_array($token) && in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+
+        return [$i, $token];
+    }
+
+    return [$count, null];
+}
+
+function toy_admin_action_security_string_literal(?array $token): ?string
+{
+    if ($token === null || $token[0] !== T_CONSTANT_ENCAPSED_STRING) {
+        return null;
+    }
+
+    $literal = $token[1];
+    if (strlen($literal) < 2) {
+        return null;
+    }
+
+    $quote = $literal[0];
+    if ($quote !== "'" && $quote !== '"') {
+        return null;
+    }
+
+    return stripcslashes(substr($literal, 1, -1));
+}
+
+function toy_admin_action_security_has_raw_exit(string $content): bool
+{
+    foreach (token_get_all($content) as $token) {
+        if (is_array($token) && $token[0] === T_EXIT) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function toy_admin_action_security_has_location_header(string $content): bool
+{
+    $tokens = token_get_all($content);
+    foreach ($tokens as $i => $token) {
+        if (!is_array($token) || $token[0] !== T_STRING || strtolower($token[1]) !== 'header') {
+            continue;
+        }
+
+        [, $openToken] = toy_admin_action_security_next_code_token($tokens, $i + 1);
+        if ($openToken !== '(') {
+            continue;
+        }
+
+        [, $firstArgument] = toy_admin_action_security_next_code_token($tokens, $i + 2);
+        $literal = is_array($firstArgument) ? toy_admin_action_security_string_literal($firstArgument) : null;
+        if (is_string($literal) && str_starts_with(strtolower($literal), 'location:')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
     $pathsFile = $moduleDir . '/paths.php';
     if (!is_file($pathsFile)) {
@@ -78,6 +146,18 @@ foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
 
         if ($method === 'POST' && strpos($content, 'toy_require_csrf(') === false) {
             $errors[] = 'POST action must require CSRF: ' . $route . ' -> ' . $actionFile;
+        }
+
+        if (toy_admin_action_security_has_raw_exit($content)) {
+            $errors[] = 'Action must end through toy_redirect(), toy_render_error(), or toy_finish_response() instead of raw exit/die: ' . $route . ' -> ' . $actionFile;
+        }
+
+        if (toy_admin_action_security_has_location_header($content)) {
+            $errors[] = 'Action must use toy_redirect() instead of a direct Location header: ' . $route . ' -> ' . $actionFile;
+        }
+
+        if (strpos($content, 'toy_request_contract_mark(') !== false || strpos($content, 'toy_request_contract_guard_blocked(') !== false) {
+            $errors[] = 'Action must use public guard helpers instead of low-level request contract markers: ' . $route . ' -> ' . $actionFile;
         }
 
         if (str_starts_with($path, '/admin')) {
@@ -309,6 +389,48 @@ if (!is_string($coreOpsHelper)) {
 ) {
     $errors[] = 'Core ops helper must sanitize secret-like values before storing audit logs, markers, and exception logs.';
 }
+if (is_string($coreOpsHelper) && (
+    strpos($coreOpsHelper, 'function toy_start_request_contract') === false
+    || strpos($coreOpsHelper, 'function toy_request_contract_mark') === false
+    || strpos($coreOpsHelper, 'function toy_request_contract_guard_blocked') === false
+    || strpos($coreOpsHelper, 'function toy_enforce_request_contract') === false
+    || strpos($coreOpsHelper, 'function toy_fail_request_contract') === false
+    || strpos($coreOpsHelper, 'register_shutdown_function') === false
+    || strpos($coreOpsHelper, "'exit_reason' => null") === false
+    || strpos($coreOpsHelper, "'guard_blocked'") === false
+)) {
+    $errors[] = 'Core ops helper must expose request contract state, guard-blocked exits, enforcement, and shutdown logging.';
+}
+
+$coreOutputHelper = file_get_contents($root . '/core/helpers/output.php');
+if (!is_string($coreOutputHelper)) {
+    $errors[] = 'Core output helper cannot be read.';
+} elseif (
+    strpos($coreOutputHelper, "toy_enforce_request_contract('before_redirect')") === false
+    || strpos($coreOutputHelper, 'function toy_finish_response') === false
+    || strpos($coreOutputHelper, "toy_enforce_request_contract('before_response_end')") === false
+    || strpos($coreOutputHelper, "toy_request_contract_mark('csrf_checked')") === false
+    || strpos($coreOutputHelper, "toy_request_contract_guard_blocked('csrf')") === false
+) {
+    $errors[] = 'Core output helper must enforce the request contract at redirect/response exits and mark CSRF checks.';
+}
+
+$memberAccountsHelper = file_get_contents($root . '/modules/member/helpers/accounts.php');
+if (!is_string($memberAccountsHelper)) {
+    $errors[] = 'Member accounts helper cannot be read.';
+} elseif (
+    strpos($memberAccountsHelper, "toy_request_contract_mark('auth_checked')") === false
+    || strpos($memberAccountsHelper, "toy_request_contract_guard_blocked('auth')") === false
+) {
+    $errors[] = 'Member login guard must mark request contract auth checks and guard-blocked redirects.';
+}
+
+if (is_string($adminRolesHelper) && (
+    strpos($adminRolesHelper, "toy_request_contract_mark('role_checked')") === false
+    || strpos($adminRolesHelper, "toy_request_contract_guard_blocked('role')") === false
+)) {
+    $errors[] = 'Admin role guard must mark request contract role checks and guard-blocked errors.';
+}
 
 $adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');
 if (!is_string($adminPrivacyRequestsHelper)) {
@@ -390,6 +512,12 @@ if (!is_string($frontController)) {
     || strpos($frontController, 'toy_load_module_contract_file($moduleKey, $pathsFile)') === false
 ) {
     $errors[] = 'Front controller must load module paths.php through the contract file loader.';
+}
+if (is_string($frontController) && (
+    strpos($frontController, 'toy_start_request_contract($method, $path,') === false
+    || strpos($frontController, "toy_enforce_request_contract('after_action')") === false
+)) {
+    $errors[] = 'Front controller must wrap matched action includes with request contract start and enforcement.';
 }
 
 $adminNavigationHelper = file_get_contents($root . '/modules/admin/helpers/navigation.php');

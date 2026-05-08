@@ -6,7 +6,6 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 
 if (toy_request_method() !== 'POST') {
     toy_render_error(405, '허용되지 않는 요청입니다.');
-    exit;
 }
 
 toy_require_csrf();

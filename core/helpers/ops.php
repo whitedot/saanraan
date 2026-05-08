@@ -120,8 +120,113 @@ function toy_write_config(array $config): void
     }
 }
 
+function toy_start_request_contract(string $method, string $path, string $moduleKey, string $actionFile): void
+{
+    $GLOBALS['toy_request_contract'] = [
+        'method' => strtoupper($method),
+        'path' => $path,
+        'module_key' => $moduleKey,
+        'action_file' => $actionFile,
+        'is_admin' => $path === '/admin' || str_starts_with($path, '/admin/'),
+        'csrf_checked' => false,
+        'auth_checked' => false,
+        'role_checked' => false,
+        'exit_reason' => null,
+        'resolved_stage' => null,
+    ];
+
+    if (empty($GLOBALS['toy_request_contract_shutdown_registered'])) {
+        $GLOBALS['toy_request_contract_shutdown_registered'] = true;
+        register_shutdown_function(static function (): void {
+            $contract = $GLOBALS['toy_request_contract'] ?? null;
+            if (!is_array($contract) || ($contract['exit_reason'] ?? null) !== null) {
+                return;
+            }
+
+            $path = is_string($contract['path'] ?? null) ? (string) $contract['path'] : '';
+            $actionFile = is_string($contract['action_file'] ?? null) ? (string) $contract['action_file'] : '';
+            error_log('[toycore] request contract unresolved at shutdown: ' . $path . ' ' . $actionFile);
+        });
+    }
+}
+
+function toy_request_contract_mark(string $key): void
+{
+    if (!isset($GLOBALS['toy_request_contract']) || !is_array($GLOBALS['toy_request_contract'])) {
+        return;
+    }
+
+    if (!in_array($key, ['csrf_checked', 'auth_checked', 'role_checked'], true)) {
+        return;
+    }
+
+    $GLOBALS['toy_request_contract'][$key] = true;
+}
+
+function toy_request_contract_guard_blocked(string $guard): void
+{
+    if (!isset($GLOBALS['toy_request_contract']) || !is_array($GLOBALS['toy_request_contract'])) {
+        return;
+    }
+
+    $GLOBALS['toy_request_contract']['exit_reason'] = 'guard_blocked';
+    $GLOBALS['toy_request_contract']['blocked_guard'] = $guard;
+}
+
+function toy_enforce_request_contract(string $stage): void
+{
+    if (!isset($GLOBALS['toy_request_contract']) || !is_array($GLOBALS['toy_request_contract'])) {
+        return;
+    }
+
+    $contract = $GLOBALS['toy_request_contract'];
+    if (($contract['exit_reason'] ?? null) === 'guard_blocked') {
+        $GLOBALS['toy_request_contract']['resolved_stage'] = $stage;
+        return;
+    }
+
+    $violations = [];
+    if ((string) ($contract['method'] ?? '') === 'POST' && empty($contract['csrf_checked'])) {
+        $violations[] = 'POST action did not call toy_require_csrf().';
+    }
+
+    if (!empty($contract['is_admin']) && empty($contract['auth_checked'])) {
+        $violations[] = 'Admin action did not call toy_member_require_login().';
+    }
+
+    if (!empty($contract['is_admin']) && empty($contract['role_checked'])) {
+        $violations[] = 'Admin action did not call toy_admin_require_role().';
+    }
+
+    if ($violations !== []) {
+        $GLOBALS['toy_request_contract']['exit_reason'] = 'violation';
+        $GLOBALS['toy_request_contract']['resolved_stage'] = $stage;
+        toy_fail_request_contract(implode(' ', $violations), $stage, $contract);
+    }
+
+    $GLOBALS['toy_request_contract']['exit_reason'] = 'completed';
+    $GLOBALS['toy_request_contract']['resolved_stage'] = $stage;
+}
+
+function toy_fail_request_contract(string $message, string $stage, array $contract): void
+{
+    $path = is_string($contract['path'] ?? null) ? (string) $contract['path'] : '';
+    $actionFile = is_string($contract['action_file'] ?? null) ? (string) $contract['action_file'] : '';
+    error_log('[toycore] request contract violation: ' . $message . ' at ' . $stage . ' ' . $path . ' ' . $actionFile);
+
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=UTF-8');
+    }
+
+    echo "Internal error\n";
+    exit(1);
+}
+
 function toy_render_error(int $statusCode, string $message, ?Throwable $exception = null): void
 {
+    toy_enforce_request_contract('before_error');
+
     http_response_code($statusCode);
     if ($exception instanceof Throwable) {
         toy_log_exception($exception, 'render_error_' . $statusCode);
@@ -139,6 +244,7 @@ function toy_render_error(int $statusCode, string $message, ?Throwable $exceptio
     $debug = !empty($config['debug']);
     $pageTitle = (string) $statusCode;
     include TOY_ROOT . '/core/views/error.php';
+    toy_finish_response();
 }
 
 function toy_log_exception(Throwable $exception, string $context): void

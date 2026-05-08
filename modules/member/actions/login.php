@@ -6,6 +6,9 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $account = toy_member_current_account($pdo);
 if ($account !== null) {
+    if (toy_request_method() === 'POST') {
+        toy_require_csrf();
+    }
     toy_redirect('/account');
 }
 

@@ -210,8 +210,11 @@ function toy_member_current_account(PDO $pdo): ?array
 
 function toy_member_require_login(PDO $pdo): array
 {
+    toy_request_contract_mark('auth_checked');
+
     $account = toy_member_current_account($pdo);
     if ($account === null) {
+        toy_request_contract_guard_blocked('auth');
         $next = toy_request_path();
         toy_redirect('/login?next=' . rawurlencode($next));
     }

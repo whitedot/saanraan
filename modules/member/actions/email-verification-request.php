@@ -9,7 +9,6 @@ $memberSettings = toy_member_settings($pdo);
 
 if (toy_request_method() !== 'POST') {
     toy_render_error(405, '허용되지 않는 요청입니다.');
-    exit;
 }
 
 toy_require_csrf();

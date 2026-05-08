@@ -279,7 +279,9 @@ index.php
 -> 활성 모듈 목록 조회
 -> 각 활성 모듈의 paths.php 읽기
 -> METHOD /path와 일치하는 action 파일 검증
+-> 요청 contract 시작
 -> action include
+-> 요청 contract 검사
 ```
 
 `paths.php`는 단순 배열만 반환한다.
@@ -384,12 +386,18 @@ action 파일 책임:
 
 action 파일에서 피한다:
 
+- `exit`, `die` 직접 호출
+- `header('Location: ...')` 직접 호출
 - 전체 HTML을 heredoc 문자열로 출력
 - 사용자 입력을 escape 없이 출력
 - 권한 판단을 view에 맡기기
 - 다른 모듈의 내부 helper 하위 파일을 직접 require
 - path 등록 또는 자동 dispatcher 변경
 - 토큰, 비밀번호, 개인정보 원문 로그 기록
+
+action에서 응답을 끝내야 하면 `toy_redirect()`, `toy_render_error()`, `toy_finish_response()` 중 하나를 사용한다. 이 helper들은 dispatch contract 검사를 거친 뒤 종료한다. `header('Content-Type: ...')` 같은 응답 메타 제어는 허용하지만, redirect는 반드시 `toy_redirect()`를 통과해야 한다.
+
+`toy_request_contract_mark()`와 `toy_request_contract_guard_blocked()`는 action 파일에서 직접 호출하지 않는다. action은 `toy_require_csrf()`, `toy_member_require_login()`, `toy_admin_require_role()` 같은 공개 helper를 호출해 contract mark가 자연스럽게 기록되게 둔다.
 
 ## 8. view 작성
 

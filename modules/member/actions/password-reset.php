@@ -27,7 +27,6 @@ if ($method === 'GET' && ($tokenInputInvalid || $token !== '')) {
     if ($reset === null) {
         toy_member_clear_password_reset_session_hash();
         toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
-        exit;
     }
 
     toy_member_store_password_reset_session_hash($tokenHash);
@@ -39,7 +38,6 @@ $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $token
 if ($reset === null) {
     toy_member_clear_password_reset_session_hash();
     toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
-    exit;
 }
 
 if ($method === 'POST') {
@@ -49,7 +47,6 @@ if ($method === 'POST') {
     if ($reset === null) {
         toy_member_clear_password_reset_session_hash();
         toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
-        exit;
     }
 
     $password = toy_post_string_without_truncation('password', 255);
@@ -80,7 +77,6 @@ if ($method === 'POST') {
             if (!toy_member_mark_password_reset_used($pdo, (int) $reset['id'])) {
                 $pdo->rollBack();
                 toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
-                exit;
             }
 
             toy_member_update_password($pdo, (int) $reset['account_id'], $password);

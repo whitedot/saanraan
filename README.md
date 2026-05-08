@@ -10,6 +10,8 @@ Toycore(토이코어)는 [G5 Codex 프로젝트](https://github.com/whitedot/g5c
 
 Toycore는 절차형 웹 솔루션 코어를 다시 쓰는 프로젝트입니다.
 
+Toycore는 비즈니스 도메인을 소유하지 않는 절차형 PHP 솔루션 베이스입니다. 대신 설치, 회원 인증, 관리자 권한, 감사 로그, 개인정보 내보내기, 업데이트 같은 운영 도메인을 코어 기준선으로 제공하고, helper, 정적 검사, dispatch contract 세 층으로 그 기준선을 받칩니다.
+
 AI의 발전으로 코드 생성이 쉬워진 시대에도, 여전히 절차형 개발 방식에 익숙한 개발자와 운영자가 있습니다. Toycore는 그런 사람들을 위해 복잡한 프레임워크에 의존하지 않고, 읽기 쉽고 수정하기 쉬운 방식으로 웹 솔루션의 기본 구조를 다시 설계하는 것을 목표로 합니다.
 
 ## 프로젝트 관점
@@ -70,6 +72,7 @@ Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문
 - 인증: DB 기반 로그인 세션, PHP 세션 strict/cookie-only 모드, 로그인 실패 타이밍 노출 완화, 비밀번호 변경/재설정 후 세션 폐기
 - 토큰: 비밀번호 재설정/이메일 인증 token HMAC 저장, 원자적 사용 처리, 새 token 발급 시 기존 미사용 token 무효화, token URL referrer 차단
 - 요청 보호: CSRF helper, 안전한 redirect helper, URL 제어 문자 차단, trusted proxy 기반 HTTPS/IP 해석, 기본 보안 응답 헤더
+- 요청 계약: action include 전후 dispatch contract로 POST CSRF, 관리자 로그인, 관리자 권한 확인 helper의 호출 누락 감지
 - 개인정보: 회원 개인정보 JSON 내보내기, 모듈별 export 확장, 내부 hash/token/secret-like 필드 제외, 탈퇴/익명화와 동의 철회 이력
 - 운영 복구: 설치/업데이트 실패 marker, 업데이트 lock, checksum 기반 업데이트 파일 검증, 민감 정보 마스킹된 예외/감사 로그
 - 모듈 격리: `paths.php` 기반 명시적 요청 처리, action 상대 경로 검증, 활성 모듈 route 충돌 감지, `module.php`의 `requires` 의존성 검증
@@ -232,6 +235,7 @@ module -> point -> slot -> subject
 - [DB 접근 정책](docs/database-access-policy.md)
 - [구현된 기능 리스트](docs/implemented-features.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
+- [Toycore 보안 모델](docs/security-model.md)
 - [핵심 설계 결정](docs/core-decisions.md)
 - [설치 및 초기화 계획](docs/install-plan.md)
 - [업데이트 및 스키마 버전 계획](docs/update-plan.md)

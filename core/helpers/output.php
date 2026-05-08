@@ -277,10 +277,17 @@ function toy_redirect(string $url): void
 {
     if (!toy_is_safe_relative_url($url)) {
         toy_render_error(500, '리다이렉트 URL이 올바르지 않습니다.');
-        exit;
     }
 
+    toy_enforce_request_contract('before_redirect');
+
     header('Location: ' . toy_url($url), true, 302);
+    toy_finish_response();
+}
+
+function toy_finish_response(): void
+{
+    toy_enforce_request_contract('before_response_end');
     exit;
 }
 
@@ -300,12 +307,14 @@ function toy_csrf_field(): string
 
 function toy_require_csrf(): void
 {
+    toy_request_contract_mark('csrf_checked');
+
     $expected = $_SESSION['toy_csrf_token'] ?? '';
     $actual = $_POST['csrf_token'] ?? '';
 
     if (!is_string($expected) || !is_string($actual) || $expected === '' || !hash_equals($expected, $actual)) {
+        toy_request_contract_guard_blocked('csrf');
         toy_render_error(400, '요청 보안 토큰이 올바르지 않습니다.');
-        exit;
     }
 }
 

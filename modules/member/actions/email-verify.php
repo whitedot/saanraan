@@ -12,7 +12,6 @@ $verification = toy_member_find_email_verification($pdo, $config, $token);
 
 if ($verification === null || $verification['status'] !== 'active') {
     toy_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
-    exit;
 }
 
 $pdo->beginTransaction();
@@ -20,7 +19,6 @@ try {
     if (!toy_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id'], (string) $verification['email'])) {
         $pdo->rollBack();
         toy_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
-        exit;
     }
 
     $pdo->commit();

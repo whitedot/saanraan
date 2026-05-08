@@ -45,9 +45,11 @@ function toy_admin_has_role(PDO $pdo, int $accountId, array $allowedRoles): bool
 
 function toy_admin_require_role(PDO $pdo, int $accountId, array $allowedRoles): void
 {
+    toy_request_contract_mark('role_checked');
+
     if (!toy_admin_has_role($pdo, $accountId, $allowedRoles)) {
+        toy_request_contract_guard_blocked('role');
         toy_render_error(403, '관리자 권한이 필요합니다.');
-        exit;
     }
 }
 

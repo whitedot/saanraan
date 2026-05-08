@@ -55,6 +55,10 @@
 - 활성 모듈 `paths.php` 기반 action include
 - 활성 모듈 간 method/path 충돌 감지와 오류 로그 기록
 - action 상대 경로 검증
+- action include 전후 dispatch contract 시작과 검사
+- POST action의 CSRF helper 호출 누락 런타임 감지
+- 관리자 action의 로그인/권한 helper 호출 누락 런타임 감지
+- redirect, 오류 응답, 다운로드 종료 helper를 통한 contract 검사
 - 모듈 `module.php` 메타데이터 조회 helper
 - 모듈 `toycore.module_contract`와 현재 코어 계약 버전 검증 helper
 - 모듈 `requires` 메타데이터 기반 활성화 의존성 검증
@@ -367,6 +371,7 @@
 - 관리자 메뉴 path와 모듈 `paths.php` GET route 일치 검사
 - 로컬 PHP 또는 Docker 실행 시 전체 PHP 문법 검사
 - 기본 점검 스크립트의 인증 런타임/회원 인증 정책 검사 실행
+- 관리자 action 보안 규칙 검사에서 raw `exit`/`die`와 직접 `Location` 헤더 사용 차단
 - 로컬/스테이징 URL 대상 최소 HTTP 스모크 점검 도구
 
 ## 남은 작업
@@ -389,6 +394,7 @@ SQL 파일 비어 있음 여부 검증
 출력 helper 동작 검증
 회원 인증 정책 검증
 관리자 action 보안 규칙 검증
+action 파일 raw exit/die와 직접 Location 헤더 금지 검증
 설치/로그인/관리자 주요 화면 수동 HTTP 검증
 회원가입/비밀번호 변경/재설정/이메일 인증/탈퇴 검증
 개인정보 요청/내보내기/보관 정리 검증
@@ -404,4 +410,4 @@ SEO meta tag 출력 검증
 내부 SQL/PHP/문서/도구/저장소 파일 직접 접근 차단 HTTP 스모크 검증
 ```
 
-최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 보관 정리 대상/인증 런타임/런타임 helper/출력 helper/회원 인증 정책/관리자 action 보안 규칙 검사까지 통과했다.
+최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 보관 정리 대상/인증 런타임/런타임 helper/출력 helper/회원 인증 정책/관리자 action 보안 규칙 검사까지 통과했다. 관리자 action 보안 규칙 검사는 request contract helper 연결과 raw `exit`/`die`, 직접 `Location` 헤더 금지도 포함한다.

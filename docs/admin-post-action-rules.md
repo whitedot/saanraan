@@ -25,6 +25,8 @@
 
 GET에서도 같은 action 파일을 사용한다면 GET은 조회와 화면 출력만 수행한다. 상태 변경, 세션 폐기, 파일 반영, SQL 실행은 POST에서만 처리한다.
 
+응답을 중간에 끝내야 하는 경우 action 파일에서 `exit` 또는 `die`를 직접 호출하지 않는다. redirect는 `toy_redirect()`, 오류 응답은 `toy_render_error()`, 다운로드처럼 본문을 직접 출력한 뒤 끝내는 응답은 `toy_finish_response()`를 사용한다. `header('Location: ...')` 직접 호출은 금지한다.
+
 ## 변수 이름
 
 화면으로 전달하는 기본 변수는 다음 이름을 사용한다.
