@@ -59,7 +59,8 @@ function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int
 
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count
+                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM toy_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
          FROM toy_community_posts p
          WHERE ' . $where . '
          ORDER BY p.id DESC
