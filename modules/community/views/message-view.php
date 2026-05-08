@@ -17,6 +17,8 @@ $seo = [
 <body>
     <main>
         <p>
+            <a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a>
+            /
             <a href="<?php echo toy_e(toy_url($messageBox === 'sent' ? '/community/messages?box=sent' : '/community/messages')); ?>">
                 <?php echo $messageBox === 'sent' ? '보낸 쪽지함' : '받은 쪽지함'; ?>
             </a>

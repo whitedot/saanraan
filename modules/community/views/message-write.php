@@ -16,7 +16,11 @@ $seo = [
 </head>
 <body>
     <main>
-        <p><a href="<?php echo toy_e(toy_url('/community/messages')); ?>">쪽지함</a></p>
+        <p>
+            <a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a>
+            /
+            <a href="<?php echo toy_e(toy_url('/community/messages')); ?>">쪽지함</a>
+        </p>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
         <?php if ($errors !== []) { ?>
