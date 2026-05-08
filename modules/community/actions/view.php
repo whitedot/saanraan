@@ -15,6 +15,21 @@ if (!is_array($post)) {
 $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = toy_community_public_comments($pdo, (int) $post['id'], $commentsPerPage);
+$account = toy_member_current_account($pdo);
+$canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
+$commentErrors = [];
+$commentBody = '';
+if (isset($_SESSION['toy_community_comment_errors']) && is_array($_SESSION['toy_community_comment_errors'])) {
+    foreach ($_SESSION['toy_community_comment_errors'] as $error) {
+        if (is_string($error) && $error !== '') {
+            $commentErrors[] = $error;
+        }
+    }
+}
+if (isset($_SESSION['toy_community_comment_body']) && is_string($_SESSION['toy_community_comment_body'])) {
+    $commentBody = $_SESSION['toy_community_comment_body'];
+}
+unset($_SESSION['toy_community_comment_errors'], $_SESSION['toy_community_comment_body']);
 $skinKey = toy_community_skin_key();
 $skinView = toy_community_skin_view($skinKey, 'post');
 

@@ -46,7 +46,7 @@ $pageTitle = (string) $post['title'];
             ]); ?>
         </article>
 
-        <section>
+        <section id="comments">
             <?php echo toy_render_output_slot($pdo, [
                 'module_key' => 'community',
                 'point_key' => 'community.post.view',
@@ -70,6 +70,27 @@ $pageTitle = (string) $post['title'];
                         </li>
                     <?php } ?>
                 </ul>
+            <?php } ?>
+
+            <?php if ($commentErrors !== []) { ?>
+                <ul>
+                    <?php foreach ($commentErrors as $error) { ?>
+                        <li><?php echo toy_e($error); ?></li>
+                    <?php } ?>
+                </ul>
+            <?php } ?>
+
+            <?php if ($canComment) { ?>
+                <form method="post" action="<?php echo toy_e(toy_url('/community/comment')); ?>">
+                    <?php echo toy_csrf_field(); ?>
+                    <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
+                    <p>
+                        <label>댓글<br>
+                            <textarea name="body_text" rows="5" cols="80" required><?php echo toy_e($commentBody); ?></textarea>
+                        </label>
+                    </p>
+                    <button type="submit">댓글 등록</button>
+                </form>
             <?php } ?>
 
             <?php echo toy_render_output_slot($pdo, [

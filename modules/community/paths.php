@@ -6,6 +6,7 @@ return [
     'GET /community/post' => 'actions/view.php',
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
+    'POST /community/comment' => 'actions/comment.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
 ];

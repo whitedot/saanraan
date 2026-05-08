@@ -38,7 +38,7 @@ function toy_community_public_post(PDO $pdo, int $postId): ?array
 
     $stmt = $pdo->prepare(
         "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy
+                b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM toy_community_posts p
          INNER JOIN toy_community_boards b ON b.id = p.board_id
          WHERE p.id = :id
@@ -200,6 +200,100 @@ function toy_community_record_post_rate_limit(PDO $pdo, int $accountId, array $s
 
     $windowSeconds = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
     toy_rate_limit_increment($pdo, 'community.post.account', (string) $accountId, $windowSeconds);
+}
+
+function toy_community_account_can_comment_post(PDO $pdo, array $post, array $account): bool
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1 || (string) ($post['status'] ?? '') !== 'published' || (string) ($post['board_status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    $policy = (string) ($post['comment_policy'] ?? '');
+    if ($policy === 'member') {
+        return true;
+    }
+
+    if ($policy === 'group') {
+        $groupKeys = toy_community_board_group_keys($pdo, (int) $post['board_id'], 'comment_group_keys');
+        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+    }
+
+    return false;
+}
+
+function toy_community_comment_input_values(): array
+{
+    return [
+        'body_text' => toy_post_string_without_truncation('body_text', 5000),
+    ];
+}
+
+function toy_community_validate_comment_input(array $values): array
+{
+    $bodyText = $values['body_text'];
+    if (!is_string($bodyText)) {
+        return ['댓글은 5000자 이내로 입력해 주세요.'];
+    }
+
+    if (trim($bodyText) === '') {
+        return ['댓글을 입력해 주세요.'];
+    }
+
+    return [];
+}
+
+function toy_community_create_comment(PDO $pdo, int $postId, int $authorAccountId, array $values): int
+{
+    $now = toy_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_community_comments
+            (post_id, author_account_id, body_text, status, created_at, updated_at)
+         VALUES
+            (:post_id, :author_account_id, :body_text, :status, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'post_id' => $postId,
+        'author_account_id' => $authorAccountId,
+        'body_text' => trim((string) $values['body_text']),
+        'status' => 'published',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $commentId = (int) $pdo->lastInsertId();
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_posts
+         SET last_commented_at = :last_commented_at,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'last_commented_at' => $now,
+        'updated_at' => $now,
+        'id' => $postId,
+    ]);
+
+    return $commentId;
+}
+
+function toy_community_comment_rate_limited(PDO $pdo, int $accountId, array $settings): bool
+{
+    $windowSeconds = min(86400, max(60, (int) ($settings['comment_create_window_seconds'] ?? 300)));
+    $limit = min(300, max(1, (int) ($settings['comment_create_limit'] ?? 30)));
+
+    return toy_community_rate_limits_table_exists($pdo)
+        && toy_rate_limit_count($pdo, 'community.comment.account', (string) $accountId, $windowSeconds) >= $limit;
+}
+
+function toy_community_record_comment_rate_limit(PDO $pdo, int $accountId, array $settings): void
+{
+    if (!toy_community_rate_limits_table_exists($pdo)) {
+        return;
+    }
+
+    $windowSeconds = min(86400, max(60, (int) ($settings['comment_create_window_seconds'] ?? 300)));
+    toy_rate_limit_increment($pdo, 'community.comment.account', (string) $accountId, $windowSeconds);
 }
 
 function toy_community_rate_limits_table_exists(PDO $pdo): bool
