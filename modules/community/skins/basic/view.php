@@ -223,6 +223,8 @@ $seo = [
                     </p>
                     <button type="submit">댓글 등록</button>
                 </form>
+            <?php } elseif ($commentUnavailableMessage !== '') { ?>
+                <p><?php echo toy_e($commentUnavailableMessage); ?></p>
             <?php } ?>
 
             <?php echo toy_render_output_slot($pdo, [
