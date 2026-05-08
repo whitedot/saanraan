@@ -44,7 +44,10 @@ $postNotice = '';
 if (isset($_SESSION['toy_community_post_notice']) && is_string($_SESSION['toy_community_post_notice'])) {
     $postNotice = $_SESSION['toy_community_post_notice'];
 }
-unset($_SESSION['toy_community_post_notice']);
+if (isset($_SESSION['toy_community_scrap_notice']) && is_string($_SESSION['toy_community_scrap_notice'])) {
+    $postNotice = $_SESSION['toy_community_scrap_notice'];
+}
+unset($_SESSION['toy_community_post_notice'], $_SESSION['toy_community_scrap_notice']);
 $reportErrors = [];
 $reportNotice = '';
 if (isset($_SESSION['toy_community_report_errors']) && is_array($_SESSION['toy_community_report_errors'])) {

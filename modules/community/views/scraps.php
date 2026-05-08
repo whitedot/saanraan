@@ -19,6 +19,10 @@ $seo = [
         <p><a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a></p>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
+        <?php if ($notice !== '') { ?>
+            <p><?php echo toy_e($notice); ?></p>
+        <?php } ?>
+
         <?php if ($scraps === []) { ?>
             <p>스크랩한 게시글이 없습니다.</p>
         <?php } else { ?>

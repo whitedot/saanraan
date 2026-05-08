@@ -15,6 +15,7 @@ $intent = toy_post_string('intent', 20);
 if ($intent === 'remove') {
     $removed = toy_community_remove_scrap($pdo, (int) $account['id'], $postId);
     if ($removed) {
+        $_SESSION['toy_community_scrap_notice'] = '스크랩을 해제했습니다.';
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -24,6 +25,8 @@ if ($intent === 'remove') {
             'result' => 'success',
             'message' => 'Community scrap removed.',
         ]);
+    } else {
+        $_SESSION['toy_community_scrap_notice'] = '이미 해제된 스크랩입니다.';
     }
     $post = toy_community_post_for_read($pdo, $postId, $account);
     if (!is_array($post)) {
@@ -38,6 +41,7 @@ if (!is_array($post)) {
 } else {
     $added = toy_community_add_scrap($pdo, (int) $account['id'], $postId);
     if ($added) {
+        $_SESSION['toy_community_scrap_notice'] = '게시글을 스크랩했습니다.';
         toy_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -50,6 +54,8 @@ if (!is_array($post)) {
                 'board_key' => (string) $post['board_key'],
             ],
         ]);
+    } else {
+        $_SESSION['toy_community_scrap_notice'] = '이미 스크랩한 게시글입니다.';
     }
 }
 
