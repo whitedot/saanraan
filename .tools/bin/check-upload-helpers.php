@@ -90,6 +90,24 @@ if (!is_string($tmpFile)) {
         $errors[] = 'Upload target path should reject executable target filenames.';
     } catch (RuntimeException $exception) {
     }
+    $existingTarget = $directory . DIRECTORY_SEPARATOR . basename($tmpFile) . '-existing.txt';
+    file_put_contents($existingTarget, 'existing');
+    try {
+        toy_upload_assert_target_path_writable($existingTarget, false);
+        $errors[] = 'Upload target state should reject existing files without overwrite.';
+    } catch (RuntimeException $exception) {
+    }
+    toy_upload_assert_target_path_writable($existingTarget, true);
+    unlink($existingTarget);
+
+    $directoryTarget = $directory . DIRECTORY_SEPARATOR . basename($tmpFile) . '-target-dir';
+    mkdir($directoryTarget);
+    try {
+        toy_upload_assert_target_path_writable($directoryTarget, true);
+        $errors[] = 'Upload target state should reject directory targets even with overwrite.';
+    } catch (RuntimeException $exception) {
+    }
+    rmdir($directoryTarget);
 
     unlink($tmpFile);
 }

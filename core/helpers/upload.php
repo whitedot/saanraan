@@ -254,10 +254,7 @@ function toy_upload_move_uploaded_file(array $file, string $directory, string $f
 {
     $validated = toy_upload_validate_file($file, $options);
     $targetPath = toy_upload_safe_target_path($directory, $filename);
-
-    if (file_exists($targetPath) && empty($options['overwrite'])) {
-        throw new RuntimeException('같은 이름의 업로드 파일이 이미 있습니다.');
-    }
+    toy_upload_assert_target_path_writable($targetPath, !empty($options['overwrite']));
 
     if (!move_uploaded_file((string) $validated['tmp_name'], $targetPath)) {
         throw new RuntimeException('업로드 파일을 저장할 수 없습니다.');
@@ -266,6 +263,30 @@ function toy_upload_move_uploaded_file(array $file, string $directory, string $f
     $validated['stored_path'] = $targetPath;
     $validated['stored_name'] = basename($targetPath);
     return $validated;
+}
+
+function toy_upload_assert_target_path_writable(string $targetPath, bool $overwrite = false): void
+{
+    $directory = dirname($targetPath);
+    if (!is_dir($directory) || !is_writable($directory)) {
+        throw new RuntimeException('업로드 저장 디렉터리에 쓸 수 없습니다.');
+    }
+
+    if (is_link($targetPath)) {
+        throw new RuntimeException('업로드 저장 대상이 심볼릭 링크입니다.');
+    }
+
+    if (is_dir($targetPath)) {
+        throw new RuntimeException('업로드 저장 대상이 디렉터리입니다.');
+    }
+
+    if (file_exists($targetPath) && !$overwrite) {
+        throw new RuntimeException('같은 이름의 업로드 파일이 이미 있습니다.');
+    }
+
+    if (file_exists($targetPath) && (!is_file($targetPath) || !is_writable($targetPath))) {
+        throw new RuntimeException('업로드 저장 대상 파일에 쓸 수 없습니다.');
+    }
 }
 
 function toy_download_token_create(array $config, string $purpose, string $subject, int $ttlSeconds, ?int $now = null): array
