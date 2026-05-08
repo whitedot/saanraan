@@ -71,6 +71,14 @@ toy_audit_log($pdo, [
         'reason_key' => $reasonKey,
     ],
 ]);
+toy_community_create_admin_report_notifications(
+    $pdo,
+    $reportId,
+    (string) $target['target_type'],
+    (int) $target['target_id'],
+    $reasonKey,
+    (int) $account['id']
+);
 $_SESSION['toy_community_report_notice'] = '신고를 접수했습니다.';
 
 toy_redirect($redirectPath);
