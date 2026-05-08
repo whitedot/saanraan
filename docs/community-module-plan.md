@@ -630,7 +630,7 @@ modules/community/
 - admin-menu.php
 - menu-links.php
 - extension-points.php
-- member-group-rules.php (member 그룹 기능 구현 후)
+- member-group-rules.php
 - privacy-export.php
 - sitemap.php
 - actions/
@@ -700,7 +700,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'extension-points.php',
-            // member 그룹 기능 구현 후: 'member-group-rules.php',
+            'member-group-rules.php',
             'privacy-export.php',
             'sitemap.php',
         ],
@@ -1448,7 +1448,7 @@ community.board.comment_count_at_least
 - `extension-points.php`
 - `sitemap.php`
 - `privacy-export.php`
-- member 그룹 기능 적용 후 `member-group-rules.php`
+- `member-group-rules.php`
 - 선택적 notification 연동
 
 완료 기준:
