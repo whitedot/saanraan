@@ -85,6 +85,11 @@ if (!is_string($tmpFile)) {
         $errors[] = 'Upload target path should reject traversal-like filenames.';
     } catch (RuntimeException $exception) {
     }
+    try {
+        toy_upload_safe_target_path($directory, 'stored.php');
+        $errors[] = 'Upload target path should reject executable target filenames.';
+    } catch (RuntimeException $exception) {
+    }
 
     unlink($tmpFile);
 }

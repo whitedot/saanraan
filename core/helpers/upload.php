@@ -242,6 +242,11 @@ function toy_upload_safe_target_path(string $directory, string $filename): strin
         throw new RuntimeException('업로드 저장 파일명이 올바르지 않습니다.');
     }
 
+    $extension = toy_upload_extension($safeFilename);
+    if ($extension !== '' && toy_upload_is_executable_extension($extension)) {
+        throw new RuntimeException('실행 가능한 저장 파일명은 사용할 수 없습니다.');
+    }
+
     return $realDirectory . DIRECTORY_SEPARATOR . $safeFilename;
 }
 
