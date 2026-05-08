@@ -193,10 +193,12 @@ function toy_community_reports(PDO $pdo, int $limit = 100): array
         'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
                 r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
                 reporter.display_name AS reporter_display_name,
-                reported.display_name AS reported_display_name
+                reported.display_name AS reported_display_name,
+                reviewer.display_name AS reviewer_display_name
          FROM toy_community_reports r
          LEFT JOIN toy_member_accounts reporter ON reporter.id = r.reporter_account_id
          LEFT JOIN toy_member_accounts reported ON reported.id = r.reported_account_id
+         LEFT JOIN toy_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
          ORDER BY r.id DESC
          LIMIT :limit_value'
     );

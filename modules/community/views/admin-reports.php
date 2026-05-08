@@ -32,6 +32,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>대상 회원</th>
                     <th>메모</th>
                     <th>접수일</th>
+                    <th>처리자</th>
+                    <th>처리일</th>
                     <th>처리</th>
                 </tr>
             </thead>
@@ -46,6 +48,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) ($report['reported_display_name'] ?? '') . ' #' . (string) $report['reported_account_id']); ?></td>
                         <td><?php echo toy_e((string) ($report['memo_text'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $report['created_at']); ?></td>
+                        <td>
+                            <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
+                                <?php echo toy_e((string) ($report['reviewer_display_name'] ?? '') . ' #' . (string) $report['reviewer_account_id']); ?>
+                            <?php } ?>
+                        </td>
+                        <td><?php echo toy_e((string) ($report['reviewed_at'] ?? '')); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/community/reports')); ?>">
                                 <?php echo toy_csrf_field(); ?>
