@@ -19,8 +19,14 @@ if (!toy_community_attachment_mime_is_allowed($mimeType) || !is_string($filePath
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
+$fileSize = filesize($filePath);
+if (!is_int($fileSize) || $fileSize < 0) {
+    toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+}
+
 header('Content-Type: ' . toy_download_content_type($mimeType));
 header('Content-Disposition: inline; filename="' . toy_download_filename((string) $attachment['original_name']) . '"');
+header('Content-Length: ' . (string) $fileSize);
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: private, no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
