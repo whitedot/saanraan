@@ -26,6 +26,14 @@ $pageTitle = (string) $post['title'];
                 /
                 작성일: <?php echo toy_e((string) $post['created_at']); ?>
             </p>
+            <?php if (is_array($account)) { ?>
+                <form method="post" action="<?php echo toy_e(toy_url('/community/scrap')); ?>">
+                    <?php echo toy_csrf_field(); ?>
+                    <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
+                    <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
+                    <button type="submit"><?php echo $isScrapped ? '스크랩 해제' : '스크랩'; ?></button>
+                </form>
+            <?php } ?>
 
             <?php echo toy_render_output_slot($pdo, [
                 'module_key' => 'community',

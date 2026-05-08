@@ -7,6 +7,8 @@ return [
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
     'POST /community/comment' => 'actions/comment.php',
+    'GET /community/scraps' => 'actions/scraps.php',
+    'POST /community/scrap' => 'actions/scrap-toggle.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
 ];

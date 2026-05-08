@@ -17,6 +17,7 @@ $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50))
 $comments = toy_community_public_comments($pdo, (int) $post['id'], $commentsPerPage);
 $account = toy_member_current_account($pdo);
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
+$isScrapped = is_array($account) && toy_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
 $commentErrors = [];
 $commentBody = '';
 if (isset($_SESSION['toy_community_comment_errors']) && is_array($_SESSION['toy_community_comment_errors'])) {
