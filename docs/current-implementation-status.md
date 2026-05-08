@@ -382,8 +382,13 @@
 git diff --check
 SQL 파일 비어 있음 여부 검증
 모듈 기본 계약 파일 구성 검증
-배포 manifest 항목 생성 검증
 관리자 메뉴 path와 모듈 GET route 일치 검증
+보관 정리 대상 구성 검증
+인증 런타임 설정 검증
+런타임 helper 동작 검증
+출력 helper 동작 검증
+회원 인증 정책 검증
+관리자 action 보안 규칙 검증
 설치/로그인/관리자 주요 화면 수동 HTTP 검증
 회원가입/비밀번호 변경/재설정/이메일 인증/탈퇴 검증
 개인정보 요청/내보내기/보관 정리 검증
@@ -399,4 +404,4 @@ SEO meta tag 출력 검증
 내부 SQL/PHP/문서/도구/저장소 파일 직접 접근 차단 HTTP 스모크 검증
 ```
 
-최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 배포 manifest 항목 생성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 인증 런타임/회원 인증 정책 검사까지 통과했다.
+최근 로컬 실행에서는 `php .tools/bin/check.php` 기준으로 전체 PHP 파일 `php -l`, `git diff --check`, SQL 파일 비어 있음 여부 검증, 모듈 기본 계약 파일 구성 검증, 관리자 메뉴 path와 모듈 GET route 일치 검증, 보관 정리 대상/인증 런타임/런타임 helper/출력 helper/회원 인증 정책/관리자 action 보안 규칙 검사까지 통과했다.

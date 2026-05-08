@@ -75,11 +75,11 @@ Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문
 - 모듈 격리: `paths.php` 기반 명시적 요청 처리, action 상대 경로 검증, 활성 모듈 route 충돌 감지, `module.php`의 `requires` 의존성 검증
 - 배포: Git/릴리스 zip 기반 설치, owner 재인증 기반 모듈 zip 업로드와 파일 교체
 
-기본 설치 흐름은 필수 모듈을 항상 설치/활성화합니다. 선택 모듈은 `modules/{module_key}`에 파일을 배치한 뒤 `/admin/modules`에서 설치합니다.
+기본 설치 흐름은 필수 모듈을 항상 설치/활성화합니다. 현재 코드에 포함된 선택 모듈은 설치 화면에서 함께 설치할 수 있고, 설치 때 선택하지 않았거나 나중에 배치한 모듈은 `/admin/modules`에서 설치합니다.
 
 ```text
 필수: core + member + admin
-선택: modules/{module_key}에 배치된 모듈 폴더
+선택: 설치 화면에서 선택한 포함 모듈 또는 modules/{module_key}에 배치된 모듈 폴더
 ```
 
 Toycore는 현재 저장소의 파일과 `modules/{module_key}` 폴더를 기준으로 동작합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.

@@ -435,10 +435,13 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /account/privacy-export`
 - `POST /account/email-verification`
 - `GET /email/verify`
+- `GET /email/verified`
 - `GET /password/reset`
 - `POST /password/reset`
 - `GET /password/reset/confirm`
 - `POST /password/reset/confirm`
+- `GET /account/notifications`
+- `POST /account/notifications`
 - `POST /logout`
 
 ### 팝업레이어 content slot 출력 지점
@@ -481,6 +484,12 @@ Toycore는 전체 CMS가 아니라 절차형 PHP 기반 웹 솔루션 코어를 
 - `POST /admin/rewards`
 - `GET /admin/popup-layers`
 - `POST /admin/popup-layers`
+- `GET /admin/site-menus`
+- `POST /admin/site-menus`
+- `GET /admin/banners`
+- `POST /admin/banners`
+- `GET /admin/notifications`
+- `POST /admin/notifications`
 - `GET /admin/seo`
 - `POST /admin/seo`
 - `GET /robots.txt`

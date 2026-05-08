@@ -94,19 +94,23 @@ git checkout -b release/<release-tag> <release-tag>
 로컬 확인용입니다.
 
 ```sh
-./.tools/bin/php -S 127.0.0.1:8080 index.php
+./.tools/bin/php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
 ```
 
 브라우저에서 `http://127.0.0.1:8080/`로 접속합니다.
 
 ## Apache 가상 호스트
 
-서버 설정을 직접 수정할 수 있는 환경에서는 문서 루트를 프로젝트 루트로 지정하고 모든 요청을 `index.php`로 전달합니다.
+서버 설정을 직접 수정할 수 있는 환경에서는 문서 루트를 프로젝트 루트로 지정할 수 있습니다. 이 경우 `/assets/`와 `/modules/{module_key}/assets/`만 정적 파일로 열고, 나머지 내부 경로는 먼저 차단한 뒤 모든 동적 요청을 `index.php`로 전달합니다.
 
 ```apache
 <VirtualHost *:80>
     ServerName example.com
     DocumentRoot /var/www/toycore
+
+    RedirectMatch 404 "^/(config|core|database|docs|examples|storage|\.git|\.tools)(/|$)"
+    RedirectMatch 404 "^/(AGENTS\.md|README\.md)$"
+    RedirectMatch 404 "^/modules/(?![a-z][a-z0-9_]{1,39}/assets/)"
 
     <Directory /var/www/toycore>
         Require all granted
@@ -120,7 +124,7 @@ git checkout -b release/<release-tag> <release-tag>
 
 ## Nginx
 
-서버 설정을 직접 수정할 수 있는 환경에서는 `try_files`로 `index.php`에 전달합니다.
+서버 설정을 직접 수정할 수 있는 환경에서는 내부 경로를 먼저 차단하고, `/assets/`와 `/modules/{module_key}/assets/`만 직접 응답합니다. PHP 실행은 루트 `index.php`로 제한합니다.
 
 ```nginx
 server {
@@ -129,14 +133,39 @@ server {
     root /var/www/toycore;
     index index.php;
 
+    location ~ ^/(config|core|database|docs|examples|storage|\.git|\.tools)(/|$) {
+        return 404;
+    }
+
+    location ~ ^/(AGENTS\.md|README\.md)$ {
+        return 404;
+    }
+
+    location /assets/ {
+        try_files $uri =404;
+    }
+
+    location ~ ^/modules/[a-z][a-z0-9_]{1,39}/assets/ {
+        try_files $uri =404;
+    }
+
+    location /modules/ {
+        return 404;
+    }
+
     location / {
-        try_files $uri /index.php?$query_string;
+        try_files /index.php =404;
+    }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param QUERY_STRING $query_string;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
     }
 
     location ~ \.php$ {
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        return 404;
     }
 }
 ```
