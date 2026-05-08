@@ -44,4 +44,5 @@ toy_audit_log($pdo, [
         'post_id' => (int) $comment['post_id'],
     ],
 ]);
+$_SESSION['toy_community_comment_notice'] = '댓글을 수정했습니다.';
 toy_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

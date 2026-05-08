@@ -39,4 +39,5 @@ toy_audit_log($pdo, [
         'after_status' => 'deleted',
     ],
 ]);
+$_SESSION['toy_community_comment_notice'] = '댓글을 삭제했습니다.';
 toy_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

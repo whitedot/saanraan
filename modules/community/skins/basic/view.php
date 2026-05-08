@@ -140,6 +140,10 @@ $seo = [
             ]); ?>
 
             <h2>댓글</h2>
+            <?php if ($commentNotice !== '') { ?>
+                <p><?php echo toy_e($commentNotice); ?></p>
+            <?php } ?>
+
             <?php if ($comments === []) { ?>
                 <p>댓글이 없습니다.</p>
             <?php } else { ?>

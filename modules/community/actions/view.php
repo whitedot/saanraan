@@ -62,7 +62,11 @@ if (isset($_SESSION['toy_community_report_notice']) && is_string($_SESSION['toy_
 }
 unset($_SESSION['toy_community_report_errors'], $_SESSION['toy_community_report_notice']);
 $commentErrors = [];
+$commentNotice = '';
 $commentBody = '';
+if (isset($_SESSION['toy_community_comment_notice']) && is_string($_SESSION['toy_community_comment_notice'])) {
+    $commentNotice = $_SESSION['toy_community_comment_notice'];
+}
 if (isset($_SESSION['toy_community_comment_errors']) && is_array($_SESSION['toy_community_comment_errors'])) {
     foreach ($_SESSION['toy_community_comment_errors'] as $error) {
         if (is_string($error) && $error !== '') {
@@ -73,7 +77,7 @@ if (isset($_SESSION['toy_community_comment_errors']) && is_array($_SESSION['toy_
 if (isset($_SESSION['toy_community_comment_body']) && is_string($_SESSION['toy_community_comment_body'])) {
     $commentBody = $_SESSION['toy_community_comment_body'];
 }
-unset($_SESSION['toy_community_comment_errors'], $_SESSION['toy_community_comment_body']);
+unset($_SESSION['toy_community_comment_notice'], $_SESSION['toy_community_comment_errors'], $_SESSION['toy_community_comment_body']);
 $skinKey = toy_community_skin_key();
 $skinView = toy_community_skin_view($skinKey, 'post');
 
