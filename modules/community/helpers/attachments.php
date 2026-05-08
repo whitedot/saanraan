@@ -89,9 +89,10 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
     }
 
     $imageInfo = getimagesize($targetPath);
+    $storedMimeType = toy_upload_detect_mime($targetPath);
     $checksum = hash_file('sha256', $targetPath);
     $sizeBytes = filesize($targetPath);
-    if (!is_array($imageInfo) || !is_string($checksum) || !is_int($sizeBytes)) {
+    if (!is_array($imageInfo) || !toy_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
         @unlink($targetPath);
         throw new RuntimeException('저장된 이미지 metadata를 확인할 수 없습니다.');
     }
@@ -103,7 +104,7 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
         'original_name' => (string) $validated['original_name'],
         'stored_name' => $storedName,
         'storage_path' => $storagePath,
-        'mime_type' => (string) $validated['mime_type'],
+        'mime_type' => $storedMimeType,
         'size_bytes' => $sizeBytes,
         'checksum_sha256' => $checksum,
         'width' => (int) $imageInfo[0],
