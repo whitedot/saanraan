@@ -15,7 +15,7 @@ return static function (PDO $pdo, ?array $site): array {
     );
     foreach ($stmt->fetchAll() as $board) {
         $entries[] = [
-            'loc' => '/community',
+            'loc' => '/community/board?key=' . rawurlencode((string) $board['board_key']),
             'lastmod' => substr((string) $board['updated_at'], 0, 10),
         ];
     }

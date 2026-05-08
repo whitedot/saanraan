@@ -25,7 +25,9 @@ $pageTitle = '커뮤니티';
             <ul>
                 <?php foreach ($boards as $board) { ?>
                     <li>
-                        <?php echo toy_e((string) $board['title']); ?>
+                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                            <?php echo toy_e((string) $board['title']); ?>
+                        </a>
                         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
                             <br><?php echo toy_e((string) $board['description']); ?>
                         <?php } ?>
