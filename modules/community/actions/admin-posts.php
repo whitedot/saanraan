@@ -36,6 +36,9 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === [] && is_array($post)) {
             toy_community_update_post_status($pdo, $postId, $status);
+            $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
+                'source_module_key' => 'community',
+            ]);
             $updatedAttachmentCount = 0;
             if (in_array($status, ['hidden', 'deleted'], true)) {
                 $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, $status);
@@ -54,6 +57,9 @@ if (toy_request_method() === 'POST') {
                     'before_status' => (string) $post['status'],
                     'after_status' => $status,
                     'updated_attachment_count' => $updatedAttachmentCount,
+                    'group_rules_evaluated' => (int) $groupEvaluationSummary['evaluated'],
+                    'group_memberships_granted' => (int) $groupEvaluationSummary['granted'],
+                    'group_memberships_revoked' => (int) $groupEvaluationSummary['revoked'],
                 ],
             ]);
             $notice = '게시글 상태를 변경했습니다.';
