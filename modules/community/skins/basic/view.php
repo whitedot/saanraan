@@ -78,6 +78,10 @@ $seo = [
                 </form>
             <?php } ?>
 
+            <?php if ($postNotice !== '') { ?>
+                <p><?php echo toy_e($postNotice); ?></p>
+            <?php } ?>
+
             <?php if ($reportNotice !== '') { ?>
                 <p><?php echo toy_e($reportNotice); ?></p>
             <?php } ?>

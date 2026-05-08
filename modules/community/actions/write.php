@@ -44,8 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
             try {
                 $attachmentId = toy_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
+                if (is_int($attachmentId) && $attachmentId > 0) {
+                    $_SESSION['toy_community_post_notice'] = '이미지를 첨부했습니다.';
+                }
             } catch (Throwable $exception) {
                 toy_log_exception($exception, 'community_post_image_upload');
+                $_SESSION['toy_community_post_notice'] = '게시글은 등록했지만 이미지 첨부는 처리하지 못했습니다.';
             }
         }
         toy_audit_log($pdo, [

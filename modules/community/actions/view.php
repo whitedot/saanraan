@@ -32,6 +32,11 @@ $attachments = toy_community_post_attachments($pdo, (int) $post['id']);
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
 $isScrapped = is_array($account) && toy_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
 $reportReasonKeys = toy_community_report_reason_keys();
+$postNotice = '';
+if (isset($_SESSION['toy_community_post_notice']) && is_string($_SESSION['toy_community_post_notice'])) {
+    $postNotice = $_SESSION['toy_community_post_notice'];
+}
+unset($_SESSION['toy_community_post_notice']);
 $reportErrors = [];
 $reportNotice = '';
 if (isset($_SESSION['toy_community_report_errors']) && is_array($_SESSION['toy_community_report_errors'])) {
