@@ -20,7 +20,8 @@ if (!toy_community_attachment_mime_is_allowed($mimeType) || !is_string($filePath
 }
 
 $fileSize = filesize($filePath);
-if (!is_int($fileSize) || $fileSize < 0) {
+$recordedSize = (int) ($attachment['size_bytes'] ?? 0);
+if (!is_int($fileSize) || $fileSize < 0 || $recordedSize < 1 || $recordedSize !== $fileSize) {
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
