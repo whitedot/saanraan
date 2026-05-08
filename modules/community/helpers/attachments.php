@@ -193,6 +193,19 @@ function toy_community_attachment_mime_is_allowed(string $mimeType): bool
     ], true);
 }
 
+function toy_community_format_bytes(int $bytes): string
+{
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    }
+
+    if ($bytes >= 1024) {
+        return number_format($bytes / 1024, 1) . ' KB';
+    }
+
+    return number_format(max(0, $bytes)) . ' bytes';
+}
+
 function toy_community_attachment_file_path(array $attachment): ?string
 {
     $storageRoot = realpath(TOY_ROOT . '/storage');

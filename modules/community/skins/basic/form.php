@@ -5,6 +5,7 @@ $formAction = isset($formAction) && is_string($formAction)
     ? $formAction
     : '/community/write?key=' . rawurlencode((string) $board['board_key']);
 $submitLabel = isset($submitLabel) && is_string($submitLabel) ? $submitLabel : '등록';
+$attachmentMaxBytes = min(10485760, max(1, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -65,6 +66,8 @@ $seo = [
                     <label>이미지 첨부<br>
                         <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
                     </label>
+                    <br>
+                    <small>JPEG, PNG, WebP / 파일당 최대 <?php echo toy_e(toy_community_format_bytes($attachmentMaxBytes)); ?></small>
                 </p>
             <?php } ?>
             <button type="submit"><?php echo toy_e($submitLabel); ?></button>

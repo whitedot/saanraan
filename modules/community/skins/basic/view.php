@@ -115,7 +115,7 @@ $seo = [
                                     <?php echo toy_e((string) $attachment['original_name']); ?>
                                 </a>
                                 <?php if ((int) ($attachment['size_bytes'] ?? 0) > 0) { ?>
-                                    (<?php echo toy_e((string) $attachment['size_bytes']); ?> bytes)
+                                    (<?php echo toy_e(toy_community_format_bytes((int) $attachment['size_bytes'])); ?>)
                                 <?php } ?>
                             </li>
                         <?php } ?>
