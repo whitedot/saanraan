@@ -65,4 +65,22 @@ return [
             ],
         ],
     ],
+    [
+        'point_key' => 'community.post.form',
+        'label' => '커뮤니티 게시글 작성 폼',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'before_form',
+                'label' => '폼 위',
+                'kind' => 'content',
+            ],
+            [
+                'slot_key' => 'after_form',
+                'label' => '폼 아래',
+                'kind' => 'content',
+            ],
+        ],
+    ],
 ];

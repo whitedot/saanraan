@@ -71,6 +71,154 @@ function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): 
     return $stmt->fetchAll();
 }
 
+function toy_community_account_can_write_board(PDO $pdo, array $board, array $account): bool
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1 || (string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    $policy = (string) ($board['write_policy'] ?? '');
+    if ($policy === 'member') {
+        return true;
+    }
+
+    if ($policy === 'group') {
+        $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
+        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+    }
+
+    return false;
+}
+
+function toy_community_board_group_keys(PDO $pdo, int $boardId, string $settingKey): array
+{
+    if ($boardId < 1 || !in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_value
+         FROM toy_community_board_settings
+         WHERE board_id = :board_id
+           AND setting_key = :setting_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'setting_key' => $settingKey,
+    ]);
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return [];
+    }
+
+    $value = trim((string) ($row['setting_value'] ?? ''));
+    if ($value === '') {
+        return [];
+    }
+
+    $decoded = json_decode($value, true);
+    $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    $groupKeys = [];
+    foreach ($rawKeys as $rawKey) {
+        $groupKey = trim((string) $rawKey);
+        if ($groupKey !== '' && toy_member_group_key_is_valid($groupKey)) {
+            $groupKeys[] = $groupKey;
+        }
+    }
+
+    return array_values(array_unique($groupKeys));
+}
+
+function toy_community_post_input_values(): array
+{
+    return [
+        'title' => toy_post_string_without_truncation('title', 160),
+        'body_text' => toy_post_string_without_truncation('body_text', 20000),
+    ];
+}
+
+function toy_community_validate_post_input(array $values): array
+{
+    $errors = [];
+    $title = $values['title'];
+    $bodyText = $values['body_text'];
+
+    if (!is_string($title)) {
+        $errors[] = '제목은 160자 이내로 입력해 주세요.';
+    } elseif (trim($title) === '') {
+        $errors[] = '제목을 입력해 주세요.';
+    }
+
+    if (!is_string($bodyText)) {
+        $errors[] = '본문은 20000자 이내로 입력해 주세요.';
+    } elseif (trim($bodyText) === '') {
+        $errors[] = '본문을 입력해 주세요.';
+    }
+
+    return $errors;
+}
+
+function toy_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, array $values): int
+{
+    $now = toy_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_community_posts
+            (board_id, author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+         VALUES
+            (:board_id, :author_account_id, :title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'author_account_id' => $authorAccountId,
+        'title' => trim((string) $values['title']),
+        'body_text' => trim((string) $values['body_text']),
+        'body_format' => 'plain',
+        'status' => 'published',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function toy_community_post_rate_limited(PDO $pdo, int $accountId, array $settings): bool
+{
+    $windowSeconds = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
+    $limit = min(100, max(1, (int) ($settings['post_create_limit'] ?? 10)));
+
+    return toy_community_rate_limits_table_exists($pdo)
+        && toy_rate_limit_count($pdo, 'community.post.account', (string) $accountId, $windowSeconds) >= $limit;
+}
+
+function toy_community_record_post_rate_limit(PDO $pdo, int $accountId, array $settings): void
+{
+    if (!toy_community_rate_limits_table_exists($pdo)) {
+        return;
+    }
+
+    $windowSeconds = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
+    toy_rate_limit_increment($pdo, 'community.post.account', (string) $accountId, $windowSeconds);
+}
+
+function toy_community_rate_limits_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM toy_rate_limits LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
 function toy_community_public_author_label(PDO $pdo, int $accountId): string
 {
     $summary = toy_member_public_account_summary($pdo, $accountId);
