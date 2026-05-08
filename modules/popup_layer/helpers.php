@@ -6,7 +6,7 @@ function toy_popup_layer_available_targets(PDO $pdo): array
 {
     $targets = [];
     foreach (toy_enabled_module_contract_files($pdo, 'extension-points.php', ['popup_layer']) as $moduleKey => $file) {
-        $modulePoints = include $file;
+        $modulePoints = toy_load_module_contract_file($moduleKey, $file);
         if (is_callable($modulePoints)) {
             $modulePoints = $modulePoints($pdo);
         }

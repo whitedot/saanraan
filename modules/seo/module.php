@@ -18,6 +18,9 @@ return [
             'paths.php',
             'admin-menu.php',
         ],
+        'consumes' => [
+            'sitemap.php',
+        ],
     ],
     'settings' => [
         'title_suffix' => '',

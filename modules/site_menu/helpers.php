@@ -29,7 +29,7 @@ function toy_site_menu_link_suggestions(PDO $pdo): array
     $suggestions = [];
 
     foreach (toy_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
-        $links = include $file;
+        $links = toy_load_module_contract_file($moduleKey, $file);
         if (!is_array($links)) {
             continue;
         }

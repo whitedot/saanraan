@@ -16,8 +16,8 @@ function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
         }
     }
 
-    foreach (toy_enabled_module_contract_files($pdo, 'sitemap.php', ['seo']) as $sitemapFile) {
-        $moduleEntries = include $sitemapFile;
+    foreach (toy_enabled_module_contract_files($pdo, 'sitemap.php', ['seo']) as $moduleKey => $sitemapFile) {
+        $moduleEntries = toy_load_module_contract_file($moduleKey, $sitemapFile);
         if (is_callable($moduleEntries)) {
             $moduleEntries = $moduleEntries($pdo, $site);
         }

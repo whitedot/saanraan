@@ -80,7 +80,7 @@ function toy_banner_available_targets(PDO $pdo): array
     $targets = toy_banner_builtin_targets();
 
     foreach (toy_enabled_module_contract_files($pdo, 'extension-points.php', []) as $moduleKey => $file) {
-        $points = include $file;
+        $points = toy_load_module_contract_file($moduleKey, $file);
         if (!is_array($points)) {
             continue;
         }
