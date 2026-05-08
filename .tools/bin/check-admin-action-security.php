@@ -658,9 +658,19 @@ if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAct
 $communityWriteAction = file_get_contents($root . '/modules/community/actions/write.php');
 $communityAdminPostsAction = file_get_contents($root . '/modules/community/actions/admin-posts.php');
 $communityDeleteAction = file_get_contents($root . '/modules/community/actions/delete.php');
-if (!is_string($communityWriteAction) || !is_string($communityAdminPostsAction) || !is_string($communityDeleteAction)) {
+$communityMemberGroupsHelper = file_get_contents($root . '/modules/community/helpers/member-groups.php');
+if (!is_string($communityWriteAction) || !is_string($communityAdminPostsAction) || !is_string($communityDeleteAction) || !is_string($communityMemberGroupsHelper)) {
     $errors[] = 'Community post group evaluation action files cannot be read.';
 } else {
+    if (
+        strpos($communityMemberGroupsHelper, 'function toy_community_member_group_evaluation_metadata') === false
+        || strpos($communityMemberGroupsHelper, "'group_rules_evaluated' => (int) (\$summary['evaluated'] ?? 0)") === false
+        || strpos($communityMemberGroupsHelper, "'group_memberships_granted' => (int) (\$summary['granted'] ?? 0)") === false
+        || strpos($communityMemberGroupsHelper, "'group_memberships_revoked' => (int) (\$summary['revoked'] ?? 0)") === false
+    ) {
+        $errors[] = 'Community member group evaluation metadata helper must expose evaluated, granted, and revoked counts.';
+    }
+
     foreach ([
         'post create' => $communityWriteAction,
         'post status update' => $communityAdminPostsAction,
@@ -669,9 +679,7 @@ if (!is_string($communityWriteAction) || !is_string($communityAdminPostsAction) 
         if (
             strpos($source, 'toy_member_group_evaluate_account($pdo,') === false
             || strpos($source, "'source_module_key' => 'community'") === false
-            || strpos($source, "'group_rules_evaluated' => (int) \$groupEvaluationSummary['evaluated']") === false
-            || strpos($source, "'group_memberships_granted' => (int) \$groupEvaluationSummary['granted']") === false
-            || strpos($source, "'group_memberships_revoked' => (int) \$groupEvaluationSummary['revoked']") === false
+            || strpos($source, 'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)') === false
         ) {
             $errors[] = 'Community ' . $label . ' flow must evaluate community member group rules and audit the summary.';
         }

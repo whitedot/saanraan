@@ -82,14 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'target_id' => (string) $postId,
             'result' => 'success',
             'message' => 'Community post created.',
-            'metadata' => [
+            'metadata' => array_merge([
                 'board_key' => (string) $board['board_key'],
                 'attachment_id' => $attachmentId,
                 'attachment_result' => $attachmentResult,
-                'group_rules_evaluated' => (int) $groupEvaluationSummary['evaluated'],
-                'group_memberships_granted' => (int) $groupEvaluationSummary['granted'],
-                'group_memberships_revoked' => (int) $groupEvaluationSummary['revoked'],
-            ],
+            ], toy_community_member_group_evaluation_metadata($groupEvaluationSummary)),
         ]);
         toy_redirect('/community/post?id=' . (string) $postId);
     }

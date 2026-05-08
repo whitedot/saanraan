@@ -15,6 +15,15 @@ function toy_community_member_group_rule_board_options(PDO $pdo): array
     return $options;
 }
 
+function toy_community_member_group_evaluation_metadata(array $summary): array
+{
+    return [
+        'group_rules_evaluated' => (int) ($summary['evaluated'] ?? 0),
+        'group_memberships_granted' => (int) ($summary['granted'] ?? 0),
+        'group_memberships_revoked' => (int) ($summary['revoked'] ?? 0),
+    ];
+}
+
 function toy_community_member_group_rule_post_count_at_least(PDO $pdo, int $accountId, array $params): array
 {
     $boardId = (int) ($params['board_id'] ?? 0);
