@@ -168,6 +168,20 @@ foreach (toy_admin_action_security_module_dirs($root) as $moduleDir) {
             if (strpos($content, 'toy_admin_require_role(') === false) {
                 $errors[] = 'Admin action must require an admin role: ' . $route . ' -> ' . $actionFile;
             }
+
+            if ($method === 'POST') {
+                $loginPosition = strpos($content, 'toy_member_require_login(');
+                $rolePosition = strpos($content, 'toy_admin_require_role(');
+                $csrfPosition = strpos($content, 'toy_require_csrf(');
+                if (
+                    $loginPosition !== false
+                    && $rolePosition !== false
+                    && $csrfPosition !== false
+                    && ($loginPosition > $csrfPosition || $rolePosition > $csrfPosition)
+                ) {
+                    $errors[] = 'Admin POST action must check login and role before CSRF: ' . $route . ' -> ' . $actionFile;
+                }
+            }
         }
     }
 }

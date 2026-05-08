@@ -27,6 +27,8 @@ GET에서도 같은 action 파일을 사용한다면 GET은 조회와 화면 출
 
 응답을 중간에 끝내야 하는 경우 action 파일에서 `exit` 또는 `die`를 직접 호출하지 않는다. redirect는 `toy_redirect()`, 오류 응답은 `toy_render_error()`, 다운로드처럼 본문을 직접 출력한 뒤 끝내는 응답은 `toy_finish_response()`를 사용한다. `header('Location: ...')` 직접 호출은 금지한다.
 
+다운로드 전용 POST action처럼 view를 include하지 않는 파일도 1-11번 순서는 유지한다. 이 경우 12-14번은 `$notice`와 view include 대신 다운로드 헤더, 본문 출력, `toy_finish_response()`로 끝낸다.
+
 ## 변수 이름
 
 화면으로 전달하는 기본 변수는 다음 이름을 사용한다.

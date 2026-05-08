@@ -9,10 +9,9 @@ if (toy_request_method() !== 'POST') {
     toy_render_error(405, '허용되지 않는 요청입니다.');
 }
 
-toy_require_csrf();
-
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+toy_require_csrf();
 
 $requestId = toy_admin_post_positive_int('id');
 if ($requestId <= 0) {
