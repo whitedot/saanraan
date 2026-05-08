@@ -434,6 +434,11 @@ function toy_community_board_group_keys(PDO $pdo, int $boardId, string $settingK
 
     $decoded = json_decode($value, true);
     $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+}
+
+function toy_community_normalize_board_group_keys(array $rawKeys): array
+{
     $groupKeys = [];
     foreach ($rawKeys as $rawKey) {
         $groupKey = trim((string) $rawKey);
@@ -443,6 +448,46 @@ function toy_community_board_group_keys(PDO $pdo, int $boardId, string $settingK
     }
 
     return array_values(array_unique($groupKeys));
+}
+
+function toy_community_board_group_keys_from_input(string $value): array
+{
+    if (trim($value) === '') {
+        return [];
+    }
+
+    $rawKeys = preg_split('/[\s,]+/', $value);
+    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+}
+
+function toy_community_invalid_board_group_keys_from_input(string $value): array
+{
+    if (trim($value) === '') {
+        return [];
+    }
+
+    $rawKeys = preg_split('/[\s,]+/', $value);
+    if (!is_array($rawKeys)) {
+        return [];
+    }
+
+    $invalidKeys = [];
+    foreach ($rawKeys as $rawKey) {
+        $groupKey = trim((string) $rawKey);
+        if ($groupKey !== '' && !toy_member_group_key_is_valid($groupKey)) {
+            $invalidKeys[] = $groupKey;
+        }
+    }
+
+    return array_values(array_unique($invalidKeys));
+}
+
+function toy_community_board_group_keys_setting_value(array $groupKeys): string
+{
+    $normalizedKeys = toy_community_normalize_board_group_keys($groupKeys);
+    $encoded = json_encode($normalizedKeys, JSON_UNESCAPED_SLASHES);
+
+    return is_string($encoded) ? $encoded : '[]';
 }
 
 function toy_community_post_input_values(): array

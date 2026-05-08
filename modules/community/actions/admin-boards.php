@@ -32,6 +32,12 @@ if (toy_request_method() === 'POST') {
     $attachmentMaxBytes = toy_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
     $attachmentMaxCount = toy_admin_post_int_in_range('attachment_max_count', 0, 10);
     $imageUploadsEnabled = ($_POST['image_uploads_enabled'] ?? '') === '1';
+    $readGroupKeysInput = toy_post_string_without_truncation('read_group_keys', 1000);
+    $writeGroupKeysInput = toy_post_string_without_truncation('write_group_keys', 1000);
+    $commentGroupKeysInput = toy_post_string_without_truncation('comment_group_keys', 1000);
+    $readGroupKeys = is_string($readGroupKeysInput) ? toy_community_board_group_keys_from_input($readGroupKeysInput) : [];
+    $writeGroupKeys = is_string($writeGroupKeysInput) ? toy_community_board_group_keys_from_input($writeGroupKeysInput) : [];
+    $commentGroupKeys = is_string($commentGroupKeysInput) ? toy_community_board_group_keys_from_input($commentGroupKeysInput) : [];
 
     if ($intent === 'create' && !toy_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -77,6 +83,22 @@ if (toy_request_method() === 'POST') {
         $attachmentMaxCount = 1;
     }
 
+    foreach ([
+        '읽기 그룹' => $readGroupKeysInput,
+        '쓰기 그룹' => $writeGroupKeysInput,
+        '댓글 그룹' => $commentGroupKeysInput,
+    ] as $label => $groupKeysInput) {
+        if (!is_string($groupKeysInput)) {
+            $errors[] = $label . ' key 목록은 1000자 이하로 입력하세요.';
+            continue;
+        }
+
+        $invalidGroupKeys = toy_community_invalid_board_group_keys_from_input($groupKeysInput);
+        if ($invalidGroupKeys !== []) {
+            $errors[] = $label . ' key 형식이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+        }
+    }
+
     if ($errors === [] && $intent === 'create' && toy_community_board_by_key($pdo, $boardKey) !== null) {
         $errors[] = '이미 사용 중인 게시판 key입니다.';
     }
@@ -108,10 +130,16 @@ if (toy_request_method() === 'POST') {
                 'image_uploads_enabled' => $imageUploadsEnabled,
                 'attachment_max_bytes' => $attachmentMaxBytes,
                 'attachment_max_count' => $attachmentMaxCount,
+                'read_group_keys' => $readGroupKeys,
+                'write_group_keys' => $writeGroupKeys,
+                'comment_group_keys' => $commentGroupKeys,
             ],
         ]);
         toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
         toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
+        toy_community_set_board_setting($pdo, $boardId, 'read_group_keys', toy_community_board_group_keys_setting_value($readGroupKeys), 'json');
+        toy_community_set_board_setting($pdo, $boardId, 'write_group_keys', toy_community_board_group_keys_setting_value($writeGroupKeys), 'json');
+        toy_community_set_board_setting($pdo, $boardId, 'comment_group_keys', toy_community_board_group_keys_setting_value($commentGroupKeys), 'json');
 
         $notice = '게시판을 만들었습니다.';
     } elseif ($intent === 'update' && $errors === []) {
@@ -125,6 +153,9 @@ if (toy_request_method() === 'POST') {
         if ($errors === [] && is_array($board)) {
             $beforeAttachmentMaxBytes = toy_community_board_attachment_max_bytes($pdo, $boardId);
             $beforeAttachmentMaxCount = toy_community_board_attachment_max_count($pdo, $boardId);
+            $beforeReadGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'read_group_keys');
+            $beforeWriteGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'write_group_keys');
+            $beforeCommentGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'comment_group_keys');
             toy_community_update_board($pdo, $boardId, [
                 'title' => $title,
                 'description' => (string) $description,
@@ -137,6 +168,9 @@ if (toy_request_method() === 'POST') {
             ]);
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
+            toy_community_set_board_setting($pdo, $boardId, 'read_group_keys', toy_community_board_group_keys_setting_value($readGroupKeys), 'json');
+            toy_community_set_board_setting($pdo, $boardId, 'write_group_keys', toy_community_board_group_keys_setting_value($writeGroupKeys), 'json');
+            toy_community_set_board_setting($pdo, $boardId, 'comment_group_keys', toy_community_board_group_keys_setting_value($commentGroupKeys), 'json');
 
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -156,6 +190,12 @@ if (toy_request_method() === 'POST') {
                     'after_attachment_max_bytes' => $attachmentMaxBytes,
                     'before_attachment_max_count' => $beforeAttachmentMaxCount,
                     'after_attachment_max_count' => $attachmentMaxCount,
+                    'before_read_group_keys' => $beforeReadGroupKeys,
+                    'after_read_group_keys' => $readGroupKeys,
+                    'before_write_group_keys' => $beforeWriteGroupKeys,
+                    'after_write_group_keys' => $writeGroupKeys,
+                    'before_comment_group_keys' => $beforeCommentGroupKeys,
+                    'after_comment_group_keys' => $commentGroupKeys,
                 ],
             ]);
 
@@ -170,6 +210,9 @@ $boards = toy_community_boards($pdo);
 foreach ($boards as &$board) {
     $board['attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id']);
     $board['attachment_max_count'] = toy_community_board_attachment_max_count($pdo, (int) $board['id']);
+    $board['read_group_keys'] = toy_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
+    $board['write_group_keys'] = toy_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
+    $board['comment_group_keys'] = toy_community_board_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
 }
 unset($board);
 

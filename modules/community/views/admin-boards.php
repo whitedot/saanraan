@@ -55,6 +55,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
+            <label>읽기 그룹 key<br>
+                <input type="text" name="read_group_keys" maxlength="1000" placeholder="regular_member, vip">
+            </label>
+        </p>
+        <p>
             <label>쓰기 정책<br>
                 <select name="write_policy">
                     <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -64,12 +69,22 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <p>
+            <label>쓰기 그룹 key<br>
+                <input type="text" name="write_group_keys" maxlength="1000" placeholder="regular_member, vip">
+            </label>
+        </p>
+        <p>
             <label>댓글 정책<br>
                 <select name="comment_policy">
                     <?php foreach ($allowedCommentPolicies as $policy) { ?>
                         <option value="<?php echo toy_e($policy); ?>"><?php echo toy_e($policy); ?></option>
                     <?php } ?>
                 </select>
+            </label>
+        </p>
+        <p>
+            <label>댓글 그룹 key<br>
+                <input type="text" name="comment_group_keys" maxlength="1000" placeholder="regular_member, vip">
             </label>
         </p>
         <p>
@@ -157,6 +172,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             </p>
                             <p>
+                                <label>읽기 그룹 key<br>
+                                    <input type="text" name="read_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['read_group_keys'] ?? null) ? $board['read_group_keys'] : [])); ?>">
+                                </label>
+                            </p>
+                            <p>
                                 <label>쓰기 정책<br>
                                     <select name="write_policy">
                                         <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -166,12 +186,22 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             </p>
                             <p>
+                                <label>쓰기 그룹 key<br>
+                                    <input type="text" name="write_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['write_group_keys'] ?? null) ? $board['write_group_keys'] : [])); ?>">
+                                </label>
+                            </p>
+                            <p>
                                 <label>댓글 정책<br>
                                     <select name="comment_policy">
                                         <?php foreach ($allowedCommentPolicies as $policy) { ?>
                                             <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === (string) $board['comment_policy'] ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
                                         <?php } ?>
                                     </select>
+                                </label>
+                            </p>
+                            <p>
+                                <label>댓글 그룹 key<br>
+                                    <input type="text" name="comment_group_keys" maxlength="1000" value="<?php echo toy_e(implode(', ', is_array($board['comment_group_keys'] ?? null) ? $board['comment_group_keys'] : [])); ?>">
                                 </label>
                             </p>
                             <p>
