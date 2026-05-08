@@ -27,12 +27,12 @@ $keywordValue = toy_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';
 $pageValue = toy_get_string('page', 20);
 $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1;
-$postCount = toy_community_public_post_count($pdo, (int) $board['id'], $keyword);
+$postCount = toy_community_board_post_count($pdo, (int) $board['id'], $keyword);
 $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = toy_community_public_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword);
+$posts = toy_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword);
 $boardNotice = '';
 if (isset($_SESSION['toy_community_board_notice']) && is_string($_SESSION['toy_community_board_notice'])) {
     $boardNotice = $_SESSION['toy_community_board_notice'];

@@ -45,7 +45,7 @@ function toy_community_board_requires_login(array $board): bool
     return in_array((string) ($board['read_policy'] ?? ''), ['member', 'group'], true);
 }
 
-function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
+function toy_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
 {
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
@@ -76,7 +76,7 @@ function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int
     return $stmt->fetchAll();
 }
 
-function toy_community_public_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
+function toy_community_board_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
 {
     if ($boardId < 1) {
         return 0;
@@ -101,6 +101,16 @@ function toy_community_public_post_count(PDO $pdo, int $boardId, string $keyword
     $stmt->execute();
 
     return (int) $stmt->fetchColumn();
+}
+
+function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
+{
+    return toy_community_board_posts($pdo, $boardId, $limit, $offset, $keyword);
+}
+
+function toy_community_public_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
+{
+    return toy_community_board_post_count($pdo, $boardId, $keyword);
 }
 
 function toy_community_like_pattern(string $keyword): string
