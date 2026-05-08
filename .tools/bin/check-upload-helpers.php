@@ -36,9 +36,18 @@ toy_upload_helper_assert(
     'PHP extension should be blocked as executable.'
 );
 toy_upload_helper_assert(
+    toy_upload_filename_has_executable_extension('avatar.php.jpg'),
+    'Upload filename should detect executable extension segments.'
+);
+toy_upload_helper_assert(
     preg_match('/\A[a-f0-9]{32}\.jpg\z/', toy_upload_random_filename('jpg')) === 1,
     'Random upload filename should preserve safe extension.'
 );
+try {
+    toy_upload_random_filename('php.jpg');
+    $errors[] = 'Random upload filename should reject compound extension input.';
+} catch (InvalidArgumentException $exception) {
+}
 
 $tmpFile = tempnam(sys_get_temp_dir(), 'toy-upload-');
 if (!is_string($tmpFile)) {
@@ -74,6 +83,19 @@ if (!is_string($tmpFile)) {
         $errors[] = 'Upload validator should reject executable extensions even if listed.';
     } catch (RuntimeException $exception) {
     }
+    try {
+        toy_upload_validate_file([
+            'error' => UPLOAD_ERR_OK,
+            'name' => 'shell.php.jpg',
+            'tmp_name' => $tmpFile,
+            'size' => 6,
+        ], [
+            'allowed_extensions' => ['jpg'],
+            'require_uploaded_file' => false,
+        ]);
+        $errors[] = 'Upload validator should reject executable extension segments.';
+    } catch (RuntimeException $exception) {
+    }
 
     $directory = dirname($tmpFile);
     toy_upload_helper_assert(
@@ -88,6 +110,11 @@ if (!is_string($tmpFile)) {
     try {
         toy_upload_safe_target_path($directory, 'stored.php');
         $errors[] = 'Upload target path should reject executable target filenames.';
+    } catch (RuntimeException $exception) {
+    }
+    try {
+        toy_upload_safe_target_path($directory, 'stored.php.jpg');
+        $errors[] = 'Upload target path should reject executable extension segments.';
     } catch (RuntimeException $exception) {
     }
     $existingTarget = $directory . DIRECTORY_SEPARATOR . basename($tmpFile) . '-existing.txt';

@@ -98,6 +98,21 @@ function toy_upload_is_executable_extension(string $extension): bool
     ], true);
 }
 
+function toy_upload_filename_has_executable_extension(string $filename): bool
+{
+    foreach (explode('.', strtolower($filename)) as $index => $segment) {
+        if ($index === 0 || $segment === '') {
+            continue;
+        }
+
+        if (toy_upload_is_executable_extension($segment)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function toy_upload_normalize_mime_types(array $mimeTypes): array
 {
     $normalized = [];
@@ -146,7 +161,11 @@ function toy_upload_detect_mime(string $path): string
 
 function toy_upload_random_filename(string $extension = ''): string
 {
-    $extension = toy_upload_extension('upload.' . ltrim($extension, '.'));
+    $extension = strtolower(ltrim(trim($extension), '.'));
+    if ($extension !== '' && preg_match('/\A[a-z0-9]{1,16}\z/', $extension) !== 1) {
+        throw new InvalidArgumentException('Upload extension is invalid.');
+    }
+
     if ($extension !== '' && toy_upload_is_executable_extension($extension)) {
         throw new InvalidArgumentException('Executable upload extension is not allowed.');
     }
@@ -194,7 +213,7 @@ function toy_upload_validate_file(array $file, array $options = []): array
         throw new RuntimeException('업로드 파일 확장자를 확인할 수 없습니다.');
     }
 
-    if (toy_upload_is_executable_extension($extension)) {
+    if (toy_upload_is_executable_extension($extension) || toy_upload_filename_has_executable_extension($originalName)) {
         throw new RuntimeException('실행 가능한 파일 형식은 업로드할 수 없습니다.');
     }
 
@@ -243,7 +262,7 @@ function toy_upload_safe_target_path(string $directory, string $filename): strin
     }
 
     $extension = toy_upload_extension($safeFilename);
-    if ($extension !== '' && toy_upload_is_executable_extension($extension)) {
+    if (($extension !== '' && toy_upload_is_executable_extension($extension)) || toy_upload_filename_has_executable_extension($safeFilename)) {
         throw new RuntimeException('실행 가능한 저장 파일명은 사용할 수 없습니다.');
     }
 
