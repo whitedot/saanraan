@@ -45,6 +45,7 @@ if (!is_array($account)) {
     $commentUnavailableMessage = '이 게시글에는 댓글을 작성할 수 없습니다.';
 }
 $isScrapped = is_array($account) && toy_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
+$postActionUnavailableMessage = is_array($account) ? '' : '로그인하면 스크랩과 신고를 사용할 수 있습니다.';
 $reportReasonKeys = toy_community_report_reason_keys();
 $postNotices = [];
 if (isset($_SESSION['toy_community_post_notice']) && is_string($_SESSION['toy_community_post_notice'])) {

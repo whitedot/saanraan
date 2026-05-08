@@ -76,6 +76,8 @@ $seo = [
                     </p>
                     <button type="submit">게시글 신고</button>
                 </form>
+            <?php } elseif ($postActionUnavailableMessage !== '') { ?>
+                <p><?php echo toy_e($postActionUnavailableMessage); ?></p>
             <?php } ?>
 
             <?php foreach ($postNotices as $postNotice) { ?>
