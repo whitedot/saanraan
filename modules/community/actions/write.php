@@ -41,7 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($errors === []) {
         $postId = toy_community_create_post($pdo, (int) $board['id'], (int) $account['id'], $values);
         toy_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
-        toy_member_group_evaluate_account($pdo, (int) $account['id'], ['source_module_key' => 'community']);
+        $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $account['id'], [
+            'source_module_key' => 'community',
+        ]);
         $attachmentId = null;
         $attachmentResult = 'not_requested';
         if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
@@ -84,6 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'board_key' => (string) $board['board_key'],
                 'attachment_id' => $attachmentId,
                 'attachment_result' => $attachmentResult,
+                'group_rules_evaluated' => (int) $groupEvaluationSummary['evaluated'],
+                'group_memberships_granted' => (int) $groupEvaluationSummary['granted'],
+                'group_memberships_revoked' => (int) $groupEvaluationSummary['revoked'],
             ],
         ]);
         toy_redirect('/community/post?id=' . (string) $postId);
