@@ -655,6 +655,23 @@ if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAct
     $errors[] = 'Community message report and delete flows must avoid loading message bodies.';
 }
 
+$communityNotificationsHelper = file_get_contents($root . '/modules/community/helpers/notifications.php');
+$communityMessageWriteAction = file_get_contents($root . '/modules/community/actions/message-write.php');
+$communityCommentAction = file_get_contents($root . '/modules/community/actions/comment.php');
+if (!is_string($communityNotificationsHelper) || !is_string($communityMessageWriteAction) || !is_string($communityCommentAction)) {
+    $errors[] = 'Community notification integration files cannot be read.';
+} elseif (
+    strpos($communityNotificationsHelper, "toy_module_enabled(\$pdo, 'notification')") === false
+    || strpos($communityNotificationsHelper, "require_once \$helperPath;") === false
+    || strpos($communityNotificationsHelper, "function_exists('toy_notification_create')") === false
+    || strpos($communityNotificationsHelper, 'catch (Throwable $exception)') === false
+    || strpos($communityMessageWriteAction, 'toy_community_create_account_notification(') === false
+    || strpos($communityCommentAction, 'toy_community_create_account_notification(') === false
+    || strpos($communityCommentAction, "(int) \$post['author_account_id'] !== (int) \$account['id']") === false
+) {
+    $errors[] = 'Community message and comment notifications must remain optional and avoid self comment notifications.';
+}
+
 $communityWriteAction = file_get_contents($root . '/modules/community/actions/write.php');
 $communityAdminPostsAction = file_get_contents($root . '/modules/community/actions/admin-posts.php');
 $communityDeleteAction = file_get_contents($root . '/modules/community/actions/delete.php');

@@ -47,5 +47,15 @@ toy_audit_log($pdo, [
         'post_id' => $postId,
     ],
 ]);
+if ((int) $post['author_account_id'] !== (int) $account['id']) {
+    toy_community_create_account_notification(
+        $pdo,
+        (int) $post['author_account_id'],
+        '게시글에 새 댓글이 달렸습니다.',
+        toy_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']) . '님이 댓글을 남겼습니다.',
+        '/community/post?id=' . (string) $postId . '#comments',
+        (int) $account['id']
+    );
+}
 $_SESSION['toy_community_comment_notice'] = '댓글을 등록했습니다.';
 toy_redirect('/community/post?id=' . (string) $postId . '#comments');
