@@ -13,7 +13,18 @@ $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdVal
 $intent = toy_post_string('intent', 20);
 
 if ($intent === 'remove') {
-    toy_community_remove_scrap($pdo, (int) $account['id'], $postId);
+    $removed = toy_community_remove_scrap($pdo, (int) $account['id'], $postId);
+    if ($removed) {
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'community.scrap.removed',
+            'target_type' => 'community_post',
+            'target_id' => (string) $postId,
+            'result' => 'success',
+            'message' => 'Community scrap removed.',
+        ]);
+    }
     $post = toy_community_post_for_read($pdo, $postId, $account);
     if (!is_array($post)) {
         toy_redirect('/community/scraps');
@@ -25,7 +36,21 @@ $post = toy_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 } else {
-    toy_community_add_scrap($pdo, (int) $account['id'], $postId);
+    $added = toy_community_add_scrap($pdo, (int) $account['id'], $postId);
+    if ($added) {
+        toy_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'community.scrap.added',
+            'target_type' => 'community_post',
+            'target_id' => (string) $postId,
+            'result' => 'success',
+            'message' => 'Community scrap added.',
+            'metadata' => [
+                'board_key' => (string) $post['board_key'],
+            ],
+        ]);
+    }
 }
 
 toy_redirect('/community/post?id=' . (string) $postId);

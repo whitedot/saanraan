@@ -23,10 +23,10 @@ function toy_community_account_has_scrap(PDO $pdo, int $accountId, int $postId):
     return is_array($stmt->fetch());
 }
 
-function toy_community_add_scrap(PDO $pdo, int $accountId, int $postId): void
+function toy_community_add_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
-        return;
+        return false;
     }
 
     $stmt = $pdo->prepare(
@@ -40,12 +40,14 @@ function toy_community_add_scrap(PDO $pdo, int $accountId, int $postId): void
         'post_id' => $postId,
         'created_at' => toy_now(),
     ]);
+
+    return $stmt->rowCount() > 0;
 }
 
-function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): void
+function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
-        return;
+        return false;
     }
 
     $stmt = $pdo->prepare(
@@ -57,6 +59,8 @@ function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): void
         'account_id' => $accountId,
         'post_id' => $postId,
     ]);
+
+    return $stmt->rowCount() > 0;
 }
 
 function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
