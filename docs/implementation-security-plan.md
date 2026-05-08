@@ -606,17 +606,15 @@ Toycore는 소스와 구조가 공개되는 오픈소스 프로젝트입니다. 
 
 문서는 구현보다 앞서 최소 기준을 잡고, 구현 결과에 맞춰 계속 갱신합니다.
 
-구현 판단이 갈릴 때는 이 문서보다 [핵심 설계 결정](core-decisions.md)을 우선합니다. 실제 구현 범위는 [현재 구현 상태](current-implementation-status.md)를 기준으로 확인하고, 사용자 관점의 제공 기능은 [구현된 기능 리스트](implemented-features.md)에서 확인합니다.
+구현 판단이 갈릴 때는 이 문서보다 [핵심 설계 결정](core-decisions.md)을 우선합니다. 실제 구현 범위는 코드와 README의 현재 구현 범위를 기준으로 확인합니다.
 
 - `README.md`: 프로젝트 소개와 주요 문서 링크
 - `AGENTS.md`: 개발 규칙과 네이밍
-- `docs/documentation-index.md`: 문서 분류와 현재 용도
 - `docs/core-decisions.md`: 핵심 설계 결정
 - `docs/install-plan.md`: 설치와 초기화 계획
 - `docs/update-plan.md`: 업데이트와 스키마 버전 계획
 - `docs/runtime-ops-plan.md`: 운영 모드와 에러 처리 계획
 - `docs/audit-log-plan.md`: 감사 로그 계획
-- `docs/erd-basic-environment.md`: 기본 테이블 설계
 - `docs/implementation-security-plan.md`: 구현과 보안 계획
 - `docs/security-checklist.md`: 기능별 보안 확인 목록
 - `docs/module-guide.md`: 모듈 작성 규칙

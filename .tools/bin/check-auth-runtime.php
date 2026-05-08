@@ -119,8 +119,8 @@ toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_admin_dash
 toy_auth_runtime_require('modules/admin/helpers/dashboard.php', '/toy_mail_http_api_endpoint_is_allowed/', 'Dashboard HTTP API mail endpoint validation is missing');
 toy_auth_runtime_require('modules/admin/views/dashboard.php', '/인증 런타임/', 'Auth runtime dashboard view is missing');
 toy_auth_runtime_require('modules/admin/views/dashboard.php', '/고위험 설정/', 'Sensitive setting dashboard view is missing');
-toy_auth_runtime_require('docs/deployment-examples.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');
-toy_auth_runtime_require('docs/deployment-examples.md', '/http_api/', 'HTTP API mail documentation is missing');
+toy_auth_runtime_require('docs/deployment-protection.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');
+toy_auth_runtime_require('docs/deployment-protection.md', '/http_api/', 'HTTP API mail documentation is missing');
 
 if ($errors !== []) {
     fwrite(STDERR, "auth runtime checks failed:\n");

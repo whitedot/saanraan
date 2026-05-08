@@ -72,6 +72,12 @@ Nginx: server/location 규칙
 공유호스팅: 파일 관리자 또는 보안 메뉴의 디렉터리 접근 차단
 ```
 
+## 로드밸런서와 클라우드 런타임
+
+로드밸런서나 reverse proxy 뒤에서 운영할 때는 `trusted_proxies`에 신뢰할 수 있는 proxy IP/CIDR만 등록한다. Toycore는 신뢰된 proxy에서 온 `X-Forwarded-Proto`와 `X-Forwarded-For`만 HTTPS 여부와 클라이언트 IP 판단에 사용한다.
+
+메일을 HTTP API transport로 보낼 때는 `mail.transport`를 `http_api`로 설정할 수 있다. 이 경우 endpoint는 공개 HTTPS URL이어야 하며, private/reserved/loopback/link-local/CGNAT/documentation/multicast 주소는 허용하지 않는다.
+
 ## 원칙
 
 - 설정 파일과 저장소 메타데이터는 웹에서 읽을 수 없어야 한다.

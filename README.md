@@ -141,7 +141,6 @@ Toycore는 현재 저장소의 파일과 `modules/{module_key}` 폴더를 기준
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
 - `seo`, `site_menu`, `banner`, `popup_layer`, `notification`: 선택 운영 모듈
 - `point`, `deposit`, `reward`: 회원 연계 도메인을 코어 밖에 둔 선택 예시 모듈
-자세한 구현 범위는 [현재 구현 상태](docs/current-implementation-status.md)를 기준으로 확인합니다.
 
 기본 점검은 다음 명령으로 실행합니다.
 
@@ -252,12 +251,9 @@ module -> point -> slot -> subject
 - 사용자 요청 시점: `extension-points.php`를 읽지 않고 저장된 규칙 테이블만 조회
 - 대량 subject: 전체 options를 반환하지 않고 검색형 selector로 확장
 
-## 설계 문서
+## 규칙 및 계획 문서
 
-- [문서 분류](docs/documentation-index.md)
-- [기본환경 테이블 ERD](docs/erd-basic-environment.md)
 - [DB 접근 정책](docs/database-access-policy.md)
-- [구현된 기능 리스트](docs/implemented-features.md)
 - [구현 방향 및 보안 계획](docs/implementation-security-plan.md)
 - [Toycore 보안 모델](docs/security-model.md)
 - [핵심 설계 결정](docs/core-decisions.md)
@@ -267,18 +263,13 @@ module -> point -> slot -> subject
 - [감사 로그 계획](docs/audit-log-plan.md)
 - [보안 체크리스트](docs/security-checklist.md)
 - [배포 보호 기준](docs/deployment-protection.md)
-- [서버별 배포 예시](docs/deployment-examples.md)
 - [릴리스 절차](docs/release-process.md)
-- [로컬 개발 환경](docs/local-development.md)
 - [스모크 테스트 기준](docs/smoke-test.md)
-- [저가형 호스팅 설치](docs/shared-hosting-install.md)
-- [현재 구현 상태](docs/current-implementation-status.md)
 - [모듈 작성 가이드](docs/module-guide.md)
 - [모듈 저장 위치 기준](docs/module-storage-policy.md)
 - [모듈 설치 소스와 업데이트 보완 계획](docs/module-update-and-source-plan.md)
 - [운영 모듈 계획](docs/operations-modules-plan.md)
 - [관리자 POST action 작성 규칙](docs/admin-post-action-rules.md)
-- [레거시 운영자 개선 기준](docs/legacy-maintainer-improvement-plan.md)
 - [회원 모듈 상세 계획](docs/member-plan.md)
 - [관리자 모듈 상세 계획](docs/admin-plan.md)
 - [다국어 처리 계획](docs/i18n-plan.md)
