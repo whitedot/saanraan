@@ -262,7 +262,7 @@ function toy_community_update_comment_status(PDO $pdo, int $commentId, string $s
     ]);
 }
 
-function toy_community_account_can_write_board(PDO $pdo, array $board, array $account): bool
+function toy_community_account_can_write_board(PDO $pdo, array $board, array $account, bool $isAdminWriter = false): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1 || (string) ($board['status'] ?? '') !== 'enabled') {
@@ -277,6 +277,10 @@ function toy_community_account_can_write_board(PDO $pdo, array $board, array $ac
     if ($policy === 'group') {
         $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
         return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+    }
+
+    if ($policy === 'admin') {
+        return $isAdminWriter;
     }
 
     return false;

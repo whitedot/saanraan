@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/admin/helpers.php';
 require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $account = toy_member_require_login($pdo);
@@ -12,7 +13,8 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     toy_render_error(404, '게시판을 찾을 수 없습니다.');
 }
 
-if (!toy_community_account_can_write_board($pdo, $board, $account)) {
+$isAdminWriter = toy_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+if (!toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)) {
     toy_render_error(403, '이 게시판에 글을 작성할 수 없습니다.');
 }
 
