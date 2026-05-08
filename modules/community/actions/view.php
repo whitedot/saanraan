@@ -35,7 +35,7 @@ $post['view_count'] = (int) $post['view_count'] + 1;
 
 $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
-$comments = toy_community_public_comments($pdo, (int) $post['id'], $commentsPerPage);
+$comments = toy_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
 $attachments = toy_community_post_attachments($pdo, (int) $post['id']);
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
 $commentUnavailableMessage = '';

@@ -186,7 +186,7 @@ function toy_community_increment_post_view_count(PDO $pdo, int $postId): void
     $stmt->execute(['id' => $postId]);
 }
 
-function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
+function toy_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));
     $stmt = $pdo->prepare(
@@ -202,6 +202,11 @@ function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): 
     $stmt->execute();
 
     return $stmt->fetchAll();
+}
+
+function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
+{
+    return toy_community_post_comments($pdo, $postId, $limit);
 }
 
 function toy_community_post_statuses(): array
