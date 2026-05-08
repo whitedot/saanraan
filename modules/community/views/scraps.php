@@ -44,7 +44,7 @@ $seo = [
                                         <?php echo toy_e((string) ($scrap['board_title'] ?? '')); ?>
                                     </a>
                                 <?php } else { ?>
-                                    <?php echo toy_e((string) ($scrap['board_title'] ?? '')); ?>
+                                    비공개 또는 삭제된 게시판
                                 <?php } ?>
                             </td>
                             <td>
