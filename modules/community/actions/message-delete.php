@@ -10,7 +10,7 @@ toy_require_csrf();
 
 $messageIdValue = toy_post_string('message_id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;
-$message = toy_community_message_by_id_for_account($pdo, $messageId, (int) $account['id']);
+$message = toy_community_message_participants_for_account($pdo, $messageId, (int) $account['id']);
 if (!is_array($message)) {
     toy_render_error(404, '쪽지를 찾을 수 없습니다.');
 }
