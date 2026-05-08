@@ -500,7 +500,8 @@ modules/board/
 
 모듈 action 책임:
 
-- `toy_upload_validate_file()`로 업로드 오류, 크기, 확장자 allowlist, MIME, 실행 가능 확장자 차단을 통과시킨다.
+- `toy_upload_validate_file()`에는 `max_bytes`, `allowed_extensions`, `allowed_mime_types`를 명시하고 업로드 오류, 크기, 확장자 allowlist, MIME, 실행 가능 확장자 차단을 통과시킨다.
+- 서버에서 MIME을 감지할 수 없으면 업로드는 실패로 처리한다. 모듈은 이를 설정 오류나 업로드 거부 메시지로 노출한다.
 - 저장 파일명은 원본 이름을 신뢰하지 않고 `toy_upload_random_filename()`으로 만든다.
 - 저장 위치는 웹에서 직접 실행되지 않는 디렉터리를 우선하고, 공개 파일이 필요하면 모듈이 별도 공개 응답 action을 둔다.
 - `toy_upload_move_uploaded_file()` 또는 검증된 값 기반의 명시적 이동만 사용한다.

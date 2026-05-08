@@ -54,21 +54,83 @@ if (!is_string($tmpFile)) {
     $errors[] = 'Temporary upload test file cannot be created.';
 } else {
     file_put_contents($tmpFile, "hello\n");
-    $validated = toy_upload_validate_file([
-        'error' => UPLOAD_ERR_OK,
-        'name' => 'hello.txt',
-        'tmp_name' => $tmpFile,
-        'size' => 6,
-    ], [
-        'max_bytes' => 100,
-        'allowed_extensions' => ['txt'],
-        'require_uploaded_file' => false,
-    ]);
+    $detectedTextMime = toy_upload_detect_mime($tmpFile);
+    if ($detectedTextMime !== '') {
+        $validated = toy_upload_validate_file([
+            'error' => UPLOAD_ERR_OK,
+            'name' => 'hello.txt',
+            'tmp_name' => $tmpFile,
+            'size' => 6,
+        ], [
+            'max_bytes' => 100,
+            'allowed_extensions' => ['txt'],
+            'allowed_mime_types' => [$detectedTextMime, 'text/plain', 'application/octet-stream'],
+            'require_uploaded_file' => false,
+        ]);
 
-    toy_upload_helper_assert(
-        $validated['extension'] === 'txt' && $validated['size'] === 6 && $validated['checksum'] === hash_file('sha256', $tmpFile),
-        'Upload validator should return normalized metadata.'
-    );
+        toy_upload_helper_assert(
+            $validated['extension'] === 'txt' && $validated['size'] === 6 && $validated['checksum'] === hash_file('sha256', $tmpFile),
+            'Upload validator should return normalized metadata.'
+        );
+    } else {
+        try {
+            toy_upload_validate_file([
+                'error' => UPLOAD_ERR_OK,
+                'name' => 'hello.txt',
+                'tmp_name' => $tmpFile,
+                'size' => 6,
+            ], [
+                'max_bytes' => 100,
+                'allowed_extensions' => ['txt'],
+                'allowed_mime_types' => ['text/plain', 'application/octet-stream'],
+                'require_uploaded_file' => false,
+            ]);
+            $errors[] = 'Upload validator should reject files when MIME cannot be detected.';
+        } catch (RuntimeException $exception) {
+        }
+    }
+    try {
+        toy_upload_validate_file([
+            'error' => UPLOAD_ERR_OK,
+            'name' => 'hello.txt',
+            'tmp_name' => $tmpFile,
+            'size' => 6,
+        ], [
+            'allowed_extensions' => ['txt'],
+            'allowed_mime_types' => ['text/plain', 'application/octet-stream'],
+            'require_uploaded_file' => false,
+        ]);
+        $errors[] = 'Upload validator should require an explicit max_bytes option.';
+    } catch (RuntimeException $exception) {
+    }
+    try {
+        toy_upload_validate_file([
+            'error' => UPLOAD_ERR_OK,
+            'name' => 'hello.txt',
+            'tmp_name' => $tmpFile,
+            'size' => 6,
+        ], [
+            'max_bytes' => 100,
+            'allowed_mime_types' => ['text/plain', 'application/octet-stream'],
+            'require_uploaded_file' => false,
+        ]);
+        $errors[] = 'Upload validator should require explicit allowed extensions.';
+    } catch (RuntimeException $exception) {
+    }
+    try {
+        toy_upload_validate_file([
+            'error' => UPLOAD_ERR_OK,
+            'name' => 'hello.txt',
+            'tmp_name' => $tmpFile,
+            'size' => 6,
+        ], [
+            'max_bytes' => 100,
+            'allowed_extensions' => ['txt'],
+            'require_uploaded_file' => false,
+        ]);
+        $errors[] = 'Upload validator should require explicit allowed MIME types.';
+    } catch (RuntimeException $exception) {
+    }
 
     try {
         toy_upload_validate_file([
@@ -77,7 +139,9 @@ if (!is_string($tmpFile)) {
             'tmp_name' => $tmpFile,
             'size' => 6,
         ], [
+            'max_bytes' => 100,
             'allowed_extensions' => ['php'],
+            'allowed_mime_types' => ['text/plain', 'application/octet-stream'],
             'require_uploaded_file' => false,
         ]);
         $errors[] = 'Upload validator should reject executable extensions even if listed.';
@@ -90,7 +154,9 @@ if (!is_string($tmpFile)) {
             'tmp_name' => $tmpFile,
             'size' => 6,
         ], [
+            'max_bytes' => 100,
             'allowed_extensions' => ['jpg'],
+            'allowed_mime_types' => ['text/plain', 'application/octet-stream'],
             'require_uploaded_file' => false,
         ]);
         $errors[] = 'Upload validator should reject executable extension segments.';

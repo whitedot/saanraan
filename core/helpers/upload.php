@@ -203,7 +203,11 @@ function toy_upload_validate_file(array $file, array $options = []): array
     }
 
     $maxBytes = (int) ($options['max_bytes'] ?? 0);
-    if ($maxBytes > 0 && $actualSize > $maxBytes) {
+    if ($maxBytes < 1) {
+        throw new RuntimeException('업로드 파일 허용 크기를 지정해야 합니다.');
+    }
+
+    if ($actualSize > $maxBytes) {
         throw new RuntimeException('업로드 파일 크기가 허용 범위를 초과했습니다.');
     }
 
@@ -218,20 +222,26 @@ function toy_upload_validate_file(array $file, array $options = []): array
     }
 
     $allowedExtensions = toy_upload_normalize_extensions(is_array($options['allowed_extensions'] ?? null) ? $options['allowed_extensions'] : []);
+    if ($allowedExtensions === []) {
+        throw new RuntimeException('업로드 허용 확장자를 지정해야 합니다.');
+    }
+
     if ($allowedExtensions !== [] && !in_array($extension, $allowedExtensions, true)) {
         throw new RuntimeException('허용되지 않은 파일 확장자입니다.');
     }
 
     $mimeType = toy_upload_detect_mime($tmpName);
     $allowedMimeTypes = toy_upload_normalize_mime_types(is_array($options['allowed_mime_types'] ?? null) ? $options['allowed_mime_types'] : []);
-    if ($allowedMimeTypes !== []) {
-        if ($mimeType === '') {
-            throw new RuntimeException('업로드 파일 MIME을 확인할 수 없습니다.');
-        }
+    if ($allowedMimeTypes === []) {
+        throw new RuntimeException('업로드 허용 MIME을 지정해야 합니다.');
+    }
 
-        if (!in_array($mimeType, $allowedMimeTypes, true)) {
-            throw new RuntimeException('허용되지 않은 파일 MIME입니다.');
-        }
+    if ($mimeType === '') {
+        throw new RuntimeException('업로드 파일 MIME을 확인할 수 없습니다.');
+    }
+
+    if (!in_array($mimeType, $allowedMimeTypes, true)) {
+        throw new RuntimeException('허용되지 않은 파일 MIME입니다.');
     }
 
     $checksum = hash_file('sha256', $tmpName);
