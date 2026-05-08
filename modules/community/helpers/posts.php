@@ -50,18 +50,19 @@ function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     $keyword = trim($keyword);
-    $where = "board_id = :board_id AND status = 'published'";
+    $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $where .= " AND (title LIKE :keyword ESCAPE '\\\\' OR body_text LIKE :keyword ESCAPE '\\\\')";
+        $where .= " AND (p.title LIKE :keyword ESCAPE '\\\\' OR p.body_text LIKE :keyword ESCAPE '\\\\')";
         $params['keyword'] = toy_community_like_pattern($keyword);
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, board_id, author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at
-         FROM toy_community_posts
+        'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count
+         FROM toy_community_posts p
          WHERE ' . $where . '
-         ORDER BY id DESC
+         ORDER BY p.id DESC
          LIMIT :limit_value OFFSET :offset_value'
     );
     foreach ($params as $key => $value) {

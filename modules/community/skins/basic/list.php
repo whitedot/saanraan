@@ -59,6 +59,7 @@ $seo = [
                         <th>제목</th>
                         <th>작성자</th>
                         <th>작성일</th>
+                        <th>댓글</th>
                         <th>조회</th>
                     </tr>
                 </thead>
@@ -72,6 +73,7 @@ $seo = [
                             </td>
                             <td><?php echo toy_e(toy_community_public_author_label($pdo, (int) $post['author_account_id'])); ?></td>
                             <td><?php echo toy_e((string) $post['created_at']); ?></td>
+                            <td><?php echo toy_e((string) ($post['published_comment_count'] ?? 0)); ?></td>
                             <td><?php echo toy_e((string) $post['view_count']); ?></td>
                         </tr>
                     <?php } ?>
