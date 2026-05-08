@@ -211,6 +211,30 @@ function toy_community_update_post_status(PDO $pdo, int $postId, string $status)
     ]);
 }
 
+function toy_community_update_post_content(PDO $pdo, int $postId, array $values): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_posts
+         SET title = :title,
+             body_text = :body_text,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'title' => trim((string) $values['title']),
+        'body_text' => trim((string) $values['body_text']),
+        'updated_at' => toy_now(),
+        'id' => $postId,
+    ]);
+}
+
+function toy_community_account_can_edit_post(array $post, array $account): bool
+{
+    return (int) ($account['id'] ?? 0) > 0
+        && (int) $post['author_account_id'] === (int) $account['id']
+        && (string) $post['status'] === 'published';
+}
+
 function toy_community_account_can_delete_post(array $post, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0

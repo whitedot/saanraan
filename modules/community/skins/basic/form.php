@@ -1,9 +1,13 @@
 <?php
 
-$pageTitle = (string) $board['title'] . ' 글쓰기';
+$pageTitle = isset($pageTitle) && is_string($pageTitle) ? $pageTitle : (string) $board['title'] . ' 글쓰기';
+$formAction = isset($formAction) && is_string($formAction)
+    ? $formAction
+    : '/community/write?key=' . rawurlencode((string) $board['board_key']);
+$submitLabel = isset($submitLabel) && is_string($submitLabel) ? $submitLabel : '등록';
 $seo = [
     'title' => $pageTitle,
-    'canonical' => '/community/write?key=' . rawurlencode((string) $board['board_key']),
+    'canonical' => $formAction,
     'robots' => 'noindex, nofollow',
 ];
 ?>
@@ -41,8 +45,11 @@ $seo = [
             </ul>
         <?php } ?>
 
-        <form method="post" action="<?php echo toy_e(toy_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">
+        <form method="post" action="<?php echo toy_e(toy_url($formAction)); ?>">
             <?php echo toy_csrf_field(); ?>
+            <?php if (isset($postIdField) && is_int($postIdField)) { ?>
+                <input type="hidden" name="post_id" value="<?php echo toy_e((string) $postIdField); ?>">
+            <?php } ?>
             <p>
                 <label>제목<br>
                     <input type="text" name="title" maxlength="160" value="<?php echo toy_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
@@ -53,7 +60,7 @@ $seo = [
                     <textarea name="body_text" rows="12" cols="80" required><?php echo toy_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
-            <button type="submit">등록</button>
+            <button type="submit"><?php echo toy_e($submitLabel); ?></button>
         </form>
 
         <?php echo toy_render_output_slot($pdo, [

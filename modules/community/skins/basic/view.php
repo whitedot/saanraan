@@ -40,6 +40,9 @@ $seo = [
                 조회: <?php echo toy_e((string) $post['view_count']); ?>
             </p>
             <?php if (is_array($account)) { ?>
+                <?php if (toy_community_account_can_edit_post($post, $account)) { ?>
+                    <p><a href="<?php echo toy_e(toy_url('/community/edit?id=' . (string) $post['id'])); ?>">게시글 수정</a></p>
+                <?php } ?>
                 <?php if (toy_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo toy_e(toy_url('/community/delete')); ?>">
                         <?php echo toy_csrf_field(); ?>
