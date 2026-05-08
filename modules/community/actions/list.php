@@ -20,14 +20,16 @@ if (!toy_community_account_can_read_board($pdo, $board, is_array($account) ? $ac
 
 $settings = toy_module_settings($pdo, 'community');
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));
+$keywordValue = toy_get_string_without_truncation('q', 100);
+$keyword = is_string($keywordValue) ? trim($keywordValue) : '';
 $pageValue = toy_get_string('page', 20);
 $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1;
-$postCount = toy_community_public_post_count($pdo, (int) $board['id']);
+$postCount = toy_community_public_post_count($pdo, (int) $board['id'], $keyword);
 $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = toy_community_public_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage);
+$posts = toy_community_public_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword);
 $skinKey = toy_community_skin_key();
 $skinView = toy_community_skin_view($skinKey, 'list');
 

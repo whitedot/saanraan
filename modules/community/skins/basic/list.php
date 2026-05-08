@@ -1,11 +1,14 @@
 <?php
 
 $pageTitle = (string) $board['title'];
+$baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
 $seo = [
     'title' => $pageTitle,
     'description' => (string) ($board['description'] ?? ''),
-    'canonical' => '/community/board?key=' . rawurlencode((string) $board['board_key']) . ($page > 1 ? '&page=' . (string) $page : ''),
-    'robots' => (string) $board['read_policy'] === 'public' ? 'index, follow' : 'noindex, nofollow',
+    'canonical' => $baseListPath . ($page > 1 ? '&page=' . (string) $page : ''),
+    'robots' => (string) $board['read_policy'] !== 'public'
+        ? 'noindex, nofollow'
+        : ($keyword === '' ? 'index, follow' : 'noindex, follow'),
 ];
 ?>
 <!doctype html>
@@ -34,8 +37,21 @@ $seo = [
             <a href="<?php echo toy_e(toy_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
         </p>
 
+        <form method="get" action="<?php echo toy_e(toy_url('/community/board')); ?>">
+            <input type="hidden" name="key" value="<?php echo toy_e((string) $board['board_key']); ?>">
+            <p>
+                <label>검색<br>
+                    <input type="search" name="q" maxlength="100" value="<?php echo toy_e($keyword); ?>">
+                </label>
+                <button type="submit">검색</button>
+                <?php if ($keyword !== '') { ?>
+                    <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">초기화</a>
+                <?php } ?>
+            </p>
+        </form>
+
         <?php if ($posts === []) { ?>
-            <p>게시글이 없습니다.</p>
+            <p><?php echo $keyword !== '' ? '검색 결과가 없습니다.' : '게시글이 없습니다.'; ?></p>
         <?php } else { ?>
             <table>
                 <thead>
@@ -67,11 +83,11 @@ $seo = [
             <nav aria-label="게시글 페이지">
                 <p>
                     <?php if ($page > 1) { ?>
-                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&page=' . (string) ($page - 1))); ?>">이전</a>
+                        <a href="<?php echo toy_e(toy_url($baseListPath . '&page=' . (string) ($page - 1))); ?>">이전</a>
                     <?php } ?>
                     <?php echo toy_e((string) $page); ?> / <?php echo toy_e((string) $totalPages); ?>
                     <?php if ($page < $totalPages) { ?>
-                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&page=' . (string) ($page + 1))); ?>">다음</a>
+                        <a href="<?php echo toy_e(toy_url($baseListPath . '&page=' . (string) ($page + 1))); ?>">다음</a>
                     <?php } ?>
                 </p>
             </nav>
