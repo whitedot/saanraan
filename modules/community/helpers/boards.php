@@ -70,6 +70,24 @@ function toy_community_board_by_key(PDO $pdo, string $boardKey): ?array
     return is_array($board) ? $board : null;
 }
 
+function toy_community_board_by_id(PDO $pdo, int $boardId): ?array
+{
+    if ($boardId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, board_key, title, description, status, read_policy, write_policy, comment_policy, image_uploads_enabled, sort_order, created_at, updated_at
+         FROM toy_community_boards
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $boardId]);
+    $board = $stmt->fetch();
+
+    return is_array($board) ? $board : null;
+}
+
 function toy_community_create_board(PDO $pdo, array $data): int
 {
     $now = toy_now();
@@ -94,4 +112,33 @@ function toy_community_create_board(PDO $pdo, array $data): int
     ]);
 
     return (int) $pdo->lastInsertId();
+}
+
+function toy_community_update_board(PDO $pdo, int $boardId, array $data): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_boards
+         SET title = :title,
+             description = :description,
+             status = :status,
+             read_policy = :read_policy,
+             write_policy = :write_policy,
+             comment_policy = :comment_policy,
+             image_uploads_enabled = :image_uploads_enabled,
+             sort_order = :sort_order,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'title' => (string) $data['title'],
+        'description' => (string) $data['description'],
+        'status' => (string) $data['status'],
+        'read_policy' => (string) $data['read_policy'],
+        'write_policy' => (string) $data['write_policy'],
+        'comment_policy' => (string) $data['comment_policy'],
+        'image_uploads_enabled' => !empty($data['image_uploads_enabled']) ? 1 : 0,
+        'sort_order' => (int) $data['sort_order'],
+        'updated_at' => toy_now(),
+        'id' => $boardId,
+    ]);
 }

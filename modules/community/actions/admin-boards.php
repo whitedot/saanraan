@@ -20,6 +20,7 @@ if (toy_request_method() === 'POST') {
     toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
     toy_require_csrf();
 
+    $intent = toy_post_string('intent', 40);
     $boardKey = toy_post_string('board_key', 60);
     $title = toy_post_string('title', 120);
     $description = toy_post_string_without_truncation('description', 2000);
@@ -29,7 +30,7 @@ if (toy_request_method() === 'POST') {
     $commentPolicy = toy_post_string('comment_policy', 30);
     $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
 
-    if (!toy_community_board_key_is_valid($boardKey)) {
+    if ($intent === 'create' && !toy_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     }
 
@@ -63,11 +64,11 @@ if (toy_request_method() === 'POST') {
         $sortOrder = 0;
     }
 
-    if ($errors === [] && toy_community_board_by_key($pdo, $boardKey) !== null) {
+    if ($errors === [] && $intent === 'create' && toy_community_board_by_key($pdo, $boardKey) !== null) {
         $errors[] = '이미 사용 중인 게시판 key입니다.';
     }
 
-    if ($errors === []) {
+    if ($intent === 'create' && $errors === []) {
         $boardId = toy_community_create_board($pdo, [
             'board_key' => $boardKey,
             'title' => $title,
@@ -95,6 +96,45 @@ if (toy_request_method() === 'POST') {
         ]);
 
         $notice = '게시판을 만들었습니다.';
+    } elseif ($intent === 'update' && $errors === []) {
+        $boardIdValue = toy_post_string('board_id', 20);
+        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $board = toy_community_board_by_id($pdo, $boardId);
+        if (!is_array($board)) {
+            $errors[] = '게시판을 찾을 수 없습니다.';
+        }
+
+        if ($errors === [] && is_array($board)) {
+            toy_community_update_board($pdo, $boardId, [
+                'title' => $title,
+                'description' => (string) $description,
+                'status' => $status,
+                'read_policy' => $readPolicy,
+                'write_policy' => $writePolicy,
+                'comment_policy' => $commentPolicy,
+                'image_uploads_enabled' => ($_POST['image_uploads_enabled'] ?? '') === '1',
+                'sort_order' => (int) $sortOrder,
+            ]);
+
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board.updated',
+                'target_type' => 'community_board',
+                'target_id' => (string) $boardId,
+                'result' => 'success',
+                'message' => 'Community board updated.',
+                'metadata' => [
+                    'board_key' => (string) $board['board_key'],
+                    'before_status' => (string) $board['status'],
+                    'after_status' => $status,
+                ],
+            ]);
+
+            $notice = '게시판 설정을 변경했습니다.';
+        }
+    } elseif (!in_array($intent, ['create', 'update'], true)) {
+        $errors[] = '작업 값이 올바르지 않습니다.';
     }
 }
 
