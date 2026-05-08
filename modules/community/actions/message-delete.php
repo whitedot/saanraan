@@ -16,4 +16,24 @@ if (!is_array($message)) {
 }
 
 toy_community_soft_delete_message($pdo, $message, (int) $account['id']);
+$box = (int) $message['sender_account_id'] === (int) $account['id'] ? 'sent' : 'inbox';
+toy_audit_log($pdo, [
+    'actor_account_id' => (int) $account['id'],
+    'actor_type' => 'member',
+    'event_type' => 'community.message.deleted_by_account',
+    'target_type' => 'community_message',
+    'target_id' => (string) $messageId,
+    'result' => 'success',
+    'message' => 'Community message deleted by account.',
+    'metadata' => [
+        'box' => $box,
+        'sender_account_id' => (int) $message['sender_account_id'],
+        'recipient_account_id' => (int) $message['recipient_account_id'],
+    ],
+]);
+
+if ($box === 'sent') {
+    toy_redirect('/community/messages?box=sent');
+}
+
 toy_redirect('/community/messages');
