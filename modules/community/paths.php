@@ -10,6 +10,7 @@ return [
     'POST /community/edit' => 'actions/edit.php',
     'POST /community/delete' => 'actions/delete.php',
     'POST /community/comment' => 'actions/comment.php',
+    'POST /community/comment/edit' => 'actions/comment-edit.php',
     'POST /community/comment/delete' => 'actions/comment-delete.php',
     'POST /community/report' => 'actions/report.php',
     'GET /community/scraps' => 'actions/scraps.php',

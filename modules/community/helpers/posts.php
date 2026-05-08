@@ -307,6 +307,28 @@ function toy_community_update_comment_status(PDO $pdo, int $commentId, string $s
     ]);
 }
 
+function toy_community_update_comment_content(PDO $pdo, int $commentId, array $values): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_comments
+         SET body_text = :body_text,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'body_text' => trim((string) $values['body_text']),
+        'updated_at' => toy_now(),
+        'id' => $commentId,
+    ]);
+}
+
+function toy_community_account_can_edit_comment(array $comment, array $account): bool
+{
+    return (int) ($account['id'] ?? 0) > 0
+        && (int) $comment['author_account_id'] === (int) $account['id']
+        && (string) $comment['status'] === 'published';
+}
+
 function toy_community_account_can_delete_comment(array $comment, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0

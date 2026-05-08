@@ -131,6 +131,18 @@ $seo = [
                             </p>
                             <p><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></p>
                             <?php if (is_array($account)) { ?>
+                                <?php if (toy_community_account_can_edit_comment($comment, $account)) { ?>
+                                    <form method="post" action="<?php echo toy_e(toy_url('/community/comment/edit')); ?>">
+                                        <?php echo toy_csrf_field(); ?>
+                                        <input type="hidden" name="comment_id" value="<?php echo toy_e((string) $comment['id']); ?>">
+                                        <p>
+                                            <label>댓글 수정<br>
+                                                <textarea name="body_text" rows="3" cols="60" required><?php echo toy_e((string) $comment['body_text']); ?></textarea>
+                                            </label>
+                                        </p>
+                                        <button type="submit">댓글 수정</button>
+                                    </form>
+                                <?php } ?>
                                 <?php if (toy_community_account_can_delete_comment($comment, $account)) { ?>
                                     <form method="post" action="<?php echo toy_e(toy_url('/community/comment/delete')); ?>">
                                         <?php echo toy_csrf_field(); ?>
