@@ -10,7 +10,7 @@ toy_require_csrf();
 
 $postIdValue = toy_post_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
-$post = toy_community_public_post($pdo, $postId);
+$post = toy_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 }
