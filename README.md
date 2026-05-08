@@ -6,6 +6,38 @@
 - 토이 프로젝트처럼 가벼운 마음으로 아이디어가 떠오를 때마다 조금씩 다듬어 가는 작업에 가깝습니다.
 - 완성된 제품을 서둘러 만들기보다, 부담 없이 시도하고, 구조를 바꿔 보고, 재미있는 가능성을 확인해 보는 것을 목표로 합니다.
 
+## 시작하기
+
+릴리스 zip은 Git, SSH, CLI를 사용할 수 없는 저가형 호스팅을 위한 기본 배포 수단입니다. 설치는 편하지만, 운영 서버에 Git 이력이 없으므로 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 어렵습니다.
+
+Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 현재 `toycore.git` 본체에는 공식 선택 모듈 코드도 `modules/` 아래에 함께 들어 있습니다.
+
+```sh
+git clone https://github.com/whitedot/toycore.git toycore
+cd toycore
+git checkout v0.1.1
+```
+
+위의 `v0.1.1`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다.
+
+운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 운영자가 로컬 수정, 전용 모듈, 호스팅별 설정 파일, 배포 스크립트를 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
+
+```sh
+git remote -v
+git remote add upstream https://github.com/whitedot/toycore.git
+git fetch upstream --tags
+git checkout -b release/<release-tag> <release-tag>
+```
+
+업데이트는 새 릴리스 태그를 가져온 뒤 스테이징에서 병합 또는 rebase로 검토하고, 파일 반영 후 `/admin/updates`에서 DB 업데이트를 명시적으로 실행합니다.
+
+```sh
+git fetch upstream --tags
+git merge <next-release-tag>
+```
+
+`config/config.php`, `storage/installed.lock`, 로그, 백업 파일은 Git에 커밋하지 않습니다. Git 기반 설치에서도 DB 백업, 파일 백업, 스테이징 검증 후 운영 반영 순서를 지켜야 합니다. Git을 사용할 수 없는 호스팅에서는 릴리스 zip을 사용하되, 업로드한 zip 파일명, 릴리스 태그, 적용 일자를 운영 기록으로 남깁니다.
+
 ## Toycore
 
 Toycore는 WordPress 같은 콘텐츠 CMS도, Laravel/CodeIgniter 같은 애플리케이션 프레임워크도 아닙니다. 비즈니스 도메인은 모듈에 맡기고, 설치·회원 인증·관리자·감사 로그·개인정보·업데이트 같은 운영 도메인을 절차형 PHP 기준선으로 제공하는 솔루션 베이스입니다.
@@ -129,38 +161,6 @@ php .tools/bin/check.php
 php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
 php .tools/bin/smoke-http.php http://127.0.0.1:8080
 ```
-
-## 설치 방식 선택
-
-릴리스 zip은 Git, SSH, CLI를 사용할 수 없는 저가형 호스팅을 위한 기본 배포 수단입니다. 설치는 편하지만, 운영 서버에 Git 이력이 없으므로 현재 파일이 어떤 릴리스에서 왔는지 추적하고 다음 릴리스와 비교하기 어렵습니다.
-
-Git을 사용할 수 있는 서버나 배포 환경에서는 clone 또는 fork 기반 설치를 권장합니다. 현재 `toycore.git` 본체에는 공식 선택 모듈 코드도 `modules/` 아래에 함께 들어 있습니다.
-
-```sh
-git clone https://github.com/whitedot/toycore.git toycore
-cd toycore
-git checkout v0.1.1
-```
-
-위의 `v0.1.1`은 현재 공개 릴리스 예시이며, 실제 설치할 때는 원하는 릴리스의 태그를 사용합니다.
-
-운영자가 직접 수정하지 않는 설치라면 공식 저장소를 clone하고 릴리스 태그로 이동합니다. 운영자가 로컬 수정, 전용 모듈, 호스팅별 설정 파일, 배포 스크립트를 함께 관리해야 한다면 먼저 fork한 뒤 fork를 운영 원격 저장소로 사용합니다.
-
-```sh
-git remote -v
-git remote add upstream https://github.com/whitedot/toycore.git
-git fetch upstream --tags
-git checkout -b release/<release-tag> <release-tag>
-```
-
-업데이트는 새 릴리스 태그를 가져온 뒤 스테이징에서 병합 또는 rebase로 검토하고, 파일 반영 후 `/admin/updates`에서 DB 업데이트를 명시적으로 실행합니다.
-
-```sh
-git fetch upstream --tags
-git merge <next-release-tag>
-```
-
-`config/config.php`, `storage/installed.lock`, 로그, 백업 파일은 Git에 커밋하지 않습니다. Git 기반 설치에서도 DB 백업, 파일 백업, 스테이징 검증 후 운영 반영 순서를 지켜야 합니다. Git을 사용할 수 없는 호스팅에서는 릴리스 zip을 사용하되, 업로드한 zip 파일명, 릴리스 태그, 적용 일자를 운영 기록으로 남깁니다.
 
 ## 모듈 구조
 
