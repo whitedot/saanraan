@@ -10,6 +10,19 @@ $attachmentIdValue = toy_get_string('id', 20);
 $attachmentId = preg_match('/\A[1-9][0-9]*\z/', $attachmentIdValue) === 1 ? (int) $attachmentIdValue : 0;
 $attachment = toy_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null);
 if (!is_array($attachment)) {
+    $board = toy_community_attachment_read_board($pdo, $attachmentId);
+    if (is_array($board) && toy_community_board_requires_login($board) && !is_array($account)) {
+        $account = toy_member_require_login($pdo);
+        $attachment = toy_community_attachment_for_read($pdo, $attachmentId, $account);
+    }
+    if (!is_array($attachment)
+        && is_array($board)
+        && !toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)
+    ) {
+        toy_render_error(403, '첨부 파일을 볼 수 없습니다.');
+    }
+}
+if (!is_array($attachment)) {
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 

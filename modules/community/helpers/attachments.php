@@ -30,6 +30,29 @@ function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $
     return $attachment;
 }
 
+function toy_community_attachment_read_board(PDO $pdo, int $attachmentId): ?array
+{
+    if ($attachmentId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT b.id, b.status, b.read_policy
+         FROM toy_community_attachments a
+         INNER JOIN toy_community_posts p ON p.id = a.post_id
+         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         WHERE a.id = :id
+           AND a.status = 'active'
+           AND p.status = 'published'
+           AND b.status = 'enabled'
+         LIMIT 1"
+    );
+    $stmt->execute(['id' => $attachmentId]);
+    $board = $stmt->fetch();
+
+    return is_array($board) ? $board : null;
+}
+
 function toy_community_post_attachments(PDO $pdo, int $postId): array
 {
     if ($postId < 1) {
