@@ -211,6 +211,13 @@ function toy_community_update_post_status(PDO $pdo, int $postId, string $status)
     ]);
 }
 
+function toy_community_account_can_delete_post(array $post, array $account): bool
+{
+    return (int) ($account['id'] ?? 0) > 0
+        && (int) $post['author_account_id'] === (int) $account['id']
+        && (string) $post['status'] === 'published';
+}
+
 function toy_community_comment_statuses(): array
 {
     return ['published', 'hidden', 'deleted'];
@@ -274,6 +281,13 @@ function toy_community_update_comment_status(PDO $pdo, int $commentId, string $s
         'updated_at' => toy_now(),
         'id' => $commentId,
     ]);
+}
+
+function toy_community_account_can_delete_comment(array $comment, array $account): bool
+{
+    return (int) ($account['id'] ?? 0) > 0
+        && (int) $comment['author_account_id'] === (int) $account['id']
+        && (string) $comment['status'] === 'published';
 }
 
 function toy_community_account_can_write_board(PDO $pdo, array $board, array $account, bool $isAdminWriter = false): bool

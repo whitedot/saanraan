@@ -40,6 +40,13 @@ $seo = [
                 조회: <?php echo toy_e((string) $post['view_count']); ?>
             </p>
             <?php if (is_array($account)) { ?>
+                <?php if (toy_community_account_can_delete_post($post, $account)) { ?>
+                    <form method="post" action="<?php echo toy_e(toy_url('/community/delete')); ?>">
+                        <?php echo toy_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
+                        <button type="submit">게시글 삭제</button>
+                    </form>
+                <?php } ?>
                 <form method="post" action="<?php echo toy_e(toy_url('/community/scrap')); ?>">
                     <?php echo toy_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
@@ -121,6 +128,13 @@ $seo = [
                             </p>
                             <p><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></p>
                             <?php if (is_array($account)) { ?>
+                                <?php if (toy_community_account_can_delete_comment($comment, $account)) { ?>
+                                    <form method="post" action="<?php echo toy_e(toy_url('/community/comment/delete')); ?>">
+                                        <?php echo toy_csrf_field(); ?>
+                                        <input type="hidden" name="comment_id" value="<?php echo toy_e((string) $comment['id']); ?>">
+                                        <button type="submit">댓글 삭제</button>
+                                    </form>
+                                <?php } ?>
                                 <form method="post" action="<?php echo toy_e(toy_url('/community/report')); ?>">
                                     <?php echo toy_csrf_field(); ?>
                                     <input type="hidden" name="target_type" value="comment">
