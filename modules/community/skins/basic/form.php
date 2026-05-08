@@ -1,12 +1,17 @@
 <?php
 
 $pageTitle = (string) $board['title'] . ' 글쓰기';
+$seo = [
+    'title' => $pageTitle,
+    'canonical' => '/community/write?key=' . rawurlencode((string) $board['board_key']),
+    'robots' => 'noindex, nofollow',
+];
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
 <head>
     <meta charset="utf-8">
-    <title><?php echo toy_e($pageTitle); ?></title>
+    <?php echo toy_seo_tags($seo, $site ?? null); ?>
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>

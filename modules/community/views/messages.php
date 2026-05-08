@@ -1,12 +1,17 @@
 <?php
 
 $pageTitle = $box === 'sent' ? '보낸 쪽지함' : '받은 쪽지함';
+$seo = [
+    'title' => $pageTitle,
+    'canonical' => $box === 'sent' ? '/community/messages?box=sent' : '/community/messages',
+    'robots' => 'noindex, nofollow',
+];
 ?>
 <!doctype html>
 <html lang="<?php echo toy_e(toy_locale()); ?>">
 <head>
     <meta charset="utf-8">
-    <title><?php echo toy_e($pageTitle); ?></title>
+    <?php echo toy_seo_tags($seo, $site ?? null); ?>
     <?php echo toy_stylesheet_tag(); ?>
 </head>
 <body>
