@@ -25,7 +25,7 @@ function toy_community_report_statuses(): array
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
-function toy_community_report_target(PDO $pdo, string $targetType, int $targetId): ?array
+function toy_community_report_target(PDO $pdo, string $targetType, int $targetId, ?int $actorAccountId = null): ?array
 {
     if ($targetId < 1) {
         return null;
@@ -58,6 +58,25 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
             'reported_account_id' => (int) $comment['author_account_id'],
             'post_id' => (int) $comment['post_id'],
             'redirect_path' => '/community/post?id=' . (string) $comment['post_id'] . '#comments',
+        ];
+    }
+
+    if ($targetType === 'message' && $actorAccountId !== null) {
+        $message = toy_community_message_by_id_for_account($pdo, $targetId, $actorAccountId);
+        if (!is_array($message)) {
+            return null;
+        }
+
+        $reportedAccountId = (int) $message['sender_account_id'] === $actorAccountId
+            ? (int) $message['recipient_account_id']
+            : (int) $message['sender_account_id'];
+
+        return [
+            'target_type' => 'message',
+            'target_id' => (int) $message['id'],
+            'reported_account_id' => $reportedAccountId,
+            'message_id' => (int) $message['id'],
+            'redirect_path' => '/community/message?id=' . (string) $message['id'],
         ];
     }
 

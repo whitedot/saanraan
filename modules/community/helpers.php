@@ -8,3 +8,4 @@ require_once TOY_ROOT . '/modules/community/helpers/reports.php';
 require_once TOY_ROOT . '/modules/community/helpers/scraps.php';
 require_once TOY_ROOT . '/modules/community/helpers/themes.php';
 require_once TOY_ROOT . '/modules/community/helpers/member-groups.php';
+require_once TOY_ROOT . '/modules/community/helpers/messages.php';

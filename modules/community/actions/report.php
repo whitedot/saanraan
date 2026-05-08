@@ -13,7 +13,7 @@ $targetIdValue = toy_post_string('target_id', 20);
 $targetId = preg_match('/\A[1-9][0-9]*\z/', $targetIdValue) === 1 ? (int) $targetIdValue : 0;
 $reasonKey = toy_post_string('reason_key', 40);
 $memoText = toy_post_string_without_truncation('memo_text', 1000);
-$target = toy_community_report_target($pdo, $targetType, $targetId);
+$target = toy_community_report_target($pdo, $targetType, $targetId, (int) $account['id']);
 if (!is_array($target)) {
     toy_render_error(404, '신고 대상을 찾을 수 없습니다.');
 }
