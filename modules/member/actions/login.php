@@ -115,6 +115,7 @@ if (toy_request_method() === 'POST') {
     } elseif ($passwordVerified) {
         toy_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
         if (toy_member_login($pdo, $account)) {
+            toy_member_group_evaluate_account($pdo, (int) $account['id']);
             toy_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

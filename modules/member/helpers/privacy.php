@@ -136,6 +136,7 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
         'exported_at' => toy_now(),
         'account' => $account,
         'profile' => $profile,
+        'groups' => toy_member_group_privacy_export($pdo, $accountId),
         'consents' => $consents,
         'auth_logs' => $authLogs,
         'sessions' => $sessions,

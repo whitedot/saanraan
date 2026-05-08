@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once TOY_ROOT . '/modules/member/helpers.php';
 
 $account = toy_member_require_login($pdo);
+toy_member_group_evaluate_account($pdo, (int) $account['id']);
+
 $errors = [];
 $notice = '';
 $emailVerificationUrl = '';

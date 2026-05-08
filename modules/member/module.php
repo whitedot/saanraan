@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Member',
-    'version' => '2026.04.006',
+    'version' => '2026.05.001',
     'type' => 'module',
     'description' => 'Member account and authentication module.',
     'toycore' => [
@@ -16,6 +16,10 @@ return [
             'admin-menu.php',
             'extension-points.php',
             'menu-links.php',
+        ],
+        'consumes' => [
+            'privacy-export.php',
+            'member-group-rules.php',
         ],
     ],
     'settings' => [

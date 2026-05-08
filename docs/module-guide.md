@@ -732,10 +732,7 @@ return [
 - `extension-points.php`: 확장 가능한 화면/기능 위치
 - `privacy-export.php`: 회원 개인정보 내보내기 확장
 - `sitemap.php`: SEO sitemap URL 확장
-
-계획 중인 계약 파일:
-
-- `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보. 실제 구현 전에는 `core/helpers/settings.php`의 알려진 계약 파일 목록과 정적 검사를 먼저 갱신한다.
+- `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보
 
 계약 파일 규칙:
 
@@ -795,6 +792,15 @@ return [
 - 배열 항목은 최소 `loc` 값을 가진다.
 - callable 형식은 `function (PDO $pdo, ?array $site): array`이다.
 
+`member-group-rules.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `rule_key`, `label`, 선택 `description`, 선택 `params`, `evaluator`를 가진다.
+- `rule_key`는 `{module_key}.domain.condition` 형태로 제공 모듈 key로 시작한다.
+- `params`는 관리자 설정 UI와 JSON 저장 검증에 사용할 parameter schema이다.
+- `evaluator` callable 형식은 `function (PDO $pdo, int $accountId, array $params): array`이다.
+- evaluator는 자기 모듈 테이블만 조회하고 member 그룹 membership을 직접 변경하지 않는다.
+
 ## 15-2. 계약 파일 소비 지도
 
 계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `toy_enabled_module_contract_files()`와 `toy_load_module_contract_file()`로 명시적으로 읽는다.
@@ -821,7 +827,7 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php` | `privacy-export.php`; 계획: `member-group-rules.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php` | `privacy-export.php`, `member-group-rules.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |

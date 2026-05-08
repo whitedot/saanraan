@@ -329,6 +329,7 @@ function toy_module_known_contract_files(): array
         'privacy-export.php',
         'sitemap.php',
         'menu-links.php',
+        'member-group-rules.php',
     ];
 }
 
