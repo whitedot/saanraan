@@ -17,6 +17,8 @@ return [
     'POST /community/message/delete' => 'actions/message-delete.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
+    'GET /admin/community/posts' => 'actions/admin-posts.php',
+    'POST /admin/community/posts' => 'actions/admin-posts.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',
     'POST /admin/community/reports' => 'actions/admin-reports.php',
 ];

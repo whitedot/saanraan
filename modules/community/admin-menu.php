@@ -11,4 +11,9 @@ return [
         'path' => '/admin/community/reports',
         'order' => 31,
     ],
+    [
+        'label' => '커뮤니티 게시글',
+        'path' => '/admin/community/posts',
+        'order' => 32,
+    ],
 ];
