@@ -254,7 +254,7 @@ toy_member_group_revoke_manual($pdo, $accountId, $groupId, $actorAccountId)
 
 `toy_member_group_rule_definitions()`는 활성 모듈의 `member-group-rules.php`를 안전 로더로 읽고, 반환 구조를 member 쪽에서 다시 검증한다.
 
-`toy_member_group_evaluate_account()`는 저장된 `toy_member_group_rules`를 기준으로 evaluator를 호출한다. `$filters`로 특정 `source_module_key`만 평가할 수 있게 하여 community 글 작성 직후 community 규칙만 재평가할 수 있게 한다.
+`toy_member_group_evaluate_account()`는 저장된 `toy_member_group_rules`를 기준으로 evaluator를 호출한다. `$filters`로 특정 `source_module_key`만 평가할 수 있게 하여 community 글 작성, 게시글 상태 변경, 작성자 삭제 직후 community 규칙만 재평가할 수 있게 한다.
 
 ## 7. 평가 시점
 
@@ -271,7 +271,7 @@ toy_member_group_revoke_manual($pdo, $accountId, $groupId, $actorAccountId)
 community 예:
 
 ```text
-1. 회원이 게시글 작성 성공
+1. 회원이 게시글 작성에 성공하거나 게시글 상태가 변경되어 published 집계가 달라질 수 있음
 2. community action이 toy_member_group_evaluate_account($pdo, $accountId, ['source_module_key' => 'community']) 호출
 3. member가 enabled 자동 규칙 중 community 규칙만 평가
 4. 조건 만족 시 member가 membership active 처리
