@@ -44,13 +44,22 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $report['target_type'] . ' #' . (string) $report['target_id']); ?></td>
                         <td><?php echo toy_e(toy_community_report_reason_label((string) $report['reason_key'])); ?></td>
                         <td><?php echo toy_e((string) $report['status']); ?></td>
-                        <td><?php echo toy_e((string) ($report['reporter_display_name'] ?? '') . ' #' . (string) $report['reporter_account_id']); ?></td>
-                        <td><?php echo toy_e((string) ($report['reported_display_name'] ?? '') . ' #' . (string) $report['reported_account_id']); ?></td>
+                        <td><?php echo toy_e(toy_community_report_account_label(
+                            is_string($report['reporter_display_name'] ?? null) ? $report['reporter_display_name'] : null,
+                            (int) $report['reporter_account_id']
+                        )); ?></td>
+                        <td><?php echo toy_e(toy_community_report_account_label(
+                            is_string($report['reported_display_name'] ?? null) ? $report['reported_display_name'] : null,
+                            (int) $report['reported_account_id']
+                        )); ?></td>
                         <td><?php echo toy_e((string) ($report['memo_text'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $report['created_at']); ?></td>
                         <td>
                             <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
-                                <?php echo toy_e((string) ($report['reviewer_display_name'] ?? '') . ' #' . (string) $report['reviewer_account_id']); ?>
+                                <?php echo toy_e(toy_community_report_account_label(
+                                    is_string($report['reviewer_display_name'] ?? null) ? $report['reviewer_display_name'] : null,
+                                    (int) $report['reviewer_account_id']
+                                )); ?>
                             <?php } ?>
                         </td>
                         <td><?php echo toy_e((string) ($report['reviewed_at'] ?? '')); ?></td>
