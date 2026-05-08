@@ -31,6 +31,10 @@ $seo = [
             </ul>
         <?php } ?>
 
+        <?php if ($recipientPresetNotice !== '') { ?>
+            <p><?php echo toy_e($recipientPresetNotice); ?></p>
+        <?php } ?>
+
         <form method="post" action="<?php echo toy_e(toy_url('/community/message/write')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>

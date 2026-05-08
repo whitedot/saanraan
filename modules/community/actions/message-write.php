@@ -12,6 +12,7 @@ $values = [
     'recipient_identifier' => toy_get_string('to', 255),
     'body_text' => '',
 ];
+$recipientPresetNotice = $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
 
 if (toy_request_method() === 'POST') {
     toy_require_csrf();
