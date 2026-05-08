@@ -36,4 +36,5 @@ toy_audit_log($pdo, [
         'updated_attachment_count' => $updatedAttachmentCount,
     ],
 ]);
+$_SESSION['toy_community_board_notice'] = '게시글을 삭제했습니다.';
 toy_redirect('/community/board?key=' . rawurlencode((string) $post['board_key']));

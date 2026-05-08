@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'board_key' => (string) $post['board_key'],
             ],
         ]);
+        $_SESSION['toy_community_post_notice'] = '게시글을 수정했습니다.';
         toy_redirect('/community/post?id=' . (string) $postId);
     }
 }

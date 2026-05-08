@@ -30,6 +30,11 @@ if ($page > $totalPages) {
     $page = $totalPages;
 }
 $posts = toy_community_public_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword);
+$boardNotice = '';
+if (isset($_SESSION['toy_community_board_notice']) && is_string($_SESSION['toy_community_board_notice'])) {
+    $boardNotice = $_SESSION['toy_community_board_notice'];
+}
+unset($_SESSION['toy_community_board_notice']);
 $skinKey = toy_community_skin_key();
 $skinView = toy_community_skin_view($skinKey, 'list');
 

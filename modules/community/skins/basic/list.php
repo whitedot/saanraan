@@ -33,6 +33,10 @@ $seo = [
             <p><?php echo toy_e((string) $board['description']); ?></p>
         <?php } ?>
 
+        <?php if ($boardNotice !== '') { ?>
+            <p><?php echo toy_e($boardNotice); ?></p>
+        <?php } ?>
+
         <p>
             <a href="<?php echo toy_e(toy_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
         </p>
