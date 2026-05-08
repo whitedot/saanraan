@@ -43,7 +43,7 @@ if ($errors !== []) {
     toy_redirect($redirectPath);
 }
 
-toy_community_create_report($pdo, [
+$reportId = toy_community_create_report($pdo, [
     'target_type' => (string) $target['target_type'],
     'target_id' => (int) $target['target_id'],
     'reporter_account_id' => (int) $account['id'],
@@ -52,6 +52,21 @@ toy_community_create_report($pdo, [
     'memo_text' => (string) $memoText,
 ]);
 toy_community_record_report_rate_limit($pdo, (int) $account['id'], $settings);
+toy_audit_log($pdo, [
+    'actor_account_id' => (int) $account['id'],
+    'actor_type' => 'member',
+    'event_type' => 'community.report.created',
+    'target_type' => 'community_report',
+    'target_id' => (string) $reportId,
+    'result' => 'success',
+    'message' => 'Community report created.',
+    'metadata' => [
+        'reported_target_type' => (string) $target['target_type'],
+        'reported_target_id' => (int) $target['target_id'],
+        'reported_account_id' => (int) $target['reported_account_id'],
+        'reason_key' => $reasonKey,
+    ],
+]);
 $_SESSION['toy_community_report_notice'] = '신고를 접수했습니다.';
 
 toy_redirect($redirectPath);
