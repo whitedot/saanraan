@@ -48,6 +48,7 @@ if (toy_request_method() === 'POST') {
                 'recipient_account_id' => (int) $recipient['id'],
             ],
         ]);
+        $_SESSION['toy_community_message_notice'] = '쪽지를 보냈습니다.';
         toy_redirect('/community/messages?box=sent');
     }
 }

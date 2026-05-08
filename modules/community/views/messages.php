@@ -26,6 +26,10 @@ $seo = [
             <a href="<?php echo toy_e(toy_url('/community/message/write')); ?>">쪽지 쓰기</a>
         </p>
 
+        <?php if ($notice !== '') { ?>
+            <p><?php echo toy_e($notice); ?></p>
+        <?php } ?>
+
         <?php if ($messages === []) { ?>
             <p>쪽지가 없습니다.</p>
         <?php } else { ?>

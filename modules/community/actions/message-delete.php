@@ -31,6 +31,7 @@ toy_audit_log($pdo, [
         'recipient_account_id' => (int) $message['recipient_account_id'],
     ],
 ]);
+$_SESSION['toy_community_message_notice'] = '쪽지를 삭제했습니다.';
 
 if ($box === 'sent') {
     toy_redirect('/community/messages?box=sent');
