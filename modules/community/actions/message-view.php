@@ -17,6 +17,7 @@ toy_community_mark_message_read($pdo, $message, (int) $account['id']);
 if ((int) $message['recipient_account_id'] === (int) $account['id'] && (string) ($message['read_at'] ?? '') === '') {
     $message['read_at'] = toy_now();
 }
+$messageBox = (int) $message['sender_account_id'] === (int) $account['id'] ? 'sent' : 'inbox';
 $reportReasonKeys = toy_community_report_reason_keys();
 $reportErrors = [];
 $reportNotice = '';
