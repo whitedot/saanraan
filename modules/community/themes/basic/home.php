@@ -23,6 +23,14 @@ $seo = [
 
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
+        <?php if (is_array($account)) { ?>
+            <p>
+                <a href="<?php echo toy_e(toy_url('/community/scraps')); ?>">내 스크랩</a>
+                /
+                <a href="<?php echo toy_e(toy_url('/community/messages')); ?>">쪽지함</a>
+            </p>
+        <?php } ?>
+
         <?php if ($boards === []) { ?>
             <p>게시판이 없습니다.</p>
         <?php } else { ?>
