@@ -20,6 +20,7 @@
 
 - 관리자 화면은 action 시작 부분에서 `toy_member_require_login()`과 `toy_admin_require_role()`을 호출합니다.
 - 상태를 바꾸는 `POST` 요청은 `toy_require_csrf()`를 먼저 통과해야 합니다.
+- 응답 종료는 `toy_redirect()`, `toy_render_error()`, `toy_finish_response()`를 통과하고 action에서 `exit`, `die`, `header('Location: ...')`를 직접 호출하지 않습니다.
 - 관리자 상태 변경은 `toy_audit_log()`로 actor, target, result를 남깁니다.
 - 화면에 출력하는 변수는 `toy_e()`로 escape합니다.
 - 모듈 소유 테이블은 `toy_` prefix를 사용하고, 사용자 입력은 `PDO::prepare()`로 바인딩합니다.

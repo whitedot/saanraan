@@ -126,6 +126,22 @@ function t(array $text, string $locale, string $fallback_locale, string $key): s
 }
 
 /*
+ * 실제 Toycore action에서는 toy_redirect()를 사용합니다.
+ * 이 단일 파일 예제에서는 같은 응답 종료 지점을 작은 helper로 모읍니다.
+ */
+function redirect_to(string $path): void
+{
+    if ($path === '' || $path[0] !== '/' || str_starts_with($path, '//') || preg_match('/[\x00-\x1F\x7F\\\\]/', $path) === 1) {
+        http_response_code(500);
+        echo 'Invalid redirect target.';
+        exit;
+    }
+
+    header('Location: ' . $path, true, 302);
+    exit;
+}
+
+/*
 |--------------------------------------------------------------------------
 | 5. 요청값 정리
 |--------------------------------------------------------------------------
@@ -212,8 +228,7 @@ elseif ($enabled_modules['member'] === true && $method === 'POST' && $path === '
         $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['toy_member_id'] = 1;
 
-        header('Location: /login', true, 302);
-        exit;
+        redirect_to('/login');
     }
 }
 
@@ -229,8 +244,7 @@ elseif ($enabled_modules['member'] === true && $method === 'POST' && $path === '
         session_regenerate_id(true);
         $_SESSION['toy_csrf_token'] = bin2hex(random_bytes(32));
 
-        header('Location: /login', true, 302);
-        exit;
+        redirect_to('/login');
     }
 }
 
