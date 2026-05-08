@@ -42,6 +42,22 @@ banner-2026.05.001.zip
 
 프로젝트 폴더가 `module/` 하위에 런타임 파일을 두는 구조라면 zip 업로드 시 module key를 입력해 `modules/{module_key}`로 반영할 수 있다. 다만 Toycore 안에 들어온 뒤의 기준은 항상 `modules/{module_key}`다.
 
+Git을 사용할 수 있는 운영자는 전체 브랜치를 병합하지 않고 특정 릴리스 태그나 원격 브랜치에서 필요한 모듈 폴더만 갱신할 수 있다. 예를 들어 포인트 모듈만 태그 기준으로 갱신하려면 다음처럼 `modules/point` 경로만 작업 트리에 반영한다.
+
+```sh
+git fetch origin --tags
+git checkout v2026.05.001 -- modules/point
+```
+
+원격 브랜치의 최신 포인트 모듈만 반영해야 한다면 다음처럼 사용할 수 있다.
+
+```sh
+git fetch origin
+git checkout origin/main -- modules/point
+```
+
+이 방식은 파일 배치의 다른 형태일 뿐이다. Toycore는 Git ref를 직접 조회하거나 선택하지 않고, 운영자가 최종적으로 배치한 `modules/{module_key}` 폴더만 읽는다. 모듈 파일을 교체한 뒤에는 zip이나 FTP 배치와 같은 업데이트 절차를 따른다.
+
 ## zip 업로드 검증
 
 `/admin/modules`의 zip 업로드는 다음만 담당한다.
@@ -85,6 +101,18 @@ zip 업로드는 DB 업데이트를 자동 실행하지 않는다.
 ```
 
 `/admin/updates`는 현재 배치된 파일만 읽는다. 원격 위치나 외부 배포 정보를 조회하지 않는다.
+
+Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른다.
+
+```text
+1. git checkout <tag-or-ref> -- modules/{module_key}
+2. /admin/modules에서 코드 버전과 설치 버전 차이 확인
+3. module.php의 Toycore 최소 버전과 모듈 계약 버전 확인
+4. /admin/updates에서 해당 모듈의 미적용 updates/*.sql 확인
+5. DB 백업 확인 후 SQL 업데이트 실행
+```
+
+새 모듈 버전의 `toycore.min_version`이 현재 본체 버전보다 높거나 `toycore.module_contract`가 현재 `TOY_MODULE_CONTRACT_VERSION`과 맞지 않으면 해당 모듈만 단독으로 업데이트하지 않는다. 이 경우 본체와 필요한 기본 모듈을 함께 업데이트한다.
 
 ## 버전 의미
 

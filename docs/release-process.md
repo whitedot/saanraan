@@ -18,6 +18,16 @@
 
 Git을 사용할 수 있는 환경은 릴리스 태그나 검증된 commit SHA를 기준으로 배포한다. Git을 사용할 수 없는 공유호스팅에는 GitHub 릴리스의 source zip 또는 maintainer가 현재 저장소 파일로 만든 단일 zip을 업로드한다.
 
+저장소는 하나로 유지하더라도 릴리스 산출물은 전체 배포용과 모듈별 배포용을 함께 제공할 수 있다.
+
+```text
+toycore-full-2026.05.001.zip
+point-2026.05.001.zip
+banner-2026.05.001.zip
+```
+
+Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴리스 태그나 원격 브랜치에서 `modules/{module_key}` 경로만 checkout해 특정 모듈만 업데이트할 수 있다. 이 경우에도 Toycore는 모듈 소스의 원격 출처를 관리하지 않으며, 최종 배치된 모듈 폴더와 DB 업데이트 상태만 확인한다.
+
 릴리스 zip은 현재 저장소의 파일 구조를 보존해야 한다.
 
 포함 기준:
@@ -42,12 +52,13 @@ Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. `.tools
 
 ## 3. 모듈 zip 확인
 
-Toycore 릴리스는 모듈 소스의 출처를 관리하지 않는다. 별도 배포가 필요한 모듈은 제작자가 자기 환경에서 zip을 만들고, 운영자는 `/admin/modules`에서 업로드하거나 FTP/SFTP로 `modules/{module_key}`에 배치한다.
+Toycore 릴리스는 모듈 소스의 출처를 관리하지 않는다. 별도 배포가 필요한 모듈은 제작자가 자기 환경에서 zip을 만들고, 운영자는 `/admin/modules`에서 업로드하거나 FTP/SFTP로 `modules/{module_key}`에 배치한다. Git을 사용하는 운영자는 같은 내용을 `git checkout <tag-or-ref> -- modules/{module_key}`로 배치할 수 있다.
 
 확인 기준:
 
 - zip 압축 해제 시 `{module_key}/module.php` 구조가 나오는가
 - `module.php` version이 배포하려는 버전과 맞는가
+- `module.php`의 `toycore.min_version`과 `toycore.module_contract`가 배포 대상 본체와 맞는가
 - `install.sql`과 필요한 `updates/` 파일이 포함되어 있는가
 - 같은 버전의 update SQL을 이미 배포한 적이 있다면 내용이 바뀌지 않았는가
 - zip의 SHA-256 checksum을 릴리스 노트나 운영 기록에 남겼는가
