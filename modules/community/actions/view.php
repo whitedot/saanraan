@@ -17,6 +17,14 @@ if (!is_array($post)) {
             $account = toy_member_require_login($pdo);
             $post = toy_community_post_for_read($pdo, $postId, $account);
         }
+        if (!is_array($post)
+            && is_array($board)
+            && (string) $rawPost['status'] === 'published'
+            && (string) $board['status'] === 'enabled'
+            && !toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)
+        ) {
+            toy_render_error(403, '이 게시글을 볼 수 없습니다.');
+        }
     }
 }
 if (!is_array($post)) {
