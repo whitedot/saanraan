@@ -1202,9 +1202,10 @@ community.post.view
 v1 선택 연동:
 
 - 내 게시글에 새 댓글이 달리면 글 작성자에게 site notification 생성
-- 내 게시글/댓글/쪽지가 신고되면 관리자에게 site notification 생성 후보
+- 내 게시글/댓글/쪽지가 신고되면 활성 관리자 역할 계정에게 site notification 생성
 - 새 쪽지를 받으면 수신자에게 site notification 생성
 - 자기 댓글에는 알림 생성하지 않음
+- 신고 알림 수신 대상은 active 상태의 `owner`, `admin`, `manager` 계정으로 제한
 - notification 모듈이 활성화되어 있고 helper가 로드 가능할 때만 실행
 - 실패해도 댓글 작성, 신고 접수, 쪽지 발송 자체는 롤백하지 않음
 - 실패는 예외 로그 또는 감사 로그 metadata에 최소 정보만 기록
@@ -1564,3 +1565,31 @@ v1 최초 버전:
 - 모듈 theme과 게시판별 skin 설정 구조가 있고, v1 기본 skin과 theme은 모두 `basic`이다.
 - v1 theme은 `/community` 같은 비게시판 public 화면에만 적용되며 CSS/디자인 asset을 제공하지 않는다.
 - 커뮤니티 모듈 없이 `core + member + admin` 기준선이 계속 동작한다.
+
+## 21. 현재 구현 진행상황
+
+기준일: 2026-05-08
+
+| 영역 | 상태 | 메모 |
+| --- | --- | --- |
+| 모듈 골격과 설치 | 구현됨 | `modules/community` 구조, 설치 SQL, route, admin/menu 계약이 있음 |
+| 공개 홈/목록/보기 | 구현됨 | 공개 게시판 목록/글 보기, theme/skin allowlist, 공개 글 sitemap 연동이 있음 |
+| 게시글/댓글 작성 | 구현됨 | 작성/수정/삭제, 댓글 작성/삭제, CSRF, rate limit, 감사 로그가 있음 |
+| 신고 | 구현됨 | 게시글/댓글/쪽지 신고, 중복 신고 차단, 관리자 처리 상태 변경이 있음 |
+| 쪽지 | 구현됨 | 받은/보낸 쪽지함, 작성, 읽음 처리, 발신자/수신자별 soft delete, 신고가 있음 |
+| 스크랩 | 구현됨 | 개인 스크랩 추가/해제와 목록, 조회 권한이 사라진 글의 링크 숨김 처리가 있음 |
+| 관리자 화면 | 구현됨 | 게시판 설정, 게시글/댓글 moderation, 신고 처리 화면과 role guard가 있음 |
+| 이미지 첨부 | 구현됨 | 이미지 업로드 검증, 저장, 첨부 응답, 게시글 상태별 접근 제한이 있음 |
+| 계약 파일 | 구현됨 | `menu-links.php`, `extension-points.php`, `sitemap.php`, `privacy-export.php`, `member-group-rules.php` 제공 |
+| 회원 그룹 연동 | 구현됨 | 게시판 read/write/comment group key 검증과 커뮤니티 활동 기반 그룹 재평가가 있음 |
+| 선택적 알림 연동 | 구현됨 | 새 쪽지, 새 댓글, 새 신고 알림을 notification 모듈이 활성화된 경우에만 생성 |
+| 쪽지 본문 최소 조회 | 구현됨 | 쪽지 목록, 신고 대상 확인, 삭제 처리에서 본문을 조회하지 않는 helper를 사용 |
+| 회원 id 비노출 | 계획 반영됨 | 쪽지 발송/답장/목록/보기에서 공개용 회원 해시로 전환하는 구현은 다음 작업 |
+| 릴리스 준비 | 진행 중 | `php .tools/bin/check.php`는 통과 중이며, 수동 HTTP smoke와 배포 버전 정리는 남음 |
+
+현재 남은 우선순위:
+
+1. member 모듈에 공개용 회원 해시 조회/역조회 helper를 정의한다.
+2. 커뮤니티 쪽지의 `to_account`, `recipient_account_id`, 답장 링크, 표시 라벨을 공개용 회원 해시 기반으로 전환한다.
+3. 숫자 회원 id가 쪽지 화면/URL/form/알림 본문에 노출되지 않는 회귀 검사를 추가한다.
+4. 수동 HTTP smoke와 모듈 버전/update SQL 정책을 릴리스 전 점검한다.
