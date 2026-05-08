@@ -20,6 +20,7 @@ if (!toy_community_account_can_delete_post($post, $account)) {
 }
 
 toy_community_update_post_status($pdo, $postId, 'deleted');
+$updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, 'deleted');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -32,6 +33,7 @@ toy_audit_log($pdo, [
         'board_key' => (string) $post['board_key'],
         'before_status' => (string) $post['status'],
         'after_status' => 'deleted',
+        'updated_attachment_count' => $updatedAttachmentCount,
     ],
 ]);
 toy_redirect('/community/board?key=' . rawurlencode((string) $post['board_key']));

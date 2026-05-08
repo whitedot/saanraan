@@ -147,6 +147,26 @@ function toy_community_create_attachment(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
+function toy_community_update_post_attachments_status(PDO $pdo, int $postId, string $status): int
+{
+    if ($postId < 1 || !in_array($status, ['active', 'hidden', 'deleted'], true)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE toy_community_attachments
+         SET status = :status
+         WHERE post_id = :post_id
+           AND status <> :status'
+    );
+    $stmt->execute([
+        'status' => $status,
+        'post_id' => $postId,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function toy_community_attachment_mime_is_allowed(string $mimeType): bool
 {
     return in_array(strtolower(trim($mimeType)), [

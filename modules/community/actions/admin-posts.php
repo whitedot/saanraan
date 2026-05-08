@@ -36,6 +36,10 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === [] && is_array($post)) {
             toy_community_update_post_status($pdo, $postId, $status);
+            $updatedAttachmentCount = 0;
+            if (in_array($status, ['hidden', 'deleted'], true)) {
+                $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, $status);
+            }
             toy_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -47,6 +51,7 @@ if (toy_request_method() === 'POST') {
                 'metadata' => [
                     'before_status' => (string) $post['status'],
                     'after_status' => $status,
+                    'updated_attachment_count' => $updatedAttachmentCount,
                 ],
             ]);
             $notice = '게시글 상태를 변경했습니다.';
