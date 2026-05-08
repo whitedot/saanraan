@@ -73,6 +73,23 @@ $optionalModules = [
 function toy_install_module_definition(string $moduleKey, array $defaults): array
 {
     $metadata = toy_module_metadata($moduleKey);
+    $metadataErrors = [];
+    if ($metadata === []) {
+        $metadataErrors[] = 'module.php 파일을 읽을 수 없습니다.';
+    } else {
+        foreach (toy_module_metadata_errors($metadata) as $metadataError) {
+            $metadataErrors[] = $metadataError;
+        }
+
+        foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
+            $metadataErrors[] = $metadataError;
+        }
+    }
+
+    if (!is_file(TOY_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
+        $metadataErrors[] = 'install.sql 파일을 찾을 수 없습니다.';
+    }
+
     $name = is_string($metadata['name'] ?? null) && (string) $metadata['name'] !== ''
         ? (string) $metadata['name']
         : (string) ($defaults['name'] ?? $moduleKey);
@@ -82,6 +99,7 @@ function toy_install_module_definition(string $moduleKey, array $defaults): arra
 
     $defaults['name'] = $name;
     $defaults['version'] = $version;
+    $defaults['metadata_errors'] = array_values(array_unique($metadataErrors));
     return $defaults;
 }
 
@@ -238,6 +256,21 @@ if (toy_request_method() === 'POST') {
         }
 
         $selectedOptionalModuleKeys = array_values($selectedOptionalModuleKeys);
+    }
+
+    foreach ($requiredModules as $moduleKey => $module) {
+        $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
+        foreach ($moduleErrors as $moduleError) {
+            $errors[] = (string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError;
+        }
+    }
+
+    foreach ($selectedOptionalModuleKeys as $moduleKey) {
+        $module = $optionalModules[$moduleKey] ?? null;
+        $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
+        foreach ($moduleErrors as $moduleError) {
+            $errors[] = (string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError;
+        }
     }
 
     $adminPassword = toy_post_string_without_truncation('admin_password', 255);

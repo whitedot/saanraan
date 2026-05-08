@@ -13,6 +13,12 @@ return [
     'requires' => [
         'modules' => ['admin'],
     ],
+    'contracts' => [
+        'provides' => [
+            'paths.php',
+            'admin-menu.php',
+        ],
+    ],
     'settings' => [
         'title_suffix' => '',
         'default_description' => '',

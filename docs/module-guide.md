@@ -202,6 +202,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'paths.php',
             'admin-menu.php',
             'extension-points.php',
             'privacy-export.php',
@@ -224,12 +225,12 @@ return [
 - `version`: 코드 기준 현재 버전
 - `type`: `module` 또는 `plugin`
 - `description`: 운영자가 이해할 수 있는 설명
-- `toycore.min_version`: 이 모듈을 설치할 수 있는 Toycore 최소 버전. 필수다.
+- `toycore.min_version`: 이 모듈을 설치하거나 활성화할 수 있는 Toycore 최소 버전. 필수이며 현재 `TOY_CORE_VERSION`과 실제 비교한다.
 - `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록. 비어 있지 않은 배열이 필요하다.
-- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이며 필수다.
+- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
 - `requires.modules`: 활성화 전에 필요한 모듈
-- `requires.contracts`: 활성화 전에 필요한 계약 파일
-- `contracts.provides`: 이 모듈이 제공하는 계약 파일
+- `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
+- `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
 - `contracts.consumes`: 이 모듈이 읽는 계약 파일
 - `settings`: 모듈 기본 설정 후보
 

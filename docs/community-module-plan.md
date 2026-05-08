@@ -297,6 +297,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'paths.php',
             'admin-menu.php',
             'menu-links.php',
             'extension-points.php',

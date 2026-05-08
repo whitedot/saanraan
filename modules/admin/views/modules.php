@@ -38,6 +38,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php foreach ($modules as $module) { ?>
             <?php $isRequired = in_array((string) $module['module_key'], $requiredModules, true); ?>
+            <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
             <tr>
                 <td><?php echo toy_e((string) $module['module_key']); ?></td>
                 <td><?php echo toy_e((string) $module['name']); ?></td>
@@ -71,8 +72,24 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </td>
                 <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                 <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
-                <td><?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?></td>
-                <td><?php echo toy_e((string) $module['status']); ?></td>
+                <td>
+                    <?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?>
+                    <?php if ($moduleErrors !== []) { ?>
+                        <br>
+                        <strong>메타데이터/계약 오류</strong>
+                        <ul>
+                            <?php foreach ($moduleErrors as $moduleError) { ?>
+                                <li><?php echo toy_e((string) $moduleError); ?></li>
+                            <?php } ?>
+                        </ul>
+                    <?php } ?>
+                </td>
+                <td>
+                    <?php echo toy_e((string) $module['status']); ?>
+                    <?php if ((string) $module['status'] === 'enabled' && $moduleErrors !== []) { ?>
+                        <br>런타임 계약 파일 비활성
+                    <?php } ?>
+                </td>
                 <td><?php echo !empty($module['is_bundled']) ? 'yes' : 'no'; ?></td>
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
@@ -178,6 +195,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php foreach ($installableModules as $module) { ?>
+                    <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                     <tr>
                         <td><?php echo toy_e((string) $module['module_key']); ?></td>
                         <td><?php echo toy_e((string) $module['name']); ?></td>
@@ -185,22 +203,37 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
-                        <td><?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?></td>
+                        <td>
+                            <?php echo toy_e((string) (($module['toycore_module_contract'] ?? '') !== '' ? $module['toycore_module_contract'] : '-')); ?>
+                            <?php if ($moduleErrors !== []) { ?>
+                                <br>
+                                <strong>메타데이터/계약 오류</strong>
+                                <ul>
+                                    <?php foreach ($moduleErrors as $moduleError) { ?>
+                                        <li><?php echo toy_e((string) $moduleError); ?></li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } ?>
+                        </td>
                         <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
                         <td>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
-                                <?php echo toy_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="install">
-                                <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
-                                <select name="status">
-                                    <?php foreach ($allowedInstallStatuses as $status) { ?>
-                                        <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                            <?php echo toy_e($status); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                                <button type="submit">설치</button>
-                            </form>
+                            <?php if ($moduleErrors !== []) { ?>
+                                설치 불가
+                            <?php } else { ?>
+                                <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
+                                    <?php echo toy_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="install">
+                                    <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
+                                    <select name="status">
+                                        <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                                <?php echo toy_e($status); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                    <button type="submit">설치</button>
+                                </form>
+                            <?php } ?>
                         </td>
                     </tr>
                 <?php } ?>

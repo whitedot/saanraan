@@ -13,4 +13,10 @@ return [
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
+    'contracts' => [
+        'provides' => [
+            'paths.php',
+            'admin-menu.php',
+        ],
+    ],
 ];

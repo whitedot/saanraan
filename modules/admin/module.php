@@ -13,4 +13,9 @@ return [
     'requires' => [
         'modules' => ['member'],
     ],
+    'contracts' => [
+        'provides' => [
+            'paths.php',
+        ],
+    ],
 ];

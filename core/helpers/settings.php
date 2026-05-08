@@ -319,6 +319,64 @@ function toy_module_toycore_metadata(array $metadata): array
     return is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
 }
 
+function toy_module_known_contract_files(): array
+{
+    return [
+        'paths.php',
+        'admin-menu.php',
+        'output-slots.php',
+        'extension-points.php',
+        'privacy-export.php',
+        'sitemap.php',
+        'menu-links.php',
+    ];
+}
+
+function toy_module_declared_contract_files(array $metadata, string $key): array
+{
+    $contracts = isset($metadata['contracts']) && is_array($metadata['contracts']) ? $metadata['contracts'] : [];
+    $files = isset($contracts[$key]) && is_array($contracts[$key]) ? $contracts[$key] : [];
+    $valid = [];
+
+    foreach ($files as $file) {
+        if (is_string($file)) {
+            $valid[] = $file;
+        }
+    }
+
+    return array_values(array_unique($valid));
+}
+
+function toy_version_format(string $version): string
+{
+    if (preg_match('/\Av?\d+\.\d+\.\d+\z/', $version) === 1) {
+        return 'semver';
+    }
+
+    if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) === 1) {
+        return 'date';
+    }
+
+    return '';
+}
+
+function toy_core_version_satisfies_minimum(string $minimumVersion): bool
+{
+    $coreVersion = TOY_CORE_VERSION;
+    $coreFormat = toy_version_format($coreVersion);
+    $minimumFormat = toy_version_format($minimumVersion);
+
+    if ($coreFormat === '' || $minimumFormat === '' || $coreFormat !== $minimumFormat) {
+        return false;
+    }
+
+    if ($coreFormat === 'semver') {
+        return version_compare(ltrim($coreVersion, 'vV'), ltrim($minimumVersion, 'vV'), '>=');
+    }
+
+    return strcmp($coreVersion, $minimumVersion) >= 0;
+}
+
 function toy_module_contract_errors(array $metadata): array
 {
     $errors = [];
@@ -336,6 +394,8 @@ function toy_module_contract_errors(array $metadata): array
         $errors[] = 'module.php의 toycore.min_version이 필요합니다.';
     } elseif (preg_match('/\A(?:v?\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{3})\z/', $minVersion) !== 1) {
         $errors[] = 'module.php의 toycore.min_version 형식이 올바르지 않습니다.';
+    } elseif (!toy_core_version_satisfies_minimum($minVersion)) {
+        $errors[] = '현재 Toycore 버전(' . TOY_CORE_VERSION . ')이 module.php의 toycore.min_version(' . $minVersion . ') 요구사항을 만족하지 않습니다.';
     }
 
     $testedWith = $toycoreMetadata['tested_with'] ?? null;
@@ -355,6 +415,82 @@ function toy_module_contract_errors(array $metadata): array
     return $errors;
 }
 
+function toy_module_metadata_errors(array $metadata): array
+{
+    $errors = [];
+
+    $name = is_string($metadata['name'] ?? null) ? trim((string) $metadata['name']) : '';
+    if ($name === '') {
+        $errors[] = 'module.php의 name이 필요합니다.';
+    }
+
+    $version = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    if ($version === '' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
+        $errors[] = 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.';
+    }
+
+    $type = (string) ($metadata['type'] ?? 'module');
+    if (!in_array($type, ['module', 'plugin'], true)) {
+        $errors[] = 'module.php의 type은 module 또는 plugin이어야 합니다.';
+    }
+
+    foreach (toy_module_contract_errors($metadata) as $error) {
+        $errors[] = $error;
+    }
+
+    $contracts = $metadata['contracts'] ?? null;
+    if ($contracts !== null && !is_array($contracts)) {
+        $errors[] = 'module.php의 contracts는 배열이어야 합니다.';
+    }
+
+    $knownContractFiles = toy_module_known_contract_files();
+    $contracts = is_array($contracts) ? $contracts : [];
+    foreach (['provides', 'consumes'] as $contractKey) {
+        if (!isset($contracts[$contractKey])) {
+            continue;
+        }
+
+        if (!is_array($contracts[$contractKey])) {
+            $errors[] = 'module.php의 contracts.' . $contractKey . '는 배열이어야 합니다.';
+            continue;
+        }
+
+        foreach ($contracts[$contractKey] as $file) {
+            if (
+                !is_string($file)
+                || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $file) !== 1
+                || !in_array($file, $knownContractFiles, true)
+            ) {
+                $errors[] = 'module.php의 contracts.' . $contractKey . ' 계약 파일 선언이 올바르지 않습니다.';
+                break;
+            }
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
+function toy_module_contract_file_errors(string $moduleDirectory, array $metadata): array
+{
+    $errors = [];
+    $knownContractFiles = toy_module_known_contract_files();
+    $declaredProvides = toy_module_declared_contract_files($metadata, 'provides');
+
+    foreach ($declaredProvides as $file) {
+        if (!is_file($moduleDirectory . '/' . $file)) {
+            $errors[] = 'module.php의 contracts.provides에 선언한 ' . $file . ' 파일이 필요합니다.';
+        }
+    }
+
+    foreach ($knownContractFiles as $file) {
+        if (is_file($moduleDirectory . '/' . $file) && !in_array($file, $declaredProvides, true)) {
+            $errors[] = $file . ' 파일은 module.php의 contracts.provides에 선언해야 합니다.';
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
 function toy_module_contract_is_loadable(string $moduleKey): bool
 {
     if (!toy_is_safe_module_key($moduleKey)) {
@@ -362,7 +498,9 @@ function toy_module_contract_is_loadable(string $moduleKey): bool
     }
 
     $metadata = toy_module_metadata($moduleKey);
-    return $metadata !== [] && toy_module_contract_errors($metadata) === [];
+    return $metadata !== []
+        && toy_module_metadata_errors($metadata) === []
+        && toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) === [];
 }
 
 function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metadata, string $targetStatus = 'enabled'): array
@@ -410,6 +548,17 @@ function toy_module_requirement_errors(PDO $pdo, string $moduleKey, array $metad
 
         if (toy_module_record_status($pdo, $requiredModuleKey) !== 'enabled') {
             $errors[] = $requiredModuleKey . ' 모듈을 먼저 활성화해야 합니다.';
+            continue;
+        }
+
+        if (!toy_module_contract_is_loadable($requiredModuleKey)) {
+            $errors[] = $requiredModuleKey . ' 모듈 메타데이터/계약이 현재 Toycore와 맞지 않습니다.';
+            continue;
+        }
+
+        $requiredMetadata = toy_module_metadata($requiredModuleKey);
+        if (!in_array($file, toy_module_declared_contract_files($requiredMetadata, 'provides'), true)) {
+            $errors[] = $requiredModuleKey . ' 모듈의 module.php contracts.provides에 ' . $file . ' 선언이 필요합니다.';
             continue;
         }
 

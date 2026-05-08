@@ -251,11 +251,19 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <h3>필수 모듈</h3>
                 <div class="toy-install-module-grid">
                     <?php foreach ($requiredModules as $moduleKey => $module) { ?>
+                        <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                         <div class="toy-install-module">
-                            <span class="toy-install-status toy-install-status-ok">필수</span>
+                            <span class="toy-install-status toy-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '필수' : '확인 필요'; ?></span>
                             <strong><?php echo toy_e((string) $module['label']); ?></strong>
                             <code><?php echo toy_e((string) $moduleKey); ?></code>
                             <p><?php echo toy_e((string) $module['description']); ?></p>
+                            <?php if ($moduleErrors !== []) { ?>
+                                <ul>
+                                    <?php foreach ($moduleErrors as $moduleError) { ?>
+                                        <li><?php echo toy_e((string) $moduleError); ?></li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } ?>
                         </div>
                     <?php } ?>
                 </div>
@@ -266,6 +274,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <?php } else { ?>
                     <div class="toy-install-module-grid">
                         <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                            <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                             <label class="toy-install-module toy-install-module-option">
                                 <span class="toy-install-module-title">
                                     <input
@@ -273,11 +282,22 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                         name="optional_modules[]"
                                         value="<?php echo toy_e((string) $moduleKey); ?>"
                                         <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
+                                        <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                     >
                                     <strong><?php echo toy_e((string) $module['label']); ?></strong>
                                 </span>
+                                <?php if ($moduleErrors !== []) { ?>
+                                    <span class="toy-install-status toy-install-status-error">설치 불가</span>
+                                <?php } ?>
                                 <code><?php echo toy_e((string) $moduleKey); ?></code>
                                 <p><?php echo toy_e((string) $module['description']); ?></p>
+                                <?php if ($moduleErrors !== []) { ?>
+                                    <ul>
+                                        <?php foreach ($moduleErrors as $moduleError) { ?>
+                                            <li><?php echo toy_e((string) $moduleError); ?></li>
+                                        <?php } ?>
+                                    </ul>
+                                <?php } ?>
                             </label>
                         <?php } ?>
                     </div>

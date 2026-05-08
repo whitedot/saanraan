@@ -588,27 +588,16 @@ function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, 
         $errors[] = $error;
     }
 
+    foreach (toy_module_contract_file_errors($sourceDir, $metadata) as $error) {
+        $errors[] = $error;
+    }
+
     return $errors;
 }
 
 function toy_admin_module_metadata_errors(array $metadata): array
 {
-    $errors = [];
-    $version = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-    if ($version === '' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $version) !== 1) {
-        $errors[] = 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.';
-    }
-
-    $type = (string) ($metadata['type'] ?? 'module');
-    if (!in_array($type, ['module', 'plugin'], true)) {
-        $errors[] = 'module.php의 type은 module 또는 plugin이어야 합니다.';
-    }
-
-    foreach (toy_module_contract_errors($metadata) as $error) {
-        $errors[] = $error;
-    }
-
-    return $errors;
+    return toy_module_metadata_errors($metadata);
 }
 
 function toy_admin_module_upload_version_errors(PDO $pdo, string $moduleKey, array $metadata, bool $allowDowngrade): array

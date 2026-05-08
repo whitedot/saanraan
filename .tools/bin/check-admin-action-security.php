@@ -496,10 +496,25 @@ if (!is_string($coreSettingsHelper)) {
 }
 if (is_string($coreSettingsHelper) && (
     strpos($coreSettingsHelper, 'function toy_module_contract_is_loadable') === false
-    || strpos($coreSettingsHelper, 'toy_module_contract_errors($metadata) === []') === false
+    || strpos($coreSettingsHelper, 'toy_module_metadata_errors($metadata) === []') === false
     || strpos($coreSettingsHelper, 'toy_module_contract_is_loadable($moduleKey)') === false
 )) {
     $errors[] = 'Core module runtime loading must require the current module contract metadata.';
+}
+if (is_string($coreSettingsHelper) && (
+    strpos($coreSettingsHelper, 'function toy_module_metadata_errors') === false
+    || strpos($coreSettingsHelper, 'toy_module_contract_errors($metadata)') === false
+    || strpos($coreSettingsHelper, 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.') === false
+)) {
+    $errors[] = 'Core module metadata validation must include module metadata and contract requirements.';
+}
+if (is_string($coreSettingsHelper) && (
+    strpos($coreSettingsHelper, 'function toy_module_known_contract_files') === false
+    || strpos($coreSettingsHelper, 'function toy_module_contract_file_errors') === false
+    || strpos($coreSettingsHelper, 'toy_module_declared_contract_files($metadata, \'provides\')') === false
+    || strpos($coreSettingsHelper, 'contracts.provides에 선언한') === false
+)) {
+    $errors[] = 'Core module contract file validation must require declared and actual contract files to match.';
 }
 if (is_string($coreSettingsHelper) && (
     strpos($coreSettingsHelper, 'function toy_module_metadata') === false
@@ -580,8 +595,8 @@ if (is_string($adminModuleSourcesHelper) && (
 }
 if (is_string($adminModuleSourcesHelper) && (
     strpos($adminModuleSourcesHelper, 'function toy_admin_module_metadata_errors') === false
-    || strpos($adminModuleSourcesHelper, 'toy_module_contract_errors($metadata)') === false
-    || strpos($adminModuleSourcesHelper, 'module.php의 version은 YYYY.MM.NNN 형식이어야 합니다.') === false
+    || strpos($adminModuleSourcesHelper, 'toy_module_metadata_errors($metadata)') === false
+    || strpos($adminModuleSourcesHelper, 'toy_module_contract_file_errors($sourceDir, $metadata)') === false
 )) {
     $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
 }
@@ -605,6 +620,9 @@ if (!is_string($adminModuleActionsHelper)) {
 }
 if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper, 'toy_admin_module_metadata_errors($metadata)') < 3) {
     $errors[] = 'Admin module install, enable, and version sync actions must validate module metadata contracts server-side.';
+}
+if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper, 'toy_module_contract_file_errors(') < 5) {
+    $errors[] = 'Admin module install, enable, sync, and listing flows must validate declared contract files server-side.';
 }
 
 $adminUpdatesHelper = file_get_contents($root . '/modules/admin/helpers/updates.php');

@@ -15,6 +15,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'paths.php',
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',

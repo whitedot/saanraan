@@ -13,9 +13,11 @@
 - `name`이 비어 있지 않다.
 - `version`은 `YYYY.MM.NNN` 형식이다.
 - `type`은 `module` 또는 `plugin`이다.
-- `toycore.min_version`이 있다.
+- `toycore.min_version`이 있고 현재 Toycore 버전보다 높지 않다.
 - `toycore.tested_with`가 비어 있지 않은 배열이다.
 - `toycore.module_contract`가 현재 Toycore 계약 버전과 맞다.
+- 실제 계약 파일은 모두 `contracts.provides`에 선언되어 있다.
+- `contracts.provides`에 선언한 계약 파일은 실제로 존재한다.
 
 ## SQL
 

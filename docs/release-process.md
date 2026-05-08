@@ -7,7 +7,7 @@
 - `main` 브랜치가 배포할 커밋을 가리키는지 확인한다.
 - `core/version.php`의 본체 버전과 `TOY_MODULE_CONTRACT_VERSION`을 확인한다.
 - 배포할 모듈이 있다면 toycore.git 안의 `modules/{module_key}` 폴더에 포함되어 있는지 확인한다.
-- 각 모듈의 `module.php` version, `toycore.min_version`, `toycore.module_contract`를 확인한다.
+- 각 모듈의 `module.php` version, `toycore.min_version`, `toycore.module_contract`, `contracts.provides`를 확인한다. `toycore.min_version`은 현재 본체 버전이 충족해야 하고, `toycore.module_contract`는 현재 `TOY_MODULE_CONTRACT_VERSION`과 같아야 하며, 실제 계약 파일과 `contracts.provides` 선언이 일치해야 한다.
 - 기본 점검을 통과시키고, 필요한 경우 로컬/스테이징 HTTP 스모크 점검을 실행한다.
 
 ```sh

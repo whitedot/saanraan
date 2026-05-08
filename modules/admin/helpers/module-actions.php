@@ -99,6 +99,10 @@ function toy_admin_handle_modules_post(
             foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
                 $errors[] = $metadataError;
             }
+
+            foreach (toy_module_contract_file_errors($moduleDir, $metadata) as $metadataError) {
+                $errors[] = $metadataError;
+            }
         }
 
         if ($errors === []) {
@@ -138,6 +142,10 @@ function toy_admin_handle_modules_post(
                 foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
+
+                foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
+                    $errors[] = $metadataError;
+                }
             }
 
             if ($errors === []) {
@@ -155,6 +163,10 @@ function toy_admin_handle_modules_post(
 
             if ($errors === []) {
                 foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                    $errors[] = $metadataError;
+                }
+
+                foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
             }
@@ -584,6 +596,11 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     foreach ($stmt->fetchAll() as $row) {
         $installedModuleKeys[(string) $row['module_key']] = true;
         $metadata = toy_module_metadata((string) $row['module_key']);
+        $moduleDirectory = TOY_ROOT . '/modules/' . (string) $row['module_key'];
+        $metadataErrors = $metadata === [] ? ['module.php 파일을 읽을 수 없습니다.'] : array_merge(
+            toy_module_metadata_errors($metadata),
+            toy_module_contract_file_errors($moduleDirectory, $metadata)
+        );
         $row['code_name'] = is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : '';
         $row['code_version'] = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
         $row['code_type'] = toy_module_type((string) $row['module_key']);
@@ -595,6 +612,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
             ? implode(', ', array_map('strval', $toycoreTestedWith))
             : (is_string($toycoreTestedWith) ? $toycoreTestedWith : '');
         $row['toycore_module_contract'] = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
+        $row['metadata_errors'] = $metadataErrors;
         $row['pending_update_count'] = (int) ($pendingUpdateCounts[(string) $row['module_key']] ?? 0);
         $row['version_state'] = 'unknown';
         if ((string) $row['code_version'] !== '' && (string) $row['version'] !== '') {
@@ -626,6 +644,10 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
             }
             $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
             $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
+            $metadataErrors = array_merge(
+                toy_module_metadata_errors($metadata),
+                toy_module_contract_file_errors($moduleDirectory, $metadata)
+            );
 
             $installableModules[] = [
                 'module_key' => $moduleKey,
@@ -638,6 +660,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                     ? implode(', ', array_map('strval', $toycoreTestedWith))
                     : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
                 'toycore_module_contract' => is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '',
+                'metadata_errors' => $metadataErrors,
             ];
         }
     }
