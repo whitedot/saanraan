@@ -1074,7 +1074,7 @@ community.post.view
 
 - 해당 회원이 작성한 게시글 본문과 metadata
 - 해당 회원이 작성한 댓글 본문과 metadata
-- 해당 회원이 업로드한 첨부 metadata
+- 해당 회원이 업로드한 첨부 metadata. 파일 무결성용 checksum hash는 제외한다.
 - 해당 회원이 접수한 신고 metadata와 memo
 - 해당 회원이 보낸 쪽지와 받은 쪽지
 - 해당 회원의 게시글 스크랩 목록

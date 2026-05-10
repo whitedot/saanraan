@@ -37,7 +37,7 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['comments'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, post_id, original_name, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
+        'SELECT id, post_id, original_name, mime_type, size_bytes, width, height, status, created_at
          FROM toy_community_attachments
          WHERE uploader_account_id = :account_id
          ORDER BY id ASC

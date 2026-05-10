@@ -287,6 +287,10 @@ toy_community_release_file_contains('modules/community/privacy-export.php', [
     'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at',
     'SELECT id, post_id, body_text, status, created_at, updated_at',
 ], 'Community privacy-export.php');
+$privacyExportContent = is_file('modules/community/privacy-export.php') ? (string) file_get_contents('modules/community/privacy-export.php') : '';
+if (str_contains($privacyExportContent, 'checksum_sha256')) {
+    toy_community_release_error('Community privacy export must not include attachment checksum hashes.');
+}
 
 $memberGroupRuleKeys = [];
 foreach ($memberGroupRules as $entry) {
