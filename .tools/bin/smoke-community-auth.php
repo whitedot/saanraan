@@ -9,9 +9,11 @@ $password = (string) ($argv[3] ?? '');
 $boardKey = (string) ($argv[4] ?? 'free');
 $recipientIdentifier = (string) ($argv[5] ?? '');
 $postId = (int) ($argv[6] ?? 0);
+$reporterIdentifier = (string) ($argv[7] ?? '');
+$reporterPassword = (string) ($argv[8] ?? '');
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '') {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password]\n");
     exit(2);
 }
 
@@ -121,17 +123,22 @@ function toy_auth_smoke_location_path(string $location): string
     return is_string($query) && $query !== '' ? $path . '?' . $query : $path;
 }
 
-try {
+function toy_auth_smoke_login(string $baseUrl, string $identifier, string $password, array &$cookies, array &$errors, string $label): void
+{
     $loginForm = toy_auth_smoke_request($baseUrl, 'GET', '/login', [], $cookies);
-    toy_auth_smoke_assert_status($errors, 'login form', $loginForm, [200]);
-    $loginCsrf = toy_auth_smoke_csrf($loginForm, 'login form');
+    toy_auth_smoke_assert_status($errors, $label . ' login form', $loginForm, [200]);
+    $loginCsrf = toy_auth_smoke_csrf($loginForm, $label . ' login form');
     $loginResponse = toy_auth_smoke_request($baseUrl, 'POST', '/login', [
         'csrf_token' => $loginCsrf,
         'identifier' => $identifier,
         'password' => $password,
         'next' => '/community',
     ], $cookies);
-    toy_auth_smoke_assert_status($errors, 'login submit', $loginResponse, [302]);
+    toy_auth_smoke_assert_status($errors, $label . ' login submit', $loginResponse, [302]);
+}
+
+try {
+    toy_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
 
     $messages = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $cookies);
     toy_auth_smoke_assert_status($errors, 'message box', $messages, [200]);
@@ -190,6 +197,24 @@ try {
         toy_auth_smoke_assert_status($errors, 'message write submit', $messageResponse, [302]);
     } else {
         echo "[skip] message send requires recipient_identifier\n";
+    }
+
+    if ($createdPostId > 0 && $reporterIdentifier !== '' && $reporterPassword !== '') {
+        $reporterCookies = [];
+        toy_auth_smoke_login($baseUrl, $reporterIdentifier, $reporterPassword, $reporterCookies, $errors, 'reporter account');
+        $reporterPostView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $reporterCookies);
+        toy_auth_smoke_assert_status($errors, 'reporter post view', $reporterPostView, [200]);
+        $reportCsrf = toy_auth_smoke_csrf($reporterPostView, 'reporter post view');
+        $reportResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/report', [
+            'csrf_token' => $reportCsrf,
+            'target_type' => 'post',
+            'target_id' => (string) $createdPostId,
+            'reason_key' => 'spam',
+            'memo_text' => 'Toycore authenticated community report smoke.',
+        ], $reporterCookies);
+        toy_auth_smoke_assert_status($errors, 'post report submit', $reportResponse, [302]);
+    } else {
+        echo "[skip] post report requires reporter_identifier and reporter_password\n";
     }
 } catch (Throwable $exception) {
     $errors[] = $exception->getMessage();
