@@ -114,6 +114,13 @@ function toy_auth_smoke_assert_status(array &$errors, string $label, array $resp
     }
 }
 
+function toy_auth_smoke_assert_body_contains(array &$errors, string $label, array $response, string $needle): void
+{
+    if (!str_contains((string) $response['body'], $needle)) {
+        $errors[] = $label . ' did not contain expected text "' . $needle . '".';
+    }
+}
+
 function toy_auth_smoke_location_path(string $location): string
 {
     $path = parse_url($location, PHP_URL_PATH);
@@ -183,15 +190,18 @@ try {
     } else {
         $postView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'post view', $postView, [200]);
+        toy_auth_smoke_assert_body_contains($errors, 'post view', $postView, $title);
         $postViewCsrf = toy_auth_smoke_csrf($postView, 'post view');
+        $commentBody = 'Toycore authenticated community comment smoke.';
         $commentResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/comment', [
             'csrf_token' => $postViewCsrf,
             'post_id' => (string) $createdPostId,
-            'body_text' => 'Toycore authenticated community comment smoke.',
+            'body_text' => $commentBody,
         ], $cookies);
         toy_auth_smoke_assert_status($errors, 'comment write submit', $commentResponse, [302]);
         $commentedPostView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'commented post view', $commentedPostView, [200]);
+        toy_auth_smoke_assert_body_contains($errors, 'commented post view', $commentedPostView, $commentBody);
 
         $scrapResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/scrap', [
             'csrf_token' => $postViewCsrf,
@@ -201,6 +211,7 @@ try {
         toy_auth_smoke_assert_status($errors, 'scrap add', $scrapResponse, [302]);
         $scraps = toy_auth_smoke_request($baseUrl, 'GET', '/community/scraps', [], $cookies);
         toy_auth_smoke_assert_status($errors, 'scrap list', $scraps, [200]);
+        toy_auth_smoke_assert_body_contains($errors, 'scrap list', $scraps, $title);
     }
 
     if ($recipientIdentifier !== '') {
