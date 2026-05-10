@@ -700,6 +700,8 @@ if (
     || strpos($communityMessagesHelper, "return \$label;") === false
     || strpos($communityMessageWriteAction, 'toy_community_create_account_notification(') === false
     || strpos($communityMessageWriteAction, 'toy_member_public_account_summary_by_hash($pdo, $config,') === false
+    || strpos($communityMessageWriteAction, "toy_get_string('to',") !== false
+    || strpos($communityMessageWriteAction, "'recipient_identifier' => ''") === false
     || strpos($communityMessageViewAction, 'toy_member_public_account_hash($config, $replyAccountId)') === false
     || strpos($communityMessageWriteView, 'name="recipient_account_id"') !== false
     || strpos($communityMessageWriteView, 'name="recipient_account_hash"') === false
