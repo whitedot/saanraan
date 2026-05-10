@@ -162,6 +162,15 @@ function toy_auth_smoke_report_id_for_post(array $response, int $postId): string
     throw new RuntimeException('admin report list did not contain report for post #' . (string) $postId);
 }
 
+function toy_auth_smoke_first_message_path(array $response): string
+{
+    if (preg_match('/href="([^"]*\/community\/message\?id=[0-9]+)"/', (string) $response['body'], $matches) === 1) {
+        return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
+    }
+
+    throw new RuntimeException('message box did not contain a message view link.');
+}
+
 try {
     toy_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
 
@@ -218,12 +227,19 @@ try {
         $messageForm = toy_auth_smoke_request($baseUrl, 'GET', '/community/message/write', [], $cookies);
         toy_auth_smoke_assert_status($errors, 'message write form', $messageForm, [200]);
         $messageCsrf = toy_auth_smoke_csrf($messageForm, 'message write form');
+        $messageBody = 'Toycore authenticated community message smoke.';
         $messageResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/message/write', [
             'csrf_token' => $messageCsrf,
             'recipient_identifier' => $recipientIdentifier,
-            'body_text' => 'Toycore authenticated community message smoke.',
+            'body_text' => $messageBody,
         ], $cookies);
         toy_auth_smoke_assert_status($errors, 'message write submit', $messageResponse, [302]);
+        $sentMessages = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages?box=sent', [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'sent message box', $sentMessages, [200]);
+        $sentMessagePath = toy_auth_smoke_first_message_path($sentMessages);
+        $sentMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'sent message view', $sentMessageView, [200]);
+        toy_auth_smoke_assert_body_contains($errors, 'sent message view', $sentMessageView, $messageBody);
     } else {
         echo "[skip] message send requires recipient_identifier\n";
     }
