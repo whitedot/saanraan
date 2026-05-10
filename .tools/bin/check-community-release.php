@@ -39,6 +39,26 @@ function toy_community_release_require_list_values(array $actualValues, array $r
     }
 }
 
+function toy_community_release_file_contains(string $path, array $needles, string $label): void
+{
+    if (!is_file($path)) {
+        toy_community_release_error('Required community release file is missing: ' . $path);
+        return;
+    }
+
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        toy_community_release_error('Required community release file cannot be read: ' . $path);
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (!str_contains($content, $needle)) {
+            toy_community_release_error($label . ' must contain: ' . $needle);
+        }
+    }
+}
+
 $module = toy_community_release_array_file('modules/community/module.php');
 $paths = toy_community_release_array_file('modules/community/paths.php');
 $adminMenu = toy_community_release_array_file('modules/community/admin-menu.php');
@@ -128,6 +148,44 @@ foreach ($matches[1] as $tableName) {
     if (!str_starts_with(strtolower((string) $tableName), 'toy_community_')) {
         toy_community_release_error('Community install.sql must only create toy_community_* tables: ' . (string) $tableName);
     }
+}
+
+$memberOnlyActions = [
+    'modules/community/actions/write.php',
+    'modules/community/actions/edit.php',
+    'modules/community/actions/delete.php',
+    'modules/community/actions/comment.php',
+    'modules/community/actions/comment-edit.php',
+    'modules/community/actions/comment-delete.php',
+    'modules/community/actions/report.php',
+    'modules/community/actions/scraps.php',
+    'modules/community/actions/scrap-toggle.php',
+    'modules/community/actions/messages.php',
+    'modules/community/actions/message-view.php',
+    'modules/community/actions/message-write.php',
+    'modules/community/actions/message-delete.php',
+];
+foreach ($memberOnlyActions as $actionPath) {
+    toy_community_release_file_contains($actionPath, ['toy_member_require_login($pdo)'], $actionPath);
+}
+
+$stateChangingActions = [
+    'modules/community/actions/write.php',
+    'modules/community/actions/edit.php',
+    'modules/community/actions/delete.php',
+    'modules/community/actions/comment.php',
+    'modules/community/actions/comment-edit.php',
+    'modules/community/actions/comment-delete.php',
+    'modules/community/actions/report.php',
+    'modules/community/actions/scrap-toggle.php',
+    'modules/community/actions/message-write.php',
+    'modules/community/actions/message-delete.php',
+    'modules/community/actions/admin-boards.php',
+    'modules/community/actions/admin-posts.php',
+    'modules/community/actions/admin-reports.php',
+];
+foreach ($stateChangingActions as $actionPath) {
+    toy_community_release_file_contains($actionPath, ['toy_require_csrf('], $actionPath);
 }
 
 if ($errors !== []) {
