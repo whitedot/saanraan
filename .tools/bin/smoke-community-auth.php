@@ -3,20 +3,41 @@
 
 declare(strict_types=1);
 
-$baseUrl = rtrim((string) ($argv[1] ?? ''), '/');
-$identifier = (string) ($argv[2] ?? '');
-$password = (string) ($argv[3] ?? '');
-$boardKey = (string) ($argv[4] ?? 'free');
-$recipientIdentifier = (string) ($argv[5] ?? '');
-$postId = (int) ($argv[6] ?? 0);
-$reporterIdentifier = (string) ($argv[7] ?? '');
-$reporterPassword = (string) ($argv[8] ?? '');
-$adminIdentifier = (string) ($argv[9] ?? '');
-$adminPassword = (string) ($argv[10] ?? '');
-$recipientPassword = (string) ($argv[11] ?? '');
+function toy_auth_smoke_argument(array $argv, int $index, string $environmentKey, string $default = ''): string
+{
+    $argument = (string) ($argv[$index] ?? '');
+    if ($argument !== '') {
+        return $argument;
+    }
+
+    $environmentValue = getenv($environmentKey);
+    if (is_string($environmentValue) && $environmentValue !== '') {
+        return $environmentValue;
+    }
+
+    return $default;
+}
+
+function toy_auth_smoke_usage(): string
+{
+    return "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password] [recipient_password]\n"
+        . "Env: TOY_SMOKE_BASE_URL TOY_SMOKE_IDENTIFIER TOY_SMOKE_PASSWORD TOY_SMOKE_BOARD_KEY TOY_SMOKE_RECIPIENT_IDENTIFIER TOY_SMOKE_POST_ID TOY_SMOKE_REPORTER_IDENTIFIER TOY_SMOKE_REPORTER_PASSWORD TOY_SMOKE_ADMIN_IDENTIFIER TOY_SMOKE_ADMIN_PASSWORD TOY_SMOKE_RECIPIENT_PASSWORD\n";
+}
+
+$baseUrl = rtrim(toy_auth_smoke_argument($argv, 1, 'TOY_SMOKE_BASE_URL'), '/');
+$identifier = toy_auth_smoke_argument($argv, 2, 'TOY_SMOKE_IDENTIFIER');
+$password = toy_auth_smoke_argument($argv, 3, 'TOY_SMOKE_PASSWORD');
+$boardKey = toy_auth_smoke_argument($argv, 4, 'TOY_SMOKE_BOARD_KEY', 'free');
+$recipientIdentifier = toy_auth_smoke_argument($argv, 5, 'TOY_SMOKE_RECIPIENT_IDENTIFIER');
+$postId = (int) toy_auth_smoke_argument($argv, 6, 'TOY_SMOKE_POST_ID', '0');
+$reporterIdentifier = toy_auth_smoke_argument($argv, 7, 'TOY_SMOKE_REPORTER_IDENTIFIER');
+$reporterPassword = toy_auth_smoke_argument($argv, 8, 'TOY_SMOKE_REPORTER_PASSWORD');
+$adminIdentifier = toy_auth_smoke_argument($argv, 9, 'TOY_SMOKE_ADMIN_IDENTIFIER');
+$adminPassword = toy_auth_smoke_argument($argv, 10, 'TOY_SMOKE_ADMIN_PASSWORD');
+$recipientPassword = toy_auth_smoke_argument($argv, 11, 'TOY_SMOKE_RECIPIENT_PASSWORD');
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '') {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password] [recipient_password]\n");
+    fwrite(STDERR, toy_auth_smoke_usage());
     exit(2);
 }
 
@@ -73,7 +94,11 @@ function toy_auth_smoke_request(string $baseUrl, string $method, string $path, a
         ],
     ]);
 
+    set_error_handler(static function (): bool {
+        return true;
+    });
     $body = file_get_contents(toy_auth_smoke_url($baseUrl, $path), false, $context);
+    restore_error_handler();
     $responseHeaders = $http_response_header ?? [];
     toy_auth_smoke_store_cookies($responseHeaders, $cookies);
 
