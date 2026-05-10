@@ -127,6 +127,10 @@ if ((string) ($module['version'] ?? '') !== '2026.05.001') {
     toy_community_release_error('Community v1 release version must remain 2026.05.001 until update SQL is introduced.');
 }
 
+toy_community_release_file_contains('index.php', [
+    "toy_enabled_module_contract_files(\$pdo, 'paths.php')",
+], 'Front controller route loading');
+
 $requiredPackageEntries = [
     'actions',
     'admin-menu.php',
