@@ -106,6 +106,45 @@ function toy_check_module_contract_files(): void
     }
 }
 
+function toy_check_module_versions_and_updates(): void
+{
+    foreach (toy_check_module_dirs() as $moduleDir) {
+        $moduleFile = $moduleDir . '/module.php';
+        if (!is_file($moduleFile)) {
+            continue;
+        }
+
+        $metadata = include $moduleFile;
+        if (!is_array($metadata)) {
+            toy_check_add_error('Module metadata must return an array: ' . $moduleFile);
+            continue;
+        }
+
+        $moduleVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+        if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $moduleVersion) !== 1) {
+            toy_check_add_error('Module version must use YYYY.MM.NNN format: ' . $moduleFile);
+            continue;
+        }
+
+        $updatesDir = $moduleDir . '/updates';
+        if (!is_dir($updatesDir)) {
+            continue;
+        }
+
+        foreach (toy_check_files($updatesDir, 'sql') as $updateFile) {
+            $updateVersion = pathinfo($updateFile, PATHINFO_FILENAME);
+            if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $updateVersion) !== 1) {
+                toy_check_add_error('Module update SQL filename must use YYYY.MM.NNN.sql format: ' . $updateFile);
+                continue;
+            }
+
+            if (strcmp($updateVersion, $moduleVersion) > 0) {
+                toy_check_add_error('Module update SQL version must not be newer than module.php version: ' . $updateFile);
+            }
+        }
+    }
+}
+
 function toy_check_admin_menu_paths(): void
 {
     foreach (toy_check_module_dirs() as $moduleDir) {
@@ -211,6 +250,7 @@ toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/chec
 toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
 toy_check_sql_files();
 toy_check_module_contract_files();
+toy_check_module_versions_and_updates();
 toy_check_admin_menu_paths();
 toy_check_module_route_conflicts();
 toy_check_php_lint();
