@@ -55,10 +55,19 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인
 /community/message/write 비로그인 접근이 로그인 흐름으로 막히는지 확인
 /community/write?key=free 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/edit?id=1 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/edit 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
+/community/delete 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /community/comment 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
+/community/comment/edit 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
+/community/comment/delete 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /community/report 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /community/scraps 비로그인 접근이 로그인 흐름으로 막히는지 확인
 POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/messages 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/message?id=1 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/message/write 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
+/community/message/delete 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /admin/community/boards 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/community/reports 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
