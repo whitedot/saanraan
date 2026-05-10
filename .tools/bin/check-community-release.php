@@ -605,6 +605,16 @@ toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     "toy_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
 ], 'Community authenticated smoke scrap flow');
 toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    "toy_auth_smoke_request(\$baseUrl, 'GET', '/community/edit?id=' . (string) \$createdPostId, [], \$cookies)",
+    "toy_auth_smoke_assert_status(\$errors, 'post edit form', \$editForm, [200])",
+    "'post_id' => (string) \$createdPostId",
+    "'title' => \$editedTitle",
+    "'body_text' => \$editedBody",
+    "toy_auth_smoke_assert_status(\$errors, 'post edit submit', \$editResponse, [302])",
+    "toy_auth_smoke_assert_body_contains(\$errors, 'edited post view', \$editedPostView, \$editedTitle)",
+    '$title = $editedTitle',
+], 'Community authenticated smoke post edit flow');
+toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     'function toy_auth_smoke_message_id_from_path(string $messagePath): string',
     '$sentMessageId = toy_auth_smoke_message_id_from_path($sentMessagePath)',
     "toy_auth_smoke_request(\$baseUrl, 'POST', '/community/message/delete', [",

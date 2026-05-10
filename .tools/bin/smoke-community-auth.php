@@ -280,6 +280,23 @@ try {
         toy_auth_smoke_assert_status($errors, 'post view', $postView, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'post view', $postView, $title);
         $postViewCsrf = toy_auth_smoke_csrf($postView, 'post view');
+        $editForm = toy_auth_smoke_request($baseUrl, 'GET', '/community/edit?id=' . (string) $createdPostId, [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'post edit form', $editForm, [200]);
+        $editCsrf = toy_auth_smoke_csrf($editForm, 'post edit form');
+        $editedTitle = $title . ' edited';
+        $editedBody = "Toycore authenticated community smoke edited.\nThis post may be removed after verification.";
+        $editResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/edit?id=' . (string) $createdPostId, [
+            'csrf_token' => $editCsrf,
+            'post_id' => (string) $createdPostId,
+            'title' => $editedTitle,
+            'body_text' => $editedBody,
+        ], $cookies);
+        toy_auth_smoke_assert_status($errors, 'post edit submit', $editResponse, [302]);
+        $editedPostView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'edited post view', $editedPostView, [200]);
+        toy_auth_smoke_assert_body_contains($errors, 'edited post view', $editedPostView, $editedTitle);
+        toy_auth_smoke_assert_body_contains($errors, 'edited post view', $editedPostView, 'Toycore authenticated community smoke edited.');
+        $title = $editedTitle;
         $commentResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/comment', [
             'csrf_token' => $postViewCsrf,
             'post_id' => (string) $createdPostId,
