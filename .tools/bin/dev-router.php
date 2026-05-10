@@ -33,4 +33,7 @@ if (
     }
 }
 
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
+
 require $root . '/index.php';

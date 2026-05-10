@@ -180,10 +180,11 @@ function toy_community_update_post_attachments_status(PDO $pdo, int $postId, str
         'UPDATE toy_community_attachments
          SET status = :status
          WHERE post_id = :post_id
-           AND status <> :status'
+           AND status <> :current_status'
     );
     $stmt->execute([
         'status' => $status,
+        'current_status' => $status,
         'post_id' => $postId,
     ]);
 
