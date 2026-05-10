@@ -579,6 +579,24 @@ toy_community_release_file_contains('modules/community/helpers/messages.php', [
     'UPDATE toy_community_messages SET recipient_deleted_at = :deleted_at',
 ], 'Community message helper policy');
 
+toy_community_release_file_contains('modules/community/helpers/notifications.php', [
+    'toy_module_enabled($pdo, \'notification\')',
+    '$helperPath = TOY_ROOT . \'/modules/notification/helpers.php\'',
+    'is_file($helperPath)',
+    'require_once $helperPath',
+    'function_exists(\'toy_notification_create\')',
+    'try {',
+    'toy_notification_create($pdo, [',
+    "'audience' => 'account'",
+    "'channels' => ['site']",
+    'toy_log_exception($exception, \'community_notification_create\')',
+    'toy_admin_account_roles',
+    "r.role_key IN ('owner', 'admin', 'manager')",
+    "a.status = 'active'",
+    'toy_community_notification_admin_account_ids($pdo)',
+    "'/admin/community/reports'",
+], 'Community notification optional integration');
+
 toy_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
