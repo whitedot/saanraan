@@ -604,6 +604,15 @@ toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     "toy_auth_smoke_assert_status(\$errors, 'scrap remove', \$scrapRemoveResponse, [302])",
     "toy_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
 ], 'Community authenticated smoke scrap flow');
+toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'function toy_auth_smoke_comment_id_for_body(array $response, string $commentBody): string',
+    'admin comment list did not contain comment body',
+    "'intent' => 'comment_status'",
+    "'comment_id' => \$commentId",
+    "'status' => 'hidden'",
+    "toy_auth_smoke_assert_status(\$errors, 'admin comment hide', \$commentHideResponse, [200])",
+    "toy_auth_smoke_assert_body_not_contains(\$errors, 'post view after comment hide', \$postAfterCommentHide, \$commentBody)",
+], 'Community authenticated smoke admin comment flow');
 
 toy_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',

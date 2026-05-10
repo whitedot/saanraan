@@ -128,7 +128,7 @@ php .tools/bin/smoke-community-auth.php
 수신자 계정 지정 시 쪽지 발송과 보낸 쪽지 본문 확인
 수신자 비밀번호 지정 시 수신자 로그인 후 받은 쪽지 본문 확인
 신고자 계정 지정 시 작성된 게시글 신고 확인
-관리자 계정 지정 시 신고 처리, 게시글 숨김, 숨김 게시글 404 응답 확인
+관리자 계정 지정 시 신고 처리, 댓글 숨김과 댓글 미노출, 게시글 숨김, 숨김 게시글 404 응답 확인
 ```
 
 `TOY_SMOKE_RECIPIENT_PASSWORD`는 `TOY_SMOKE_RECIPIENT_IDENTIFIER`가 있을 때만 사용할 수 있다. 신고자와 관리자 계정은 identifier/password를 함께 지정해야 한다. 게시판 키를 바꿔야 하면 `TOY_SMOKE_BOARD_KEY`를 사용하고, 기존 게시글 ID를 보조값으로 넘겨야 하면 `TOY_SMOKE_POST_ID`를 사용한다.

@@ -229,6 +229,17 @@ function toy_auth_smoke_first_message_path(array $response): string
     throw new RuntimeException('message box did not contain a message view link.');
 }
 
+function toy_auth_smoke_comment_id_for_body(array $response, string $commentBody): string
+{
+    $body = (string) $response['body'];
+    $quotedBody = preg_quote($commentBody, '/');
+    if (preg_match('/<tr\b[^>]*>.*?' . $quotedBody . '.*?name="comment_id"\s+value="([1-9][0-9]*)".*?<\/tr>/s', $body, $matches) === 1) {
+        return (string) $matches[1];
+    }
+
+    throw new RuntimeException('admin comment list did not contain comment body: ' . $commentBody);
+}
+
 try {
     toy_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
 
@@ -255,11 +266,11 @@ try {
     if ($createdPostId < 1) {
         $errors[] = 'post write submit did not expose a post id redirect.';
     } else {
+        $commentBody = 'Toycore authenticated community comment smoke.';
         $postView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'post view', $postView, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'post view', $postView, $title);
         $postViewCsrf = toy_auth_smoke_csrf($postView, 'post view');
-        $commentBody = 'Toycore authenticated community comment smoke.';
         $commentResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/comment', [
             'csrf_token' => $postViewCsrf,
             'post_id' => (string) $createdPostId,
@@ -370,6 +381,20 @@ try {
         $adminPosts = toy_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
         toy_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
         $adminPostCsrf = toy_auth_smoke_csrf($adminPosts, 'admin post list');
+        if (isset($commentBody) && is_string($commentBody) && $commentBody !== '') {
+            $commentId = toy_auth_smoke_comment_id_for_body($adminPosts, $commentBody);
+            $commentHideResponse = toy_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
+                'csrf_token' => $adminPostCsrf,
+                'intent' => 'comment_status',
+                'comment_id' => $commentId,
+                'status' => 'hidden',
+            ], $adminCookies);
+            toy_auth_smoke_assert_status($errors, 'admin comment hide', $commentHideResponse, [200]);
+            $postAfterCommentHide = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
+            toy_auth_smoke_assert_status($errors, 'post view after comment hide', $postAfterCommentHide, [200]);
+            toy_auth_smoke_assert_body_not_contains($errors, 'post view after comment hide', $postAfterCommentHide, $commentBody);
+        }
+
         $postHideResponse = toy_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
             'csrf_token' => $adminPostCsrf,
             'intent' => 'post_status',
