@@ -84,6 +84,36 @@ function toy_community_release_files(string $directory, array $extensions): arra
     return $files;
 }
 
+function toy_community_release_package_entries(string $directory): array
+{
+    $entries = [];
+    foreach (new DirectoryIterator($directory) as $entry) {
+        if ($entry->isDot()) {
+            continue;
+        }
+
+        $entries[] = $entry->getFilename();
+    }
+
+    sort($entries, SORT_STRING);
+    return $entries;
+}
+
+function toy_community_release_directory_is_empty(string $directory): bool
+{
+    if (!is_dir($directory)) {
+        return true;
+    }
+
+    foreach (new DirectoryIterator($directory) as $entry) {
+        if (!$entry->isDot()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 $module = toy_community_release_array_file('modules/community/module.php');
 $paths = toy_community_release_array_file('modules/community/paths.php');
 $adminMenu = toy_community_release_array_file('modules/community/admin-menu.php');
@@ -95,6 +125,49 @@ $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
 if ((string) ($module['version'] ?? '') !== '2026.05.001') {
     toy_community_release_error('Community v1 release version must remain 2026.05.001 until update SQL is introduced.');
+}
+
+$requiredPackageEntries = [
+    'actions',
+    'admin-menu.php',
+    'extension-points.php',
+    'helpers',
+    'helpers.php',
+    'install.sql',
+    'member-group-rules.php',
+    'menu-links.php',
+    'module.php',
+    'paths.php',
+    'privacy-export.php',
+    'sitemap.php',
+    'skins',
+    'themes',
+    'views',
+];
+$allowedPackageEntries = array_merge($requiredPackageEntries, [
+    'lang',
+    'updates',
+]);
+$packageEntries = toy_community_release_package_entries('modules/community');
+toy_community_release_require_list_values($packageEntries, $requiredPackageEntries, 'Community package structure');
+foreach ($packageEntries as $entry) {
+    if (!in_array($entry, $allowedPackageEntries, true)) {
+        toy_community_release_error('Community v1 package must not include unexpected top-level entry: modules/community/' . $entry);
+    }
+}
+
+if (!toy_community_release_directory_is_empty('modules/community/lang')) {
+    toy_community_release_error('Community v1 package must not include lang files before translation support is introduced.');
+}
+
+if (!toy_community_release_directory_is_empty('modules/community/updates')) {
+    toy_community_release_error('Community v1 package must not include update files while version remains 2026.05.001.');
+}
+
+foreach (['actions', 'helpers', 'skins', 'themes', 'views'] as $requiredDirectory) {
+    if (!is_dir('modules/community/' . $requiredDirectory)) {
+        toy_community_release_error('Community package directory is missing: modules/community/' . $requiredDirectory);
+    }
 }
 
 $requiredContracts = [
