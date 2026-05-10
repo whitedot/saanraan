@@ -243,9 +243,22 @@ toy_community_release_require_list_values($adminMenuPaths, [
 
 $menuLinkUrls = [];
 foreach ($menuLinks as $entry) {
-    if (is_array($entry) && is_string($entry['url'] ?? null)) {
-        $menuLinkUrls[] = (string) $entry['url'];
+    if (!is_array($entry)) {
+        toy_community_release_error('Community menu-links.php entries must be arrays.');
+        continue;
     }
+
+    $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
+    $url = is_string($entry['url'] ?? null) ? (string) $entry['url'] : '';
+    if ($label === '' || $url === '') {
+        toy_community_release_error('Community menu-links.php entries must include label and url.');
+        continue;
+    }
+    if ($url[0] !== '/' && preg_match('#\Ahttps?://#', $url) !== 1) {
+        toy_community_release_error('Community menu-links.php url must be an internal path or http(s) URL: ' . $url);
+    }
+
+    $menuLinkUrls[] = $url;
 }
 toy_community_release_require_list_values($menuLinkUrls, [
     '/community',
@@ -255,9 +268,33 @@ toy_community_release_require_list_values($menuLinkUrls, [
 
 $pointKeys = [];
 foreach ($extensionPoints as $entry) {
-    if (is_array($entry) && is_string($entry['point_key'] ?? null) && isset($entry['slots']) && is_array($entry['slots'])) {
-        $pointKeys[] = (string) $entry['point_key'];
+    if (!is_array($entry)) {
+        toy_community_release_error('Community extension-points.php entries must be arrays.');
+        continue;
     }
+
+    $pointKey = is_string($entry['point_key'] ?? null) ? (string) $entry['point_key'] : '';
+    $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
+    if ($pointKey === '' || $label === '') {
+        toy_community_release_error('Community extension-points.php entries must include point_key and label.');
+        continue;
+    }
+    if (!isset($entry['slots']) || !is_array($entry['slots']) || $entry['slots'] === []) {
+        toy_community_release_error('Community extension-points.php entries must include non-empty slots: ' . $pointKey);
+        continue;
+    }
+
+    foreach ($entry['slots'] as $slot) {
+        if (!is_array($slot) || !is_string($slot['slot_key'] ?? null) || trim((string) $slot['slot_key']) === '') {
+            toy_community_release_error('Community extension-points.php slots must include slot_key: ' . $pointKey);
+            continue;
+        }
+        if (!is_string($slot['kind'] ?? null) || (string) $slot['kind'] !== 'content') {
+            toy_community_release_error('Community extension-points.php slots must use content kind: ' . $pointKey . ' ' . (string) $slot['slot_key']);
+        }
+    }
+
+    $pointKeys[] = $pointKey;
 }
 toy_community_release_require_list_values($pointKeys, [
     'community.home',
@@ -306,9 +343,29 @@ if (str_contains($privacyExportContent, 'checksum_sha256')) {
 
 $memberGroupRuleKeys = [];
 foreach ($memberGroupRules as $entry) {
-    if (is_array($entry) && is_string($entry['rule_key'] ?? null) && is_string($entry['evaluator'] ?? null)) {
-        $memberGroupRuleKeys[] = (string) $entry['rule_key'];
+    if (!is_array($entry)) {
+        toy_community_release_error('Community member-group-rules.php entries must be arrays.');
+        continue;
     }
+
+    $ruleKey = is_string($entry['rule_key'] ?? null) ? (string) $entry['rule_key'] : '';
+    $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
+    $evaluator = is_string($entry['evaluator'] ?? null) ? (string) $entry['evaluator'] : '';
+    if ($ruleKey === '' || $label === '' || $evaluator === '') {
+        toy_community_release_error('Community member-group-rules.php entries must include rule_key, label, and evaluator.');
+        continue;
+    }
+    if (!str_starts_with($ruleKey, 'community.')) {
+        toy_community_release_error('Community member-group-rules.php rule_key must start with community.: ' . $ruleKey);
+    }
+    if (!function_exists($evaluator)) {
+        toy_community_release_error('Community member-group-rules.php evaluator must exist: ' . $evaluator);
+    }
+    if (!isset($entry['params']) || !is_array($entry['params']) || $entry['params'] === []) {
+        toy_community_release_error('Community member-group-rules.php entries must include non-empty params: ' . $ruleKey);
+    }
+
+    $memberGroupRuleKeys[] = $ruleKey;
 }
 toy_community_release_require_list_values($memberGroupRuleKeys, [
     'community.board.post_count_at_least',
