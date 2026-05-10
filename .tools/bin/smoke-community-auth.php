@@ -139,13 +139,20 @@ function toy_auth_smoke_login(string $baseUrl, string $identifier, string $passw
     toy_auth_smoke_assert_status($errors, $label . ' login submit', $loginResponse, [302]);
 }
 
-function toy_auth_smoke_first_hidden_value(array $response, string $fieldName, string $label): string
+function toy_auth_smoke_report_id_for_post(array $response, int $postId): string
 {
-    if (preg_match('/name="' . preg_quote($fieldName, '/') . '"\s+value="([^"]+)"/', (string) $response['body'], $matches) === 1) {
-        return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
+    $body = (string) $response['body'];
+    if (preg_match_all('/<tr>.*?<\/tr>/s', $body, $rows) !== false) {
+        foreach ($rows[0] as $row) {
+            if (str_contains((string) $row, 'post #' . (string) $postId)
+                && preg_match('/name="report_id"\s+value="([^"]+)"/', (string) $row, $matches) === 1
+            ) {
+                return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
+            }
+        }
     }
 
-    throw new RuntimeException($label . ' hidden field not found: ' . $fieldName);
+    throw new RuntimeException('admin report list did not contain report for post #' . (string) $postId);
 }
 
 try {
@@ -237,7 +244,7 @@ try {
             $adminReports = toy_auth_smoke_request($baseUrl, 'GET', '/admin/community/reports', [], $adminCookies);
             toy_auth_smoke_assert_status($errors, 'admin report list', $adminReports, [200]);
             $adminReportCsrf = toy_auth_smoke_csrf($adminReports, 'admin report list');
-            $reportId = toy_auth_smoke_first_hidden_value($adminReports, 'report_id', 'admin report list');
+            $reportId = toy_auth_smoke_report_id_for_post($adminReports, $createdPostId);
             $reportReviewResponse = toy_auth_smoke_request($baseUrl, 'POST', '/admin/community/reports', [
                 'csrf_token' => $adminReportCsrf,
                 'report_id' => $reportId,
