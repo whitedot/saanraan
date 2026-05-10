@@ -28,7 +28,7 @@
 | 쪽지 본문 최소 조회 | 구현됨 | 쪽지 목록, 신고 대상 확인, 삭제 처리에서 본문을 조회하지 않는 helper를 사용 |
 | 회원 id 비노출 | 구현됨 | 쪽지 발송/답장 URL은 공개용 회원 해시를 쓰고, 공개/신고/관리자 회원 라벨은 숫자 id를 붙이지 않음 |
 | 공개 회원 해시 역조회 | 구현됨 | DB 스키마 확장 없이 요청 단위 해시 map 캐시로 반복 역조회 비용을 줄임 |
-| 릴리스 준비 | 진행 중 | `php .tools/bin/check.php`는 모듈 버전/update SQL 정책을 확인하고, HTTP smoke에 커뮤니티 public/admin 진입점과 내부 파일 보호 점검이 포함됨 |
+| 릴리스 준비 | 진행 중 | `php .tools/bin/check.php`는 계약 파일 존재와 모듈 버전/update SQL 정책을 확인하고, HTTP smoke에 커뮤니티 public/admin 진입점과 내부 파일 보호 점검이 포함됨 |
 
 현재 남은 우선순위:
 
@@ -1405,6 +1405,7 @@ v1 최초 버전:
 - 파일만 바뀐 업데이트는 필요 시 `/admin/modules`의 version sync 흐름을 사용한다.
 - 모듈 계약이 바뀌지 않으면 `TOY_MODULE_CONTRACT_VERSION`을 올리지 않는다.
 - `.tools/bin/check.php`는 모듈 `version` 형식과 `updates/*.sql` 파일명/버전 관계를 검사한다.
+- `.tools/bin/check.php`는 `contracts.provides`에 선언한 계약 파일이 실제로 있는지도 검사한다.
 
 예상 후속 버전 후보:
 

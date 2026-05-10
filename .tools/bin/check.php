@@ -92,7 +92,8 @@ function toy_check_sql_files(): void
 function toy_check_module_contract_files(): void
 {
     foreach (toy_check_module_dirs() as $moduleDir) {
-        if (!is_file($moduleDir . '/module.php')) {
+        $moduleFile = $moduleDir . '/module.php';
+        if (!is_file($moduleFile)) {
             continue;
         }
 
@@ -102,6 +103,27 @@ function toy_check_module_contract_files(): void
 
         if (is_file($moduleDir . '/admin-menu.php') && !is_file($moduleDir . '/paths.php')) {
             toy_check_add_error('Module paths.php is required with admin-menu.php: ' . $moduleDir);
+        }
+
+        $metadata = include $moduleFile;
+        if (!is_array($metadata)) {
+            toy_check_add_error('Module metadata must return an array: ' . $moduleFile);
+            continue;
+        }
+
+        $provides = isset($metadata['contracts']['provides']) && is_array($metadata['contracts']['provides'])
+            ? $metadata['contracts']['provides']
+            : [];
+        foreach ($provides as $contractFile) {
+            $contractFile = is_string($contractFile) ? $contractFile : '';
+            if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1) {
+                toy_check_add_error('Module contracts.provides entry is invalid: ' . $moduleFile . ' ' . $contractFile);
+                continue;
+            }
+
+            if (!is_file($moduleDir . '/' . $contractFile)) {
+                toy_check_add_error('Module declared contract file is missing: ' . $moduleDir . '/' . $contractFile);
+            }
         }
     }
 }
