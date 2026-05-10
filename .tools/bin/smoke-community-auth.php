@@ -13,9 +13,10 @@ $reporterIdentifier = (string) ($argv[7] ?? '');
 $reporterPassword = (string) ($argv[8] ?? '');
 $adminIdentifier = (string) ($argv[9] ?? '');
 $adminPassword = (string) ($argv[10] ?? '');
+$recipientPassword = (string) ($argv[11] ?? '');
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '') {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password] [recipient_password]\n");
     exit(2);
 }
 
@@ -240,6 +241,18 @@ try {
         $sentMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'sent message view', $sentMessageView, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'sent message view', $sentMessageView, $messageBody);
+        if ($recipientPassword !== '') {
+            $recipientCookies = [];
+            toy_auth_smoke_login($baseUrl, $recipientIdentifier, $recipientPassword, $recipientCookies, $errors, 'message recipient account');
+            $inboxMessages = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $recipientCookies);
+            toy_auth_smoke_assert_status($errors, 'recipient message box', $inboxMessages, [200]);
+            $inboxMessagePath = toy_auth_smoke_first_message_path($inboxMessages);
+            $inboxMessageView = toy_auth_smoke_request($baseUrl, 'GET', $inboxMessagePath, [], $recipientCookies);
+            toy_auth_smoke_assert_status($errors, 'recipient message view', $inboxMessageView, [200]);
+            toy_auth_smoke_assert_body_contains($errors, 'recipient message view', $inboxMessageView, $messageBody);
+        } else {
+            echo "[skip] message receive requires recipient_password\n";
+        }
     } else {
         echo "[skip] message send requires recipient_identifier\n";
     }
