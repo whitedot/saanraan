@@ -222,6 +222,12 @@ $requiredRoutes = [
     'POST /admin/community/reports',
 ];
 toy_community_release_require_list_values(array_keys($paths), $requiredRoutes, 'Community paths.php');
+foreach ($requiredRoutes as $route) {
+    $actionPath = (string) ($paths[$route] ?? '');
+    if (preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $actionPath) !== 1 || !is_file('modules/community/' . $actionPath)) {
+        toy_community_release_error('Community paths.php route must map to an existing action file: ' . $route);
+    }
+}
 
 $adminMenuPaths = [];
 foreach ($adminMenu as $entry) {
