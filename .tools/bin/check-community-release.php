@@ -258,6 +258,30 @@ if (!is_callable($sitemap)) {
     toy_community_release_error('Community sitemap.php must return a callable.');
 }
 
+toy_community_release_file_contains('modules/community/sitemap.php', [
+    "WHERE status = 'enabled'",
+    "AND read_policy = 'public'",
+    "WHERE p.status = 'published'",
+    "AND b.status = 'enabled'",
+    "AND b.read_policy = 'public'",
+    "'loc' => '/community/board?key='",
+    "'loc' => '/community/post?id='",
+], 'Community sitemap.php');
+
+toy_community_release_file_contains('modules/community/privacy-export.php', [
+    "'posts' => []",
+    "'comments' => []",
+    "'attachments' => []",
+    "'reports' => []",
+    "'messages' => []",
+    "'scraps' => []",
+    'WHERE author_account_id = :account_id',
+    'WHERE uploader_account_id = :account_id',
+    'WHERE reporter_account_id = :account_id',
+    'WHERE sender_account_id = :account_id OR recipient_account_id = :account_id',
+    'WHERE account_id = :account_id',
+], 'Community privacy-export.php');
+
 $memberGroupRuleKeys = [];
 foreach ($memberGroupRules as $entry) {
     if (is_array($entry) && is_string($entry['rule_key'] ?? null) && is_string($entry['evaluator'] ?? null)) {
