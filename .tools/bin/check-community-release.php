@@ -542,6 +542,42 @@ $messageWriteContent = is_file('modules/community/actions/message-write.php') ? 
 if (str_contains($messageWriteContent, "toy_get_string('to',")) {
     toy_community_release_error('Community message write must not accept recipient identifier from GET to parameter; use to_account public hash.');
 }
+toy_community_release_file_contains('modules/community/actions/scrap-toggle.php', [
+    'toy_community_remove_scrap($pdo, (int) $account[\'id\'], $postId)',
+    'toy_community_post_for_read($pdo, $postId, $account)',
+    'toy_community_add_scrap($pdo, (int) $account[\'id\'], $postId)',
+    "'event_type' => 'community.scrap.added'",
+    "'event_type' => 'community.scrap.removed'",
+], 'Community scrap action policy');
+toy_community_release_file_contains('modules/community/helpers/scraps.php', [
+    'INSERT IGNORE INTO toy_community_scraps',
+    'WHERE s.account_id = :account_id',
+    '$scrap[\'can_view\'] = (string) ($scrap[\'post_status\'] ?? \'\') === \'published\'',
+    'toy_community_account_can_read_board($pdo, $board, $account)',
+], 'Community scrap helper policy');
+toy_community_release_file_contains('modules/community/actions/message-write.php', [
+    'toy_member_public_account_summary_by_hash($pdo, $config, (string) $values[\'recipient_account_hash\'])',
+    'toy_member_find_by_identifier($pdo, $config, (string) $values[\'recipient_identifier\'])',
+    '(int) $recipient[\'id\'] === (int) $account[\'id\']',
+    'toy_community_message_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_record_message_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    "'event_type' => 'community.message.sent'",
+    'toy_community_create_account_notification(',
+], 'Community message write policy');
+toy_community_release_file_contains('modules/community/actions/message-delete.php', [
+    'toy_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])',
+    'toy_community_soft_delete_message($pdo, $message, (int) $account[\'id\'])',
+    "'event_type' => 'community.message.deleted_by_account'",
+], 'Community message delete policy');
+toy_community_release_file_contains('modules/community/helpers/messages.php', [
+    'recipient_account_hash',
+    'toy_member_public_account_hash_is_valid($recipientAccountHash)',
+    'toy_post_string_without_truncation(\'body_text\', 5000)',
+    'toy_rate_limit_count($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
+    'toy_rate_limit_increment($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
+    'UPDATE toy_community_messages SET sender_deleted_at = :deleted_at',
+    'UPDATE toy_community_messages SET recipient_deleted_at = :deleted_at',
+], 'Community message helper policy');
 
 $stateChangingActions = [
     'modules/community/actions/write.php',
