@@ -105,6 +105,15 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'sitemap endpoint',
+        'path' => '/sitemap.xml',
+        'allowed_statuses' => [200, 404],
+        'must_contain_by_status' => [
+            200 => ['<urlset', '</urlset>'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'stylesheet',
         'path' => '/assets/toycore.css',
         'allowed_statuses' => [200],
@@ -251,6 +260,15 @@ foreach ($checks as $check) {
     foreach ($check['must_contain'] ?? [] as $needle) {
         if (!str_contains($body, (string) $needle)) {
             $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
+        }
+    }
+
+    $statusSpecificNeedles = isset($check['must_contain_by_status'][$status]) && is_array($check['must_contain_by_status'][$status])
+        ? $check['must_contain_by_status'][$status]
+        : [];
+    foreach ($statusSpecificNeedles as $needle) {
+        if (!str_contains($body, (string) $needle)) {
+            $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for HTTP ' . (string) $status . ' ' . $url;
         }
     }
 
