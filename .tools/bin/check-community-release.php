@@ -605,6 +605,15 @@ toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     "toy_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
 ], 'Community authenticated smoke scrap flow');
 toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'function toy_auth_smoke_message_id_from_path(string $messagePath): string',
+    '$sentMessageId = toy_auth_smoke_message_id_from_path($sentMessagePath)',
+    "toy_auth_smoke_request(\$baseUrl, 'POST', '/community/message/delete', [",
+    "'message_id' => \$sentMessageId",
+    "toy_auth_smoke_assert_status(\$errors, 'sent message delete', \$messageDeleteResponse, [302])",
+    "toy_auth_smoke_assert_body_not_contains(\$errors, 'sent message box after delete', \$sentMessagesAfterDelete, \$sentMessagePath)",
+    "toy_auth_smoke_assert_status(\$errors, 'deleted sent message view', \$deletedSentMessageView, [404])",
+], 'Community authenticated smoke message delete flow');
+toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     'function toy_auth_smoke_comment_id_for_body(array $response, string $commentBody): string',
     'admin comment list did not contain comment body',
     "'intent' => 'comment_status'",

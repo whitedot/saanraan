@@ -229,6 +229,15 @@ function toy_auth_smoke_first_message_path(array $response): string
     throw new RuntimeException('message box did not contain a message view link.');
 }
 
+function toy_auth_smoke_message_id_from_path(string $messagePath): string
+{
+    if (preg_match('/[?&]id=([1-9][0-9]*)/', $messagePath, $matches) === 1) {
+        return (string) $matches[1];
+    }
+
+    throw new RuntimeException('message view path did not contain a message id: ' . $messagePath);
+}
+
 function toy_auth_smoke_comment_id_for_body(array $response, string $commentBody): string
 {
     $body = (string) $response['body'];
@@ -317,6 +326,7 @@ try {
         $sentMessages = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages?box=sent', [], $cookies);
         toy_auth_smoke_assert_status($errors, 'sent message box', $sentMessages, [200]);
         $sentMessagePath = toy_auth_smoke_first_message_path($sentMessages);
+        $sentMessageId = toy_auth_smoke_message_id_from_path($sentMessagePath);
         $sentMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'sent message view', $sentMessageView, [200]);
         toy_auth_smoke_assert_body_contains($errors, 'sent message view', $sentMessageView, $messageBody);
@@ -335,6 +345,17 @@ try {
         } else {
             echo "[skip] message receive requires recipient_password\n";
         }
+        $messageDeleteCsrf = toy_auth_smoke_csrf($sentMessageView, 'sent message view');
+        $messageDeleteResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/message/delete', [
+            'csrf_token' => $messageDeleteCsrf,
+            'message_id' => $sentMessageId,
+        ], $cookies);
+        toy_auth_smoke_assert_status($errors, 'sent message delete', $messageDeleteResponse, [302]);
+        $sentMessagesAfterDelete = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages?box=sent', [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'sent message box after delete', $sentMessagesAfterDelete, [200]);
+        toy_auth_smoke_assert_body_not_contains($errors, 'sent message box after delete', $sentMessagesAfterDelete, $sentMessagePath);
+        $deletedSentMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'deleted sent message view', $deletedSentMessageView, [404]);
     } else {
         echo "[skip] message send requires recipient_identifier\n";
     }
