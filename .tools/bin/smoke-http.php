@@ -35,6 +35,24 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community entry',
+        'path' => '/community',
+        'allowed_statuses' => [200, 302, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community default board entry',
+        'path' => '/community/board?key=free',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community message write entry',
+        'path' => '/community/message/write',
+        'allowed_statuses' => [200, 302, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'stylesheet',
         'path' => '/assets/toycore.css',
         'allowed_statuses' => [200],
