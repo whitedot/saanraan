@@ -11,9 +11,11 @@ $recipientIdentifier = (string) ($argv[5] ?? '');
 $postId = (int) ($argv[6] ?? 0);
 $reporterIdentifier = (string) ($argv[7] ?? '');
 $reporterPassword = (string) ($argv[8] ?? '');
+$adminIdentifier = (string) ($argv[9] ?? '');
+$adminPassword = (string) ($argv[10] ?? '');
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '') {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password]\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password]\n");
     exit(2);
 }
 
@@ -137,6 +139,15 @@ function toy_auth_smoke_login(string $baseUrl, string $identifier, string $passw
     toy_auth_smoke_assert_status($errors, $label . ' login submit', $loginResponse, [302]);
 }
 
+function toy_auth_smoke_first_hidden_value(array $response, string $fieldName, string $label): string
+{
+    if (preg_match('/name="' . preg_quote($fieldName, '/') . '"\s+value="([^"]+)"/', (string) $response['body'], $matches) === 1) {
+        return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
+    }
+
+    throw new RuntimeException($label . ' hidden field not found: ' . $fieldName);
+}
+
 try {
     toy_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
 
@@ -199,6 +210,7 @@ try {
         echo "[skip] message send requires recipient_identifier\n";
     }
 
+    $reportedPost = false;
     if ($createdPostId > 0 && $reporterIdentifier !== '' && $reporterPassword !== '') {
         $reporterCookies = [];
         toy_auth_smoke_login($baseUrl, $reporterIdentifier, $reporterPassword, $reporterCookies, $errors, 'reporter account');
@@ -213,8 +225,46 @@ try {
             'memo_text' => 'Toycore authenticated community report smoke.',
         ], $reporterCookies);
         toy_auth_smoke_assert_status($errors, 'post report submit', $reportResponse, [302]);
+        $reportedPost = true;
     } else {
         echo "[skip] post report requires reporter_identifier and reporter_password\n";
+    }
+
+    if ($createdPostId > 0 && $adminIdentifier !== '' && $adminPassword !== '') {
+        $adminCookies = [];
+        toy_auth_smoke_login($baseUrl, $adminIdentifier, $adminPassword, $adminCookies, $errors, 'admin account');
+        if ($reportedPost) {
+            $adminReports = toy_auth_smoke_request($baseUrl, 'GET', '/admin/community/reports', [], $adminCookies);
+            toy_auth_smoke_assert_status($errors, 'admin report list', $adminReports, [200]);
+            $adminReportCsrf = toy_auth_smoke_csrf($adminReports, 'admin report list');
+            $reportId = toy_auth_smoke_first_hidden_value($adminReports, 'report_id', 'admin report list');
+            $reportReviewResponse = toy_auth_smoke_request($baseUrl, 'POST', '/admin/community/reports', [
+                'csrf_token' => $adminReportCsrf,
+                'report_id' => $reportId,
+                'status' => 'resolved',
+                'review_note' => 'Toycore authenticated community admin report smoke.',
+            ], $adminCookies);
+            toy_auth_smoke_assert_status($errors, 'admin report resolve', $reportReviewResponse, [200]);
+        } else {
+            echo "[skip] admin report resolve requires reporter credentials\n";
+        }
+
+        $adminPosts = toy_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
+        toy_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
+        $adminPostCsrf = toy_auth_smoke_csrf($adminPosts, 'admin post list');
+        $postHideResponse = toy_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
+            'csrf_token' => $adminPostCsrf,
+            'intent' => 'post_status',
+            'post_id' => (string) $createdPostId,
+            'status' => 'hidden',
+        ], $adminCookies);
+        toy_auth_smoke_assert_status($errors, 'admin post hide', $postHideResponse, [200]);
+
+        $viewerCookies = isset($reporterCookies) && is_array($reporterCookies) ? $reporterCookies : [];
+        $publicPostAfterHide = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $viewerCookies);
+        toy_auth_smoke_assert_status($errors, 'hidden post public view', $publicPostAfterHide, [404]);
+    } else {
+        echo "[skip] admin moderation requires admin_identifier and admin_password\n";
     }
 } catch (Throwable $exception) {
     $errors[] = $exception->getMessage();
