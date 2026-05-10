@@ -41,6 +41,24 @@ if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier ===
     exit(2);
 }
 
+$configurationErrors = [];
+if (($reporterIdentifier === '') !== ($reporterPassword === '')) {
+    $configurationErrors[] = 'reporter_identifier and reporter_password must be provided together.';
+}
+if (($adminIdentifier === '') !== ($adminPassword === '')) {
+    $configurationErrors[] = 'admin_identifier and admin_password must be provided together.';
+}
+if ($recipientPassword !== '' && $recipientIdentifier === '') {
+    $configurationErrors[] = 'recipient_password requires recipient_identifier.';
+}
+if ($configurationErrors !== []) {
+    fwrite(STDERR, "toycore authenticated community smoke configuration failed:\n");
+    foreach ($configurationErrors as $error) {
+        fwrite(STDERR, '- ' . $error . "\n");
+    }
+    exit(2);
+}
+
 $cookies = [];
 $errors = [];
 
