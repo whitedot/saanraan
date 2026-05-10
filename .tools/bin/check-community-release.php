@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
+define('TOY_ROOT', $root);
 chdir($root);
 
 $errors = [];
@@ -28,6 +29,16 @@ function toy_community_release_array_file(string $path): array
     }
 
     return $value;
+}
+
+function toy_community_release_value_file(string $path): mixed
+{
+    if (!is_file($path)) {
+        toy_community_release_error('Required community release file is missing: ' . $path);
+        return null;
+    }
+
+    return include $path;
 }
 
 function toy_community_release_require_list_values(array $actualValues, array $requiredValues, string $label): void
@@ -62,6 +73,11 @@ function toy_community_release_file_contains(string $path, array $needles, strin
 $module = toy_community_release_array_file('modules/community/module.php');
 $paths = toy_community_release_array_file('modules/community/paths.php');
 $adminMenu = toy_community_release_array_file('modules/community/admin-menu.php');
+$menuLinks = toy_community_release_array_file('modules/community/menu-links.php');
+$extensionPoints = toy_community_release_array_file('modules/community/extension-points.php');
+$memberGroupRules = toy_community_release_array_file('modules/community/member-group-rules.php');
+$privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
+$sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
 if ((string) ($module['version'] ?? '') !== '2026.05.001') {
     toy_community_release_error('Community v1 release version must remain 2026.05.001 until update SQL is introduced.');
@@ -121,6 +137,49 @@ toy_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/reports',
     '/admin/community/posts',
 ], 'Community admin-menu.php');
+
+$menuLinkUrls = [];
+foreach ($menuLinks as $entry) {
+    if (is_array($entry) && is_string($entry['url'] ?? null)) {
+        $menuLinkUrls[] = (string) $entry['url'];
+    }
+}
+toy_community_release_require_list_values($menuLinkUrls, [
+    '/community',
+    '/community/scraps',
+    '/community/messages',
+], 'Community menu-links.php');
+
+$pointKeys = [];
+foreach ($extensionPoints as $entry) {
+    if (is_array($entry) && is_string($entry['point_key'] ?? null) && isset($entry['slots']) && is_array($entry['slots'])) {
+        $pointKeys[] = (string) $entry['point_key'];
+    }
+}
+toy_community_release_require_list_values($pointKeys, [
+    'community.home',
+    'community.board.list',
+    'community.post.view',
+    'community.post.form',
+], 'Community extension-points.php');
+
+if (!is_callable($privacyExport)) {
+    toy_community_release_error('Community privacy-export.php must return a callable.');
+}
+
+if (!is_callable($sitemap)) {
+    toy_community_release_error('Community sitemap.php must return a callable.');
+}
+
+$memberGroupRuleKeys = [];
+foreach ($memberGroupRules as $entry) {
+    if (is_array($entry) && is_string($entry['rule_key'] ?? null) && is_string($entry['evaluator'] ?? null)) {
+        $memberGroupRuleKeys[] = (string) $entry['rule_key'];
+    }
+}
+toy_community_release_require_list_values($memberGroupRuleKeys, [
+    'community.board.post_count_at_least',
+], 'Community member-group-rules.php');
 
 $installSql = is_file('modules/community/install.sql') ? (string) file_get_contents('modules/community/install.sql') : '';
 if ($installSql === '') {
