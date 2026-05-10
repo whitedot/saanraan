@@ -158,9 +158,18 @@ try {
     } else {
         $postView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
         toy_auth_smoke_assert_status($errors, 'post view', $postView, [200]);
-        $scrapCsrf = toy_auth_smoke_csrf($postView, 'post view');
+        $postViewCsrf = toy_auth_smoke_csrf($postView, 'post view');
+        $commentResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/comment', [
+            'csrf_token' => $postViewCsrf,
+            'post_id' => (string) $createdPostId,
+            'body_text' => 'Toycore authenticated community comment smoke.',
+        ], $cookies);
+        toy_auth_smoke_assert_status($errors, 'comment write submit', $commentResponse, [302]);
+        $commentedPostView = toy_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
+        toy_auth_smoke_assert_status($errors, 'commented post view', $commentedPostView, [200]);
+
         $scrapResponse = toy_auth_smoke_request($baseUrl, 'POST', '/community/scrap', [
-            'csrf_token' => $scrapCsrf,
+            'csrf_token' => $postViewCsrf,
             'post_id' => (string) $createdPostId,
             'intent' => 'add',
         ], $cookies);
