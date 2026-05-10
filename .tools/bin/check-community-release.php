@@ -284,6 +284,8 @@ toy_community_release_file_contains('modules/community/privacy-export.php', [
     'WHERE reporter_account_id = :account_id',
     'WHERE sender_account_id = :account_id OR recipient_account_id = :account_id',
     'WHERE account_id = :account_id',
+    'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at',
+    'SELECT id, post_id, body_text, status, created_at, updated_at',
 ], 'Community privacy-export.php');
 
 $memberGroupRuleKeys = [];

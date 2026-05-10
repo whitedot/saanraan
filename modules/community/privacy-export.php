@@ -17,7 +17,7 @@ return static function (PDO $pdo, int $accountId): array {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, board_id, title, body_format, status, created_at, updated_at
+        'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at
          FROM toy_community_posts
          WHERE author_account_id = :account_id
          ORDER BY id ASC
@@ -27,7 +27,7 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['posts'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, post_id, status, created_at, updated_at
+        'SELECT id, post_id, body_text, status, created_at, updated_at
          FROM toy_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC

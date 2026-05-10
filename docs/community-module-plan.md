@@ -1072,8 +1072,8 @@ community.post.view
 
 `privacy-export.php` 포함 범위:
 
-- 해당 회원이 작성한 게시글
-- 해당 회원이 작성한 댓글
+- 해당 회원이 작성한 게시글 본문과 metadata
+- 해당 회원이 작성한 댓글 본문과 metadata
 - 해당 회원이 업로드한 첨부 metadata
 - 해당 회원이 접수한 신고 metadata와 memo
 - 해당 회원이 보낸 쪽지와 받은 쪽지
