@@ -53,6 +53,24 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community admin boards entry',
+        'path' => '/admin/community/boards',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community admin reports entry',
+        'path' => '/admin/community/reports',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community admin posts entry',
+        'path' => '/admin/community/posts',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'stylesheet',
         'path' => '/assets/toycore.css',
         'allowed_statuses' => [200],
@@ -67,6 +85,16 @@ $checks = [
         'label' => 'module SQL protection',
         'path' => '/modules/member/install.sql',
         'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_member_accounts'],
+    ],
+    [
+        'label' => 'community SQL protection',
+        'path' => '/modules/community/install.sql',
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_community_boards'],
+    ],
+    [
+        'label' => 'community metadata protection',
+        'path' => '/modules/community/module.php',
+        'must_not_expose' => ["'name' => 'Community'"],
     ],
     [
         'label' => 'core PHP protection',
