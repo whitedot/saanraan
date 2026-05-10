@@ -502,6 +502,37 @@ toy_community_release_file_contains('modules/community/actions/delete.php', [
     'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
 ], 'Community delete action policy');
 
+toy_community_release_file_contains('modules/community/actions/comment.php', [
+    'toy_community_account_can_comment_post($pdo, $post, $account)',
+    'toy_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    "'event_type' => 'community.comment.created'",
+    'toy_community_create_account_notification(',
+    "(int) \$post['author_account_id'] !== (int) \$account['id']",
+], 'Community comment action policy');
+toy_community_release_file_contains('modules/community/actions/comment-edit.php', [
+    'toy_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
+    'toy_community_account_can_edit_comment($comment, $account)',
+    'toy_community_update_comment_content($pdo, $commentId, $values)',
+    "'event_type' => 'community.comment.updated_by_author'",
+], 'Community comment edit action policy');
+toy_community_release_file_contains('modules/community/actions/comment-delete.php', [
+    'toy_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
+    'toy_community_account_can_delete_comment($comment, $account)',
+    'toy_community_update_comment_status($pdo, $commentId, \'deleted\')',
+    "'event_type' => 'community.comment.deleted_by_author'",
+], 'Community comment delete action policy');
+toy_community_release_file_contains('modules/community/actions/report.php', [
+    'toy_community_report_target($pdo, $targetType, $targetId, (int) $account[\'id\'])',
+    'in_array($reasonKey, toy_community_report_reason_keys(), true)',
+    '(int) $target[\'reported_account_id\'] === (int) $account[\'id\']',
+    'toy_community_report_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_report_exists($pdo, (int) $account[\'id\'], (string) $target[\'target_type\'], (int) $target[\'target_id\'])',
+    'toy_community_record_report_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    "'event_type' => 'community.report.created'",
+    'toy_community_create_admin_report_notifications(',
+], 'Community report action policy');
+
 toy_community_release_file_contains('modules/community/actions/message-write.php', [
     "toy_get_string('to_account', 40)",
     'toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
