@@ -249,6 +249,56 @@ function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array
     ];
 }
 
+function toy_member_public_account_hash(array $config, int $accountId): string
+{
+    if ($accountId < 1) {
+        return '';
+    }
+
+    return substr(toy_hmac_hash('member-public-account|' . (string) $accountId, $config), 0, 32);
+}
+
+function toy_member_public_account_hash_is_valid(string $publicHash): bool
+{
+    return preg_match('/\A[a-f0-9]{32}\z/', $publicHash) === 1;
+}
+
+function toy_member_public_account_summary_with_hash(PDO $pdo, array $config, int $accountId): ?array
+{
+    $summary = toy_member_public_account_summary($pdo, $accountId);
+    if (!is_array($summary)) {
+        return null;
+    }
+
+    $summary['public_hash'] = toy_member_public_account_hash($config, (int) $summary['id']);
+
+    return $summary;
+}
+
+function toy_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
+{
+    $publicHash = strtolower(trim($publicHash));
+    if (!toy_member_public_account_hash_is_valid($publicHash)) {
+        return null;
+    }
+
+    $stmt = $pdo->query("SELECT id, display_name, locale, status FROM toy_member_accounts WHERE status = 'active' ORDER BY id ASC");
+    foreach ($stmt->fetchAll() as $account) {
+        $accountId = (int) ($account['id'] ?? 0);
+        if ($accountId > 0 && hash_equals($publicHash, toy_member_public_account_hash($config, $accountId))) {
+            return [
+                'id' => $accountId,
+                'display_name' => (string) $account['display_name'],
+                'locale' => (string) $account['locale'],
+                'status' => (string) $account['status'],
+                'public_hash' => $publicHash,
+            ];
+        }
+    }
+
+    return null;
+}
+
 function toy_member_safe_next_path(string $path): string
 {
     if (

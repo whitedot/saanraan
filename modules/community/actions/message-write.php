@@ -8,16 +8,17 @@ require_once TOY_ROOT . '/modules/community/helpers.php';
 $account = toy_member_require_login($pdo);
 $errors = [];
 $notice = '';
-$recipientAccountIdValue = toy_get_string('to_account', 20);
-$recipientAccountId = preg_match('/\A[1-9][0-9]*\z/', $recipientAccountIdValue) === 1 ? (int) $recipientAccountIdValue : 0;
-$presetRecipient = $recipientAccountId > 0 ? toy_member_public_account_summary($pdo, $recipientAccountId) : null;
+$recipientAccountHash = strtolower(trim(toy_get_string('to_account', 40)));
+$presetRecipient = toy_member_public_account_hash_is_valid($recipientAccountHash)
+    ? toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)
+    : null;
 $values = [
-    'recipient_account_id' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (int) $presetRecipient['id'] : 0,
+    'recipient_account_hash' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (string) $presetRecipient['public_hash'] : '',
     'recipient_identifier' => toy_get_string('to', 255),
     'body_text' => '',
 ];
-$recipientPresetNotice = (int) $values['recipient_account_id'] > 0 || $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
-$recipientLabel = (int) $values['recipient_account_id'] > 0 && is_array($presetRecipient)
+$recipientPresetNotice = $values['recipient_account_hash'] !== '' || $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
+$recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
     ? toy_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'])
     : '';
 
@@ -27,8 +28,8 @@ if (toy_request_method() === 'POST') {
     $values = toy_community_message_input_values();
     $errors = toy_community_validate_message_input($values);
     $recipient = null;
-    $submittedRecipient = (int) ($values['recipient_account_id'] ?? 0) > 0
-        ? toy_member_public_account_summary($pdo, (int) $values['recipient_account_id'])
+    $submittedRecipient = is_string($values['recipient_account_hash'] ?? null) && (string) $values['recipient_account_hash'] !== ''
+        ? toy_member_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
         : null;
     if (is_array($submittedRecipient)) {
         $recipientLabel = toy_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id']);

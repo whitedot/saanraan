@@ -38,8 +38,8 @@ $seo = [
         <form method="post" action="<?php echo toy_e(toy_url('/community/message/write')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
-                <?php if ((int) ($values['recipient_account_id'] ?? 0) > 0) { ?>
-                    <input type="hidden" name="recipient_account_id" value="<?php echo toy_e((string) $values['recipient_account_id']); ?>">
+                <?php if (is_string($values['recipient_account_hash'] ?? null) && $values['recipient_account_hash'] !== '') { ?>
+                    <input type="hidden" name="recipient_account_hash" value="<?php echo toy_e((string) $values['recipient_account_hash']); ?>">
                     받는 회원<br>
                     <?php echo toy_e($recipientLabel); ?>
                 <?php } else { ?>

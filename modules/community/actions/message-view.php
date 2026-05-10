@@ -21,6 +21,7 @@ $messageBox = (int) $message['sender_account_id'] === (int) $account['id'] ? 'se
 $replyAccountId = (int) $message['sender_account_id'] === (int) $account['id']
     ? (int) $message['recipient_account_id']
     : (int) $message['sender_account_id'];
+$replyAccountHash = toy_member_public_account_hash($config, $replyAccountId);
 $reportReasonKeys = toy_community_report_reason_keys();
 $reportErrors = [];
 $reportNotice = '';

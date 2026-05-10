@@ -41,10 +41,10 @@ function toy_community_message_account_label(?string $displayName, int $accountI
 {
     $label = trim((string) $displayName);
     if ($label !== '') {
-        return $label . ' #' . (string) $accountId;
+        return $label;
     }
 
-    return $accountId > 0 ? '회원 #' . (string) $accountId : '알 수 없는 회원';
+    return $accountId > 0 ? '회원' : '알 수 없는 회원';
 }
 
 function toy_community_message_by_id_for_account(PDO $pdo, int $messageId, int $accountId): ?array
@@ -120,10 +120,10 @@ function toy_community_mark_message_read(PDO $pdo, array $message, int $accountI
 
 function toy_community_message_input_values(): array
 {
-    $recipientAccountIdValue = toy_post_string('recipient_account_id', 20);
+    $recipientAccountHash = strtolower(trim(toy_post_string('recipient_account_hash', 40)));
 
     return [
-        'recipient_account_id' => preg_match('/\A[1-9][0-9]*\z/', $recipientAccountIdValue) === 1 ? (int) $recipientAccountIdValue : 0,
+        'recipient_account_hash' => toy_member_public_account_hash_is_valid($recipientAccountHash) ? $recipientAccountHash : '',
         'recipient_identifier' => toy_post_string_without_truncation('recipient_identifier', 255),
         'body_text' => toy_post_string_without_truncation('body_text', 5000),
     ];
@@ -132,8 +132,8 @@ function toy_community_message_input_values(): array
 function toy_community_validate_message_input(array $values): array
 {
     $errors = [];
-    $recipientAccountId = (int) ($values['recipient_account_id'] ?? 0);
-    if ($recipientAccountId < 1 && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
+    $recipientAccountHash = is_string($values['recipient_account_hash'] ?? null) ? (string) $values['recipient_account_hash'] : '';
+    if ($recipientAccountHash === '' && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
         $errors[] = '받는 회원을 입력해 주세요.';
     }
 

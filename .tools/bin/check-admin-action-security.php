@@ -656,10 +656,23 @@ if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAct
 }
 
 $communityNotificationsHelper = file_get_contents($root . '/modules/community/helpers/notifications.php');
+$communityMessagesHelper = file_get_contents($root . '/modules/community/helpers/messages.php');
 $communityMessageWriteAction = file_get_contents($root . '/modules/community/actions/message-write.php');
+$communityMessageViewAction = file_get_contents($root . '/modules/community/actions/message-view.php');
+$communityMessageWriteView = file_get_contents($root . '/modules/community/views/message-write.php');
+$communityMessageViewView = file_get_contents($root . '/modules/community/views/message-view.php');
 $communityCommentAction = file_get_contents($root . '/modules/community/actions/comment.php');
 $communityReportAction = file_get_contents($root . '/modules/community/actions/report.php');
-if (!is_string($communityNotificationsHelper) || !is_string($communityMessageWriteAction) || !is_string($communityCommentAction) || !is_string($communityReportAction)) {
+if (
+    !is_string($communityNotificationsHelper)
+    || !is_string($communityMessagesHelper)
+    || !is_string($communityMessageWriteAction)
+    || !is_string($communityMessageViewAction)
+    || !is_string($communityMessageWriteView)
+    || !is_string($communityMessageViewView)
+    || !is_string($communityCommentAction)
+    || !is_string($communityReportAction)
+) {
     $errors[] = 'Community notification integration files cannot be read.';
 } elseif (
     strpos($communityNotificationsHelper, "toy_module_enabled(\$pdo, 'notification')") === false
@@ -668,12 +681,20 @@ if (!is_string($communityNotificationsHelper) || !is_string($communityMessageWri
     || strpos($communityNotificationsHelper, 'catch (Throwable $exception)') === false
     || strpos($communityNotificationsHelper, 'function toy_community_create_admin_report_notifications') === false
     || strpos($communityNotificationsHelper, "r.role_key IN ('owner', 'admin', 'manager')") === false
+    || strpos($communityMessagesHelper, 'recipient_account_hash') === false
+    || strpos($communityMessagesHelper, "return \$label;") === false
     || strpos($communityMessageWriteAction, 'toy_community_create_account_notification(') === false
+    || strpos($communityMessageWriteAction, 'toy_member_public_account_summary_by_hash($pdo, $config,') === false
+    || strpos($communityMessageViewAction, 'toy_member_public_account_hash($config, $replyAccountId)') === false
+    || strpos($communityMessageWriteView, 'name="recipient_account_id"') !== false
+    || strpos($communityMessageWriteView, 'name="recipient_account_hash"') === false
+    || strpos($communityMessageViewView, "'/community/message/write?to_account=' . (string) \$replyAccountId") !== false
+    || strpos($communityMessageViewView, 'rawurlencode($replyAccountHash)') === false
     || strpos($communityCommentAction, 'toy_community_create_account_notification(') === false
     || strpos($communityCommentAction, "(int) \$post['author_account_id'] !== (int) \$account['id']") === false
     || strpos($communityReportAction, 'toy_community_create_admin_report_notifications(') === false
 ) {
-    $errors[] = 'Community message, comment, and report notifications must remain optional and avoid self comment notifications.';
+    $errors[] = 'Community message, comment, and report notifications must remain optional, hash message recipients, and avoid self comment notifications.';
 }
 
 $communityWriteAction = file_get_contents($root . '/modules/community/actions/write.php');
