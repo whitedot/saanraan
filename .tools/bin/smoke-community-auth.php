@@ -246,8 +246,7 @@ try {
             toy_auth_smoke_login($baseUrl, $recipientIdentifier, $recipientPassword, $recipientCookies, $errors, 'message recipient account');
             $inboxMessages = toy_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $recipientCookies);
             toy_auth_smoke_assert_status($errors, 'recipient message box', $inboxMessages, [200]);
-            $inboxMessagePath = toy_auth_smoke_first_message_path($inboxMessages);
-            $inboxMessageView = toy_auth_smoke_request($baseUrl, 'GET', $inboxMessagePath, [], $recipientCookies);
+            $inboxMessageView = toy_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $recipientCookies);
             toy_auth_smoke_assert_status($errors, 'recipient message view', $inboxMessageView, [200]);
             toy_auth_smoke_assert_body_contains($errors, 'recipient message view', $inboxMessageView, $messageBody);
         } else {
