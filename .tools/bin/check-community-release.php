@@ -130,6 +130,12 @@ if ((string) ($module['version'] ?? '') !== '2026.05.001') {
 toy_community_release_file_contains('index.php', [
     "toy_enabled_module_contract_files(\$pdo, 'paths.php')",
 ], 'Front controller route loading');
+toy_community_release_file_contains('core/actions/install.php', [
+    "'community' => [",
+    "'version' => '2026.05.001'",
+    "'label' => '커뮤니티'",
+    "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
+], 'Install optional community module');
 
 $requiredPackageEntries = [
     'actions',

@@ -141,7 +141,7 @@ Toycore 런타임은 현재 배치된 파일과 `modules/{module_key}` 폴더를
 
 - `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
 - `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
-- `seo`, `site_menu`, `banner`, `popup_layer`, `notification`: 선택 운영 모듈
+- `seo`, `site_menu`, `banner`, `popup_layer`, `notification`, `community`: 선택 운영 모듈
 - `point`, `deposit`, `reward`: 회원 연계 도메인을 코어 밖에 둔 선택 예시 모듈
 
 기본 점검은 다음 명령으로 실행합니다.

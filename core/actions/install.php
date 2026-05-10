@@ -68,6 +68,12 @@ $optionalModules = [
         'label' => '알림',
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
+    'community' => [
+        'name' => 'Community',
+        'version' => '2026.05.001',
+        'label' => '커뮤니티',
+        'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
+    ],
 ];
 
 function toy_install_module_definition(string $moduleKey, array $defaults): array
