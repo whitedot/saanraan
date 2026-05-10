@@ -70,6 +70,20 @@ function toy_community_release_file_contains(string $path, array $needles, strin
     }
 }
 
+function toy_community_release_files(string $directory, array $extensions): array
+{
+    $files = [];
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
+    foreach ($iterator as $file) {
+        if ($file instanceof SplFileInfo && $file->isFile() && in_array(strtolower($file->getExtension()), $extensions, true)) {
+            $files[] = $file->getPathname();
+        }
+    }
+
+    sort($files, SORT_STRING);
+    return $files;
+}
+
 $module = toy_community_release_array_file('modules/community/module.php');
 $paths = toy_community_release_array_file('modules/community/paths.php');
 $adminMenu = toy_community_release_array_file('modules/community/admin-menu.php');
@@ -245,6 +259,23 @@ $stateChangingActions = [
 ];
 foreach ($stateChangingActions as $actionPath) {
     toy_community_release_file_contains($actionPath, ['toy_require_csrf('], $actionPath);
+}
+
+foreach (toy_community_release_files('modules/community', ['css', 'scss', 'js']) as $assetFile) {
+    toy_community_release_error('Community v1 must not ship dedicated CSS/JS assets: ' . $assetFile);
+}
+
+foreach (toy_community_release_files('modules/community', ['php']) as $phpFile) {
+    $content = file_get_contents($phpFile);
+    if (!is_string($content)) {
+        continue;
+    }
+
+    foreach (['<style', 'style=', 'class=', 'data-'] as $forbiddenFragment) {
+        if (str_contains($content, $forbiddenFragment)) {
+            toy_community_release_error('Community v1 must not include styling hooks "' . $forbiddenFragment . '" in ' . $phpFile);
+        }
+    }
 }
 
 if ($errors !== []) {
