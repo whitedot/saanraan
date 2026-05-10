@@ -162,8 +162,10 @@ php .tools/bin/check.php
 
 ```sh
 php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
-php .tools/bin/smoke-http.php http://127.0.0.1:8080
+TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 ```
+
+인증 커뮤니티 흐름까지 확인하는 스모크 점검은 [스모크 테스트 기준](docs/smoke-test.md)에 정리되어 있습니다.
 
 ## 모듈 구조
 

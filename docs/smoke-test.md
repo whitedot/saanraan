@@ -28,6 +28,12 @@ SQL 파일 비어 있음 여부
 php .tools/bin/smoke-http.php http://127.0.0.1:8080
 ```
 
+같은 base URL은 환경변수로도 전달할 수 있다.
+
+```sh
+TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
+```
+
 로컬 PHP 내장 서버는 개발용 router로 실행한다.
 
 ```sh
@@ -45,9 +51,20 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /login 응답이 500 없이 열리는지 확인
 /admin 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/updates 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
+/community 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인
+/community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인
+/community/message/write 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/write?key=free 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/community/scraps 비로그인 접근이 로그인 흐름으로 막히는지 확인
+POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지 확인
+/admin/community/boards 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
+/admin/community/reports 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
+/admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /assets/toycore.css 정적 파일 응답 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
+/modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
+/modules/community/module.php 직접 접근에서 커뮤니티 모듈 코드가 노출되지 않는지 확인
 /core/helpers.php 직접 접근에서 PHP 코드가 노출되지 않는지 확인
 /config/.gitignore 직접 접근에서 config 디렉터리 내용이 노출되지 않는지 확인
 /storage/.gitignore 직접 접근에서 storage 디렉터리 내용이 노출되지 않는지 확인
@@ -60,6 +77,49 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 ```
 
 설치 전 상태에서는 `/login`, `/admin`, 내부 경로 요청도 설치 화면으로 이어질 수 있다. 이 경우 200 또는 redirect는 허용한다. 중요한 기준은 PHP fatal error가 노출되지 않고, 보호되어야 할 내부 파일의 실제 내용이 직접 노출되지 않는 것이다.
+
+## 인증 커뮤니티 스모크 점검
+
+커뮤니티 모듈이 설치되어 있고 테스트 계정이 준비된 환경에서는 인증 흐름까지 확인한다. 이 점검은 게시글, 댓글, 스크랩, 쪽지, 신고, 관리자 처리 데이터를 실제로 만든다. 운영 DB가 아닌 로컬 또는 스테이징 DB에서 실행한다.
+
+최소 실행은 작성자 계정만 필요하다.
+
+```sh
+TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+TOY_SMOKE_IDENTIFIER=writer@example.com \
+TOY_SMOKE_PASSWORD='password' \
+php .tools/bin/smoke-community-auth.php
+```
+
+전체 커뮤니티 흐름은 선택 계정을 함께 지정해 확인한다.
+
+```sh
+TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+TOY_SMOKE_IDENTIFIER=writer@example.com \
+TOY_SMOKE_PASSWORD='password' \
+TOY_SMOKE_RECIPIENT_IDENTIFIER=recipient@example.com \
+TOY_SMOKE_RECIPIENT_PASSWORD='password' \
+TOY_SMOKE_REPORTER_IDENTIFIER=reporter@example.com \
+TOY_SMOKE_REPORTER_PASSWORD='password' \
+TOY_SMOKE_ADMIN_IDENTIFIER=admin@example.com \
+TOY_SMOKE_ADMIN_PASSWORD='password' \
+php .tools/bin/smoke-community-auth.php
+```
+
+확인 항목:
+
+```text
+작성자 로그인 후 /community/messages 접근
+자유 게시판 게시글 작성과 상세 화면 제목 확인
+댓글 작성과 상세 화면 댓글 본문 확인
+스크랩 추가와 스크랩 목록 노출 확인
+수신자 계정 지정 시 쪽지 발송과 보낸 쪽지 본문 확인
+수신자 비밀번호 지정 시 수신자 로그인 후 받은 쪽지 본문 확인
+신고자 계정 지정 시 작성된 게시글 신고 확인
+관리자 계정 지정 시 신고 처리, 게시글 숨김, 숨김 게시글 404 응답 확인
+```
+
+`TOY_SMOKE_RECIPIENT_PASSWORD`는 `TOY_SMOKE_RECIPIENT_IDENTIFIER`가 있을 때만 사용할 수 있다. 신고자와 관리자 계정은 identifier/password를 함께 지정해야 한다. 게시판 키를 바꿔야 하면 `TOY_SMOKE_BOARD_KEY`를 사용하고, 기존 게시글 ID를 보조값으로 넘겨야 하면 `TOY_SMOKE_POST_ID`를 사용한다.
 
 ## 수동 확인 시나리오
 
