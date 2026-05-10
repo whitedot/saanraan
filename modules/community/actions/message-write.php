@@ -14,10 +14,10 @@ $presetRecipient = toy_member_public_account_hash_is_valid($recipientAccountHash
     : null;
 $values = [
     'recipient_account_hash' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (string) $presetRecipient['public_hash'] : '',
-    'recipient_identifier' => toy_get_string('to', 255),
+    'recipient_identifier' => '',
     'body_text' => '',
 ];
-$recipientPresetNotice = $values['recipient_account_hash'] !== '' || $values['recipient_identifier'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
+$recipientPresetNotice = $values['recipient_account_hash'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
     ? toy_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'])
     : '';

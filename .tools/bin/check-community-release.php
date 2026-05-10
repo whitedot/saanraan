@@ -385,6 +385,16 @@ foreach ($memberOnlyActions as $actionPath) {
     toy_community_release_file_contains($actionPath, ['toy_member_require_login($pdo)'], $actionPath);
 }
 
+toy_community_release_file_contains('modules/community/actions/message-write.php', [
+    "toy_get_string('to_account', 40)",
+    'toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
+    "'recipient_identifier' => ''",
+], 'Community message write recipient preset');
+$messageWriteContent = is_file('modules/community/actions/message-write.php') ? (string) file_get_contents('modules/community/actions/message-write.php') : '';
+if (str_contains($messageWriteContent, "toy_get_string('to',")) {
+    toy_community_release_error('Community message write must not accept recipient identifier from GET to parameter; use to_account public hash.');
+}
+
 $stateChangingActions = [
     'modules/community/actions/write.php',
     'modules/community/actions/edit.php',
