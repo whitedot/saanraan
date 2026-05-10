@@ -482,6 +482,26 @@ toy_community_release_file_contains('modules/community/helpers/attachments.php',
     'str_starts_with($realPath, $storagePrefix)',
 ], 'Community attachment helpers');
 
+toy_community_release_file_contains('modules/community/actions/write.php', [
+    'toy_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)',
+    'toy_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'toy_member_group_evaluate_account($pdo, (int) $account[\'id\'], [',
+    'toy_community_upload_post_image($pdo, $postId, (int) $account[\'id\'], $_FILES[\'image_attachment\'], $settings)',
+    "'event_type' => 'community.attachment.created'",
+    "'event_type' => 'community.post.created'",
+    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+], 'Community write action policy');
+toy_community_release_file_contains('modules/community/actions/delete.php', [
+    'toy_community_account_can_delete_post($post, $account)',
+    'toy_community_update_post_status($pdo, $postId, \'deleted\')',
+    'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'toy_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
+    "'event_type' => 'community.post.deleted_by_author'",
+    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+], 'Community delete action policy');
+
 toy_community_release_file_contains('modules/community/actions/message-write.php', [
     "toy_get_string('to_account', 40)",
     'toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
