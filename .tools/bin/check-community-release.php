@@ -460,6 +460,28 @@ foreach ($memberOnlyActions as $actionPath) {
     toy_community_release_file_contains($actionPath, ['toy_member_require_login($pdo)'], $actionPath);
 }
 
+toy_community_release_file_contains('modules/community/actions/attachment.php', [
+    'toy_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null)',
+    'toy_community_attachment_read_board($pdo, $attachmentId)',
+    'toy_community_board_requires_login($board)',
+    'toy_member_require_login($pdo)',
+    'toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)',
+    'toy_community_attachment_mime_is_allowed($mimeType)',
+    'hash_equals($recordedChecksum, $actualChecksum)',
+    "header('X-Content-Type-Options: nosniff')",
+    "header('Cache-Control: private, no-store, no-cache, must-revalidate')",
+    'toy_finish_response()',
+], 'Community attachment response');
+toy_community_release_file_contains('modules/community/helpers/attachments.php', [
+    "WHERE id = :id\n           AND status = 'active'",
+    'toy_community_post_for_read($pdo, (int) $attachment[\'post_id\'], $account)',
+    "p.status = 'published'",
+    "b.status = 'enabled'",
+    "mime_type IN ('image/jpeg', 'image/png', 'image/webp')",
+    "realpath(TOY_ROOT . '/storage')",
+    'str_starts_with($realPath, $storagePrefix)',
+], 'Community attachment helpers');
+
 toy_community_release_file_contains('modules/community/actions/message-write.php', [
     "toy_get_string('to_account', 40)",
     'toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
