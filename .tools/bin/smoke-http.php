@@ -49,7 +49,30 @@ $checks = [
     [
         'label' => 'community message write entry',
         'path' => '/community/message/write',
-        'allowed_statuses' => [200, 302, 404],
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community write auth guard',
+        'path' => '/community/write?key=free',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community scraps auth guard',
+        'path' => '/community/scraps',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community scrap action auth guard',
+        'method' => 'POST',
+        'path' => '/community/scrap',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
@@ -143,13 +166,15 @@ $checks = [
     ],
 ];
 
-function toy_smoke_fetch(string $url): array
+function toy_smoke_fetch(string $url, string $method): array
 {
     $context = stream_context_create([
         'http' => [
-            'method' => 'GET',
+            'method' => $method,
             'timeout' => 10,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'header' => "User-Agent: Toycore-Smoke-Check\r\n",
         ],
     ]);
@@ -157,24 +182,50 @@ function toy_smoke_fetch(string $url): array
     $body = file_get_contents($url, false, $context);
     $headers = $http_response_header ?? [];
     $status = 0;
+    $location = '';
     foreach ($headers as $header) {
         if (preg_match('#\AHTTP/\S+\s+(\d{3})#', $header, $matches) === 1) {
             $status = (int) $matches[1];
+        }
+        if (preg_match('#\ALocation:\s*(.+)\z#i', $header, $matches) === 1) {
+            $location = trim($matches[1]);
         }
     }
 
     return [
         'status' => $status,
         'body' => is_string($body) ? $body : '',
+        'location' => $location,
     ];
+}
+
+function toy_smoke_location_path(string $location): string
+{
+    if ($location === '') {
+        return '';
+    }
+
+    $path = parse_url($location, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return $location;
+    }
+
+    $query = parse_url($location, PHP_URL_QUERY);
+    if (is_string($query) && $query !== '') {
+        return $path . '?' . $query;
+    }
+
+    return $path;
 }
 
 $errors = [];
 foreach ($checks as $check) {
     $url = $baseUrl . (string) $check['path'];
-    $response = toy_smoke_fetch($url);
+    $method = strtoupper((string) ($check['method'] ?? 'GET'));
+    $response = toy_smoke_fetch($url, $method);
     $status = (int) $response['status'];
     $body = (string) $response['body'];
+    $locationPath = toy_smoke_location_path((string) $response['location']);
     $label = (string) $check['label'];
     $checkErrors = [];
 
@@ -194,6 +245,20 @@ foreach ($checks as $check) {
         }
     }
 
+    if ($status === 302 && isset($check['redirect_path_prefixes']) && is_array($check['redirect_path_prefixes'])) {
+        $matchedRedirect = false;
+        foreach ($check['redirect_path_prefixes'] as $prefix) {
+            if (str_starts_with($locationPath, (string) $prefix)) {
+                $matchedRedirect = true;
+                break;
+            }
+        }
+
+        if (!$matchedRedirect) {
+            $checkErrors[] = $label . ' redirected to unexpected location "' . $locationPath . '" for ' . $url;
+        }
+    }
+
     foreach ($check['must_not_expose'] ?? [] as $pattern) {
         if (preg_match('/' . preg_quote((string) $pattern, '/') . '/', $body) === 1) {
             $checkErrors[] = $label . ' exposed internal file content for ' . $url;
@@ -201,9 +266,9 @@ foreach ($checks as $check) {
     }
 
     if ($checkErrors === []) {
-        echo '[ok] ' . $label . ' ' . $status . "\n";
+        echo '[ok] ' . $label . ' ' . $method . ' ' . $status . "\n";
     } else {
-        echo '[fail] ' . $label . ' ' . $status . "\n";
+        echo '[fail] ' . $label . ' ' . $method . ' ' . $status . "\n";
         foreach ($checkErrors as $error) {
             $errors[] = $error;
         }
