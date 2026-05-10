@@ -579,6 +579,51 @@ toy_community_release_file_contains('modules/community/helpers/messages.php', [
     'UPDATE toy_community_messages SET recipient_deleted_at = :deleted_at',
 ], 'Community message helper policy');
 
+toy_community_release_file_contains('modules/community/actions/admin-boards.php', [
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    '$allowedReadPolicies = toy_community_policy_values(\'read\')',
+    '$allowedWritePolicies = toy_community_policy_values(\'write\')',
+    '$allowedCommentPolicies = toy_community_policy_values(\'comment\')',
+    '$memberGroups = toy_member_groups($pdo)',
+    '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
+    'toy_admin_post_int_in_range(\'attachment_max_bytes\', 1024, 10485760)',
+    'toy_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
+    'toy_community_invalid_board_group_keys_from_input($groupKeysInput)',
+    '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',
+    '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
+    'toy_community_board_by_key($pdo, $boardKey) !== null',
+    'toy_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
+    'toy_community_set_board_setting($pdo, $boardId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
+    "'event_type' => 'community.board.created'",
+    "'event_type' => 'community.board.updated'",
+], 'Community admin board policy');
+toy_community_release_file_contains('modules/community/actions/admin-posts.php', [
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    '$allowedPostStatuses = toy_community_post_statuses()',
+    '$allowedCommentStatuses = toy_community_comment_statuses()',
+    'toy_community_update_post_status($pdo, $postId, $status)',
+    'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'toy_community_update_post_attachments_status($pdo, $postId, $status)',
+    'toy_community_restore_hidden_post_attachments($pdo, $postId)',
+    "'event_type' => 'community.post.status_updated'",
+    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+    'toy_community_update_comment_status($pdo, $commentId, $status)',
+    "'event_type' => 'community.comment.status_updated'",
+], 'Community admin post policy');
+toy_community_release_file_contains('modules/community/actions/admin-reports.php', [
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    '$allowedStatuses = toy_community_report_statuses()',
+    'toy_post_string_without_truncation(\'review_note\', 1000)',
+    'toy_community_report_by_id($pdo, $reportId)',
+    'in_array($status, $allowedStatuses, true)',
+    '$reviewNote === null',
+    'toy_community_update_report_status($pdo, $reportId, $status, (int) $account[\'id\'], (string) $reviewNote)',
+    "'event_type' => 'community.report.status_updated'",
+    "'review_note_present' => trim((string) \$reviewNote) !== ''",
+    "'reported_account_id' => (int) \$report['reported_account_id']",
+], 'Community admin report policy');
+
 $stateChangingActions = [
     'modules/community/actions/write.php',
     'modules/community/actions/edit.php',
