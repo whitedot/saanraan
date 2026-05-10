@@ -136,6 +136,12 @@ toy_community_release_file_contains('core/actions/install.php', [
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
+toy_community_release_file_contains('.tools/bin/smoke-http.php', [
+    'TOY_SMOKE_EXPECT_COMMUNITY=1',
+    '$expectCommunity = getenv(\'TOY_SMOKE_EXPECT_COMMUNITY\') === \'1\'',
+    '$check[\'expect_installed_route\'] = true',
+    'returned 404 while TOY_SMOKE_EXPECT_COMMUNITY=1',
+], 'Community installed HTTP smoke mode');
 
 $requiredPackageEntries = [
     'actions',

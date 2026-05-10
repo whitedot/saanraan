@@ -16,9 +16,10 @@ function toy_smoke_argument(array $argv, int $index, string $environmentKey): st
 
 $baseUrl = rtrim(toy_smoke_argument($argv, 1, 'TOY_SMOKE_BASE_URL'), '/');
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl)) {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: TOY_SMOKE_BASE_URL\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: TOY_SMOKE_BASE_URL TOY_SMOKE_EXPECT_COMMUNITY=1\n");
     exit(2);
 }
+$expectCommunity = getenv('TOY_SMOKE_EXPECT_COMMUNITY') === '1';
 
 $checks = [
     [
@@ -271,6 +272,28 @@ $checks = [
     ],
 ];
 
+if ($expectCommunity) {
+    foreach ($checks as &$check) {
+        $path = (string) ($check['path'] ?? '');
+        if (!str_starts_with($path, '/community') && !str_starts_with($path, '/admin/community')) {
+            continue;
+        }
+
+        if (isset($check['must_not_expose'])) {
+            continue;
+        }
+
+        $allowedStatuses = isset($check['allowed_statuses']) && is_array($check['allowed_statuses'])
+            ? $check['allowed_statuses']
+            : [];
+        $check['allowed_statuses'] = array_values(array_filter($allowedStatuses, static function ($status): bool {
+            return (int) $status !== 404;
+        }));
+        $check['expect_installed_route'] = true;
+    }
+    unset($check);
+}
+
 function toy_smoke_fetch(string $url, string $method): array
 {
     $context = stream_context_create([
@@ -340,6 +363,10 @@ foreach ($checks as $check) {
 
     if (isset($check['allowed_statuses']) && !in_array($status, $check['allowed_statuses'], true)) {
         $checkErrors[] = $label . ' returned unexpected status ' . $status . ' for ' . $url;
+    }
+
+    if (!empty($check['expect_installed_route']) && $status === 404) {
+        $checkErrors[] = $label . ' returned 404 while TOY_SMOKE_EXPECT_COMMUNITY=1 for ' . $url;
     }
 
     foreach ($check['must_contain'] ?? [] as $needle) {
