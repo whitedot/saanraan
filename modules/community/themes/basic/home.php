@@ -31,21 +31,46 @@ $seo = [
             </p>
         <?php } ?>
 
-        <?php if ($boards === []) { ?>
+        <?php if ($boards === [] || ($boardSections === [] && $ungroupedBoards === [])) { ?>
             <p>게시판이 없습니다.</p>
         <?php } else { ?>
-            <ul>
-                <?php foreach ($boards as $board) { ?>
-                    <li>
-                        <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                            <?php echo toy_e((string) $board['title']); ?>
-                        </a>
-                        <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                            <br><?php echo toy_e((string) $board['description']); ?>
+            <?php foreach ($boardSections as $section) { ?>
+                <section>
+                    <h2><?php echo toy_e((string) $section['title']); ?></h2>
+                    <ul>
+                        <?php foreach ($section['boards'] as $board) { ?>
+                            <li>
+                                <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                    <?php echo toy_e((string) $board['title']); ?>
+                                </a>
+                                <?php if ((string) ($board['description'] ?? '') !== '') { ?>
+                                    <br><?php echo toy_e((string) $board['description']); ?>
+                                <?php } ?>
+                            </li>
                         <?php } ?>
-                    </li>
-                <?php } ?>
-            </ul>
+                    </ul>
+                </section>
+            <?php } ?>
+
+            <?php if ($ungroupedBoards !== []) { ?>
+                <section>
+                    <?php if ($boardSections !== []) { ?>
+                        <h2>기타</h2>
+                    <?php } ?>
+                    <ul>
+                        <?php foreach ($ungroupedBoards as $board) { ?>
+                            <li>
+                                <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                    <?php echo toy_e((string) $board['title']); ?>
+                                </a>
+                                <?php if ((string) ($board['description'] ?? '') !== '') { ?>
+                                    <br><?php echo toy_e((string) $board['description']); ?>
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </section>
+            <?php } ?>
         <?php } ?>
 
         <?php echo toy_render_output_slot($pdo, [

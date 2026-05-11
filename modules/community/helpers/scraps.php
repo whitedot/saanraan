@@ -74,6 +74,7 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account 
         'SELECT s.id, s.account_id, s.post_id, s.created_at,
                 p.title, p.status AS post_status, p.created_at AS post_created_at,
                 b.id AS board_id,
+                b.board_group_id,
                 b.board_key, b.title AS board_title, b.status AS board_status, b.read_policy
          FROM toy_community_scraps s
          LEFT JOIN toy_community_posts p ON p.id = s.post_id
@@ -90,6 +91,7 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account 
     foreach ($scraps as &$scrap) {
         $board = [
             'id' => (int) ($scrap['board_id'] ?? 0),
+            'board_group_id' => (int) ($scrap['board_group_id'] ?? 0),
             'status' => (string) ($scrap['board_status'] ?? ''),
             'read_policy' => (string) ($scrap['read_policy'] ?? ''),
         ];

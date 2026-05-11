@@ -104,7 +104,7 @@ function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $accoun
     $stmt = $pdo->prepare(
         "SELECT c.id, c.post_id, c.author_account_id, c.status,
                 p.status AS post_status,
-                b.id AS board_id, b.status AS board_status, b.read_policy
+                b.id AS board_id, b.board_group_id, b.status AS board_status, b.read_policy
          FROM toy_community_comments c
          INNER JOIN toy_community_posts p ON p.id = c.post_id
          INNER JOIN toy_community_boards b ON b.id = p.board_id
@@ -123,6 +123,7 @@ function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $accoun
 
     $board = [
         'id' => (int) $comment['board_id'],
+        'board_group_id' => (int) ($comment['board_group_id'] ?? 0),
         'status' => (string) $comment['board_status'],
         'read_policy' => (string) $comment['read_policy'],
     ];

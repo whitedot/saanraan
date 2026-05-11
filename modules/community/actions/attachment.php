@@ -11,7 +11,7 @@ $attachmentId = preg_match('/\A[1-9][0-9]*\z/', $attachmentIdValue) === 1 ? (int
 $attachment = toy_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null);
 if (!is_array($attachment)) {
     $board = toy_community_attachment_read_board($pdo, $attachmentId);
-    if (is_array($board) && toy_community_board_requires_login($board) && !is_array($account)) {
+    if (is_array($board) && in_array(toy_community_effective_board_policy($pdo, $board, 'read_policy'), ['member', 'group'], true) && !is_array($account)) {
         $account = toy_member_require_login($pdo);
         $attachment = toy_community_attachment_for_read($pdo, $attachmentId, $account);
     }

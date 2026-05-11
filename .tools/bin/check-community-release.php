@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.001') {
-    toy_community_release_error('Community v1 release version must remain 2026.05.001 until update SQL is introduced.');
+if ((string) ($module['version'] ?? '') !== '2026.05.002') {
+    toy_community_release_error('Community module version must be 2026.05.002.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.001'",
+    "'version' => '2026.05.002'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -179,8 +179,8 @@ if (!toy_community_release_directory_is_empty('modules/community/lang')) {
     toy_community_release_error('Community v1 package must not include lang files before translation support is introduced.');
 }
 
-if (!toy_community_release_directory_is_empty('modules/community/updates')) {
-    toy_community_release_error('Community v1 package must not include update files while version remains 2026.05.001.');
+if (toy_community_release_directory_is_empty('modules/community/updates')) {
+    toy_community_release_error('Community module updates directory must include schema updates after 2026.05.001.');
 }
 
 foreach (['actions', 'helpers', 'skins', 'themes', 'views'] as $requiredDirectory) {
@@ -328,10 +328,10 @@ if (!is_callable($sitemap)) {
 
 toy_community_release_file_contains('modules/community/sitemap.php', [
     "WHERE status = 'enabled'",
-    "AND read_policy = 'public'",
+    'toy_community_account_can_read_board($pdo, $board, null)',
     "WHERE p.status = 'published'",
     "AND b.status = 'enabled'",
-    "AND b.read_policy = 'public'",
+    'toy_community_account_can_read_board($pdo, $board, null)',
     "'loc' => '/community/board?key='",
     "'loc' => '/community/post?id='",
 ], 'Community sitemap.php');
@@ -392,8 +392,11 @@ if ($installSql === '') {
 }
 
 $requiredTables = [
+    'toy_community_board_groups',
     'toy_community_boards',
     'toy_community_board_settings',
+    'toy_community_board_group_settings',
+    'toy_community_board_setting_sources',
     'toy_community_posts',
     'toy_community_comments',
     'toy_community_attachments',
@@ -409,9 +412,21 @@ foreach ($requiredTables as $tableName) {
 
 $requiredInstallFragments = [
     'toy_community_boards' => [
+        'board_group_id BIGINT UNSIGNED NULL',
         'board_key VARCHAR(60) NOT NULL',
         'UNIQUE KEY uq_toy_community_boards_key (board_key)',
+        'KEY idx_toy_community_boards_group_sort (board_group_id, sort_order, id)',
         "('free', '자유게시판', '기본 커뮤니티 게시판입니다.', 'enabled', 'public', 'member', 'member', 1, 10, NOW(), NOW())",
+    ],
+    'toy_community_board_groups' => [
+        'UNIQUE KEY uq_toy_community_board_groups_key (group_key)',
+        'KEY idx_toy_community_board_groups_status_sort (status, sort_order, id)',
+    ],
+    'toy_community_board_group_settings' => [
+        'UNIQUE KEY uq_toy_community_board_group_settings_key (group_id, setting_key)',
+    ],
+    'toy_community_board_setting_sources' => [
+        'UNIQUE KEY uq_toy_community_board_setting_sources_key (board_id, setting_key)',
     ],
     'toy_community_posts' => [
         'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
@@ -478,7 +493,7 @@ foreach ($memberOnlyActions as $actionPath) {
 toy_community_release_file_contains('modules/community/actions/attachment.php', [
     'toy_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null)',
     'toy_community_attachment_read_board($pdo, $attachmentId)',
-    'toy_community_board_requires_login($board)',
+    "toy_community_effective_board_policy(\$pdo, \$board, 'read_policy')",
     'toy_member_require_login($pdo)',
     'toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)',
     'toy_community_attachment_mime_is_allowed($mimeType)',

@@ -6,7 +6,7 @@ $seo = [
     'title' => $pageTitle,
     'description' => (string) ($board['description'] ?? ''),
     'canonical' => $baseListPath . ($page > 1 ? '&page=' . (string) $page : ''),
-    'robots' => (string) $board['read_policy'] !== 'public'
+    'robots' => (string) ($board['effective_read_policy'] ?? $board['read_policy']) !== 'public'
         ? 'noindex, nofollow'
         : ($keyword === '' ? 'index, follow' : 'noindex, follow'),
 ];

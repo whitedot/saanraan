@@ -37,7 +37,7 @@ function toy_community_attachment_read_board(PDO $pdo, int $attachmentId): ?arra
     }
 
     $stmt = $pdo->prepare(
-        "SELECT b.id, b.status, b.read_policy
+        "SELECT b.id, b.board_group_id, b.status, b.read_policy
          FROM toy_community_attachments a
          INNER JOIN toy_community_posts p ON p.id = a.post_id
          INNER JOIN toy_community_boards b ON b.id = p.board_id

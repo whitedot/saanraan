@@ -5,7 +5,7 @@ declare(strict_types=1);
 function toy_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
 {
     $board = toy_community_board_by_key($pdo, $boardKey);
-    if (!is_array($board) || (string) $board['status'] !== 'enabled' || (string) $board['read_policy'] !== 'public') {
+    if (!is_array($board) || (string) $board['status'] !== 'enabled' || !toy_community_account_can_read_board($pdo, $board, null)) {
         return null;
     }
 
@@ -18,7 +18,7 @@ function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $ac
         return false;
     }
 
-    $policy = (string) ($board['read_policy'] ?? '');
+    $policy = toy_community_effective_board_policy($pdo, $board, 'read_policy');
     if ($policy === 'public') {
         return true;
     }
@@ -42,7 +42,7 @@ function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $ac
 
 function toy_community_board_requires_login(array $board): bool
 {
-    return in_array((string) ($board['read_policy'] ?? ''), ['member', 'group'], true);
+    return in_array((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? ''), ['member', 'group'], true);
 }
 
 function toy_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
@@ -126,19 +126,34 @@ function toy_community_public_post(PDO $pdo, int $postId): ?array
 
     $stmt = $pdo->prepare(
         "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
+                b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM toy_community_posts p
          INNER JOIN toy_community_boards b ON b.id = p.board_id
          WHERE p.id = :id
            AND p.status = 'published'
            AND b.status = 'enabled'
-           AND b.read_policy = 'public'
          LIMIT 1"
     );
     $stmt->execute(['id' => $postId]);
     $post = $stmt->fetch();
 
-    return is_array($post) ? $post : null;
+    if (!is_array($post)) {
+        return null;
+    }
+
+    $board = [
+        'id' => (int) $post['board_id'],
+        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
+        'status' => (string) $post['board_status'],
+        'read_policy' => (string) $post['read_policy'],
+    ];
+
+    if (!toy_community_account_can_read_board($pdo, $board, null)) {
+        return null;
+    }
+
+    $post['read_policy'] = toy_community_effective_board_policy($pdo, $board, 'read_policy');
+    return $post;
 }
 
 function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?array
@@ -149,7 +164,7 @@ function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?a
 
     $stmt = $pdo->prepare(
         "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
+                b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM toy_community_posts p
          INNER JOIN toy_community_boards b ON b.id = p.board_id
          WHERE p.id = :id
@@ -165,11 +180,19 @@ function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?a
 
     $board = [
         'id' => (int) $post['board_id'],
+        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
         'status' => (string) $post['board_status'],
         'read_policy' => (string) $post['read_policy'],
+        'comment_policy' => (string) $post['comment_policy'],
     ];
 
-    return toy_community_account_can_read_board($pdo, $board, $account) ? $post : null;
+    if (!toy_community_account_can_read_board($pdo, $board, $account)) {
+        return null;
+    }
+
+    $post['read_policy'] = toy_community_effective_board_policy($pdo, $board, 'read_policy');
+    $post['comment_policy'] = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
+    return $post;
 }
 
 function toy_community_increment_post_view_count(PDO $pdo, int $postId): void
@@ -404,7 +427,7 @@ function toy_community_account_can_write_board(PDO $pdo, array $board, array $ac
         return false;
     }
 
-    $policy = (string) ($board['write_policy'] ?? '');
+    $policy = toy_community_effective_board_policy($pdo, $board, 'write_policy');
     if ($policy === 'member') {
         return true;
     }
@@ -427,23 +450,28 @@ function toy_community_board_group_keys(PDO $pdo, int $boardId, string $settingK
         return [];
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT setting_value
-         FROM toy_community_board_settings
-         WHERE board_id = :board_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'board_id' => $boardId,
-        'setting_key' => $settingKey,
-    ]);
-    $row = $stmt->fetch();
-    if (!is_array($row)) {
+    $board = toy_community_board_by_id($pdo, $boardId);
+    if (!is_array($board)) {
         return [];
     }
 
-    $value = trim((string) ($row['setting_value'] ?? ''));
+    $value = trim(toy_community_effective_board_setting($pdo, $board, $settingKey, ''));
+    if ($value === '') {
+        return [];
+    }
+
+    $decoded = json_decode($value, true);
+    $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+}
+
+function toy_community_board_own_group_keys(PDO $pdo, int $boardId, string $settingKey): array
+{
+    if ($boardId < 1 || !in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
+        return [];
+    }
+
+    $value = trim((string) toy_community_board_setting_value($pdo, $boardId, $settingKey));
     if ($value === '') {
         return [];
     }
@@ -584,7 +612,12 @@ function toy_community_account_can_comment_post(PDO $pdo, array $post, array $ac
         return false;
     }
 
-    $policy = (string) ($post['comment_policy'] ?? '');
+    $board = [
+        'id' => (int) ($post['board_id'] ?? 0),
+        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
+        'comment_policy' => (string) ($post['comment_policy'] ?? ''),
+    ];
+    $policy = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
     if ($policy === 'member') {
         return true;
     }
