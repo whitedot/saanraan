@@ -145,6 +145,21 @@ function toy_stylesheet_tag(): string
     return '<link rel="stylesheet" href="' . toy_e(toy_url('/assets/toycore.css')) . '">';
 }
 
+function toy_color_scheme_options(): array
+{
+    return [
+        'light' => '라이트',
+        'dark' => '다크',
+        'system' => '시스템 설정',
+    ];
+}
+
+function toy_color_scheme(?array $site = null): string
+{
+    $colorScheme = is_array($site) ? (string) ($site['ui_color_scheme'] ?? 'light') : 'light';
+    return isset(toy_color_scheme_options()[$colorScheme]) ? $colorScheme : 'light';
+}
+
 function toy_public_layout_options(): array
 {
     return [

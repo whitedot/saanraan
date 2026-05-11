@@ -450,6 +450,7 @@ if (toy_request_method() === 'POST') {
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'public_layout_key' => ['value' => 'basic', 'type' => 'string'],
+                'ui_color_scheme' => ['value' => 'light', 'type' => 'string'],
             ]);
 
             $modules = [];

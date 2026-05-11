@@ -2,17 +2,122 @@
     box-sizing: border-box;
 }
 
+:root,
+:root[data-color-scheme="light"] {
+    color-scheme: light;
+    --toy-bg: #f6f7f9;
+    --toy-install-bg: #eef2f6;
+    --toy-text: #20242a;
+    --toy-muted: #47505c;
+    --toy-muted-soft: #5d6b7c;
+    --toy-muted-strong: #303741;
+    --toy-link: #2458a6;
+    --toy-surface: #ffffff;
+    --toy-surface-soft: #fbfcfe;
+    --toy-surface-muted: #eceff4;
+    --toy-border: #d8dde6;
+    --toy-border-soft: #e8edf3;
+    --toy-control-border: #b9c2d0;
+    --toy-primary: #243b5a;
+    --toy-on-primary: #ffffff;
+    --toy-shadow-soft: rgba(32, 36, 42, 0.06);
+    --toy-shadow-floating: rgba(32, 36, 42, 0.12);
+    --toy-danger-border: #d7a3a3;
+    --toy-danger-bg: #fff0f0;
+    --toy-danger-bg-soft: #fff7f7;
+    --toy-danger-text: #8a2a2a;
+    --toy-warning-border: #d9c48d;
+    --toy-warning-bg: #fff9e6;
+    --toy-warning-bg-soft: #fffaf0;
+    --toy-warning-text: #725600;
+    --toy-success-border: #99c7aa;
+    --toy-success-bg: #effaf3;
+    --toy-success-text: #24603a;
+    --toy-popup-border: #9fb3ce;
+}
+
+:root[data-color-scheme="dark"] {
+    color-scheme: dark;
+    --toy-bg: #101418;
+    --toy-install-bg: #0f141a;
+    --toy-text: #e7ecf2;
+    --toy-muted: #aeb8c5;
+    --toy-muted-soft: #99a6b6;
+    --toy-muted-strong: #d4dbe5;
+    --toy-link: #8bb7ff;
+    --toy-surface: #171d24;
+    --toy-surface-soft: #1d2530;
+    --toy-surface-muted: #26303c;
+    --toy-border: #334050;
+    --toy-border-soft: #2a3442;
+    --toy-control-border: #526174;
+    --toy-primary: #7da2d8;
+    --toy-on-primary: #0b1118;
+    --toy-shadow-soft: rgba(0, 0, 0, 0.24);
+    --toy-shadow-floating: rgba(0, 0, 0, 0.34);
+    --toy-danger-border: #9f5d63;
+    --toy-danger-bg: #391d22;
+    --toy-danger-bg-soft: #2a171b;
+    --toy-danger-text: #f2b8bd;
+    --toy-warning-border: #9e8242;
+    --toy-warning-bg: #342912;
+    --toy-warning-bg-soft: #27200f;
+    --toy-warning-text: #f0d48a;
+    --toy-success-border: #4e8064;
+    --toy-success-bg: #142b20;
+    --toy-success-text: #9dd7b6;
+    --toy-popup-border: #58708f;
+}
+
+:root[data-color-scheme="system"] {
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-color-scheme="system"] {
+        --toy-bg: #101418;
+        --toy-install-bg: #0f141a;
+        --toy-text: #e7ecf2;
+        --toy-muted: #aeb8c5;
+        --toy-muted-soft: #99a6b6;
+        --toy-muted-strong: #d4dbe5;
+        --toy-link: #8bb7ff;
+        --toy-surface: #171d24;
+        --toy-surface-soft: #1d2530;
+        --toy-surface-muted: #26303c;
+        --toy-border: #334050;
+        --toy-border-soft: #2a3442;
+        --toy-control-border: #526174;
+        --toy-primary: #7da2d8;
+        --toy-on-primary: #0b1118;
+        --toy-shadow-soft: rgba(0, 0, 0, 0.24);
+        --toy-shadow-floating: rgba(0, 0, 0, 0.34);
+        --toy-danger-border: #9f5d63;
+        --toy-danger-bg: #391d22;
+        --toy-danger-bg-soft: #2a171b;
+        --toy-danger-text: #f2b8bd;
+        --toy-warning-border: #9e8242;
+        --toy-warning-bg: #342912;
+        --toy-warning-bg-soft: #27200f;
+        --toy-warning-text: #f0d48a;
+        --toy-success-border: #4e8064;
+        --toy-success-bg: #142b20;
+        --toy-success-text: #9dd7b6;
+        --toy-popup-border: #58708f;
+    }
+}
+
 body {
     margin: 0;
-    background: #f6f7f9;
-    color: #20242a;
+    background: var(--toy-bg);
+    color: var(--toy-text);
     font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
     font-size: 16px;
     line-height: 1.55;
 }
 
 a {
-    color: #2458a6;
+    color: var(--toy-link);
 }
 
 header,
@@ -60,10 +165,10 @@ textarea {
 
 nav a,
 button {
-    border: 1px solid #b9c2d0;
+    border: 1px solid var(--toy-control-border);
     border-radius: 6px;
-    background: #ffffff;
-    color: #20242a;
+    background: var(--toy-surface);
+    color: var(--toy-text);
     padding: 7px 10px;
     text-decoration: none;
 }
@@ -76,9 +181,9 @@ button {
 .toy-banner {
     display: block;
     margin: 0 0 20px;
-    border: 1px solid #d8dde6;
+    border: 1px solid var(--toy-border);
     border-radius: 8px;
-    background: #ffffff;
+    background: var(--toy-surface);
     padding: 16px;
 }
 
@@ -108,9 +213,10 @@ input,
 select,
 textarea {
     width: min(100%, 420px);
-    border: 1px solid #b9c2d0;
+    border: 1px solid var(--toy-control-border);
     border-radius: 6px;
-    background: #ffffff;
+    background: var(--toy-surface);
+    color: var(--toy-text);
     padding: 8px 10px;
 }
 
@@ -131,19 +237,19 @@ input[type="number"] {
 table {
     width: 100%;
     border-collapse: collapse;
-    background: #ffffff;
+    background: var(--toy-surface);
 }
 
 th,
 td {
-    border: 1px solid #d8dde6;
+    border: 1px solid var(--toy-border);
     padding: 9px 10px;
     text-align: left;
     vertical-align: top;
 }
 
 th {
-    background: #eceff4;
+    background: var(--toy-surface-muted);
 }
 
 dl {
@@ -161,7 +267,7 @@ dd {
 }
 
 .toy-install-page {
-    background: #eef2f6;
+    background: var(--toy-install-bg);
 }
 
 .toy-install-shell {
@@ -172,10 +278,10 @@ dd {
 .toy-install-panel,
 .toy-install-alert,
 .toy-install-actions {
-    border: 1px solid #d3dae5;
+    border: 1px solid var(--toy-border);
     border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 10px 24px rgba(32, 36, 42, 0.06);
+    background: var(--toy-surface);
+    box-shadow: 0 10px 24px var(--toy-shadow-soft);
 }
 
 .toy-install-intro {
@@ -190,12 +296,12 @@ dd {
 .toy-install-intro p {
     max-width: 720px;
     margin: 0;
-    color: #47505c;
+    color: var(--toy-muted);
 }
 
 .toy-install-kicker {
     margin: 0 0 6px;
-    color: #5d6b7c;
+    color: var(--toy-muted-soft);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0;
@@ -216,7 +322,7 @@ dd {
     gap: 10px;
     align-items: center;
     min-height: 34px;
-    color: #303741;
+    color: var(--toy-muted-strong);
 }
 
 .toy-install-steps li::before {
@@ -227,8 +333,8 @@ dd {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #243b5a;
-    color: #ffffff;
+    background: var(--toy-primary);
+    color: var(--toy-on-primary);
     font-size: 13px;
     font-weight: 700;
 }
@@ -245,13 +351,13 @@ dd {
 }
 
 .toy-install-alert-error {
-    border-color: #d7a3a3;
-    background: #fff7f7;
+    border-color: var(--toy-danger-border);
+    background: var(--toy-danger-bg-soft);
 }
 
 .toy-install-alert-warning {
-    border-color: #d9c48d;
-    background: #fffaf0;
+    border-color: var(--toy-warning-border);
+    background: var(--toy-warning-bg-soft);
 }
 
 .toy-install-panel {
@@ -274,7 +380,7 @@ dd {
 .toy-install-panel-head > p {
     max-width: 420px;
     margin: 0;
-    color: #5d6b7c;
+    color: var(--toy-muted-soft);
 }
 
 .toy-install-check-grid,
@@ -300,9 +406,9 @@ dd {
 .toy-install-check,
 .toy-install-module {
     min-width: 0;
-    border: 1px solid #d8dde6;
+    border: 1px solid var(--toy-border);
     border-radius: 8px;
-    background: #fbfcfe;
+    background: var(--toy-surface-soft);
     padding: 14px;
 }
 
@@ -321,19 +427,19 @@ dd {
 .toy-install-check p,
 .toy-install-module p,
 .toy-install-help {
-    color: #5d6b7c;
+    color: var(--toy-muted-soft);
     font-size: 14px;
 }
 
 .toy-install-check-guide {
-    border-top: 1px solid #e8edf3;
+    border-top: 1px solid var(--toy-border-soft);
     padding-top: 10px;
 }
 
 .toy-install-check-guide span {
     display: block;
     margin-bottom: 4px;
-    color: #334155;
+    color: var(--toy-muted-strong);
     font-size: 12px;
     font-weight: 700;
 }
@@ -348,25 +454,25 @@ dd {
 }
 
 .toy-install-status-ok {
-    border-color: #99c7aa;
-    background: #effaf3;
-    color: #24603a;
+    border-color: var(--toy-success-border);
+    background: var(--toy-success-bg);
+    color: var(--toy-success-text);
 }
 
 .toy-install-status-warning {
-    border-color: #d9c48d;
-    background: #fff9e6;
-    color: #725600;
+    border-color: var(--toy-warning-border);
+    background: var(--toy-warning-bg);
+    color: var(--toy-warning-text);
 }
 
 .toy-install-status-error {
-    border-color: #d7a3a3;
-    background: #fff0f0;
-    color: #8a2a2a;
+    border-color: var(--toy-danger-border);
+    background: var(--toy-danger-bg);
+    color: var(--toy-danger-text);
 }
 
 .toy-install-permission-guide {
-    border-top: 1px solid #e8edf3;
+    border-top: 1px solid var(--toy-border-soft);
     margin-top: 18px;
     padding-top: 16px;
 }
@@ -380,7 +486,7 @@ dd {
 .toy-install-permission-guide p {
     max-width: 860px;
     margin: 0 0 8px;
-    color: #47505c;
+    color: var(--toy-muted);
 }
 
 .toy-install-field-grid label {
@@ -429,14 +535,14 @@ dd {
 
 .toy-install-actions p {
     margin: 0;
-    color: #47505c;
+    color: var(--toy-muted);
 }
 
 .toy-install-actions button {
     min-width: 140px;
-    border-color: #243b5a;
-    background: #243b5a;
-    color: #ffffff;
+    border-color: var(--toy-primary);
+    background: var(--toy-primary);
+    color: var(--toy-on-primary);
     font-weight: 700;
 }
 
@@ -453,10 +559,10 @@ dd {
 
 .toy-popup-layer {
     position: relative;
-    border: 1px solid #9fb3ce;
+    border: 1px solid var(--toy-popup-border);
     border-radius: 6px;
-    background: #ffffff;
-    box-shadow: 0 8px 20px rgba(32, 36, 42, 0.12);
+    background: var(--toy-surface);
+    box-shadow: 0 8px 20px var(--toy-shadow-floating);
     padding: 16px 44px 16px 16px;
 }
 
@@ -466,7 +572,7 @@ dd {
 }
 
 .toy-popup-layer-body {
-    color: #303741;
+    color: var(--toy-muted-strong);
 }
 
 .toy-popup-layer-close {

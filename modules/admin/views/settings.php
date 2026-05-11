@@ -64,6 +64,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </label>
     </p>
+    <p>
+        <label>UI 색상 모드<br>
+            <select name="ui_color_scheme">
+                <?php foreach (toy_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
+                    <option value="<?php echo toy_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                        <?php echo toy_e((string) $colorSchemeLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </label>
+    </p>
     <button type="submit">저장</button>
 </form>
 

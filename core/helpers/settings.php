@@ -14,6 +14,7 @@ function toy_load_site(PDO $pdo): ?array
         'supported_locales' => (string) ($settings['site.supported_locales'] ?? (string) ($settings['site.default_locale'] ?? 'ko')),
         'status' => (string) ($settings['site.status'] ?? 'active'),
         'public_layout_key' => (string) ($settings['public_layout_key'] ?? 'basic'),
+        'ui_color_scheme' => (string) ($settings['ui_color_scheme'] ?? 'light'),
     ];
 }
 

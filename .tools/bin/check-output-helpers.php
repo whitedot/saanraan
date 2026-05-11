@@ -105,6 +105,14 @@ toy_output_helper_assert(
     toy_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
     'Basic public layout should resolve to the layouts directory.'
 );
+toy_output_helper_assert(
+    toy_color_scheme(['ui_color_scheme' => 'dark']) === 'dark',
+    'Known color scheme should be accepted.'
+);
+toy_output_helper_assert(
+    toy_color_scheme(['ui_color_scheme' => 'unknown']) === 'light',
+    'Unknown color scheme should fall back to light.'
+);
 $_POST = [
     'short_value' => 'abc',
     'long_value' => str_repeat('a', 256),

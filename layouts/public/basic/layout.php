@@ -6,7 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 ?>
 <!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
+<html lang="<?php echo toy_e(toy_locale()); ?>" data-color-scheme="<?php echo toy_e(toy_color_scheme($layoutSite)); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

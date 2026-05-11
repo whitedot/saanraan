@@ -8,7 +8,7 @@ $seo = [
 $adminModuleMenuItems = isset($pdo) && $pdo instanceof PDO ? toy_admin_module_menu_items($pdo) : [];
 ?>
 <!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
+<html lang="<?php echo toy_e(toy_locale()); ?>" data-color-scheme="<?php echo toy_e(toy_color_scheme($site ?? null)); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

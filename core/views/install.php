@@ -8,7 +8,7 @@ $seo = [
 $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 ?>
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-color-scheme="system">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
