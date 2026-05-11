@@ -23,6 +23,8 @@ return [
     'POST /community/message/delete' => 'actions/message-delete.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
+    'GET /admin/community/board-groups' => 'actions/admin-board-groups.php',
+    'POST /admin/community/board-groups' => 'actions/admin-board-groups.php',
     'GET /admin/community/posts' => 'actions/admin-posts.php',
     'POST /admin/community/posts' => 'actions/admin-posts.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',

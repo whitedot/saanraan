@@ -231,6 +231,8 @@ $requiredRoutes = [
     'POST /community/message/delete',
     'GET /admin/community/boards',
     'POST /admin/community/boards',
+    'GET /admin/community/board-groups',
+    'POST /admin/community/board-groups',
     'GET /admin/community/posts',
     'POST /admin/community/posts',
     'GET /admin/community/reports',
@@ -252,6 +254,7 @@ foreach ($adminMenu as $entry) {
 }
 toy_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/boards',
+    '/admin/community/board-groups',
     '/admin/community/reports',
     '/admin/community/posts',
 ], 'Community admin-menu.php');
@@ -682,6 +685,22 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
 ], 'Community admin board policy');
+toy_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    '$allowedGroupStatuses = toy_community_board_group_statuses()',
+    '$memberGroups = toy_member_groups($pdo)',
+    '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
+    'toy_community_board_group_by_id($pdo, $groupId)',
+    'toy_community_board_group_by_key($pdo, $groupKey) !== null',
+    'toy_community_create_board_group($pdo, [',
+    'toy_community_update_board_group($pdo, $groupId, [',
+    'toy_community_set_board_group_setting($pdo, $groupId, \'read_policy\', $readPolicy)',
+    'toy_community_set_board_group_setting($pdo, $groupId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
+    'toy_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys)',
+    "'event_type' => \$eventType",
+    "'target_type' => 'community_board_group'",
+], 'Community admin board group policy');
 toy_community_release_file_contains('modules/community/actions/admin-posts.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     '$allowedPostStatuses = toy_community_post_statuses()',
@@ -720,6 +739,7 @@ $stateChangingActions = [
     'modules/community/actions/message-write.php',
     'modules/community/actions/message-delete.php',
     'modules/community/actions/admin-boards.php',
+    'modules/community/actions/admin-board-groups.php',
     'modules/community/actions/admin-posts.php',
     'modules/community/actions/admin-reports.php',
 ];

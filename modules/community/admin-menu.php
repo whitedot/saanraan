@@ -7,13 +7,18 @@ return [
         'order' => 30,
     ],
     [
+        'label' => '커뮤니티 게시판 그룹',
+        'path' => '/admin/community/board-groups',
+        'order' => 31,
+    ],
+    [
         'label' => '커뮤니티 신고',
         'path' => '/admin/community/reports',
-        'order' => 31,
+        'order' => 32,
     ],
     [
         'label' => '커뮤니티 게시글',
         'path' => '/admin/community/posts',
-        'order' => 32,
+        'order' => 33,
     ],
 ];

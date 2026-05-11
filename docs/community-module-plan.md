@@ -593,9 +593,11 @@ flowchart LR
 ```mermaid
 flowchart LR
     adminLogin["관리자 로그인"] --> adminBoards["/admin/community/boards<br>게시판 설정"]
+    adminLogin --> adminBoardGroups["/admin/community/board-groups<br>게시판 그룹 설정"]
     adminLogin --> adminPosts["/admin/community/posts<br>게시글/댓글 moderation"]
     adminLogin --> adminReports["/admin/community/reports<br>신고 처리"]
     adminBoards --> boardPolicy["게시판 상태, read/write/comment 정책, 그룹 key, 첨부 설정"]
+    adminBoardGroups --> groupPolicy["게시판 그룹 생성, 그룹 기본 설정, 같은 그룹 게시판 설정 일괄 적용"]
     adminPosts --> postStatus["게시글 상태 변경<br>published/hidden/deleted/pending"]
     adminPosts --> commentStatus["댓글 상태 변경<br>published/hidden/deleted"]
     adminReports --> reportStatus["신고 상태 변경<br>open/reviewing/resolved/rejected"]
@@ -928,6 +930,8 @@ return [
     'POST /community/message/delete' => 'actions/message-delete.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
+    'GET /admin/community/board-groups' => 'actions/admin-board-groups.php',
+    'POST /admin/community/board-groups' => 'actions/admin-board-groups.php',
     'GET /admin/community/posts' => 'actions/admin-posts.php',
     'POST /admin/community/posts' => 'actions/admin-posts.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',
@@ -1265,6 +1269,7 @@ post_id, id
 ```text
 GET /admin/community/*: owner, admin, manager
 POST /admin/community/boards: owner, admin
+POST /admin/community/board-groups: owner, admin
 POST /admin/community/posts: owner, admin, manager
 POST /admin/community/reports: owner, admin, manager
 ```
@@ -1580,9 +1585,11 @@ v1 구현은 Phase G4 범위까지 포함한다. community는 조건 후보와 �
 ### Phase 6. 관리자 화면
 
 - `/admin/community/boards`
+- `/admin/community/board-groups`
 - `/admin/community/posts`
 - `/admin/community/reports`
 - 게시판 생성/수정/상태 변경
+- 게시판 그룹 생성/수정과 같은 그룹 게시판 설정 일괄 적용
 - 게시판별 접근/글/댓글/첨부/목록/SEO/운영 정책 설정
 - 모듈 theme key와 게시판별 skin key 설정
 - 게시글/댓글 상태 변경

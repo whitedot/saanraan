@@ -179,6 +179,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community admin board groups entry',
+        'path' => '/admin/community/board-groups',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community admin reports entry',
         'path' => '/admin/community/reports',
         'allowed_statuses' => [200, 302, 403, 404],
