@@ -73,7 +73,8 @@ if (toy_request_method() === 'POST') {
         $endsAt = toy_popup_layer_clean_admin_datetime($endsAtInput);
         $dismissCookieDays = max(0, min(365, (int) toy_post_string('dismiss_cookie_days', 5)));
         $targetOption = toy_post_string('target_option', 300);
-        $target = toy_popup_layer_find_target($availableTargets, $targetOption);
+        $isPublicPopupLayer = toy_popup_layer_is_public_target_option($targetOption);
+        $target = $isPublicPopupLayer ? null : toy_popup_layer_find_target($availableTargets, $targetOption);
         $matchType = toy_post_string('match_type', 20);
         $subjectId = toy_popup_layer_clean_subject_id(toy_post_string('subject_id', 80));
 
@@ -97,15 +98,15 @@ if (toy_request_method() === 'POST') {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
         }
 
-        if ($target === null) {
-            $errors[] = '노출 대상을 선택해야 합니다.';
+        if (!$isPublicPopupLayer && $target === null) {
+            $errors[] = '공용 팝업레이어 또는 노출 대상을 선택해야 합니다.';
         }
 
         if (!in_array($matchType, $allowedMatchTypes, true)) {
             $errors[] = '대상 매칭 방식이 올바르지 않습니다.';
         }
 
-        if ($matchType === 'exact' && $subjectId === '') {
+        if (!$isPublicPopupLayer && $matchType === 'exact' && $subjectId === '') {
             $errors[] = '특정 subject ID를 입력해야 합니다.';
         }
 
@@ -117,7 +118,7 @@ if (toy_request_method() === 'POST') {
             }
         }
 
-        if ($errors === [] && $target !== null) {
+        if ($errors === [] && ($isPublicPopupLayer || $target !== null)) {
             try {
                 $now = toy_now();
                 $pdo->beginTransaction();
@@ -161,21 +162,23 @@ if (toy_request_method() === 'POST') {
                 $stmt = $pdo->prepare('DELETE FROM toy_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
                 $stmt->execute(['popup_layer_id' => $popupId]);
 
-                $stmt = $pdo->prepare(
-                    'INSERT INTO toy_popup_layer_targets
-                        (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
-                     VALUES
-                        (:popup_layer_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
-                );
-                $stmt->execute([
-                    'popup_layer_id' => $popupId,
-                    'module_key' => (string) $target['module_key'],
-                    'point_key' => (string) $target['point_key'],
-                    'slot_key' => (string) $target['slot_key'],
-                    'subject_id' => $matchType === 'exact' ? $subjectId : '',
-                    'match_type' => $matchType,
-                    'created_at' => $now,
-                ]);
+                if (!$isPublicPopupLayer && $target !== null) {
+                    $stmt = $pdo->prepare(
+                        'INSERT INTO toy_popup_layer_targets
+                            (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
+                         VALUES
+                            (:popup_layer_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
+                    );
+                    $stmt->execute([
+                        'popup_layer_id' => $popupId,
+                        'module_key' => (string) $target['module_key'],
+                        'point_key' => (string) $target['point_key'],
+                        'slot_key' => (string) $target['slot_key'],
+                        'subject_id' => $matchType === 'exact' ? $subjectId : '',
+                        'match_type' => $matchType,
+                        'created_at' => $now,
+                    ]);
+                }
 
                 $pdo->commit();
 
@@ -188,9 +191,10 @@ if (toy_request_method() === 'POST') {
                     'result' => 'success',
                     'message' => 'Popup layer saved.',
                     'metadata' => [
-                        'module_key' => (string) $target['module_key'],
-                        'point_key' => (string) $target['point_key'],
-                        'slot_key' => (string) $target['slot_key'],
+                        'scope' => $isPublicPopupLayer ? 'public' : 'targeted',
+                        'module_key' => $target !== null ? (string) $target['module_key'] : '',
+                        'point_key' => $target !== null ? (string) $target['point_key'] : '',
+                        'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
                         'match_type' => $matchType,
                     ],
                 ]);

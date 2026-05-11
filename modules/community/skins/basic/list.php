@@ -13,9 +13,16 @@ $seo = [
 if (is_file(TOY_ROOT . '/modules/banner/helpers.php')) {
     require_once TOY_ROOT . '/modules/banner/helpers.php';
 }
+if (is_file(TOY_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+}
 toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
+        <?php if (function_exists('toy_popup_layer_render_public_layer') && toy_module_enabled($pdo, 'popup_layer')) { ?>
+            <?php echo toy_popup_layer_render_public_layer($pdo, (int) ($board['popup_layer_list_id'] ?? 0)); ?>
+        <?php } ?>
+
         <?php echo toy_render_output_slot($pdo, [
             'module_key' => 'community',
             'point_key' => 'community.board.list',

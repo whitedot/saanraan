@@ -37,6 +37,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'attachment_max_count' => 1,
     'banner_before_list_id' => 0,
     'banner_after_list_id' => 0,
+    'popup_layer_list_id' => 0,
     'sort_order' => 0,
     'read_group_keys' => [],
     'write_group_keys' => [],
@@ -321,6 +322,20 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </label>
+            </p>
+            <p>
+                <label>목록 팝업레이어<br>
+                    <select name="popup_layer_list_id">
+                        <option value="0">사용 안 함</option>
+                        <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                            <option value="<?php echo toy_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, 'popup_layer_list_id', '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) $publicPopupLayer['title']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+                <br>
+                <small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small>
             </p>
             <p>
                 <label>정렬 순서<br>

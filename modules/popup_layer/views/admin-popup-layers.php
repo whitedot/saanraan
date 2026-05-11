@@ -3,8 +3,8 @@
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 $editing = is_array($editPopup);
 $adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? '팝업 수정' : '팝업 추가') : '팝업레이어';
-$selectedTargetOption = '';
-if ($editing) {
+$selectedTargetOption = toy_popup_layer_public_target_option_value();
+if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '') . '|' . (string) ($editPopup['slot_key'] ?? '');
 }
 
@@ -32,10 +32,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <section>
         <h2><?php echo $editing ? '팝업 수정' : '팝업 추가'; ?></h2>
-        <?php if ($availableTargets === []) { ?>
-            <p>팝업을 노출할 수 있는 출력 위치가 없습니다. 노출 지점을 제공하는 모듈을 활성화해야 합니다.</p>
-        <?php } else { ?>
-            <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers/save')); ?>">
+        <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers/save')); ?>">
                 <?php echo toy_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? toy_e((string) $editPopup['id']) : '0'; ?>">
 
@@ -64,6 +61,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <p>
                     <label>노출 대상<br>
                         <select name="target_option">
+                            <option value="<?php echo toy_e(toy_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === toy_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
+                                공용 팝업레이어
+                            </option>
                             <?php foreach ($availableTargets as $target) { ?>
                                 <?php $optionValue = toy_popup_layer_target_option_value($target); ?>
                                 <option value="<?php echo toy_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
@@ -72,6 +72,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                     </label>
+                    <br>
+                    <small>공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
                 </p>
                 <p>
                     <label>매칭 방식<br>
@@ -106,8 +108,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </p>
                 <button type="submit">저장</button>
-            </form>
-        <?php } ?>
+        </form>
     </section>
 <?php } else { ?>
     <section>
@@ -130,11 +131,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </thead>
                 <tbody>
                     <?php foreach ($popups as $popup) { ?>
+                        <?php
+                        if ((string) ($popup['module_key'] ?? '') === '') {
+                            $popupTargetLabel = '공용 팝업레이어';
+                        } else {
+                            $popupTargetLabel = (string) $popup['module_key'] . ' / ' . (string) $popup['point_key'] . ' / ' . (string) $popup['slot_key'];
+                        }
+                        ?>
                         <tr>
                             <td><?php echo toy_e((string) $popup['title']); ?></td>
                             <td><?php echo toy_e((string) $popup['status']); ?></td>
                             <td>
-                                <?php echo toy_e((string) $popup['module_key'] . ' / ' . (string) $popup['point_key'] . ' / ' . (string) $popup['slot_key']); ?><br>
+                                <?php echo toy_e($popupTargetLabel); ?><br>
                                 <?php echo toy_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                             </td>
                             <td>

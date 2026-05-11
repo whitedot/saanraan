@@ -107,6 +107,16 @@ function toy_popup_layer_target_option_value(array $target): string
     return (string) $target['module_key'] . '|' . (string) $target['point_key'] . '|' . (string) $target['slot_key'];
 }
 
+function toy_popup_layer_public_target_option_value(): string
+{
+    return '__public__';
+}
+
+function toy_popup_layer_is_public_target_option(string $option): bool
+{
+    return $option === toy_popup_layer_public_target_option_value();
+}
+
 function toy_popup_layer_target_option_label(array $target): string
 {
     return (string) $target['module_label'] . ' / ' . (string) $target['point_label'] . ' / ' . (string) $target['slot_label'];
@@ -121,6 +131,91 @@ function toy_popup_layer_find_target(array $targets, string $optionValue): ?arra
     }
 
     return null;
+}
+
+function toy_popup_layer_public_layers(PDO $pdo): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT p.id, p.title, p.status, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at
+         FROM toy_popup_layers p
+         WHERE NOT EXISTS (
+             SELECT 1
+             FROM toy_popup_layer_targets t
+             WHERE t.popup_layer_id = p.id
+         )
+         ORDER BY p.id DESC"
+    );
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function toy_popup_layer_render_stack(array $popups): string
+{
+    if ($popups === []) {
+        return '';
+    }
+
+    $html = ['<div class="toy-popup-layer-stack" data-toy-popup-layer-stack>'];
+    foreach ($popups as $popup) {
+        $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
+        $html[] = '<section class="toy-popup-layer" data-toy-popup-layer data-popup-id="' . toy_e((string) $popup['id']) . '" data-cookie-days="' . toy_e((string) $cookieDays) . '">';
+        $html[] = '<button class="toy-popup-layer-close" type="button" data-toy-popup-layer-close aria-label="닫기">x</button>';
+        $html[] = '<h2>' . toy_e((string) $popup['title']) . '</h2>';
+        $html[] = '<div class="toy-popup-layer-body">' . nl2br(toy_e((string) $popup['body_text'])) . '</div>';
+        $html[] = '</section>';
+    }
+    $html[] = '</div>';
+    $html[] = toy_popup_layer_close_script();
+
+    return implode("\n", $html);
+}
+
+function toy_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
+{
+    if ($popupLayerId <= 0) {
+        return '';
+    }
+
+    $now = toy_now();
+    $stmt = $pdo->prepare(
+        "SELECT p.id, p.title, p.body_text, p.dismiss_cookie_days
+         FROM toy_popup_layers p
+         WHERE p.id = :id
+           AND p.status = 'enabled'
+           AND (p.starts_at IS NULL OR p.starts_at <= :now_start)
+           AND (p.ends_at IS NULL OR p.ends_at >= :now_end)
+           AND NOT EXISTS (
+               SELECT 1
+               FROM toy_popup_layer_targets t
+               WHERE t.popup_layer_id = p.id
+           )
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'id' => $popupLayerId,
+        'now_start' => $now,
+        'now_end' => $now,
+    ]);
+
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return '';
+    }
+
+    $id = (int) ($row['id'] ?? 0);
+    if ($id <= 0 || isset($_COOKIE[toy_popup_layer_cookie_name($id)])) {
+        return '';
+    }
+
+    return toy_popup_layer_render_stack([
+        [
+            'id' => $id,
+            'title' => (string) ($row['title'] ?? ''),
+            'body_text' => (string) ($row['body_text'] ?? ''),
+            'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
+        ],
+    ]);
 }
 
 function toy_popup_layer_render(PDO $pdo, array $context): string
@@ -184,23 +279,7 @@ function toy_popup_layer_render(PDO $pdo, array $context): string
         ];
     }
 
-    if ($popups === []) {
-        return '';
-    }
-
-    $html = ['<div class="toy-popup-layer-stack" data-toy-popup-layer-stack>'];
-    foreach ($popups as $popup) {
-        $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
-        $html[] = '<section class="toy-popup-layer" data-toy-popup-layer data-popup-id="' . toy_e((string) $popup['id']) . '" data-cookie-days="' . toy_e((string) $cookieDays) . '">';
-        $html[] = '<button class="toy-popup-layer-close" type="button" data-toy-popup-layer-close aria-label="닫기">x</button>';
-        $html[] = '<h2>' . toy_e($popup['title']) . '</h2>';
-        $html[] = '<div class="toy-popup-layer-body">' . nl2br(toy_e($popup['body_text'])) . '</div>';
-        $html[] = '</section>';
-    }
-    $html[] = '</div>';
-    $html[] = toy_popup_layer_close_script();
-
-    return implode("\n", $html);
+    return toy_popup_layer_render_stack($popups);
 }
 
 function toy_popup_layer_cookie_name(int $popupId): string

@@ -8,6 +8,9 @@ require_once TOY_ROOT . '/modules/community/helpers.php';
 if (is_file(TOY_ROOT . '/modules/banner/helpers.php')) {
     require_once TOY_ROOT . '/modules/banner/helpers.php';
 }
+if (is_file(TOY_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+}
 
 $account = toy_member_require_login($pdo);
 toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -29,6 +32,13 @@ $publicBanners = function_exists('toy_banner_public_banners') && toy_module_enab
 $publicBannerIds = [];
 foreach ($publicBanners as $publicBanner) {
     $publicBannerIds[(int) $publicBanner['id']] = true;
+}
+$publicPopupLayers = function_exists('toy_popup_layer_public_layers') && toy_module_enabled($pdo, 'popup_layer')
+    ? toy_popup_layer_public_layers($pdo)
+    : [];
+$publicPopupLayerIds = [];
+foreach ($publicPopupLayers as $publicPopupLayer) {
+    $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
 }
 $memberGroups = toy_member_groups($pdo);
 $enabledMemberGroups = [];
@@ -67,6 +77,7 @@ if (toy_request_method() === 'POST') {
         $attachmentMaxCount = toy_admin_post_int_in_range('attachment_max_count', 0, 10);
         $bannerBeforeListId = toy_admin_post_int_in_range('banner_before_list_id', 0, 999999999);
         $bannerAfterListId = toy_admin_post_int_in_range('banner_after_list_id', 0, 999999999);
+        $popupLayerListId = toy_admin_post_int_in_range('popup_layer_list_id', 0, 999999999);
         $imageUploadsEnabled = ($_POST['image_uploads_enabled'] ?? '') === '1';
         $boardGroupId = toy_admin_post_int_in_range('board_group_id', 0, 999999999);
         $boardGroupId = is_int($boardGroupId) ? $boardGroupId : 0;
@@ -141,6 +152,15 @@ if (toy_request_method() === 'POST') {
 
         if ($bannerAfterListId > 0 && !isset($publicBannerIds[$bannerAfterListId])) {
             $errors[] = '목록 하단 배너는 공용 배너 중에서 선택하세요.';
+        }
+
+        if ($popupLayerListId === null) {
+            $errors[] = '목록 팝업레이어 값이 올바르지 않습니다.';
+            $popupLayerListId = 0;
+        }
+
+        if ($popupLayerListId > 0 && !isset($publicPopupLayerIds[$popupLayerListId])) {
+            $errors[] = '목록 팝업레이어는 공용 팝업레이어 중에서 선택하세요.';
         }
 
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
@@ -225,6 +245,7 @@ if (toy_request_method() === 'POST') {
                     'attachment_max_count' => $attachmentMaxCount,
                     'banner_before_list_id' => $bannerBeforeListId,
                     'banner_after_list_id' => $bannerAfterListId,
+                    'popup_layer_list_id' => $popupLayerListId,
                     'read_group_keys' => $readGroupKeys,
                     'write_group_keys' => $writeGroupKeys,
                     'comment_group_keys' => $commentGroupKeys,
@@ -235,6 +256,7 @@ if (toy_request_method() === 'POST') {
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
             toy_community_set_board_setting($pdo, $boardId, 'banner_before_list_id', (string) $bannerBeforeListId, 'int');
             toy_community_set_board_setting($pdo, $boardId, 'banner_after_list_id', (string) $bannerAfterListId, 'int');
+            toy_community_set_board_setting($pdo, $boardId, 'popup_layer_list_id', (string) $popupLayerListId, 'int');
             toy_community_set_board_setting($pdo, $boardId, 'read_group_keys', toy_community_board_group_keys_setting_value($readGroupKeys), 'json');
             toy_community_set_board_setting($pdo, $boardId, 'write_group_keys', toy_community_board_group_keys_setting_value($writeGroupKeys), 'json');
             toy_community_set_board_setting($pdo, $boardId, 'comment_group_keys', toy_community_board_group_keys_setting_value($commentGroupKeys), 'json');
@@ -256,6 +278,7 @@ if (toy_request_method() === 'POST') {
                 $beforeAttachmentMaxCount = toy_community_board_attachment_max_count($pdo, $boardId);
                 $beforeBannerBeforeListId = (int) (toy_community_board_setting_value($pdo, $boardId, 'banner_before_list_id') ?? 0);
                 $beforeBannerAfterListId = (int) (toy_community_board_setting_value($pdo, $boardId, 'banner_after_list_id') ?? 0);
+                $beforePopupLayerListId = (int) (toy_community_board_setting_value($pdo, $boardId, 'popup_layer_list_id') ?? 0);
                 $beforeReadGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'read_group_keys');
                 $beforeWriteGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'write_group_keys');
                 $beforeCommentGroupKeys = toy_community_board_group_keys($pdo, $boardId, 'comment_group_keys');
@@ -274,6 +297,7 @@ if (toy_request_method() === 'POST') {
                 toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
                 toy_community_set_board_setting($pdo, $boardId, 'banner_before_list_id', (string) $bannerBeforeListId, 'int');
                 toy_community_set_board_setting($pdo, $boardId, 'banner_after_list_id', (string) $bannerAfterListId, 'int');
+                toy_community_set_board_setting($pdo, $boardId, 'popup_layer_list_id', (string) $popupLayerListId, 'int');
                 toy_community_set_board_setting($pdo, $boardId, 'read_group_keys', toy_community_board_group_keys_setting_value($readGroupKeys), 'json');
                 toy_community_set_board_setting($pdo, $boardId, 'write_group_keys', toy_community_board_group_keys_setting_value($writeGroupKeys), 'json');
                 toy_community_set_board_setting($pdo, $boardId, 'comment_group_keys', toy_community_board_group_keys_setting_value($commentGroupKeys), 'json');
@@ -305,6 +329,8 @@ if (toy_request_method() === 'POST') {
                         'after_banner_before_list_id' => $bannerBeforeListId,
                         'before_banner_after_list_id' => $beforeBannerAfterListId,
                         'after_banner_after_list_id' => $bannerAfterListId,
+                        'before_popup_layer_list_id' => $beforePopupLayerListId,
+                        'after_popup_layer_list_id' => $popupLayerListId,
                         'before_read_group_keys' => $beforeReadGroupKeys,
                         'after_read_group_keys' => $readGroupKeys,
                         'before_write_group_keys' => $beforeWriteGroupKeys,
@@ -331,6 +357,7 @@ foreach ($boards as &$board) {
     $board['attachment_max_count'] = toy_community_board_own_attachment_max_count($pdo, (int) $board['id'], $settings);
     $board['banner_before_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) $board['id'], 'banner_before_list_id') ?? 0);
     $board['banner_after_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) $board['id'], 'banner_after_list_id') ?? 0);
+    $board['popup_layer_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) $board['id'], 'popup_layer_list_id') ?? 0);
     $board['effective_attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
     $board['effective_attachment_max_count'] = toy_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
     $board['read_group_keys'] = toy_community_board_own_group_keys($pdo, (int) $board['id'], 'read_group_keys');
