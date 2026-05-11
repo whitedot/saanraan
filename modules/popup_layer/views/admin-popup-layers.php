@@ -25,7 +25,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <section>
     <h2><?php echo $editing ? '팝업 수정' : '팝업 추가'; ?></h2>
     <?php if ($availableTargets === []) { ?>
-        <p>팝업을 노출할 수 있는 모듈 계약 파일이 없습니다.</p>
+        <p>팝업을 노출할 수 있는 출력 위치가 없습니다. 노출 지점을 제공하는 모듈을 활성화해야 합니다.</p>
     <?php } else { ?>
         <form method="post" action="<?php echo toy_e(toy_url('/admin/popup-layers')); ?>">
             <?php echo toy_csrf_field(); ?>

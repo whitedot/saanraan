@@ -54,7 +54,7 @@ function toy_popup_layer_normalize_slots(mixed $slots): array
             [
                 'slot_key' => toy_popup_layer_default_slot_key(),
                 'slot_label' => '화면',
-                'slot_kind' => 'overlay',
+                'slot_kind' => 'content',
             ],
         ];
     }
@@ -70,8 +70,8 @@ function toy_popup_layer_normalize_slots(mixed $slots): array
             continue;
         }
 
-        $slotKind = toy_popup_layer_clean_slot_kind((string) ($slot['kind'] ?? 'overlay'));
-        if ($slotKind !== 'overlay') {
+        $slotKind = toy_popup_layer_clean_slot_kind((string) ($slot['kind'] ?? 'content'));
+        if ($slotKind !== 'content') {
             continue;
         }
 

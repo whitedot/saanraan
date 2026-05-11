@@ -63,8 +63,11 @@ function toy_community_release_file_contains(string $path, array $needles, strin
         return;
     }
 
+    $normalizedContent = str_replace(["\r\n", "\r"], "\n", $content);
+
     foreach ($needles as $needle) {
-        if (!str_contains($content, $needle)) {
+        $normalizedNeedle = str_replace(["\r\n", "\r"], "\n", (string) $needle);
+        if (!str_contains($normalizedContent, $normalizedNeedle)) {
             toy_community_release_error($label . ' must contain: ' . $needle);
         }
     }
