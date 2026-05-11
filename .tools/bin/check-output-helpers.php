@@ -9,6 +9,7 @@ define('TOY_ROOT', $root);
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
+require_once $root . '/modules/site_menu/helpers.php';
 
 $errors = [];
 
@@ -46,6 +47,24 @@ toy_output_helper_assert(
     toy_url('/\\example.com') === '/',
     'Unsafe relative URL should fall back to the site root.'
 );
+$_SERVER['SCRIPT_NAME'] = '/toycore/index.php';
+toy_output_helper_assert(
+    toy_url('/') === '/toycore/',
+    'Root URL should include the installed base path.'
+);
+toy_output_helper_assert(
+    toy_site_menu_item_href('/') === '/toycore/',
+    'Site menu root item should include the installed base path.'
+);
+toy_output_helper_assert(
+    toy_site_menu_item_href('/login') === '/toycore/login',
+    'Site menu internal item should include the installed base path.'
+);
+toy_output_helper_assert(
+    toy_site_menu_item_href('https://example.com/') === 'https://example.com/',
+    'Site menu external item should keep the original URL.'
+);
+$_SERVER['SCRIPT_NAME'] = '/index.php';
 toy_output_helper_assert(
     toy_absolute_url(['base_url' => 'https://example.com/base?bad=1'], '/login') === '/login',
     'Absolute URL should reject site base URLs with query strings.'

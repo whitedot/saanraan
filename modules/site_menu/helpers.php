@@ -56,6 +56,15 @@ function toy_site_menu_link_suggestions(PDO $pdo): array
     return $suggestions;
 }
 
+function toy_site_menu_item_href(string $url): string
+{
+    if (toy_is_safe_relative_url($url)) {
+        return toy_url($url);
+    }
+
+    return $url;
+}
+
 function toy_site_menu_render(PDO $pdo, string $menuKey): string
 {
     $menuKey = toy_site_menu_clean_key($menuKey);
@@ -87,7 +96,7 @@ function toy_site_menu_render(PDO $pdo, string $menuKey): string
     foreach ($items as $item) {
         $target = (string) ($item['target'] ?? 'self');
         $targetAttribute = $target === 'blank' ? ' target="_blank" rel="noopener noreferrer"' : '';
-        $html .= '<a href="' . toy_e((string) $item['url']) . '"' . $targetAttribute . '>' . toy_e((string) $item['label']) . '</a>';
+        $html .= '<a href="' . toy_e(toy_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . toy_e((string) $item['label']) . '</a>';
     }
     $html .= '</nav>';
 
