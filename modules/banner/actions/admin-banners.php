@@ -46,6 +46,8 @@ if (toy_request_method() === 'POST') {
                 $pdo->beginTransaction();
                 $stmt = $pdo->prepare('DELETE FROM toy_banner_targets WHERE banner_id = :banner_id');
                 $stmt->execute(['banner_id' => $bannerId]);
+                $stmt = $pdo->prepare('DELETE FROM toy_banner_clicks WHERE banner_id = :banner_id');
+                $stmt->execute(['banner_id' => $bannerId]);
                 $stmt = $pdo->prepare('DELETE FROM toy_banners WHERE id = :id');
                 $stmt->execute(['id' => $bannerId]);
                 $pdo->commit();
@@ -285,7 +287,7 @@ if ($editId > 0) {
 $targetLabels = toy_banner_target_labels($availableTargets);
 
 $banners = [];
-$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.starts_at, b.ends_at, b.sort_order, b.updated_at,
+$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM toy_banners b
               LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';

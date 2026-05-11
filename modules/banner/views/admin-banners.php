@@ -100,6 +100,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </label>
+                <br>
+                <small>enabled 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.</small>
             </p>
             <p>
                 <label>시작 시각<br>
@@ -123,6 +125,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <section>
         <h2>배너 목록</h2>
         <p><a href="<?php echo toy_e(toy_url('/admin/banners/new')); ?>">새 배너 추가</a></p>
+        <p>enabled 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
         <form method="get" action="<?php echo toy_e(toy_url('/admin/banners')); ?>">
             <p>
                 <label>상태<br>
@@ -160,6 +163,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <th>제목</th>
                         <th>상태</th>
                         <th>링크</th>
+                        <th>클릭</th>
                         <th>출력 위치</th>
                         <th>기간</th>
                         <th>정렬</th>
@@ -174,11 +178,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         ?>
                         <tr>
                             <td><?php echo toy_e((string) $banner['title']); ?></td>
-                            <td><?php echo toy_e((string) $banner['status']); ?></td>
+                            <td>
+                                <?php echo toy_e((string) $banner['status']); ?>
+                                <?php if ((string) $banner['status'] !== 'enabled') { ?>
+                                    <br><small>사용자 화면 미노출</small>
+                                <?php } ?>
+                            </td>
                             <td>
                                 <?php echo toy_e(toy_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?><br>
                                 <?php echo toy_e((string) ($banner['link_url'] ?? '')); ?>
                             </td>
+                            <td><?php echo toy_e(number_format((int) ($banner['click_count'] ?? 0))); ?></td>
                             <td><?php echo toy_e($bannerTargetLabel); ?></td>
                             <td>
                                 <?php echo toy_e((string) ($banner['starts_at'] ?? '-')); ?><br>

@@ -313,6 +313,146 @@ function toy_banner_link_attributes(string $url): string
     return $attributes;
 }
 
+function toy_banner_click_url(int $bannerId): string
+{
+    return '/banner/click?id=' . rawurlencode((string) $bannerId);
+}
+
+function toy_banner_click_link_attributes(int $bannerId, string $url): string
+{
+    $url = toy_banner_clean_url($url);
+    if ($bannerId <= 0 || $url === '') {
+        return '';
+    }
+
+    $attributes = ' href="' . toy_e(toy_url(toy_banner_click_url($bannerId))) . '"';
+    if (toy_is_http_url($url)) {
+        $attributes .= ' target="_blank" rel="noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
+function toy_banner_click_subject(): string
+{
+    $accountId = $_SESSION['toy_account_id'] ?? null;
+    if (is_int($accountId) || is_string($accountId)) {
+        $accountId = (int) $accountId;
+        if ($accountId > 0) {
+            return 'account:' . (string) $accountId;
+        }
+    }
+
+    $sessionId = session_id();
+    if (is_string($sessionId) && $sessionId !== '') {
+        return 'session:' . hash('sha256', $sessionId);
+    }
+
+    return 'guest:' . toy_client_ip() . '|' . hash('sha256', toy_client_user_agent());
+}
+
+function toy_banner_record_click(PDO $pdo, array $config, int $bannerId): bool
+{
+    if ($bannerId <= 0) {
+        return false;
+    }
+
+    try {
+        $clickKeyHash = toy_hmac_hash('banner-click|' . (string) $bannerId . '|' . toy_banner_click_subject(), $config);
+        $now = toy_now();
+
+        $stmt = $pdo->prepare(
+            'INSERT IGNORE INTO toy_banner_clicks
+                (banner_id, click_key_hash, clicked_at)
+             VALUES
+                (:banner_id, :click_key_hash, :clicked_at)'
+        );
+        $stmt->execute([
+            'banner_id' => $bannerId,
+            'click_key_hash' => $clickKeyHash,
+            'clicked_at' => $now,
+        ]);
+
+        if ($stmt->rowCount() < 1) {
+            return false;
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE toy_banners
+             SET click_count = click_count + 1
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'id' => $bannerId,
+        ]);
+
+        return true;
+    } catch (Throwable $exception) {
+        toy_log_exception($exception, 'banner_click_record_failed');
+        return false;
+    }
+}
+
+function toy_banner_click_target(PDO $pdo, int $bannerId): ?array
+{
+    if ($bannerId <= 0) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT b.id, b.link_url
+         FROM toy_banners b
+         WHERE b.id = :id
+           AND b.status = 'enabled'
+           AND b.link_url <> ''
+           AND (b.starts_at IS NULL OR b.starts_at <= :now_start)
+           AND (b.ends_at IS NULL OR b.ends_at >= :now_end)
+           AND EXISTS (
+               SELECT 1
+               FROM toy_banner_targets t
+               WHERE t.banner_id = b.id
+           )
+         LIMIT 1"
+    );
+    $now = toy_now();
+    $stmt->execute([
+        'id' => $bannerId,
+        'now_start' => $now,
+        'now_end' => $now,
+    ]);
+
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return null;
+    }
+
+    $linkUrl = toy_banner_clean_url((string) $row['link_url']);
+    if ($linkUrl === '') {
+        return null;
+    }
+
+    return [
+        'id' => (int) $row['id'],
+        'link_url' => $linkUrl,
+    ];
+}
+
+function toy_banner_redirect_to_link(string $url): void
+{
+    $url = toy_banner_clean_url($url);
+    if ($url === '') {
+        toy_render_error(404, '배너 링크를 찾을 수 없습니다.');
+    }
+
+    if (toy_is_safe_relative_url($url)) {
+        toy_redirect($url);
+    }
+
+    toy_enforce_request_contract('before_redirect');
+    header('Location: ' . $url, true, 302);
+    toy_finish_response();
+}
+
 function toy_banner_link_type_label(string $url): string
 {
     $url = toy_banner_clean_url($url);
@@ -367,7 +507,7 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
             $content .= '<span>' . nl2br(toy_e((string) $banner['body_text'])) . '</span>';
         }
 
-        $linkAttributes = toy_banner_link_attributes((string) $banner['link_url']);
+        $linkAttributes = toy_banner_click_link_attributes((int) $banner['id'], (string) $banner['link_url']);
         if ($linkAttributes !== '') {
             $content = '<a' . $linkAttributes . '>' . $content . '</a>';
         }
