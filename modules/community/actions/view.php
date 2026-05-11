@@ -86,7 +86,7 @@ if (isset($_SESSION['toy_community_comment_body']) && is_string($_SESSION['toy_c
     $commentBody = $_SESSION['toy_community_comment_body'];
 }
 unset($_SESSION['toy_community_comment_notice'], $_SESSION['toy_community_comment_errors'], $_SESSION['toy_community_comment_body']);
-$skinKey = toy_community_skin_key();
+$skinKey = toy_community_board_skin_key($pdo, $post);
 $skinView = toy_community_skin_view($skinKey, 'post');
 
 include $skinView;

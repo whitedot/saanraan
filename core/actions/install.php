@@ -449,6 +449,7 @@ if (toy_request_method() === 'POST') {
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
+                'public_layout_key' => ['value' => 'basic', 'type' => 'string'],
             ]);
 
             $modules = [];

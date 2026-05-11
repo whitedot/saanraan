@@ -16,6 +16,7 @@ function toy_admin_reserved_site_setting_keys(): array
         'site.default_locale' => true,
         'site.supported_locales' => true,
         'site.status' => true,
+        'public_layout_key' => true,
     ];
 }
 
@@ -110,6 +111,7 @@ function toy_admin_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
         'status' => (string) ($site['status'] ?? 'active'),
+        'public_layout_key' => toy_public_layout_key($site),
     ];
 }
 
@@ -122,6 +124,7 @@ function toy_admin_previous_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? ''),
         'supported_locales' => (string) ($site['supported_locales'] ?? ''),
         'status' => (string) ($site['status'] ?? ''),
+        'public_layout_key' => toy_public_layout_key($site),
     ];
 }
 
@@ -134,6 +137,7 @@ function toy_admin_post_site_setting_values(): array
         'default_locale' => toy_post_string('default_locale', 20),
         'supported_locales' => toy_post_string('supported_locales', 255),
         'status' => toy_post_string('status', 30),
+        'public_layout_key' => toy_post_string('public_layout_key', 60),
     ];
 }
 
@@ -295,6 +299,10 @@ function toy_admin_handle_settings_post(
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
 
+        if (!isset(toy_public_layout_options()[$values['public_layout_key']])) {
+            $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
+        }
+
         if ($errors === []) {
             $previousValues = toy_admin_previous_site_setting_values($site);
 
@@ -305,6 +313,7 @@ function toy_admin_handle_settings_post(
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['supported_locales'], 'type' => 'string'],
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
+                'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
             ]);
 
             toy_audit_log($pdo, [
@@ -388,7 +397,7 @@ function toy_admin_site_settings(PDO $pdo): array
     $stmt = $pdo->query(
         "SELECT setting_key, setting_value, value_type, updated_at
          FROM toy_site_settings
-         WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status')
+         WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status', 'public_layout_key')
          ORDER BY setting_key ASC"
     );
     foreach ($stmt->fetchAll() as $row) {

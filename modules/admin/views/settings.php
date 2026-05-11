@@ -53,6 +53,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </label>
     </p>
+    <p>
+        <label>공통 레이아웃<br>
+            <select name="public_layout_key">
+                <?php foreach (toy_public_layout_options() as $layoutKey => $layoutOption) { ?>
+                    <option value="<?php echo toy_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                        <?php echo toy_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </label>
+    </p>
     <button type="submit">저장</button>
 </form>
 

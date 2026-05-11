@@ -63,7 +63,7 @@ $pageTitle = '게시글 수정';
 $formAction = '/community/edit?id=' . (string) $postId;
 $submitLabel = '수정';
 $postIdField = $postId;
-$skinKey = toy_community_skin_key();
+$skinKey = toy_community_board_skin_key($pdo, $post);
 $skinView = toy_community_skin_view($skinKey, 'form');
 
 include $skinView;

@@ -656,7 +656,8 @@ v1 구현 방향:
 - 게시판 설정에는 `skin_key`를 저장한다.
 - `/community` 같은 비게시판 public action은 `theme_key`로 theme view를 include한다.
 - 특정 board context가 있는 public action은 board 설정의 `skin_key`로 skin view를 include한다.
-- v1 theme과 skin은 모두 최소 HTML만 제공하고 CSS/디자인 asset을 제공하지 않는다.
+- v1 theme과 skin은 모두 본문 HTML만 제공하고 전역 `<html>/<head>/<body>` 레이아웃과 CSS/디자인 asset을 제공하지 않는다.
+- 전역 public 레이아웃은 `layouts/public/basic/layout.php`가 담당한다.
 - 알 수 없는 `theme_key`는 기본 `basic`으로 fallback한다.
 - 알 수 없는 `skin_key`는 기본 `basic`으로 fallback한다.
 - 관리자 화면은 v1에서 module theme은 `basic`, board skin은 `basic`만 선택 가능하게 하거나 읽기 전용으로 표시한다.
@@ -726,9 +727,11 @@ theme view 책임:
 - 게시판 선택이나 커뮤니티 홈 같은 모듈 단위 변수 출력
 - `toy_e()` 같은 출력 escape
 - 모듈 단위 output slot 호출 위치 제공
+- 화면 SEO 배열을 만들고 `toy_public_layout_begin()`에 전달
 
 theme view가 하지 않는 것:
 
+- 전역 `<html>`, `<head>`, `<body>` 레이아웃 출력
 - 특정 게시판의 글 목록/글보기/form 출력
 - DB 변경
 - 권한 최종 판단
@@ -740,7 +743,7 @@ skin 적용 방식:
 
 ```text
 1. action이 board와 board settings를 조회한다.
-2. toy_community_board_skin_key($boardSettings)가 skin_key를 정규화한다.
+2. toy_community_board_skin_key($pdo, $board)가 게시판 설정의 skin_key를 읽고 정규화한다.
 3. toy_community_skin_view($skinKey, $viewKey)가 allowlist에서 view 파일을 찾는다.
 4. action이 권한, 입력값, 조회 결과, SEO 값을 준비한다.
 5. action이 선택된 skin view 파일을 include한다.
@@ -769,9 +772,11 @@ skin view 책임:
 - CSRF field 출력
 - 게시판 화면 output slot 호출 위치 제공
 - form name/action/method 구조 유지
+- 화면 SEO 배열을 만들고 `toy_public_layout_begin()`에 전달
 
 skin view가 하지 않는 것:
 
+- 전역 `<html>`, `<head>`, `<body>` 레이아웃 출력
 - DB 변경
 - 권한 최종 판단
 - 게시판 정책 판단
@@ -1280,7 +1285,7 @@ POST /admin/community/reports: owner, admin, manager
 
 ## 9. 출력과 SEO
 
-각 public view는 자체 `$seo` 배열을 만든 뒤 `toy_seo_tags()`를 사용한다.
+각 public view는 자체 `$seo` 배열을 만든 뒤 `toy_public_layout_begin()`에 전달한다. 전역 layout 파일이 `toy_seo_tags()`를 호출한다.
 
 게시글 보기:
 

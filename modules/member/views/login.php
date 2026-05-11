@@ -6,16 +6,8 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') === 'login_id') ? '아이디 또는 이메일' : '이메일 또는 아이디';
+toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
-<!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php echo toy_seo_tags($seo, $site ?? null); ?>
-    <?php echo toy_stylesheet_tag(); ?>
-</head>
-<body>
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
@@ -53,5 +45,4 @@ $identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') ==
         <p><a href="<?php echo toy_e(toy_url('/register')); ?>">회원가입</a></p>
         <p><a href="<?php echo toy_e(toy_url('/password/reset')); ?>">비밀번호 재설정</a></p>
     </main>
-</body>
-</html>
+<?php toy_public_layout_end(); ?>

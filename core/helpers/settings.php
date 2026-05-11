@@ -13,6 +13,7 @@ function toy_load_site(PDO $pdo): ?array
         'default_locale' => (string) ($settings['site.default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($settings['site.supported_locales'] ?? (string) ($settings['site.default_locale'] ?? 'ko')),
         'status' => (string) ($settings['site.status'] ?? 'active'),
+        'public_layout_key' => (string) ($settings['public_layout_key'] ?? 'basic'),
     ];
 }
 

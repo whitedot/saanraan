@@ -74,6 +74,18 @@ toy_output_helper_assert(
     toy_download_filename("\r\n") === 'download.bin',
     'Download filename should fall back when no safe characters remain.'
 );
+toy_output_helper_assert(
+    toy_public_layout_key(['public_layout_key' => 'basic']) === 'basic',
+    'Known public layout key should be accepted.'
+);
+toy_output_helper_assert(
+    toy_public_layout_key(['public_layout_key' => '../basic']) === 'basic',
+    'Unknown public layout key should fall back to basic.'
+);
+toy_output_helper_assert(
+    toy_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
+    'Basic public layout should resolve to the layouts directory.'
+);
 $_POST = [
     'short_value' => 'abc',
     'long_value' => str_repeat('a', 256),

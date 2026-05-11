@@ -145,6 +145,78 @@ function toy_stylesheet_tag(): string
     return '<link rel="stylesheet" href="' . toy_e(toy_url('/assets/toycore.css')) . '">';
 }
 
+function toy_public_layout_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본 레이아웃',
+            'file' => TOY_ROOT . '/layouts/public/basic/layout.php',
+        ],
+    ];
+}
+
+function toy_public_layout_key(?array $site = null): string
+{
+    $layoutKey = is_array($site) ? (string) ($site['public_layout_key'] ?? 'basic') : 'basic';
+    return isset(toy_public_layout_options()[$layoutKey]) ? $layoutKey : 'basic';
+}
+
+function toy_public_layout_file(string $layoutKey): string
+{
+    $options = toy_public_layout_options();
+    if (!isset($options[$layoutKey])) {
+        $layoutKey = 'basic';
+    }
+
+    $layoutFile = (string) ($options[$layoutKey]['file'] ?? '');
+    if ($layoutFile === '' || !is_file($layoutFile)) {
+        $layoutFile = (string) $options['basic']['file'];
+    }
+
+    return $layoutFile;
+}
+
+function toy_public_layout_begin(?PDO $pdo, ?array $site, array $seo = [], array $layoutContext = []): void
+{
+    $stack = $GLOBALS['toy_public_layout_stack'] ?? [];
+    if (!is_array($stack)) {
+        $stack = [];
+    }
+
+    $stack[] = [
+        'pdo' => $pdo,
+        'site' => $site,
+        'seo' => $seo,
+        'layout_context' => $layoutContext,
+    ];
+    $GLOBALS['toy_public_layout_stack'] = $stack;
+
+    ob_start();
+}
+
+function toy_public_layout_end(): void
+{
+    $contentHtml = ob_get_clean();
+    $contentHtml = is_string($contentHtml) ? $contentHtml : '';
+
+    $stack = $GLOBALS['toy_public_layout_stack'] ?? [];
+    if (!is_array($stack) || $stack === []) {
+        echo $contentHtml;
+        return;
+    }
+
+    $layoutState = array_pop($stack);
+    $GLOBALS['toy_public_layout_stack'] = $stack;
+
+    $pdo = $layoutState['pdo'] ?? null;
+    $site = is_array($layoutState['site'] ?? null) ? $layoutState['site'] : null;
+    $seo = is_array($layoutState['seo'] ?? null) ? $layoutState['seo'] : [];
+    $layoutContext = is_array($layoutState['layout_context'] ?? null) ? $layoutState['layout_context'] : [];
+    $layoutFile = toy_public_layout_file(toy_public_layout_key($site));
+
+    include $layoutFile;
+}
+
 function toy_render_output_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');

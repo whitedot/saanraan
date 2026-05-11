@@ -38,7 +38,7 @@ if (isset($_SESSION['toy_community_board_notice']) && is_string($_SESSION['toy_c
     $boardNotice = $_SESSION['toy_community_board_notice'];
 }
 unset($_SESSION['toy_community_board_notice']);
-$skinKey = toy_community_skin_key();
+$skinKey = toy_community_board_skin_key($pdo, $board);
 $skinView = toy_community_skin_view($skinKey, 'list');
 
 include $skinView;

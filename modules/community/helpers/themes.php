@@ -25,6 +25,13 @@ function toy_community_skin_key(array $boardSettings = []): string
     return $skinKey === 'basic' ? 'basic' : 'basic';
 }
 
+function toy_community_board_skin_key(PDO $pdo, array $board): string
+{
+    $boardId = isset($board['board_id']) ? (int) $board['board_id'] : (int) ($board['id'] ?? 0);
+    $skinKey = $boardId > 0 ? toy_community_board_setting_value($pdo, $boardId, 'skin_key') : null;
+    return toy_community_skin_key(['skin_key' => is_string($skinKey) ? $skinKey : 'basic']);
+}
+
 function toy_community_skin_view(string $skinKey, string $viewKey): string
 {
     $views = [

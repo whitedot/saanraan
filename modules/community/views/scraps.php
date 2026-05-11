@@ -6,15 +6,8 @@ $seo = [
     'canonical' => '/community/scraps',
     'robots' => 'noindex, nofollow',
 ];
+toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
-<!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
-<head>
-    <meta charset="utf-8">
-    <?php echo toy_seo_tags($seo, $site ?? null); ?>
-    <?php echo toy_stylesheet_tag(); ?>
-</head>
-<body>
     <main>
         <p><a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a></p>
         <h1><?php echo toy_e($pageTitle); ?></h1>
@@ -71,5 +64,4 @@ $seo = [
             </table>
         <?php } ?>
     </main>
-</body>
-</html>
+<?php toy_public_layout_end(); ?>

@@ -10,15 +10,8 @@ $seo = [
         ? 'noindex, nofollow'
         : ($keyword === '' ? 'index, follow' : 'noindex, follow'),
 ];
+toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
-<!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
-<head>
-    <meta charset="utf-8">
-    <?php echo toy_seo_tags($seo, $site ?? null); ?>
-    <?php echo toy_stylesheet_tag(); ?>
-</head>
-<body>
     <main>
         <?php echo toy_render_output_slot($pdo, [
             'module_key' => 'community',
@@ -110,5 +103,4 @@ $seo = [
             'subject_id' => (string) $board['id'],
         ]); ?>
     </main>
-</body>
-</html>
+<?php toy_public_layout_end(); ?>

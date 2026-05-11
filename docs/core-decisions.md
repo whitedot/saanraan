@@ -507,3 +507,19 @@ member -> /admin/member-settings
 seo -> /admin/seo
 popup_layer -> /admin/popup-layers
 ```
+
+## 16. 공개 레이아웃은 전역 껍데기만 담당한다
+
+공개 화면의 전역 레이아웃 파일은 `layouts/public/{layout_key}/` 아래에 둡니다. 이 파일은 `<html>`, `<head>`, 공통 header/footer, 공통 메뉴, 전역 output slot처럼 사이트 전체 껍데기만 담당합니다.
+
+모듈별 화면 구조와 도메인 표시 방식은 각 모듈 안에 둡니다.
+
+```text
+layouts/public/basic/layout.php
+modules/community/themes/basic/home.php
+modules/community/skins/basic/list.php
+```
+
+DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `theme_key`, `skin_key` 같은 key만 저장합니다. 실제 파일 경로는 코드의 allowlist helper가 결정하고, 알 수 없는 key는 `basic`으로 fallback합니다.
+
+페이지나 URL마다 레이아웃을 고르는 규칙은 만들지 않습니다. 전역 public 레이아웃은 사이트 단위로 하나를 선택하고, 모듈별 theme/skin 선택은 해당 모듈 책임으로 제한합니다.

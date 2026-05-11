@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$skinKey = toy_community_skin_key();
+$skinKey = toy_community_board_skin_key($pdo, $board);
 $skinView = toy_community_skin_view($skinKey, 'form');
 
 include $skinView;

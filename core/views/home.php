@@ -19,17 +19,8 @@ if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'seo')) {
     }
 }
 
+toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
-<!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php echo toy_seo_tags($seo, $site); ?>
-    <?php echo toy_stylesheet_tag(); ?>
-</head>
-<body>
-    <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'navigation']); ?>
     <main>
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo toy_e($pageTitle); ?></h1>
@@ -37,5 +28,4 @@ if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'seo')) {
         <p><a href="<?php echo toy_e(toy_url('/admin')); ?>">관리자 화면</a></p>
         <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
     </main>
-</body>
-</html>
+<?php toy_public_layout_end(); ?>

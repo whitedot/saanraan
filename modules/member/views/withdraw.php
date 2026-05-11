@@ -5,16 +5,8 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
+toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
-<!doctype html>
-<html lang="<?php echo toy_e(toy_locale()); ?>">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php echo toy_seo_tags($seo, $site ?? null); ?>
-    <?php echo toy_stylesheet_tag(); ?>
-</head>
-<body>
     <main>
         <h1><?php echo toy_e($pageTitle); ?></h1>
 
@@ -42,5 +34,4 @@ $seo = [
         </form>
         <p><a href="<?php echo toy_e(toy_url('/account')); ?>">내 계정</a></p>
     </main>
-</body>
-</html>
+<?php toy_public_layout_end(); ?>
