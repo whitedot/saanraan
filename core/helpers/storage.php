@@ -218,10 +218,40 @@ function toy_storage_s3_ready(array $config): bool
         return toy_storage_s3_bucket_is_valid($s3['bucket'])
             && $s3['region'] !== ''
             && $s3['access_key'] !== ''
-            && $s3['secret_key'] !== '';
+            && $s3['secret_key'] !== ''
+            && toy_storage_s3_config_errors($config) === [];
     } catch (Throwable $exception) {
         return false;
     }
+}
+
+function toy_storage_s3_config_errors(array $config): array
+{
+    $errors = [];
+    $s3 = toy_storage_s3_config($config);
+    $env = (string) ($config['env'] ?? 'production');
+
+    if ($s3['bucket'] !== '' && !toy_storage_s3_bucket_is_valid($s3['bucket'])) {
+        $errors[] = 'S3 bucket 형식이 올바르지 않습니다.';
+    }
+
+    foreach (['endpoint', 'public_base_url'] as $key) {
+        $url = (string) $s3[$key];
+        if ($url === '') {
+            continue;
+        }
+
+        if (!toy_is_http_url($url)) {
+            $errors[] = 'S3 ' . $key . ' URL이 올바르지 않습니다.';
+            continue;
+        }
+
+        if ($env === 'production' && strtolower((string) parse_url($url, PHP_URL_SCHEME)) !== 'https') {
+            $errors[] = '운영 환경의 S3 ' . $key . ' URL은 HTTPS여야 합니다.';
+        }
+    }
+
+    return $errors;
 }
 
 function toy_storage_s3_put_file(array $config, string $sourcePath, string $key, array $options = []): array

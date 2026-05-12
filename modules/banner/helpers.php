@@ -159,7 +159,7 @@ function toy_banner_image_storage_path(string $storageKey): ?string
 function toy_banner_image_storage_reference(string $reference): ?array
 {
     $storage = toy_storage_parse_reference($reference);
-    if (!is_array($storage)) {
+    if (!is_array($storage) || !toy_banner_image_storage_key_is_valid((string) $storage['key'])) {
         $legacyKey = 'banner/images/' . ltrim($reference, '/');
         $storage = toy_storage_parse_reference($legacyKey);
     }
@@ -168,12 +168,16 @@ function toy_banner_image_storage_reference(string $reference): ?array
         return null;
     }
 
-    $key = (string) $storage['key'];
-    if (preg_match('#\Abanner/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) !== 1) {
+    if (!toy_banner_image_storage_key_is_valid((string) $storage['key'])) {
         return null;
     }
 
     return $storage;
+}
+
+function toy_banner_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\Abanner/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
 }
 
 function toy_banner_delete_uploaded_image(array $uploadedImage): void

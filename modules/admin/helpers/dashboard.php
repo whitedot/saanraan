@@ -173,13 +173,14 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
     ];
 
     $storageDriver = toy_storage_default_driver($config);
+    $s3ConfigErrors = toy_storage_s3_config_errors($config);
     $summary[] = [
         'label' => '파일 저장소',
         'value' => $storageDriver === 's3' ? 'S3' : '로컬',
-        'state' => $storageDriver === 's3' ? (toy_storage_s3_ready($config) ? '정상' : '주의') : '정상',
+        'state' => $storageDriver === 's3' ? (toy_storage_s3_ready($config) ? '정상' : '주의') : ($s3ConfigErrors === [] ? '정상' : '확인'),
         'detail' => $storageDriver === 's3'
-            ? (toy_storage_s3_ready($config) ? 'S3 설정 확인됨' : 'S3 bucket, region, credential 설정 필요')
-            : 'storage/ 로컬 파일 저장 사용',
+            ? (toy_storage_s3_ready($config) ? 'S3 설정 확인됨' : 'S3 설정 확인 필요: ' . implode(' ', $s3ConfigErrors))
+            : ($s3ConfigErrors === [] ? 'storage/ 로컬 파일 저장 사용' : '로컬 저장 사용 중. S3 예비 설정 확인 필요: ' . implode(' ', $s3ConfigErrors)),
     ];
 
     return $summary;
