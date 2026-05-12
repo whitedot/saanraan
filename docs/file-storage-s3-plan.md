@@ -13,6 +13,8 @@
 | 배너 이미지 | 적용 |
 | 커뮤니티 첨부 | 적용 |
 | 관리자 진단 | 설정 준비 상태 표시 |
+| 운영 HTTPS 검증 | 진단과 런타임 차단 적용 |
+| 회귀 점검 | `.tools/bin/check-storage-helpers.php` |
 | 기존 로컬 파일 | 호환 유지 |
 
 ## 방향
@@ -33,23 +35,22 @@
 | 공개 파일 | 배너처럼 공개 가능한 파일은 `public_base_url` 사용 가능 |
 | 비공개 파일 | 커뮤니티 첨부는 모듈 권한 확인 후 PHP proxy 또는 짧은 presigned URL 사용 |
 | 인증 정보 | DB보다 `config/config.php` 또는 env 우선 |
+| 운영 환경 | `endpoint`, `public_base_url`은 HTTPS만 허용 |
+| 개발 환경 | S3-compatible 로컬 endpoint 검증을 위해 HTTP 허용 가능 |
 | 기존 파일 | 기존 로컬 파일은 유지하고 신규 업로드부터 S3 적용 |
 | 일괄 이전 | 별도 마이그레이션 도구로 분리 |
 | 저가형 호스팅 | cURL 또는 stream context로 동작 가능한 구현 우선 |
 
-## 구현 단계
+## 구현 완료 범위
 
-| 단계 | 작업 |
+| 항목 | 내용 |
 | --- | --- |
-| 1 | `storage.default`, `storage.s3.*` 설정 구조 추가 |
-| 2 | `core/helpers/storage.php` 추가 |
-| 3 | `local` adapter로 기존 저장 흐름 감싸기 |
-| 4 | S3 `PUT`, `DELETE`, `HEAD`, presigned `GET` helper 추가 |
-| 5 | 배너 이미지 업로드/조회 흐름에 storage helper 적용 |
-| 6 | 커뮤니티 첨부 업로드/다운로드 흐름에 storage helper 적용 |
-| 7 | 첨부 테이블에 `storage_driver`, `storage_key` 추가 |
-| 8 | 관리자 진단 화면에서 S3 설정 준비 상태 표시 |
-| 9 | 배포 문서에 S3 설정 예시와 권한 정책 추가 |
+| 설정 | `storage.default`, `storage.s3.*` 구조 |
+| 저장 helper | local adapter, S3 `PUT`, `DELETE`, `HEAD`, presigned `GET` |
+| 적용 모듈 | 배너 이미지, 커뮤니티 첨부 |
+| DB update | 첨부 테이블 `storage_driver`, `storage_key` |
+| 관리자 진단 | S3 설정 준비 상태와 설정 오류 표시 |
+| 배포 문서 | S3 설정 예시와 권한 기준 |
 
 ## 설정 예시
 
@@ -88,7 +89,9 @@
 | 다운로드 | 비공개 첨부가 권한 없이 열리지 않음 |
 | 실패 처리 | 인증 실패, 버킷 없음, 네트워크 실패 메시지 확인 |
 | 보안 | 실행 확장자 차단, MIME 검증, `nosniff`, signed URL TTL 확인 |
+| 운영 HTTPS | `production`에서 HTTP endpoint/public URL 차단 |
 | 호환성 | AWS S3와 path-style S3-compatible endpoint 모두 확인 |
+| 자동 점검 | `./.tools/bin/check-storage-helpers.php`, `./.tools/bin/check` |
 
 ## 제외
 
