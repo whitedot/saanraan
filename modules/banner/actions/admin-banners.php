@@ -256,8 +256,8 @@ if (toy_request_method() === 'POST') {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                if (is_array($uploadedImage) && is_string($uploadedImage['path'] ?? null)) {
-                    @unlink((string) $uploadedImage['path']);
+                if (is_array($uploadedImage)) {
+                    toy_banner_delete_uploaded_image($uploadedImage);
                 }
                 $errors[] = '배너 저장 중 오류가 발생했습니다.';
             }

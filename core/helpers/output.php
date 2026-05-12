@@ -372,6 +372,18 @@ function toy_redirect(string $url): void
     toy_finish_response();
 }
 
+function toy_redirect_external(string $url): void
+{
+    if (!toy_is_http_url($url)) {
+        toy_render_error(500, '외부 리다이렉트 URL이 올바르지 않습니다.');
+    }
+
+    toy_enforce_request_contract('before_redirect');
+
+    header('Location: ' . $url, true, 302);
+    toy_finish_response();
+}
+
 function toy_finish_response(): void
 {
     toy_enforce_request_contract('before_response_end');

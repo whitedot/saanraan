@@ -40,6 +40,7 @@ Toycore는 토이 프로젝트처럼 가볍게 시작해 구조를 바꿔 보고
 - 감사 로그, 개인정보 요청, 보관 정리.
 - 커뮤니티, SEO, 메뉴, 배너, 팝업레이어, 알림.
 - 포인트, 예치금, 적립금 회원 연계 모듈.
+- 파일 저장 S3 연동.
 
 ## 주요 문서
 
@@ -50,7 +51,7 @@ Toycore는 토이 프로젝트처럼 가볍게 시작해 구조를 바꿔 보고
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
 | 보안 기준 | [Toycore 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md) |
 | 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 저장 위치 기준](docs/module-storage-policy.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
-| 파일 저장 | [파일 저장 S3 연동 계획](docs/file-storage-s3-plan.md) |
+| 파일 저장 | [파일 저장 S3 연동 기준](docs/file-storage-s3-plan.md) |
 | 예제 | [절차형 요청 흐름 예제](examples/procedural-flow-sample.php.txt), [sample_module](examples/sample_module/README.md) |
 
 ## 보안 피드백

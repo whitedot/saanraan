@@ -34,7 +34,7 @@ $optionalModules = [
     ],
     'banner' => [
         'name' => 'Banner',
-        'version' => '2026.04.001',
+        'version' => '2026.04.003',
         'label' => '배너',
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],
@@ -70,7 +70,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => 'Community',
-        'version' => '2026.05.005',
+        'version' => '2026.05.006',
         'label' => '커뮤니티',
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
@@ -394,6 +394,18 @@ if (toy_request_method() === 'POST') {
             'session' => [
                 'handler' => 'database',
                 'lifetime_seconds' => 86400,
+            ],
+            'storage' => [
+                'default' => 'local',
+                's3' => [
+                    'bucket' => '',
+                    'region' => 'us-east-1',
+                    'endpoint' => '',
+                    'public_base_url' => '',
+                    'path_style' => false,
+                    'access_key_env' => 'TOY_S3_ACCESS_KEY',
+                    'secret_key_env' => 'TOY_S3_SECRET_KEY',
+                ],
             ],
             'mail' => [
                 'transport' => 'php_mail',

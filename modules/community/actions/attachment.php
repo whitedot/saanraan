@@ -27,27 +27,46 @@ if (!is_array($attachment)) {
 }
 
 $mimeType = (string) $attachment['mime_type'];
-$filePath = toy_community_attachment_file_path($attachment);
-if (!toy_community_attachment_mime_is_allowed($mimeType) || !is_string($filePath)) {
+$driver = toy_community_attachment_storage_driver($attachment);
+$storageKey = toy_community_attachment_storage_key($attachment);
+if (!toy_community_attachment_mime_is_allowed($mimeType) || $storageKey === '') {
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
-$fileSize = filesize($filePath);
 $recordedSize = (int) ($attachment['size_bytes'] ?? 0);
-if (!is_int($fileSize) || $fileSize < 0 || $recordedSize < 1 || $recordedSize !== $fileSize) {
+$recordedChecksum = (string) ($attachment['checksum_sha256'] ?? '');
+$head = toy_storage_head($driver, $storageKey);
+if (!is_array($head) || $recordedSize < 1 || (int) ($head['content_length'] ?? 0) !== $recordedSize) {
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
-$recordedChecksum = (string) ($attachment['checksum_sha256'] ?? '');
-$actualChecksum = hash_file('sha256', $filePath);
-if (!is_string($actualChecksum) || preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || !hash_equals($recordedChecksum, $actualChecksum)) {
+$actualChecksum = (string) (($head['metadata']['sha256'] ?? '') ?: '');
+if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum === '' || !hash_equals($recordedChecksum, $actualChecksum)) {
+    toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+}
+
+$disposition = toy_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
+if ($driver === 's3') {
+    $downloadUrl = toy_storage_signed_url('s3', $storageKey, 300, [
+        'response-content-type' => toy_download_content_type($mimeType),
+        'response-content-disposition' => $disposition . '; filename="' . toy_download_filename((string) $attachment['original_name']) . '"',
+    ]);
+    if ($downloadUrl === '') {
+        toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    }
+
+    header('Cache-Control: private, max-age=300');
+    toy_redirect_external($downloadUrl);
+}
+
+$filePath = toy_community_attachment_file_path($attachment);
+if (!is_string($filePath)) {
     toy_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
 header('Content-Type: ' . toy_download_content_type($mimeType));
-$disposition = toy_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
 header('Content-Disposition: ' . $disposition . '; filename="' . toy_download_filename((string) $attachment['original_name']) . '"');
-header('Content-Length: ' . (string) $fileSize);
+header('Content-Length: ' . (string) $recordedSize);
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: private, no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');

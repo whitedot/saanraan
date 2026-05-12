@@ -172,6 +172,16 @@ function toy_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): arra
             : 'admin.module_sources_enabled 설정이 없으면 운영 환경에서 기본 비활성화',
     ];
 
+    $storageDriver = toy_storage_default_driver($config);
+    $summary[] = [
+        'label' => '파일 저장소',
+        'value' => $storageDriver === 's3' ? 'S3' : '로컬',
+        'state' => $storageDriver === 's3' ? (toy_storage_s3_ready($config) ? '정상' : '주의') : '정상',
+        'detail' => $storageDriver === 's3'
+            ? (toy_storage_s3_ready($config) ? 'S3 설정 확인됨' : 'S3 bucket, region, credential 설정 필요')
+            : 'storage/ 로컬 파일 저장 사용',
+    ];
+
     return $summary;
 }
 

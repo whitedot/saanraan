@@ -108,6 +108,8 @@ CREATE TABLE IF NOT EXISTS toy_community_attachments (
     original_name VARCHAR(120) NOT NULL,
     stored_name VARCHAR(120) NOT NULL,
     storage_path VARCHAR(255) NOT NULL,
+    storage_driver VARCHAR(20) NOT NULL DEFAULT 'local',
+    storage_key VARCHAR(255) NOT NULL DEFAULT '',
     mime_type VARCHAR(120) NOT NULL,
     size_bytes BIGINT UNSIGNED NOT NULL,
     checksum_sha256 CHAR(64) NOT NULL,
@@ -118,6 +120,7 @@ CREATE TABLE IF NOT EXISTS toy_community_attachments (
     PRIMARY KEY (id),
     KEY idx_toy_community_attachments_post_status_id (post_id, status, id),
     KEY idx_toy_community_attachments_uploader_id (uploader_account_id, id),
+    KEY idx_toy_community_attachments_storage (storage_driver, storage_key),
     KEY idx_toy_community_attachments_checksum (checksum_sha256)
 );
 

@@ -85,6 +85,23 @@ Nginx: server/location 규칙
 
 메일을 HTTP API transport로 보낼 때는 `mail.transport`를 `http_api`로 설정할 수 있다. 이 경우 endpoint는 공개 HTTPS URL이어야 하며, private/reserved/loopback/link-local/CGNAT/documentation/multicast 주소는 허용하지 않는다.
 
+파일 저장소를 S3로 바꾸려면 `storage.default`를 `s3`로 설정하고 bucket, region, endpoint, credential env를 지정한다. 배너 이미지는 공개 URL이 있으면 `public_base_url`을 사용할 수 있고, 커뮤니티 첨부는 권한 확인 후 짧은 presigned URL로 전달한다.
+
+```php
+'storage' => [
+    'default' => 's3',
+    's3' => [
+        'bucket' => 'example-bucket',
+        'region' => 'ap-northeast-2',
+        'endpoint' => '',
+        'public_base_url' => '',
+        'path_style' => false,
+        'access_key_env' => 'TOY_S3_ACCESS_KEY',
+        'secret_key_env' => 'TOY_S3_SECRET_KEY',
+    ],
+],
+```
+
 ## 원칙
 
 - 설정 파일과 저장소 메타데이터는 웹에서 읽을 수 없어야 한다.

@@ -90,7 +90,7 @@ function toy_banner_upload_image(array $file): ?array
     }
 
     $datePath = date('Y/m');
-    $directory = TOY_ROOT . '/storage/banner/images/' . $datePath;
+    $directory = TOY_ROOT . '/storage/tmp/banner-images/' . $datePath;
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
         throw new RuntimeException('배너 이미지 저장 디렉터리를 만들 수 없습니다.');
     }
@@ -112,12 +112,21 @@ function toy_banner_upload_image(array $file): ?array
         throw new RuntimeException('저장된 이미지 MIME을 확인할 수 없습니다.');
     }
 
-    $storageKey = $datePath . '/' . $storedName;
+    $storageKey = 'banner/images/' . $datePath . '/' . $storedName;
+    $stored = toy_storage_put_file($targetPath, $storageKey, [
+        'content_type' => $storedMimeType,
+    ]);
+    @unlink($targetPath);
+
+    $storageReference = toy_storage_reference((string) $stored['driver'], $storageKey);
+    $publicUrl = (string) ($stored['url'] ?? '');
 
     return [
-        'path' => $targetPath,
+        'driver' => (string) $stored['driver'],
+        'key' => $storageKey,
+        'path' => (string) ($stored['path'] ?? ''),
         'storage_key' => $storageKey,
-        'url' => '/banner/image?file=' . rawurlencode($storageKey),
+        'url' => $publicUrl !== '' ? $publicUrl : '/banner/image?file=' . rawurlencode($storageReference),
     ];
 }
 
@@ -145,6 +154,40 @@ function toy_banner_image_storage_path(string $storageKey): ?string
     }
 
     return $realPath;
+}
+
+function toy_banner_image_storage_reference(string $reference): ?array
+{
+    $storage = toy_storage_parse_reference($reference);
+    if (!is_array($storage)) {
+        $legacyKey = 'banner/images/' . ltrim($reference, '/');
+        $storage = toy_storage_parse_reference($legacyKey);
+    }
+
+    if (!is_array($storage)) {
+        return null;
+    }
+
+    $key = (string) $storage['key'];
+    if (preg_match('#\Abanner/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) !== 1) {
+        return null;
+    }
+
+    return $storage;
+}
+
+function toy_banner_delete_uploaded_image(array $uploadedImage): void
+{
+    $driver = (string) ($uploadedImage['driver'] ?? '');
+    $key = (string) ($uploadedImage['key'] ?? '');
+    if ($driver !== '' && $key !== '') {
+        toy_storage_delete($driver, $key);
+        return;
+    }
+
+    if (is_string($uploadedImage['path'] ?? null) && (string) $uploadedImage['path'] !== '') {
+        @unlink((string) $uploadedImage['path']);
+    }
 }
 
 function toy_banner_clean_admin_datetime(string $value): ?string
