@@ -24,6 +24,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <th>유형</th>
             <th>설치 버전</th>
             <th>코드 버전</th>
+            <th>수명주기</th>
             <th>업데이트</th>
             <th>Toycore 최소</th>
             <th>Toycore 검증</th>
@@ -46,6 +47,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $module['version']); ?></td>
                 <td><?php echo toy_e((string) ($module['code_version'] !== '' ? $module['code_version'] : '-')); ?></td>
                 <td>
+                    <?php echo toy_e((string) ($module['lifecycle_label'] ?? '상태 확인 필요')); ?>
+                    <br>
+                    <?php echo toy_e((string) ($module['lifecycle_action'] ?? '모듈 상태 확인')); ?>
+                </td>
+                <td>
                     <?php if ((int) ($module['pending_update_count'] ?? 0) > 0) { ?>
                         <a href="<?php echo toy_e(toy_url('/admin/updates')); ?>"><?php echo toy_e((string) $module['pending_update_count']); ?>개 SQL 대기</a>
                     <?php } elseif (($module['version_state'] ?? '') === 'code_newer') { ?>
@@ -65,7 +71,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             owner 확인 필요
                         <?php } ?>
                     <?php } elseif (($module['version_state'] ?? '') === 'code_older') { ?>
-                        코드 버전 낮음
+                        파일 재배치 필요
                     <?php } else { ?>
                         -
                     <?php } ?>
@@ -186,6 +192,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>이름</th>
                     <th>유형</th>
                     <th>코드 버전</th>
+                    <th>수명주기</th>
                     <th>Toycore 최소</th>
                     <th>Toycore 검증</th>
                     <th>계약</th>
@@ -201,6 +208,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $module['name']); ?></td>
                         <td><?php echo toy_e((string) $module['type']); ?></td>
                         <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
+                        <td>
+                            <?php echo toy_e((string) ($module['lifecycle_label'] ?? '미설치')); ?>
+                            <br>
+                            <?php echo toy_e((string) ($module['lifecycle_action'] ?? '설치 가능')); ?>
+                        </td>
                         <td><?php echo toy_e((string) ($module['toycore_min_version'] !== '' ? $module['toycore_min_version'] : '-')); ?></td>
                         <td><?php echo toy_e((string) ($module['toycore_tested_with'] !== '' ? $module['toycore_tested_with'] : '-')); ?></td>
                         <td>

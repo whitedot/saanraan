@@ -816,7 +816,7 @@ function toy_admin_sync_module_version(PDO $pdo, string $moduleKey, string $newV
 function toy_admin_sync_file_only_module_versions(PDO $pdo, array $pendingUpdateCounts): array
 {
     $synced = [];
-    $stmt = $pdo->query('SELECT module_key, version FROM toy_modules ORDER BY module_key ASC');
+    $stmt = $pdo->query('SELECT module_key, version, status FROM toy_modules ORDER BY module_key ASC');
     foreach ($stmt->fetchAll() as $module) {
         $moduleKey = (string) ($module['module_key'] ?? '');
         $installedVersion = (string) ($module['version'] ?? '');
@@ -826,7 +826,12 @@ function toy_admin_sync_file_only_module_versions(PDO $pdo, array $pendingUpdate
 
         $metadata = toy_module_metadata($moduleKey);
         $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-        if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) !== 1 || strcmp($codeVersion, $installedVersion) <= 0) {
+        if (
+            preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) !== 1
+            || strcmp($codeVersion, $installedVersion) <= 0
+            || !toy_module_contract_is_loadable($moduleKey)
+            || toy_module_requirement_errors($pdo, $moduleKey, $metadata, (string) ($module['status'] ?? 'enabled')) !== []
+        ) {
             continue;
         }
 

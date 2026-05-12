@@ -160,6 +160,12 @@ function toy_admin_handle_modules_post(
                 }
             }
 
+            if ($errors === [] && $status === 'enabled') {
+                foreach (toy_admin_module_code_older_errors($pdo, $moduleKey) as $versionError) {
+                    $errors[] = $versionError;
+                }
+            }
+
             if ($errors === []) {
                 foreach (toy_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
                     $errors[] = $routeError;
@@ -186,9 +192,13 @@ function toy_admin_handle_modules_post(
             if ($errors === []) {
                 $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
                 $pendingCounts = toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo));
-                if ((int) ($pendingCounts[$moduleKey] ?? 0) > 0) {
+                foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, (string) ($module['status'] ?? 'enabled')) as $requirementError) {
+                    $errors[] = $requirementError;
+                }
+
+                if ($errors === [] && (int) ($pendingCounts[$moduleKey] ?? 0) > 0) {
                     $errors[] = '미적용 SQL이 있는 모듈은 업데이트 화면에서 먼저 DB 업데이트를 실행하세요.';
-                } elseif (strcmp($codeVersion, (string) $module['version']) <= 0) {
+                } elseif ($errors === [] && strcmp($codeVersion, (string) $module['version']) <= 0) {
                     $errors[] = '설치 버전에 반영할 새 코드 버전이 없습니다.';
                 }
             }
@@ -710,6 +720,94 @@ function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string 
     return [];
 }
 
+function toy_admin_module_code_older_errors(PDO $pdo, string $moduleKey): array
+{
+    $module = toy_module_record_entry($pdo, $moduleKey);
+    $metadata = toy_module_metadata($moduleKey);
+    $installedVersion = is_array($module) ? (string) ($module['version'] ?? '') : '';
+    $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+
+    if (
+        preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $installedVersion) === 1
+        && preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) === 1
+        && strcmp($codeVersion, $installedVersion) < 0
+    ) {
+        return ['모듈 코드 버전이 설치 버전보다 낮습니다. 파일을 현재 설치 버전 이상으로 다시 배치한 뒤 활성화하세요.'];
+    }
+
+    return [];
+}
+
+function toy_admin_module_lifecycle_state(array $module): array
+{
+    $status = (string) ($module['status'] ?? '');
+    $metadataErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
+    $pendingUpdateCount = (int) ($module['pending_update_count'] ?? 0);
+    $versionState = (string) ($module['version_state'] ?? 'unknown');
+
+    if (in_array($status, ['failed', 'installing'], true)) {
+        return [
+            'state' => 'install_incomplete',
+            'label' => '설치 미완료',
+            'action' => '재설치 필요',
+        ];
+    }
+
+    if ($metadataErrors !== []) {
+        return [
+            'state' => 'contract_error',
+            'label' => '계약 오류',
+            'action' => '모듈 파일 확인',
+        ];
+    }
+
+    if ($versionState === 'code_older') {
+        return [
+            'state' => 'code_older',
+            'label' => '코드 버전 낮음',
+            'action' => '파일 재배치 필요',
+        ];
+    }
+
+    if ($pendingUpdateCount > 0) {
+        return [
+            'state' => 'sql_pending',
+            'label' => 'SQL 적용 필요',
+            'action' => '/admin/updates에서 업데이트',
+        ];
+    }
+
+    if ($versionState === 'code_newer') {
+        return [
+            'state' => 'file_only_update',
+            'label' => '파일 전용 업데이트 가능',
+            'action' => '설치 버전 반영',
+        ];
+    }
+
+    if ($status === 'enabled') {
+        return [
+            'state' => 'enabled_current',
+            'label' => '활성 최신',
+            'action' => '-',
+        ];
+    }
+
+    if ($status === 'disabled') {
+        return [
+            'state' => 'disabled_current',
+            'label' => '비활성 최신',
+            'action' => '활성화 가능',
+        ];
+    }
+
+    return [
+        'state' => 'unknown',
+        'label' => '상태 확인 필요',
+        'action' => '모듈 상태 확인',
+    ];
+}
+
 function toy_admin_load_module_management_view_data(PDO $pdo): array
 {
     $modules = [];
@@ -748,6 +846,10 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                 $row['version_state'] = 'same';
             }
         }
+        $lifecycle = toy_admin_module_lifecycle_state($row);
+        $row['lifecycle_state'] = (string) $lifecycle['state'];
+        $row['lifecycle_label'] = (string) $lifecycle['label'];
+        $row['lifecycle_action'] = (string) $lifecycle['action'];
         $modules[] = $row;
     }
 
@@ -762,15 +864,21 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
             }
 
             $metadata = toy_module_metadata($moduleKey);
-            if ($metadata === [] || !is_file($moduleDirectory . '/install.sql')) {
+            if ($metadata === [] && !is_file($moduleDirectory . '/module.php')) {
                 continue;
             }
+            $missingInstallSql = !is_file($moduleDirectory . '/install.sql');
             $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
             $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
-            $metadataErrors = array_merge(
-                toy_module_metadata_errors($metadata),
-                toy_module_contract_file_errors($moduleDirectory, $metadata)
-            );
+            $metadataErrors = $metadata === []
+                ? ['module.php 파일을 읽을 수 없습니다.']
+                : array_merge(
+                    toy_module_metadata_errors($metadata),
+                    toy_module_contract_file_errors($moduleDirectory, $metadata)
+                );
+            if ($missingInstallSql) {
+                $metadataErrors[] = 'install.sql 파일이 필요합니다.';
+            }
 
             $installableModules[] = [
                 'module_key' => $moduleKey,
@@ -784,6 +892,9 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                     : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
                 'toycore_module_contract' => is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '',
                 'metadata_errors' => $metadataErrors,
+                'lifecycle_state' => $metadataErrors === [] ? 'not_installed' : 'install_blocked',
+                'lifecycle_label' => $metadataErrors === [] ? '미설치' : '설치 차단',
+                'lifecycle_action' => $metadataErrors === [] ? '설치 가능' : '모듈 파일 확인',
             ];
         }
     }

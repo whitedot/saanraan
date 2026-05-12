@@ -166,6 +166,17 @@ php .tools/bin/smoke-community-auth.php
 선택 모듈의 GET 관리자 path가 500 없이 열림
 ```
 
+모듈 설치/업데이트 흐름을 완료 판정할 때는 다음 상태도 함께 확인한다.
+
+```text
+/admin/modules에서 미설치 모듈이 미설치 또는 설치 차단 상태로 구분됨
+/admin/modules에서 failed 또는 installing 모듈이 재설치 필요 상태로 구분됨
+/admin/modules에서 코드 버전이 설치 버전보다 낮은 모듈이 파일 재배치 필요 상태로 구분됨
+/admin/modules에서 pending SQL이 있는 모듈이 /admin/updates 이동 대상으로 구분됨
+/admin/updates에서 pending SQL 적용 전 백업 확인을 요구함
+/admin/updates에서 SQL 없는 파일 전용 업데이트가 설치 버전 반영 대상으로 구분됨
+```
+
 ## 실패 시 확인 순서
 
 HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
