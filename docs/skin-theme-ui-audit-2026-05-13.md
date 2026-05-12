@@ -44,6 +44,7 @@
 - 개별 선택 UI: 배너 추가/수정 폼의 `skin_key` select
 - 저장: 기본값은 `toy_banner_save_skin_key()`, 개별 배너 값은 `toy_banners.skin_key`
 - 렌더링: `toy_banner_render_public_banner()`, `toy_banner_render_slot()`이 각 배너 row의 `skin_key`로 item skin 출력
+- 호환성: 출력 위치의 `placement_kind`와 스킨의 `supports`를 비교하고, 맞지 않으면 호환되는 `basic`으로 fallback한다.
 
 회원 스킨:
 

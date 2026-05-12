@@ -116,10 +116,13 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php $currentSkinKey = $editing ? (string) ($editBanner['skin_key'] ?? $bannerSkinKey) : $bannerSkinKey; ?>
                             <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
                                 <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                (<?php echo toy_e(implode(', ', array_map('toy_banner_placement_kind_label', is_array($skinOption['supports'] ?? null) ? $skinOption['supports'] : ['inline']))); ?>)
                             </option>
                         <?php } ?>
                     </select>
                 </label>
+                <br>
+                <small>저장 시 출력 위치와 호환되는 스킨인지 확인합니다.</small>
             </p>
             <p>
                 <label>시작 시각<br>
@@ -151,6 +154,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                             <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
                                 <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                (<?php echo toy_e(implode(', ', array_map('toy_banner_placement_kind_label', is_array($skinOption['supports'] ?? null) ? $skinOption['supports'] : ['inline']))); ?>)
                             </option>
                         <?php } ?>
                     </select>

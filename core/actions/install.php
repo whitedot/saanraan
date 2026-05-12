@@ -34,7 +34,7 @@ $optionalModules = [
     ],
     'banner' => [
         'name' => 'Banner',
-        'version' => '2026.05.002',
+        'version' => '2026.05.003',
         'label' => '배너',
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],

@@ -174,6 +174,9 @@ if (toy_request_method() === 'POST') {
         if (!$isPublicBanner && $matchType === 'exact' && $subjectId === '') {
             $errors[] = '특정 subject ID를 입력하세요.';
         }
+        if (($isPublicBanner || $target !== null) && !toy_banner_skin_supports($skinKey, toy_banner_target_placement_kind($target, $isPublicBanner))) {
+            $errors[] = '선택한 배너 스킨은 출력 위치와 호환되지 않습니다.';
+        }
 
         if ($errors === [] && $bannerId > 0) {
             $stmt = $pdo->prepare('SELECT id FROM toy_banners WHERE id = :id LIMIT 1');

@@ -946,6 +946,7 @@ return [
 - `slots`: 실제 출력 위치 목록
 - `slot_key`: point 안의 위치 key
 - `kind`: `content`, `head`, `script` 같은 위치 성격. 배너와 팝업레이어처럼 화면 본문에 붙는 출력 모듈은 `content` slot을 대상으로 한다.
+- `banner_kind`: 선택 항목. 배너 스킨 호환성 판단에 쓰는 위치 성격이며 `inline`, `compact`, `sidebar`, `hero`, `wide` 중 하나를 쓴다. 생략하면 `inline`으로 본다.
 - `subjects`: 선택 대상 정보
 
 대상이 많으면 `options` 전체를 반환하지 말고 검색형 selector를 선언한다.

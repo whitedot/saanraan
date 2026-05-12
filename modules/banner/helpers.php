@@ -222,6 +222,7 @@ function toy_banner_builtin_targets(): array
             'module_key' => 'core',
             'point_key' => 'site.home',
             'slot_key' => 'before_content',
+            'placement_kind' => 'inline',
             'label' => 'core / 홈 / 본문 위',
             'source' => 'core',
         ],
@@ -229,6 +230,7 @@ function toy_banner_builtin_targets(): array
             'module_key' => 'core',
             'point_key' => 'site.home',
             'slot_key' => 'after_content',
+            'placement_kind' => 'inline',
             'label' => 'core / 홈 / 본문 아래',
             'source' => 'core',
         ],
@@ -267,11 +269,13 @@ function toy_banner_available_targets(PDO $pdo): array
                     continue;
                 }
 
+                $placementKind = toy_banner_placement_kind((string) ($slot['banner_kind'] ?? $slot['placement_kind'] ?? 'inline'));
                 $targets[] = [
                     'module_key' => $moduleKey,
                     'point_key' => $pointKey,
                     'slot_key' => $slotKey,
-                    'label' => $moduleKey . ' / ' . $pointLabel . ' / ' . (string) ($slot['label'] ?? $slotKey),
+                    'placement_kind' => $placementKind,
+                    'label' => $moduleKey . ' / ' . $pointLabel . ' / ' . (string) ($slot['label'] ?? $slotKey) . ' (' . toy_banner_placement_kind_label($placementKind) . ')',
                     'source' => 'extension-points.php',
                 ];
             }
@@ -332,6 +336,63 @@ function toy_banner_target_labels(array $targets): array
     return $labels;
 }
 
+function toy_banner_placement_kind_values(): array
+{
+    return ['public', 'inline', 'compact', 'sidebar', 'hero', 'wide'];
+}
+
+function toy_banner_placement_kind(string $placementKind): string
+{
+    $placementKind = strtolower(trim($placementKind));
+    return in_array($placementKind, toy_banner_placement_kind_values(), true) ? $placementKind : 'inline';
+}
+
+function toy_banner_placement_kind_label(string $placementKind): string
+{
+    $labels = [
+        'public' => '공용',
+        'inline' => '본문형',
+        'compact' => '좁은 영역',
+        'sidebar' => '사이드바',
+        'hero' => '히어로',
+        'wide' => '와이드',
+    ];
+
+    return (string) ($labels[toy_banner_placement_kind($placementKind)] ?? $placementKind);
+}
+
+function toy_banner_target_placement_kind(?array $target, bool $isPublicBanner = false): string
+{
+    if ($isPublicBanner || $target === null) {
+        return 'public';
+    }
+
+    return toy_banner_placement_kind((string) ($target['placement_kind'] ?? 'inline'));
+}
+
+function toy_banner_target_for_context(PDO $pdo, array $context): ?array
+{
+    $moduleKey = (string) ($context['module_key'] ?? '');
+    $pointKey = (string) ($context['point_key'] ?? '');
+    $slotKey = (string) ($context['slot_key'] ?? '');
+
+    foreach (toy_banner_available_targets($pdo) as $target) {
+        if (
+            (string) ($target['module_key'] ?? '') === $moduleKey
+            && (string) ($target['point_key'] ?? '') === $pointKey
+            && (string) ($target['slot_key'] ?? '') === $slotKey
+        ) {
+            return $target;
+        }
+    }
+
+    return toy_banner_target_from_row([
+        'module_key' => $moduleKey,
+        'point_key' => $pointKey,
+        'slot_key' => $slotKey,
+    ]);
+}
+
 function toy_banner_target_from_row(array $row, string $label = '저장된 출력 위치'): ?array
 {
     $moduleKey = (string) ($row['module_key'] ?? '');
@@ -350,6 +411,7 @@ function toy_banner_target_from_row(array $row, string $label = '저장된 출�
         'module_key' => $moduleKey,
         'point_key' => $pointKey,
         'slot_key' => $slotKey,
+        'placement_kind' => toy_banner_placement_kind((string) ($row['placement_kind'] ?? 'inline')),
         'label' => $label . ' / ' . $moduleKey . ' / ' . $pointKey . ' / ' . $slotKey,
         'source' => 'stored',
     ];
@@ -553,6 +615,7 @@ function toy_banner_skin_options(): array
     return [
         'basic' => [
             'label' => '기본',
+            'supports' => ['public', 'inline'],
             'views' => [
                 'item' => TOY_ROOT . '/modules/banner/skins/basic/item.php',
             ],
@@ -573,6 +636,41 @@ function toy_banner_skin_view(string $skinKey, string $viewKey): string
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
     return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
+}
+
+function toy_banner_skin_supports(string $skinKey, string $placementKind): bool
+{
+    $options = toy_banner_skin_options();
+    $skinKey = toy_banner_skin_key(['banner_skin_key' => $skinKey]);
+    $supports = isset($options[$skinKey]['supports']) && is_array($options[$skinKey]['supports'])
+        ? array_values(array_map('strval', $options[$skinKey]['supports']))
+        : ['inline'];
+
+    return in_array(toy_banner_placement_kind($placementKind), $supports, true);
+}
+
+function toy_banner_skin_key_for_placement(string $skinKey, string $placementKind): ?string
+{
+    $skinKey = toy_banner_skin_key(['banner_skin_key' => $skinKey]);
+    $placementKind = toy_banner_placement_kind($placementKind);
+    if (toy_banner_skin_supports($skinKey, $placementKind)) {
+        return $skinKey;
+    }
+
+    return toy_banner_skin_supports('basic', $placementKind) ? 'basic' : null;
+}
+
+function toy_banner_skin_options_for_placement(string $placementKind): array
+{
+    $placementKind = toy_banner_placement_kind($placementKind);
+    $options = [];
+    foreach (toy_banner_skin_options() as $skinKey => $skinOption) {
+        if (toy_banner_skin_supports((string) $skinKey, $placementKind)) {
+            $options[$skinKey] = $skinOption;
+        }
+    }
+
+    return $options;
 }
 
 function toy_banner_save_skin_key(PDO $pdo, string $skinKey): void
@@ -669,8 +767,8 @@ function toy_banner_render_public_banner(PDO $pdo, int $bannerId): string
     ]);
 
     $banner = $stmt->fetch();
-    $skinKey = is_array($banner) ? toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]) : 'basic';
-    return is_array($banner) ? toy_banner_render_item($banner, $skinKey) : '';
+    $skinKey = is_array($banner) ? toy_banner_skin_key_for_placement((string) ($banner['skin_key'] ?? 'basic'), 'public') : null;
+    return is_array($banner) && $skinKey !== null ? toy_banner_render_item($banner, $skinKey) : '';
 }
 
 function toy_banner_render_slot(PDO $pdo, array $context): string
@@ -705,8 +803,15 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
     ]);
 
     $html = '';
+    $target = toy_banner_target_for_context($pdo, $context);
+    $placementKind = toy_banner_target_placement_kind($target);
     foreach ($stmt->fetchAll() as $banner) {
-        $skinKey = toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]);
+        $requestedSkinKey = toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]);
+        $skinKey = toy_banner_skin_key_for_placement($requestedSkinKey, $placementKind);
+        if ($skinKey === null) {
+            error_log('[toycore] banner skin is not compatible with placement: banner_id=' . (string) ($banner['id'] ?? '') . ' skin_key=' . $requestedSkinKey . ' placement_kind=' . $placementKind);
+            continue;
+        }
         $html .= toy_banner_render_item($banner, $skinKey);
     }
 

@@ -41,6 +41,8 @@
 - `toy_banner_render_public_banner()`와 `toy_banner_render_slot()`이 같은 item renderer를 사용한다.
 - output slot 계약은 이미 있다.
 - 개별 배너 스킨은 `/admin/banners` 추가/수정 폼에서 선택하고 `toy_banners.skin_key`에 저장한다.
+- 배너 위치는 `placement_kind`를 갖고, 배너 스킨은 `supports` 목록으로 호환 위치를 선언한다.
+- 렌더링 시 스킨이 위치와 맞지 않으면 호환되는 `basic` 스킨으로 fallback하고, 호환 스킨이 없으면 출력하지 않는다.
 
 팝업레이어:
 
@@ -158,6 +160,7 @@ toy_banner_render_item($banner, $skinKey = null)
 - `toy_banner_render_item()`이 스킨 view를 통해 출력하는지 확인
 - output slot 렌더링과 공용 배너 렌더링이 같은 fallback을 쓰는지 확인
 - 클릭 추적 링크가 스킨에서도 유지되는지 확인
+- 저장/렌더링 시 배너 출력 위치와 스킨 `supports` 호환성을 확인
 
 ## 팝업레이어 스킨 계획
 
