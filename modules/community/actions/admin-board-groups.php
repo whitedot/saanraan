@@ -19,6 +19,7 @@ $allowedGroupStatuses = toy_community_board_group_statuses();
 $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
 $allowedCommentPolicies = toy_community_policy_values('comment');
+$maxLevel = toy_community_max_level_value();
 $memberGroups = toy_member_groups($pdo);
 $enabledMemberGroups = [];
 $enabledMemberGroupKeys = [];
@@ -63,9 +64,9 @@ if (toy_request_method() === 'POST') {
         $fileAttachmentMaxCount = toy_admin_post_int_in_range('group_file_attachment_max_count', 0, 5);
         $fileAllowedExtensionsInput = toy_post_string_without_truncation('group_file_allowed_extensions', 1000);
         $fileAllowedExtensions = is_string($fileAllowedExtensionsInput) ? toy_community_file_extensions_from_input($fileAllowedExtensionsInput) : [];
-        $readMinLevel = toy_admin_post_int_in_range('group_read_min_level', 0, 1000000);
-        $writeMinLevel = toy_admin_post_int_in_range('group_write_min_level', 0, 1000000);
-        $commentMinLevel = toy_admin_post_int_in_range('group_comment_min_level', 0, 1000000);
+        $readMinLevel = toy_admin_post_int_in_range('group_read_min_level', 0, $maxLevel);
+        $writeMinLevel = toy_admin_post_int_in_range('group_write_min_level', 0, $maxLevel);
+        $commentMinLevel = toy_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
         $readGroupKeysInput = toy_post_string_without_truncation('group_read_group_keys', 1000);
         $writeGroupKeysInput = toy_post_string_without_truncation('group_write_group_keys', 1000);
         $commentGroupKeysInput = toy_post_string_without_truncation('group_comment_group_keys', 1000);
@@ -140,17 +141,17 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($readMinLevel === null) {
-            $errors[] = '그룹 읽기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '그룹 읽기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $readMinLevel = 0;
         }
 
         if ($writeMinLevel === null) {
-            $errors[] = '그룹 쓰기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '그룹 쓰기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $writeMinLevel = 0;
         }
 
         if ($commentMinLevel === null) {
-            $errors[] = '그룹 댓글 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '그룹 댓글 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $commentMinLevel = 0;
         }
 

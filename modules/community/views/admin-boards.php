@@ -213,7 +213,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </p>
             <p>
                 <label>읽기 최소 레벨<br>
-                    <input type="number" name="read_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'read_min_level', '0')); ?>">
+                    <input type="number" name="read_min_level" min="0" max="<?php echo toy_e((string) toy_community_max_level_value()); ?>" value="<?php echo toy_e($boardField($formBoard, 'read_min_level', '0')); ?>">
                 </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_read_min_level">
@@ -255,7 +255,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </p>
             <p>
                 <label>쓰기 최소 레벨<br>
-                    <input type="number" name="write_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'write_min_level', '0')); ?>">
+                    <input type="number" name="write_min_level" min="0" max="<?php echo toy_e((string) toy_community_max_level_value()); ?>" value="<?php echo toy_e($boardField($formBoard, 'write_min_level', '0')); ?>">
                 </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_write_min_level">
@@ -297,7 +297,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </p>
             <p>
                 <label>댓글 최소 레벨<br>
-                    <input type="number" name="comment_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
+                    <input type="number" name="comment_min_level" min="0" max="<?php echo toy_e((string) toy_community_max_level_value()); ?>" value="<?php echo toy_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
                 </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_comment_min_level">

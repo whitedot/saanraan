@@ -586,7 +586,7 @@ function toy_community_board_min_level(PDO $pdo, int $boardId, string $settingKe
         return 0;
     }
 
-    return min(1000000, max(0, (int) toy_community_effective_board_setting($pdo, $board, $settingKey, '0')));
+    return toy_community_normalize_level_value(toy_community_effective_board_setting($pdo, $board, $settingKey, '0'));
 }
 
 function toy_community_board_own_min_level(PDO $pdo, int $boardId, string $settingKey): int
@@ -596,7 +596,7 @@ function toy_community_board_own_min_level(PDO $pdo, int $boardId, string $setti
     }
 
     $value = toy_community_board_setting_value($pdo, $boardId, $settingKey);
-    return is_string($value) && $value !== '' ? min(1000000, max(0, (int) $value)) : 0;
+    return is_string($value) && $value !== '' ? toy_community_normalize_level_value($value) : 0;
 }
 
 function toy_community_board_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int

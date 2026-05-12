@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.003') {
-    toy_community_release_error('Community module version must be 2026.05.003.');
+if ((string) ($module['version'] ?? '') !== '2026.05.004') {
+    toy_community_release_error('Community module version must be 2026.05.004.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.003'",
+    "'version' => '2026.05.004'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -182,6 +182,10 @@ if (!toy_community_release_directory_is_empty('modules/community/lang')) {
 if (toy_community_release_directory_is_empty('modules/community/updates')) {
     toy_community_release_error('Community module updates directory must include schema updates after 2026.05.001.');
 }
+toy_community_release_file_contains('modules/community/updates/2026.05.004.sql', [
+    "(10, '레벨 10', '커뮤니티 활동 점수 3000점 이상입니다.', 3000, 'enabled', 100, NOW(), NOW())",
+    "SET version = '2026.05.004'",
+], 'Community 2026.05.004 update');
 
 foreach (['actions', 'helpers', 'skins', 'themes', 'views'] as $requiredDirectory) {
     if (!is_dir('modules/community/' . $requiredDirectory)) {
@@ -467,6 +471,7 @@ $requiredInstallFragments = [
     'toy_community_levels' => [
         'UNIQUE KEY uq_toy_community_levels_value (level_value)',
         'KEY idx_toy_community_levels_status_score (status, min_score, level_value)',
+        "(10, '레벨 10', '커뮤니티 활동 점수 3000점 이상입니다.', 3000, 'enabled', 100, NOW(), NOW())",
     ],
     'toy_community_account_levels' => [
         'UNIQUE KEY uq_toy_community_account_levels_account (account_id)',
@@ -699,7 +704,8 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     'toy_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
     'toy_admin_post_int_in_range(\'file_attachment_max_bytes\', 1024, 20971520)',
     'toy_admin_post_int_in_range(\'file_attachment_max_count\', 0, 5)',
-    'toy_admin_post_int_in_range(\'read_min_level\', 0, 1000000)',
+    '$maxLevel = toy_community_max_level_value()',
+    'toy_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
     'toy_community_invalid_board_group_keys_from_input($groupKeysInput)',
     'toy_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
     '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',

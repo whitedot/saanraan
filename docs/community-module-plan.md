@@ -1550,6 +1550,8 @@ created_at DATETIME
 updated_at DATETIME
 ```
 
+기본 설치와 업데이트는 커뮤니티 레벨을 1~10까지 제공한다. 최소 레벨 설정값은 0 또는 1~10 범위만 허용하며, 0은 레벨 제한 없음으로 해석한다.
+
 회원별 레벨 snapshot:
 
 ```text
@@ -1614,7 +1616,7 @@ level_comment_score: int
 access_condition_priority: both_required | group_first | level_first
 message_write_policy: member | group | disabled
 message_write_group_keys: json array
-message_write_min_level: int
+message_write_min_level: int, 0~10
 theme_key: string
 ```
 
@@ -1661,6 +1663,7 @@ comment_min_level
 
 적용 방식:
 
+- 최소 레벨 값은 0~10 범위로 제한하고, 0은 레벨 조건 없음으로 처리한다.
 - `read_policy = member`와 `read_min_level` 조합은 로그인 회원 중 해당 레벨 이상만 조회 가능하게 한다.
 - `write_policy = member`와 `write_min_level` 조합은 로그인 회원 중 해당 레벨 이상만 작성 가능하게 한다.
 - `comment_policy = member`와 `comment_min_level` 조합은 로그인 회원 중 해당 레벨 이상만 댓글 가능하게 한다.
@@ -1958,7 +1961,7 @@ modules/community/views/admin-board-groups.php
 - `/admin/community/settings` GET/POST route와 관리자 메뉴 추가
 - community 모듈 설정 저장/검증 helper 추가
 - `toy_community_levels`, `toy_community_account_levels`, `toy_community_level_logs` 설치 SQL과 update SQL 추가
-- 기본 레벨 seed와 레벨 산정 점수 설정 추가
+- 기본 10단계 레벨 seed와 레벨 산정 점수 설정 추가
 - 게시판/게시판 그룹 설정에 `read_min_level`, `write_min_level`, `comment_min_level` 추가
 - 게시판 read/write/comment helper가 member 그룹과 community 레벨을 공통 접근 판정 helper로 평가
 - 쪽지 발송 action이 `message_write_policy`, `message_write_group_keys`, `message_write_min_level`을 평가
@@ -1998,10 +2001,11 @@ v1 최초 버전:
 ```text
 2026.05.002: 검색/정렬 개선
 2026.05.003: 커뮤니티 설정 화면, 일반 파일 첨부, 커뮤니티 전용 레벨제
-2026.05.004: 신고 자동 블라인드와 상세 moderation workflow
-2026.05.005: 쪽지 차단 목록과 대화형 thread UI
-2026.05.006: 스크랩 폴더와 비공개 메모
-2026.05.007: Markdown 또는 editor plugin 계약 검토
+2026.05.004: 커뮤니티 기본 레벨 10단계 확장
+2026.05.005: 신고 자동 블라인드와 상세 moderation workflow
+2026.05.006: 쪽지 차단 목록과 대화형 thread UI
+2026.05.007: 스크랩 폴더와 비공개 메모
+2026.05.008: Markdown 또는 editor plugin 계약 검토
 ```
 
 ## 17. 리스크와 대응

@@ -16,6 +16,16 @@ function toy_community_default_settings(): array
     ];
 }
 
+function toy_community_max_level_value(): int
+{
+    return 10;
+}
+
+function toy_community_normalize_level_value(mixed $value): int
+{
+    return min(toy_community_max_level_value(), max(0, (int) $value));
+}
+
 function toy_community_settings(PDO $pdo): array
 {
     return toy_community_normalize_settings(toy_module_settings($pdo, 'community'));
@@ -30,7 +40,7 @@ function toy_community_normalize_settings(array $settings): array
     $settings['access_condition_priority'] = toy_community_access_condition_priority((string) ($settings['access_condition_priority'] ?? ''));
     $settings['message_write_policy'] = toy_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
     $settings['message_write_group_keys'] = toy_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
-    $settings['message_write_min_level'] = min(1000000, max(0, (int) ($settings['message_write_min_level'] ?? 0)));
+    $settings['message_write_min_level'] = toy_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
     $settings['theme_key'] = toy_community_theme_key($settings);
 
     return $settings;
@@ -187,7 +197,7 @@ function toy_community_account_satisfies_access(PDO $pdo, int $accountId, array 
 {
     $settings = toy_community_normalize_settings(is_array($context['settings'] ?? null) ? $context['settings'] : toy_module_settings($pdo, 'community'));
     $groupKeys = toy_community_normalize_board_group_keys(is_array($context['group_keys'] ?? null) ? $context['group_keys'] : []);
-    $minLevel = min(1000000, max(0, (int) ($context['min_level'] ?? 0)));
+    $minLevel = toy_community_normalize_level_value($context['min_level'] ?? 0);
     $groupRequired = !empty($context['group_required']);
 
     if ($accountId < 1) {

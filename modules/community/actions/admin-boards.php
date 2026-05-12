@@ -26,6 +26,7 @@ $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
 $allowedCommentPolicies = toy_community_policy_values('comment');
 $settings = toy_community_settings($pdo);
+$maxLevel = toy_community_max_level_value();
 $publicBanners = function_exists('toy_banner_public_banners') && toy_module_enabled($pdo, 'banner')
     ? toy_banner_public_banners($pdo)
     : [];
@@ -84,9 +85,9 @@ if (toy_request_method() === 'POST') {
         $fileAttachmentMaxCount = toy_admin_post_int_in_range('file_attachment_max_count', 0, 5);
         $fileAllowedExtensionsInput = toy_post_string_without_truncation('file_allowed_extensions', 1000);
         $fileAllowedExtensions = is_string($fileAllowedExtensionsInput) ? toy_community_file_extensions_from_input($fileAllowedExtensionsInput) : [];
-        $readMinLevel = toy_admin_post_int_in_range('read_min_level', 0, 1000000);
-        $writeMinLevel = toy_admin_post_int_in_range('write_min_level', 0, 1000000);
-        $commentMinLevel = toy_admin_post_int_in_range('comment_min_level', 0, 1000000);
+        $readMinLevel = toy_admin_post_int_in_range('read_min_level', 0, $maxLevel);
+        $writeMinLevel = toy_admin_post_int_in_range('write_min_level', 0, $maxLevel);
+        $commentMinLevel = toy_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
         $boardGroupId = toy_admin_post_int_in_range('board_group_id', 0, 999999999);
         $boardGroupId = is_int($boardGroupId) ? $boardGroupId : 0;
         $readGroupKeysInput = toy_post_string_without_truncation('read_group_keys', 1000);
@@ -196,17 +197,17 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($readMinLevel === null) {
-            $errors[] = '읽기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '읽기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $readMinLevel = 0;
         }
 
         if ($writeMinLevel === null) {
-            $errors[] = '쓰기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '쓰기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $writeMinLevel = 0;
         }
 
         if ($commentMinLevel === null) {
-            $errors[] = '댓글 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $errors[] = '댓글 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $commentMinLevel = 0;
         }
 

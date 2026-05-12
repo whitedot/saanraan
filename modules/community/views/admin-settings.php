@@ -88,7 +88,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         </p>
         <p>
             <label>발송 최소 레벨<br>
-                <input type="number" name="message_write_min_level" min="0" max="1000000" value="<?php echo toy_e((string) $settings['message_write_min_level']); ?>">
+                <input type="number" name="message_write_min_level" min="0" max="<?php echo toy_e((string) toy_community_max_level_value()); ?>" value="<?php echo toy_e((string) $settings['message_write_min_level']); ?>">
             </label>
         </p>
     </section>
