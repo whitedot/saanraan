@@ -41,35 +41,51 @@
 | 기능 경계 | 도메인별 모듈 분리 | 페이지 빌더, 플러그인 마켓형 CMS |
 | 커스터마이징 | 사이트별 정책 구현 | 설정 조합만으로 끝나는 제품 선호 |
 
-## 빠른 시작
+## 설치 흐름
+
+- 문서 루트에 파일 배치.
+- 브라우저에서 사이트 루트 접속.
+- 설치 화면에서 DB, 사이트 정보, 최초 관리자 계정 입력.
+- 필수 모듈 `member`, `admin` 설치.
+- 필요한 선택 모듈 체크 후 설치.
+- 설치 완료 후 `/admin` 진입.
+
+필요 환경:
+
+- PHP 8.1 이상.
+- `pdo_mysql`.
+- 빈 MySQL 호환 DB.
+- PHP가 쓸 수 있는 `config/`, `storage/`.
+- 내부 경로 직접 접근 차단 설정.
+
+로컬에서 설치 화면만 확인할 때:
 
 ```sh
 php -S 127.0.0.1:8080 -t .tools/public .tools/bin/dev-router.php
 ```
 
-- 접속: `http://127.0.0.1:8080/`
-- 필요: PHP 8.1 이상, `pdo_mysql`, 쓰기 가능한 `config/`, `storage/`, 빈 MySQL 호환 DB
-- 설치 후 관리자 진입: `/admin`
+## 검증
 
-## 점검
+코드 변경 후 기본 점검:
 
 ```sh
 ./.tools/bin/check
 ```
 
-Windows 또는 `sh`/WSL 없는 환경:
+로컬 PHP로 직접 실행:
 
 ```sh
 php .tools/bin/check.php
 ```
 
-HTTP 스모크 점검:
+설치된 로컬 또는 스테이징 환경의 HTTP 점검:
 
 ```sh
-TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
+TOY_SMOKE_BASE_URL=https://example.com php .tools/bin/smoke-http.php
 ```
 
-- 상세 기준: [스모크 테스트 기준](docs/smoke-test.md)
+- 내장 서버로 HTTP 점검을 할 때는 위의 개발용 router 사용.
+- 인증 커뮤니티 흐름 점검: [스모크 테스트 기준](docs/smoke-test.md)
 
 ## 설치와 배포
 
