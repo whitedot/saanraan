@@ -70,6 +70,7 @@ fi
 "${PHP_BIN}" .tools/bin/check-retention-targets.php
 "${PHP_BIN}" .tools/bin/check-auth-runtime.php
 "${PHP_BIN}" .tools/bin/check-runtime-helpers.php
+"${PHP_BIN}" .tools/bin/check-storage-helpers.php
 "${PHP_BIN}" .tools/bin/check-output-helpers.php
 "${PHP_BIN}" .tools/bin/check-member-auth-policy.php
 "${PHP_BIN}" .tools/bin/check-admin-action-security.php

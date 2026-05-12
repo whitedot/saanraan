@@ -119,7 +119,12 @@ function toy_storage_public_url(string $driver, string $key, ?array $config = nu
         return '';
     }
 
-    $s3 = toy_storage_s3_config($config ?? toy_runtime_config());
+    $config = $config ?? toy_runtime_config();
+    if (toy_storage_s3_config_errors($config) !== []) {
+        return '';
+    }
+
+    $s3 = toy_storage_s3_config($config);
     $baseUrl = rtrim((string) ($s3['public_base_url'] ?? ''), '/');
     if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
         return '';
@@ -134,7 +139,11 @@ function toy_storage_signed_url(string $driver, string $key, int $ttlSeconds = 3
         return '';
     }
 
-    return toy_storage_s3_presigned_url($config ?? toy_runtime_config(), $key, $ttlSeconds, $options);
+    try {
+        return toy_storage_s3_presigned_url($config ?? toy_runtime_config(), $key, $ttlSeconds, $options);
+    } catch (Throwable $exception) {
+        return '';
+    }
 }
 
 function toy_storage_local_put_file(string $sourcePath, string $key, array $options = []): array
@@ -314,8 +323,7 @@ function toy_storage_s3_delete(array $config, string $key): bool
 
 function toy_storage_s3_presigned_url(array $config, string $key, int $ttlSeconds, array $options = []): string
 {
-    $s3 = toy_storage_s3_config($config);
-    toy_storage_s3_assert_config($s3);
+    $s3 = toy_storage_s3_assert_runtime_config($config);
     $urlParts = toy_storage_s3_object_url_parts($s3, $key);
     $now = gmdate('Ymd\THis\Z');
     $date = substr($now, 0, 8);
@@ -344,8 +352,7 @@ function toy_storage_s3_presigned_url(array $config, string $key, int $ttlSecond
 
 function toy_storage_s3_request(array $config, string $method, string $key, array $query, array $headers, string $body): array
 {
-    $s3 = toy_storage_s3_config($config);
-    toy_storage_s3_assert_config($s3);
+    $s3 = toy_storage_s3_assert_runtime_config($config);
     $urlParts = toy_storage_s3_object_url_parts($s3, $key);
     $payloadHash = hash('sha256', $body);
     $now = gmdate('Ymd\THis\Z');
@@ -371,6 +378,19 @@ function toy_storage_s3_assert_config(array $s3): void
     if (!toy_storage_s3_bucket_is_valid($s3['bucket']) || $s3['region'] === '' || $s3['access_key'] === '' || $s3['secret_key'] === '') {
         throw new RuntimeException('S3 저장소 설정을 확인하세요.');
     }
+}
+
+function toy_storage_s3_assert_runtime_config(array $config): array
+{
+    $errors = toy_storage_s3_config_errors($config);
+    if ($errors !== []) {
+        throw new RuntimeException('S3 저장소 설정을 확인하세요: ' . implode(' ', $errors));
+    }
+
+    $s3 = toy_storage_s3_config($config);
+    toy_storage_s3_assert_config($s3);
+
+    return $s3;
 }
 
 function toy_storage_s3_bucket_is_valid(string $bucket): bool
