@@ -25,6 +25,7 @@ if (!toy_community_account_can_delete_comment($comment, $account)) {
 }
 
 toy_community_update_comment_status($pdo, $commentId, 'deleted');
+$levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -37,6 +38,8 @@ toy_audit_log($pdo, [
         'post_id' => (int) $comment['post_id'],
         'before_status' => (string) $comment['status'],
         'after_status' => 'deleted',
+        'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+        'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
     ],
 ]);
 $_SESSION['toy_community_comment_notice'] = '댓글을 삭제했습니다.';

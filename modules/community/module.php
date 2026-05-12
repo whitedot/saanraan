@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Community',
-    'version' => '2026.05.002',
+    'version' => '2026.05.003',
     'type' => 'module',
     'description' => 'Board-style community module.',
     'toycore' => [
@@ -37,6 +37,17 @@ return [
         'message_create_limit' => 20,
         'image_upload_max_bytes' => 2097152,
         'image_uploads_enabled' => true,
+        'file_uploads_enabled' => false,
+        'file_attachment_max_bytes' => 5242880,
+        'file_attachment_max_count' => 3,
+        'file_allowed_extensions' => ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
+        'level_enabled' => false,
+        'level_post_score' => 10,
+        'level_comment_score' => 2,
+        'access_condition_priority' => 'both_required',
+        'message_write_policy' => 'member',
+        'message_write_group_keys' => [],
+        'message_write_min_level' => 0,
         'theme_key' => 'basic',
     ],
 ];

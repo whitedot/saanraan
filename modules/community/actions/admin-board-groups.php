@@ -58,6 +58,14 @@ if (toy_request_method() === 'POST') {
         $attachmentMaxBytes = toy_admin_post_int_in_range('group_attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = toy_admin_post_int_in_range('group_attachment_max_count', 0, 10);
         $imageUploadsEnabled = ($_POST['group_image_uploads_enabled'] ?? '') === '1';
+        $fileUploadsEnabled = ($_POST['group_file_uploads_enabled'] ?? '') === '1';
+        $fileAttachmentMaxBytes = toy_admin_post_int_in_range('group_file_attachment_max_bytes', 1024, 20971520);
+        $fileAttachmentMaxCount = toy_admin_post_int_in_range('group_file_attachment_max_count', 0, 5);
+        $fileAllowedExtensionsInput = toy_post_string_without_truncation('group_file_allowed_extensions', 1000);
+        $fileAllowedExtensions = is_string($fileAllowedExtensionsInput) ? toy_community_file_extensions_from_input($fileAllowedExtensionsInput) : [];
+        $readMinLevel = toy_admin_post_int_in_range('group_read_min_level', 0, 1000000);
+        $writeMinLevel = toy_admin_post_int_in_range('group_write_min_level', 0, 1000000);
+        $commentMinLevel = toy_admin_post_int_in_range('group_comment_min_level', 0, 1000000);
         $readGroupKeysInput = toy_post_string_without_truncation('group_read_group_keys', 1000);
         $writeGroupKeysInput = toy_post_string_without_truncation('group_write_group_keys', 1000);
         $commentGroupKeysInput = toy_post_string_without_truncation('group_comment_group_keys', 1000);
@@ -105,6 +113,45 @@ if (toy_request_method() === 'POST') {
         if ($attachmentMaxCount === null) {
             $errors[] = '그룹 이미지 최대 개수는 0 이상 10 이하의 정수여야 합니다.';
             $attachmentMaxCount = 1;
+        }
+
+        if ($fileAttachmentMaxBytes === null) {
+            $errors[] = '그룹 파일 최대 용량은 1024 이상 20971520 이하의 정수여야 합니다.';
+            $fileAttachmentMaxBytes = 5242880;
+        }
+
+        if ($fileAttachmentMaxCount === null) {
+            $errors[] = '그룹 파일 최대 개수는 0 이상 5 이하의 정수여야 합니다.';
+            $fileAttachmentMaxCount = 3;
+        }
+
+        if (!is_string($fileAllowedExtensionsInput)) {
+            $errors[] = '그룹 파일 허용 확장자는 1000자 이하로 입력하세요.';
+            $fileAllowedExtensions = [];
+        } else {
+            $invalidFileExtensions = toy_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput);
+            if ($invalidFileExtensions !== []) {
+                $errors[] = '그룹 파일 허용 확장자 값이 올바르지 않습니다: ' . implode(', ', $invalidFileExtensions);
+            }
+        }
+
+        if ($fileUploadsEnabled && $fileAllowedExtensions === []) {
+            $errors[] = '그룹 파일 첨부를 허용하려면 확장자를 하나 이상 입력하세요.';
+        }
+
+        if ($readMinLevel === null) {
+            $errors[] = '그룹 읽기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $readMinLevel = 0;
+        }
+
+        if ($writeMinLevel === null) {
+            $errors[] = '그룹 쓰기 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $writeMinLevel = 0;
+        }
+
+        if ($commentMinLevel === null) {
+            $errors[] = '그룹 댓글 최소 레벨은 0 이상 1000000 이하의 정수여야 합니다.';
+            $commentMinLevel = 0;
         }
 
         foreach ([
@@ -176,9 +223,16 @@ if (toy_request_method() === 'POST') {
             toy_community_set_board_group_setting($pdo, $groupId, 'image_uploads_enabled', $imageUploadsEnabled ? '1' : '0', 'bool');
             toy_community_set_board_group_setting($pdo, $groupId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
             toy_community_set_board_group_setting($pdo, $groupId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
+            toy_community_set_board_group_setting($pdo, $groupId, 'file_uploads_enabled', $fileUploadsEnabled ? '1' : '0', 'bool');
+            toy_community_set_board_group_setting($pdo, $groupId, 'file_attachment_max_bytes', (string) $fileAttachmentMaxBytes, 'int');
+            toy_community_set_board_group_setting($pdo, $groupId, 'file_attachment_max_count', (string) $fileAttachmentMaxCount, 'int');
+            toy_community_set_board_group_setting($pdo, $groupId, 'file_allowed_extensions', implode(',', $fileAllowedExtensions), 'string');
             toy_community_set_board_group_setting($pdo, $groupId, 'read_group_keys', toy_community_board_group_keys_setting_value($readGroupKeys), 'json');
             toy_community_set_board_group_setting($pdo, $groupId, 'write_group_keys', toy_community_board_group_keys_setting_value($writeGroupKeys), 'json');
             toy_community_set_board_group_setting($pdo, $groupId, 'comment_group_keys', toy_community_board_group_keys_setting_value($commentGroupKeys), 'json');
+            toy_community_set_board_group_setting($pdo, $groupId, 'read_min_level', (string) $readMinLevel, 'int');
+            toy_community_set_board_group_setting($pdo, $groupId, 'write_min_level', (string) $writeMinLevel, 'int');
+            toy_community_set_board_group_setting($pdo, $groupId, 'comment_min_level', (string) $commentMinLevel, 'int');
 
             $applySettingKeys = [];
             if (isset($_POST['apply_setting_keys']) && is_array($_POST['apply_setting_keys'])) {

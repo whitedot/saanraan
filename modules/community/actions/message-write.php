@@ -8,6 +8,10 @@ require_once TOY_ROOT . '/modules/community/helpers.php';
 
 $account = toy_member_require_login($pdo);
 $canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, $account);
+$settings = toy_community_settings($pdo);
+if (!toy_community_account_can_write_message($pdo, $account, $settings)) {
+    toy_render_error(403, '쪽지를 보낼 수 없습니다.');
+}
 $errors = [];
 $notice = '';
 $recipientAccountHash = strtolower(trim(toy_get_string('to_account', 40)));
@@ -52,7 +56,6 @@ if (toy_request_method() === 'POST') {
         $recipientLabel = toy_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id'], $canViewMemberIdentifiers, $config);
     }
 
-    $settings = toy_module_settings($pdo, 'community');
     if ($errors === [] && toy_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
         $errors[] = '짧은 시간에 쪽지를 너무 많이 보냈습니다. 잠시 후 다시 시도해 주세요.';
     }

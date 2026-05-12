@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.002') {
-    toy_community_release_error('Community module version must be 2026.05.002.');
+if ((string) ($module['version'] ?? '') !== '2026.05.003') {
+    toy_community_release_error('Community module version must be 2026.05.003.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.002'",
+    "'version' => '2026.05.003'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -229,6 +229,8 @@ $requiredRoutes = [
     'GET /community/message/write',
     'POST /community/message/write',
     'POST /community/message/delete',
+    'GET /admin/community/settings',
+    'POST /admin/community/settings',
     'GET /admin/community/boards',
     'POST /admin/community/boards',
     'GET /admin/community/board-groups',
@@ -253,6 +255,7 @@ foreach ($adminMenu as $entry) {
     }
 }
 toy_community_release_require_list_values($adminMenuPaths, [
+    '/admin/community/settings',
     '/admin/community/boards',
     '/admin/community/board-groups',
     '/admin/community/reports',
@@ -406,6 +409,9 @@ $requiredTables = [
     'toy_community_reports',
     'toy_community_messages',
     'toy_community_scraps',
+    'toy_community_levels',
+    'toy_community_account_levels',
+    'toy_community_level_logs',
 ];
 foreach ($requiredTables as $tableName) {
     if (!str_contains($installSql, 'CREATE TABLE IF NOT EXISTS ' . $tableName)) {
@@ -457,6 +463,17 @@ $requiredInstallFragments = [
     'toy_community_scraps' => [
         'UNIQUE KEY uq_toy_community_scraps_account_post (account_id, post_id)',
         'KEY idx_toy_community_scraps_account_id (account_id, id)',
+    ],
+    'toy_community_levels' => [
+        'UNIQUE KEY uq_toy_community_levels_value (level_value)',
+        'KEY idx_toy_community_levels_status_score (status, min_score, level_value)',
+    ],
+    'toy_community_account_levels' => [
+        'UNIQUE KEY uq_toy_community_account_levels_account (account_id)',
+        'KEY idx_toy_community_account_levels_level (level_value, account_id)',
+    ],
+    'toy_community_level_logs' => [
+        'KEY idx_toy_community_level_logs_account_id (account_id, id)',
     ],
 ];
 foreach ($requiredInstallFragments as $installArea => $fragments) {
@@ -510,7 +527,9 @@ toy_community_release_file_contains('modules/community/helpers/attachments.php',
     'toy_community_post_for_read($pdo, (int) $attachment[\'post_id\'], $account)',
     "p.status = 'published'",
     "b.status = 'enabled'",
-    "mime_type IN ('image/jpeg', 'image/png', 'image/webp')",
+    'function toy_community_upload_post_files',
+    'function toy_community_attachment_is_image',
+    'function toy_community_file_extension_mime_map',
     "realpath(TOY_ROOT . '/storage')",
     'str_starts_with($realPath, $storagePrefix)',
 ], 'Community attachment helpers');
@@ -522,6 +541,7 @@ toy_community_release_file_contains('modules/community/actions/write.php', [
     'toy_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     'toy_member_group_evaluate_account($pdo, (int) $account[\'id\'], [',
     'toy_community_upload_post_image($pdo, $postId, (int) $account[\'id\'], $_FILES[\'image_attachment\'], $settings)',
+    'toy_community_upload_post_files($pdo, $postId, (int) $account[\'id\'], $_FILES[\'file_attachments\'], $settings)',
     "'event_type' => 'community.attachment.created'",
     "'event_type' => 'community.post.created'",
     'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
@@ -593,6 +613,7 @@ toy_community_release_file_contains('modules/community/actions/message-write.php
     'toy_member_find_by_identifier($pdo, $config, (string) $values[\'recipient_identifier\'])',
     '(int) $recipient[\'id\'] === (int) $account[\'id\']',
     'toy_community_message_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'toy_community_account_can_write_message($pdo, $account, $settings)',
     'toy_community_record_message_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     "'event_type' => 'community.message.sent'",
     'toy_community_create_account_notification(',
@@ -676,11 +697,17 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
     'toy_admin_post_int_in_range(\'attachment_max_bytes\', 1024, 10485760)',
     'toy_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
+    'toy_admin_post_int_in_range(\'file_attachment_max_bytes\', 1024, 20971520)',
+    'toy_admin_post_int_in_range(\'file_attachment_max_count\', 0, 5)',
+    'toy_admin_post_int_in_range(\'read_min_level\', 0, 1000000)',
     'toy_community_invalid_board_group_keys_from_input($groupKeysInput)',
+    'toy_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
     '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',
     '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
     'toy_community_board_by_key($pdo, $boardKey) !== null',
     'toy_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
+    'toy_community_set_board_setting($pdo, $boardId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
+    'toy_community_set_board_setting($pdo, $boardId, \'read_min_level\', (string) $readMinLevel, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
@@ -696,11 +723,23 @@ toy_community_release_file_contains('modules/community/actions/admin-board-group
     'toy_community_create_board_group($pdo, [',
     'toy_community_update_board_group($pdo, $groupId, [',
     'toy_community_set_board_group_setting($pdo, $groupId, \'read_policy\', $readPolicy)',
+    'toy_community_set_board_group_setting($pdo, $groupId, \'read_min_level\', (string) $readMinLevel, \'int\')',
+    'toy_community_set_board_group_setting($pdo, $groupId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
     'toy_community_set_board_group_setting($pdo, $groupId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
     'toy_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys)',
     "'event_type' => \$eventType",
     "'target_type' => 'community_board_group'",
 ], 'Community admin board group policy');
+toy_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    'toy_require_csrf()',
+    'toy_community_access_condition_priority(toy_post_string(\'access_condition_priority\', 40))',
+    'toy_community_message_write_policy(toy_post_string(\'message_write_policy\', 40))',
+    'toy_community_recalculate_recent_account_levels($pdo, 200)',
+    "'event_type' => 'community.settings.updated'",
+    "'event_type' => 'community.levels.recalculated'",
+], 'Community admin settings policy');
 toy_community_release_file_contains('modules/community/actions/admin-posts.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     '$allowedPostStatuses = toy_community_post_statuses()',
@@ -738,6 +777,7 @@ $stateChangingActions = [
     'modules/community/actions/scrap-toggle.php',
     'modules/community/actions/message-write.php',
     'modules/community/actions/message-delete.php',
+    'modules/community/actions/admin-settings.php',
     'modules/community/actions/admin-boards.php',
     'modules/community/actions/admin-board-groups.php',
     'modules/community/actions/admin-posts.php',

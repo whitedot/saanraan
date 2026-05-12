@@ -6,6 +6,11 @@ $formAction = isset($formAction) && is_string($formAction)
     : '/community/write?key=' . rawurlencode((string) $board['board_key']);
 $submitLabel = isset($submitLabel) && is_string($submitLabel) ? $submitLabel : '등록';
 $attachmentMaxBytes = min(10485760, max(1, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
+$fileAttachmentMaxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
+$fileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
+$fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) ? toy_community_normalize_file_extensions($settings['file_allowed_extensions']) : [];
+$fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
+$imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -39,7 +44,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             </ul>
         <?php } ?>
 
-        <form method="post" action="<?php echo toy_e(toy_url($formAction)); ?>"<?php echo !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0 ? ' enctype="multipart/form-data"' : ''; ?>>
+        <form method="post" action="<?php echo toy_e(toy_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?>>
             <?php echo toy_csrf_field(); ?>
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo toy_e((string) $postIdField); ?>">
@@ -54,13 +59,26 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <textarea name="body_text" rows="12" cols="80" required><?php echo toy_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
-            <?php if (!isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0) { ?>
+            <?php if ($imageUploadEnabled) { ?>
                 <p>
                     <label>이미지 첨부<br>
                         <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
                     </label>
                     <br>
                     <small>JPEG, PNG, WebP / 파일당 최대 <?php echo toy_e(toy_community_format_bytes($attachmentMaxBytes)); ?></small>
+                </p>
+            <?php } ?>
+            <?php if ($fileUploadEnabled) { ?>
+                <p>
+                    <label>파일 첨부<br>
+                        <input type="file" name="file_attachments[]" multiple>
+                    </label>
+                    <br>
+                    <small>
+                        최대 <?php echo toy_e((string) $fileAttachmentMaxCount); ?>개 /
+                        파일당 최대 <?php echo toy_e(toy_community_format_bytes($fileAttachmentMaxBytes)); ?> /
+                        허용: <?php echo toy_e(implode(', ', $fileAllowedExtensions)); ?>
+                    </small>
                 </p>
             <?php } ?>
             <button type="submit"><?php echo toy_e($submitLabel); ?></button>

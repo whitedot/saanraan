@@ -45,7 +45,8 @@ if (!is_string($actualChecksum) || preg_match('/\A[a-f0-9]{64}\z/', $recordedChe
 }
 
 header('Content-Type: ' . toy_download_content_type($mimeType));
-header('Content-Disposition: inline; filename="' . toy_download_filename((string) $attachment['original_name']) . '"');
+$disposition = toy_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
+header('Content-Disposition: ' . $disposition . '; filename="' . toy_download_filename((string) $attachment['original_name']) . '"');
 header('Content-Length: ' . (string) $fileSize);
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: private, no-store, no-cache, must-revalidate');

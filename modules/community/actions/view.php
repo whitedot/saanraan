@@ -39,6 +39,15 @@ $settings = toy_module_settings($pdo, 'community');
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = toy_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
 $attachments = toy_community_post_attachments($pdo, (int) $post['id']);
+$imageAttachments = [];
+$fileAttachments = [];
+foreach ($attachments as $attachment) {
+    if (toy_community_attachment_is_image($attachment)) {
+        $imageAttachments[] = $attachment;
+    } else {
+        $fileAttachments[] = $attachment;
+    }
+}
 $canComment = is_array($account) && toy_community_account_can_comment_post($pdo, $post, $account);
 $commentUnavailableMessage = '';
 if (!is_array($account)) {

@@ -22,6 +22,9 @@ $board = [
     'board_key' => (string) $post['board_key'],
     'title' => (string) $post['board_title'],
 ];
+$settings = toy_community_settings($pdo);
+$board['image_uploads_enabled'] = 0;
+$board['file_uploads_enabled'] = 0;
 $errors = [];
 $values = [
     'title' => (string) $post['title'],

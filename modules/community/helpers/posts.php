@@ -29,12 +29,20 @@ function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $ac
     }
 
     if ($policy === 'member') {
-        return true;
+        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     if ($policy === 'group') {
         $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'group_keys' => $groupKeys,
+            'group_required' => true,
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     return false;
@@ -429,12 +437,20 @@ function toy_community_account_can_write_board(PDO $pdo, array $board, array $ac
 
     $policy = toy_community_effective_board_policy($pdo, $board, 'write_policy');
     if ($policy === 'member') {
-        return true;
+        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     if ($policy === 'group') {
         $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
-        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'group_keys' => $groupKeys,
+            'group_required' => true,
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     if ($policy === 'admin') {
@@ -619,12 +635,20 @@ function toy_community_account_can_comment_post(PDO $pdo, array $post, array $ac
     ];
     $policy = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
     if ($policy === 'member') {
-        return true;
+        $minLevel = toy_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     if ($policy === 'group') {
         $groupKeys = toy_community_board_group_keys($pdo, (int) $post['board_id'], 'comment_group_keys');
-        return $groupKeys !== [] && toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
+        $minLevel = toy_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
+        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+            'group_keys' => $groupKeys,
+            'group_required' => true,
+            'min_level' => $minLevel,
+        ])['allowed']);
     }
 
     return false;

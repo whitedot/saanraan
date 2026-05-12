@@ -64,7 +64,6 @@ function toy_community_post_attachments(PDO $pdo, int $postId): array
          FROM toy_community_attachments
          WHERE post_id = :post_id
            AND status = 'active'
-           AND mime_type IN ('image/jpeg', 'image/png', 'image/webp')
          ORDER BY id ASC
          LIMIT 20"
     );
@@ -135,6 +134,108 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
     ]);
 }
 
+function toy_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAccountId, array $files, array $settings = []): array
+{
+    $uploadedIds = [];
+    $maxCount = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
+    if ($maxCount < 1) {
+        return [];
+    }
+
+    $selectedFiles = [];
+    foreach (toy_community_normalize_upload_files($files) as $file) {
+        if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+
+        $selectedFiles[] = $file;
+    }
+
+    if (count($selectedFiles) > $maxCount) {
+        throw new RuntimeException('첨부 파일 개수가 허용 범위를 초과했습니다.');
+    }
+
+    foreach ($selectedFiles as $file) {
+        $uploadedIds[] = toy_community_upload_post_file($pdo, $postId, $uploaderAccountId, $file, $settings);
+    }
+
+    return $uploadedIds;
+}
+
+function toy_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): int
+{
+    if ($postId < 1 || $uploaderAccountId < 1) {
+        throw new RuntimeException('첨부 대상이 올바르지 않습니다.');
+    }
+
+    $maxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
+    $allowedExtensions = toy_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
+    if ($allowedExtensions === []) {
+        throw new RuntimeException('허용된 첨부 파일 확장자가 없습니다.');
+    }
+
+    $validated = toy_upload_validate_file($file, [
+        'max_bytes' => $maxBytes,
+        'allowed_extensions' => $allowedExtensions,
+        'allowed_mime_types' => toy_community_file_mime_types_for_extensions($allowedExtensions),
+    ]);
+
+    $directory = TOY_ROOT . '/storage/community/attachments/' . date('Y/m');
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('첨부 저장 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = toy_upload_random_filename((string) $validated['extension']);
+    $targetPath = toy_upload_safe_target_path($directory, $storedName);
+    toy_upload_assert_target_path_writable($targetPath);
+    if (!move_uploaded_file((string) $validated['tmp_name'], $targetPath)) {
+        throw new RuntimeException('첨부 파일을 저장할 수 없습니다.');
+    }
+
+    $storedMimeType = toy_upload_detect_mime($targetPath);
+    $checksum = hash_file('sha256', $targetPath);
+    $sizeBytes = filesize($targetPath);
+    if (!toy_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 첨부 파일 metadata를 확인할 수 없습니다.');
+    }
+
+    $storagePath = ltrim(str_replace(TOY_ROOT . DIRECTORY_SEPARATOR, '', $targetPath), DIRECTORY_SEPARATOR);
+    return toy_community_create_attachment($pdo, [
+        'post_id' => $postId,
+        'uploader_account_id' => $uploaderAccountId,
+        'original_name' => (string) $validated['original_name'],
+        'stored_name' => $storedName,
+        'storage_path' => $storagePath,
+        'mime_type' => $storedMimeType,
+        'size_bytes' => $sizeBytes,
+        'checksum_sha256' => $checksum,
+        'width' => null,
+        'height' => null,
+    ]);
+}
+
+function toy_community_normalize_upload_files(array $files): array
+{
+    if (!isset($files['name']) || !is_array($files['name'])) {
+        return [$files];
+    }
+
+    $normalized = [];
+    $count = count($files['name']);
+    for ($index = 0; $index < $count; $index++) {
+        $normalized[] = [
+            'name' => $files['name'][$index] ?? '',
+            'type' => is_array($files['type'] ?? null) ? ($files['type'][$index] ?? '') : '',
+            'tmp_name' => is_array($files['tmp_name'] ?? null) ? ($files['tmp_name'][$index] ?? '') : '',
+            'error' => is_array($files['error'] ?? null) ? ($files['error'][$index] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE,
+            'size' => is_array($files['size'] ?? null) ? ($files['size'][$index] ?? 0) : 0,
+        ];
+    }
+
+    return $normalized;
+}
+
 function toy_community_attachment_format_for_mime(string $mimeType): string
 {
     return match (strtolower(trim($mimeType))) {
@@ -162,8 +263,8 @@ function toy_community_create_attachment(PDO $pdo, array $data): int
         'mime_type' => (string) $data['mime_type'],
         'size_bytes' => (int) $data['size_bytes'],
         'checksum_sha256' => (string) $data['checksum_sha256'],
-        'width' => (int) $data['width'],
-        'height' => (int) $data['height'],
+        'width' => isset($data['width']) ? (int) $data['width'] : null,
+        'height' => isset($data['height']) ? (int) $data['height'] : null,
         'created_at' => toy_now(),
     ]);
 
@@ -210,11 +311,50 @@ function toy_community_restore_hidden_post_attachments(PDO $pdo, int $postId): i
 
 function toy_community_attachment_mime_is_allowed(string $mimeType): bool
 {
-    return in_array(strtolower(trim($mimeType)), [
+    return in_array(strtolower(trim($mimeType)), array_merge([
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ], toy_community_file_mime_types_for_extensions(array_keys(toy_community_file_extension_mime_map()))), true);
+}
+
+function toy_community_attachment_is_image(array $attachment): bool
+{
+    return in_array(strtolower((string) ($attachment['mime_type'] ?? '')), [
         'image/jpeg',
         'image/png',
         'image/webp',
     ], true);
+}
+
+function toy_community_file_extension_mime_map(): array
+{
+    return [
+        'pdf' => ['application/pdf'],
+        'txt' => ['text/plain'],
+        'csv' => ['text/csv', 'text/plain'],
+        'zip' => ['application/zip', 'application/x-zip-compressed'],
+        'doc' => ['application/msword'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        'xls' => ['application/vnd.ms-excel'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        'ppt' => ['application/vnd.ms-powerpoint'],
+        'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+        'hwp' => ['application/x-hwp', 'application/haansofthwp'],
+    ];
+}
+
+function toy_community_file_mime_types_for_extensions(array $extensions): array
+{
+    $map = toy_community_file_extension_mime_map();
+    $mimeTypes = [];
+    foreach (toy_community_normalize_file_extensions($extensions) as $extension) {
+        foreach ($map[$extension] ?? [] as $mimeType) {
+            $mimeTypes[$mimeType] = true;
+        }
+    }
+
+    return array_keys($mimeTypes);
 }
 
 function toy_community_format_bytes(int $bytes): string

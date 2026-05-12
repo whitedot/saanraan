@@ -173,6 +173,30 @@ function toy_community_create_message(PDO $pdo, int $senderAccountId, int $recip
     return (int) $pdo->lastInsertId();
 }
 
+function toy_community_account_can_write_message(PDO $pdo, array $account, ?array $settings = null): bool
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $settings = is_array($settings) ? toy_community_normalize_settings($settings) : toy_community_settings($pdo);
+    $policy = (string) $settings['message_write_policy'];
+    if ($policy === 'disabled') {
+        return false;
+    }
+
+    $groupKeys = $policy === 'group' ? (array) $settings['message_write_group_keys'] : [];
+    $result = toy_community_account_satisfies_access($pdo, $accountId, [
+        'settings' => $settings,
+        'group_keys' => $groupKeys,
+        'group_required' => $policy === 'group',
+        'min_level' => (int) $settings['message_write_min_level'],
+    ]);
+
+    return !empty($result['allowed']);
+}
+
 function toy_community_message_rate_limited(PDO $pdo, int $accountId, array $settings): bool
 {
     $windowSeconds = min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300)));

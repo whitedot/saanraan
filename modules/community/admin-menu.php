@@ -2,6 +2,11 @@
 
 return [
     [
+        'label' => '커뮤니티 설정',
+        'path' => '/admin/community/settings',
+        'order' => 29,
+    ],
+    [
         'label' => '커뮤니티 게시판',
         'path' => '/admin/community/boards',
         'order' => 30,

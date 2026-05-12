@@ -19,6 +19,9 @@ $boardSettingSource = static function (array $board, string $key): string {
 $boardGroupKeysValue = static function (array $board, string $key): string {
     return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
 };
+$boardArrayValue = static function (array $board, string $key): string {
+    return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
+};
 $boardField = static function (array $board, string $key, string $default = ''): string {
     return (string) ($board[$key] ?? $default);
 };
@@ -38,10 +41,17 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'banner_before_list_id' => 0,
     'banner_after_list_id' => 0,
     'popup_layer_list_id' => 0,
+    'file_uploads_enabled' => '0',
+    'file_attachment_max_bytes' => 5242880,
+    'file_attachment_max_count' => 3,
+    'file_allowed_extensions' => ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
     'sort_order' => 0,
     'read_group_keys' => [],
     'write_group_keys' => [],
     'comment_group_keys' => [],
+    'read_min_level' => 0,
+    'write_min_level' => 0,
+    'comment_min_level' => 0,
 ];
 
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
@@ -60,6 +70,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <p>
+    <a href="<?php echo toy_e(toy_url('/admin/community/settings')); ?>">커뮤니티 설정</a>
+    |
     <a href="<?php echo toy_e(toy_url('/admin/community/boards')); ?>">게시판 목록</a>
     |
     <a href="<?php echo toy_e(toy_url('/admin/community/boards/new')); ?>">게시판 생성</a>
@@ -200,6 +212,19 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </p>
             <p>
+                <label>읽기 최소 레벨<br>
+                    <input type="number" name="read_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'read_min_level', '0')); ?>">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_read_min_level">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_min_level') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_read_min_level'] ?? $formBoard['read_min_level'])); ?></small>
+                <?php } ?>
+            </p>
+            <p>
                 <label>쓰기 정책<br>
                     <select name="write_policy">
                         <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -229,6 +254,19 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </p>
             <p>
+                <label>쓰기 최소 레벨<br>
+                    <input type="number" name="write_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'write_min_level', '0')); ?>">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_write_min_level">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_min_level') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_write_min_level'] ?? $formBoard['write_min_level'])); ?></small>
+                <?php } ?>
+            </p>
+            <p>
                 <label>댓글 정책<br>
                     <select name="comment_policy">
                         <?php foreach ($allowedCommentPolicies as $policy) { ?>
@@ -255,6 +293,19 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_group_keys') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
                         <?php } ?>
                     </select>
+                <?php } ?>
+            </p>
+            <p>
+                <label>댓글 최소 레벨<br>
+                    <input type="number" name="comment_min_level" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_comment_min_level">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_min_level') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
                 <?php } ?>
             </p>
             <p>
@@ -295,6 +346,59 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <small>적용값: <?php echo toy_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
+                <?php } ?>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" name="file_uploads_enabled" value="1"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                    파일 첨부 허용
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_file_uploads_enabled">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo !empty($formBoard['effective_file_uploads_enabled']) ? '허용' : '차단'; ?></small>
+                <?php } ?>
+            </p>
+            <p>
+                <label>파일 최대 용량(bytes)<br>
+                    <input type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo toy_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_file_attachment_max_bytes">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_file_attachment_max_bytes'] ?? $formBoard['file_attachment_max_bytes'])); ?></small>
+                <?php } ?>
+            </p>
+            <p>
+                <label>파일 최대 개수<br>
+                    <input type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo toy_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_file_attachment_max_count">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_file_attachment_max_count'] ?? $formBoard['file_attachment_max_count'])); ?></small>
+                <?php } ?>
+            </p>
+            <p>
+                <label>파일 허용 확장자<br>
+                    <input type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo toy_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" placeholder="pdf, txt, zip">
+                </label>
+                <?php if ($communityBoardsPage === 'edit') { ?>
+                    <select name="source_file_allowed_extensions">
+                        <?php foreach ($sourceLabels as $source => $label) { ?>
+                            <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_allowed_extensions') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small>적용값: <?php echo toy_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
                 <?php } ?>
             </p>
             <p>

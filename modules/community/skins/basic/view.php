@@ -104,11 +104,29 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo toy_community_plain_text_html((string) $post['body_text']); ?>
             </div>
 
-            <?php if ($attachments !== []) { ?>
+            <?php if ($imageAttachments !== []) { ?>
                 <section>
                     <h2>첨부 이미지</h2>
                     <ul>
-                        <?php foreach ($attachments as $attachment) { ?>
+                        <?php foreach ($imageAttachments as $attachment) { ?>
+                            <li>
+                                <a href="<?php echo toy_e(toy_url('/community/attachment?id=' . (string) $attachment['id'])); ?>">
+                                    <?php echo toy_e((string) $attachment['original_name']); ?>
+                                </a>
+                                <?php if ((int) ($attachment['size_bytes'] ?? 0) > 0) { ?>
+                                    (<?php echo toy_e(toy_community_format_bytes((int) $attachment['size_bytes'])); ?>)
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </section>
+            <?php } ?>
+
+            <?php if ($fileAttachments !== []) { ?>
+                <section>
+                    <h2>첨부파일</h2>
+                    <ul>
+                        <?php foreach ($fileAttachments as $attachment) { ?>
                             <li>
                                 <a href="<?php echo toy_e(toy_url('/community/attachment?id=' . (string) $attachment['id'])); ?>">
                                     <?php echo toy_e((string) $attachment['original_name']); ?>

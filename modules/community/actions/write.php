@@ -18,10 +18,14 @@ if (!toy_community_account_can_write_board($pdo, $board, $account, $isAdminWrite
     toy_render_error(403, '이 게시판에 글을 작성할 수 없습니다.');
 }
 
-$settings = toy_module_settings($pdo, 'community');
+$settings = toy_community_settings($pdo);
 $settings['attachment_max_bytes'] = toy_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
 $settings['attachment_max_count'] = toy_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
+$settings['file_attachment_max_bytes'] = toy_community_board_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
+$settings['file_attachment_max_count'] = toy_community_board_file_attachment_max_count($pdo, (int) $board['id'], $settings);
+$settings['file_allowed_extensions'] = toy_community_board_file_allowed_extensions($pdo, (int) $board['id'], $settings);
 $board['image_uploads_enabled'] = toy_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
+$board['file_uploads_enabled'] = toy_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 $errors = [];
 $notice = '';
 $values = [
@@ -45,13 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $account['id'], [
             'source_module_key' => 'community',
         ]);
+        $levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
         $attachmentId = null;
-        $attachmentResult = 'not_requested';
+        $attachmentIds = [];
+        $attachmentResults = [];
         if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
             try {
                 $attachmentId = toy_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
                 if (is_int($attachmentId) && $attachmentId > 0) {
-                    $attachmentResult = 'attached';
+                    $attachmentIds[] = $attachmentId;
+                    $attachmentResults[] = 'image_attached';
                     $_SESSION['toy_community_post_notice'] = '이미지를 첨부했습니다.';
                     toy_audit_log($pdo, [
                         'actor_account_id' => (int) $account['id'],
@@ -67,12 +74,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ],
                     ]);
                 } else {
-                    $attachmentResult = 'none';
+                    $attachmentResults[] = 'image_none';
                 }
             } catch (Throwable $exception) {
                 toy_log_exception($exception, 'community_post_image_upload');
-                $attachmentResult = 'failed';
+                $attachmentResults[] = 'image_failed';
                 $_SESSION['toy_community_post_notice'] = '게시글은 등록했지만 이미지 첨부는 처리하지 못했습니다.';
+            }
+        }
+        if ((int) $board['file_uploads_enabled'] === 1 && isset($_FILES['file_attachments']) && is_array($_FILES['file_attachments'])) {
+            try {
+                $fileAttachmentIds = toy_community_upload_post_files($pdo, $postId, (int) $account['id'], $_FILES['file_attachments'], $settings);
+                foreach ($fileAttachmentIds as $fileAttachmentId) {
+                    $attachmentIds[] = (int) $fileAttachmentId;
+                    toy_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'member',
+                        'event_type' => 'community.attachment.created',
+                        'target_type' => 'community_attachment',
+                        'target_id' => (string) $fileAttachmentId,
+                        'result' => 'success',
+                        'message' => 'Community attachment created.',
+                        'metadata' => [
+                            'post_id' => $postId,
+                            'board_key' => (string) $board['board_key'],
+                            'attachment_kind' => 'file',
+                        ],
+                    ]);
+                }
+                $attachmentResults[] = $fileAttachmentIds === [] ? 'file_none' : 'file_attached';
+                if ($fileAttachmentIds !== []) {
+                    $_SESSION['toy_community_post_notice'] = '첨부파일을 등록했습니다.';
+                }
+            } catch (Throwable $exception) {
+                toy_log_exception($exception, 'community_post_file_upload');
+                $attachmentResults[] = 'file_failed';
+                $_SESSION['toy_community_post_notice'] = '게시글은 등록했지만 첨부파일은 처리하지 못했습니다.';
             }
         }
         toy_audit_log($pdo, [
@@ -86,7 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'metadata' => array_merge([
                 'board_key' => (string) $board['board_key'],
                 'attachment_id' => $attachmentId,
-                'attachment_result' => $attachmentResult,
+                'attachment_ids' => $attachmentIds,
+                'attachment_result' => $attachmentResults === [] ? 'not_requested' : implode(',', $attachmentResults),
+                'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+                'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
             ], toy_community_member_group_evaluation_metadata($groupEvaluationSummary)),
         ]);
         toy_redirect('/community/post?id=' . (string) $postId);

@@ -15,9 +15,16 @@ $settingLabels = [
     'read_group_keys' => '읽기 그룹 key',
     'write_group_keys' => '쓰기 그룹 key',
     'comment_group_keys' => '댓글 그룹 key',
+    'read_min_level' => '읽기 최소 레벨',
+    'write_min_level' => '쓰기 최소 레벨',
+    'comment_min_level' => '댓글 최소 레벨',
     'image_uploads_enabled' => '이미지 첨부 허용',
     'attachment_max_bytes' => '이미지 최대 용량',
     'attachment_max_count' => '이미지 최대 개수',
+    'file_uploads_enabled' => '파일 첨부 허용',
+    'file_attachment_max_bytes' => '파일 최대 용량',
+    'file_attachment_max_count' => '파일 최대 개수',
+    'file_allowed_extensions' => '파일 허용 확장자',
 ];
 $groupSettingValue = static function (array $settings, string $key, string $default): string {
     return (string) ($settings[$key] ?? $default);
@@ -64,6 +71,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <p>
+    <a href="<?php echo toy_e(toy_url('/admin/community/settings')); ?>">커뮤니티 설정</a>
+    |
     <a href="<?php echo toy_e(toy_url('/admin/community/board-groups')); ?>">게시판 그룹 목록</a>
     |
     <a href="<?php echo toy_e(toy_url('/admin/community/board-groups/new')); ?>">게시판 그룹 생성</a>
@@ -177,6 +186,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </p>
                 <p>
+                    <label>읽기 최소 레벨<br>
+                        <input type="number" name="group_read_min_level" min="0" max="1000000" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'read_min_level', '0')); ?>">
+                    </label>
+                </p>
+                <p>
                     <label>쓰기 정책<br>
                         <select name="group_write_policy">
                             <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -188,6 +202,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <p>
                     <label>쓰기 그룹 key<br>
                         <input type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo toy_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" placeholder="regular_member, vip">
+                    </label>
+                </p>
+                <p>
+                    <label>쓰기 최소 레벨<br>
+                        <input type="number" name="group_write_min_level" min="0" max="1000000" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'write_min_level', '0')); ?>">
                     </label>
                 </p>
                 <p>
@@ -205,6 +224,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </p>
                 <p>
+                    <label>댓글 최소 레벨<br>
+                        <input type="number" name="group_comment_min_level" min="0" max="1000000" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>">
+                    </label>
+                </p>
+                <p>
                     <label>
                         <input type="checkbox" name="group_image_uploads_enabled" value="1"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                         이미지 첨부 허용
@@ -218,6 +242,27 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <p>
                     <label>이미지 최대 개수<br>
                         <input type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label>
+                        <input type="checkbox" name="group_file_uploads_enabled" value="1"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        파일 첨부 허용
+                    </label>
+                </p>
+                <p>
+                    <label>파일 최대 용량(bytes)<br>
+                        <input type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label>파일 최대 개수<br>
+                        <input type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label>파일 허용 확장자<br>
+                        <input type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo toy_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" placeholder="pdf, txt, zip">
                     </label>
                 </p>
             </fieldset>

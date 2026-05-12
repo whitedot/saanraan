@@ -48,9 +48,16 @@ function toy_community_board_group_setting_keys(): array
         'read_group_keys',
         'write_group_keys',
         'comment_group_keys',
+        'read_min_level',
+        'write_min_level',
+        'comment_min_level',
         'image_uploads_enabled',
         'attachment_max_bytes',
         'attachment_max_count',
+        'file_uploads_enabled',
+        'file_attachment_max_bytes',
+        'file_attachment_max_count',
+        'file_allowed_extensions',
     ];
 }
 
@@ -177,6 +184,7 @@ function toy_community_board_with_effective_settings(PDO $pdo, array $board): ar
     $board['banner_before_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_list_id') ?? 0);
     $board['banner_after_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_list_id') ?? 0);
     $board['popup_layer_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_list_id') ?? 0);
+    $board['effective_file_uploads_enabled'] = toy_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
     return $board;
 }
@@ -562,6 +570,35 @@ function toy_community_effective_board_image_uploads_enabled(PDO $pdo, array $bo
     return in_array(toy_community_effective_board_setting($pdo, $board, 'image_uploads_enabled', (string) (int) ($board['image_uploads_enabled'] ?? 1)), ['1', 'true', 'yes', 'on'], true);
 }
 
+function toy_community_effective_board_file_uploads_enabled(PDO $pdo, array $board): bool
+{
+    return in_array(toy_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function toy_community_board_min_level(PDO $pdo, int $boardId, string $settingKey): int
+{
+    if ($boardId < 1 || !in_array($settingKey, ['read_min_level', 'write_min_level', 'comment_min_level'], true)) {
+        return 0;
+    }
+
+    $board = toy_community_board_by_id($pdo, $boardId);
+    if (!is_array($board)) {
+        return 0;
+    }
+
+    return min(1000000, max(0, (int) toy_community_effective_board_setting($pdo, $board, $settingKey, '0')));
+}
+
+function toy_community_board_own_min_level(PDO $pdo, int $boardId, string $settingKey): int
+{
+    if ($boardId < 1 || !in_array($settingKey, ['read_min_level', 'write_min_level', 'comment_min_level'], true)) {
+        return 0;
+    }
+
+    $value = toy_community_board_setting_value($pdo, $boardId, $settingKey);
+    return is_string($value) && $value !== '' ? min(1000000, max(0, (int) $value)) : 0;
+}
+
 function toy_community_board_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int
 {
     $default = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
@@ -604,6 +641,119 @@ function toy_community_board_own_attachment_max_count(PDO $pdo, int $boardId, ar
     $default = min(10, max(0, (int) ($settings['attachment_max_count'] ?? 1)));
     $value = toy_community_board_setting_value($pdo, $boardId, 'attachment_max_count');
     return is_string($value) && $value !== '' ? min(10, max(0, (int) $value)) : $default;
+}
+
+function toy_community_board_file_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
+    $board = toy_community_board_by_id($pdo, $boardId);
+    $value = is_array($board)
+        ? toy_community_effective_board_setting($pdo, $board, 'file_attachment_max_bytes', (string) $default)
+        : toy_community_board_setting_value($pdo, $boardId, 'file_attachment_max_bytes');
+
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return min(20971520, max(1024, (int) $value));
+}
+
+function toy_community_board_file_attachment_max_count(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
+    $board = toy_community_board_by_id($pdo, $boardId);
+    $value = is_array($board)
+        ? toy_community_effective_board_setting($pdo, $board, 'file_attachment_max_count', (string) $default)
+        : toy_community_board_setting_value($pdo, $boardId, 'file_attachment_max_count');
+
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return min(5, max(0, (int) $value));
+}
+
+function toy_community_board_own_file_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
+    $value = toy_community_board_setting_value($pdo, $boardId, 'file_attachment_max_bytes');
+    return is_string($value) && $value !== '' ? min(20971520, max(1024, (int) $value)) : $default;
+}
+
+function toy_community_board_own_file_attachment_max_count(PDO $pdo, int $boardId, array $settings = []): int
+{
+    $default = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
+    $value = toy_community_board_setting_value($pdo, $boardId, 'file_attachment_max_count');
+    return is_string($value) && $value !== '' ? min(5, max(0, (int) $value)) : $default;
+}
+
+function toy_community_board_file_allowed_extensions(PDO $pdo, int $boardId, array $settings = []): array
+{
+    $default = toy_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
+    $board = toy_community_board_by_id($pdo, $boardId);
+    $value = is_array($board)
+        ? toy_community_effective_board_setting($pdo, $board, 'file_allowed_extensions', implode(',', $default))
+        : toy_community_board_setting_value($pdo, $boardId, 'file_allowed_extensions');
+
+    if (!is_string($value) || trim($value) === '') {
+        return $default;
+    }
+
+    return toy_community_normalize_file_extensions(preg_split('/[\s,]+/', $value) ?: []);
+}
+
+function toy_community_board_own_file_allowed_extensions(PDO $pdo, int $boardId, array $settings = []): array
+{
+    $default = toy_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
+    $value = toy_community_board_setting_value($pdo, $boardId, 'file_allowed_extensions');
+    if (!is_string($value) || trim($value) === '') {
+        return $default;
+    }
+
+    return toy_community_normalize_file_extensions(preg_split('/[\s,]+/', $value) ?: []);
+}
+
+function toy_community_normalize_file_extensions(array $extensions): array
+{
+    $allowed = array_fill_keys(array_keys(toy_community_file_extension_mime_map()), true);
+    $normalized = [];
+    foreach ($extensions as $extension) {
+        $extension = strtolower(ltrim(trim((string) $extension), '.'));
+        if (isset($allowed[$extension])) {
+            $normalized[$extension] = true;
+        }
+    }
+
+    return array_keys($normalized);
+}
+
+function toy_community_file_extensions_from_input(string $value): array
+{
+    if (trim($value) === '') {
+        return [];
+    }
+
+    $rawExtensions = preg_split('/[\s,]+/', $value);
+    return toy_community_normalize_file_extensions(is_array($rawExtensions) ? $rawExtensions : []);
+}
+
+function toy_community_invalid_file_extensions_from_input(string $value): array
+{
+    if (trim($value) === '') {
+        return [];
+    }
+
+    $allowed = array_fill_keys(array_keys(toy_community_file_extension_mime_map()), true);
+    $invalid = [];
+    $rawExtensions = preg_split('/[\s,]+/', $value);
+    foreach (is_array($rawExtensions) ? $rawExtensions : [] as $rawExtension) {
+        $extension = strtolower(ltrim(trim((string) $rawExtension), '.'));
+        if ($extension !== '' && !isset($allowed[$extension])) {
+            $invalid[] = $extension;
+        }
+    }
+
+    return array_values(array_unique($invalid));
 }
 
 function toy_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupId, array $settingKeys): int
@@ -652,7 +802,15 @@ function toy_community_apply_board_group_settings_to_boards(PDO $pdo, int $group
         foreach (array_diff($settingKeys, toy_community_board_group_column_setting_keys()) as $settingKey) {
             $value = toy_community_board_group_setting_value($pdo, $groupId, $settingKey);
             if (is_string($value)) {
-                $valueType = in_array($settingKey, ['attachment_max_bytes', 'attachment_max_count'], true) ? 'int' : 'json';
+                if (in_array($settingKey, ['attachment_max_bytes', 'attachment_max_count', 'file_attachment_max_bytes', 'file_attachment_max_count', 'read_min_level', 'write_min_level', 'comment_min_level'], true)) {
+                    $valueType = 'int';
+                } elseif (in_array($settingKey, ['file_uploads_enabled'], true)) {
+                    $valueType = 'bool';
+                } elseif ($settingKey === 'file_allowed_extensions') {
+                    $valueType = 'string';
+                } else {
+                    $valueType = 'json';
+                }
                 toy_community_set_board_setting($pdo, $boardId, $settingKey, $value, $valueType);
             }
         }

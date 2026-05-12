@@ -70,7 +70,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => 'Community',
-        'version' => '2026.05.002',
+        'version' => '2026.05.003',
         'label' => '커뮤니티',
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

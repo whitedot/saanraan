@@ -23,6 +23,7 @@ toy_community_update_post_status($pdo, $postId, 'deleted');
 $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
     'source_module_key' => 'community',
 ]);
+$levelSnapshot = toy_community_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_deleted');
 $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, 'deleted');
 toy_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -37,6 +38,8 @@ toy_audit_log($pdo, [
         'before_status' => (string) $post['status'],
         'after_status' => 'deleted',
         'updated_attachment_count' => $updatedAttachmentCount,
+        'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+        'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
     ], toy_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 $_SESSION['toy_community_board_notice'] = '게시글을 삭제했습니다.';
