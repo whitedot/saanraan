@@ -146,34 +146,41 @@ Toycore는 다음과 같은 기술 구성을 기본으로 합니다.
 
 ## 현재 구현 범위
 
-현재 toycore.git 본체는 웹 설치, 기본 관리자 진입, 회원 인증, 업데이트 실행, 개인정보/감사 로그 기반을 포함합니다. 모듈은 이 저장소의 `modules/{module_key}` 디렉터리에 놓인 파일 묶음으로 다룹니다.
+현재 저장소 기준 구현 범위는 "작은 코어 + 번들 모듈"입니다. 코어는 설치와 요청 진입을 맡고, 실제 운영 기능은 `modules/{module_key}` 아래 모듈이 소유합니다.
 
-Toycore는 작은 절차형 코어를 목표로 하지만, 운영 중 자주 문제가 되는 보안과 복구 흐름은 초기 구현 범위 안에서 다룹니다.
+코어와 필수 기준선에는 다음이 포함됩니다.
 
-- 인증: DB 기반 로그인 세션, PHP 세션 strict/cookie-only 모드, 로그인 실패 타이밍 노출 완화, 비밀번호 변경/재설정 후 세션 폐기
-- 토큰: 비밀번호 재설정/이메일 인증 token HMAC 저장, 원자적 사용 처리, 새 token 발급 시 기존 미사용 token 무효화, token URL referrer 차단
-- 요청 보호: CSRF helper, 안전한 redirect helper, URL 제어 문자 차단, trusted proxy 기반 HTTPS/IP 해석, 기본 보안 응답 헤더
-- 요청 계약: action include 전후 dispatch contract로 POST CSRF, 관리자 로그인, 관리자 권한 확인 helper의 호출 누락 감지
-- 개인정보: 회원 개인정보 JSON 내보내기, 모듈별 export 확장, 내부 hash/token/secret-like 필드 제외, 탈퇴/익명화와 동의 철회 이력
-- 운영 복구: 설치/업데이트 실패 marker, 업데이트 lock, checksum 기반 업데이트 파일 검증, 민감 정보 마스킹된 예외/감사 로그
-- 모듈 격리: `paths.php` 기반 명시적 요청 처리, action 상대 경로 검증, 활성 모듈 route 충돌 감지, `module.php`의 `requires` 의존성 검증
-- 배포: Git/릴리스 zip 기반 설치, owner 재인증 기반 모듈 zip 업로드와 파일 교체
+- 설치/업데이트: 웹 설치 화면, 설정 파일 생성, DB 연결, 코어/모듈 SQL 업데이트 실행, 실패 marker와 update lock
+- 요청 흐름: `index.php`에서 method/path를 읽고 활성 모듈의 `paths.php`를 확인한 뒤 action 파일을 명시적으로 include
+- 보안 helper: CSRF, 안전한 redirect, 보안 응답 헤더, trusted proxy 기반 HTTPS/IP 해석, 업로드/출력/runtime helper
+- 인증 기반: DB 세션, strict/cookie-only 세션 모드, 로그인 실패 제한, 비밀번호 재설정, 이메일 인증, token hash 저장과 원자적 사용 처리
+- 운영 기록: 감사 로그, 예외 로그 마스킹, 개인정보 내보내기 확장 지점, 동의 철회 및 탈퇴/익명화 기반
+- 모듈 검증: action 상대 경로 검사, route 충돌 감지, `module.php`의 `requires` 검증, request contract 기반 관리자 POST 보호 확인
 
-기본 설치 흐름은 필수 모듈을 항상 설치하고 활성화합니다. 배포본에 포함된 선택 모듈은 설치 화면에서 함께 설치할 수 있고, 설치 때 선택하지 않았거나 나중에 배치한 모듈은 `/admin/modules`에서 설치합니다.
+기본 설치 흐름은 `core + member + admin`을 항상 설치하고 활성화합니다. 배포본에 포함된 다른 모듈은 설치 화면에서 함께 선택하거나, 이후 `/admin/modules`에서 별도로 설치할 수 있습니다.
 
 ```text
 필수: core + member + admin
-선택: 설치 화면에서 선택한 포함 모듈 또는 modules/{module_key}에 배치된 모듈 폴더
+선택: modules/{module_key}에 포함되거나 나중에 배치한 번들/외부 모듈
 ```
 
-선택 모듈은 코어 도메인이 아닙니다. `point`, `deposit`, `reward`는 자주 쓰이는 회원 연계 도메인을 코어 밖 모듈로 분리해 둔 선택 모듈입니다. 설치하지 않아도 `core + member + admin` 기준선은 동작합니다.
+현재 저장소에 함께 들어 있는 번들 모듈 범위는 다음과 같습니다.
+
+- `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 탈퇴/익명화, 개인정보 요청, 회원 그룹/그룹 규칙, 전용 관리자 설정
+- `admin`: 관리자 대시보드, 사이트 설정, 모듈 설치/활성화/업로드, 회원 관리, 역할 관리, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
+- `seo`: 사이트 기본 메타 설정, `robots.txt`, `sitemap.xml`, 모듈 sitemap 계약 수집
+- `site_menu`: 사이트 메뉴/메뉴 항목 관리, 모듈 `menu-links.php` 계약 수집, 공용 메뉴 출력 슬롯
+- `banner`: 배너 등록/수정/삭제, 클릭 집계, `extension-points.php` 대상 선택, 공용 출력 슬롯
+- `popup_layer`: 팝업레이어 등록/수정/삭제, 노출 기간/닫기 쿠키 기간 관리, `extension-points.php` 대상 선택, 공용 출력 슬롯
+- `notification`: 사이트 알림 목록, 관리자 알림 작성/삭제, 외부 발송 대기열과 delivery 상태 화면, 개인정보 export 계약
+- `community`: 게시판 그룹/게시판 관리, 글/댓글/첨부파일, 신고 처리, 쪽지, 스크랩, 회원 그룹 규칙 연동, 테마/스킨, privacy export, sitemap 연동
+- `point`: 회원별 포인트 잔액, 거래 원장, 관리자 수동 조정 화면
+- `deposit`: 회원별 예치금 잔액, 거래 원장, 관리자 수동 조정 화면
+- `reward`: 회원별 적립금 잔액, 거래 원장, 관리자 수동 조정 화면
+
+선택 모듈은 코어 도메인이 아닙니다. 특히 `point`, `deposit`, `reward`는 금액성/혜택성 도메인을 코어 밖에 둔 예시 모듈이며, 설치하지 않아도 `core + member + admin` 기준선은 동작합니다.
 
 Toycore 런타임은 현재 배치된 파일과 `modules/{module_key}` 폴더를 기준으로 동작합니다. 필요한 모듈을 따로 받은 경우에도 최종 배치 위치는 `modules/{module_key}`입니다.
-
-- `member`: 회원가입, 로그인/로그아웃, 계정 화면, 비밀번호 재설정, 이메일 인증, 동의 기록, 탈퇴/익명화, DB 세션, 인증 로그, 전용 관리자 설정
-- `admin`: 관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리, 권한, 감사 로그, 개인정보 요청, 보관 정리, 업데이트 실행
-- `seo`, `site_menu`, `banner`, `popup_layer`, `notification`, `community`: 선택 운영 모듈
-- `point`, `deposit`, `reward`: 회원 연계 도메인을 코어 밖에 둔 선택 모듈
 
 기본 점검은 다음 명령으로 실행합니다.
 
