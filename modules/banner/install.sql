@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS toy_banners (
     link_url VARCHAR(255) NOT NULL DEFAULT '',
     image_url VARCHAR(255) NOT NULL DEFAULT '',
     status VARCHAR(30) NOT NULL DEFAULT 'draft',
+    skin_key VARCHAR(60) NOT NULL DEFAULT 'basic',
     starts_at DATETIME NULL,
     ends_at DATETIME NULL,
     sort_order INT NOT NULL DEFAULT 100,

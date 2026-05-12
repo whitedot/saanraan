@@ -102,8 +102,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <section>
         <h2>화면</h2>
         <p>
-            <label>Theme key<br>
-                <input type="text" name="theme_key" maxlength="40" value="<?php echo toy_e((string) $settings['theme_key']); ?>">
+            <label>커뮤니티 테마<br>
+                <select name="theme_key">
+                    <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
+                        <option value="<?php echo toy_e((string) $themeKey); ?>"<?php echo (string) $settings['theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
+                            <?php echo toy_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </label>
         </p>
     </section>

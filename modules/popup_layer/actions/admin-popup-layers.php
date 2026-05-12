@@ -94,6 +94,7 @@ if (toy_request_method() === 'POST') {
         $title = toy_popup_layer_clean_single_line(toy_post_string('title', 120), 120);
         $bodyText = toy_popup_layer_clean_text(toy_post_string('body_text', 5000), 5000);
         $status = toy_post_string('status', 30);
+        $skinKey = toy_post_string('skin_key', 40);
         $startsAtInput = toy_post_string('starts_at', 30);
         $endsAtInput = toy_post_string('ends_at', 30);
         $startsAt = toy_popup_layer_clean_admin_datetime($startsAtInput);
@@ -111,6 +112,11 @@ if (toy_request_method() === 'POST') {
 
         if (!in_array($status, $allowedStatuses, true)) {
             $errors[] = '상태 값이 올바르지 않습니다.';
+        }
+
+        if (!isset($popupLayerSkinOptions[$skinKey])) {
+            $errors[] = '팝업 스킨 값이 올바르지 않습니다.';
+            $skinKey = $popupLayerSkinKey;
         }
 
         if ($startsAtInput !== '' && $startsAt === null) {
@@ -153,13 +159,14 @@ if (toy_request_method() === 'POST') {
                 if ($popupId > 0) {
                     $stmt = $pdo->prepare(
                         'UPDATE toy_popup_layers
-                         SET title = :title, body_text = :body_text, status = :status, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
+                         SET title = :title, body_text = :body_text, status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
                          WHERE id = :id'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
                         'status' => $status,
+                        'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
                         'dismiss_cookie_days' => $dismissCookieDays,
@@ -169,14 +176,15 @@ if (toy_request_method() === 'POST') {
                 } else {
                     $stmt = $pdo->prepare(
                         'INSERT INTO toy_popup_layers
-                            (title, body_text, status, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                            (title, body_text, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
                          VALUES
-                            (:title, :body_text, :status, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                            (:title, :body_text, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
                         'status' => $status,
+                        'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
                         'dismiss_cookie_days' => $dismissCookieDays,
@@ -223,6 +231,7 @@ if (toy_request_method() === 'POST') {
                         'point_key' => $target !== null ? (string) $target['point_key'] : '',
                         'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
                         'match_type' => $matchType,
+                        'skin_key' => $skinKey,
                     ],
                 ]);
 
@@ -244,7 +253,7 @@ $editPopup = null;
 $editId = (int) toy_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.body_text, p.status, p.starts_at, p.ends_at, p.dismiss_cookie_days,
+        'SELECT p.id, p.title, p.body_text, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
          FROM toy_popup_layers p
          LEFT JOIN toy_popup_layer_targets t ON t.popup_layer_id = p.id
@@ -260,7 +269,7 @@ if ($editId > 0) {
 
 $popups = [];
 $stmt = $pdo->query(
-    'SELECT p.id, p.title, p.status, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
+    'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
             t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
      FROM toy_popup_layers p
      LEFT JOIN toy_popup_layer_targets t ON t.popup_layer_id = p.id

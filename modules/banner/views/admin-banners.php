@@ -110,6 +110,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <small>enabled 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.</small>
             </p>
             <p>
+                <label>배너 스킨<br>
+                    <select name="skin_key">
+                        <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
+                            <?php $currentSkinKey = $editing ? (string) ($editBanner['skin_key'] ?? $bannerSkinKey) : $bannerSkinKey; ?>
+                            <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
                 <label>시작 시각<br>
                     <input type="datetime-local" name="starts_at" value="<?php echo $editing ? toy_e(toy_banner_admin_datetime_value($editBanner['starts_at'] ?? null)) : ''; ?>">
                 </label>
@@ -189,6 +201,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th>제목</th>
                         <th>상태</th>
+                        <th>스킨</th>
                         <th>링크</th>
                         <th>클릭</th>
                         <th>출력 위치</th>
@@ -215,6 +228,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                     <br><small>사용자 화면 미노출</small>
                                 <?php } ?>
                             </td>
+                            <td><?php echo toy_e(toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')])); ?></td>
                             <td>
                                 <?php echo toy_e(toy_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?><br>
                                 <?php echo toy_e((string) ($banner['link_url'] ?? '')); ?>

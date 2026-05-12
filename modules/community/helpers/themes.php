@@ -5,24 +5,47 @@ declare(strict_types=1);
 function toy_community_theme_key(array $settings): string
 {
     $themeKey = (string) ($settings['theme_key'] ?? 'basic');
-    return $themeKey === 'basic' ? 'basic' : 'basic';
+    return isset(toy_community_theme_options()[$themeKey]) ? $themeKey : 'basic';
+}
+
+function toy_community_theme_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'home' => TOY_ROOT . '/modules/community/themes/basic/home.php',
+            ],
+        ],
+    ];
 }
 
 function toy_community_theme_view(string $themeKey, string $viewKey): string
 {
-    $views = [
-        'basic' => [
-            'home' => TOY_ROOT . '/modules/community/themes/basic/home.php',
-        ],
-    ];
+    $options = toy_community_theme_options();
+    $view = (string) ($options[$themeKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return (string) ($views[$themeKey][$viewKey] ?? $views['basic']['home']);
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
 }
 
 function toy_community_skin_key(array $boardSettings = []): string
 {
     $skinKey = (string) ($boardSettings['skin_key'] ?? 'basic');
-    return $skinKey === 'basic' ? 'basic' : 'basic';
+    return isset(toy_community_skin_options()[$skinKey]) ? $skinKey : 'basic';
+}
+
+function toy_community_skin_options(): array
+{
+    return [
+        'basic' => [
+            'label' => '기본',
+            'views' => [
+                'list' => TOY_ROOT . '/modules/community/skins/basic/list.php',
+                'post' => TOY_ROOT . '/modules/community/skins/basic/view.php',
+                'form' => TOY_ROOT . '/modules/community/skins/basic/form.php',
+            ],
+        ],
+    ];
 }
 
 function toy_community_board_skin_key(PDO $pdo, array $board): string
@@ -34,13 +57,8 @@ function toy_community_board_skin_key(PDO $pdo, array $board): string
 
 function toy_community_skin_view(string $skinKey, string $viewKey): string
 {
-    $views = [
-        'basic' => [
-            'list' => TOY_ROOT . '/modules/community/skins/basic/list.php',
-            'post' => TOY_ROOT . '/modules/community/skins/basic/view.php',
-            'form' => TOY_ROOT . '/modules/community/skins/basic/form.php',
-        ],
-    ];
+    $options = toy_community_skin_options();
+    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
-    return (string) ($views[$skinKey][$viewKey] ?? $views['basic']['list']);
+    return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
 }

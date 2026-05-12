@@ -34,13 +34,13 @@ $optionalModules = [
     ],
     'banner' => [
         'name' => 'Banner',
-        'version' => '2026.05.001',
+        'version' => '2026.05.002',
         'label' => '배너',
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
         'name' => 'Popup Layer',
-        'version' => '2026.05.001',
+        'version' => '2026.05.002',
         'label' => '팝업레이어',
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
@@ -70,7 +70,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => 'Community',
-        'version' => '2026.05.007',
+        'version' => '2026.05.008',
         'label' => '커뮤니티',
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

@@ -648,7 +648,7 @@ function toy_banner_render_public_banner(PDO $pdo, int $bannerId): string
     }
 
     $stmt = $pdo->prepare(
-        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url
+        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.skin_key
          FROM toy_banners b
          WHERE b.id = :id
            AND b.status = 'enabled'
@@ -669,7 +669,7 @@ function toy_banner_render_public_banner(PDO $pdo, int $bannerId): string
     ]);
 
     $banner = $stmt->fetch();
-    $skinKey = toy_banner_skin_key(toy_banner_settings($pdo));
+    $skinKey = is_array($banner) ? toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]) : 'basic';
     return is_array($banner) ? toy_banner_render_item($banner, $skinKey) : '';
 }
 
@@ -681,7 +681,7 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
     $subjectId = (string) ($context['subject_id'] ?? '');
 
     $stmt = $pdo->prepare(
-        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url
+        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.skin_key
          FROM toy_banners b
          INNER JOIN toy_banner_targets t ON t.banner_id = b.id
          WHERE b.status = 'enabled'
@@ -705,8 +705,8 @@ function toy_banner_render_slot(PDO $pdo, array $context): string
     ]);
 
     $html = '';
-    $skinKey = toy_banner_skin_key(toy_banner_settings($pdo));
     foreach ($stmt->fetchAll() as $banner) {
+        $skinKey = toy_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]);
         $html .= toy_banner_render_item($banner, $skinKey);
     }
 

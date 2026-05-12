@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Banner',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => 'Content banner management module for public output slots.',
     'toycore' => [

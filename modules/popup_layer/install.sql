@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS toy_popup_layers (
     title VARCHAR(120) NOT NULL,
     body_text TEXT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'draft',
+    skin_key VARCHAR(60) NOT NULL DEFAULT 'basic',
     starts_at DATETIME NULL,
     ends_at DATETIME NULL,
     dismiss_cookie_days INT UNSIGNED NOT NULL DEFAULT 1,

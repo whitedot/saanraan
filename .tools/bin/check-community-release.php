@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.007') {
-    toy_community_release_error('Community module version must be 2026.05.007.');
+if ((string) ($module['version'] ?? '') !== '2026.05.008') {
+    toy_community_release_error('Community module version must be 2026.05.008.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.007'",
+    "'version' => '2026.05.008'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -734,6 +734,8 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     '$allowedReadPolicies = toy_community_policy_values(\'read\')',
     '$allowedWritePolicies = toy_community_policy_values(\'write\')',
     '$allowedCommentPolicies = toy_community_policy_values(\'comment\')',
+    '$communitySkinOptions = toy_community_skin_options()',
+    '$intent === \'update_skin\'',
     '$memberGroups = toy_member_groups($pdo)',
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
     '$publicBannerSettingLabels = [',
@@ -751,7 +753,9 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     'toy_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
     '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',
     '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
+    'if (!isset($communitySkinOptions[$skinKey]))',
     'toy_community_board_by_key($pdo, $boardKey) !== null',
+    'toy_community_set_board_setting($pdo, $boardId, \'skin_key\', $skinKey, \'string\')',
     'toy_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
@@ -760,6 +764,36 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
 ], 'Community admin board policy');
+toy_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function toy_community_theme_options(): array',
+    "'home' => TOY_ROOT . '/modules/community/themes/basic/home.php'",
+    'function toy_community_skin_options(): array',
+], 'Community theme and skin allowlists');
+toy_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function toy_community_skin_options(): array',
+    "'label' => '기본'",
+    "'list' => TOY_ROOT . '/modules/community/skins/basic/list.php'",
+    "'post' => TOY_ROOT . '/modules/community/skins/basic/view.php'",
+    "'form' => TOY_ROOT . '/modules/community/skins/basic/form.php'",
+    'return is_file($view) ? $view',
+], 'Community skin allowlist');
+toy_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    '$communityThemeOptions = toy_community_theme_options()',
+    'if (!isset($communityThemeOptions[$themeKey]))',
+    '커뮤니티 테마 값이 올바르지 않습니다.',
+    "['theme_key', \$themeKey, 'string']",
+], 'Community admin theme setting policy');
+toy_community_release_file_contains('modules/community/views/admin-settings.php', [
+    '<label>커뮤니티 테마<br>',
+    '<select name="theme_key">',
+    'foreach ($communityThemeOptions as $themeKey => $themeOption)',
+], 'Community admin theme field');
+toy_community_release_file_contains('modules/community/views/admin-boards.php', [
+    '<input type="hidden" name="intent" value="update_skin">',
+    '<label>게시판 스킨<br>',
+    '<select name="skin_key">',
+    'foreach ($communitySkinOptions as $skinKey => $skinOption)',
+], 'Community admin board skin field');
 toy_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
     'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',

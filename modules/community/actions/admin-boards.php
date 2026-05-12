@@ -25,6 +25,7 @@ $allowedStatuses = toy_community_board_statuses();
 $allowedReadPolicies = toy_community_policy_values('read');
 $allowedWritePolicies = toy_community_policy_values('write');
 $allowedCommentPolicies = toy_community_policy_values('comment');
+$communitySkinOptions = toy_community_skin_options();
 $settings = toy_community_settings($pdo);
 $maxLevel = toy_community_max_level_value();
 $publicBanners = function_exists('toy_banner_public_banners') && toy_module_enabled($pdo, 'banner')
@@ -79,7 +80,40 @@ if (toy_request_method() === 'POST') {
 
     $intent = toy_post_string('intent', 40);
 
-    if (in_array($intent, ['create', 'update'], true)) {
+    if ($intent === 'update_skin') {
+        $boardIdValue = toy_post_string('board_id', 20);
+        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $skinKey = toy_post_string('skin_key', 40);
+        $board = toy_community_board_by_id($pdo, $boardId);
+        if (!is_array($board)) {
+            $errors[] = '게시판을 찾을 수 없습니다.';
+        }
+        if (!isset($communitySkinOptions[$skinKey])) {
+            $errors[] = '게시판 스킨 값이 올바르지 않습니다.';
+            $skinKey = 'basic';
+        }
+
+        if ($errors === [] && is_array($board)) {
+            $beforeSkinKey = toy_community_skin_key(['skin_key' => (string) (toy_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
+            toy_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
+            toy_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board.skin_updated',
+                'target_type' => 'community_board',
+                'target_id' => (string) $boardId,
+                'result' => 'success',
+                'message' => 'Community board skin updated.',
+                'metadata' => [
+                    'board_key' => (string) $board['board_key'],
+                    'before_skin_key' => $beforeSkinKey,
+                    'after_skin_key' => $skinKey,
+                ],
+            ]);
+
+            $notice = '게시판 스킨을 저장했습니다.';
+        }
+    } elseif (in_array($intent, ['create', 'update'], true)) {
         $boardKey = toy_post_string('board_key', 60);
         $title = toy_post_string('title', 120);
         $description = toy_post_string_without_truncation('description', 2000);
@@ -87,6 +121,7 @@ if (toy_request_method() === 'POST') {
         $readPolicy = toy_post_string('read_policy', 30);
         $writePolicy = toy_post_string('write_policy', 30);
         $commentPolicy = toy_post_string('comment_policy', 30);
+        $skinKey = toy_post_string('skin_key', 40);
         $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
         $attachmentMaxBytes = toy_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = toy_admin_post_int_in_range('attachment_max_count', 0, 10);
@@ -143,6 +178,11 @@ if (toy_request_method() === 'POST') {
 
         if (!in_array($commentPolicy, $allowedCommentPolicies, true)) {
             $errors[] = '댓글 정책 값이 올바르지 않습니다.';
+        }
+
+        if (!isset($communitySkinOptions[$skinKey])) {
+            $errors[] = '게시판 스킨 값이 올바르지 않습니다.';
+            $skinKey = 'basic';
         }
 
         if ($sortOrder === null) {
@@ -306,9 +346,11 @@ if (toy_request_method() === 'POST') {
                     'read_min_level' => $readMinLevel,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
+                    'skin_key' => $skinKey,
                     'setting_sources' => $settingSources,
                 ], $publicDisplaySettingValues),
             ]);
+            toy_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
             toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
@@ -353,6 +395,7 @@ if (toy_request_method() === 'POST') {
                 $beforeReadMinLevel = toy_community_board_min_level($pdo, $boardId, 'read_min_level');
                 $beforeWriteMinLevel = toy_community_board_min_level($pdo, $boardId, 'write_min_level');
                 $beforeCommentMinLevel = toy_community_board_min_level($pdo, $boardId, 'comment_min_level');
+                $beforeSkinKey = toy_community_skin_key(['skin_key' => (string) (toy_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
                 toy_community_update_board($pdo, $boardId, [
                     'board_group_id' => $boardGroupId,
                     'title' => $title,
@@ -364,6 +407,7 @@ if (toy_request_method() === 'POST') {
                     'image_uploads_enabled' => $imageUploadsEnabled,
                     'sort_order' => (int) $sortOrder,
                 ]);
+                toy_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
                 toy_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
                 toy_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
                 foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
@@ -428,6 +472,8 @@ if (toy_request_method() === 'POST') {
                         'after_write_min_level' => $writeMinLevel,
                         'before_comment_min_level' => $beforeCommentMinLevel,
                         'after_comment_min_level' => $commentMinLevel,
+                        'before_skin_key' => $beforeSkinKey,
+                        'after_skin_key' => $skinKey,
                         'setting_sources' => $settingSources,
                     ], $publicDisplayMetadata),
                 ]);
@@ -471,6 +517,7 @@ foreach ($boards as &$board) {
     $board['effective_read_min_level'] = toy_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['effective_write_min_level'] = toy_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['effective_comment_min_level'] = toy_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
+    $board['skin_key'] = toy_community_skin_key(['skin_key' => (string) (toy_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
 }
 unset($board);
 

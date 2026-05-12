@@ -109,6 +109,7 @@ if (toy_request_method() === 'POST') {
         $imageUploadProvided = toy_banner_image_upload_was_provided($imageUploadFile);
         $uploadedImage = null;
         $status = toy_post_string('status', 30);
+        $skinKey = toy_post_string('skin_key', 40);
         $startsAtInput = toy_post_string('starts_at', 30);
         $endsAtInput = toy_post_string('ends_at', 30);
         $startsAt = toy_banner_clean_admin_datetime($startsAtInput);
@@ -131,6 +132,10 @@ if (toy_request_method() === 'POST') {
         }
         if (!in_array($status, $allowedStatuses, true)) {
             $errors[] = '상태 값이 올바르지 않습니다.';
+        }
+        if (!isset($bannerSkinOptions[$skinKey])) {
+            $errors[] = '배너 스킨 값이 올바르지 않습니다.';
+            $skinKey = $bannerSkinKey;
         }
         if ($startsAtInput !== '' && $startsAt === null) {
             $errors[] = '시작 시각 형식이 올바르지 않습니다.';
@@ -202,7 +207,7 @@ if (toy_request_method() === 'POST') {
                     $stmt = $pdo->prepare(
                         'UPDATE toy_banners
                          SET title = :title, body_text = :body_text, link_url = :link_url, image_url = :image_url,
-                             status = :status, starts_at = :starts_at, ends_at = :ends_at, sort_order = :sort_order, updated_at = :updated_at
+                             status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, sort_order = :sort_order, updated_at = :updated_at
                          WHERE id = :id'
                     );
                     $stmt->execute([
@@ -211,6 +216,7 @@ if (toy_request_method() === 'POST') {
                         'link_url' => $linkUrl,
                         'image_url' => $imageUrl,
                         'status' => $status,
+                        'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
                         'sort_order' => $sortOrder,
@@ -220,9 +226,9 @@ if (toy_request_method() === 'POST') {
                 } else {
                     $stmt = $pdo->prepare(
                         'INSERT INTO toy_banners
-                            (title, body_text, link_url, image_url, status, starts_at, ends_at, sort_order, created_at, updated_at)
+                            (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, created_at, updated_at)
                          VALUES
-                            (:title, :body_text, :link_url, :image_url, :status, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
+                            (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
                     );
                     $stmt->execute([
                         'title' => $title,
@@ -230,6 +236,7 @@ if (toy_request_method() === 'POST') {
                         'link_url' => $linkUrl,
                         'image_url' => $imageUrl,
                         'status' => $status,
+                        'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
                         'sort_order' => $sortOrder,
@@ -275,6 +282,7 @@ if (toy_request_method() === 'POST') {
                         'module_key' => $target !== null ? (string) $target['module_key'] : '',
                         'point_key' => $target !== null ? (string) $target['point_key'] : '',
                         'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
+                        'skin_key' => $skinKey,
                     ],
                 ]);
 
@@ -298,7 +306,7 @@ $editBanner = null;
 $editId = (int) toy_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
-        'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.starts_at, b.ends_at, b.sort_order,
+        'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
          FROM toy_banners b
          LEFT JOIN toy_banner_targets t ON t.banner_id = b.id
@@ -319,7 +327,7 @@ if ($editId > 0) {
 $targetLabels = toy_banner_target_labels($availableTargets);
 
 $banners = [];
-$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
+$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM toy_banners b
               LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';

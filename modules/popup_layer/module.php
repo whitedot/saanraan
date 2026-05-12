@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Popup Layer',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => 'Popup layer management and rendering module.',
     'toycore' => [

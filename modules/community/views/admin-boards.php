@@ -58,6 +58,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'read_min_level' => 0,
     'write_min_level' => 0,
     'comment_min_level' => 0,
+    'skin_key' => 'basic',
 ];
 
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
@@ -111,13 +112,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th>이름</th>
                     <th>그룹</th>
                     <th>상태</th>
+                    <th>스킨</th>
                     <th>관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($boards === []) { ?>
                     <tr>
-                        <td colspan="6">게시판이 없습니다.</td>
+                        <td colspan="7">게시판이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
@@ -127,6 +129,21 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $board['title']); ?></td>
                         <td><?php echo toy_e((string) ($board['board_group_title'] ?? '')); ?></td>
                         <td><?php echo toy_e((string) $board['status']); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo toy_e(toy_url('/admin/community/boards')); ?>">
+                                <?php echo toy_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="update_skin">
+                                <input type="hidden" name="board_id" value="<?php echo toy_e((string) $board['id']); ?>">
+                                <select name="skin_key">
+                                    <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
+                                        <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo (string) ($board['skin_key'] ?? 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
+                                            <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                                <button type="submit">저장</button>
+                            </form>
+                        </td>
                         <td>
                             <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">바로가기</a>
                             |
@@ -177,6 +194,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <select name="status">
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                        <?php } ?>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>게시판 스킨<br>
+                    <select name="skin_key">
+                        <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
+                            <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $boardField($formBoard, 'skin_key', 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                            </option>
                         <?php } ?>
                     </select>
                 </label>

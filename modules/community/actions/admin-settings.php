@@ -12,6 +12,7 @@ toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']
 $errors = [];
 $notice = '';
 $settings = toy_community_settings($pdo);
+$communityThemeOptions = toy_community_theme_options();
 $levels = toy_community_levels($pdo);
 $maxLevel = toy_community_max_level_value();
 $memberGroups = toy_member_groups($pdo);
@@ -42,7 +43,7 @@ if (toy_request_method() === 'POST') {
         $messageWriteMinLevel = toy_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
         $messageWriteGroupKeysInput = toy_post_string_without_truncation('message_write_group_keys', 1000);
         $messageWriteGroupKeys = is_string($messageWriteGroupKeysInput) ? toy_community_board_group_keys_from_input($messageWriteGroupKeysInput) : [];
-        $themeKey = toy_community_theme_key(['theme_key' => toy_post_string('theme_key', 40)]);
+        $themeKey = toy_post_string('theme_key', 40);
 
         if ($levelPostScore === null) {
             $errors[] = '게시글 점수는 0 이상 10000 이하의 정수여야 합니다.';
@@ -57,6 +58,11 @@ if (toy_request_method() === 'POST') {
         if ($messageWriteMinLevel === null) {
             $errors[] = '쪽지 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
+        }
+
+        if (!isset($communityThemeOptions[$themeKey])) {
+            $errors[] = '커뮤니티 테마 값이 올바르지 않습니다.';
+            $themeKey = 'basic';
         }
 
         if (!is_string($messageWriteGroupKeysInput)) {
@@ -135,6 +141,7 @@ if (toy_request_method() === 'POST') {
                     'access_condition_priority' => $accessConditionPriority,
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
+                    'theme_key' => $themeKey,
                 ],
             ]);
 

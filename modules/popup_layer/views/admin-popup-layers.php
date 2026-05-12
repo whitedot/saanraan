@@ -59,6 +59,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </p>
                 <p>
+                    <label>팝업 스킨<br>
+                        <select name="skin_key">
+                            <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
+                                <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
+                                <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                    <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                </p>
+                <p>
                     <label>노출 대상<br>
                         <select name="target_option">
                             <option value="<?php echo toy_e(toy_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === toy_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
@@ -142,6 +154,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th>제목</th>
                         <th>상태</th>
+                        <th>스킨</th>
                         <th>대상</th>
                         <th>기간</th>
                         <th>닫기 유지일</th>
@@ -161,6 +174,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo toy_e((string) $popup['title']); ?></td>
                             <td><?php echo toy_e((string) $popup['status']); ?></td>
+                            <td><?php echo toy_e(toy_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($popup['skin_key'] ?? 'basic')])); ?></td>
                             <td>
                                 <?php echo toy_e($popupTargetLabel); ?><br>
                                 <?php echo toy_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>

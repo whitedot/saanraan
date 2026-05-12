@@ -258,7 +258,7 @@ function toy_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): strin
 
     $now = toy_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.skin_key, p.dismiss_cookie_days
          FROM toy_popup_layers p
          WHERE p.id = :id
            AND p.status = 'enabled'
@@ -287,12 +287,13 @@ function toy_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): strin
         return '';
     }
 
-    $skinKey = toy_popup_layer_skin_key(toy_popup_layer_settings($pdo));
+    $skinKey = toy_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($row['skin_key'] ?? 'basic')]);
     return toy_popup_layer_render_stack([
         [
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
+            'skin_key' => $skinKey,
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ],
     ], $skinKey);
@@ -315,7 +316,7 @@ function toy_popup_layer_render(PDO $pdo, array $context): string
 
     $now = toy_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.skin_key, p.dismiss_cookie_days
          FROM toy_popup_layers p
          INNER JOIN toy_popup_layer_targets t ON t.popup_layer_id = p.id
          WHERE p.status = 'enabled'
@@ -355,12 +356,21 @@ function toy_popup_layer_render(PDO $pdo, array $context): string
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
+            'skin_key' => toy_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($row['skin_key'] ?? 'basic')]),
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ];
     }
 
-    $skinKey = toy_popup_layer_skin_key(toy_popup_layer_settings($pdo));
-    return toy_popup_layer_render_stack($popups, $skinKey);
+    $html = '';
+    $popupsBySkin = [];
+    foreach ($popups as $popup) {
+        $popupsBySkin[(string) $popup['skin_key']][] = $popup;
+    }
+    foreach ($popupsBySkin as $skinKey => $skinPopups) {
+        $html .= toy_popup_layer_render_stack($skinPopups, $skinKey);
+    }
+
+    return $html;
 }
 
 function toy_popup_layer_cookie_name(int $popupId): string

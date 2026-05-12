@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Community',
-    'version' => '2026.05.007',
+    'version' => '2026.05.008',
     'type' => 'module',
     'description' => 'Board-style community module.',
     'toycore' => [

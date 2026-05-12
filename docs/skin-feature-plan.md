@@ -30,7 +30,9 @@
 
 - `modules/community/helpers/themes.php`에 `theme_key`, `skin_key` helper가 있다.
 - 커뮤니티 홈은 `themes/basic/home.php`를 사용한다.
+- 커뮤니티 테마는 `/admin/community/settings`의 화면 섹션에서 선택하고 `toy_module_settings.theme_key`에 저장한다.
 - 게시판 목록, 글보기, 글쓰기 폼은 `skins/basic/*.php`를 사용한다.
+- 게시판별 스킨은 `/admin/community/boards`의 생성/수정 폼에서 선택하고 `toy_community_board_settings.skin_key`에 저장한다.
 - 현재는 `basic`만 허용한다.
 
 배너:
@@ -38,12 +40,14 @@
 - `toy_banner_render_item()`이 스킨 view를 include하고, 기본 스킨은 `toy_banner_render_basic_item()`으로 출력한다.
 - `toy_banner_render_public_banner()`와 `toy_banner_render_slot()`이 같은 item renderer를 사용한다.
 - output slot 계약은 이미 있다.
+- 개별 배너 스킨은 `/admin/banners` 추가/수정 폼에서 선택하고 `toy_banners.skin_key`에 저장한다.
 
 팝업레이어:
 
 - 렌더링 helper와 JS asset이 있다.
 - output slot 계약은 이미 있다.
 - 팝업 stack은 스킨 view를 include하고, 기본 스킨은 `toy_popup_layer_render_basic_stack()`으로 출력한다.
+- 개별 팝업 스킨은 `/admin/popup-layers` 추가/수정 폼에서 선택하고 `toy_popup_layers.skin_key`에 저장한다.
 
 회원:
 
@@ -120,8 +124,7 @@ toy_{module}_skin_view(string $skinKey, string $viewKey): string
 목표:
 
 - 배너 item HTML을 `helpers.php` 문자열 조립에서 `skins/{skin}/item.php`로 이동한다.
-- 배너별 스킨 선택은 1차에서 넣지 않고, 모듈 설정의 기본 배너 스킨을 둔다.
-- 후속으로 배너별 override가 필요하면 `toy_banners` 확장이 아니라 banner module update에서 소유한다.
+- 모듈 설정의 기본 배너 스킨은 새 배너의 초기값으로 사용하고, 개별 배너별 스킨 선택을 둔다.
 
 설정:
 
@@ -147,6 +150,7 @@ toy_banner_render_item($banner, $skinKey = null)
 관리 화면:
 
 - `/admin/banners` 목록 또는 별도 설정 섹션에서 기본 배너 스킨 선택
+- `/admin/banners` 추가/수정 폼에서 개별 배너 스킨 선택
 - 초기에는 선택지가 `basic` 하나여도 select를 노출해 구조를 고정한다.
 
 검증:
@@ -187,7 +191,7 @@ toy_popup_layer_render_item($popupLayer, $skinKey = null)
 관리 화면:
 
 - `/admin/popup-layers`에 기본 팝업레이어 스킨 선택 추가
-- 개별 팝업레이어별 스킨은 1차에서 제외
+- `/admin/popup-layers` 추가/수정 폼에서 개별 팝업 스킨 선택
 
 검증:
 
