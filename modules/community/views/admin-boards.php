@@ -41,6 +41,12 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'banner_before_list_id' => 0,
     'banner_after_list_id' => 0,
     'popup_layer_list_id' => 0,
+    'banner_before_view_id' => 0,
+    'banner_after_view_id' => 0,
+    'popup_layer_view_id' => 0,
+    'banner_before_form_id' => 0,
+    'banner_after_form_id' => 0,
+    'popup_layer_form_id' => 0,
     'file_uploads_enabled' => '0',
     'file_attachment_max_bytes' => 5242880,
     'file_attachment_max_count' => 3,
@@ -401,46 +407,43 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <small>적용값: <?php echo toy_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
                 <?php } ?>
             </p>
-            <p>
-                <label>목록 상단 배너<br>
-                    <select name="banner_before_list_id">
-                        <option value="0">사용 안 함</option>
-                        <?php foreach ($publicBanners as $publicBanner) { ?>
-                            <option value="<?php echo toy_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, 'banner_before_list_id', '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
-                                <?php echo toy_e((string) $publicBanner['title']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-                <br>
-                <small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small>
-            </p>
-            <p>
-                <label>목록 하단 배너<br>
-                    <select name="banner_after_list_id">
-                        <option value="0">사용 안 함</option>
-                        <?php foreach ($publicBanners as $publicBanner) { ?>
-                            <option value="<?php echo toy_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, 'banner_after_list_id', '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
-                                <?php echo toy_e((string) $publicBanner['title']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-            </p>
-            <p>
-                <label>목록 팝업레이어<br>
-                    <select name="popup_layer_list_id">
-                        <option value="0">사용 안 함</option>
-                        <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
-                            <option value="<?php echo toy_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, 'popup_layer_list_id', '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
-                                <?php echo toy_e((string) $publicPopupLayer['title']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-                <br>
-                <small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small>
-            </p>
+            <section>
+                <h3>배너</h3>
+                <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
+                    <p>
+                        <label><?php echo toy_e((string) $bannerSettingLabel); ?><br>
+                            <select name="<?php echo toy_e((string) $bannerSettingKey); ?>">
+                                <option value="0">사용 안 함</option>
+                                <?php foreach ($publicBanners as $publicBanner) { ?>
+                                    <option value="<?php echo toy_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                        <?php echo toy_e((string) $publicBanner['title']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                    </p>
+                <?php } ?>
+                <p><small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small></p>
+            </section>
+
+            <section>
+                <h3>팝업레이어</h3>
+                <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
+                    <p>
+                        <label><?php echo toy_e((string) $popupLayerSettingLabel); ?><br>
+                            <select name="<?php echo toy_e((string) $popupLayerSettingKey); ?>">
+                                <option value="0">사용 안 함</option>
+                                <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                                    <option value="<?php echo toy_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                        <?php echo toy_e((string) $publicPopupLayer['title']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                    </p>
+                <?php } ?>
+                <p><small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small></p>
+            </section>
             <p>
                 <label>정렬 순서<br>
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo toy_e($boardField($formBoard, 'sort_order', '0')); ?>">

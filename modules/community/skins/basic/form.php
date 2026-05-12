@@ -16,9 +16,19 @@ $seo = [
     'canonical' => $formAction,
     'robots' => 'noindex, nofollow',
 ];
+if (is_file(TOY_ROOT . '/modules/banner/helpers.php')) {
+    require_once TOY_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(TOY_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+}
 toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
+        <?php if (function_exists('toy_popup_layer_render_public_layer') && toy_module_enabled($pdo, 'popup_layer')) { ?>
+            <?php echo toy_popup_layer_render_public_layer($pdo, (int) ($board['popup_layer_form_id'] ?? 0)); ?>
+        <?php } ?>
+
         <p>
             <a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a>
             /
@@ -35,6 +45,9 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             'slot_key' => 'before_form',
             'subject_id' => (string) $board['id'],
         ]); ?>
+        <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+            <?php echo toy_banner_render_public_banner($pdo, (int) ($board['banner_before_form_id'] ?? 0)); ?>
+        <?php } ?>
 
         <?php if ($errors !== []) { ?>
             <ul>
@@ -90,5 +103,8 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             'slot_key' => 'after_form',
             'subject_id' => (string) $board['id'],
         ]); ?>
+        <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+            <?php echo toy_banner_render_public_banner($pdo, (int) ($board['banner_after_form_id'] ?? 0)); ?>
+        <?php } ?>
     </main>
 <?php toy_public_layout_end(); ?>

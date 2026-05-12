@@ -31,6 +31,16 @@ if (!is_array($post)) {
 if (!is_array($post)) {
     toy_render_error(404, '게시글을 찾을 수 없습니다.');
 }
+$postBoard = toy_community_board_by_id($pdo, (int) $post['board_id']);
+if (is_array($postBoard)) {
+    foreach ([
+        'banner_before_view_id',
+        'banner_after_view_id',
+        'popup_layer_view_id',
+    ] as $displaySettingKey) {
+        $post[$displaySettingKey] = (int) ($postBoard[$displaySettingKey] ?? 0);
+    }
+}
 toy_community_increment_post_view_count($pdo, (int) $post['id']);
 $post['view_count'] = (int) $post['view_count'] + 1;
 $canViewMemberIdentifiers = toy_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);

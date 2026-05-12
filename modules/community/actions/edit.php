@@ -17,11 +17,14 @@ if (!toy_community_account_can_edit_post($post, $account)) {
     toy_render_error(403, '이 게시글을 수정할 수 없습니다.');
 }
 
-$board = [
-    'id' => (int) $post['board_id'],
-    'board_key' => (string) $post['board_key'],
-    'title' => (string) $post['board_title'],
-];
+$board = toy_community_board_by_id($pdo, (int) $post['board_id']);
+if (!is_array($board)) {
+    $board = [
+        'id' => (int) $post['board_id'],
+        'board_key' => (string) $post['board_key'],
+        'title' => (string) $post['board_title'],
+    ];
+}
 $settings = toy_community_settings($pdo);
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;

@@ -65,6 +65,8 @@ $expectedTargets = [
     'member|member.register|after_form',
     'community|community.home|before_content',
     'community|community.post.view|after_comments',
+    'community|community.post.form|before_form',
+    'community|community.post.form|after_form',
 ];
 
 foreach ($expectedTargets as $expectedTarget) {

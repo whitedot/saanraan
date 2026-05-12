@@ -12,9 +12,19 @@ $seo = [
     'canonical' => '/community/post?id=' . (string) $post['id'],
     'robots' => (string) $post['read_policy'] === 'public' ? 'index, follow' : 'noindex, nofollow',
 ];
+if (is_file(TOY_ROOT . '/modules/banner/helpers.php')) {
+    require_once TOY_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(TOY_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+}
 toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
+        <?php if (function_exists('toy_popup_layer_render_public_layer') && toy_module_enabled($pdo, 'popup_layer')) { ?>
+            <?php echo toy_popup_layer_render_public_layer($pdo, (int) ($post['popup_layer_view_id'] ?? 0)); ?>
+        <?php } ?>
+
         <p>
             <a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a>
             /
@@ -99,6 +109,9 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 'slot_key' => 'before_content',
                 'subject_id' => (string) $post['id'],
             ]); ?>
+            <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+                <?php echo toy_banner_render_public_banner($pdo, (int) ($post['banner_before_view_id'] ?? 0)); ?>
+            <?php } ?>
 
             <div>
                 <?php echo toy_community_plain_text_html((string) $post['body_text']); ?>
@@ -146,6 +159,9 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 'slot_key' => 'after_content',
                 'subject_id' => (string) $post['id'],
             ]); ?>
+            <?php if (function_exists('toy_banner_render_public_banner') && toy_module_enabled($pdo, 'banner')) { ?>
+                <?php echo toy_banner_render_public_banner($pdo, (int) ($post['banner_after_view_id'] ?? 0)); ?>
+            <?php } ?>
         </article>
 
         <section id="comments">

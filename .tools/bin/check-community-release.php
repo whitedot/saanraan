@@ -126,8 +126,8 @@ $memberGroupRules = toy_community_release_array_file('modules/community/member-g
 $privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = toy_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.004') {
-    toy_community_release_error('Community module version must be 2026.05.004.');
+if ((string) ($module['version'] ?? '') !== '2026.05.005') {
+    toy_community_release_error('Community module version must be 2026.05.005.');
 }
 
 toy_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ toy_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 toy_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.004'",
+    "'version' => '2026.05.005'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -327,6 +327,14 @@ toy_community_release_require_list_values($pointKeys, [
     'community.post.view',
     'community.post.form',
 ], 'Community extension-points.php');
+toy_community_release_file_contains('modules/community/extension-points.php', [
+    "'point_key' => 'community.post.view'",
+    "'slot_key' => 'before_content'",
+    "'slot_key' => 'after_content'",
+    "'point_key' => 'community.post.form'",
+    "'slot_key' => 'before_form'",
+    "'slot_key' => 'after_form'",
+], 'Community extension-points.php major surfaces');
 
 if (!is_callable($privacyExport)) {
     toy_community_release_error('Community privacy-export.php must return a callable.');
@@ -551,6 +559,26 @@ toy_community_release_file_contains('modules/community/actions/write.php', [
     "'event_type' => 'community.post.created'",
     'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
 ], 'Community write action policy');
+toy_community_release_file_contains('modules/community/actions/view.php', [
+    '$postBoard = toy_community_board_by_id($pdo, (int) $post[\'board_id\'])',
+    "'banner_before_view_id'",
+    "'banner_after_view_id'",
+    "'popup_layer_view_id'",
+], 'Community view display settings');
+toy_community_release_file_contains('modules/community/actions/edit.php', [
+    '$board = toy_community_board_by_id($pdo, (int) $post[\'board_id\'])',
+    "'board_key' => (string) \$post['board_key']",
+], 'Community edit form board settings');
+toy_community_release_file_contains('modules/community/skins/basic/view.php', [
+    'toy_popup_layer_render_public_layer($pdo, (int) ($post[\'popup_layer_view_id\'] ?? 0))',
+    'toy_banner_render_public_banner($pdo, (int) ($post[\'banner_before_view_id\'] ?? 0))',
+    'toy_banner_render_public_banner($pdo, (int) ($post[\'banner_after_view_id\'] ?? 0))',
+], 'Community post view public display');
+toy_community_release_file_contains('modules/community/skins/basic/form.php', [
+    'toy_popup_layer_render_public_layer($pdo, (int) ($board[\'popup_layer_form_id\'] ?? 0))',
+    'toy_banner_render_public_banner($pdo, (int) ($board[\'banner_before_form_id\'] ?? 0))',
+    'toy_banner_render_public_banner($pdo, (int) ($board[\'banner_after_form_id\'] ?? 0))',
+], 'Community post form public display');
 toy_community_release_file_contains('modules/community/actions/delete.php', [
     'toy_community_account_can_delete_post($post, $account)',
     'toy_community_update_post_status($pdo, $postId, \'deleted\')',
@@ -700,6 +728,11 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     '$allowedCommentPolicies = toy_community_policy_values(\'comment\')',
     '$memberGroups = toy_member_groups($pdo)',
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
+    '$publicBannerSettingLabels = [',
+    "'banner_before_view_id' => '글보기 상단 배너'",
+    "'banner_after_form_id' => '글쓰기 폼 하단 배너'",
+    "'popup_layer_view_id' => '글보기 팝업레이어'",
+    '$publicDisplaySettingValues[$displaySettingKey] = toy_admin_post_int_in_range($displaySettingKey, 0, 999999999)',
     'toy_admin_post_int_in_range(\'attachment_max_bytes\', 1024, 10485760)',
     'toy_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
     'toy_admin_post_int_in_range(\'file_attachment_max_bytes\', 1024, 20971520)',
@@ -712,6 +745,7 @@ toy_community_release_file_contains('modules/community/actions/admin-boards.php'
     '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
     'toy_community_board_by_key($pdo, $boardKey) !== null',
     'toy_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
+    'toy_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, \'read_min_level\', (string) $readMinLevel, \'int\')',
     'toy_community_set_board_setting($pdo, $boardId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',

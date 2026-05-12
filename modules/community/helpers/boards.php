@@ -184,6 +184,12 @@ function toy_community_board_with_effective_settings(PDO $pdo, array $board): ar
     $board['banner_before_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_list_id') ?? 0);
     $board['banner_after_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_list_id') ?? 0);
     $board['popup_layer_list_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_list_id') ?? 0);
+    $board['banner_before_view_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_view_id') ?? 0);
+    $board['banner_after_view_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_view_id') ?? 0);
+    $board['popup_layer_view_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_view_id') ?? 0);
+    $board['banner_before_form_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_form_id') ?? 0);
+    $board['banner_after_form_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_form_id') ?? 0);
+    $board['popup_layer_form_id'] = (int) (toy_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_form_id') ?? 0);
     $board['effective_file_uploads_enabled'] = toy_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
     return $board;
