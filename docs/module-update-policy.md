@@ -1,10 +1,10 @@
 # 모듈 배치와 업데이트 기준
 
-이 문서는 Toycore 모듈 파일 배치, 설치, 업데이트 흐름의 기준을 정리한다.
+이 문서는 산란 모듈 파일 배치, 설치, 업데이트 흐름의 기준을 정리한다.
 
 ## 원칙
 
-Toycore는 모듈 소스의 출처를 관리하지 않는다. 현재 `modules/{module_key}`에 놓인 폴더를 읽고, DB에는 설치 상태와 SQL 적용 상태만 기록한다.
+산란은 모듈 소스의 출처를 관리하지 않는다. 현재 `modules/{module_key}`에 놓인 폴더를 읽고, DB에는 설치 상태와 SQL 적용 상태만 기록한다.
 
 ```text
 파일 기준:
@@ -40,7 +40,7 @@ banner-2026.05.001.zip
    - views/
 ```
 
-프로젝트 폴더가 `module/` 하위에 런타임 파일을 두는 구조라면 zip 업로드 시 module key를 입력해 `modules/{module_key}`로 반영할 수 있다. 다만 Toycore 안에 들어온 뒤의 기준은 항상 `modules/{module_key}`다.
+프로젝트 폴더가 `module/` 하위에 런타임 파일을 두는 구조라면 zip 업로드 시 module key를 입력해 `modules/{module_key}`로 반영할 수 있다. 다만 산란 안에 들어온 뒤의 기준은 항상 `modules/{module_key}`다.
 
 Git을 사용할 수 있는 운영자는 전체 브랜치를 병합하지 않고 특정 릴리스 태그나 원격 브랜치에서 필요한 모듈 폴더만 갱신할 수 있다. 예를 들어 포인트 모듈만 태그 기준으로 갱신하려면 다음처럼 `modules/point` 경로만 작업 트리에 반영한다.
 
@@ -56,7 +56,7 @@ git fetch origin
 git checkout origin/main -- modules/point
 ```
 
-이 방식은 파일 배치의 다른 형태일 뿐이다. Toycore는 Git ref를 직접 조회하거나 선택하지 않고, 운영자가 최종적으로 배치한 `modules/{module_key}` 폴더만 읽는다. 모듈 파일을 교체한 뒤에는 zip이나 FTP 배치와 같은 업데이트 절차를 따른다.
+이 방식은 파일 배치의 다른 형태일 뿐이다. 산란은 Git ref를 직접 조회하거나 선택하지 않고, 운영자가 최종적으로 배치한 `modules/{module_key}` 폴더만 읽는다. 모듈 파일을 교체한 뒤에는 zip이나 FTP 배치와 같은 업데이트 절차를 따른다.
 
 ## zip 업로드 검증
 
@@ -107,7 +107,7 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 ```text
 1. git checkout <tag-or-ref> -- modules/{module_key}
 2. /admin/modules에서 코드 버전과 설치 버전 차이 확인
-3. module.php의 Toycore 최소 버전과 모듈 계약 버전 확인
+3. module.php의 산란 최소 버전과 모듈 계약 버전 확인
 4. /admin/updates에서 해당 모듈의 미적용 updates/*.sql 확인
 5. DB 백업 확인 후 SQL 업데이트 실행
 ```
@@ -171,7 +171,7 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 | 코드 버전 | 현재 파일이 제공하는 모듈 버전 | `module.php` |
 | 설치 버전 | DB에 반영 완료된 모듈 버전 | `toy_modules.version` |
 | 스키마 적용 버전 | 실행 완료된 SQL 버전 | `toy_schema_versions` |
-| Toycore 최소 버전 | 설치 가능한 Toycore 최소 버전 | `module.php` |
+| 산란 최소 버전 | 설치 가능한 산란 최소 버전 | `module.php` |
 | 모듈 계약 버전 | 파일/메타데이터 계약 버전 | `module.php` |
 
 ## 제외한 방향
@@ -184,4 +184,4 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 - 배포 zip checksum 색인 관리
 - 여러 외부 위치의 모듈을 조립하는 기본 배포 흐름
 
-필요한 경우 릴리스 담당자가 Toycore 밖의 도구로 처리하고, Toycore에는 최종 `modules/{module_key}` 폴더만 배치한다.
+필요한 경우 릴리스 담당자가 산란 밖의 도구로 처리하고, 산란에는 최종 `modules/{module_key}` 폴더만 배치한다.

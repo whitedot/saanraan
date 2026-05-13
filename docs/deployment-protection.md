@@ -1,6 +1,6 @@
 # 배포 보호 기준
 
-Toycore는 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다.
+산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다.
 
 다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다.
 
@@ -81,7 +81,7 @@ Nginx: server/location 규칙
 
 ## 로드밸런서와 클라우드 런타임
 
-로드밸런서나 reverse proxy 뒤에서 운영할 때는 `trusted_proxies`에 신뢰할 수 있는 proxy IP/CIDR만 등록한다. Toycore는 신뢰된 proxy에서 온 `X-Forwarded-Proto`와 `X-Forwarded-For`만 HTTPS 여부와 클라이언트 IP 판단에 사용한다.
+로드밸런서나 reverse proxy 뒤에서 운영할 때는 `trusted_proxies`에 신뢰할 수 있는 proxy IP/CIDR만 등록한다. 산란은 신뢰된 proxy에서 온 `X-Forwarded-Proto`와 `X-Forwarded-For`만 HTTPS 여부와 클라이언트 IP 판단에 사용한다.
 
 메일을 HTTP API transport로 보낼 때는 `mail.transport`를 `http_api`로 설정할 수 있다. 이 경우 endpoint는 공개 HTTPS URL이어야 하며, private/reserved/loopback/link-local/CGNAT/documentation/multicast 주소는 허용하지 않는다.
 

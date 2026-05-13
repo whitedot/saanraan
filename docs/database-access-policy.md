@@ -1,6 +1,6 @@
 # DB 접근 정책
 
-Toycore는 ORM이나 query builder를 기본 전제로 두지 않습니다. 대신 절차형 PHP 코드에서 PDO를 직접 사용하되, SQL 작성 규칙을 명시해 SQL injection 위험과 모듈 경계 침범을 줄입니다.
+산란은 ORM이나 query builder를 기본 전제로 두지 않습니다. 대신 절차형 PHP 코드에서 PDO를 직접 사용하되, SQL 작성 규칙을 명시해 SQL injection 위험과 모듈 경계 침범을 줄입니다.
 
 ## 기본 원칙
 

@@ -1,8 +1,8 @@
 # 모듈 작성 가이드
 
-이 문서는 Toycore 모듈을 실제로 만들고 유지보수할 때 따르는 기준이다.
+이 문서는 산란 모듈을 실제로 만들고 유지보수할 때 따르는 기준이다.
 
-Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진 디렉터리에 놓인 절차형 PHP 파일, 정적 SQL 파일, DB에 저장된 설치/활성 상태로 동작한다. 자동 발견, 서비스 프로바이더, ORM, 클래스 마이그레이션, DI 컨테이너, 이벤트 버스를 기본 전제로 두지 않는다.
+산란의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진 디렉터리에 놓인 절차형 PHP 파일, 정적 SQL 파일, DB에 저장된 설치/활성 상태로 동작한다. 자동 발견, 서비스 프로바이더, ORM, 클래스 마이그레이션, DI 컨테이너, 이벤트 버스를 기본 전제로 두지 않는다.
 
 모듈 작성의 목표는 기능을 빠르게 붙이는 것이 아니라 다음 상태를 유지하는 것이다.
 
@@ -12,11 +12,11 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 - 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
 - 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
-Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다. 파일 교체, zip 업로드, DB 업데이트 흐름은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
+산란 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다. 파일 교체, zip 업로드, DB 업데이트 흐름은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
 
 ## 1. 모듈 판단 기준
 
-Toycore에서 설치/활성화 가능한 확장 단위는 같은 `toy_modules` 등록 흐름을 사용한다. 다만 개념은 구분한다.
+산란에서 설치/활성화 가능한 확장 단위는 같은 `toy_modules` 등록 흐름을 사용한다. 다만 개념은 구분한다.
 
 ```text
 module = 자기 도메인과 정책을 소유하는 확장
@@ -225,9 +225,9 @@ return [
 - `version`: 코드 기준 현재 버전
 - `type`: `module` 또는 `plugin`
 - `description`: 운영자가 이해할 수 있는 설명
-- `toycore.min_version`: 이 모듈을 설치하거나 활성화할 수 있는 Toycore 최소 버전. 필수이며 현재 `TOY_CORE_VERSION`과 실제 비교한다.
-- `toycore.tested_with`: 모듈 릴리스 시 검증한 Toycore 버전 목록. 비어 있지 않은 배열이 필요하다.
-- `toycore.module_contract`: 모듈이 지원하는 Toycore 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
+- `toycore.min_version`: 이 모듈을 설치하거나 활성화할 수 있는 산란 최소 버전. 필수이며 현재 `TOY_CORE_VERSION`과 실제 비교한다.
+- `toycore.tested_with`: 모듈 릴리스 시 검증한 산란 버전 목록. 비어 있지 않은 배열이 필요하다.
+- `toycore.module_contract`: 모듈이 지원하는 산란 모듈 계약 버전. 현재 코어의 계약 버전은 `TOY_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
@@ -277,7 +277,7 @@ return [
 
 ## 6. 요청 흐름과 `paths.php`
 
-Toycore 요청 흐름은 다음 형태다.
+산란 요청 흐름은 다음 형태다.
 
 ```text
 index.php
@@ -556,7 +556,7 @@ return [
 
 ## 10. DB 접근
 
-Toycore는 PDO prepared statement를 기본으로 한다.
+산란은 PDO prepared statement를 기본으로 한다.
 
 ```php
 <?php
@@ -1114,7 +1114,7 @@ return function (PDO $pdo, ?array $site): array {
 
 ## 22. 성능 기준
 
-Toycore는 저가형 웹호스팅을 고려한다.
+산란은 저가형 웹호스팅을 고려한다.
 
 - 요청마다 전체 모듈 디렉터리를 깊게 스캔하지 않는다.
 - 사용자 요청에서 관리자용 계약 파일을 반복 파싱하지 않는다.
@@ -1162,7 +1162,7 @@ Toycore는 저가형 웹호스팅을 고려한다.
 - 배포된 update SQL 수정 대신 새 update SQL 추가
 - 릴리스 노트에 설치/업데이트/호환 버전을 적는다.
 
-공개 배포나 반복 배포를 고려하는 모듈은 모듈 폴더 옆에 `README.md`, `CHANGELOG.md`, `LICENSE` 같은 문서를 둘 수 있다. 다만 Toycore에 배치되는 런타임 파일은 `modules/{module_key}` 아래에 있어야 한다.
+공개 배포나 반복 배포를 고려하는 모듈은 모듈 폴더 옆에 `README.md`, `CHANGELOG.md`, `LICENSE` 같은 문서를 둘 수 있다. 다만 산란에 배치되는 런타임 파일은 `modules/{module_key}` 아래에 있어야 한다.
 
 Git을 사용할 수 없는 운영 환경을 기본 지원 대상으로 본다. 따라서 운영 설치는 zip 업로드 또는 FTP/파일 관리자 배치를 기준으로 설명한다.
 
@@ -1188,11 +1188,11 @@ banner-2026.05.001.zip
    - views/
 ```
 
-새 모듈을 추가할 때는 먼저 `modules/{module_key}` 폴더 안에서 책임 경계를 잡는다. Toycore 런타임은 최종 배치된 모듈 폴더만 읽는다.
+새 모듈을 추가할 때는 먼저 `modules/{module_key}` 폴더 안에서 책임 경계를 잡는다. 산란 런타임은 최종 배치된 모듈 폴더만 읽는다.
 
 ## 25. 금지하는 방향
 
-Toycore 기본 구현에서는 다음 방식을 사용하지 않는다.
+산란 기본 구현에서는 다음 방식을 사용하지 않는다.
 
 - Laravel Service Provider 같은 부팅 클래스
 - Composer 자동 패키지 발견을 필수로 하는 구조
@@ -1205,4 +1205,4 @@ Toycore 기본 구현에서는 다음 방식을 사용하지 않는다.
 - 모듈이 부팅 중 path를 몰래 등록하는 구조
 - 코어/member 테이블을 미래 도메인 요구로 넓히는 구조
 
-도구를 쓰더라도 프로젝트 실행에 필수가 되면 안 된다. Toycore의 기본 가정은 일반 웹호스팅에서 PHP 파일과 SQL만으로 설치되고 동작하는 구조다.
+도구를 쓰더라도 프로젝트 실행에 필수가 되면 안 된다. 산란의 기본 가정은 일반 웹호스팅에서 PHP 파일과 SQL만으로 설치되고 동작하는 구조다.

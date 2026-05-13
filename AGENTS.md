@@ -2,7 +2,7 @@
 
 ## Project Naming
 
-This project is named `toycore`.
+This project is named `saanraan`.
 
 Use `toy` as the project prefix for database tables and related identifiers that need a shared project namespace.
 
