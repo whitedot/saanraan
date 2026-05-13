@@ -319,7 +319,7 @@ function toy_admin_default_menu_category_label(string $category): string
         'system' => '시스템',
         'member' => '회원',
         'site' => '사이트',
-        'content' => '콘텐츠',
+        'content' => '사이트 구성',
         'operation' => '운영',
         'member_asset' => '회원 자산',
         'asset' => '자산',

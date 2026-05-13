@@ -704,7 +704,7 @@ $postsPerPage = (int) toy_module_setting($pdo, 'board', 'posts_per_page', 20);
 ```php
 'admin' => [
     'category' => 'content',
-    'category_label' => '콘텐츠',
+    'category_label' => '사이트 구성',
     'category_order' => 30,
     'menu_order' => 10,
 ],
