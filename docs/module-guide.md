@@ -851,7 +851,7 @@ return [
 | `point` | `paths.php`, `admin-menu.php` | 없음 |
 | `deposit` | `paths.php`, `admin-menu.php` | 없음 |
 | `reward` | `paths.php`, `admin-menu.php` | 없음 |
-| `community` 계획 | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`; 회원 그룹 구현 후 `member-group-rules.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 
 모듈 메타데이터 작성 기준:
 
@@ -1122,7 +1122,7 @@ Toycore는 저가형 웹호스팅을 고려한다.
 - 대량 데이터 export는 한 번에 너무 크게 만들지 않는다.
 - 캐시는 필수가 아니라 선택 최적화로 둔다.
 - DB 인덱스는 실제 조회 조건에 맞춘다.
-- 백그라운드 worker가 필수인 설계는 초기 모듈로 피한다.
+- 백그라운드 worker가 필수인 설계는 기본 모듈로 피한다.
 
 ## 23. 테스트와 점검
 
