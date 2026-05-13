@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Site Menu',
+    'name' => '사이트 메뉴',
     'version' => '2026.04.003',
     'type' => 'module',
-    'description' => 'Site-wide navigation menu management module.',
+    'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

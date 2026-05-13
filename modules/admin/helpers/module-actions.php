@@ -36,11 +36,11 @@ function toy_admin_handle_modules_post(
 
     if ($intent === 'upload_module_zip') {
         if (!$canManageModuleSources) {
-            $errors[] = '모듈 소스 반영은 owner 권한이 필요합니다.';
+            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
         }
 
         if (!$moduleSourcesEnabled) {
-            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. owner가 admin.module_sources_enabled 설정을 bool true로 저장해야 합니다.';
+            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. 소유자가 admin.module_sources_enabled 설정을 참/거짓 유형의 참 값으로 저장해야 합니다.';
         }
 
         if (!$moduleUploadAvailable) {
@@ -48,11 +48,11 @@ function toy_admin_handle_modules_post(
         }
     } elseif ($intent === 'sync_module_version') {
         if (!$canManageModuleSources) {
-            $errors[] = '파일 전용 업데이트 반영은 owner 권한이 필요합니다.';
+            $errors[] = '파일 전용 업데이트 반영은 소유자 권한이 필요합니다.';
         }
 
         if (!$moduleSourcesEnabled) {
-            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. owner가 admin.module_sources_enabled 설정을 bool true로 저장해야 합니다.';
+            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. 소유자가 admin.module_sources_enabled 설정을 참/거짓 유형의 참 값으로 저장해야 합니다.';
         }
     } elseif ($intent === 'status') {
         $status = toy_post_string('status', 30);
@@ -367,7 +367,7 @@ function toy_admin_handle_modules_post(
         }
     } elseif ($errors === [] && $intent === 'module_setting') {
         if (!$canManageAdvancedModuleSettings) {
-            $errors[] = '고급 모듈 설정은 owner 권한이 필요합니다.';
+            $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
         }
 
         $settingKey = toy_post_string('setting_key', 120);
@@ -437,7 +437,7 @@ function toy_admin_handle_modules_post(
         }
     } elseif ($errors === [] && $intent === 'delete_module_setting') {
         if (!$canManageAdvancedModuleSettings) {
-            $errors[] = '고급 모듈 설정은 owner 권한이 필요합니다.';
+            $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
         }
 
         $settingKey = toy_post_string('setting_key', 120);
@@ -643,7 +643,7 @@ function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string
     $accountId = (int) ($account['id'] ?? 0);
     $targetId = $moduleKey . ':' . $settingKey . ':' . $action;
     if ($accountId < 1) {
-        return ['owner 재인증 계정을 확인할 수 없습니다.'];
+        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
     $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
@@ -672,7 +672,7 @@ function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string
             'result' => 'failure',
             'message' => 'Sensitive module setting reauthentication failed.',
         ]);
-        return ['민감한 모듈 설정 변경 전 owner 비밀번호를 다시 입력하세요.'];
+        return ['민감한 모듈 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
     toy_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'success');
@@ -684,7 +684,7 @@ function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string 
     $password = toy_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
-        return ['owner 재인증 계정을 확인할 수 없습니다.'];
+        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
     $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
@@ -713,7 +713,7 @@ function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string 
             'result' => 'failure',
             'message' => 'Module source write reauthentication failed.',
         ]);
-        return ['모듈 소스 반영 전 owner 비밀번호를 다시 입력하세요.'];
+        return ['모듈 소스 반영 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
     toy_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');

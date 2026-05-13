@@ -41,9 +41,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($reports as $report) { ?>
                     <tr>
                         <td><?php echo toy_e((string) $report['id']); ?></td>
-                        <td><?php echo toy_e((string) $report['target_type'] . ' #' . (string) $report['target_id']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $report['target_type']) . ' #' . (string) $report['target_id']); ?></td>
                         <td><?php echo toy_e(toy_community_report_reason_label((string) $report['reason_key'])); ?></td>
-                        <td><?php echo toy_e((string) $report['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $report['status'], 'report_status')); ?></td>
                         <td><?php echo toy_e(toy_community_report_account_label(
                             is_string($report['reporter_display_name'] ?? null) ? $report['reporter_display_name'] : null,
                             (int) $report['reporter_account_id']
@@ -71,7 +71,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                     <label>상태<br>
                                         <select name="status">
                                             <?php foreach ($allowedStatuses as $status) { ?>
-                                                <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                                                <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'report_status')); ?></option>
                                             <?php } ?>
                                         </select>
                                     </label>

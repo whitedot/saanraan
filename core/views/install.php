@@ -210,7 +210,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <p class="toy-install-kicker">관리자</p>
                         <h2>최초 관리자 계정</h2>
                     </div>
-                    <p>이 계정에 owner 권한이 부여됩니다.</p>
+                    <p>이 계정에 소유자 권한이 부여됩니다.</p>
                 </div>
 
                 <div class="toy-install-field-grid">

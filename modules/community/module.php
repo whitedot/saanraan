@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Community',
+    'name' => '커뮤니티',
     'version' => '2026.05.008',
     'type' => 'module',
-    'description' => 'Board-style community module.',
+    'description' => '게시판형 커뮤니티 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

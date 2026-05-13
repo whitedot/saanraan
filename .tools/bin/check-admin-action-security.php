@@ -215,7 +215,7 @@ if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function toy_adm
     $errors[] = 'Admin role helper must expose an active owner count guard.';
 } elseif (
     strpos($adminRolesHelper, 'toy_admin_active_owner_count($pdo) <= 1') === false
-    || strpos($adminRolesHelper, '마지막 active owner 권한은 회수할 수 없습니다.') === false
+    || strpos($adminRolesHelper, '마지막 활성 소유자 권한은 회수할 수 없습니다.') === false
 ) {
     $errors[] = 'Admin role helper must prevent revoking the last active owner role.';
 }
@@ -253,14 +253,14 @@ if (!is_string($adminMembersHelper)) {
     if (
         strpos($adminMembersHelper, 'toy_admin_current_roles($pdo, $targetAccountId)') === false
         || strpos($adminMembersHelper, 'toy_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\'])') === false
-        || strpos($adminMembersHelper, 'owner 계정 상태와 세션은 owner만 변경할 수 있습니다.') === false
+        || strpos($adminMembersHelper, '소유자 계정 상태와 세션은 소유자만 변경할 수 있습니다.') === false
     ) {
         $errors[] = 'Admin members helper must prevent non-owner admins from changing owner accounts.';
     }
 
     if (
         strpos($adminMembersHelper, 'toy_admin_active_owner_count($pdo) <= 1') === false
-        || strpos($adminMembersHelper, '마지막 active owner 계정은 비활성화할 수 없습니다.') === false
+        || strpos($adminMembersHelper, '마지막 활성 소유자 계정은 비활성화할 수 없습니다.') === false
     ) {
         $errors[] = 'Admin members helper must prevent deactivating the last active owner.';
     }

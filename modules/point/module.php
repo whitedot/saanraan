@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Point',
+    'name' => '포인트',
     'version' => '2026.04.001',
     'type' => 'module',
-    'description' => 'Member point balance and transaction ledger module.',
+    'description' => '회원 포인트 잔액과 거래 장부 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

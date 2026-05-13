@@ -7,6 +7,281 @@ function toy_admin_settings_allowed_types(): array
     return ['string', 'int', 'bool', 'json'];
 }
 
+function toy_admin_code_label(string $value, string $context = ''): string
+{
+    $contextLabels = [
+        'member_status' => [
+            'active' => '활성',
+            'pending' => '대기',
+            'suspended' => '정지',
+            'withdrawn' => '탈퇴',
+            'anonymized' => '익명화',
+        ],
+        'site_status' => [
+            'active' => '운영',
+            'maintenance' => '점검',
+        ],
+        'module_status' => [
+            'enabled' => '사용',
+            'disabled' => '미사용',
+            'installing' => '설치 중',
+            'failed' => '실패',
+        ],
+        'content_status' => [
+            'draft' => '임시 저장',
+            'enabled' => '사용',
+            'disabled' => '미사용',
+            'archived' => '보관',
+            'published' => '공개',
+            'hidden' => '숨김',
+            'deleted' => '삭제됨',
+            'pending' => '대기',
+        ],
+        'privacy_request_status' => [
+            'requested' => '요청됨',
+            'reviewing' => '검토 중',
+            'completed' => '완료',
+            'rejected' => '거절',
+            'cancelled' => '취소',
+        ],
+        'privacy_request_type' => [
+            'export' => '내보내기',
+            'delete' => '삭제',
+            'correction' => '정정',
+            'withdraw' => '탈퇴',
+        ],
+        'report_status' => [
+            'open' => '접수',
+            'reviewing' => '검토 중',
+            'resolved' => '처리 완료',
+            'dismissed' => '기각',
+        ],
+        'setting_type' => [
+            'string' => '문자열',
+            'int' => '정수',
+            'bool' => '참/거짓',
+            'json' => 'JSON',
+        ],
+        'module_type' => [
+            'module' => '모듈',
+            'theme' => '테마',
+            'skin' => '스킨',
+        ],
+        'transaction_type' => [
+            'adjustment' => '조정',
+            'grant' => '지급',
+            'deposit' => '예치',
+            'use' => '사용',
+            'refund' => '환불',
+            'expire' => '만료',
+            'withdraw' => '출금',
+        ],
+        'notification_audience' => [
+            'account' => '개별 회원',
+            'all' => '전체 회원',
+        ],
+        'notification_channel' => [
+            'site' => '사이트',
+            'email' => '이메일',
+            'sms' => '문자',
+        ],
+        'notification_status' => [
+            'active' => '활성',
+            'deleted' => '삭제됨',
+        ],
+        'delivery_status' => [
+            'queued' => '대기',
+            'ready' => '발송 준비',
+            'sent' => '발송 완료',
+            'failed' => '실패',
+            'canceled' => '취소',
+        ],
+        'policy' => [
+            'public' => '전체 공개',
+            'member' => '회원',
+            'group' => '회원 그룹',
+            'admin' => '관리자',
+            'disabled' => '사용 안 함',
+        ],
+        'match_type' => [
+            'all' => '전체',
+            'exact' => '정확히 일치',
+        ],
+        'menu_target' => [
+            'self' => '현재 창',
+            'blank' => '새 창',
+        ],
+        'evaluation_policy' => [
+            'grant_only' => '조건 충족 시 부여',
+            'sync' => '조건에 맞춰 동기화',
+        ],
+        'assignment_type' => [
+            'manual' => '수동',
+            'auto' => '자동',
+        ],
+        'membership_status' => [
+            'active' => '활성',
+            'revoked' => '회수됨',
+            'expired' => '만료',
+        ],
+        'result' => [
+            'success' => '성공',
+            'failure' => '실패',
+        ],
+        'role' => [
+            'owner' => '소유자',
+            'admin' => '관리자',
+            'manager' => '매니저',
+        ],
+        'target_type' => [
+            'member_account' => '회원 계정',
+            'module' => '모듈',
+            'module_setting' => '모듈 설정',
+            'site_setting' => '사이트 설정',
+            'privacy_request' => '개인정보 요청',
+            'community_post' => '커뮤니티 게시글',
+            'community_comment' => '커뮤니티 댓글',
+            'community_report' => '커뮤니티 신고',
+            'post' => '게시글',
+            'comment' => '댓글',
+            'message' => '쪽지',
+            'banner' => '배너',
+            'popup_layer' => '팝업레이어',
+            'notification' => '알림',
+            'notification_delivery' => '알림 발송',
+        ],
+        'boolean' => [
+            '0' => '아니오',
+            '1' => '예',
+        ],
+    ];
+
+    if (isset($contextLabels[$context][$value])) {
+        return $contextLabels[$context][$value];
+    }
+
+    foreach ($contextLabels as $labels) {
+        if (isset($labels[$value])) {
+            return $labels[$value];
+        }
+    }
+
+    return $value;
+}
+
+function toy_admin_event_type_label(string $eventType): string
+{
+    $labels = [
+        'member.sessions.revoked' => '회원 세션 폐기',
+        'member.status.updated' => '회원 상태 변경',
+        'privacy.request.updated' => '개인정보 요청 상태 변경',
+        'module.installed' => '모듈 설치',
+        'module.status.updated' => '모듈 상태 변경',
+        'module.setting.saved' => '모듈 설정 저장',
+        'module.setting.deleted' => '모듈 설정 삭제',
+        'module.version.synced' => '모듈 설치 버전 동기화',
+        'site.setting.saved' => '사이트 설정 저장',
+        'site.setting.deleted' => '사이트 설정 삭제',
+        'admin.settings.updated' => '관리자 설정 변경',
+        'admin.role.changed' => '관리자 역할 변경',
+    ];
+    if (isset($labels[$eventType])) {
+        return $labels[$eventType];
+    }
+
+    $segmentLabels = [
+        'account' => '계정',
+        'admin' => '관리자',
+        'banner' => '배너',
+        'blocked' => '차단',
+        'comment' => '댓글',
+        'community' => '커뮤니티',
+        'completed' => '완료',
+        'created' => '생성',
+        'deleted' => '삭제',
+        'deposit' => '예치금',
+        'email' => '이메일',
+        'failed' => '실패',
+        'grant' => '부여',
+        'granted' => '부여',
+        'group' => '그룹',
+        'login' => '로그인',
+        'logout' => '로그아웃',
+        'member' => '회원',
+        'message' => '쪽지',
+        'module' => '모듈',
+        'notification' => '알림',
+        'password' => '비밀번호',
+        'point' => '포인트',
+        'popup' => '팝업',
+        'privacy' => '개인정보',
+        'registered' => '가입',
+        'request' => '요청',
+        'requested' => '요청',
+        'revoke' => '회수',
+        'revoked' => '회수',
+        'reward' => '적립금',
+        'role' => '역할',
+        'settings' => '설정',
+        'sessions' => '세션',
+        'status' => '상태',
+        'transaction' => '거래',
+        'updated' => '변경',
+        'upload' => '업로드',
+        'verified' => '인증',
+        'withdrawn' => '탈퇴',
+    ];
+
+    $parts = preg_split('/[._-]+/', $eventType) ?: [];
+    $labels = [];
+    foreach ($parts as $part) {
+        if ($part === '') {
+            continue;
+        }
+        $labels[] = (string) ($segmentLabels[$part] ?? $part);
+    }
+
+    return $labels === [] ? $eventType : implode(' ', $labels);
+}
+
+function toy_admin_module_name_label(string $name): string
+{
+    $labels = [
+        'Admin' => '관리자',
+        'Banner' => '배너',
+        'Community' => '커뮤니티',
+        'Deposit' => '예치금',
+        'Member' => '회원',
+        'Notification' => '알림',
+        'Point' => '포인트',
+        'Popup Layer' => '팝업레이어',
+        'Reward' => '적립금',
+        'SEO' => 'SEO',
+        'Site Menu' => '사이트 메뉴',
+    ];
+
+    return (string) ($labels[$name] ?? $name);
+}
+
+function toy_admin_module_description_label(string $description): string
+{
+    $labels = [
+        'Admin dashboard module.' => '관리자 대시보드 모듈입니다.',
+        'Content banner management module for public output slots.' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
+        'Board-style community module.' => '게시판형 커뮤니티 모듈입니다.',
+        'Member deposit balance and transaction ledger module.' => '회원 예치금 잔액과 거래 장부 모듈입니다.',
+        'Member account and authentication module.' => '회원 계정과 인증 모듈입니다.',
+        'Site notification and external delivery queue module.' => '사이트 알림과 외부 발송 대기열 모듈입니다.',
+        'Member point balance and transaction ledger module.' => '회원 포인트 잔액과 거래 장부 모듈입니다.',
+        'Popup layer management and rendering module.' => '팝업레이어 관리와 출력 모듈입니다.',
+        'Member reward balance and transaction ledger module.' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
+        'SEO output helpers and sitemap endpoint.' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
+        'Site-wide navigation menu management module.' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
+    ];
+
+    return (string) ($labels[$description] ?? $description);
+}
+
 function toy_admin_settings(PDO $pdo): array
 {
     $metadata = toy_module_metadata('admin');
@@ -255,7 +530,7 @@ function toy_admin_handle_settings_post(
 
     if ($errors === [] && $intent === 'site_setting') {
         if (!$canManageAdvancedSettings) {
-            $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
+            $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
         }
 
         $settingKey = toy_post_string('setting_key', 120);
@@ -309,7 +584,7 @@ function toy_admin_handle_settings_post(
         }
     } elseif ($errors === [] && $intent === 'delete_site_setting') {
         if (!$canManageAdvancedSettings) {
-            $errors[] = '고급 사이트 설정은 owner 권한이 필요합니다.';
+            $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
         }
 
         $settingKey = toy_post_string('setting_key', 120);
@@ -426,7 +701,7 @@ function toy_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $
     $password = toy_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
-        return ['owner 재인증 계정을 확인할 수 없습니다.'];
+        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
     $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
@@ -461,7 +736,7 @@ function toy_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $
                 'action' => $action,
             ],
         ]);
-        return ['고위험 사이트 설정 변경 전 owner 비밀번호를 다시 입력하세요.'];
+        return ['고위험 사이트 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
     toy_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'success');

@@ -25,12 +25,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         </label>
     </p>
     <p>
-        <label>Base URL<br>
+        <label>기본 URL<br>
             <input type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>" maxlength="255">
         </label>
     </p>
     <p>
-        <label>Timezone<br>
+        <label>시간대<br>
             <input type="text" name="timezone" value="<?php echo toy_e($values['timezone']); ?>" maxlength="80" required>
         </label>
     </p>
@@ -100,35 +100,35 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>추가 사이트 설정 항목</h2>
-    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 owner만 실행할 수 있습니다.</p>
+    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>
         <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="intent" value="site_setting">
             <p>
-                <label>Key<br>
+                <label>키<br>
                     <input type="text" name="setting_key" maxlength="120" required>
                 </label>
             </p>
             <p>
-                <label>Value<br>
+                <label>값<br>
                     <textarea name="setting_value" maxlength="5000"></textarea>
                 </label>
             </p>
             <p>
-                <label>Type<br>
+                <label>유형<br>
                     <select name="value_type">
                         <?php foreach ($allowedSettingTypes as $type) { ?>
-                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e(toy_admin_code_label($type, 'setting_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
             </p>
             <p>
-                <label>Owner 비밀번호<br>
+                <label>소유자 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password">
                 </label>
-                <span class="toy-install-help">고위험 설정 저장 시 필요하며 bool 타입만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
+                <span class="toy-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
             </p>
             <button type="submit">항목 저장</button>
         </form>
@@ -137,10 +137,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <table>
         <thead>
             <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Type</th>
-                <th>Updated</th>
+                <th>키</th>
+                <th>값</th>
+                <th>유형</th>
+                <th>수정일</th>
                 <th>삭제</th>
             </tr>
         </thead>
@@ -154,7 +154,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
                     <td><?php echo toy_e(toy_admin_site_setting_display_value($setting)); ?></td>
-                    <td><?php echo toy_e((string) $setting['value_type']); ?></td>
+                    <td><?php echo toy_e(toy_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
                         <?php if ($canManageAdvancedSettings) { ?>
@@ -163,14 +163,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="delete_site_setting">
                                 <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
                                 <?php if (toy_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
-                                    <label>Owner 비밀번호<br>
+                                    <label>소유자 비밀번호<br>
                                         <input type="password" name="owner_password" autocomplete="current-password" required>
                                     </label>
                                 <?php } ?>
                                 <button type="submit">삭제</button>
                             </form>
                         <?php } else { ?>
-                            owner 전용
+                            소유자 전용
                         <?php } ?>
                     </td>
                 </tr>

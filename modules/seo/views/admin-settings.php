@@ -22,24 +22,24 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <section>
         <h2>기본 메타</h2>
         <p>
-            <label>Title suffix<br>
+            <label>제목 접미사<br>
                 <input type="text" name="title_suffix" value="<?php echo toy_e((string) $settings['title_suffix']); ?>" maxlength="80">
             </label>
         </p>
         <p>
-            <label>기본 description<br>
+            <label>기본 설명<br>
                 <input type="text" name="default_description" value="<?php echo toy_e((string) $settings['default_description']); ?>" maxlength="255">
             </label>
         </p>
         <p>
-            <label>기본 OG image URL<br>
+            <label>기본 OG 이미지 URL<br>
                 <input type="text" name="default_og_image" value="<?php echo toy_e((string) $settings['default_og_image']); ?>" maxlength="255">
             </label>
         </p>
     </section>
 
     <section>
-        <h2>Sitemap</h2>
+        <h2>사이트맵</h2>
         <p>
             <label>
                 <input type="checkbox" name="sitemap_include_home" value="1"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
@@ -52,7 +52,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section>
-        <h2>Robots</h2>
+        <h2>로봇 설정</h2>
         <p>
             <label>차단 경로<br>
                 <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo toy_e((string) $settings['robots_disallow_paths']); ?></textarea>

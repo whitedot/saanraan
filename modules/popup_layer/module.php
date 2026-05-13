@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Popup Layer',
+    'name' => '팝업레이어',
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => 'Popup layer management and rendering module.',
+    'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

@@ -53,7 +53,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : null,
                             (int) $post['author_account_id']
                         )); ?></td>
-                        <td><?php echo toy_e((string) $post['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $post['status'], 'content_status')); ?></td>
                         <td><?php echo toy_e((string) $post['published_comment_count']); ?></td>
                         <td><?php echo toy_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                         <td><?php echo toy_e((string) $post['created_at']); ?></td>
@@ -65,7 +65,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>상태
                                     <select name="status">
                                         <?php foreach ($allowedPostStatuses as $status) { ?>
-                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
@@ -110,7 +110,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             (int) $comment['author_account_id']
                         )); ?></td>
                         <td><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></td>
-                        <td><?php echo toy_e((string) $comment['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $comment['status'], 'content_status')); ?></td>
                         <td><?php echo toy_e((string) $comment['created_at']); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
@@ -120,7 +120,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <label>상태
                                     <select name="status">
                                         <?php foreach ($allowedCommentStatuses as $status) { ?>
-                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>

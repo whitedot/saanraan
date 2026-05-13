@@ -22,7 +22,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <option value="">전체</option>
             <?php foreach ($allowedStatuses as $status) { ?>
                 <option value="<?php echo toy_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                    <?php echo toy_e($status); ?>
+                    <?php echo toy_e(toy_admin_code_label($status, 'privacy_request_status')); ?>
                 </option>
             <?php } ?>
         </select>
@@ -53,8 +53,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tr>
                 <td><?php echo toy_e((string) $request['id']); ?></td>
                 <td><?php echo toy_e((string) ($request['account_id'] ?? '')); ?></td>
-                <td><?php echo toy_e((string) $request['request_type']); ?></td>
-                <td><?php echo toy_e((string) $request['status']); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
                 <td><?php echo toy_e(toy_admin_privacy_request_requester_display($request)); ?></td>
                 <td><?php echo toy_e(toy_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
                 <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
@@ -73,7 +73,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <option value="<?php echo toy_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($status); ?>
+                                    <?php echo toy_e(toy_admin_code_label($status, 'privacy_request_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>

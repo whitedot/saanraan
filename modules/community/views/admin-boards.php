@@ -128,7 +128,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $board['board_key']); ?></td>
                         <td><?php echo toy_e((string) $board['title']); ?></td>
                         <td><?php echo toy_e((string) ($board['board_group_title'] ?? '')); ?></td>
-                        <td><?php echo toy_e((string) $board['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $board['status'], 'content_status')); ?></td>
                         <td>
                             <form method="post" action="<?php echo toy_e(toy_url('/admin/community/boards')); ?>">
                                 <?php echo toy_csrf_field(); ?>
@@ -193,7 +193,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>상태<br>
                     <select name="status">
                         <?php foreach ($allowedStatuses as $status) { ?>
-                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -220,7 +220,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>읽기 정책<br>
                     <select name="read_policy">
                         <?php foreach ($allowedReadPolicies as $policy) { ?>
-                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -230,7 +230,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_policy') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
                         <?php } ?>
                     </select>
-                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy'])); ?></small>
+                    <small>적용값: <?php echo toy_e(toy_admin_code_label((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy']), 'policy')); ?></small>
                 <?php } ?>
             </p>
             <p>
@@ -262,7 +262,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>쓰기 정책<br>
                     <select name="write_policy">
                         <?php foreach ($allowedWritePolicies as $policy) { ?>
-                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -272,7 +272,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_policy') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
                         <?php } ?>
                     </select>
-                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy'])); ?></small>
+                    <small>적용값: <?php echo toy_e(toy_admin_code_label((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy']), 'policy')); ?></small>
                 <?php } ?>
             </p>
             <p>
@@ -304,7 +304,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>댓글 정책<br>
                     <select name="comment_policy">
                         <?php foreach ($allowedCommentPolicies as $policy) { ?>
-                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                            <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -314,7 +314,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo toy_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_policy') === $source ? ' selected' : ''; ?>><?php echo toy_e($label); ?></option>
                         <?php } ?>
                     </select>
-                    <small>적용값: <?php echo toy_e((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy'])); ?></small>
+                    <small>적용값: <?php echo toy_e(toy_admin_code_label((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy']), 'policy')); ?></small>
                 <?php } ?>
             </p>
             <p>

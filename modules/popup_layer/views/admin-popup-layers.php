@@ -52,7 +52,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <?php $currentStatus = $editing ? (string) $editPopup['status'] : 'draft'; ?>
                                 <option value="<?php echo toy_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($status); ?>
+                                    <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -93,7 +93,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php foreach ($allowedMatchTypes as $matchType) { ?>
                                 <?php $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all'; ?>
                                 <option value="<?php echo toy_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($matchType); ?>
+                                    <?php echo toy_e(toy_admin_code_label($matchType, 'match_type')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -173,7 +173,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         ?>
                         <tr>
                             <td><?php echo toy_e((string) $popup['title']); ?></td>
-                            <td><?php echo toy_e((string) $popup['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $popup['status'], 'content_status')); ?></td>
                             <td><?php echo toy_e(toy_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($popup['skin_key'] ?? 'basic')])); ?></td>
                             <td>
                                 <?php echo toy_e($popupTargetLabel); ?><br>

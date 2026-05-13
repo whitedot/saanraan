@@ -148,7 +148,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                     value="<?php echo toy_e((string) $level['min_score']); ?>"
                                 >
                             </td>
-                            <td><?php echo toy_e((string) $level['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $level['status'], 'content_status')); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>

@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Member',
+    'name' => '회원',
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => 'Member account and authentication module.',
+    'description' => '회원 계정과 인증 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

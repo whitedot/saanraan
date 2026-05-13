@@ -116,7 +116,7 @@ function toy_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRol
     if ($errors === [] && $roleAction === 'revoke' && $roleKey === 'owner') {
         $targetRoles = toy_admin_current_roles($pdo, $targetAccountId);
         if (in_array('owner', $targetRoles, true) && toy_admin_owner_count($pdo) <= 1) {
-            $errors[] = '마지막 owner 권한은 회수할 수 없습니다.';
+            $errors[] = '마지막 소유자 권한은 회수할 수 없습니다.';
         }
 
         if (
@@ -124,7 +124,7 @@ function toy_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRol
             && (string) $targetAccount['status'] === 'active'
             && toy_admin_active_owner_count($pdo) <= 1
         ) {
-            $errors[] = '마지막 active owner 권한은 회수할 수 없습니다.';
+            $errors[] = '마지막 활성 소유자 권한은 회수할 수 없습니다.';
         }
     }
 

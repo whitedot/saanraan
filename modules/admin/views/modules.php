@@ -42,8 +42,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
             <tr>
                 <td><?php echo toy_e((string) $module['module_key']); ?></td>
-                <td><?php echo toy_e((string) $module['name']); ?></td>
-                <td><?php echo toy_e((string) ($module['code_type'] ?? 'module')); ?></td>
+                <td><?php echo toy_e(toy_admin_module_name_label((string) $module['name'])); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></td>
                 <td><?php echo toy_e((string) $module['version']); ?></td>
                 <td><?php echo toy_e((string) ($module['code_version'] !== '' ? $module['code_version'] : '-')); ?></td>
                 <td>
@@ -60,7 +60,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo toy_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="sync_module_version">
                                 <input type="hidden" name="module_key" value="<?php echo toy_e((string) $module['module_key']); ?>">
-                                <label>Owner 비밀번호<br>
+                                <label>소유자 비밀번호<br>
                                     <input type="password" name="owner_password" autocomplete="current-password" required>
                                 </label>
                                 <button type="submit">파일 업데이트 반영</button>
@@ -68,7 +68,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } elseif ($canManageModuleSources) { ?>
                             소스 반영 비활성화
                         <?php } else { ?>
-                            owner 확인 필요
+                            소유자 확인 필요
                         <?php } ?>
                     <?php } elseif (($module['version_state'] ?? '') === 'code_older') { ?>
                         파일 재배치 필요
@@ -91,14 +91,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </td>
                 <td>
-                    <?php echo toy_e((string) $module['status']); ?>
+                    <?php echo toy_e(toy_admin_code_label((string) $module['status'], 'module_status')); ?>
                     <?php if ((string) $module['status'] === 'enabled' && $moduleErrors !== []) { ?>
                         <br>런타임 계약 파일 비활성
                     <?php } ?>
                 </td>
-                <td><?php echo !empty($module['is_bundled']) ? 'yes' : 'no'; ?></td>
+                <td><?php echo !empty($module['is_bundled']) ? '예' : '아니오'; ?></td>
                 <td><?php echo toy_e((string) ($module['installed_at'] ?? '')); ?></td>
-                <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
+                <td><?php echo toy_e((string) ($module['description'] !== '' ? toy_admin_module_description_label((string) $module['description']) : '-')); ?></td>
                 <td>
                     <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
                         <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
@@ -108,7 +108,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <select name="status">
                                 <?php foreach ($allowedInstallStatuses as $status) { ?>
                                     <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                        <?php echo toy_e($status); ?>
+                                        <?php echo toy_e(toy_admin_code_label($status, 'module_status')); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -122,7 +122,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
                                 <?php foreach ($allowedStatuses as $status) { ?>
                                     <option value="<?php echo toy_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
-                                        <?php echo toy_e($status); ?>
+                                        <?php echo toy_e(toy_admin_code_label($status, 'module_status')); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -138,9 +138,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <section>
     <h2>모듈 zip 업로드</h2>
     <?php if (!$canManageModuleSources) { ?>
-        <p>모듈 파일 업로드는 owner 권한이 필요합니다.</p>
+        <p>모듈 파일 업로드는 소유자 권한이 필요합니다.</p>
     <?php } elseif (!$moduleSourcesEnabled) { ?>
-        <p>현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. <code>admin.module_sources_enabled</code>를 bool true로 저장하면 owner 재인증 후 사용할 수 있습니다.</p>
+        <p>현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. <code>admin.module_sources_enabled</code>를 참/거짓 유형의 참 값으로 저장하면 소유자 재인증 후 사용할 수 있습니다.</p>
     <?php } elseif (!$moduleUploadAvailable) { ?>
         <p>PHP ZipArchive 확장이 없어 이 서버에서는 zip 업로드를 사용할 수 없습니다. FTP로 <code>modules/{module_key}</code>에 업로드한 뒤 설치하세요.</p>
     <?php } else { ?>
@@ -148,12 +148,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="intent" value="upload_module_zip">
             <p>
-                <label>Module zip<br>
+                <label>모듈 zip<br>
                     <input type="file" name="module_zip" accept=".zip,application/zip" required>
                 </label>
             </p>
             <p>
-                <label>Module key<br>
+                <label>모듈 key<br>
                     <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*">
                 </label>
             </p>
@@ -170,7 +170,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </p>
             <p>
-                <label>Owner 비밀번호<br>
+                <label>소유자 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password" required>
                 </label>
             </p>
@@ -205,8 +205,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                     <tr>
                         <td><?php echo toy_e((string) $module['module_key']); ?></td>
-                        <td><?php echo toy_e((string) $module['name']); ?></td>
-                        <td><?php echo toy_e((string) $module['type']); ?></td>
+                        <td><?php echo toy_e(toy_admin_module_name_label((string) $module['name'])); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $module['type'], 'module_type')); ?></td>
                         <td><?php echo toy_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
                         <td>
                             <?php echo toy_e((string) ($module['lifecycle_label'] ?? '미설치')); ?>
@@ -227,7 +227,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 </ul>
                             <?php } ?>
                         </td>
-                        <td><?php echo toy_e((string) ($module['description'] !== '' ? $module['description'] : '-')); ?></td>
+                        <td><?php echo toy_e((string) ($module['description'] !== '' ? toy_admin_module_description_label((string) $module['description']) : '-')); ?></td>
                         <td>
                             <?php if ($moduleErrors !== []) { ?>
                                 설치 불가
@@ -239,7 +239,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                     <select name="status">
                                         <?php foreach ($allowedInstallStatuses as $status) { ?>
                                             <option value="<?php echo toy_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                                <?php echo toy_e($status); ?>
+                                                <?php echo toy_e(toy_admin_code_label($status, 'module_status')); ?>
                                             </option>
                                         <?php } ?>
                                     </select>
@@ -256,13 +256,13 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>모듈 설정 항목</h2>
-    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 owner만 실행할 수 있습니다.</p>
+    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedModuleSettings) { ?>
         <form method="post" action="<?php echo toy_e(toy_url('/admin/modules')); ?>">
             <?php echo toy_csrf_field(); ?>
             <input type="hidden" name="intent" value="module_setting">
             <p>
-                <label>Module<br>
+                <label>모듈<br>
                     <select name="module_key">
                         <?php foreach ($modules as $module) { ?>
                             <option value="<?php echo toy_e((string) $module['module_key']); ?>">
@@ -273,26 +273,26 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </p>
             <p>
-                <label>Key<br>
+                <label>키<br>
                     <input type="text" name="setting_key" maxlength="120" required>
                 </label>
             </p>
             <p>
-                <label>Value<br>
+                <label>값<br>
                     <textarea name="setting_value" maxlength="5000"></textarea>
                 </label>
             </p>
             <p>
-                <label>Type<br>
+                <label>유형<br>
                     <select name="value_type">
                         <?php foreach ($allowedSettingTypes as $type) { ?>
-                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e(toy_admin_code_label($type, 'setting_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
             </p>
             <p>
-                <label>Owner password<br>
+                <label>소유자 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password">
                 </label>
             </p>
@@ -303,11 +303,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <table>
         <thead>
             <tr>
-                <th>Module</th>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Type</th>
-                <th>Updated</th>
+                <th>모듈</th>
+                <th>키</th>
+                <th>값</th>
+                <th>유형</th>
+                <th>수정일</th>
                 <th>삭제</th>
             </tr>
         </thead>
@@ -322,7 +322,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo toy_e((string) $setting['module_key']); ?></td>
                     <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
                     <td><?php echo toy_e(toy_admin_module_setting_display_value($setting)); ?></td>
-                    <td><?php echo toy_e((string) $setting['value_type']); ?></td>
+                    <td><?php echo toy_e(toy_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
                     <td>
                         <?php if ($canManageAdvancedModuleSettings) { ?>
@@ -337,7 +337,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <button type="submit">삭제</button>
                             </form>
                         <?php } else { ?>
-                            owner 전용
+                            소유자 전용
                         <?php } ?>
                     </td>
                 </tr>

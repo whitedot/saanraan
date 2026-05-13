@@ -84,7 +84,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($allowedMatchTypes as $matchType) { ?>
                             <?php $currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all'; ?>
                             <option value="<?php echo toy_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
-                                <?php echo toy_e($matchType); ?>
+                                <?php echo toy_e(toy_admin_code_label($matchType, 'match_type')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -101,13 +101,13 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <?php $currentStatus = $editing ? (string) $editBanner['status'] : 'draft'; ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                <?php echo toy_e($status); ?>
+                                <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                             </option>
                         <?php } ?>
                     </select>
                 </label>
                 <br>
-                <small>enabled 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.</small>
+                <small>사용 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.</small>
             </p>
             <p>
                 <label>배너 스킨<br>
@@ -167,7 +167,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <section>
         <h2>배너 목록</h2>
         <p><a href="<?php echo toy_e(toy_url('/admin/banners/new')); ?>">새 배너 추가</a></p>
-        <p>enabled 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
+        <p>사용 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
         <form method="get" action="<?php echo toy_e(toy_url('/admin/banners')); ?>">
             <p>
                 <label>상태<br>
@@ -175,7 +175,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
-                                <?php echo toy_e($status); ?>
+                                <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -227,7 +227,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo toy_e((string) $banner['title']); ?></td>
                             <td>
-                                <?php echo toy_e((string) $banner['status']); ?>
+                                <?php echo toy_e(toy_admin_code_label((string) $banner['status'], 'content_status')); ?>
                                 <?php if ((string) $banner['status'] !== 'enabled') { ?>
                                     <br><small>사용자 화면 미노출</small>
                                 <?php } ?>

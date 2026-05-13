@@ -39,7 +39,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>대상<br>
                     <select name="audience">
                         <?php foreach ($allowedAudiences as $audience) { ?>
-                            <option value="<?php echo toy_e($audience); ?>"><?php echo toy_e($audience); ?></option>
+                            <option value="<?php echo toy_e($audience); ?>"><?php echo toy_e(toy_admin_code_label($audience, 'notification_audience')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -73,7 +73,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($allowedChannels as $channel) { ?>
                 <label>
                     <input type="checkbox" name="channels[]" value="<?php echo toy_e($channel); ?>"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
-                    <?php echo toy_e($channel); ?>
+                    <?php echo toy_e(toy_admin_code_label($channel, 'notification_channel')); ?>
                 </label><br>
             <?php } ?>
             <p><button type="submit">알림 등록</button></p>
@@ -89,7 +89,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <option value=""<?php echo $filters['delivery_channel'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedChannels as $channel) { ?>
                             <option value="<?php echo toy_e($channel); ?>"<?php echo $filters['delivery_channel'] === $channel ? ' selected' : ''; ?>>
-                                <?php echo toy_e($channel); ?>
+                                <?php echo toy_e(toy_admin_code_label($channel, 'notification_channel')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -101,7 +101,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <option value=""<?php echo $filters['delivery_status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $filters['delivery_status'] === $status ? ' selected' : ''; ?>>
-                                <?php echo toy_e($status); ?>
+                                <?php echo toy_e(toy_admin_code_label($status, 'delivery_status')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -128,8 +128,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo toy_e((string) $delivery['id']); ?></td>
                             <td><?php echo toy_e((string) $delivery['notification_id']); ?></td>
-                            <td><?php echo toy_e((string) $delivery['channel']); ?></td>
-                            <td><?php echo toy_e((string) $delivery['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $delivery['status'], 'delivery_status')); ?></td>
                             <td><?php echo toy_e((string) $delivery['updated_at']); ?></td>
                             <td>
                                 <form method="post" action="<?php echo toy_e(toy_url('/admin/notification-deliveries/status')); ?>">
@@ -140,7 +140,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                             <select name="status">
                                                 <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                                                     <option value="<?php echo toy_e($status); ?>"<?php echo (string) $delivery['status'] === $status ? ' selected' : ''; ?>>
-                                                        <?php echo toy_e($status); ?>
+                                                        <?php echo toy_e(toy_admin_code_label($status, 'delivery_status')); ?>
                                                     </option>
                                                 <?php } ?>
                                             </select>
@@ -166,7 +166,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <option value=""<?php echo $filters['audience'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo toy_e($audience); ?>"<?php echo $filters['audience'] === $audience ? ' selected' : ''; ?>>
-                                <?php echo toy_e($audience); ?>
+                                <?php echo toy_e(toy_admin_code_label($audience, 'notification_audience')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -191,8 +191,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($notifications as $notification) { ?>
                         <tr>
                             <td><?php echo toy_e((string) $notification['id']); ?></td>
-                            <td><?php echo toy_e((string) $notification['audience']); ?></td>
-                            <td><?php echo toy_e((string) $notification['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $notification['audience'], 'notification_audience')); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $notification['status'], 'notification_status')); ?></td>
                             <td><?php echo toy_e((string) $notification['created_at']); ?></td>
                             <td>
                                 <form method="post" action="<?php echo toy_e(toy_url('/admin/notifications/delete')); ?>" style="display:inline">

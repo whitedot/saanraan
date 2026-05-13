@@ -65,7 +65,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>거래 유형<br>
                     <select name="transaction_type">
                         <?php foreach ($allowedTransactionTypes as $type) { ?>
-                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e($type); ?></option>
+                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e(toy_admin_code_label($type, 'transaction_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -123,7 +123,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo toy_e((string) $transaction['email']); ?><br>
                                 <?php echo toy_e((string) $transaction['account_public_hash']); ?>
                             </td>
-                            <td><?php echo toy_e((string) $transaction['transaction_type']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
                             <td><?php echo toy_e(number_format((int) $transaction['amount'])); ?> 원</td>
                             <td><?php echo toy_e(number_format((int) $transaction['balance_after'])); ?> 원</td>
                             <td><?php echo toy_e((string) $transaction['reason']); ?></td>
@@ -156,7 +156,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><a href="<?php echo toy_e(toy_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>"><?php echo toy_e((string) $balance['account_public_hash']); ?></a></td>
                             <td><?php echo toy_e((string) $balance['display_name']); ?><br><?php echo toy_e((string) $balance['email']); ?></td>
-                            <td><?php echo toy_e((string) $balance['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo toy_e(number_format((int) $balance['balance'])); ?> 원</td>
                             <td><?php echo toy_e((string) $balance['updated_at']); ?></td>
                         </tr>

@@ -22,7 +22,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <option value="">전체</option>
             <?php foreach ($allowedStatuses as $status) { ?>
                 <option value="<?php echo toy_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                    <?php echo toy_e($status); ?>
+                    <?php echo toy_e(toy_admin_code_label($status, 'member_status')); ?>
                 </option>
             <?php } ?>
         </select>
@@ -56,7 +56,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $member['account_public_hash']); ?></td>
                 <td><?php echo toy_e(toy_admin_member_email_display($member)); ?></td>
                 <td><?php echo toy_e(toy_admin_member_display_name_preview($member)); ?></td>
-                <td><?php echo toy_e((string) $member['status']); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $member['status'], 'member_status')); ?></td>
                 <td><?php echo toy_e((string) ($member['email_verified_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) ($member['last_login_at'] ?? '')); ?></td>
                 <td><?php echo toy_e((string) $member['active_session_count']); ?></td>
@@ -69,7 +69,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <option value="<?php echo toy_e($status); ?>"<?php echo $member['status'] === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($status); ?>
+                                    <?php echo toy_e(toy_admin_code_label($status, 'member_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>

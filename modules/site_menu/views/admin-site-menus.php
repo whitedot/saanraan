@@ -59,7 +59,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <?php $currentMenuStatus = $editingMenu ? (string) $editMenu['status'] : 'enabled'; ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $currentMenuStatus === $status ? ' selected' : ''; ?>>
-                                <?php echo toy_e($status); ?>
+                                <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -90,7 +90,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo toy_e((string) $menu['menu_key']); ?></td>
                             <td><?php echo toy_e((string) $menu['label']); ?></td>
-                            <td><?php echo toy_e((string) $menu['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $menu['status'], 'content_status')); ?></td>
                             <td><?php echo toy_e((string) $menu['updated_at']); ?></td>
                             <td>
                                 <a href="<?php echo toy_e(toy_url('/admin/site-menus/edit?id=' . rawurlencode((string) $menu['id']))); ?>">수정</a>
@@ -138,12 +138,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </p>
                 <p>
-                    <label>target<br>
+                <label>링크 대상<br>
                         <select name="target">
                             <?php foreach ($allowedTargets as $target) { ?>
                                 <?php $currentTarget = $editingItem ? (string) $editItem['target'] : 'self'; ?>
                                 <option value="<?php echo toy_e($target); ?>"<?php echo $currentTarget === $target ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($target); ?>
+                                    <?php echo toy_e(toy_admin_code_label($target, 'menu_target')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -155,7 +155,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <?php $currentStatus = $editingItem ? (string) $editItem['status'] : 'enabled'; ?>
                                 <option value="<?php echo toy_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($status); ?>
+                                    <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -247,7 +247,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo toy_e((string) $item['menu_key']); ?></td>
                             <td><?php echo toy_e((string) $item['label']); ?></td>
                             <td><?php echo toy_e((string) $item['url']); ?></td>
-                            <td><?php echo toy_e((string) $item['status']); ?></td>
+                            <td><?php echo toy_e(toy_admin_code_label((string) $item['status'], 'content_status')); ?></td>
                             <td><?php echo toy_e((string) $item['sort_order']); ?></td>
                             <td>
                                 <a href="<?php echo toy_e(toy_url('/admin/site-menu-items/edit?id=' . rawurlencode((string) $item['id']))); ?>">수정</a>

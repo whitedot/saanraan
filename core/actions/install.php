@@ -7,13 +7,13 @@ require_once TOY_ROOT . '/modules/member/helpers.php';
 $errors = [];
 $requiredModules = [
     'member' => [
-        'name' => 'Member',
+        'name' => '회원',
         'version' => '2026.05.002',
         'label' => '회원',
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
     'admin' => [
-        'name' => 'Admin',
+        'name' => '관리자',
         'version' => '2026.05.001',
         'label' => '관리자',
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리 화면을 제공합니다.',
@@ -27,49 +27,49 @@ $optionalModules = [
         'description' => 'robots.txt, sitemap.xml, 기본 meta 설정 화면을 설치합니다.',
     ],
     'site_menu' => [
-        'name' => 'Site Menu',
+        'name' => '사이트 메뉴',
         'version' => '2026.04.003',
         'label' => '사이트 메뉴',
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
     'banner' => [
-        'name' => 'Banner',
+        'name' => '배너',
         'version' => '2026.05.003',
         'label' => '배너',
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
-        'name' => 'Popup Layer',
+        'name' => '팝업레이어',
         'version' => '2026.05.002',
         'label' => '팝업레이어',
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
     'point' => [
-        'name' => 'Point',
+        'name' => '포인트',
         'version' => '2026.04.001',
         'label' => '포인트',
         'description' => '회원별 포인트 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'deposit' => [
-        'name' => 'Deposit',
+        'name' => '예치금',
         'version' => '2026.04.001',
         'label' => '예치금',
         'description' => '회원별 예치금 잔액과 입금/사용/환불/출금 원장을 설치합니다.',
     ],
     'reward' => [
-        'name' => 'Reward',
+        'name' => '적립금',
         'version' => '2026.04.001',
         'label' => '적립금',
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'notification' => [
-        'name' => 'Notification',
+        'name' => '알림',
         'version' => '2026.04.001',
         'label' => '알림',
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
     'community' => [
-        'name' => 'Community',
+        'name' => '커뮤니티',
         'version' => '2026.05.008',
         'label' => '커뮤니티',
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
@@ -436,7 +436,7 @@ if (toy_request_method() === 'POST') {
 
             $installStage = 'check_existing_owner';
             if (toy_install_database_owner_count($pdo) > 0) {
-                throw new RuntimeException('Existing owner account detected before installation lock exists.');
+                throw new RuntimeException('설치 잠금 파일이 없지만 기존 소유자 계정이 있습니다.');
             }
 
             $installStage = 'write_config';
@@ -569,7 +569,7 @@ if (toy_request_method() === 'POST') {
             ]);
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
             if ($installStage === 'check_existing_owner') {
-                $errors[] = '기존 owner 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.';
+                $errors[] = '기존 소유자 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.';
             }
             if (!empty($config['debug'])) {
                 $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));

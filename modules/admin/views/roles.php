@@ -33,15 +33,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $adminAccount['account_public_hash']); ?></td>
                 <td><?php echo toy_e(toy_admin_member_email_display($adminAccount)); ?></td>
                 <td><?php echo toy_e(toy_admin_member_display_name_preview($adminAccount)); ?></td>
-                <td><?php echo toy_e((string) $adminAccount['status']); ?></td>
-                <td><?php echo toy_e(implode(', ', $adminAccount['roles'])); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $adminAccount['status'], 'member_status')); ?></td>
+                <td><?php echo toy_e(implode(', ', array_map(static function (string $roleKey): string {
+                    return toy_admin_code_label($roleKey, 'role');
+                }, $adminAccount['roles']))); ?></td>
                 <td>
                     <form method="post" action="<?php echo toy_e(toy_url('/admin/roles')); ?>">
                         <?php echo toy_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo toy_e((string) $adminAccount['id']); ?>">
                         <select name="role_key">
                             <?php foreach ($allowedRoles as $roleKey) { ?>
-                                <option value="<?php echo toy_e($roleKey); ?>"><?php echo toy_e($roleKey); ?></option>
+                                <option value="<?php echo toy_e($roleKey); ?>"><?php echo toy_e(toy_admin_code_label($roleKey, 'role')); ?></option>
                             <?php } ?>
                         </select>
                         <select name="role_action">

@@ -120,7 +120,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $boardGroup['id']); ?></td>
                         <td><?php echo toy_e((string) $boardGroup['group_key']); ?></td>
                         <td><?php echo toy_e((string) $boardGroup['title']); ?></td>
-                        <td><?php echo toy_e((string) $boardGroup['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $boardGroup['status'], 'content_status')); ?></td>
                         <td><?php echo toy_e((string) ($boardGroup['board_count'] ?? 0)); ?></td>
                         <td>
                             <a href="<?php echo toy_e(toy_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>">수정</a>
@@ -159,7 +159,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>상태<br>
                     <select name="status">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
-                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === $groupField($formBoardGroup, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === $groupField($formBoardGroup, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -175,7 +175,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <label>읽기 정책<br>
                         <select name="group_read_policy">
                             <?php foreach ($allowedReadPolicies as $policy) { ?>
-                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'read_policy', 'public') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'read_policy', 'public') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
                         </select>
                     </label>
@@ -194,7 +194,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <label>쓰기 정책<br>
                         <select name="group_write_policy">
                             <?php foreach ($allowedWritePolicies as $policy) { ?>
-                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'write_policy', 'member') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'write_policy', 'member') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
                         </select>
                     </label>
@@ -213,7 +213,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <label>댓글 정책<br>
                         <select name="group_comment_policy">
                             <?php foreach ($allowedCommentPolicies as $policy) { ?>
-                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'comment_policy', 'member') ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                                <option value="<?php echo toy_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'comment_policy', 'member') ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
                         </select>
                     </label>

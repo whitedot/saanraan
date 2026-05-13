@@ -28,7 +28,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <dd><?php echo toy_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
             <dt>버전</dt>
             <dd><?php echo toy_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
-            <dt>Checksum</dt>
+            <dt>체크섬</dt>
             <dd><code><?php echo toy_e(substr((string) $previousUpdateFailure['checksum'], 0, 16)); ?></code></dd>
             <dt>기록 시각</dt>
             <dd><?php echo toy_e((string) ($previousUpdateFailure['recorded_at'] !== '' ? $previousUpdateFailure['recorded_at'] : '-')); ?></dd>
@@ -93,7 +93,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <th scope="col">버전</th>
                     <th scope="col">SQL 문</th>
                     <th scope="col">파일</th>
-                    <th scope="col">Checksum</th>
+                    <th scope="col">체크섬</th>
                 </tr>
             </thead>
             <tbody>

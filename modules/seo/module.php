@@ -4,7 +4,7 @@ return [
     'name' => 'SEO',
     'version' => '2026.04.002',
     'type' => 'module',
-    'description' => 'SEO output helpers and sitemap endpoint.',
+    'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

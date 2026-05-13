@@ -23,7 +23,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <p>
         <label>결과<br>
             <select name="result">
-                <?php foreach (['' => '전체', 'success' => 'success', 'failure' => 'failure'] as $value => $label) { ?>
+                <?php foreach (['' => '전체', 'success' => '성공', 'failure' => '실패'] as $value => $label) { ?>
                     <option value="<?php echo toy_e((string) $value); ?>"<?php echo $filters['result'] === (string) $value ? ' selected' : ''; ?>>
                         <?php echo toy_e($label); ?>
                     </option>
@@ -69,9 +69,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo toy_e((string) $log['id']); ?></td>
                 <td><?php echo toy_e((string) $log['created_at']); ?></td>
                 <td><?php echo toy_e((string) ($log['actor_account_id'] ?? $log['actor_type'])); ?></td>
-                <td><?php echo toy_e((string) $log['event_type']); ?></td>
-                <td><?php echo toy_e((string) $log['target_type'] . ':' . (string) $log['target_id']); ?></td>
-                <td><?php echo toy_e((string) $log['result']); ?></td>
+                <td><?php echo toy_e(toy_admin_event_type_label((string) $log['event_type'])); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $log['target_type'], 'target_type') . ':' . (string) $log['target_id']); ?></td>
+                <td><?php echo toy_e(toy_admin_code_label((string) $log['result'], 'result')); ?></td>
                 <td><?php echo toy_e((string) $log['ip_address']); ?></td>
                 <td><?php echo toy_e(toy_admin_audit_log_display_message($log)); ?></td>
                 <td><?php echo toy_e(toy_admin_audit_log_display_metadata($log)); ?></td>

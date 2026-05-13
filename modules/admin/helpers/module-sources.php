@@ -573,7 +573,7 @@ function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, 
 {
     $errors = [];
     if (in_array($moduleKey, ['member', 'admin'], true)) {
-        $errors[] = 'member와 admin 기본 모듈은 zip 업로드로 교체할 수 없습니다.';
+        $errors[] = '회원과 관리자 기본 모듈은 zip 업로드로 교체할 수 없습니다.';
     }
 
     if (!is_file($sourceDir . '/module.php')) {

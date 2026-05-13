@@ -115,7 +115,7 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
         $actorIsOwner = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
 
         if ($targetIsOwner && !$actorIsOwner) {
-            $errors[] = 'owner 계정 상태와 세션은 owner만 변경할 수 있습니다.';
+            $errors[] = '소유자 계정 상태와 세션은 소유자만 변경할 수 있습니다.';
         }
 
         if (
@@ -125,7 +125,7 @@ function toy_admin_handle_members_post(PDO $pdo, array $account, array $allowedS
             && (string) $targetAccount['status'] === 'active'
             && toy_admin_active_owner_count($pdo) <= 1
         ) {
-            $errors[] = '마지막 active owner 계정은 비활성화할 수 없습니다.';
+            $errors[] = '마지막 활성 소유자 계정은 비활성화할 수 없습니다.';
         }
     }
 

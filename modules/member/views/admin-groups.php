@@ -74,7 +74,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo toy_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                <?php echo toy_e($status); ?>
+                                <?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -115,7 +115,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo toy_e((string) $group['id']); ?></td>
                         <td><?php echo toy_e((string) $group['group_key']); ?></td>
                         <td><?php echo toy_e((string) $group['title']); ?></td>
-                        <td><?php echo toy_e((string) $group['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $group['status'], 'content_status')); ?></td>
                         <td><?php echo toy_e((string) $group['active_member_count']); ?></td>
                         <td><?php echo toy_e((string) $group['sort_order']); ?></td>
                         <td><a href="<?php echo toy_e(toy_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>">수정</a></td>
@@ -159,7 +159,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                                         <li>
                                             <?php echo toy_e((string) $param['key']); ?>:
                                             <?php echo toy_e((string) $param['label']); ?>
-                                            (<?php echo toy_e((string) $param['type']); ?>)
+                                            (<?php echo toy_e(toy_admin_code_label((string) $param['type'], 'setting_type')); ?>)
                                         </li>
                                     <?php } ?>
                                 </ul>
@@ -200,8 +200,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo toy_e((string) $rule['source_module_key']); ?><br>
                             <?php echo toy_e((string) $rule['rule_key']); ?>
                         </td>
-                        <td><?php echo toy_e((string) $rule['evaluation_policy']); ?></td>
-                        <td><?php echo toy_e((string) $rule['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $rule['evaluation_policy'], 'evaluation_policy')); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $rule['status'], 'content_status')); ?></td>
                         <td><?php echo toy_e((string) ($rule['last_evaluated_at'] ?? '')); ?></td>
                         <td><a href="<?php echo toy_e(toy_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>">수정</a></td>
                     </tr>
@@ -247,7 +247,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>평가 정책<br>
                     <select name="evaluation_policy">
                         <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
-                            <option value="<?php echo toy_e($policy); ?>"<?php echo is_array($editRule) && (string) $editRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo toy_e($policy); ?></option>
+                            <option value="<?php echo toy_e($policy); ?>"<?php echo is_array($editRule) && (string) $editRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($policy, 'evaluation_policy')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -256,7 +256,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>상태<br>
                     <select name="status">
                         <?php foreach ($allowedRuleStatuses as $status) { ?>
-                            <option value="<?php echo toy_e($status); ?>"<?php echo is_array($editRule) && (string) $editRule['status'] === $status ? ' selected' : ''; ?>><?php echo toy_e($status); ?></option>
+                            <option value="<?php echo toy_e($status); ?>"<?php echo is_array($editRule) && (string) $editRule['status'] === $status ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -282,7 +282,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit">재평가</button>
         </form>
 
-        <h3>Batch 재평가</h3>
+        <h3>일괄 재평가</h3>
         <form method="post" action="<?php echo toy_e(toy_url('/admin/member-group-evaluations/batch')); ?>">
             <?php echo toy_csrf_field(); ?>
             <p>
@@ -295,7 +295,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="number" name="limit" min="1" max="200" value="50">
                 </label>
             </p>
-            <button type="submit">Batch 재평가</button>
+            <button type="submit">일괄 재평가</button>
         </form>
     </section>
 <?php } elseif ($memberGroupsPage === 'assignments') { ?>
@@ -351,8 +351,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo toy_e(toy_admin_member_display_name_preview($membership)); ?>
                         </td>
                         <td><?php echo toy_e((string) $membership['group_title']); ?></td>
-                        <td><?php echo toy_e((string) $membership['assignment_type']); ?></td>
-                        <td><?php echo toy_e((string) $membership['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $membership['assignment_type'], 'assignment_type')); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $membership['status'], 'membership_status')); ?></td>
                         <td><?php echo toy_e((string) ($membership['granted_at'] ?? '')); ?></td>
                         <td>
                             <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
@@ -399,7 +399,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo toy_e(toy_admin_member_display_name_preview($log)); ?>
                         </td>
                         <td><?php echo toy_e((string) $log['group_title']); ?></td>
-                        <td><?php echo toy_e((string) $log['event_type']); ?></td>
+                        <td><?php echo toy_e(toy_admin_event_type_label((string) $log['event_type'])); ?></td>
                         <td><?php echo toy_e((string) $log['message']); ?></td>
                         <td><?php echo toy_e((string) $log['created_at']); ?></td>
                     </tr>

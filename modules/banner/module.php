@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'Banner',
+    'name' => '배너',
     'version' => '2026.05.003',
     'type' => 'module',
-    'description' => 'Content banner management module for public output slots.',
+    'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
     'toycore' => [
         'min_version' => '0.1.1',
         'tested_with' => ['0.1.1'],

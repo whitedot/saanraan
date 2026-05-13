@@ -10,7 +10,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <dt>이름</dt>
         <dd><?php echo toy_e((string) ($site['name'] ?? '')); ?></dd>
         <dt>상태</dt>
-        <dd><?php echo toy_e((string) ($site['status'] ?? '')); ?></dd>
+        <dd><?php echo toy_e(toy_admin_code_label((string) ($site['status'] ?? ''), 'site_status')); ?></dd>
         <dt>기본 locale</dt>
         <dd><?php echo toy_e((string) ($site['default_locale'] ?? '')); ?></dd>
     </dl>
@@ -46,10 +46,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <thead>
             <tr>
                 <th>항목</th>
-                <th>Key</th>
+                <th>키</th>
                 <th>상태</th>
                 <th>판정</th>
-                <th>Updated</th>
+                <th>수정일</th>
                 <th>상세</th>
             </tr>
         </thead>
@@ -176,9 +176,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($modules as $module) { ?>
                 <tr>
                     <td><?php echo toy_e((string) $module['module_key']); ?></td>
-                    <td><?php echo toy_e((string) $module['name']); ?></td>
+                    <td><?php echo toy_e(toy_admin_module_name_label((string) $module['name'])); ?></td>
                     <td><?php echo toy_e((string) $module['version']); ?></td>
-                    <td><?php echo toy_e((string) $module['status']); ?></td>
+                    <td><?php echo toy_e(toy_admin_code_label((string) $module['status'], 'module_status')); ?></td>
                 </tr>
             <?php } ?>
         </tbody>
