@@ -240,9 +240,14 @@ function sr_popup_layer_render_basic_stack(array $popups): string
     foreach ($popups as $popup) {
         $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
         $html[] = '<section class="sr-popup-layer" data-sr-popup-layer data-popup-id="' . sr_e((string) $popup['id']) . '" data-cookie-days="' . sr_e((string) $cookieDays) . '">';
-        $html[] = '<button class="sr-popup-layer-close" type="button" data-sr-popup-layer-close aria-label="닫기">x</button>';
         $html[] = '<h2>' . sr_e((string) $popup['title']) . '</h2>';
         $html[] = '<div class="sr-popup-layer-body">' . nl2br(sr_e((string) $popup['body_text'])) . '</div>';
+        $html[] = '<div class="sr-popup-layer-actions">';
+        $html[] = '<button class="sr-popup-layer-close" type="button" data-sr-popup-layer-close>닫기</button>';
+        if ($cookieDays > 0) {
+            $html[] = '<button class="sr-popup-layer-dismiss" type="button" data-sr-popup-layer-dismiss>' . sr_e((string) $cookieDays) . '일 동안 보지 않기</button>';
+        }
+        $html[] = '</div>';
         $html[] = '</section>';
     }
     $html[] = '</div>';
