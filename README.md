@@ -51,7 +51,7 @@ Toycore는 토이 프로젝트처럼 가볍게 시작해 구조를 바꿔 보고
 | 보안 | [Toycore 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
 | 배포와 릴리스 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
 | 검증 | [스모크 테스트 기준](docs/smoke-test.md) |
-| 예제 | [절차형 요청 흐름 예제](examples/procedural-flow-sample.php.txt), [sample_module](examples/sample_module/README.md) |
+| 예제 | [sample_module](examples/sample_module/README.md) |
 
 ## 보안 피드백
 
