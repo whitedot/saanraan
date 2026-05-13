@@ -12,7 +12,7 @@ Toycore의 모듈은 프레임워크 패키지가 아니다. 모듈은 정해진
 - 저가형 웹호스팅에서도 PHP 파일과 SQL만으로 설치 가능할 것
 - 보안 판단을 view나 클라이언트 코드에 미루지 않을 것
 
-모듈 저장 위치와 배포 기준은 [모듈 저장 위치 기준](module-storage-policy.md)을 따른다. Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다. zip 업로드 전 짧은 확인 목록은 [모듈 체크리스트](module-checklist.md)를 사용하고, 파일 교체와 DB 업데이트 흐름은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
+Toycore 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다. 파일 교체, zip 업로드, DB 업데이트 흐름은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
 
 ## 1. 모듈 판단 기준
 

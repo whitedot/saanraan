@@ -15,9 +15,9 @@ Toycore는 토이 프로젝트처럼 가볍게 시작해 구조를 바꿔 보고
 | 언어 | PHP 8.1 이상 |
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
-| 기본 설치 | `core + member + admin` |
+| 기본 설치 | `core + member + admin + privacy` |
 | 모듈 위치 | `modules/{module_key}` |
-| 주요 관리자 화면 | `/admin`, `/admin/modules`, `/admin/updates` |
+| 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅 |
 | 보안 피드백 | `kimminsup@gmail.com` |
 
@@ -46,12 +46,11 @@ Toycore는 토이 프로젝트처럼 가볍게 시작해 구조를 바꿔 보고
 
 | 목적 | 문서 |
 | --- | --- |
-| 설치와 배포 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
-| 검증 | [스모크 테스트 기준](docs/smoke-test.md) |
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
-| 보안 기준 | [Toycore 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md) |
-| 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 저장 위치 기준](docs/module-storage-policy.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
-| 파일 저장 | [파일 저장 S3 연동 기준](docs/file-storage-s3-plan.md) |
+| 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
+| 보안 | [Toycore 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
+| 배포와 릴리스 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
+| 검증 | [스모크 테스트 기준](docs/smoke-test.md) |
 | 예제 | [절차형 요청 흐름 예제](examples/procedural-flow-sample.php.txt), [sample_module](examples/sample_module/README.md) |
 
 ## 보안 피드백
