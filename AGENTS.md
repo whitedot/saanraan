@@ -24,7 +24,6 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Prefer a readable core over a clever core.
 - Make request flow visible by reading files, not hidden behind automatic registration.
 - Prioritize clear module boundaries over adding core features.
-- Do not grow the initial implementation into a full CMS.
 
 ## Core Boundary Rules
 

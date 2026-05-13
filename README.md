@@ -30,7 +30,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | 배포 환경 | 공유호스팅, 단순 PHP 배포 | 상시 worker, 고성능 서버 기능 필수 |
 | 개발 방식 | 파일 기반 요청 흐름 | ORM, DI, middleware 중심 개발 |
 | 화면 구성 | 서버 렌더링, 단순 JS | SPA, headless API-first |
-| 기능 경계 | 도메인별 모듈 분리 | 페이지 빌더, 플러그인 마켓형 CMS |
+| 기능 경계 | 도메인별 모듈 분리 | 단일 코어가 모든 도메인을 직접 소유하는 구조 |
 
 ## 현재 구현 범위
 
@@ -47,6 +47,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 
 | 목적 | 문서 |
 | --- | --- |
+| 문서 구분 | [저장소 문서 기준](docs/README.md) |
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
 | 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
 | 보안 | [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
