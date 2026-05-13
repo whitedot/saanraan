@@ -114,6 +114,7 @@ function toy_admin_audit_log_display_message(array $log): string
         'Sensitive site setting reauthentication failed.' => '민감한 사이트 설정 재인증에 실패했습니다.',
         'Admin role changed.' => '관리자 역할이 변경되었습니다.',
         'Admin settings updated.' => '관리자 설정이 변경되었습니다.',
+        'Admin menu display settings updated.' => '관리자 메뉴 표시 설정이 변경되었습니다.',
         'Privacy request list viewed.' => '개인정보 처리 요청 목록을 조회했습니다.',
         'Module source zip uploaded.' => '모듈 소스 zip이 업로드되었습니다.',
         'Module source zip upload failed.' => '모듈 소스 zip 업로드에 실패했습니다.',

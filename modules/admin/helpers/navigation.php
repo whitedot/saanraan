@@ -20,6 +20,11 @@ function toy_admin_module_menu_items(PDO $pdo): array
 
 function toy_admin_navigation_groups(PDO $pdo): array
 {
+    return toy_admin_apply_menu_overrides($pdo, toy_admin_navigation_source_groups($pdo));
+}
+
+function toy_admin_navigation_source_groups(PDO $pdo): array
+{
     $groupsByCategory = [];
     foreach (array_merge(toy_admin_builtin_menu_groups($pdo), toy_admin_module_menu_groups($pdo)) as $group) {
         if (!is_array($group)) {
@@ -131,6 +136,7 @@ function toy_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '권한', 'path' => '/admin/roles', 'order' => 20],
                 ['label' => '관리자 작업 로그', 'path' => '/admin/audit-logs', 'order' => 30],
                 ['label' => '설정', 'path' => '/admin/settings', 'order' => 40],
+                ['label' => '메뉴', 'path' => '/admin/menu', 'order' => 45],
                 ['label' => '모듈', 'path' => '/admin/modules', 'order' => 50],
                 ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 60],
                 ['label' => '보관 정리', 'path' => '/admin/retention', 'order' => 70],
@@ -337,4 +343,350 @@ function toy_admin_default_menu_category_order(string $category): int
     ];
 
     return (int) ($orders[$category] ?? 1000);
+}
+
+function toy_admin_menu_overrides(PDO $pdo): array
+{
+    try {
+        $stmt = $pdo->query('SELECT scope, target_key, sort_order, is_hidden FROM toy_admin_menu_overrides');
+    } catch (PDOException $exception) {
+        if ((string) $exception->getCode() === '42S02') {
+            return [];
+        }
+
+        throw $exception;
+    }
+
+    $overrides = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $scope = (string) ($row['scope'] ?? '');
+        $targetKey = (string) ($row['target_key'] ?? '');
+        if (!in_array($scope, ['category', 'group', 'item'], true) || $targetKey === '') {
+            continue;
+        }
+
+        $overrides[$scope][$targetKey] = [
+            'sort_order' => (int) ($row['sort_order'] ?? 1000),
+            'is_hidden' => !empty($row['is_hidden']),
+        ];
+    }
+
+    return $overrides;
+}
+
+function toy_admin_apply_menu_overrides(PDO $pdo, array $groups): array
+{
+    $overrides = toy_admin_menu_overrides($pdo);
+    $visibleGroups = [];
+
+    foreach ($groups as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $categoryKey = (string) ($group['category'] ?? '');
+        $categoryOverride = $overrides['category'][$categoryKey] ?? null;
+        if (is_array($categoryOverride)) {
+            if (!empty($categoryOverride['is_hidden'])) {
+                continue;
+            }
+
+            $group['order'] = (int) $categoryOverride['sort_order'];
+        }
+
+        $moduleGroups = [];
+        foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleKey = (string) ($moduleGroup['module_key'] ?? '');
+            $groupOverride = $overrides['group'][$moduleKey] ?? null;
+            if (is_array($groupOverride)) {
+                if (!empty($groupOverride['is_hidden'])) {
+                    continue;
+                }
+
+                $moduleGroup['order'] = (int) $groupOverride['sort_order'];
+            }
+
+            $items = [];
+            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $path = (string) ($item['path'] ?? '');
+                $itemKey = toy_admin_menu_item_target_key($moduleKey, $path);
+                $itemOverride = $overrides['item'][$itemKey] ?? null;
+                if (is_array($itemOverride)) {
+                    if (!empty($itemOverride['is_hidden'])) {
+                        continue;
+                    }
+
+                    $item['order'] = (int) $itemOverride['sort_order'];
+                }
+
+                $items[] = $item;
+            }
+
+            if ($items === []) {
+                continue;
+            }
+
+            usort($items, function (array $left, array $right): int {
+                return [$left['order'], $left['label'], $left['path']] <=> [$right['order'], $right['label'], $right['path']];
+            });
+            $moduleGroup['items'] = $items;
+            $moduleGroups[] = $moduleGroup;
+        }
+
+        if ($moduleGroups === []) {
+            continue;
+        }
+
+        usort($moduleGroups, function (array $left, array $right): int {
+            return [$left['order'], $left['label'], $left['module_key']] <=> [$right['order'], $right['label'], $right['module_key']];
+        });
+        $group['module_groups'] = $moduleGroups;
+
+        $items = [];
+        foreach ($moduleGroups as $moduleGroup) {
+            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+                $items[] = $item;
+            }
+        }
+        $group['items'] = $items;
+        $visibleGroups[] = $group;
+    }
+
+    usort($visibleGroups, function (array $left, array $right): int {
+        return [$left['order'], $left['label']] <=> [$right['order'], $right['label']];
+    });
+
+    return $visibleGroups;
+}
+
+function toy_admin_menu_item_target_key(string $moduleKey, string $path): string
+{
+    return $moduleKey . ':' . $path;
+}
+
+function toy_admin_menu_override_form_rows(PDO $pdo): array
+{
+    $overrides = toy_admin_menu_overrides($pdo);
+    $rows = [];
+
+    foreach (toy_admin_navigation_source_groups($pdo) as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $categoryKey = (string) ($group['category'] ?? '');
+        $categoryOrder = (int) ($group['order'] ?? 1000);
+        $categoryOverride = $overrides['category'][$categoryKey] ?? [];
+        $rows[] = toy_admin_menu_override_form_row(
+            'category',
+            $categoryKey,
+            (string) ($group['label'] ?? $categoryKey),
+            $categoryOrder,
+            $categoryOverride
+        );
+
+        foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleKey = (string) ($moduleGroup['module_key'] ?? '');
+            $groupOrder = (int) ($moduleGroup['order'] ?? 1000);
+            $groupOverride = $overrides['group'][$moduleKey] ?? [];
+            $rows[] = toy_admin_menu_override_form_row(
+                'group',
+                $moduleKey,
+                (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey),
+                $groupOrder,
+                $groupOverride
+            );
+
+            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $path = (string) ($item['path'] ?? '');
+                $targetKey = toy_admin_menu_item_target_key($moduleKey, $path);
+                $itemOrder = (int) ($item['order'] ?? 1000);
+                $itemOverride = $overrides['item'][$targetKey] ?? [];
+                $rows[] = toy_admin_menu_override_form_row(
+                    'item',
+                    $targetKey,
+                    (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey) . ' / ' . (string) ($item['label'] ?? $path),
+                    $itemOrder,
+                    $itemOverride
+                );
+            }
+        }
+    }
+
+    return $rows;
+}
+
+function toy_admin_menu_override_form_row(string $scope, string $targetKey, string $label, int $defaultOrder, array $override): array
+{
+    $sortOrder = array_key_exists('sort_order', $override) ? (int) $override['sort_order'] : $defaultOrder;
+
+    return [
+        'scope' => $scope,
+        'target_key' => $targetKey,
+        'form_key' => $scope . '|' . $targetKey,
+        'label' => $label,
+        'default_order' => $defaultOrder,
+        'sort_order' => $sortOrder,
+        'is_hidden' => !empty($override['is_hidden']),
+    ];
+}
+
+function toy_admin_handle_menu_post(PDO $pdo, array $account): array
+{
+    $intent = toy_post_string('intent', 40);
+    if (!in_array($intent, ['save_menu_overrides', 'reset_menu_overrides'], true)) {
+        return toy_admin_action_result(['메뉴 작업 값이 올바르지 않습니다.'], '');
+    }
+
+    if ($intent === 'reset_menu_overrides') {
+        toy_admin_ensure_menu_overrides_table($pdo);
+        $pdo->exec('DELETE FROM toy_admin_menu_overrides');
+        toy_admin_log_menu_override_change($pdo, $account, 'reset');
+        return toy_admin_action_result([], '관리자 메뉴 표시 설정을 초기화했습니다.');
+    }
+
+    $allowedTargets = [];
+    foreach (toy_admin_menu_override_form_rows($pdo) as $row) {
+        $allowedTargets[(string) $row['form_key']] = $row;
+    }
+
+    $postedOrders = $_POST['sort_order'] ?? [];
+    if (!is_array($postedOrders)) {
+        return toy_admin_action_result(['메뉴 순서 값이 올바르지 않습니다.'], '');
+    }
+
+    $postedHidden = $_POST['is_hidden'] ?? [];
+    $hiddenMap = [];
+    if (is_array($postedHidden)) {
+        foreach ($postedHidden as $hiddenKey) {
+            if (is_string($hiddenKey)) {
+                $hiddenMap[$hiddenKey] = true;
+            }
+        }
+    }
+
+    $errors = [];
+    $changes = [];
+    foreach ($allowedTargets as $formKey => $row) {
+        $rawOrder = $postedOrders[$formKey] ?? '';
+        if (!is_string($rawOrder) && !is_int($rawOrder)) {
+            $errors[] = '메뉴 순서 값이 올바르지 않습니다.';
+            continue;
+        }
+
+        $rawOrder = trim((string) $rawOrder);
+        if (preg_match('/\A-?[0-9]{1,6}\z/', $rawOrder) !== 1) {
+            $errors[] = '메뉴 순서는 숫자로 입력하세요.';
+            continue;
+        }
+
+        $sortOrder = (int) $rawOrder;
+        $isHidden = !empty($hiddenMap[$formKey]);
+        $changes[] = [
+            'scope' => (string) $row['scope'],
+            'target_key' => (string) $row['target_key'],
+            'default_order' => (int) $row['default_order'],
+            'sort_order' => $sortOrder,
+            'is_hidden' => $isHidden,
+        ];
+    }
+
+    if ($errors !== []) {
+        return toy_admin_action_result(array_values(array_unique($errors)), '');
+    }
+
+    $now = toy_now();
+    toy_admin_ensure_menu_overrides_table($pdo);
+    foreach ($changes as $change) {
+        if ((int) $change['sort_order'] === (int) $change['default_order'] && empty($change['is_hidden'])) {
+            toy_admin_delete_menu_override($pdo, (string) $change['scope'], (string) $change['target_key']);
+            continue;
+        }
+
+        toy_admin_save_menu_override(
+            $pdo,
+            (string) $change['scope'],
+            (string) $change['target_key'],
+            (int) $change['sort_order'],
+            !empty($change['is_hidden']),
+            $now
+        );
+    }
+
+    toy_admin_log_menu_override_change($pdo, $account, 'save');
+    return toy_admin_action_result([], '관리자 메뉴 표시 설정을 저장했습니다.');
+}
+
+function toy_admin_save_menu_override(PDO $pdo, string $scope, string $targetKey, int $sortOrder, bool $isHidden, string $now): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO toy_admin_menu_overrides (scope, target_key, sort_order, is_hidden, updated_at)
+         VALUES (:scope, :target_key, :sort_order, :is_hidden, :updated_at)
+         ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order), is_hidden = VALUES(is_hidden), updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'scope' => $scope,
+        'target_key' => $targetKey,
+        'sort_order' => $sortOrder,
+        'is_hidden' => $isHidden ? 1 : 0,
+        'updated_at' => $now,
+    ]);
+}
+
+function toy_admin_ensure_menu_overrides_table(PDO $pdo): void
+{
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS toy_admin_menu_overrides (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            scope VARCHAR(20) NOT NULL,
+            target_key VARCHAR(190) NOT NULL,
+            sort_order INT NOT NULL DEFAULT 1000,
+            is_hidden TINYINT(1) NOT NULL DEFAULT 0,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY uq_toy_admin_menu_overrides_target (scope, target_key),
+            KEY idx_toy_admin_menu_overrides_scope_order (scope, sort_order)
+        )'
+    );
+}
+
+function toy_admin_delete_menu_override(PDO $pdo, string $scope, string $targetKey): void
+{
+    $stmt = $pdo->prepare('DELETE FROM toy_admin_menu_overrides WHERE scope = :scope AND target_key = :target_key');
+    $stmt->execute([
+        'scope' => $scope,
+        'target_key' => $targetKey,
+    ]);
+}
+
+function toy_admin_log_menu_override_change(PDO $pdo, array $account, string $action): void
+{
+    toy_audit_log($pdo, [
+        'actor_account_id' => (int) ($account['id'] ?? 0),
+        'actor_type' => 'admin',
+        'event_type' => 'admin.menu.updated',
+        'target_type' => 'module',
+        'target_id' => 'admin',
+        'result' => 'success',
+        'message' => 'Admin menu display settings updated.',
+        'metadata' => [
+            'action' => $action,
+        ],
+    ]);
 }

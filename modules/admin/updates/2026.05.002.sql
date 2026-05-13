@@ -1,12 +1,3 @@
-CREATE TABLE IF NOT EXISTS toy_admin_account_roles (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    account_id BIGINT UNSIGNED NOT NULL,
-    role_key VARCHAR(40) NOT NULL,
-    created_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_admin_account_roles (account_id, role_key)
-);
-
 CREATE TABLE IF NOT EXISTS toy_admin_menu_overrides (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     scope VARCHAR(20) NOT NULL,
@@ -18,3 +9,8 @@ CREATE TABLE IF NOT EXISTS toy_admin_menu_overrides (
     UNIQUE KEY uq_toy_admin_menu_overrides_target (scope, target_key),
     KEY idx_toy_admin_menu_overrides_scope_order (scope, sort_order)
 );
+
+UPDATE toy_modules
+SET version = '2026.05.002',
+    updated_at = NOW()
+WHERE module_key = 'admin';

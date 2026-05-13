@@ -712,6 +712,8 @@ $postsPerPage = (int) toy_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 `admin.category`가 없으면 관리자 모듈은 `기타` 자산으로 묶는다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
 
+운영자가 `/admin/menu`에서 저장한 표시 순서와 숨김 여부는 이 기본 선언 위에 마지막으로 적용된다. 이 오버라이드는 관리자 내비게이션 표시 정책일 뿐이며, 모듈 계약 파일이나 실제 route 소유권을 바꾸지 않는다.
+
 ```php
 <?php
 

@@ -9,10 +9,10 @@ return [
         'modules' => ['member', 'admin'],
     ],
     'admin' => [
-        'category' => 'privacy',
-        'category_label' => '개인정보',
-        'category_order' => 45,
-        'menu_order' => 10,
+        'category' => 'operation',
+        'category_label' => '운영',
+        'category_order' => 40,
+        'menu_order' => 20,
     ],
     'toycore' => [
         'min_version' => '0.1.1',

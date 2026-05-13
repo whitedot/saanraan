@@ -140,6 +140,11 @@ function toy_admin_code_label(string $value, string $context = ''): string
             'admin' => '관리자',
             'manager' => '매니저',
         ],
+        'admin_menu_scope' => [
+            'category' => '분류',
+            'group' => '모듈',
+            'item' => '항목',
+        ],
         'target_type' => [
             'member_account' => '회원 계정',
             'module' => '모듈',
@@ -190,6 +195,7 @@ function toy_admin_event_type_label(string $eventType): string
         'site.setting.saved' => '사이트 설정 저장',
         'site.setting.deleted' => '사이트 설정 삭제',
         'admin.settings.updated' => '관리자 설정 변경',
+        'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 역할 변경',
     ];
     if (isset($labels[$eventType])) {
