@@ -11,9 +11,9 @@ function sr_admin_code_label(string $value, string $context = ''): string
 {
     $contextLabels = [
         'member_status' => [
-            'active' => '활성',
+            'active' => '정상',
             'pending' => '대기',
-            'suspended' => '정지',
+            'suspended' => '차단',
             'withdrawn' => '탈퇴',
             'anonymized' => '익명화',
         ],

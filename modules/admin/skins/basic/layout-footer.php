@@ -1,3 +1,4 @@
+            <?php sr_admin_flush_content_capture(); ?>
         </div>
 
         <noscript>

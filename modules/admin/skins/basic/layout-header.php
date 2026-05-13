@@ -41,7 +41,6 @@ if (isset($pdo) && $pdo instanceof PDO) {
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
-    <?php echo sr_stylesheet_tag(); ?>
     <?php echo sr_admin_stylesheet_tag(); ?>
 </head>
 <body>
@@ -136,31 +135,33 @@ if (isset($pdo) && $pdo instanceof PDO) {
             <div class="gnb_menu_scroll_wrap admin-sidebar-scroll-wrap">
                 <div class="gnb_menu_scroll admin-sidebar-scroll" id="gnbMenuScroll">
                     <ul class="admin-nav-list" id="adminNavList">
-                        <?php foreach ($adminShell['navigation_items'] as $navItem) { ?>
-                            <li class="admin-nav-item<?php echo sr_e((string) $navItem['item_class']); ?>">
-                                <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
-                                    <span class="admin-nav-trigger-main">
-                                        <svg class="admin-nav-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                            <use href="#admin-menu-icon-<?php echo sr_e((string) $navItem['icon_id']); ?>"></use>
-                                        </svg>
-                                        <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
-                                    </span>
-                                    <span class="admin-nav-caret" aria-hidden="true">
-                                        <svg class="admin-nav-caret-icon" focusable="false" viewBox="0 0 24 24">
-                                            <use href="#admin-menu-icon-chevron-down"></use>
-                                        </svg>
-                                    </span>
-                                </button>
-                                <div class="admin-nav-panel<?php echo sr_e((string) $navItem['panel_class']); ?>">
-                                    <ul class="admin-nav-sub-list">
-                                        <?php foreach ($navItem['sub_items'] as $subItem) { ?>
-                                            <li class="admin-nav-sub-item<?php echo sr_e((string) $subItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $subItem['menu_code']); ?>">
-                                                <a href="<?php echo sr_e((string) $subItem['url']); ?>"><?php echo sr_e((string) $subItem['title']); ?></a>
-                                            </li>
-                                        <?php } ?>
-                                    </ul>
-                                </div>
-                            </li>
+                        <?php foreach ($adminShell['navigation_items'] as $navSection) { ?>
+                            <?php foreach ($navSection['groups'] as $navItem) { ?>
+                                <li class="admin-nav-item<?php echo sr_e((string) $navItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $navItem['menu_code']); ?>">
+                                    <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
+                                        <span class="admin-nav-trigger-main">
+                                            <svg class="admin-nav-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                <use href="#admin-menu-icon-<?php echo sr_e((string) $navItem['icon_id']); ?>"></use>
+                                            </svg>
+                                            <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
+                                        </span>
+                                        <span class="admin-nav-caret" aria-hidden="true">
+                                            <svg class="admin-nav-caret-icon" focusable="false" viewBox="0 0 24 24">
+                                                <use href="#admin-menu-icon-chevron-down"></use>
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <div class="admin-nav-panel<?php echo sr_e((string) $navItem['panel_class']); ?>">
+                                        <ul class="admin-nav-sub-list">
+                                            <?php foreach ($navItem['sub_items'] as $subItem) { ?>
+                                                <li class="admin-nav-sub-item<?php echo sr_e((string) $subItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $subItem['menu_code']); ?>">
+                                                    <a href="<?php echo sr_e((string) $subItem['url']); ?>"><?php echo sr_e((string) $subItem['title']); ?></a>
+                                                </li>
+                                            <?php } ?>
+                                        </ul>
+                                    </div>
+                                </li>
+                            <?php } ?>
                         <?php } ?>
                     </ul>
                 </div>
@@ -231,3 +232,4 @@ if (isset($pdo) && $pdo instanceof PDO) {
             <?php if ((string) $adminShell['page_subtitle'] !== '') { ?>
                 <p id="container_subtitle" class="admin-content-subtitle"><?php echo sr_e((string) $adminShell['page_subtitle']); ?></p>
             <?php } ?>
+            <?php sr_admin_begin_content_capture(); ?>
