@@ -6,8 +6,8 @@ return [
     'type' => 'module',
     'description' => '회원 예치금 잔액과 거래 장부 모듈입니다.',
     'admin' => [
-        'category' => 'asset',
-        'category_label' => '자산',
+        'category' => 'member_asset',
+        'category_label' => '회원 자산',
         'category_order' => 50,
         'menu_order' => 20,
     ],

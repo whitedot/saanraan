@@ -138,7 +138,7 @@ function toy_admin_builtin_menu_groups(PDO $pdo): array
         ],
         [
             'module_key' => 'admin',
-            'label' => '관리자',
+            'label' => '회원 계정',
             'admin_category' => 'member',
             'admin_category_label' => '회원',
             'admin_category_order' => 10,
@@ -327,6 +327,7 @@ function toy_admin_default_menu_category_label(string $category): string
         'site' => '사이트',
         'content' => '콘텐츠',
         'operation' => '운영',
+        'member_asset' => '회원 자산',
         'asset' => '자산',
         'other' => '기타',
     ];
@@ -342,7 +343,8 @@ function toy_admin_default_menu_category_order(string $category): int
         'site' => 20,
         'content' => 30,
         'operation' => 40,
-        'asset' => 50,
+        'member_asset' => 50,
+        'asset' => 60,
         'other' => 1000,
     ];
 
