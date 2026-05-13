@@ -6,9 +6,9 @@ return [
     'type' => 'module',
     'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
     'admin' => [
-        'category' => 'site',
-        'category_label' => '사이트',
-        'category_order' => 20,
+        'category' => 'content',
+        'category_label' => '콘텐츠',
+        'category_order' => 30,
         'menu_order' => 10,
     ],
     'toycore' => [

@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
     'admin' => [
-        'category' => 'site',
-        'category_label' => '사이트',
-        'category_order' => 20,
-        'menu_order' => 20,
+        'category' => 'content',
+        'category_label' => '콘텐츠',
+        'category_order' => 30,
+        'menu_order' => 40,
     ],
     'toycore' => [
         'min_version' => '0.1.1',
