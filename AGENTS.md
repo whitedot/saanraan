@@ -49,6 +49,13 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Prefer closing PHP and writing normal HTML for view output, using small `<?php echo ...; ?>` blocks only where values are needed.
 - Escape output before printing user-controlled or variable values.
 
+## Documentation
+
+- When changing behavior, features, database schema, admin screens, module contracts, request flow, security/privacy policy, deployment assumptions, or operational procedures, update the relevant GitHub Wiki pages in the same work item.
+- At minimum, check whether the change affects the DB specification, administrator screen field guide, developer guides, request flow, module development guide, security/privacy guide, testing guide, deployment guide, or troubleshooting guide.
+- If a code change intentionally does not require a Wiki update, mention that decision in the final response or commit body when useful.
+- Keep repository docs and Wiki docs aligned with the current implementation rather than the initial project plan.
+
 ## Commit Messages
 
 - Write commit messages in Korean.
