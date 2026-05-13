@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
-require_once TOY_ROOT . '/modules/community/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 $errors = [];
 $notice = '';
-$allowedPostStatuses = toy_community_post_statuses();
-$allowedCommentStatuses = toy_community_comment_statuses();
+$allowedPostStatuses = sr_community_post_statuses();
+$allowedCommentStatuses = sr_community_comment_statuses();
 
-if (toy_request_method() === 'POST') {
-    toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
-    $status = toy_post_string('status', 30);
+    $intent = sr_post_string('intent', 40);
+    $status = sr_post_string('status', 30);
 
     if ($intent === 'post_status') {
-        $postIdValue = toy_post_string('post_id', 20);
+        $postIdValue = sr_post_string('post_id', 20);
         $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
-        $post = toy_community_admin_post_by_id($pdo, $postId);
+        $post = sr_community_admin_post_by_id($pdo, $postId);
 
         if (!is_array($post)) {
             $errors[] = '게시글을 찾을 수 없습니다.';
@@ -35,18 +35,18 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($post)) {
-            toy_community_update_post_status($pdo, $postId, $status);
-            $groupEvaluationSummary = toy_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
+            sr_community_update_post_status($pdo, $postId, $status);
+            $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
                 'source_module_key' => 'community',
             ]);
-            $levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
+            $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
             $updatedAttachmentCount = 0;
             if (in_array($status, ['hidden', 'deleted'], true)) {
-                $updatedAttachmentCount = toy_community_update_post_attachments_status($pdo, $postId, $status);
+                $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status);
             } elseif ($status === 'published' && (string) $post['status'] === 'hidden') {
-                $updatedAttachmentCount = toy_community_restore_hidden_post_attachments($pdo, $postId);
+                $updatedAttachmentCount = sr_community_restore_hidden_post_attachments($pdo, $postId);
             }
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'community.post.status_updated',
@@ -60,14 +60,14 @@ if (toy_request_method() === 'POST') {
                     'updated_attachment_count' => $updatedAttachmentCount,
                     'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
                     'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-                ], toy_community_member_group_evaluation_metadata($groupEvaluationSummary)),
+                ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
             ]);
             $notice = '게시글 상태를 변경했습니다.';
         }
     } elseif ($intent === 'comment_status') {
-        $commentIdValue = toy_post_string('comment_id', 20);
+        $commentIdValue = sr_post_string('comment_id', 20);
         $commentId = preg_match('/\A[1-9][0-9]*\z/', $commentIdValue) === 1 ? (int) $commentIdValue : 0;
-        $comment = toy_community_admin_comment_by_id($pdo, $commentId);
+        $comment = sr_community_admin_comment_by_id($pdo, $commentId);
 
         if (!is_array($comment)) {
             $errors[] = '댓글을 찾을 수 없습니다.';
@@ -78,9 +78,9 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($comment)) {
-            toy_community_update_comment_status($pdo, $commentId, $status);
-            $levelSnapshot = toy_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
-            toy_audit_log($pdo, [
+            sr_community_update_comment_status($pdo, $commentId, $status);
+            $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'community.comment.status_updated',
@@ -103,7 +103,7 @@ if (toy_request_method() === 'POST') {
     }
 }
 
-$posts = toy_community_admin_posts($pdo, 100);
-$comments = toy_community_admin_comments($pdo, 100);
+$posts = sr_community_admin_posts($pdo, 100);
+$comments = sr_community_admin_comments($pdo, 100);
 
-include TOY_ROOT . '/modules/community/views/admin-posts.php';
+include SR_ROOT . '/modules/community/views/admin-posts.php';

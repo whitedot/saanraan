@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-function toy_smoke_argument(array $argv, int $index, string $environmentKey): string
+function sr_smoke_argument(array $argv, int $index, string $environmentKey): string
 {
     $argument = (string) ($argv[$index] ?? '');
     if ($argument !== '') {
@@ -14,12 +14,12 @@ function toy_smoke_argument(array $argv, int $index, string $environmentKey): st
     return is_string($environmentValue) ? $environmentValue : '';
 }
 
-$baseUrl = rtrim(toy_smoke_argument($argv, 1, 'TOY_SMOKE_BASE_URL'), '/');
+$baseUrl = rtrim(sr_smoke_argument($argv, 1, 'SR_SMOKE_BASE_URL'), '/');
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl)) {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: TOY_SMOKE_BASE_URL TOY_SMOKE_EXPECT_COMMUNITY=1\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: SR_SMOKE_BASE_URL SR_SMOKE_EXPECT_COMMUNITY=1\n");
     exit(2);
 }
-$expectCommunity = getenv('TOY_SMOKE_EXPECT_COMMUNITY') === '1';
+$expectCommunity = getenv('SR_SMOKE_EXPECT_COMMUNITY') === '1';
 
 $checks = [
     [
@@ -207,24 +207,24 @@ $checks = [
     ],
     [
         'label' => 'stylesheet',
-        'path' => '/assets/toycore.css',
+        'path' => '/assets/saanraan.css',
         'allowed_statuses' => [200],
         'must_contain' => ['body'],
     ],
     [
         'label' => 'database SQL protection',
         'path' => '/database/core/install.sql',
-        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_site_settings'],
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS sr_site_settings'],
     ],
     [
         'label' => 'module SQL protection',
         'path' => '/modules/member/install.sql',
-        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_member_accounts'],
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS sr_member_accounts'],
     ],
     [
         'label' => 'community SQL protection',
         'path' => '/modules/community/install.sql',
-        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS toy_community_boards'],
+        'must_not_expose' => ['CREATE TABLE IF NOT EXISTS sr_community_boards'],
     ],
     [
         'label' => 'community metadata protection',
@@ -234,7 +234,7 @@ $checks = [
     [
         'label' => 'core PHP protection',
         'path' => '/core/helpers.php',
-        'must_not_expose' => ['require_once TOY_ROOT'],
+        'must_not_expose' => ['require_once SR_ROOT'],
     ],
     [
         'label' => 'config directory protection',
@@ -254,7 +254,7 @@ $checks = [
     [
         'label' => 'examples protection',
         'path' => '/examples/sample_module/module.php',
-        'must_not_expose' => ['Minimal sample module for Toycore extension contracts.'],
+        'must_not_expose' => ['Minimal sample module for Saanraan extension contracts.'],
     ],
     [
         'label' => 'agent instructions protection',
@@ -264,12 +264,12 @@ $checks = [
     [
         'label' => 'readme protection',
         'path' => '/README.md',
-        'must_not_expose' => ['# Toycore'],
+        'must_not_expose' => ['# Saanraan'],
     ],
     [
         'label' => 'tooling protection',
         'path' => '/.tools/bin/check.php',
-        'must_not_expose' => ['toy_check_run'],
+        'must_not_expose' => ['sr_check_run'],
     ],
     [
         'label' => 'repository metadata protection',
@@ -300,7 +300,7 @@ if ($expectCommunity) {
     unset($check);
 }
 
-function toy_smoke_fetch(string $url, string $method): array
+function sr_smoke_fetch(string $url, string $method): array
 {
     $context = stream_context_create([
         'http' => [
@@ -309,7 +309,7 @@ function toy_smoke_fetch(string $url, string $method): array
             'ignore_errors' => true,
             'follow_location' => 0,
             'max_redirects' => 0,
-            'header' => "User-Agent: Toycore-Smoke-Check\r\n",
+            'header' => "User-Agent: Saanraan-Smoke-Check\r\n",
         ],
     ]);
 
@@ -339,7 +339,7 @@ function toy_smoke_fetch(string $url, string $method): array
     ];
 }
 
-function toy_smoke_location_path(string $location): string
+function sr_smoke_location_path(string $location): string
 {
     if ($location === '') {
         return '';
@@ -358,14 +358,14 @@ function toy_smoke_location_path(string $location): string
     return $path;
 }
 
-function toy_smoke_is_install_entry(int $status, string $body): bool
+function sr_smoke_is_install_entry(int $status, string $body): bool
 {
     return $status === 200
-        && str_contains($body, '<title>Toycore 설치</title>')
-        && str_contains($body, 'Toycore 실행에 필요한 DB 연결');
+        && str_contains($body, '<title>Saanraan 설치</title>')
+        && str_contains($body, 'Saanraan 실행에 필요한 DB 연결');
 }
 
-function toy_smoke_is_install_csrf_error(int $status, string $body): bool
+function sr_smoke_is_install_csrf_error(int $status, string $body): bool
 {
     return $status === 400
         && str_contains($body, '<title>400</title>')
@@ -377,18 +377,18 @@ $isInstallMode = false;
 foreach ($checks as $check) {
     $url = $baseUrl . (string) $check['path'];
     $method = strtoupper((string) ($check['method'] ?? 'GET'));
-    $response = toy_smoke_fetch($url, $method);
+    $response = sr_smoke_fetch($url, $method);
     $status = (int) $response['status'];
     $body = (string) $response['body'];
-    $locationPath = toy_smoke_location_path((string) $response['location']);
+    $locationPath = sr_smoke_location_path((string) $response['location']);
     $label = (string) $check['label'];
-    $isInstallEntry = toy_smoke_is_install_entry($status, $body);
+    $isInstallEntry = sr_smoke_is_install_entry($status, $body);
     if ($isInstallEntry) {
         $isInstallMode = true;
     }
     $isInstallPostCsrfError = $isInstallMode
         && $method === 'POST'
-        && toy_smoke_is_install_csrf_error($status, $body);
+        && sr_smoke_is_install_csrf_error($status, $body);
     $checkErrors = [];
 
     if (
@@ -401,7 +401,7 @@ foreach ($checks as $check) {
     }
 
     if (!empty($check['expect_installed_route']) && $status === 404) {
-        $checkErrors[] = $label . ' returned 404 while TOY_SMOKE_EXPECT_COMMUNITY=1 for ' . $url;
+        $checkErrors[] = $label . ' returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1 for ' . $url;
     }
 
     foreach ($check['must_contain'] ?? [] as $needle) {
@@ -458,11 +458,11 @@ foreach ($checks as $check) {
 }
 
 if ($errors !== []) {
-    fwrite(STDERR, "toycore HTTP smoke checks failed:\n");
+    fwrite(STDERR, "saanraan HTTP smoke checks failed:\n");
     foreach ($errors as $error) {
         fwrite(STDERR, '- ' . $error . "\n");
     }
     exit(1);
 }
 
-echo "toycore HTTP smoke checks completed.\n";
+echo "saanraan HTTP smoke checks completed.\n";

@@ -1,28 +1,28 @@
 <?php
 
 $adminPageTitle = '회원 관리';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
-<form method="get" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
     <label>상태<br>
         <select name="status">
             <option value="">전체</option>
             <?php foreach ($allowedStatuses as $status) { ?>
-                <option value="<?php echo toy_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                    <?php echo toy_e(toy_admin_code_label($status, 'member_status')); ?>
+                <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                    <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
                 </option>
             <?php } ?>
         </select>
@@ -53,23 +53,23 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php foreach ($members as $member) { ?>
             <tr>
-                <td><?php echo toy_e((string) $member['account_public_hash']); ?></td>
-                <td><?php echo toy_e(toy_admin_member_email_display($member)); ?></td>
-                <td><?php echo toy_e(toy_admin_member_display_name_preview($member)); ?></td>
-                <td><?php echo toy_e(toy_admin_code_label((string) $member['status'], 'member_status')); ?></td>
-                <td><?php echo toy_e((string) ($member['email_verified_at'] ?? '')); ?></td>
-                <td><?php echo toy_e((string) ($member['last_login_at'] ?? '')); ?></td>
-                <td><?php echo toy_e((string) $member['active_session_count']); ?></td>
-                <td><?php echo toy_e((string) $member['created_at']); ?></td>
+                <td><?php echo sr_e((string) $member['account_public_hash']); ?></td>
+                <td><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
+                <td><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
+                <td><?php echo sr_e(sr_admin_code_label((string) $member['status'], 'member_status')); ?></td>
+                <td><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>
+                <td><?php echo sr_e((string) ($member['last_login_at'] ?? '')); ?></td>
+                <td><?php echo sr_e((string) $member['active_session_count']); ?></td>
+                <td><?php echo sr_e((string) $member['created_at']); ?></td>
                 <td>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
-                        <?php echo toy_csrf_field(); ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
+                        <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="status">
-                        <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
+                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
-                                <option value="<?php echo toy_e($status); ?>"<?php echo $member['status'] === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e(toy_admin_code_label($status, 'member_status')); ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo $member['status'] === $status ? ' selected' : ''; ?>>
+                                    <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -77,10 +77,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/members')); ?>">
-                        <?php echo toy_csrf_field(); ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
+                        <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="revoke_sessions">
-                        <input type="hidden" name="account_id" value="<?php echo toy_e((string) $member['id']); ?>">
+                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                         <button type="submit">폐기</button>
                     </form>
                 </td>
@@ -89,4 +89,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </tbody>
 </table>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

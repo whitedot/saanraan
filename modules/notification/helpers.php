@@ -2,51 +2,51 @@
 
 declare(strict_types=1);
 
-function toy_notification_clean_single_line(string $value, int $maxLength): string
+function sr_notification_clean_single_line(string $value, int $maxLength): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
 }
 
-function toy_notification_clean_text(string $value, int $maxLength): string
+function sr_notification_clean_text(string $value, int $maxLength): string
 {
     $value = trim($value);
     return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
 }
 
-function toy_notification_clean_link_url(string $value): string
+function sr_notification_clean_link_url(string $value): string
 {
     $value = trim($value);
-    if ($value === '' || toy_is_safe_relative_url($value) || toy_is_http_url($value)) {
+    if ($value === '' || sr_is_safe_relative_url($value) || sr_is_http_url($value)) {
         return $value;
     }
 
     return '';
 }
 
-function toy_notification_link_attributes(string $url): string
+function sr_notification_link_attributes(string $url): string
 {
-    $url = toy_notification_clean_link_url($url);
+    $url = sr_notification_clean_link_url($url);
     if ($url === '') {
         return '';
     }
 
-    $attributes = ' href="' . toy_e($url) . '"';
-    if (toy_is_http_url($url)) {
+    $attributes = ' href="' . sr_e($url) . '"';
+    if (sr_is_http_url($url)) {
         $attributes .= ' target="_blank" rel="noopener noreferrer"';
     }
 
     return $attributes;
 }
 
-function toy_notification_allowed_channels(): array
+function sr_notification_allowed_channels(): array
 {
     return ['site', 'email', 'sms', 'alimtalk'];
 }
 
-function toy_notification_normalize_channels(array $channels): array
+function sr_notification_normalize_channels(array $channels): array
 {
-    $allowedChannels = toy_notification_allowed_channels();
+    $allowedChannels = sr_notification_allowed_channels();
     $normalized = [];
 
     foreach ($channels as $channel) {
@@ -59,11 +59,11 @@ function toy_notification_normalize_channels(array $channels): array
     return array_values($normalized);
 }
 
-function toy_notification_external_channels(array $channels): array
+function sr_notification_external_channels(array $channels): array
 {
     $externalChannels = [];
 
-    foreach (toy_notification_normalize_channels($channels) as $channel) {
+    foreach (sr_notification_normalize_channels($channels) as $channel) {
         if ($channel !== 'site') {
             $externalChannels[] = $channel;
         }
@@ -72,7 +72,7 @@ function toy_notification_external_channels(array $channels): array
     return $externalChannels;
 }
 
-function toy_notification_create(PDO $pdo, array $data): int
+function sr_notification_create(PDO $pdo, array $data): int
 {
     $audience = (string) ($data['audience'] ?? 'account');
     if (!in_array($audience, ['account', 'all'], true)) {
@@ -84,26 +84,26 @@ function toy_notification_create(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Account notification requires account_id.');
     }
 
-    $title = toy_notification_clean_single_line((string) ($data['title'] ?? ''), 160);
+    $title = sr_notification_clean_single_line((string) ($data['title'] ?? ''), 160);
     if ($title === '') {
         throw new InvalidArgumentException('Notification title is required.');
     }
 
-    $bodyText = toy_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
+    $bodyText = sr_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
     $rawLinkUrl = (string) ($data['link_url'] ?? '');
-    $linkUrl = toy_notification_clean_link_url($rawLinkUrl);
+    $linkUrl = sr_notification_clean_link_url($rawLinkUrl);
     if (trim($rawLinkUrl) !== '' && $linkUrl === '') {
         throw new InvalidArgumentException('Notification link URL is invalid.');
     }
 
     $channels = isset($data['channels']) && is_array($data['channels'])
-        ? toy_notification_normalize_channels($data['channels'])
+        ? sr_notification_normalize_channels($data['channels'])
         : ['site'];
-    $recipient = toy_notification_clean_single_line((string) ($data['recipient'] ?? ''), 255);
+    $recipient = sr_notification_clean_single_line((string) ($data['recipient'] ?? ''), 255);
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
     }
-    if (toy_notification_external_channels($channels) !== [] && $recipient === '') {
+    if (sr_notification_external_channels($channels) !== [] && $recipient === '') {
         throw new InvalidArgumentException('External notification delivery requires recipient.');
     }
 
@@ -117,9 +117,9 @@ function toy_notification_create(PDO $pdo, array $data): int
     }
 
     try {
-        $now = toy_now();
+        $now = sr_now();
         $stmt = $pdo->prepare(
-            'INSERT INTO toy_notifications
+            'INSERT INTO sr_notifications
                 (account_id, audience, title, body_text, link_url, status, read_at, created_by_account_id, created_at, updated_at)
              VALUES
                 (:account_id, :audience, :title, :body_text, :link_url, :status, NULL, :created_by_account_id, :created_at, :updated_at)'
@@ -137,7 +137,7 @@ function toy_notification_create(PDO $pdo, array $data): int
         ]);
 
         $notificationId = (int) $pdo->lastInsertId();
-        toy_notification_queue_deliveries($pdo, $notificationId, $channels, $recipient);
+        sr_notification_queue_deliveries($pdo, $notificationId, $channels, $recipient);
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -153,20 +153,20 @@ function toy_notification_create(PDO $pdo, array $data): int
     return $notificationId;
 }
 
-function toy_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $recipient): void
+function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $recipient): void
 {
-    $channels = toy_notification_normalize_channels($channels);
-    $recipient = toy_notification_clean_single_line($recipient, 255);
+    $channels = sr_notification_normalize_channels($channels);
+    $recipient = sr_notification_clean_single_line($recipient, 255);
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
     }
-    if (toy_notification_external_channels($channels) !== [] && $recipient === '') {
+    if (sr_notification_external_channels($channels) !== [] && $recipient === '') {
         throw new InvalidArgumentException('External notification delivery requires recipient.');
     }
 
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_notification_deliveries
+        'INSERT INTO sr_notification_deliveries
             (notification_id, channel, recipient, status, provider_message_id, error_message, attempted_at, created_at, updated_at)
          VALUES
             (:notification_id, :channel, :recipient, :status, :provider_message_id, :error_message, NULL, :created_at, :updated_at)'

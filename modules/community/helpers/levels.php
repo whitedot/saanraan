@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-function toy_community_default_settings(): array
+function sr_community_default_settings(): array
 {
-    $metadata = toy_module_metadata('community');
+    $metadata = sr_module_metadata('community');
     $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
     return [
@@ -38,24 +38,24 @@ function toy_community_default_settings(): array
     ];
 }
 
-function toy_community_max_level_value(): int
+function sr_community_max_level_value(): int
 {
     return 10;
 }
 
-function toy_community_normalize_level_value(mixed $value): int
+function sr_community_normalize_level_value(mixed $value): int
 {
-    return min(toy_community_max_level_value(), max(0, (int) $value));
+    return min(sr_community_max_level_value(), max(0, (int) $value));
 }
 
-function toy_community_settings(PDO $pdo): array
+function sr_community_settings(PDO $pdo): array
 {
-    return toy_community_normalize_settings(toy_module_settings($pdo, 'community'));
+    return sr_community_normalize_settings(sr_module_settings($pdo, 'community'));
 }
 
-function toy_community_normalize_settings(array $settings): array
+function sr_community_normalize_settings(array $settings): array
 {
-    $settings = array_merge(toy_community_default_settings(), $settings);
+    $settings = array_merge(sr_community_default_settings(), $settings);
     $settings['posts_per_page'] = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
     $settings['comments_per_page'] = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
     $settings['post_create_window_seconds'] = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
@@ -67,27 +67,27 @@ function toy_community_normalize_settings(array $settings): array
     $settings['message_create_window_seconds'] = min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300)));
     $settings['message_create_limit'] = min(200, max(1, (int) ($settings['message_create_limit'] ?? 20)));
     $settings['attachment_max_bytes'] = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
-    $settings['image_uploads_enabled'] = toy_community_bool_setting($settings['image_uploads_enabled'] ?? true);
-    $settings['file_uploads_enabled'] = toy_community_bool_setting($settings['file_uploads_enabled'] ?? false);
+    $settings['image_uploads_enabled'] = sr_community_bool_setting($settings['image_uploads_enabled'] ?? true);
+    $settings['file_uploads_enabled'] = sr_community_bool_setting($settings['file_uploads_enabled'] ?? false);
     $settings['file_attachment_max_bytes'] = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
     $settings['file_attachment_max_count'] = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
-    $settings['file_allowed_extensions'] = toy_community_normalize_file_extensions(
+    $settings['file_allowed_extensions'] = sr_community_normalize_file_extensions(
         is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : (string) ($settings['file_allowed_extensions'] ?? '')
     );
-    $settings['level_enabled'] = toy_community_bool_setting($settings['level_enabled'] ?? false);
-    $settings['level_auto_recalculate'] = toy_community_bool_setting($settings['level_auto_recalculate'] ?? false);
+    $settings['level_enabled'] = sr_community_bool_setting($settings['level_enabled'] ?? false);
+    $settings['level_auto_recalculate'] = sr_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
     $settings['level_comment_score'] = min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2)));
-    $settings['access_condition_priority'] = toy_community_access_condition_priority((string) ($settings['access_condition_priority'] ?? ''));
-    $settings['message_write_policy'] = toy_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
-    $settings['message_write_group_keys'] = toy_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
-    $settings['message_write_min_level'] = toy_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
-    $settings['theme_key'] = toy_community_theme_key($settings);
+    $settings['access_condition_priority'] = sr_community_access_condition_priority((string) ($settings['access_condition_priority'] ?? ''));
+    $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
+    $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
+    $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
+    $settings['theme_key'] = sr_community_theme_key($settings);
 
     return $settings;
 }
 
-function toy_community_bool_setting(mixed $value): bool
+function sr_community_bool_setting(mixed $value): bool
 {
     if (is_bool($value)) {
         return $value;
@@ -96,30 +96,30 @@ function toy_community_bool_setting(mixed $value): bool
     return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
 }
 
-function toy_community_access_condition_priority_values(): array
+function sr_community_access_condition_priority_values(): array
 {
     return ['both_required', 'group_first', 'level_first'];
 }
 
-function toy_community_access_condition_priority(string $value): string
+function sr_community_access_condition_priority(string $value): string
 {
-    return in_array($value, toy_community_access_condition_priority_values(), true) ? $value : 'both_required';
+    return in_array($value, sr_community_access_condition_priority_values(), true) ? $value : 'both_required';
 }
 
-function toy_community_message_write_policy_values(): array
+function sr_community_message_write_policy_values(): array
 {
     return ['member', 'group', 'disabled'];
 }
 
-function toy_community_message_write_policy(string $value): string
+function sr_community_message_write_policy(string $value): string
 {
-    return in_array($value, toy_community_message_write_policy_values(), true) ? $value : 'member';
+    return in_array($value, sr_community_message_write_policy_values(), true) ? $value : 'member';
 }
 
-function toy_community_group_keys_from_setting(mixed $value): array
+function sr_community_group_keys_from_setting(mixed $value): array
 {
     if (is_array($value)) {
-        return toy_community_normalize_board_group_keys($value);
+        return sr_community_normalize_board_group_keys($value);
     }
 
     $value = trim((string) $value);
@@ -129,14 +129,14 @@ function toy_community_group_keys_from_setting(mixed $value): array
 
     $decoded = json_decode($value, true);
     if (is_array($decoded)) {
-        return toy_community_normalize_board_group_keys($decoded);
+        return sr_community_normalize_board_group_keys($decoded);
     }
 
     $rawKeys = preg_split('/[\s,]+/', $value);
-    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
-function toy_community_level_tables_exist(PDO $pdo): bool
+function sr_community_level_tables_exist(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -144,9 +144,9 @@ function toy_community_level_tables_exist(PDO $pdo): bool
     }
 
     try {
-        $pdo->query('SELECT 1 FROM toy_community_levels LIMIT 1');
-        $pdo->query('SELECT 1 FROM toy_community_account_levels LIMIT 1');
-        $pdo->query('SELECT 1 FROM toy_community_level_logs LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_community_levels LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_community_account_levels LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_community_level_logs LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -155,30 +155,30 @@ function toy_community_level_tables_exist(PDO $pdo): bool
     return $exists;
 }
 
-function toy_community_levels(PDO $pdo): array
+function sr_community_levels(PDO $pdo): array
 {
-    if (!toy_community_level_tables_exist($pdo)) {
+    if (!sr_community_level_tables_exist($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query(
         "SELECT *
-         FROM toy_community_levels
+         FROM sr_community_levels
          ORDER BY level_value ASC, id ASC"
     );
 
     return $stmt->fetchAll();
 }
 
-function toy_community_enabled_levels(PDO $pdo): array
+function sr_community_enabled_levels(PDO $pdo): array
 {
-    if (!toy_community_level_tables_exist($pdo)) {
+    if (!sr_community_level_tables_exist($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query(
         "SELECT *
-         FROM toy_community_levels
+         FROM sr_community_levels
          WHERE status = 'enabled'
          ORDER BY level_value ASC, id ASC"
     );
@@ -186,25 +186,25 @@ function toy_community_enabled_levels(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function toy_community_account_level_snapshot(PDO $pdo, int $accountId): array
+function sr_community_account_level_snapshot(PDO $pdo, int $accountId): array
 {
-    if ($accountId < 1 || !toy_community_level_tables_exist($pdo)) {
-        return toy_community_empty_account_level_snapshot($accountId);
+    if ($accountId < 1 || !sr_community_level_tables_exist($pdo)) {
+        return sr_community_empty_account_level_snapshot($accountId);
     }
 
     $stmt = $pdo->prepare(
         'SELECT account_id, level_value, score_value, post_count, comment_count, evaluated_at, created_at, updated_at
-         FROM toy_community_account_levels
+         FROM sr_community_account_levels
          WHERE account_id = :account_id
          LIMIT 1'
     );
     $stmt->execute(['account_id' => $accountId]);
     $snapshot = $stmt->fetch();
 
-    return is_array($snapshot) ? $snapshot : toy_community_empty_account_level_snapshot($accountId);
+    return is_array($snapshot) ? $snapshot : sr_community_empty_account_level_snapshot($accountId);
 }
 
-function toy_community_empty_account_level_snapshot(int $accountId): array
+function sr_community_empty_account_level_snapshot(int $accountId): array
 {
     return [
         'account_id' => $accountId,
@@ -218,27 +218,27 @@ function toy_community_empty_account_level_snapshot(int $accountId): array
     ];
 }
 
-function toy_community_account_meets_min_level(PDO $pdo, int $accountId, int $minLevel, ?array $settings = null): bool
+function sr_community_account_meets_min_level(PDO $pdo, int $accountId, int $minLevel, ?array $settings = null): bool
 {
     $minLevel = max(0, $minLevel);
     if ($minLevel < 1) {
         return true;
     }
 
-    $settings = is_array($settings) ? toy_community_normalize_settings($settings) : toy_community_settings($pdo);
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     if (empty($settings['level_enabled'])) {
         return false;
     }
 
-    $snapshot = toy_community_account_level_snapshot($pdo, $accountId);
+    $snapshot = sr_community_account_level_snapshot($pdo, $accountId);
     return (int) ($snapshot['level_value'] ?? 0) >= $minLevel;
 }
 
-function toy_community_account_satisfies_access(PDO $pdo, int $accountId, array $context): array
+function sr_community_account_satisfies_access(PDO $pdo, int $accountId, array $context): array
 {
-    $settings = toy_community_normalize_settings(is_array($context['settings'] ?? null) ? $context['settings'] : toy_community_settings($pdo));
-    $groupKeys = toy_community_normalize_board_group_keys(is_array($context['group_keys'] ?? null) ? $context['group_keys'] : []);
-    $minLevel = toy_community_normalize_level_value($context['min_level'] ?? 0);
+    $settings = sr_community_normalize_settings(is_array($context['settings'] ?? null) ? $context['settings'] : sr_community_settings($pdo));
+    $groupKeys = sr_community_normalize_board_group_keys(is_array($context['group_keys'] ?? null) ? $context['group_keys'] : []);
+    $minLevel = sr_community_normalize_level_value($context['min_level'] ?? 0);
     $groupRequired = !empty($context['group_required']);
 
     if ($accountId < 1) {
@@ -273,8 +273,8 @@ function toy_community_account_satisfies_access(PDO $pdo, int $accountId, array 
         ];
     }
 
-    $groupMatched = !$hasGroupCondition ? true : toy_member_account_in_any_group($pdo, $accountId, $groupKeys);
-    $levelMatched = !$hasLevelCondition ? true : toy_community_account_meets_min_level($pdo, $accountId, $minLevel, $settings);
+    $groupMatched = !$hasGroupCondition ? true : sr_member_account_in_any_group($pdo, $accountId, $groupKeys);
+    $levelMatched = !$hasLevelCondition ? true : sr_community_account_meets_min_level($pdo, $accountId, $minLevel, $settings);
     $priority = (string) $settings['access_condition_priority'];
 
     if ($priority === 'group_first') {
@@ -297,21 +297,21 @@ function toy_community_account_satisfies_access(PDO $pdo, int $accountId, array 
     ];
 }
 
-function toy_community_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array
+function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array
 {
-    if ($accountId < 1 || !toy_community_level_tables_exist($pdo)) {
-        return toy_community_empty_account_level_snapshot($accountId);
+    if ($accountId < 1 || !sr_community_level_tables_exist($pdo)) {
+        return sr_community_empty_account_level_snapshot($accountId);
     }
 
-    $settings = is_array($settings) ? toy_community_normalize_settings($settings) : toy_community_settings($pdo);
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     if (empty($settings['level_enabled'])) {
-        return toy_community_account_level_snapshot($pdo, $accountId);
+        return sr_community_account_level_snapshot($pdo, $accountId);
     }
 
     $stmt = $pdo->prepare(
         "SELECT
-            (SELECT COUNT(*) FROM toy_community_posts WHERE author_account_id = :post_account_id AND status = 'published') AS post_count,
-            (SELECT COUNT(*) FROM toy_community_comments WHERE author_account_id = :comment_account_id AND status = 'published') AS comment_count"
+            (SELECT COUNT(*) FROM sr_community_posts WHERE author_account_id = :post_account_id AND status = 'published') AS post_count,
+            (SELECT COUNT(*) FROM sr_community_comments WHERE author_account_id = :comment_account_id AND status = 'published') AS comment_count"
     );
     $stmt->execute([
         'post_account_id' => $accountId,
@@ -321,12 +321,12 @@ function toy_community_recalculate_account_level(PDO $pdo, int $accountId, ?arra
     $postCount = is_array($row) ? (int) $row['post_count'] : 0;
     $commentCount = is_array($row) ? (int) $row['comment_count'] : 0;
     $scoreValue = ($postCount * (int) $settings['level_post_score']) + ($commentCount * (int) $settings['level_comment_score']);
-    $levelValue = toy_community_level_value_for_score($pdo, $scoreValue);
-    $before = toy_community_account_level_snapshot($pdo, $accountId);
-    $now = toy_now();
+    $levelValue = sr_community_level_value_for_score($pdo, $scoreValue);
+    $before = sr_community_account_level_snapshot($pdo, $accountId);
+    $now = sr_now();
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_community_account_levels
+        'INSERT INTO sr_community_account_levels
             (account_id, level_value, score_value, post_count, comment_count, evaluated_at, created_at, updated_at)
          VALUES
             (:account_id, :level_value, :score_value, :post_count, :comment_count, :evaluated_at, :created_at, :updated_at)
@@ -350,29 +350,29 @@ function toy_community_recalculate_account_level(PDO $pdo, int $accountId, ?arra
     ]);
 
     if ((int) ($before['level_value'] ?? 0) !== $levelValue || (int) ($before['score_value'] ?? 0) !== $scoreValue) {
-        toy_community_log_level_change($pdo, $accountId, $before, [
+        sr_community_log_level_change($pdo, $accountId, $before, [
             'level_value' => $levelValue,
             'score_value' => $scoreValue,
         ], $reasonKey);
     }
 
-    return toy_community_account_level_snapshot($pdo, $accountId);
+    return sr_community_account_level_snapshot($pdo, $accountId);
 }
 
-function toy_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array
+function sr_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array
 {
-    $settings = is_array($settings) ? toy_community_normalize_settings($settings) : toy_community_settings($pdo);
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     if (empty($settings['level_auto_recalculate'])) {
-        return toy_community_account_level_snapshot($pdo, $accountId);
+        return sr_community_account_level_snapshot($pdo, $accountId);
     }
 
-    return toy_community_recalculate_account_level($pdo, $accountId, $settings, $reasonKey);
+    return sr_community_recalculate_account_level($pdo, $accountId, $settings, $reasonKey);
 }
 
-function toy_community_level_value_for_score(PDO $pdo, int $scoreValue): int
+function sr_community_level_value_for_score(PDO $pdo, int $scoreValue): int
 {
     $levelValue = 0;
-    foreach (toy_community_enabled_levels($pdo) as $level) {
+    foreach (sr_community_enabled_levels($pdo) as $level) {
         if ((int) ($level['min_score'] ?? 0) <= $scoreValue) {
             $levelValue = max($levelValue, (int) $level['level_value']);
         }
@@ -381,13 +381,13 @@ function toy_community_level_value_for_score(PDO $pdo, int $scoreValue): int
     return $levelValue;
 }
 
-function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): int
+function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById): int
 {
-    if (!toy_community_level_tables_exist($pdo)) {
+    if (!sr_community_level_tables_exist($pdo)) {
         return 0;
     }
 
-    $levels = toy_community_levels($pdo);
+    $levels = sr_community_levels($pdo);
     $updates = [];
     $lastMinScore = 0;
     foreach ($levels as $level) {
@@ -412,11 +412,11 @@ function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): 
     }
 
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_levels
+        'UPDATE sr_community_levels
          SET min_score = :min_score, updated_at = :updated_at
          WHERE id = :id'
     );
-    $now = toy_now();
+    $now = sr_now();
     foreach ($updates as $levelId => $minScore) {
         $stmt->execute([
             'min_score' => $minScore,
@@ -428,14 +428,14 @@ function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): 
     return count($updates);
 }
 
-function toy_community_log_level_change(PDO $pdo, int $accountId, array $before, array $after, string $reasonKey): void
+function sr_community_log_level_change(PDO $pdo, int $accountId, array $before, array $after, string $reasonKey): void
 {
-    if (!toy_community_level_tables_exist($pdo)) {
+    if (!sr_community_level_tables_exist($pdo)) {
         return;
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_community_level_logs
+        'INSERT INTO sr_community_level_logs
             (account_id, old_level_value, new_level_value, old_score_value, new_score_value, reason_key, created_at)
          VALUES
             (:account_id, :old_level_value, :new_level_value, :old_score_value, :new_score_value, :reason_key, :created_at)'
@@ -447,20 +447,20 @@ function toy_community_log_level_change(PDO $pdo, int $accountId, array $before,
         'old_score_value' => (int) ($before['score_value'] ?? 0),
         'new_score_value' => (int) ($after['score_value'] ?? 0),
         'reason_key' => preg_match('/\A[a-z][a-z0-9_]{0,59}\z/', $reasonKey) === 1 ? $reasonKey : 'activity_changed',
-        'created_at' => toy_now(),
+        'created_at' => sr_now(),
     ]);
 }
 
-function toy_community_recalculate_recent_account_levels(PDO $pdo, int $limit = 100): array
+function sr_community_recalculate_recent_account_levels(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(500, $limit));
-    if (!toy_community_level_tables_exist($pdo)) {
+    if (!sr_community_level_tables_exist($pdo)) {
         return ['accounts' => 0];
     }
 
     $stmt = $pdo->prepare(
         "SELECT id
-         FROM toy_member_accounts
+         FROM sr_member_accounts
          WHERE status IN ('active', 'pending')
          ORDER BY id ASC
          LIMIT :limit_value"
@@ -468,10 +468,10 @@ function toy_community_recalculate_recent_account_levels(PDO $pdo, int $limit = 
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
 
-    $settings = toy_community_settings($pdo);
+    $settings = sr_community_settings($pdo);
     $count = 0;
     foreach ($stmt->fetchAll() as $row) {
-        toy_community_recalculate_account_level($pdo, (int) $row['id'], $settings, 'admin_recalculate');
+        sr_community_recalculate_account_level($pdo, (int) $row['id'], $settings, 'admin_recalculate');
         $count++;
     }
 

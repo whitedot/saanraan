@@ -6,13 +6,13 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 chdir($root);
 
-const TOY_ROOT = __DIR__ . '/../..';
+const SR_ROOT = __DIR__ . '/../..';
 
-require_once TOY_ROOT . '/core/version.php';
-require_once TOY_ROOT . '/core/helpers/settings.php';
-require_once TOY_ROOT . '/modules/popup_layer/helpers.php';
+require_once SR_ROOT . '/core/version.php';
+require_once SR_ROOT . '/core/helpers/settings.php';
+require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 
-final class ToyPopupLayerCheckStatement extends PDOStatement
+final class SrPopupLayerCheckStatement extends PDOStatement
 {
     private array $rows;
 
@@ -27,7 +27,7 @@ final class ToyPopupLayerCheckStatement extends PDOStatement
     }
 }
 
-final class ToyPopupLayerCheckPdo extends PDO
+final class SrPopupLayerCheckPdo extends PDO
 {
     private array $moduleRows;
 
@@ -38,25 +38,25 @@ final class ToyPopupLayerCheckPdo extends PDO
 
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
     {
-        if (!str_contains($query, 'FROM toy_modules')) {
+        if (!str_contains($query, 'FROM sr_modules')) {
             return false;
         }
 
-        return new ToyPopupLayerCheckStatement($this->moduleRows);
+        return new SrPopupLayerCheckStatement($this->moduleRows);
     }
 }
 
-$pdo = new ToyPopupLayerCheckPdo([
+$pdo = new SrPopupLayerCheckPdo([
     ['module_key' => 'admin'],
     ['module_key' => 'member'],
     ['module_key' => 'community'],
     ['module_key' => 'popup_layer'],
 ]);
 
-$targets = toy_popup_layer_available_targets($pdo);
+$targets = sr_popup_layer_available_targets($pdo);
 $targetValues = [];
 foreach ($targets as $target) {
-    $targetValues[toy_popup_layer_target_option_value($target)] = true;
+    $targetValues[sr_popup_layer_target_option_value($target)] = true;
 }
 
 $errors = [];
@@ -75,7 +75,7 @@ foreach ($expectedTargets as $expectedTarget) {
     }
 }
 
-$scriptOnlySlots = toy_popup_layer_normalize_slots([
+$scriptOnlySlots = sr_popup_layer_normalize_slots([
     [
         'slot_key' => 'after_script',
         'label' => '스크립트 뒤',
@@ -87,9 +87,9 @@ if ($scriptOnlySlots !== []) {
 }
 
 if (
-    !isset(toy_popup_layer_skin_options()['basic'])
-    || toy_popup_layer_skin_view('basic', 'layer') === ''
-    || !function_exists('toy_popup_layer_render_basic_stack')
+    !isset(sr_popup_layer_skin_options()['basic'])
+    || sr_popup_layer_skin_view('basic', 'layer') === ''
+    || !function_exists('sr_popup_layer_render_basic_stack')
 ) {
     $errors[] = 'popup layer skin helpers must provide a basic layer skin.';
 }

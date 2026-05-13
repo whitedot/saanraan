@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
-require_once TOY_ROOT . '/modules/site_menu/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/site_menu/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
@@ -17,20 +17,20 @@ $siteMenuPage = isset($siteMenuPage) ? (string) $siteMenuPage : 'menus';
 if (!in_array($siteMenuPage, ['menus', 'menu_form', 'items', 'item_form'], true)) {
     $siteMenuPage = 'menus';
 }
-$menuLinkSuggestions = toy_site_menu_link_suggestions($pdo);
+$menuLinkSuggestions = sr_site_menu_link_suggestions($pdo);
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
-    $menuId = (int) toy_post_string('menu_id', 20);
-    $itemId = (int) toy_post_string('item_id', 20);
+    $intent = sr_post_string('intent', 40);
+    $menuId = (int) sr_post_string('menu_id', 20);
+    $itemId = (int) sr_post_string('item_id', 20);
 
     if ($intent === 'save_menu') {
-        $menuKey = toy_site_menu_clean_key(toy_post_string('menu_key', 60));
-        $originalMenuKey = toy_site_menu_clean_key(toy_post_string('original_menu_key', 60));
-        $label = toy_site_menu_clean_label(toy_post_string('label', 120));
-        $status = toy_post_string('status', 30);
+        $menuKey = sr_site_menu_clean_key(sr_post_string('menu_key', 60));
+        $originalMenuKey = sr_site_menu_clean_key(sr_post_string('original_menu_key', 60));
+        $label = sr_site_menu_clean_label(sr_post_string('label', 120));
+        $status = sr_post_string('status', 30);
 
         if ($menuKey === '') {
             $errors[] = '메뉴 key는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해야 합니다.';
@@ -43,16 +43,16 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $now = toy_now();
+            $now = sr_now();
             if ($originalMenuKey !== '') {
-                $stmt = $pdo->prepare('SELECT id FROM toy_site_menus WHERE menu_key = :menu_key LIMIT 1');
+                $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE menu_key = :menu_key LIMIT 1');
                 $stmt->execute(['menu_key' => $originalMenuKey]);
                 if (!is_array($stmt->fetch())) {
                     $errors[] = '수정할 메뉴를 찾을 수 없습니다.';
                 }
 
                 if ($originalMenuKey !== $menuKey) {
-                    $stmt = $pdo->prepare('SELECT id FROM toy_site_menus WHERE menu_key = :menu_key LIMIT 1');
+                    $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE menu_key = :menu_key LIMIT 1');
                     $stmt->execute(['menu_key' => $menuKey]);
                     if (is_array($stmt->fetch())) {
                         $errors[] = '변경하려는 메뉴 key가 이미 사용 중입니다.';
@@ -61,7 +61,7 @@ if (toy_request_method() === 'POST') {
 
                 if ($errors === []) {
                     $stmt = $pdo->prepare(
-                        'UPDATE toy_site_menus
+                        'UPDATE sr_site_menus
                          SET menu_key = :menu_key, label = :label, status = :status, updated_at = :updated_at
                          WHERE menu_key = :original_menu_key'
                     );
@@ -75,7 +75,7 @@ if (toy_request_method() === 'POST') {
                 }
             } else {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO toy_site_menus (menu_key, label, status, created_at, updated_at)
+                    'INSERT INTO sr_site_menus (menu_key, label, status, created_at, updated_at)
                      VALUES (:menu_key, :label, :status, :created_at, :updated_at)
                      ON DUPLICATE KEY UPDATE label = VALUES(label), status = VALUES(status), updated_at = VALUES(updated_at)'
                 );
@@ -89,7 +89,7 @@ if (toy_request_method() === 'POST') {
             }
 
             if ($errors === []) {
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'site_menu.saved',
@@ -104,11 +104,11 @@ if (toy_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'save_item') {
-        $label = toy_site_menu_clean_label(toy_post_string('label', 120));
-        $url = toy_site_menu_clean_url(toy_post_string('url', 255));
-        $target = toy_post_string('target', 20);
-        $status = toy_post_string('status', 30);
-        $sortOrder = max(-100000, min(100000, (int) toy_post_string('sort_order', 20)));
+        $label = sr_site_menu_clean_label(sr_post_string('label', 120));
+        $url = sr_site_menu_clean_url(sr_post_string('url', 255));
+        $target = sr_post_string('target', 20);
+        $status = sr_post_string('status', 30);
+        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
 
         if ($menuId <= 0) {
             $errors[] = '메뉴를 선택하세요.';
@@ -127,7 +127,7 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_site_menus WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $menuId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '메뉴를 찾을 수 없습니다.';
@@ -136,7 +136,7 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             $stmt = $pdo->prepare(
-                'SELECT id FROM toy_site_menu_items
+                'SELECT id FROM sr_site_menu_items
                  WHERE menu_id = :menu_id AND url = :url AND id <> :id
                  LIMIT 1'
             );
@@ -151,10 +151,10 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $now = toy_now();
+            $now = sr_now();
             if ($itemId > 0) {
                 $stmt = $pdo->prepare(
-                    'UPDATE toy_site_menu_items
+                    'UPDATE sr_site_menu_items
                      SET label = :label, url = :url, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
                      WHERE id = :id AND menu_id = :menu_id'
                 );
@@ -170,7 +170,7 @@ if (toy_request_method() === 'POST') {
                 ]);
             } else {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO toy_site_menu_items
+                    'INSERT INTO sr_site_menu_items
                         (menu_id, parent_id, label, url, target, status, sort_order, created_at, updated_at)
                      VALUES
                         (:menu_id, NULL, :label, :url, :target, :status, :sort_order, :created_at, :updated_at)'
@@ -188,7 +188,7 @@ if (toy_request_method() === 'POST') {
                 $itemId = (int) $pdo->lastInsertId();
             }
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site_menu.item.saved',
@@ -207,10 +207,10 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM toy_site_menu_items WHERE id = :id');
+            $stmt = $pdo->prepare('DELETE FROM sr_site_menu_items WHERE id = :id');
             $stmt->execute(['id' => $itemId]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site_menu.item.deleted',
@@ -228,7 +228,7 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT menu_key FROM toy_site_menus WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT menu_key FROM sr_site_menus WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $menuId]);
             $menu = $stmt->fetch();
             if (!is_array($menu)) {
@@ -240,15 +240,15 @@ if (toy_request_method() === 'POST') {
             try {
                 $pdo->beginTransaction();
 
-                $stmt = $pdo->prepare('DELETE FROM toy_site_menu_items WHERE menu_id = :menu_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_site_menu_items WHERE menu_id = :menu_id');
                 $stmt->execute(['menu_id' => $menuId]);
 
-                $stmt = $pdo->prepare('DELETE FROM toy_site_menus WHERE id = :id');
+                $stmt = $pdo->prepare('DELETE FROM sr_site_menus WHERE id = :id');
                 $stmt->execute(['id' => $menuId]);
 
                 $pdo->commit();
 
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'site_menu.deleted',
@@ -273,9 +273,9 @@ if (toy_request_method() === 'POST') {
 }
 
 $editItem = null;
-$editItemId = (int) toy_get_string('edit_item_id', 20);
+$editItemId = (int) sr_get_string('edit_item_id', 20);
 if ($editItemId > 0) {
-    $stmt = $pdo->prepare('SELECT id, menu_id, label, url, target, status, sort_order FROM toy_site_menu_items WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, menu_id, label, url, target, status, sort_order FROM sr_site_menu_items WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $editItemId]);
     $row = $stmt->fetch();
     if (is_array($row)) {
@@ -284,9 +284,9 @@ if ($editItemId > 0) {
 }
 
 $editMenu = null;
-$editMenuId = (int) toy_get_string('edit_menu_id', 20);
+$editMenuId = (int) sr_get_string('edit_menu_id', 20);
 if ($editMenuId > 0) {
-    $stmt = $pdo->prepare('SELECT id, menu_key, label, status FROM toy_site_menus WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, menu_key, label, status FROM sr_site_menus WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $editMenuId]);
     $row = $stmt->fetch();
     if (is_array($row)) {
@@ -295,7 +295,7 @@ if ($editMenuId > 0) {
 }
 
 $menus = [];
-$stmt = $pdo->query('SELECT id, menu_key, label, status, updated_at FROM toy_site_menus ORDER BY menu_key ASC');
+$stmt = $pdo->query('SELECT id, menu_key, label, status, updated_at FROM sr_site_menus ORDER BY menu_key ASC');
 foreach ($stmt->fetchAll() as $row) {
     $menus[] = $row;
 }
@@ -305,8 +305,8 @@ $menuItemUrls = [];
 $menuNextSortOrders = [];
 $stmt = $pdo->query(
     'SELECT i.id, i.menu_id, m.menu_key, i.label, i.url, i.target, i.status, i.sort_order, i.updated_at
-     FROM toy_site_menu_items i
-     INNER JOIN toy_site_menus m ON m.id = i.menu_id
+     FROM sr_site_menu_items i
+     INNER JOIN sr_site_menus m ON m.id = i.menu_id
      ORDER BY m.menu_key ASC, i.sort_order ASC, i.id ASC'
 );
 foreach ($stmt->fetchAll() as $row) {
@@ -325,4 +325,4 @@ foreach ($menus as $menu) {
     }
 }
 
-include TOY_ROOT . '/modules/site_menu/views/admin-site-menus.php';
+include SR_ROOT . '/modules/site_menu/views/admin-site-menus.php';

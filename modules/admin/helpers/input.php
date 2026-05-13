@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_admin_post_positive_int(string $key, int $maxLength = 20): int
+function sr_admin_post_positive_int(string $key, int $maxLength = 20): int
 {
     $value = $_POST[$key] ?? '';
     if (is_array($value)) {
@@ -17,7 +17,7 @@ function toy_admin_post_positive_int(string $key, int $maxLength = 20): int
     return (int) $value;
 }
 
-function toy_admin_post_int_in_range(string $key, int $min, int $max, int $maxLength = 10): ?int
+function sr_admin_post_int_in_range(string $key, int $min, int $max, int $maxLength = 10): ?int
 {
     $value = $_POST[$key] ?? '';
     if (is_array($value)) {

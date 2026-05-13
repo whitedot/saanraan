@@ -31,14 +31,14 @@ php .tools/bin/smoke-http.php http://127.0.0.1:8080
 같은 base URL은 환경변수로도 전달할 수 있다.
 
 ```sh
-TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 ```
 
 커뮤니티 모듈이 설치되어 있어야 하는 스테이징 검수에서는 404 허용을 제거한 강한 모드로 실행한다.
 
 ```sh
-TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 \
-TOY_SMOKE_EXPECT_COMMUNITY=1 \
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_EXPECT_COMMUNITY=1 \
 php .tools/bin/smoke-http.php
 ```
 
@@ -59,8 +59,8 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /login 응답이 500 없이 열리는지 확인
 /admin 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/updates 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
-/community 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `TOY_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
-/community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `TOY_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
+/community 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
+/community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
 /community/message/write 비로그인 접근이 로그인 흐름으로 막히는지 확인
 /community/write?key=free 비로그인 접근이 로그인 흐름으로 막히는지 확인
 /community/edit?id=1 비로그인 접근이 로그인 흐름으로 막히는지 확인
@@ -80,7 +80,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /admin/community/reports 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /sitemap.xml 응답이 200이면 sitemap XML 루트가 있고 404여도 PHP 오류가 노출되지 않는지 확인
-/assets/toycore.css 정적 파일 응답 확인
+/assets/saanraan.css 정적 파일 응답 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
@@ -105,24 +105,24 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 최소 실행은 작성자 계정만 필요하다.
 
 ```sh
-TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 \
-TOY_SMOKE_IDENTIFIER=writer@example.com \
-TOY_SMOKE_PASSWORD='password' \
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_IDENTIFIER=writer@example.com \
+SR_SMOKE_PASSWORD='password' \
 php .tools/bin/smoke-community-auth.php
 ```
 
 전체 커뮤니티 흐름은 선택 계정을 함께 지정해 확인한다.
 
 ```sh
-TOY_SMOKE_BASE_URL=http://127.0.0.1:8080 \
-TOY_SMOKE_IDENTIFIER=writer@example.com \
-TOY_SMOKE_PASSWORD='password' \
-TOY_SMOKE_RECIPIENT_IDENTIFIER=recipient@example.com \
-TOY_SMOKE_RECIPIENT_PASSWORD='password' \
-TOY_SMOKE_REPORTER_IDENTIFIER=reporter@example.com \
-TOY_SMOKE_REPORTER_PASSWORD='password' \
-TOY_SMOKE_ADMIN_IDENTIFIER=admin@example.com \
-TOY_SMOKE_ADMIN_PASSWORD='password' \
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_IDENTIFIER=writer@example.com \
+SR_SMOKE_PASSWORD='password' \
+SR_SMOKE_RECIPIENT_IDENTIFIER=recipient@example.com \
+SR_SMOKE_RECIPIENT_PASSWORD='password' \
+SR_SMOKE_REPORTER_IDENTIFIER=reporter@example.com \
+SR_SMOKE_REPORTER_PASSWORD='password' \
+SR_SMOKE_ADMIN_IDENTIFIER=admin@example.com \
+SR_SMOKE_ADMIN_PASSWORD='password' \
 php .tools/bin/smoke-community-auth.php
 ```
 
@@ -141,7 +141,7 @@ php .tools/bin/smoke-community-auth.php
 관리자 계정 지정 시 신고 처리, 댓글 숨김과 댓글 미노출, 게시글 숨김, 숨김 게시글 404 응답 확인
 ```
 
-`TOY_SMOKE_RECIPIENT_PASSWORD`는 `TOY_SMOKE_RECIPIENT_IDENTIFIER`가 있을 때만 사용할 수 있다. 신고자와 관리자 계정은 identifier/password를 함께 지정해야 한다. 게시판 키를 바꿔야 하면 `TOY_SMOKE_BOARD_KEY`를 사용하고, 기존 게시글 ID를 보조값으로 넘겨야 하면 `TOY_SMOKE_POST_ID`를 사용한다.
+`SR_SMOKE_RECIPIENT_PASSWORD`는 `SR_SMOKE_RECIPIENT_IDENTIFIER`가 있을 때만 사용할 수 있다. 신고자와 관리자 계정은 identifier/password를 함께 지정해야 한다. 게시판 키를 바꿔야 하면 `SR_SMOKE_BOARD_KEY`를 사용하고, 기존 게시글 ID를 보조값으로 넘겨야 하면 `SR_SMOKE_POST_ID`를 사용한다.
 
 ## 수동 확인 시나리오
 

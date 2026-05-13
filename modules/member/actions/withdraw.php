@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
 
-$account = toy_member_require_login($pdo);
+$account = sr_member_require_login($pdo);
 $errors = [];
-$memberSettings = toy_member_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $password = toy_post_string('password', 255);
-    $confirmText = toy_post_string('confirm_text', 20);
+    $password = sr_post_string('password', 255);
+    $confirmText = sr_post_string('confirm_text', 20);
 
-    $reauthThrottle = toy_member_reauth_throttle_status($pdo, (int) $account['id']);
+    $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
     if (!empty($reauthThrottle['limited'])) {
         $errors[] = '비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.';
-        toy_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+        sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
     } elseif (!password_verify($password, (string) $account['password_hash'])) {
         $errors[] = '비밀번호가 올바르지 않습니다.';
-        toy_member_log_auth($pdo, (int) $account['id'], 'withdraw_reauth', 'failure');
+        sr_member_log_auth($pdo, (int) $account['id'], 'withdraw_reauth', 'failure');
     }
 
     if ($confirmText !== '탈퇴') {
@@ -31,13 +31,13 @@ if (toy_request_method() === 'POST') {
         $withdrawnConsents = 0;
         $pdo->beginTransaction();
         try {
-            toy_member_delete_profile($pdo, (int) $account['id']);
-            $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $account['id']);
+            sr_member_delete_profile($pdo, (int) $account['id']);
+            $revokedSessions = sr_member_revoke_account_sessions($pdo, (int) $account['id']);
             if ($revokedSessions < 0) {
                 throw new RuntimeException('Member sessions could not be revoked before account withdrawal.');
             }
-            $withdrawnConsents = toy_member_record_consent_withdrawals($pdo, (int) $account['id']);
-            toy_member_anonymize_account($pdo, $config, (int) $account['id']);
+            $withdrawnConsents = sr_member_record_consent_withdrawals($pdo, (int) $account['id']);
+            sr_member_anonymize_account($pdo, $config, (int) $account['id']);
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -47,8 +47,8 @@ if (toy_request_method() === 'POST') {
             throw $exception;
         }
 
-        toy_member_log_auth($pdo, (int) $account['id'], 'withdraw', 'success');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, (int) $account['id'], 'withdraw', 'success');
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
             'event_type' => 'member.anonymized',
@@ -62,10 +62,10 @@ if (toy_request_method() === 'POST') {
             ],
         ]);
 
-        toy_member_logout($pdo);
-        toy_redirect('/login');
+        sr_member_logout($pdo);
+        sr_redirect('/login');
     }
 }
 
-$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'withdraw');
+$memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'withdraw');
 include $memberSkinView;

@@ -9,21 +9,21 @@ require_once 'core/version.php';
 
 $errors = [];
 
-function toy_check_add_error(string $message): void
+function sr_check_add_error(string $message): void
 {
     global $errors;
     $errors[] = $message;
 }
 
-function toy_check_run(string $command): void
+function sr_check_run(string $command): void
 {
     passthru($command, $exitCode);
     if ($exitCode !== 0) {
-        toy_check_add_error('command failed: ' . $command);
+        sr_check_add_error('command failed: ' . $command);
     }
 }
 
-function toy_check_files(string $root, string $extension, array $skipDirs = []): array
+function sr_check_files(string $root, string $extension, array $skipDirs = []): array
 {
     if (!is_dir($root)) {
         return [];
@@ -53,7 +53,7 @@ function toy_check_files(string $root, string $extension, array $skipDirs = []):
     return $files;
 }
 
-function toy_check_module_dirs(): array
+function sr_check_module_dirs(): array
 {
     $dirs = [];
     foreach (['modules', 'examples/sample_module'] as $root) {
@@ -79,18 +79,18 @@ function toy_check_module_dirs(): array
     return $dirs;
 }
 
-function toy_check_sql_files(): void
+function sr_check_sql_files(): void
 {
     foreach (['database', 'modules', 'examples'] as $root) {
-        foreach (toy_check_files($root, 'sql') as $file) {
+        foreach (sr_check_files($root, 'sql') as $file) {
             if (filesize($file) <= 0) {
-                toy_check_add_error('SQL file is empty: ' . $file);
+                sr_check_add_error('SQL file is empty: ' . $file);
             }
         }
     }
 }
 
-function toy_check_version_format(string $version): string
+function sr_check_version_format(string $version): string
 {
     if (preg_match('/\Av?\d+\.\d+\.\d+\z/', $version) === 1) {
         return 'semver';
@@ -103,11 +103,11 @@ function toy_check_version_format(string $version): string
     return '';
 }
 
-function toy_check_core_version_satisfies(string $minimumVersion): bool
+function sr_check_core_version_satisfies(string $minimumVersion): bool
 {
-    $coreVersion = TOY_CORE_VERSION;
-    $coreFormat = toy_check_version_format($coreVersion);
-    $minimumFormat = toy_check_version_format($minimumVersion);
+    $coreVersion = SR_CORE_VERSION;
+    $coreFormat = sr_check_version_format($coreVersion);
+    $minimumFormat = sr_check_version_format($minimumVersion);
     if ($coreFormat === '' || $minimumFormat === '' || $coreFormat !== $minimumFormat) {
         return false;
     }
@@ -119,7 +119,7 @@ function toy_check_core_version_satisfies(string $minimumVersion): bool
     return strcmp($coreVersion, $minimumVersion) >= 0;
 }
 
-function toy_check_module_lifecycle_metadata(): void
+function sr_check_module_lifecycle_metadata(): void
 {
     $requiredModules = ['member', 'admin', 'privacy'];
     $knownContractFiles = [
@@ -135,11 +135,11 @@ function toy_check_module_lifecycle_metadata(): void
 
     foreach ($requiredModules as $moduleKey) {
         if (!is_file('modules/' . $moduleKey . '/module.php') || !is_file('modules/' . $moduleKey . '/install.sql')) {
-            toy_check_add_error('Required module files are missing: ' . $moduleKey);
+            sr_check_add_error('Required module files are missing: ' . $moduleKey);
         }
     }
 
-    foreach (toy_check_module_dirs() as $moduleDir) {
+    foreach (sr_check_module_dirs() as $moduleDir) {
         $moduleFile = $moduleDir . '/module.php';
         if (!is_file($moduleFile)) {
             continue;
@@ -148,37 +148,37 @@ function toy_check_module_lifecycle_metadata(): void
         $moduleKey = basename($moduleDir);
         $metadata = include $moduleFile;
         if (!is_array($metadata)) {
-            toy_check_add_error('Module metadata must return an array: ' . $moduleFile);
+            sr_check_add_error('Module metadata must return an array: ' . $moduleFile);
             continue;
         }
 
         $name = is_string($metadata['name'] ?? null) ? trim((string) $metadata['name']) : '';
         if ($name === '') {
-            toy_check_add_error('Module name is required: ' . $moduleFile);
+            sr_check_add_error('Module name is required: ' . $moduleFile);
         }
 
         $type = (string) ($metadata['type'] ?? 'module');
         if (!in_array($type, ['module', 'plugin'], true)) {
-            toy_check_add_error('Module type must be module or plugin: ' . $moduleFile);
+            sr_check_add_error('Module type must be module or plugin: ' . $moduleFile);
         }
 
-        $toycore = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
-        $minVersion = is_string($toycore['min_version'] ?? null) ? (string) $toycore['min_version'] : '';
-        $moduleContract = is_string($toycore['module_contract'] ?? null) ? (string) $toycore['module_contract'] : '';
-        $testedWith = $toycore['tested_with'] ?? null;
+        $saanraan = is_array($metadata['saanraan'] ?? null) ? $metadata['saanraan'] : [];
+        $minVersion = is_string($saanraan['min_version'] ?? null) ? (string) $saanraan['min_version'] : '';
+        $moduleContract = is_string($saanraan['module_contract'] ?? null) ? (string) $saanraan['module_contract'] : '';
+        $testedWith = $saanraan['tested_with'] ?? null;
 
-        if ($minVersion === '' || toy_check_version_format($minVersion) === '') {
-            toy_check_add_error('Module toycore.min_version is required: ' . $moduleFile);
-        } elseif (!toy_check_core_version_satisfies($minVersion)) {
-            toy_check_add_error('Module toycore.min_version is newer than current core: ' . $moduleFile);
+        if ($minVersion === '' || sr_check_version_format($minVersion) === '') {
+            sr_check_add_error('Module saanraan.min_version is required: ' . $moduleFile);
+        } elseif (!sr_check_core_version_satisfies($minVersion)) {
+            sr_check_add_error('Module saanraan.min_version is newer than current core: ' . $moduleFile);
         }
 
-        if ($moduleContract !== TOY_MODULE_CONTRACT_VERSION) {
-            toy_check_add_error('Module toycore.module_contract must match current contract: ' . $moduleFile);
+        if ($moduleContract !== SR_MODULE_CONTRACT_VERSION) {
+            sr_check_add_error('Module saanraan.module_contract must match current contract: ' . $moduleFile);
         }
 
         if (!is_array($testedWith) || $testedWith === []) {
-            toy_check_add_error('Module toycore.tested_with is required: ' . $moduleFile);
+            sr_check_add_error('Module saanraan.tested_with is required: ' . $moduleFile);
         }
 
         $contracts = is_array($metadata['contracts'] ?? null) ? $metadata['contracts'] : [];
@@ -188,13 +188,13 @@ function toy_check_module_lifecycle_metadata(): void
             }
 
             if (!is_array($contracts[$contractKey])) {
-                toy_check_add_error('Module contracts.' . $contractKey . ' must be an array: ' . $moduleFile);
+                sr_check_add_error('Module contracts.' . $contractKey . ' must be an array: ' . $moduleFile);
                 continue;
             }
 
             foreach ($contracts[$contractKey] as $contractFile) {
                 if (!is_string($contractFile) || !isset($knownContractFiles[$contractFile])) {
-                    toy_check_add_error('Module contracts.' . $contractKey . ' has an unknown contract file: ' . $moduleFile);
+                    sr_check_add_error('Module contracts.' . $contractKey . ' has an unknown contract file: ' . $moduleFile);
                 }
             }
         }
@@ -204,57 +204,57 @@ function toy_check_module_lifecycle_metadata(): void
         foreach ($requiredModuleMap as $key => $value) {
             $requiredModuleKey = is_string($key) ? $key : (string) $value;
             if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $requiredModuleKey) !== 1 || $requiredModuleKey === $moduleKey) {
-                toy_check_add_error('Module requires.modules entry is invalid: ' . $moduleFile);
+                sr_check_add_error('Module requires.modules entry is invalid: ' . $moduleFile);
             }
         }
     }
 }
 
-function toy_check_module_lifecycle_ui_contract(): void
+function sr_check_module_lifecycle_ui_contract(): void
 {
     $moduleActions = file_get_contents('modules/admin/helpers/module-actions.php');
     $moduleView = file_get_contents('modules/admin/views/modules.php');
     $updatesHelper = file_get_contents('modules/admin/helpers/updates.php');
     $moduleSources = file_get_contents('modules/admin/helpers/module-sources.php');
     if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($updatesHelper) || !is_string($moduleSources)) {
-        toy_check_add_error('Admin module lifecycle files cannot be read.');
+        sr_check_add_error('Admin module lifecycle files cannot be read.');
         return;
     }
 
     foreach ([
-        'function toy_admin_module_lifecycle_state',
+        'function sr_admin_module_lifecycle_state',
         'install_incomplete',
         'contract_error',
         'sql_pending',
         'file_only_update',
         'code_older',
-        'toy_admin_module_code_older_errors',
+        'sr_admin_module_code_older_errors',
     ] as $needle) {
         if (!str_contains($moduleActions, $needle)) {
-            toy_check_add_error('Admin module lifecycle state handling is missing: ' . $needle);
+            sr_check_add_error('Admin module lifecycle state handling is missing: ' . $needle);
         }
     }
 
     foreach (['수명주기', '파일 재배치 필요', '설치 차단'] as $needle) {
         if (!str_contains($moduleView, $needle)) {
-            toy_check_add_error('Admin module lifecycle UI label is missing: ' . $needle);
+            sr_check_add_error('Admin module lifecycle UI label is missing: ' . $needle);
         }
     }
 
-    foreach (['toy_admin_acquire_update_lock', 'update-failed.json', 'schema.update.failed', 'backup_confirmed'] as $needle) {
+    foreach (['sr_admin_acquire_update_lock', 'update-failed.json', 'schema.update.failed', 'backup_confirmed'] as $needle) {
         if (!str_contains($updatesHelper, $needle)) {
-            toy_check_add_error('Admin update safety marker is missing: ' . $needle);
+            sr_check_add_error('Admin update safety marker is missing: ' . $needle);
         }
     }
 
-    foreach (['toy_admin_zip_upload_stats', 'toy_admin_validate_extracted_module_tree', 'toy_admin_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
+    foreach (['sr_admin_zip_upload_stats', 'sr_admin_validate_extracted_module_tree', 'sr_admin_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
         if (!str_contains($moduleSources, $needle)) {
-            toy_check_add_error('Admin module source safety marker is missing: ' . $needle);
+            sr_check_add_error('Admin module source safety marker is missing: ' . $needle);
         }
     }
 }
 
-function toy_check_module_contract_files(): void
+function sr_check_module_contract_files(): void
 {
     $knownContractFiles = [
         'admin-menu.php',
@@ -267,23 +267,23 @@ function toy_check_module_contract_files(): void
         'sitemap.php',
     ];
 
-    foreach (toy_check_module_dirs() as $moduleDir) {
+    foreach (sr_check_module_dirs() as $moduleDir) {
         $moduleFile = $moduleDir . '/module.php';
         if (!is_file($moduleFile)) {
             continue;
         }
 
         if (!is_file($moduleDir . '/install.sql')) {
-            toy_check_add_error('Module install.sql is missing: ' . $moduleDir);
+            sr_check_add_error('Module install.sql is missing: ' . $moduleDir);
         }
 
         if (is_file($moduleDir . '/admin-menu.php') && !is_file($moduleDir . '/paths.php')) {
-            toy_check_add_error('Module paths.php is required with admin-menu.php: ' . $moduleDir);
+            sr_check_add_error('Module paths.php is required with admin-menu.php: ' . $moduleDir);
         }
 
         $metadata = include $moduleFile;
         if (!is_array($metadata)) {
-            toy_check_add_error('Module metadata must return an array: ' . $moduleFile);
+            sr_check_add_error('Module metadata must return an array: ' . $moduleFile);
             continue;
         }
 
@@ -294,27 +294,27 @@ function toy_check_module_contract_files(): void
         foreach ($provides as $contractFile) {
             $contractFile = is_string($contractFile) ? $contractFile : '';
             if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1) {
-                toy_check_add_error('Module contracts.provides entry is invalid: ' . $moduleFile . ' ' . $contractFile);
+                sr_check_add_error('Module contracts.provides entry is invalid: ' . $moduleFile . ' ' . $contractFile);
                 continue;
             }
 
             $providedFiles[$contractFile] = true;
             if (!is_file($moduleDir . '/' . $contractFile)) {
-                toy_check_add_error('Module declared contract file is missing: ' . $moduleDir . '/' . $contractFile);
+                sr_check_add_error('Module declared contract file is missing: ' . $moduleDir . '/' . $contractFile);
             }
         }
 
         foreach ($knownContractFiles as $contractFile) {
             if (is_file($moduleDir . '/' . $contractFile) && !isset($providedFiles[$contractFile])) {
-                toy_check_add_error('Module contract file must be declared in contracts.provides: ' . $moduleDir . '/' . $contractFile);
+                sr_check_add_error('Module contract file must be declared in contracts.provides: ' . $moduleDir . '/' . $contractFile);
             }
         }
     }
 }
 
-function toy_check_module_versions_and_updates(): void
+function sr_check_module_versions_and_updates(): void
 {
-    foreach (toy_check_module_dirs() as $moduleDir) {
+    foreach (sr_check_module_dirs() as $moduleDir) {
         $moduleFile = $moduleDir . '/module.php';
         if (!is_file($moduleFile)) {
             continue;
@@ -322,13 +322,13 @@ function toy_check_module_versions_and_updates(): void
 
         $metadata = include $moduleFile;
         if (!is_array($metadata)) {
-            toy_check_add_error('Module metadata must return an array: ' . $moduleFile);
+            sr_check_add_error('Module metadata must return an array: ' . $moduleFile);
             continue;
         }
 
         $moduleVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
         if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $moduleVersion) !== 1) {
-            toy_check_add_error('Module version must use YYYY.MM.NNN format: ' . $moduleFile);
+            sr_check_add_error('Module version must use YYYY.MM.NNN format: ' . $moduleFile);
             continue;
         }
 
@@ -337,23 +337,23 @@ function toy_check_module_versions_and_updates(): void
             continue;
         }
 
-        foreach (toy_check_files($updatesDir, 'sql') as $updateFile) {
+        foreach (sr_check_files($updatesDir, 'sql') as $updateFile) {
             $updateVersion = pathinfo($updateFile, PATHINFO_FILENAME);
             if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $updateVersion) !== 1) {
-                toy_check_add_error('Module update SQL filename must use YYYY.MM.NNN.sql format: ' . $updateFile);
+                sr_check_add_error('Module update SQL filename must use YYYY.MM.NNN.sql format: ' . $updateFile);
                 continue;
             }
 
             if (strcmp($updateVersion, $moduleVersion) > 0) {
-                toy_check_add_error('Module update SQL version must not be newer than module.php version: ' . $updateFile);
+                sr_check_add_error('Module update SQL version must not be newer than module.php version: ' . $updateFile);
             }
         }
     }
 }
 
-function toy_check_admin_menu_paths(): void
+function sr_check_admin_menu_paths(): void
 {
-    foreach (toy_check_module_dirs() as $moduleDir) {
+    foreach (sr_check_module_dirs() as $moduleDir) {
         $adminMenu = $moduleDir . '/admin-menu.php';
         $pathsFile = $moduleDir . '/paths.php';
         if (!is_file($adminMenu)) {
@@ -363,23 +363,23 @@ function toy_check_admin_menu_paths(): void
         $menu = file_get_contents($adminMenu);
         $paths = is_file($pathsFile) ? file_get_contents($pathsFile) : '';
         if (!is_string($menu) || !is_string($paths)) {
-            toy_check_add_error('Module menu or paths file cannot be read: ' . $moduleDir);
+            sr_check_add_error('Module menu or paths file cannot be read: ' . $moduleDir);
             continue;
         }
 
         preg_match_all("/'path'\\s*=>\\s*'(\\/admin\\/[^']*)'/", $menu, $matches);
         foreach ($matches[1] as $path) {
             if (preg_match("/'GET\\s+" . preg_quote($path, '/') . "'\\s*=>/", $paths) !== 1) {
-                toy_check_add_error('Admin menu path is missing from paths.php: ' . $moduleDir . ' ' . $path);
+                sr_check_add_error('Admin menu path is missing from paths.php: ' . $moduleDir . ' ' . $path);
             }
         }
     }
 }
 
-function toy_check_module_route_conflicts(): void
+function sr_check_module_route_conflicts(): void
 {
     $routeOwners = [];
-    foreach (toy_check_module_dirs() as $moduleDir) {
+    foreach (sr_check_module_dirs() as $moduleDir) {
         $pathsFile = $moduleDir . '/paths.php';
         if (!is_file($pathsFile)) {
             continue;
@@ -387,7 +387,7 @@ function toy_check_module_route_conflicts(): void
 
         $paths = include $pathsFile;
         if (!is_array($paths)) {
-            toy_check_add_error('Module paths.php must return an array: ' . $pathsFile);
+            sr_check_add_error('Module paths.php must return an array: ' . $pathsFile);
             continue;
         }
 
@@ -395,22 +395,22 @@ function toy_check_module_route_conflicts(): void
             $route = (string) $route;
             $actionRelativePath = (string) $actionRelativePath;
             if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
-                toy_check_add_error('Route key format is invalid: ' . $pathsFile . ' ' . $route);
+                sr_check_add_error('Route key format is invalid: ' . $pathsFile . ' ' . $route);
                 continue;
             }
 
             if (preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $actionRelativePath) !== 1 || strpos($actionRelativePath, '..') !== false) {
-                toy_check_add_error('Action path is invalid: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
+                sr_check_add_error('Action path is invalid: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
                 continue;
             }
 
             if (!is_file($moduleDir . '/' . $actionRelativePath)) {
-                toy_check_add_error('Action file is missing: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
+                sr_check_add_error('Action file is missing: ' . $pathsFile . ' ' . $route . ' -> ' . $actionRelativePath);
                 continue;
             }
 
             if (isset($routeOwners[$route])) {
-                toy_check_add_error('Module route conflict: ' . $route . ' in ' . $routeOwners[$route] . ' and ' . $moduleDir);
+                sr_check_add_error('Module route conflict: ' . $route . ' in ' . $routeOwners[$route] . ' and ' . $moduleDir);
                 continue;
             }
 
@@ -419,10 +419,10 @@ function toy_check_module_route_conflicts(): void
     }
 }
 
-function toy_check_php_lint(): void
+function sr_check_php_lint(): void
 {
-    $phpFiles = toy_check_files('.', 'php', ['.git', 'dist']);
-    foreach (toy_check_files('.tools/bin', '', []) as $file) {
+    $phpFiles = sr_check_files('.', 'php', ['.git', 'dist']);
+    foreach (sr_check_files('.tools/bin', '', []) as $file) {
         $header = file_get_contents($file, false, null, 0, 200);
         if (!is_string($header)) {
             continue;
@@ -441,36 +441,36 @@ function toy_check_php_lint(): void
         $output = [];
         exec($command, $output, $exitCode);
         if ($exitCode !== 0) {
-            toy_check_add_error('PHP lint failed: ' . $file . "\n" . implode("\n", $output));
+            sr_check_add_error('PHP lint failed: ' . $file . "\n" . implode("\n", $output));
         }
     }
 }
 
-toy_check_run('git diff --check');
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-auth-runtime.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-runtime-helpers.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-output-helpers.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-upload-helpers.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-auth-policy.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
-toy_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));
-toy_check_sql_files();
-toy_check_module_lifecycle_metadata();
-toy_check_module_lifecycle_ui_contract();
-toy_check_module_contract_files();
-toy_check_module_versions_and_updates();
-toy_check_admin_menu_paths();
-toy_check_module_route_conflicts();
-toy_check_php_lint();
+sr_check_run('git diff --check');
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-auth-runtime.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-runtime-helpers.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-output-helpers.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-upload-helpers.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-auth-policy.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));
+sr_check_sql_files();
+sr_check_module_lifecycle_metadata();
+sr_check_module_lifecycle_ui_contract();
+sr_check_module_contract_files();
+sr_check_module_versions_and_updates();
+sr_check_admin_menu_paths();
+sr_check_module_route_conflicts();
+sr_check_php_lint();
 
 if ($errors !== []) {
-    fwrite(STDERR, "toycore checks failed:\n");
+    fwrite(STDERR, "saanraan checks failed:\n");
     foreach ($errors as $error) {
         fwrite(STDERR, '- ' . $error . "\n");
     }
     exit(1);
 }
 
-echo "toycore checks completed.\n";
+echo "saanraan checks completed.\n";

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-function toy_community_report_reason_keys(): array
+function sr_community_report_reason_keys(): array
 {
     return ['spam', 'abuse', 'personal_info', 'illegal', 'other'];
 }
 
-function toy_community_report_reason_label(string $reasonKey): string
+function sr_community_report_reason_label(string $reasonKey): string
 {
     $labels = [
         'spam' => '스팸',
@@ -20,12 +20,12 @@ function toy_community_report_reason_label(string $reasonKey): string
     return (string) ($labels[$reasonKey] ?? $reasonKey);
 }
 
-function toy_community_report_statuses(): array
+function sr_community_report_statuses(): array
 {
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
-function toy_community_report_account_label(?string $displayName, int $accountId): string
+function sr_community_report_account_label(?string $displayName, int $accountId): string
 {
     $label = trim((string) $displayName);
     if ($label !== '') {
@@ -35,7 +35,7 @@ function toy_community_report_account_label(?string $displayName, int $accountId
     return $accountId > 0 ? '회원' : '알 수 없는 회원';
 }
 
-function toy_community_report_target(PDO $pdo, string $targetType, int $targetId, ?int $actorAccountId = null): ?array
+function sr_community_report_target(PDO $pdo, string $targetType, int $targetId, ?int $actorAccountId = null): ?array
 {
     if ($targetId < 1) {
         return null;
@@ -43,7 +43,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
 
     if ($targetType === 'post') {
         $account = $actorAccountId !== null ? ['id' => $actorAccountId] : null;
-        $post = toy_community_post_for_read($pdo, $targetId, $account);
+        $post = sr_community_post_for_read($pdo, $targetId, $account);
         if (!is_array($post)) {
             return null;
         }
@@ -59,7 +59,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
 
     if ($targetType === 'comment') {
         $account = $actorAccountId !== null ? ['id' => $actorAccountId] : null;
-        $comment = toy_community_comment_for_read($pdo, $targetId, $account);
+        $comment = sr_community_comment_for_read($pdo, $targetId, $account);
         if (!is_array($comment)) {
             return null;
         }
@@ -74,7 +74,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     }
 
     if ($targetType === 'message' && $actorAccountId !== null) {
-        $message = toy_community_message_participants_for_account($pdo, $targetId, $actorAccountId);
+        $message = sr_community_message_participants_for_account($pdo, $targetId, $actorAccountId);
         if (!is_array($message)) {
             return null;
         }
@@ -95,7 +95,7 @@ function toy_community_report_target(PDO $pdo, string $targetType, int $targetId
     return null;
 }
 
-function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $account): ?array
+function sr_community_comment_for_read(PDO $pdo, int $commentId, ?array $account): ?array
 {
     if ($commentId < 1) {
         return null;
@@ -105,9 +105,9 @@ function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $accoun
         "SELECT c.id, c.post_id, c.author_account_id, c.status,
                 p.status AS post_status,
                 b.id AS board_id, b.board_group_id, b.status AS board_status, b.read_policy
-         FROM toy_community_comments c
-         INNER JOIN toy_community_posts p ON p.id = c.post_id
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE c.id = :id
            AND c.status = 'published'
            AND p.status = 'published'
@@ -128,10 +128,10 @@ function toy_community_comment_for_read(PDO $pdo, int $commentId, ?array $accoun
         'read_policy' => (string) $comment['read_policy'],
     ];
 
-    return toy_community_account_can_read_board($pdo, $board, $account) ? $comment : null;
+    return sr_community_account_can_read_board($pdo, $board, $account) ? $comment : null;
 }
 
-function toy_community_report_exists(PDO $pdo, int $reporterAccountId, string $targetType, int $targetId): bool
+function sr_community_report_exists(PDO $pdo, int $reporterAccountId, string $targetType, int $targetId): bool
 {
     if ($reporterAccountId < 1 || $targetId < 1) {
         return false;
@@ -139,7 +139,7 @@ function toy_community_report_exists(PDO $pdo, int $reporterAccountId, string $t
 
     $stmt = $pdo->prepare(
         'SELECT id
-         FROM toy_community_reports
+         FROM sr_community_reports
          WHERE reporter_account_id = :reporter_account_id
            AND target_type = :target_type
            AND target_id = :target_id
@@ -154,11 +154,11 @@ function toy_community_report_exists(PDO $pdo, int $reporterAccountId, string $t
     return is_array($stmt->fetch());
 }
 
-function toy_community_create_report(PDO $pdo, array $data): int
+function sr_community_create_report(PDO $pdo, array $data): int
 {
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_community_reports
+        'INSERT INTO sr_community_reports
             (target_type, target_id, reporter_account_id, reported_account_id, reason_key, memo_text, status, reviewer_account_id, review_note, created_at, updated_at, reviewed_at)
          VALUES
             (:target_type, :target_id, :reporter_account_id, :reported_account_id, :reason_key, :memo_text, :status, NULL, NULL, :created_at, :updated_at, NULL)'
@@ -178,26 +178,26 @@ function toy_community_create_report(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function toy_community_report_rate_limited(PDO $pdo, int $accountId, array $settings): bool
+function sr_community_report_rate_limited(PDO $pdo, int $accountId, array $settings): bool
 {
     $windowSeconds = min(86400, max(60, (int) ($settings['report_create_window_seconds'] ?? 300)));
     $limit = min(200, max(1, (int) ($settings['report_create_limit'] ?? 20)));
 
-    return toy_community_rate_limits_table_exists($pdo)
-        && toy_rate_limit_count($pdo, 'community.report.account', (string) $accountId, $windowSeconds) >= $limit;
+    return sr_community_rate_limits_table_exists($pdo)
+        && sr_rate_limit_count($pdo, 'community.report.account', (string) $accountId, $windowSeconds) >= $limit;
 }
 
-function toy_community_record_report_rate_limit(PDO $pdo, int $accountId, array $settings): void
+function sr_community_record_report_rate_limit(PDO $pdo, int $accountId, array $settings): void
 {
-    if (!toy_community_rate_limits_table_exists($pdo)) {
+    if (!sr_community_rate_limits_table_exists($pdo)) {
         return;
     }
 
     $windowSeconds = min(86400, max(60, (int) ($settings['report_create_window_seconds'] ?? 300)));
-    toy_rate_limit_increment($pdo, 'community.report.account', (string) $accountId, $windowSeconds);
+    sr_rate_limit_increment($pdo, 'community.report.account', (string) $accountId, $windowSeconds);
 }
 
-function toy_community_reports(PDO $pdo, int $limit = 100): array
+function sr_community_reports(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(200, $limit));
     $stmt = $pdo->prepare(
@@ -206,10 +206,10 @@ function toy_community_reports(PDO $pdo, int $limit = 100): array
                 reporter.display_name AS reporter_display_name,
                 reported.display_name AS reported_display_name,
                 reviewer.display_name AS reviewer_display_name
-         FROM toy_community_reports r
-         LEFT JOIN toy_member_accounts reporter ON reporter.id = r.reporter_account_id
-         LEFT JOIN toy_member_accounts reported ON reported.id = r.reported_account_id
-         LEFT JOIN toy_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
+         FROM sr_community_reports r
+         LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
+         LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
+         LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
          ORDER BY r.id DESC
          LIMIT :limit_value'
     );
@@ -219,24 +219,24 @@ function toy_community_reports(PDO $pdo, int $limit = 100): array
     return $stmt->fetchAll();
 }
 
-function toy_community_report_by_id(PDO $pdo, int $reportId): ?array
+function sr_community_report_by_id(PDO $pdo, int $reportId): ?array
 {
     if ($reportId < 1) {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_community_reports WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT * FROM sr_community_reports WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $reportId]);
     $report = $stmt->fetch();
 
     return is_array($report) ? $report : null;
 }
 
-function toy_community_update_report_status(PDO $pdo, int $reportId, string $status, int $reviewerAccountId, string $reviewNote): void
+function sr_community_update_report_status(PDO $pdo, int $reportId, string $status, int $reviewerAccountId, string $reviewNote): void
 {
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_reports
+        'UPDATE sr_community_reports
          SET status = :status,
              reviewer_account_id = :reviewer_account_id,
              review_note = :review_note,

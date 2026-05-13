@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'toycore.name' => 'Toycore',
+    'saanraan.name' => 'Saanraan',
 ];

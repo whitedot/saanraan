@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-function toy_admin_settings_allowed_types(): array
+function sr_admin_settings_allowed_types(): array
 {
     return ['string', 'int', 'bool', 'json'];
 }
 
-function toy_admin_code_label(string $value, string $context = ''): string
+function sr_admin_code_label(string $value, string $context = ''): string
 {
     $contextLabels = [
         'member_status' => [
@@ -181,7 +181,7 @@ function toy_admin_code_label(string $value, string $context = ''): string
     return $value;
 }
 
-function toy_admin_event_type_label(string $eventType): string
+function sr_admin_event_type_label(string $eventType): string
 {
     $labels = [
         'member.sessions.revoked' => '회원 세션 폐기',
@@ -257,7 +257,7 @@ function toy_admin_event_type_label(string $eventType): string
     return $labels === [] ? $eventType : implode(' ', $labels);
 }
 
-function toy_admin_module_name_label(string $name): string
+function sr_admin_module_name_label(string $name): string
 {
     $labels = [
         'Admin' => '관리자',
@@ -276,7 +276,7 @@ function toy_admin_module_name_label(string $name): string
     return (string) ($labels[$name] ?? $name);
 }
 
-function toy_admin_module_description_label(string $description): string
+function sr_admin_module_description_label(string $description): string
 {
     $labels = [
         'Admin dashboard module.' => '관리자 대시보드 모듈입니다.',
@@ -295,46 +295,46 @@ function toy_admin_module_description_label(string $description): string
     return (string) ($labels[$description] ?? $description);
 }
 
-function toy_admin_settings(PDO $pdo): array
+function sr_admin_settings(PDO $pdo): array
 {
-    $metadata = toy_module_metadata('admin');
+    $metadata = sr_module_metadata('admin');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
-    return array_merge(['admin_skin_key' => 'basic'], $defaults, toy_module_settings($pdo, 'admin'));
+    return array_merge(['admin_skin_key' => 'basic'], $defaults, sr_module_settings($pdo, 'admin'));
 }
 
-function toy_admin_skin_options(): array
+function sr_admin_skin_options(): array
 {
     return [
         'basic' => [
             'label' => '기본',
             'views' => [
-                'layout-header' => TOY_ROOT . '/modules/admin/skins/basic/layout-header.php',
-                'layout-footer' => TOY_ROOT . '/modules/admin/skins/basic/layout-footer.php',
+                'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php',
+                'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php',
             ],
         ],
     ];
 }
 
-function toy_admin_skin_key(array $settings): string
+function sr_admin_skin_key(array $settings): string
 {
     $skinKey = (string) ($settings['admin_skin_key'] ?? 'basic');
 
-    return isset(toy_admin_skin_options()[$skinKey]) ? $skinKey : 'basic';
+    return isset(sr_admin_skin_options()[$skinKey]) ? $skinKey : 'basic';
 }
 
-function toy_admin_skin_view(string $skinKey, string $viewKey): string
+function sr_admin_skin_view(string $skinKey, string $viewKey): string
 {
-    $options = toy_admin_skin_options();
+    $options = sr_admin_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
     return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
 }
 
-function toy_admin_save_skin_key(PDO $pdo, string $skinKey): void
+function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
 {
-    $skinKey = toy_admin_skin_key(['admin_skin_key' => $skinKey]);
-    $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'admin' LIMIT 1");
+    $skinKey = sr_admin_skin_key(['admin_skin_key' => $skinKey]);
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'admin' LIMIT 1");
     $stmt->execute();
     $module = $stmt->fetch();
     if (!is_array($module)) {
@@ -342,7 +342,7 @@ function toy_admin_save_skin_key(PDO $pdo, string $skinKey): void
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_module_settings
+        'INSERT INTO sr_module_settings
             (module_id, setting_key, setting_value, value_type, created_at, updated_at)
          VALUES
             (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
@@ -351,7 +351,7 @@ function toy_admin_save_skin_key(PDO $pdo, string $skinKey): void
             value_type = VALUES(value_type),
             updated_at = VALUES(updated_at)'
     );
-    $now = toy_now();
+    $now = sr_now();
     $stmt->execute([
         'module_id' => (int) $module['id'],
         'setting_key' => 'admin_skin_key',
@@ -360,10 +360,10 @@ function toy_admin_save_skin_key(PDO $pdo, string $skinKey): void
         'created_at' => $now,
         'updated_at' => $now,
     ]);
-    toy_clear_module_settings_cache('admin');
+    sr_clear_module_settings_cache('admin');
 }
 
-function toy_admin_reserved_site_setting_keys(): array
+function sr_admin_reserved_site_setting_keys(): array
 {
     return [
         'site.name' => true,
@@ -377,24 +377,24 @@ function toy_admin_reserved_site_setting_keys(): array
     ];
 }
 
-function toy_admin_sensitive_site_setting_keys(): array
+function sr_admin_sensitive_site_setting_keys(): array
 {
     return [
         'admin.module_sources_enabled' => true,
     ];
 }
 
-function toy_admin_site_setting_requires_reauth(string $settingKey): bool
+function sr_admin_site_setting_requires_reauth(string $settingKey): bool
 {
-    return isset(toy_admin_sensitive_site_setting_keys()[$settingKey]);
+    return isset(sr_admin_sensitive_site_setting_keys()[$settingKey]);
 }
 
-function toy_admin_site_setting_requires_bool(string $settingKey): bool
+function sr_admin_site_setting_requires_bool(string $settingKey): bool
 {
-    return toy_admin_site_setting_requires_reauth($settingKey);
+    return sr_admin_site_setting_requires_reauth($settingKey);
 }
 
-function toy_admin_setting_value_is_secret(string $settingKey): bool
+function sr_admin_setting_value_is_secret(string $settingKey): bool
 {
     return preg_match(
         '/(?:^|[._-])(?:password|token|secret|credential|bearer|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
@@ -402,34 +402,34 @@ function toy_admin_setting_value_is_secret(string $settingKey): bool
     ) === 1;
 }
 
-function toy_admin_setting_display_value(array $setting): string
+function sr_admin_setting_display_value(array $setting): string
 {
     $settingKey = (string) ($setting['setting_key'] ?? '');
     $settingValue = (string) ($setting['setting_value'] ?? '');
 
-    if (toy_admin_setting_value_is_secret($settingKey)) {
+    if (sr_admin_setting_value_is_secret($settingKey)) {
         return $settingValue === '' ? '' : '[masked]';
     }
 
     return $settingValue;
 }
 
-function toy_admin_site_setting_value_is_secret(string $settingKey): bool
+function sr_admin_site_setting_value_is_secret(string $settingKey): bool
 {
-    return toy_admin_setting_value_is_secret($settingKey);
+    return sr_admin_setting_value_is_secret($settingKey);
 }
 
-function toy_admin_site_setting_display_value(array $setting): string
+function sr_admin_site_setting_display_value(array $setting): string
 {
-    return toy_admin_setting_display_value($setting);
+    return sr_admin_setting_display_value($setting);
 }
 
-function toy_admin_module_setting_display_value(array $setting): string
+function sr_admin_module_setting_display_value(array $setting): string
 {
-    return toy_admin_setting_display_value($setting);
+    return sr_admin_setting_display_value($setting);
 }
 
-function toy_admin_setting_value_type_errors(string $settingValue, string $valueType): array
+function sr_admin_setting_value_type_errors(string $settingValue, string $valueType): array
 {
     if ($valueType === 'int' && preg_match('/\A-?\d+\z/', $settingValue) !== 1) {
         return ['int 설정값은 정수 문자열이어야 합니다.'];
@@ -446,7 +446,7 @@ function toy_admin_setting_value_type_errors(string $settingValue, string $value
     return [];
 }
 
-function toy_admin_normalize_setting_value(string $settingValue, string $valueType): string
+function sr_admin_normalize_setting_value(string $settingValue, string $valueType): string
 {
     if ($valueType === 'int') {
         return (string) (int) $settingValue;
@@ -459,7 +459,7 @@ function toy_admin_normalize_setting_value(string $settingValue, string $valueTy
     return $settingValue;
 }
 
-function toy_admin_site_setting_values(?array $site): array
+function sr_admin_site_setting_values(?array $site): array
 {
     return [
         'name' => (string) ($site['name'] ?? ''),
@@ -468,12 +468,12 @@ function toy_admin_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
         'status' => (string) ($site['status'] ?? 'active'),
-        'public_layout_key' => toy_public_layout_key($site),
-        'ui_color_scheme' => toy_color_scheme($site),
+        'public_layout_key' => sr_public_layout_key($site),
+        'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
 
-function toy_admin_previous_site_setting_values(?array $site): array
+function sr_admin_previous_site_setting_values(?array $site): array
 {
     return [
         'name' => (string) ($site['name'] ?? ''),
@@ -482,26 +482,26 @@ function toy_admin_previous_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? ''),
         'supported_locales' => (string) ($site['supported_locales'] ?? ''),
         'status' => (string) ($site['status'] ?? ''),
-        'public_layout_key' => toy_public_layout_key($site),
-        'ui_color_scheme' => toy_color_scheme($site),
+        'public_layout_key' => sr_public_layout_key($site),
+        'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
 
-function toy_admin_post_site_setting_values(): array
+function sr_admin_post_site_setting_values(): array
 {
     return [
-        'name' => toy_post_string('name', 120),
-        'base_url' => toy_post_string('base_url', 255),
-        'timezone' => toy_post_string('timezone', 80),
-        'default_locale' => toy_post_string('default_locale', 20),
-        'supported_locales' => toy_post_string('supported_locales', 255),
-        'status' => toy_post_string('status', 30),
-        'public_layout_key' => toy_post_string('public_layout_key', 60),
-        'ui_color_scheme' => toy_post_string('ui_color_scheme', 20),
+        'name' => sr_post_string('name', 120),
+        'base_url' => sr_post_string('base_url', 255),
+        'timezone' => sr_post_string('timezone', 80),
+        'default_locale' => sr_post_string('default_locale', 20),
+        'supported_locales' => sr_post_string('supported_locales', 255),
+        'status' => sr_post_string('status', 30),
+        'public_layout_key' => sr_post_string('public_layout_key', 60),
+        'ui_color_scheme' => sr_post_string('ui_color_scheme', 20),
     ];
 }
 
-function toy_admin_validate_supported_locales(array &$values, array &$errors): void
+function sr_admin_validate_supported_locales(array &$values, array &$errors): void
 {
     $supportedLocales = [];
     foreach (preg_split('/[\s,]+/', $values['supported_locales']) ?: [] as $locale) {
@@ -524,7 +524,7 @@ function toy_admin_validate_supported_locales(array &$values, array &$errors): v
     $values['supported_locales'] = implode(',', array_values($supportedLocales));
 }
 
-function toy_admin_handle_settings_post(
+function sr_admin_handle_settings_post(
     PDO $pdo,
     array $account,
     ?array $site,
@@ -534,8 +534,8 @@ function toy_admin_handle_settings_post(
 ): array {
     $errors = [];
     $notice = '';
-    $values = toy_admin_site_setting_values($site);
-    $intent = toy_post_string('intent', 40);
+    $values = sr_admin_site_setting_values($site);
+    $intent = sr_post_string('intent', 40);
 
     if (!in_array($intent, ['site', 'site_setting', 'delete_site_setting'], true)) {
         $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
@@ -546,9 +546,9 @@ function toy_admin_handle_settings_post(
             $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
         }
 
-        $settingKey = toy_post_string('setting_key', 120);
-        $settingValue = toy_post_string('setting_value', 5000);
-        $valueType = toy_post_string('value_type', 20);
+        $settingKey = sr_post_string('setting_key', 120);
+        $settingValue = sr_post_string('setting_value', 5000);
+        $valueType = sr_post_string('value_type', 20);
 
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
@@ -558,7 +558,7 @@ function toy_admin_handle_settings_post(
             $errors[] = '설정 타입이 올바르지 않습니다.';
         }
 
-        if (toy_admin_site_setting_requires_bool($settingKey) && $valueType !== 'bool') {
+        if (sr_admin_site_setting_requires_bool($settingKey) && $valueType !== 'bool') {
             $errors[] = '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.';
         }
 
@@ -566,21 +566,21 @@ function toy_admin_handle_settings_post(
             $errors[] = '기본 사이트 설정은 위의 전용 양식에서 수정하세요.';
         }
 
-        foreach (toy_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
+        foreach (sr_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
             $errors[] = $valueError;
         }
 
-        if ($errors === [] && toy_admin_site_setting_requires_reauth($settingKey)) {
-            foreach (toy_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'save') as $reauthError) {
+        if ($errors === [] && sr_admin_site_setting_requires_reauth($settingKey)) {
+            foreach (sr_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'save') as $reauthError) {
                 $errors[] = $reauthError;
             }
         }
 
         if ($errors === []) {
-            $settingValue = toy_admin_normalize_setting_value($settingValue, $valueType);
-            toy_save_site_setting($pdo, $settingKey, $settingValue, $valueType);
+            $settingValue = sr_admin_normalize_setting_value($settingValue, $valueType);
+            sr_save_site_setting($pdo, $settingKey, $settingValue, $valueType);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site.setting.saved',
@@ -600,7 +600,7 @@ function toy_admin_handle_settings_post(
             $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
         }
 
-        $settingKey = toy_post_string('setting_key', 120);
+        $settingKey = sr_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
         }
@@ -609,18 +609,18 @@ function toy_admin_handle_settings_post(
             $errors[] = '기본 사이트 설정은 삭제할 수 없습니다.';
         }
 
-        if ($errors === [] && toy_admin_site_setting_requires_reauth($settingKey)) {
-            foreach (toy_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'delete') as $reauthError) {
+        if ($errors === [] && sr_admin_site_setting_requires_reauth($settingKey)) {
+            foreach (sr_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'delete') as $reauthError) {
                 $errors[] = $reauthError;
             }
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM toy_site_settings WHERE setting_key = :setting_key');
+            $stmt = $pdo->prepare('DELETE FROM sr_site_settings WHERE setting_key = :setting_key');
             $stmt->execute(['setting_key' => $settingKey]);
-            toy_clear_site_settings_cache();
+            sr_clear_site_settings_cache();
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site.setting.deleted',
@@ -633,13 +633,13 @@ function toy_admin_handle_settings_post(
             $notice = '사이트 설정 항목을 삭제했습니다.';
         }
     } elseif ($errors === [] && $intent === 'site') {
-        $values = toy_admin_post_site_setting_values();
+        $values = sr_admin_post_site_setting_values();
 
         if ($values['name'] === '') {
             $errors[] = '사이트 이름을 입력하세요.';
         }
 
-        if ($values['base_url'] !== '' && !toy_is_site_base_url($values['base_url'])) {
+        if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
             $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
         }
 
@@ -652,25 +652,25 @@ function toy_admin_handle_settings_post(
         }
 
         if ($errors === []) {
-            toy_admin_validate_supported_locales($values, $errors);
+            sr_admin_validate_supported_locales($values, $errors);
         }
 
         if (!in_array($values['status'], ['active', 'maintenance'], true)) {
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
 
-        if (!isset(toy_public_layout_options()[$values['public_layout_key']])) {
+        if (!isset(sr_public_layout_options()[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
 
-        if (!isset(toy_color_scheme_options()[$values['ui_color_scheme']])) {
+        if (!isset(sr_color_scheme_options()[$values['ui_color_scheme']])) {
             $errors[] = 'UI 색상 모드 값이 올바르지 않습니다.';
         }
 
         if ($errors === []) {
-            $previousValues = toy_admin_previous_site_setting_values($site);
+            $previousValues = sr_admin_previous_site_setting_values($site);
 
-            toy_save_site_settings($pdo, [
+            sr_save_site_settings($pdo, [
                 'site.name' => ['value' => $values['name'], 'type' => 'string'],
                 'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
@@ -681,7 +681,7 @@ function toy_admin_handle_settings_post(
                 'ui_color_scheme' => ['value' => $values['ui_color_scheme'], 'type' => 'string'],
             ]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'site.settings.updated',
@@ -695,8 +695,8 @@ function toy_admin_handle_settings_post(
                 ],
             ]);
 
-            $site = toy_load_site($pdo);
-            $values = toy_admin_site_setting_values(is_array($site) ? $site : null);
+            $site = sr_load_site($pdo);
+            $values = sr_admin_site_setting_values(is_array($site) ? $site : null);
             $notice = '사이트 설정을 저장했습니다.';
         }
     }
@@ -709,18 +709,18 @@ function toy_admin_handle_settings_post(
     ];
 }
 
-function toy_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $settingKey, string $action): array
+function sr_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $settingKey, string $action): array
 {
-    $password = toy_post_string('owner_password', 255);
+    $password = sr_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
         return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
-    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
     if (!empty($throttle['limited'])) {
-        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'site.setting.reauth_blocked',
@@ -736,8 +736,8 @@ function toy_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $
     }
 
     if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
-        toy_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'site.setting.reauth_failed',
@@ -752,16 +752,16 @@ function toy_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $
         return ['고위험 사이트 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
-    toy_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'success');
+    sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'success');
     return [];
 }
 
-function toy_admin_site_settings(PDO $pdo): array
+function sr_admin_site_settings(PDO $pdo): array
 {
     $siteSettings = [];
     $stmt = $pdo->query(
         "SELECT setting_key, setting_value, value_type, updated_at
-         FROM toy_site_settings
+         FROM sr_site_settings
          WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status', 'public_layout_key', 'ui_color_scheme')
          ORDER BY setting_key ASC"
     );

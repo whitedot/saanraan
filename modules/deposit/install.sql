@@ -1,15 +1,15 @@
-CREATE TABLE IF NOT EXISTS toy_deposit_balances (
+CREATE TABLE IF NOT EXISTS sr_deposit_balances (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,
     balance BIGINT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_deposit_balances_account (account_id),
-    KEY idx_toy_deposit_balances_updated (updated_at)
+    UNIQUE KEY uq_sr_deposit_balances_account (account_id),
+    KEY idx_sr_deposit_balances_updated (updated_at)
 );
 
-CREATE TABLE IF NOT EXISTS toy_deposit_transactions (
+CREATE TABLE IF NOT EXISTS sr_deposit_transactions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,
     amount BIGINT NOT NULL,
@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS toy_deposit_transactions (
     created_by_account_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_deposit_transactions_account_created (account_id, created_at),
-    KEY idx_toy_deposit_transactions_reference (reference_type, reference_id),
-    KEY idx_toy_deposit_transactions_created_by (created_by_account_id),
-    KEY idx_toy_deposit_transactions_created (created_at)
+    KEY idx_sr_deposit_transactions_account_created (account_id, created_at),
+    KEY idx_sr_deposit_transactions_reference (reference_type, reference_id),
+    KEY idx_sr_deposit_transactions_created_by (created_by_account_id),
+    KEY idx_sr_deposit_transactions_created (created_at)
 );

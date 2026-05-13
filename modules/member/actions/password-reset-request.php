@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
 
 $errors = [];
 $notice = '';
 $resetUrl = '';
 $showResetUrl = false;
 $email = '';
-$memberSettings = toy_member_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $email = toy_post_string_without_truncation('email', 255);
+    $email = sr_post_string_without_truncation('email', 255);
     if ($email === null) {
         $errors[] = '이메일은 255자 이하로 입력하세요.';
         $email = '';
@@ -25,13 +25,13 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $account = toy_member_find_by_email($pdo, $config, $email);
+        $account = sr_member_find_by_email($pdo, $config, $email);
         $activeAccount = $account !== null && $account['status'] === 'active' ? $account : null;
-        $throttle = toy_member_password_reset_throttle_status($pdo, $activeAccount !== null ? (int) $activeAccount['id'] : null);
+        $throttle = sr_member_password_reset_throttle_status($pdo, $activeAccount !== null ? (int) $activeAccount['id'] : null);
 
         if (!empty($throttle['limited'])) {
-            toy_member_log_auth($pdo, $activeAccount !== null ? (int) $activeAccount['id'] : null, 'password_reset_request_blocked', 'failure');
-            toy_audit_log($pdo, [
+            sr_member_log_auth($pdo, $activeAccount !== null ? (int) $activeAccount['id'] : null, 'password_reset_request_blocked', 'failure');
+            sr_audit_log($pdo, [
                 'actor_account_id' => $activeAccount !== null ? (int) $activeAccount['id'] : null,
                 'actor_type' => 'member',
                 'event_type' => 'member.password_reset.blocked',
@@ -41,20 +41,20 @@ if (toy_request_method() === 'POST') {
                 'message' => 'Member password reset request blocked by throttle.',
             ]);
         } elseif ($activeAccount !== null) {
-            $token = toy_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
-            $resetUrl = toy_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
-            $showResetUrl = !empty($config['debug']) && toy_is_local_host((string) ($site['base_url'] ?? ''));
-            $mailSent = toy_send_mail(
+            $token = sr_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
+            $resetUrl = sr_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
+            $showResetUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
+            $mailSent = sr_send_mail(
                 $site,
                 (string) $activeAccount['email'],
                 '비밀번호 재설정 안내',
                 "아래 링크를 열어 비밀번호를 재설정하세요.\n\n" . $resetUrl
             );
             if (!$mailSent) {
-                toy_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_mail_failed', 'failure');
+                sr_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_mail_failed', 'failure');
             }
-            toy_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_request', 'success');
-            toy_audit_log($pdo, [
+            sr_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_request', 'success');
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $activeAccount['id'],
                 'actor_type' => 'member',
                 'event_type' => 'member.password_reset.requested',
@@ -67,12 +67,12 @@ if (toy_request_method() === 'POST') {
                 ],
             ]);
         } else {
-            toy_member_log_auth($pdo, null, 'password_reset_request', 'failure');
+            sr_member_log_auth($pdo, null, 'password_reset_request', 'failure');
         }
 
         $notice = '입력한 이메일로 비밀번호 재설정 안내를 보냈습니다.';
     }
 }
 
-$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'password-reset-request');
+$memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'password-reset-request');
 include $memberSkinView;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_community_account_has_scrap(PDO $pdo, int $accountId, int $postId): bool
+function sr_community_account_has_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
         return false;
@@ -10,7 +10,7 @@ function toy_community_account_has_scrap(PDO $pdo, int $accountId, int $postId):
 
     $stmt = $pdo->prepare(
         'SELECT id
-         FROM toy_community_scraps
+         FROM sr_community_scraps
          WHERE account_id = :account_id
            AND post_id = :post_id
          LIMIT 1'
@@ -23,14 +23,14 @@ function toy_community_account_has_scrap(PDO $pdo, int $accountId, int $postId):
     return is_array($stmt->fetch());
 }
 
-function toy_community_add_scrap(PDO $pdo, int $accountId, int $postId): bool
+function sr_community_add_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
         return false;
     }
 
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO toy_community_scraps
+        'INSERT IGNORE INTO sr_community_scraps
             (account_id, post_id, created_at)
          VALUES
             (:account_id, :post_id, :created_at)'
@@ -38,20 +38,20 @@ function toy_community_add_scrap(PDO $pdo, int $accountId, int $postId): bool
     $stmt->execute([
         'account_id' => $accountId,
         'post_id' => $postId,
-        'created_at' => toy_now(),
+        'created_at' => sr_now(),
     ]);
 
     return $stmt->rowCount() > 0;
 }
 
-function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): bool
+function sr_community_remove_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
         return false;
     }
 
     $stmt = $pdo->prepare(
-        'DELETE FROM toy_community_scraps
+        'DELETE FROM sr_community_scraps
          WHERE account_id = :account_id
            AND post_id = :post_id'
     );
@@ -63,7 +63,7 @@ function toy_community_remove_scrap(PDO $pdo, int $accountId, int $postId): bool
     return $stmt->rowCount() > 0;
 }
 
-function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
+function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
 {
     if ($accountId < 1) {
         return [];
@@ -76,9 +76,9 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account 
                 b.id AS board_id,
                 b.board_group_id,
                 b.board_key, b.title AS board_title, b.status AS board_status, b.read_policy
-         FROM toy_community_scraps s
-         LEFT JOIN toy_community_posts p ON p.id = s.post_id
-         LEFT JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_scraps s
+         LEFT JOIN sr_community_posts p ON p.id = s.post_id
+         LEFT JOIN sr_community_boards b ON b.id = p.board_id
          WHERE s.account_id = :account_id
          ORDER BY s.id DESC
          LIMIT :limit_value'
@@ -96,19 +96,19 @@ function toy_community_account_scraps(PDO $pdo, int $accountId, ?array $account 
             'read_policy' => (string) ($scrap['read_policy'] ?? ''),
         ];
         $scrap['can_view'] = (string) ($scrap['post_status'] ?? '') === 'published'
-            && toy_community_account_can_read_board($pdo, $board, $account);
+            && sr_community_account_can_read_board($pdo, $board, $account);
     }
     unset($scrap);
 
     return $scraps;
 }
 
-function toy_community_scrap_row_can_view(array $scrap): bool
+function sr_community_scrap_row_can_view(array $scrap): bool
 {
     return !empty($scrap['can_view']);
 }
 
-function toy_community_scrap_row_is_public(array $scrap): bool
+function sr_community_scrap_row_is_public(array $scrap): bool
 {
-    return toy_community_scrap_row_can_view($scrap);
+    return sr_community_scrap_row_can_view($scrap);
 }

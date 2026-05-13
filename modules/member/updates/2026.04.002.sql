@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_member_profiles (
+CREATE TABLE IF NOT EXISTS sr_member_profiles (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,
     nickname VARCHAR(80) NOT NULL DEFAULT '',
@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS toy_member_profiles (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_member_profiles_account (account_id)
+    UNIQUE KEY uq_sr_member_profiles_account (account_id)
 );

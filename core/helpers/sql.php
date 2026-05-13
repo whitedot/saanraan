@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_execute_sql_file(PDO $pdo, string $file): void
+function sr_execute_sql_file(PDO $pdo, string $file): void
 {
     if (!is_file($file)) {
         throw new RuntimeException('SQL file does not exist: ' . $file);
@@ -13,12 +13,12 @@ function toy_execute_sql_file(PDO $pdo, string $file): void
         throw new RuntimeException('SQL file cannot be read: ' . $file);
     }
 
-    foreach (toy_split_sql_statements($sql) as $statement) {
+    foreach (sr_split_sql_statements($sql) as $statement) {
         $pdo->exec($statement);
     }
 }
 
-function toy_split_sql_statements(string $sql): array
+function sr_split_sql_statements(string $sql): array
 {
     $statements = [];
     $statement = '';
@@ -114,21 +114,21 @@ function toy_split_sql_statements(string $sql): array
     return $statements;
 }
 
-function toy_record_schema_version(PDO $pdo, string $scope, string $moduleKey, string $version): void
+function sr_record_schema_version(PDO $pdo, string $scope, string $moduleKey, string $version): void
 {
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO toy_schema_versions (scope, module_key, version, applied_at)
+        'INSERT IGNORE INTO sr_schema_versions (scope, module_key, version, applied_at)
          VALUES (:scope, :module_key, :version, :applied_at)'
     );
     $stmt->execute([
         'scope' => $scope,
         'module_key' => $moduleKey,
         'version' => $version,
-        'applied_at' => toy_now(),
+        'applied_at' => sr_now(),
     ]);
 }
 
-function toy_schema_update_versions(string $directory): array
+function sr_schema_update_versions(string $directory): array
 {
     if (!is_dir($directory)) {
         return [];
@@ -151,30 +151,30 @@ function toy_schema_update_versions(string $directory): array
     return $versions;
 }
 
-function toy_record_installed_module_schema_versions(PDO $pdo, string $moduleKey, string $currentVersion): void
+function sr_record_installed_module_schema_versions(PDO $pdo, string $moduleKey, string $currentVersion): void
 {
-    if (!toy_is_safe_module_key($moduleKey)) {
+    if (!sr_is_safe_module_key($moduleKey)) {
         throw new InvalidArgumentException('Module key is invalid.');
     }
 
-    toy_record_installed_schema_versions(
+    sr_record_installed_schema_versions(
         $pdo,
         'module',
         $moduleKey,
         $currentVersion,
-        TOY_ROOT . '/modules/' . $moduleKey . '/updates'
+        SR_ROOT . '/modules/' . $moduleKey . '/updates'
     );
 }
 
-function toy_record_installed_core_schema_versions(PDO $pdo, string $currentVersion): void
+function sr_record_installed_core_schema_versions(PDO $pdo, string $currentVersion): void
 {
-    toy_record_installed_schema_versions($pdo, 'core', '', $currentVersion, TOY_ROOT . '/database/core/updates');
+    sr_record_installed_schema_versions($pdo, 'core', '', $currentVersion, SR_ROOT . '/database/core/updates');
 }
 
-function toy_record_installed_schema_versions(PDO $pdo, string $scope, string $moduleKey, string $currentVersion, string $updatesDirectory): void
+function sr_record_installed_schema_versions(PDO $pdo, string $scope, string $moduleKey, string $currentVersion, string $updatesDirectory): void
 {
     if (preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $currentVersion) !== 1) {
-        toy_record_schema_version($pdo, $scope, $moduleKey, $currentVersion);
+        sr_record_schema_version($pdo, $scope, $moduleKey, $currentVersion);
         return;
     }
 
@@ -184,7 +184,7 @@ function toy_record_installed_schema_versions(PDO $pdo, string $scope, string $m
         $versions[$baseVersion] = true;
     }
 
-    foreach (toy_schema_update_versions($updatesDirectory) as $version) {
+    foreach (sr_schema_update_versions($updatesDirectory) as $version) {
         if (strcmp($version, $currentVersion) <= 0) {
             $versions[$version] = true;
         }
@@ -192,6 +192,6 @@ function toy_record_installed_schema_versions(PDO $pdo, string $scope, string $m
 
     ksort($versions, SORT_STRING);
     foreach (array_keys($versions) as $version) {
-        toy_record_schema_version($pdo, $scope, $moduleKey, (string) $version);
+        sr_record_schema_version($pdo, $scope, $moduleKey, (string) $version);
     }
 }

@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
-require_once TOY_ROOT . '/modules/community/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 $errors = [];
 $notice = '';
-$settings = toy_community_settings($pdo);
-$communityThemeOptions = toy_community_theme_options();
-$levels = toy_community_levels($pdo);
-$maxLevel = toy_community_max_level_value();
-$memberGroups = toy_member_groups($pdo);
+$settings = sr_community_settings($pdo);
+$communityThemeOptions = sr_community_theme_options();
+$levels = sr_community_levels($pdo);
+$maxLevel = sr_community_max_level_value();
+$memberGroups = sr_member_groups($pdo);
 $enabledMemberGroups = [];
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
@@ -27,23 +27,23 @@ foreach ($memberGroups as $memberGroup) {
     $enabledMemberGroupKeys[] = (string) $memberGroup['group_key'];
 }
 
-if (toy_request_method() === 'POST') {
-    toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
+    $intent = sr_post_string('intent', 40);
 
     if ($intent === 'save_settings') {
         $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
         $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
-        $levelPostScore = toy_admin_post_int_in_range('level_post_score', 0, 10000);
-        $levelCommentScore = toy_admin_post_int_in_range('level_comment_score', 0, 10000);
-        $accessConditionPriority = toy_community_access_condition_priority(toy_post_string('access_condition_priority', 40));
-        $messageWritePolicy = toy_community_message_write_policy(toy_post_string('message_write_policy', 40));
-        $messageWriteMinLevel = toy_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
-        $messageWriteGroupKeysInput = toy_post_string_without_truncation('message_write_group_keys', 1000);
-        $messageWriteGroupKeys = is_string($messageWriteGroupKeysInput) ? toy_community_board_group_keys_from_input($messageWriteGroupKeysInput) : [];
-        $themeKey = toy_post_string('theme_key', 40);
+        $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
+        $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
+        $accessConditionPriority = sr_community_access_condition_priority(sr_post_string('access_condition_priority', 40));
+        $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
+        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
+        $messageWriteGroupKeysInput = sr_post_string_without_truncation('message_write_group_keys', 1000);
+        $messageWriteGroupKeys = is_string($messageWriteGroupKeysInput) ? sr_community_board_group_keys_from_input($messageWriteGroupKeysInput) : [];
+        $themeKey = sr_post_string('theme_key', 40);
 
         if ($levelPostScore === null) {
             $errors[] = '게시글 점수는 0 이상 10000 이하의 정수여야 합니다.';
@@ -68,7 +68,7 @@ if (toy_request_method() === 'POST') {
         if (!is_string($messageWriteGroupKeysInput)) {
             $errors[] = '쪽지 그룹 key 목록은 1000자 이하로 입력하세요.';
         } else {
-            $invalidGroupKeys = toy_community_invalid_board_group_keys_from_input($messageWriteGroupKeysInput);
+            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input($messageWriteGroupKeysInput);
             if ($invalidGroupKeys !== []) {
                 $errors[] = '쪽지 그룹 key 형식이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
             }
@@ -84,7 +84,7 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'community' LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
             $stmt->execute();
             $communityModule = $stmt->fetch();
             if (!is_array($communityModule)) {
@@ -100,12 +100,12 @@ if (toy_request_method() === 'POST') {
                 ['level_comment_score', (string) $levelCommentScore, 'int'],
                 ['access_condition_priority', $accessConditionPriority, 'string'],
                 ['message_write_policy', $messageWritePolicy, 'string'],
-                ['message_write_group_keys', toy_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
+                ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
                 ['theme_key', $themeKey, 'string'],
             ];
             $stmt = $pdo->prepare(
-                'INSERT INTO toy_module_settings
+                'INSERT INTO sr_module_settings
                     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
                  VALUES
                     (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
@@ -120,14 +120,14 @@ if (toy_request_method() === 'POST') {
                     'setting_key' => $row[0],
                     'setting_value' => $row[1],
                     'value_type' => $row[2],
-                    'created_at' => toy_now(),
-                    'updated_at' => toy_now(),
+                    'created_at' => sr_now(),
+                    'updated_at' => sr_now(),
                 ]);
             }
-            toy_clear_module_settings_cache('community');
-            $settings = toy_community_settings($pdo);
+            sr_clear_module_settings_cache('community');
+            $settings = sr_community_settings($pdo);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'community.settings.updated',
@@ -183,8 +183,8 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             try {
-                $updatedCount = toy_community_update_level_min_scores($pdo, $minScoresById);
-                toy_audit_log($pdo, [
+                $updatedCount = sr_community_update_level_min_scores($pdo, $minScoresById);
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'community.level_definitions.updated',
@@ -202,8 +202,8 @@ if (toy_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'recalculate_levels') {
-        $summary = toy_community_recalculate_recent_account_levels($pdo, 200);
-        toy_audit_log($pdo, [
+        $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
             'event_type' => 'community.levels.recalculated',
@@ -218,7 +218,7 @@ if (toy_request_method() === 'POST') {
         $errors[] = '작업 값이 올바르지 않습니다.';
     }
 
-    $levels = toy_community_levels($pdo);
+    $levels = sr_community_levels($pdo);
 }
 
-include TOY_ROOT . '/modules/community/views/admin-settings.php';
+include SR_ROOT . '/modules/community/views/admin-settings.php';

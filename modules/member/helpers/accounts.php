@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-function toy_member_create_account(PDO $pdo, array $config, array $data): int
+function sr_member_create_account(PDO $pdo, array $config, array $data): int
 {
-    $email = toy_normalize_identifier((string) ($data['email'] ?? ''));
-    $loginId = toy_normalize_login_id((string) ($data['login_id'] ?? ''));
+    $email = sr_normalize_identifier((string) ($data['email'] ?? ''));
+    $loginId = sr_normalize_login_id((string) ($data['login_id'] ?? ''));
     $password = (string) ($data['password'] ?? '');
     $displayName = trim((string) ($data['display_name'] ?? ''));
     $locale = trim((string) ($data['locale'] ?? 'ko'));
@@ -17,7 +17,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
         throw new InvalidArgumentException('Email is invalid.');
     }
 
-    if ($loginId !== '' && !toy_member_is_valid_login_id($loginId)) {
+    if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
         throw new InvalidArgumentException('Login ID is invalid.');
     }
 
@@ -30,13 +30,13 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     }
 
     $identifierValue = $loginId !== '' ? $loginId : $email;
-    $identifierHash = toy_hmac_hash($identifierValue, $config);
-    $loginIdHash = $loginId !== '' ? toy_hmac_hash($loginId, $config) : null;
-    $emailHash = toy_hmac_hash($email, $config);
-    $now = toy_now();
+    $identifierHash = sr_hmac_hash($identifierValue, $config);
+    $loginIdHash = $loginId !== '' ? sr_hmac_hash($loginId, $config) : null;
+    $emailHash = sr_hmac_hash($email, $config);
+    $now = sr_now();
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE email_hash = :email_hash LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash LIMIT 1');
     $stmt->execute(['email_hash' => $emailHash]);
     $existing = $stmt->fetch();
 
@@ -46,7 +46,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
 
     if (is_array($existing)) {
         $stmt = $pdo->prepare(
-            'UPDATE toy_member_accounts
+            'UPDATE sr_member_accounts
              SET account_identifier_hash = :account_identifier_hash,
                  login_id_hash = :login_id_hash,
                  password_hash = :password_hash,
@@ -73,7 +73,7 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_accounts
+        'INSERT INTO sr_member_accounts
             (account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, created_at, updated_at)
          VALUES
             (:account_identifier_hash, :login_id_hash, :email, :email_hash, :password_hash, :display_name, :locale, :status, :email_verified_at, :created_at, :updated_at)'
@@ -95,32 +95,32 @@ function toy_member_create_account(PDO $pdo, array $config, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function toy_member_normalize_login_id(string $loginId): string
+function sr_member_normalize_login_id(string $loginId): string
 {
-    return toy_normalize_login_id($loginId);
+    return sr_normalize_login_id($loginId);
 }
 
-function toy_member_is_valid_login_id(string $loginId): bool
+function sr_member_is_valid_login_id(string $loginId): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{3,39}\z/', $loginId) === 1;
 }
 
-function toy_normalize_login_id(string $loginId): string
+function sr_normalize_login_id(string $loginId): string
 {
     return strtolower(trim($loginId));
 }
 
-function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifier): ?array
+function sr_member_find_by_identifier(PDO $pdo, array $config, string $identifier): ?array
 {
-    $normalizedIdentifier = toy_normalize_identifier($identifier);
-    $identifierHash = toy_hmac_hash($normalizedIdentifier, $config);
+    $normalizedIdentifier = sr_normalize_identifier($identifier);
+    $identifierHash = sr_hmac_hash($normalizedIdentifier, $config);
     $emailHash = filter_var($normalizedIdentifier, FILTER_VALIDATE_EMAIL)
-        ? toy_hmac_hash($normalizedIdentifier, $config)
+        ? sr_hmac_hash($normalizedIdentifier, $config)
         : '';
 
     $stmt = $pdo->prepare(
-        'SELECT ' . toy_member_account_select_columns() . '
-         FROM toy_member_accounts
+        'SELECT ' . sr_member_account_select_columns() . '
+         FROM sr_member_accounts
          WHERE account_identifier_hash = :identifier_hash
             OR (:email_hash_guard <> \'\' AND email_hash = :email_hash)
          LIMIT 1'
@@ -135,17 +135,17 @@ function toy_member_find_by_identifier(PDO $pdo, array $config, string $identifi
     return is_array($account) ? $account : null;
 }
 
-function toy_member_find_by_email(PDO $pdo, array $config, string $email): ?array
+function sr_member_find_by_email(PDO $pdo, array $config, string $email): ?array
 {
-    $normalizedEmail = toy_normalize_identifier($email);
+    $normalizedEmail = sr_normalize_identifier($email);
     if (!filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
         return null;
     }
 
-    $emailHash = toy_hmac_hash($normalizedEmail, $config);
+    $emailHash = sr_hmac_hash($normalizedEmail, $config);
     $stmt = $pdo->prepare(
-        'SELECT ' . toy_member_account_select_columns() . '
-         FROM toy_member_accounts
+        'SELECT ' . sr_member_account_select_columns() . '
+         FROM sr_member_accounts
          WHERE email_hash = :email_hash
          LIMIT 1'
     );
@@ -155,34 +155,34 @@ function toy_member_find_by_email(PDO $pdo, array $config, string $email): ?arra
     return is_array($account) ? $account : null;
 }
 
-function toy_member_current_account(PDO $pdo): ?array
+function sr_member_current_account(PDO $pdo): ?array
 {
-    if (!array_key_exists('toy_account_id', $_SESSION)) {
-        toy_member_revoke_current_session($pdo);
-        unset($_SESSION['toy_session_token_hash']);
+    if (!array_key_exists('sr_account_id', $_SESSION)) {
+        sr_member_revoke_current_session($pdo);
+        unset($_SESSION['sr_session_token_hash']);
         return null;
     }
 
-    $accountId = $_SESSION['toy_account_id'];
+    $accountId = $_SESSION['sr_account_id'];
     if (!is_int($accountId) && !ctype_digit((string) $accountId)) {
-        toy_member_logout($pdo);
+        sr_member_logout($pdo);
         return null;
     }
 
     $accountId = (int) $accountId;
     if ($accountId < 1) {
-        toy_member_logout($pdo);
+        sr_member_logout($pdo);
         return null;
     }
 
-    if (!toy_member_session_is_current($pdo, $accountId)) {
-        toy_member_logout($pdo);
+    if (!sr_member_session_is_current($pdo, $accountId)) {
+        sr_member_logout($pdo);
         return null;
     }
 
     $stmt = $pdo->prepare(
-        'SELECT ' . toy_member_account_select_columns() . '
-         FROM toy_member_accounts
+        'SELECT ' . sr_member_account_select_columns() . '
+         FROM sr_member_accounts
          WHERE id = :id
          LIMIT 1'
     );
@@ -190,39 +190,39 @@ function toy_member_current_account(PDO $pdo): ?array
     $account = $stmt->fetch();
 
     if (!is_array($account)) {
-        toy_member_logout($pdo);
+        sr_member_logout($pdo);
         return null;
     }
 
     if ((string) $account['status'] !== 'active') {
-        toy_member_logout($pdo);
+        sr_member_logout($pdo);
         return null;
     }
 
-    $settings = toy_member_settings($pdo);
-    if (toy_member_email_verification_blocks_login($settings, $account)) {
-        toy_member_logout($pdo);
+    $settings = sr_member_settings($pdo);
+    if (sr_member_email_verification_blocks_login($settings, $account)) {
+        sr_member_logout($pdo);
         return null;
     }
 
     return $account;
 }
 
-function toy_member_require_login(PDO $pdo): array
+function sr_member_require_login(PDO $pdo): array
 {
-    toy_request_contract_mark('auth_checked');
+    sr_request_contract_mark('auth_checked');
 
-    $account = toy_member_current_account($pdo);
+    $account = sr_member_current_account($pdo);
     if ($account === null) {
-        toy_request_contract_guard_blocked('auth');
-        $next = toy_request_path();
-        toy_redirect('/login?next=' . rawurlencode($next));
+        sr_request_contract_guard_blocked('auth');
+        $next = sr_request_path();
+        sr_redirect('/login?next=' . rawurlencode($next));
     }
 
     return $account;
 }
 
-function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array
+function sr_member_public_account_summary(PDO $pdo, int $accountId): ?array
 {
     if ($accountId < 1) {
         return null;
@@ -230,7 +230,7 @@ function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array
 
     $stmt = $pdo->prepare(
         'SELECT id, display_name, locale, status
-         FROM toy_member_accounts
+         FROM sr_member_accounts
          WHERE id = :id
          LIMIT 1'
     );
@@ -249,58 +249,58 @@ function toy_member_public_account_summary(PDO $pdo, int $accountId): ?array
     ];
 }
 
-function toy_member_public_account_hash(array $config, int $accountId): string
+function sr_member_public_account_hash(array $config, int $accountId): string
 {
     if ($accountId < 1) {
         return '';
     }
 
-    return substr(toy_hmac_hash('member-public-account|' . (string) $accountId, $config), 0, 32);
+    return substr(sr_hmac_hash('member-public-account|' . (string) $accountId, $config), 0, 32);
 }
 
-function toy_member_public_account_hash_is_valid(string $publicHash): bool
+function sr_member_public_account_hash_is_valid(string $publicHash): bool
 {
     return preg_match('/\A[a-f0-9]{32}\z/', $publicHash) === 1;
 }
 
-function toy_member_public_account_summary_with_hash(PDO $pdo, array $config, int $accountId): ?array
+function sr_member_public_account_summary_with_hash(PDO $pdo, array $config, int $accountId): ?array
 {
-    $summary = toy_member_public_account_summary($pdo, $accountId);
+    $summary = sr_member_public_account_summary($pdo, $accountId);
     if (!is_array($summary)) {
         return null;
     }
 
-    $summary['public_hash'] = toy_member_public_account_hash($config, (int) $summary['id']);
+    $summary['public_hash'] = sr_member_public_account_hash($config, (int) $summary['id']);
 
     return $summary;
 }
 
-function toy_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
+function sr_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
 {
     $publicHash = strtolower(trim($publicHash));
-    if (!toy_member_public_account_hash_is_valid($publicHash)) {
+    if (!sr_member_public_account_hash_is_valid($publicHash)) {
         return null;
     }
 
-    $accountsByHash = toy_member_public_account_summaries_by_hash($pdo, $config);
+    $accountsByHash = sr_member_public_account_summaries_by_hash($pdo, $config);
     return $accountsByHash[$publicHash] ?? null;
 }
 
-function toy_member_public_account_summaries_by_hash(PDO $pdo, array $config): array
+function sr_member_public_account_summaries_by_hash(PDO $pdo, array $config): array
 {
     static $cachedMaps = [];
 
-    $cacheKey = (string) spl_object_id($pdo) . ':' . toy_hmac_hash('member-public-account-map', $config);
+    $cacheKey = (string) spl_object_id($pdo) . ':' . sr_hmac_hash('member-public-account-map', $config);
     if (isset($cachedMaps[$cacheKey])) {
         return $cachedMaps[$cacheKey];
     }
 
-    $stmt = $pdo->query("SELECT id, display_name, locale, status FROM toy_member_accounts WHERE status = 'active' ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT id, display_name, locale, status FROM sr_member_accounts WHERE status = 'active' ORDER BY id ASC");
     $accountsByHash = [];
     foreach ($stmt->fetchAll() as $account) {
         $accountId = (int) ($account['id'] ?? 0);
         if ($accountId > 0) {
-            $accountHash = toy_member_public_account_hash($config, $accountId);
+            $accountHash = sr_member_public_account_hash($config, $accountId);
             $accountsByHash[$accountHash] = [
                 'id' => (int) $account['id'],
                 'display_name' => (string) $account['display_name'],
@@ -316,7 +316,7 @@ function toy_member_public_account_summaries_by_hash(PDO $pdo, array $config): a
     return $accountsByHash;
 }
 
-function toy_member_safe_next_path(string $path): string
+function sr_member_safe_next_path(string $path): string
 {
     if (
         $path === ''
@@ -331,11 +331,11 @@ function toy_member_safe_next_path(string $path): string
     return $path;
 }
 
-function toy_member_verify_login_password(?array $account, string $password): bool
+function sr_member_verify_login_password(?array $account, string $password): bool
 {
     $passwordHash = is_array($account)
         ? (string) ($account['password_hash'] ?? '')
-        : toy_member_dummy_password_hash();
+        : sr_member_dummy_password_hash();
 
     $passwordMatches = password_verify($password, $passwordHash);
 
@@ -344,7 +344,7 @@ function toy_member_verify_login_password(?array $account, string $password): bo
         && (string) ($account['status'] ?? '') === 'active';
 }
 
-function toy_member_email_verification_blocks_login(array $settings, ?array $account): bool
+function sr_member_email_verification_blocks_login(array $settings, ?array $account): bool
 {
     return !empty($settings['email_verification_enabled'])
         && is_array($account)
@@ -352,56 +352,56 @@ function toy_member_email_verification_blocks_login(array $settings, ?array $acc
         && (string) ($account['email_verified_at'] ?? '') === '';
 }
 
-function toy_member_rehash_login_password_if_needed(PDO $pdo, int $accountId, string $password, string $currentHash): void
+function sr_member_rehash_login_password_if_needed(PDO $pdo, int $accountId, string $password, string $currentHash): void
 {
     if ($accountId < 1 || $password === '' || $currentHash === '' || !password_needs_rehash($currentHash, PASSWORD_DEFAULT)) {
         return;
     }
 
     try {
-        $stmt = $pdo->prepare('UPDATE toy_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE sr_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
         $stmt->execute([
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            'updated_at' => toy_now(),
+            'updated_at' => sr_now(),
             'id' => $accountId,
         ]);
     } catch (Throwable $ignored) {
     }
 }
 
-function toy_member_dummy_password_hash(): string
+function sr_member_dummy_password_hash(): string
 {
     return '$2y$10$rXJfqk3XCcK2njbFv2w3XuJ3Ny/E6.46vRsuNcSOHg65o0bfe4enK';
 }
 
-function toy_member_update_password(PDO $pdo, int $accountId, string $password): void
+function sr_member_update_password(PDO $pdo, int $accountId, string $password): void
 {
-    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
+    $stmt = $pdo->prepare('UPDATE sr_member_accounts SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id');
     $stmt->execute([
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $accountId,
     ]);
 }
 
-function toy_member_update_status(PDO $pdo, int $accountId, string $status): void
+function sr_member_update_status(PDO $pdo, int $accountId, string $status): void
 {
-    $stmt = $pdo->prepare('UPDATE toy_member_accounts SET status = :status, updated_at = :updated_at WHERE id = :id');
+    $stmt = $pdo->prepare('UPDATE sr_member_accounts SET status = :status, updated_at = :updated_at WHERE id = :id');
     $stmt->execute([
         'status' => $status,
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $accountId,
     ]);
 }
 
-function toy_member_anonymize_account(PDO $pdo, array $config, int $accountId): void
+function sr_member_anonymize_account(PDO $pdo, array $config, int $accountId): void
 {
     $anonymizedIdentifier = 'anonymized:' . $accountId;
-    $anonymizedEmail = 'anonymized-' . $accountId . '@invalid.toycore.local';
+    $anonymizedEmail = 'anonymized-' . $accountId . '@invalid.saanraan.local';
     $passwordHash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
 
     $stmt = $pdo->prepare(
-        'UPDATE toy_member_accounts
+        'UPDATE sr_member_accounts
          SET account_identifier_hash = :account_identifier_hash,
              login_id_hash = NULL,
              email = :email,
@@ -414,21 +414,21 @@ function toy_member_anonymize_account(PDO $pdo, array $config, int $accountId): 
          WHERE id = :id'
     );
     $stmt->execute([
-        'account_identifier_hash' => toy_hmac_hash($anonymizedIdentifier, $config),
+        'account_identifier_hash' => sr_hmac_hash($anonymizedIdentifier, $config),
         'email' => $anonymizedEmail,
-        'email_hash' => toy_hmac_hash($anonymizedEmail, $config),
+        'email_hash' => sr_hmac_hash($anonymizedEmail, $config),
         'password_hash' => $passwordHash,
         'display_name' => '탈퇴 회원',
         'status' => 'anonymized',
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $accountId,
     ]);
 }
 
-function toy_member_update_account_basics(PDO $pdo, int $accountId, string $displayName, string $locale): void
+function sr_member_update_account_basics(PDO $pdo, int $accountId, string $displayName, string $locale): void
 {
     $stmt = $pdo->prepare(
-        'UPDATE toy_member_accounts
+        'UPDATE sr_member_accounts
          SET display_name = :display_name,
              locale = :locale,
              updated_at = :updated_at
@@ -437,25 +437,25 @@ function toy_member_update_account_basics(PDO $pdo, int $accountId, string $disp
     $stmt->execute([
         'display_name' => $displayName,
         'locale' => $locale,
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $accountId,
     ]);
 }
 
-function toy_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, string $result): void
+function sr_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, string $result): void
 {
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_auth_logs (account_id, event_type, result, ip_address, user_agent, created_at)
+        'INSERT INTO sr_member_auth_logs (account_id, event_type, result, ip_address, user_agent, created_at)
          VALUES (:account_id, :event_type, :result, :ip_address, :user_agent, :created_at)'
     );
     $stmt->execute([
         'account_id' => $accountId,
         'event_type' => $eventType,
         'result' => $result,
-        'ip_address' => toy_client_ip(),
-        'user_agent' => toy_client_user_agent(),
-        'created_at' => toy_now(),
+        'ip_address' => sr_client_ip(),
+        'user_agent' => sr_client_user_agent(),
+        'created_at' => sr_now(),
     ]);
 
-    toy_member_record_auth_rate_limits($pdo, $accountId, $eventType, $result);
+    sr_member_record_auth_rate_limits($pdo, $accountId, $eventType, $result);
 }

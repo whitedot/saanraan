@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_upload_error_message(int $errorCode): string
+function sr_upload_error_message(int $errorCode): string
 {
     $messages = [
         UPLOAD_ERR_OK => '업로드가 완료되었습니다.',
@@ -18,7 +18,7 @@ function toy_upload_error_message(int $errorCode): string
     return $messages[$errorCode] ?? '알 수 없는 업로드 오류입니다.';
 }
 
-function toy_upload_filename(string $filename): string
+function sr_upload_filename(string $filename): string
 {
     $filename = str_replace(['\\', '/'], '-', $filename);
     $filename = preg_replace('/[\x00-\x1F\x7F]+/', '-', $filename);
@@ -38,7 +38,7 @@ function toy_upload_filename(string $filename): string
     return substr($filename, 0, 120);
 }
 
-function toy_upload_extension(string $filename): string
+function sr_upload_extension(string $filename): string
 {
     $extension = strtolower((string) pathinfo($filename, PATHINFO_EXTENSION));
     if (preg_match('/\A[a-z0-9]{1,16}\z/', $extension) !== 1) {
@@ -48,7 +48,7 @@ function toy_upload_extension(string $filename): string
     return $extension;
 }
 
-function toy_upload_normalize_extensions(array $extensions): array
+function sr_upload_normalize_extensions(array $extensions): array
 {
     $normalized = [];
     foreach ($extensions as $extension) {
@@ -67,7 +67,7 @@ function toy_upload_normalize_extensions(array $extensions): array
     return array_keys($normalized);
 }
 
-function toy_upload_is_executable_extension(string $extension): bool
+function sr_upload_is_executable_extension(string $extension): bool
 {
     $extension = strtolower(ltrim($extension, '.'));
     return in_array($extension, [
@@ -98,14 +98,14 @@ function toy_upload_is_executable_extension(string $extension): bool
     ], true);
 }
 
-function toy_upload_filename_has_executable_extension(string $filename): bool
+function sr_upload_filename_has_executable_extension(string $filename): bool
 {
     foreach (explode('.', strtolower($filename)) as $index => $segment) {
         if ($index === 0 || $segment === '') {
             continue;
         }
 
-        if (toy_upload_is_executable_extension($segment)) {
+        if (sr_upload_is_executable_extension($segment)) {
             return true;
         }
     }
@@ -113,7 +113,7 @@ function toy_upload_filename_has_executable_extension(string $filename): bool
     return false;
 }
 
-function toy_upload_normalize_mime_types(array $mimeTypes): array
+function sr_upload_normalize_mime_types(array $mimeTypes): array
 {
     $normalized = [];
     foreach ($mimeTypes as $mimeType) {
@@ -132,7 +132,7 @@ function toy_upload_normalize_mime_types(array $mimeTypes): array
     return array_keys($normalized);
 }
 
-function toy_upload_detect_mime(string $path): string
+function sr_upload_detect_mime(string $path): string
 {
     if (!is_file($path)) {
         return '';
@@ -159,14 +159,14 @@ function toy_upload_detect_mime(string $path): string
     return '';
 }
 
-function toy_upload_random_filename(string $extension = ''): string
+function sr_upload_random_filename(string $extension = ''): string
 {
     $extension = strtolower(ltrim(trim($extension), '.'));
     if ($extension !== '' && preg_match('/\A[a-z0-9]{1,16}\z/', $extension) !== 1) {
         throw new InvalidArgumentException('Upload extension is invalid.');
     }
 
-    if ($extension !== '' && toy_upload_is_executable_extension($extension)) {
+    if ($extension !== '' && sr_upload_is_executable_extension($extension)) {
         throw new InvalidArgumentException('Executable upload extension is not allowed.');
     }
 
@@ -174,7 +174,7 @@ function toy_upload_random_filename(string $extension = ''): string
     return $extension === '' ? $filename : $filename . '.' . $extension;
 }
 
-function toy_upload_validate_file(array $file, array $options = []): array
+function sr_upload_validate_file(array $file, array $options = []): array
 {
     foreach (['error', 'name', 'tmp_name', 'size'] as $key) {
         if (isset($file[$key]) && is_array($file[$key])) {
@@ -184,7 +184,7 @@ function toy_upload_validate_file(array $file, array $options = []): array
 
     $errorCode = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
     if ($errorCode !== UPLOAD_ERR_OK) {
-        throw new RuntimeException(toy_upload_error_message($errorCode));
+        throw new RuntimeException(sr_upload_error_message($errorCode));
     }
 
     $tmpName = (string) ($file['tmp_name'] ?? '');
@@ -211,17 +211,17 @@ function toy_upload_validate_file(array $file, array $options = []): array
         throw new RuntimeException('업로드 파일 크기가 허용 범위를 초과했습니다.');
     }
 
-    $originalName = toy_upload_filename((string) ($file['name'] ?? ''));
-    $extension = toy_upload_extension($originalName);
+    $originalName = sr_upload_filename((string) ($file['name'] ?? ''));
+    $extension = sr_upload_extension($originalName);
     if ($extension === '') {
         throw new RuntimeException('업로드 파일 확장자를 확인할 수 없습니다.');
     }
 
-    if (toy_upload_is_executable_extension($extension) || toy_upload_filename_has_executable_extension($originalName)) {
+    if (sr_upload_is_executable_extension($extension) || sr_upload_filename_has_executable_extension($originalName)) {
         throw new RuntimeException('실행 가능한 파일 형식은 업로드할 수 없습니다.');
     }
 
-    $allowedExtensions = toy_upload_normalize_extensions(is_array($options['allowed_extensions'] ?? null) ? $options['allowed_extensions'] : []);
+    $allowedExtensions = sr_upload_normalize_extensions(is_array($options['allowed_extensions'] ?? null) ? $options['allowed_extensions'] : []);
     if ($allowedExtensions === []) {
         throw new RuntimeException('업로드 허용 확장자를 지정해야 합니다.');
     }
@@ -230,8 +230,8 @@ function toy_upload_validate_file(array $file, array $options = []): array
         throw new RuntimeException('허용되지 않은 파일 확장자입니다.');
     }
 
-    $mimeType = toy_upload_detect_mime($tmpName);
-    $allowedMimeTypes = toy_upload_normalize_mime_types(is_array($options['allowed_mime_types'] ?? null) ? $options['allowed_mime_types'] : []);
+    $mimeType = sr_upload_detect_mime($tmpName);
+    $allowedMimeTypes = sr_upload_normalize_mime_types(is_array($options['allowed_mime_types'] ?? null) ? $options['allowed_mime_types'] : []);
     if ($allowedMimeTypes === []) {
         throw new RuntimeException('업로드 허용 MIME을 지정해야 합니다.');
     }
@@ -259,31 +259,31 @@ function toy_upload_validate_file(array $file, array $options = []): array
     ];
 }
 
-function toy_upload_safe_target_path(string $directory, string $filename): string
+function sr_upload_safe_target_path(string $directory, string $filename): string
 {
     $realDirectory = realpath($directory);
     if (!is_string($realDirectory) || !is_dir($realDirectory)) {
         throw new RuntimeException('업로드 저장 디렉터리를 찾을 수 없습니다.');
     }
 
-    $safeFilename = toy_upload_filename($filename);
+    $safeFilename = sr_upload_filename($filename);
     if ($safeFilename !== $filename || str_contains($safeFilename, '/') || str_contains($safeFilename, '\\')) {
         throw new RuntimeException('업로드 저장 파일명이 올바르지 않습니다.');
     }
 
-    $extension = toy_upload_extension($safeFilename);
-    if (($extension !== '' && toy_upload_is_executable_extension($extension)) || toy_upload_filename_has_executable_extension($safeFilename)) {
+    $extension = sr_upload_extension($safeFilename);
+    if (($extension !== '' && sr_upload_is_executable_extension($extension)) || sr_upload_filename_has_executable_extension($safeFilename)) {
         throw new RuntimeException('실행 가능한 저장 파일명은 사용할 수 없습니다.');
     }
 
     return $realDirectory . DIRECTORY_SEPARATOR . $safeFilename;
 }
 
-function toy_upload_move_uploaded_file(array $file, string $directory, string $filename, array $options = []): array
+function sr_upload_move_uploaded_file(array $file, string $directory, string $filename, array $options = []): array
 {
-    $validated = toy_upload_validate_file($file, $options);
-    $targetPath = toy_upload_safe_target_path($directory, $filename);
-    toy_upload_assert_target_path_writable($targetPath, !empty($options['overwrite']));
+    $validated = sr_upload_validate_file($file, $options);
+    $targetPath = sr_upload_safe_target_path($directory, $filename);
+    sr_upload_assert_target_path_writable($targetPath, !empty($options['overwrite']));
 
     if (!move_uploaded_file((string) $validated['tmp_name'], $targetPath)) {
         throw new RuntimeException('업로드 파일을 저장할 수 없습니다.');
@@ -294,7 +294,7 @@ function toy_upload_move_uploaded_file(array $file, string $directory, string $f
     return $validated;
 }
 
-function toy_upload_assert_target_path_writable(string $targetPath, bool $overwrite = false): void
+function sr_upload_assert_target_path_writable(string $targetPath, bool $overwrite = false): void
 {
     $directory = dirname($targetPath);
     if (!is_dir($directory) || !is_writable($directory)) {
@@ -318,7 +318,7 @@ function toy_upload_assert_target_path_writable(string $targetPath, bool $overwr
     }
 }
 
-function toy_download_token_create(array $config, string $purpose, string $subject, int $ttlSeconds, ?int $now = null): array
+function sr_download_token_create(array $config, string $purpose, string $subject, int $ttlSeconds, ?int $now = null): array
 {
     $ttlSeconds = max(60, min(86400, $ttlSeconds));
     $now = $now ?? time();
@@ -327,19 +327,19 @@ function toy_download_token_create(array $config, string $purpose, string $subje
 
     return [
         'token' => $token,
-        'token_hash' => toy_download_token_hash($config, $token, $purpose, $subject, $expiresAt),
+        'token_hash' => sr_download_token_hash($config, $token, $purpose, $subject, $expiresAt),
         'expires_at' => $expiresAt,
     ];
 }
 
-function toy_download_token_hash(array $config, string $token, string $purpose, string $subject, int $expiresAt): string
+function sr_download_token_hash(array $config, string $token, string $purpose, string $subject, int $expiresAt): string
 {
     if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {
         throw new InvalidArgumentException('Download token format is invalid.');
     }
 
-    $purpose = toy_download_token_purpose($purpose);
-    $subject = toy_download_token_subject($subject);
+    $purpose = sr_download_token_purpose($purpose);
+    $subject = sr_download_token_subject($subject);
     if ($expiresAt < 1) {
         throw new InvalidArgumentException('Download token expiration is invalid.');
     }
@@ -354,10 +354,10 @@ function toy_download_token_hash(array $config, string $token, string $purpose, 
         throw new RuntimeException('Download token payload cannot be encoded.');
     }
 
-    return toy_hmac_hash('download-token|' . $payload, $config);
+    return sr_hmac_hash('download-token|' . $payload, $config);
 }
 
-function toy_download_token_verify(array $config, string $token, string $expectedHash, string $purpose, string $subject, int $expiresAt, ?int $now = null): bool
+function sr_download_token_verify(array $config, string $token, string $expectedHash, string $purpose, string $subject, int $expiresAt, ?int $now = null): bool
 {
     $now = $now ?? time();
     if ($expiresAt < $now || $expectedHash === '') {
@@ -365,7 +365,7 @@ function toy_download_token_verify(array $config, string $token, string $expecte
     }
 
     try {
-        $actualHash = toy_download_token_hash($config, $token, $purpose, $subject, $expiresAt);
+        $actualHash = sr_download_token_hash($config, $token, $purpose, $subject, $expiresAt);
     } catch (Throwable $exception) {
         return false;
     }
@@ -373,7 +373,7 @@ function toy_download_token_verify(array $config, string $token, string $expecte
     return hash_equals($expectedHash, $actualHash);
 }
 
-function toy_download_token_purpose(string $purpose): string
+function sr_download_token_purpose(string $purpose): string
 {
     $purpose = trim($purpose);
     if (preg_match('/\A[A-Za-z0-9._:-]{1,80}\z/', $purpose) !== 1) {
@@ -383,7 +383,7 @@ function toy_download_token_purpose(string $purpose): string
     return $purpose;
 }
 
-function toy_download_token_subject(string $subject): string
+function sr_download_token_subject(string $subject): string
 {
     $subject = trim($subject);
     if ($subject === '' || strlen($subject) > 255 || preg_match('/[\x00-\x1F\x7F]/', $subject) === 1) {
@@ -393,7 +393,7 @@ function toy_download_token_subject(string $subject): string
     return $subject;
 }
 
-function toy_upload_reencode_image(string $sourcePath, string $targetPath, string $targetFormat, array $options = []): bool
+function sr_upload_reencode_image(string $sourcePath, string $targetPath, string $targetFormat, array $options = []): bool
 {
     $targetFormat = strtolower(ltrim($targetFormat, '.'));
     if (!in_array($targetFormat, ['jpg', 'jpeg', 'png', 'webp'], true)) {
@@ -412,14 +412,14 @@ function toy_upload_reencode_image(string $sourcePath, string $targetPath, strin
         return false;
     }
 
-    if (class_exists('Imagick') && toy_upload_reencode_image_with_imagick($sourcePath, $targetPath, $targetFormat, $options)) {
+    if (class_exists('Imagick') && sr_upload_reencode_image_with_imagick($sourcePath, $targetPath, $targetFormat, $options)) {
         return true;
     }
 
-    return toy_upload_reencode_image_with_gd($sourcePath, $targetPath, $targetFormat, $options);
+    return sr_upload_reencode_image_with_gd($sourcePath, $targetPath, $targetFormat, $options);
 }
 
-function toy_upload_reencode_image_with_imagick(string $sourcePath, string $targetPath, string $targetFormat, array $options): bool
+function sr_upload_reencode_image_with_imagick(string $sourcePath, string $targetPath, string $targetFormat, array $options): bool
 {
     try {
         $image = new Imagick($sourcePath);
@@ -442,7 +442,7 @@ function toy_upload_reencode_image_with_imagick(string $sourcePath, string $targ
     }
 }
 
-function toy_upload_reencode_image_with_gd(string $sourcePath, string $targetPath, string $targetFormat, array $options): bool
+function sr_upload_reencode_image_with_gd(string $sourcePath, string $targetPath, string $targetFormat, array $options): bool
 {
     if (!extension_loaded('gd')) {
         return false;

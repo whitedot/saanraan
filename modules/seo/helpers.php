@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
+function sr_seo_sitemap_entries(PDO $pdo, ?array $site): array
 {
-    $settings = toy_seo_settings($pdo);
+    $settings = sr_seo_settings($pdo);
     $entries = [];
     if (!empty($settings['sitemap_include_home'])) {
-        $homeUrl = toy_seo_sitemap_absolute_url($site, '/');
+        $homeUrl = sr_seo_sitemap_absolute_url($site, '/');
         if ($homeUrl !== '') {
             $entries[] = [
                 'loc' => $homeUrl,
@@ -16,8 +16,8 @@ function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
         }
     }
 
-    foreach (toy_enabled_module_contract_files($pdo, 'sitemap.php', ['seo']) as $moduleKey => $sitemapFile) {
-        $moduleEntries = toy_load_module_contract_file($moduleKey, $sitemapFile);
+    foreach (sr_enabled_module_contract_files($pdo, 'sitemap.php', ['seo']) as $moduleKey => $sitemapFile) {
+        $moduleEntries = sr_load_module_contract_file($moduleKey, $sitemapFile);
         if (is_callable($moduleEntries)) {
             $moduleEntries = $moduleEntries($pdo, $site);
         }
@@ -31,19 +31,19 @@ function toy_seo_sitemap_entries(PDO $pdo, ?array $site): array
                 continue;
             }
 
-            $normalized = toy_seo_normalize_sitemap_entry($site, $entry);
+            $normalized = sr_seo_normalize_sitemap_entry($site, $entry);
             if ($normalized !== null) {
                 $entries[] = $normalized;
             }
         }
     }
 
-    return toy_seo_unique_sitemap_entries($entries);
+    return sr_seo_unique_sitemap_entries($entries);
 }
 
-function toy_seo_default_settings(): array
+function sr_seo_default_settings(): array
 {
-    $metadata = toy_module_metadata('seo');
+    $metadata = sr_module_metadata('seo');
     $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
     return [
@@ -55,10 +55,10 @@ function toy_seo_default_settings(): array
     ];
 }
 
-function toy_seo_settings(PDO $pdo): array
+function sr_seo_settings(PDO $pdo): array
 {
-    $settings = toy_seo_default_settings();
-    $stored = toy_module_settings($pdo, 'seo');
+    $settings = sr_seo_default_settings();
+    $stored = sr_module_settings($pdo, 'seo');
 
     foreach ($settings as $key => $default) {
         if (array_key_exists($key, $stored)) {
@@ -66,16 +66,16 @@ function toy_seo_settings(PDO $pdo): array
         }
     }
 
-    $settings['title_suffix'] = toy_seo_clean_single_line((string) $settings['title_suffix'], 80);
-    $settings['default_description'] = toy_seo_clean_single_line((string) $settings['default_description'], 255);
-    $settings['default_og_image'] = toy_seo_clean_single_line((string) $settings['default_og_image'], 255);
+    $settings['title_suffix'] = sr_seo_clean_single_line((string) $settings['title_suffix'], 80);
+    $settings['default_description'] = sr_seo_clean_single_line((string) $settings['default_description'], 255);
+    $settings['default_og_image'] = sr_seo_clean_single_line((string) $settings['default_og_image'], 255);
     $settings['sitemap_include_home'] = (bool) $settings['sitemap_include_home'];
-    $settings['robots_disallow_paths'] = toy_seo_clean_textarea((string) $settings['robots_disallow_paths'], 2000);
+    $settings['robots_disallow_paths'] = sr_seo_clean_textarea((string) $settings['robots_disallow_paths'], 2000);
 
     return $settings;
 }
 
-function toy_seo_clean_single_line(string $value, int $maxLength): string
+function sr_seo_clean_single_line(string $value, int $maxLength): string
 {
     $value = trim(str_replace(["\r", "\n"], ' ', $value));
     if (function_exists('mb_substr')) {
@@ -85,7 +85,7 @@ function toy_seo_clean_single_line(string $value, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
-function toy_seo_clean_textarea(string $value, int $maxLength): string
+function sr_seo_clean_textarea(string $value, int $maxLength): string
 {
     $value = str_replace(["\r\n", "\r"], "\n", $value);
     if (function_exists('mb_substr')) {
@@ -95,12 +95,12 @@ function toy_seo_clean_textarea(string $value, int $maxLength): string
     return trim(substr($value, 0, $maxLength));
 }
 
-function toy_seo_disallow_paths(string $value): array
+function sr_seo_disallow_paths(string $value): array
 {
     $paths = [];
     foreach (explode("\n", $value) as $line) {
         $path = trim($line);
-        if (!toy_is_safe_relative_url($path)) {
+        if (!sr_is_safe_relative_url($path)) {
             continue;
         }
 
@@ -110,31 +110,31 @@ function toy_seo_disallow_paths(string $value): array
     return array_keys($paths);
 }
 
-function toy_seo_sitemap_absolute_url(?array $site, string $url): string
+function sr_seo_sitemap_absolute_url(?array $site, string $url): string
 {
-    if (toy_is_http_url($url)) {
+    if (sr_is_http_url($url)) {
         return $url;
     }
 
-    if (!toy_is_safe_relative_url($url)) {
+    if (!sr_is_safe_relative_url($url)) {
         return '';
     }
 
     $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
-    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
-        $baseUrl = toy_current_base_url();
+    if ($baseUrl === '' || !sr_is_http_url($baseUrl)) {
+        $baseUrl = sr_current_base_url();
     }
 
-    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
+    if ($baseUrl === '' || !sr_is_http_url($baseUrl)) {
         return '';
     }
 
     return rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
 }
 
-function toy_seo_normalize_sitemap_entry(?array $site, array $entry): ?array
+function sr_seo_normalize_sitemap_entry(?array $site, array $entry): ?array
 {
-    $loc = toy_seo_sitemap_absolute_url($site, (string) ($entry['loc'] ?? ''));
+    $loc = sr_seo_sitemap_absolute_url($site, (string) ($entry['loc'] ?? ''));
     if ($loc === '' || strlen($loc) > 2048) {
         return null;
     }
@@ -159,7 +159,7 @@ function toy_seo_normalize_sitemap_entry(?array $site, array $entry): ?array
     return $normalized;
 }
 
-function toy_seo_unique_sitemap_entries(array $entries): array
+function sr_seo_unique_sitemap_entries(array $entries): array
 {
     $seen = [];
     $unique = [];
@@ -177,7 +177,7 @@ function toy_seo_unique_sitemap_entries(array $entries): array
     return $unique;
 }
 
-function toy_seo_sitemap_xml(array $entries): string
+function sr_seo_sitemap_xml(array $entries): string
 {
     $lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
@@ -190,10 +190,10 @@ function toy_seo_sitemap_xml(array $entries): string
         }
 
         $lines[] = '    <url>';
-        $lines[] = '        <loc>' . toy_seo_xml_e((string) $entry['loc']) . '</loc>';
+        $lines[] = '        <loc>' . sr_seo_xml_e((string) $entry['loc']) . '</loc>';
         foreach (['lastmod', 'changefreq', 'priority'] as $key) {
             if (!empty($entry[$key])) {
-                $lines[] = '        <' . $key . '>' . toy_seo_xml_e((string) $entry[$key]) . '</' . $key . '>';
+                $lines[] = '        <' . $key . '>' . sr_seo_xml_e((string) $entry[$key]) . '</' . $key . '>';
             }
         }
         $lines[] = '    </url>';
@@ -204,18 +204,18 @@ function toy_seo_sitemap_xml(array $entries): string
     return implode("\n", $lines) . "\n";
 }
 
-function toy_seo_robots_txt(?array $site, array $settings = []): string
+function sr_seo_robots_txt(?array $site, array $settings = []): string
 {
-    $settings = array_merge(toy_seo_default_settings(), $settings);
+    $settings = array_merge(sr_seo_default_settings(), $settings);
     $lines = [
         'User-agent: *',
     ];
 
-    foreach (toy_seo_disallow_paths((string) ($settings['robots_disallow_paths'] ?? '')) as $path) {
+    foreach (sr_seo_disallow_paths((string) ($settings['robots_disallow_paths'] ?? '')) as $path) {
         $lines[] = 'Disallow: ' . $path;
     }
 
-    $sitemapUrl = toy_seo_sitemap_absolute_url($site, '/sitemap.xml');
+    $sitemapUrl = sr_seo_sitemap_absolute_url($site, '/sitemap.xml');
     if ($sitemapUrl !== '') {
         $lines[] = 'Sitemap: ' . $sitemapUrl;
     }
@@ -223,7 +223,7 @@ function toy_seo_robots_txt(?array $site, array $settings = []): string
     return implode("\n", $lines) . "\n";
 }
 
-function toy_seo_xml_e(string $value): string
+function sr_seo_xml_e(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_XML1 | ENT_SUBSTITUTE, 'UTF-8');
 }

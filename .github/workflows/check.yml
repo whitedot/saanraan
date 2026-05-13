@@ -20,5 +20,5 @@ jobs:
           php-version: '8.1'
           coverage: none
 
-      - name: Run toycore checks
+      - name: Run saanraan checks
         run: ./.tools/bin/check

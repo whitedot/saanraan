@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_site_settings (
+CREATE TABLE IF NOT EXISTS sr_site_settings (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     setting_key VARCHAR(120) NOT NULL,
     setting_value TEXT NULL,
@@ -6,10 +6,10 @@ CREATE TABLE IF NOT EXISTS toy_site_settings (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_site_settings_key (setting_key)
+    UNIQUE KEY uq_sr_site_settings_key (setting_key)
 );
 
-CREATE TABLE IF NOT EXISTS toy_modules (
+CREATE TABLE IF NOT EXISTS sr_modules (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     module_key VARCHAR(60) NOT NULL,
     name VARCHAR(120) NOT NULL,
@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS toy_modules (
     installed_at DATETIME NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_modules_key (module_key)
+    UNIQUE KEY uq_sr_modules_key (module_key)
 );
 
-CREATE TABLE IF NOT EXISTS toy_module_settings (
+CREATE TABLE IF NOT EXISTS sr_module_settings (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     module_id BIGINT UNSIGNED NOT NULL,
     setting_key VARCHAR(120) NOT NULL,
@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS toy_module_settings (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_module_settings_key (module_id, setting_key)
+    UNIQUE KEY uq_sr_module_settings_key (module_id, setting_key)
 );
 
-CREATE TABLE IF NOT EXISTS toy_sessions (
+CREATE TABLE IF NOT EXISTS sr_sessions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     session_id_hash CHAR(64) NOT NULL,
     payload MEDIUMBLOB NOT NULL,
@@ -44,11 +44,11 @@ CREATE TABLE IF NOT EXISTS toy_sessions (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_sessions_session_id_hash (session_id_hash),
-    KEY idx_toy_sessions_expires (expires_at)
+    UNIQUE KEY uq_sr_sessions_session_id_hash (session_id_hash),
+    KEY idx_sr_sessions_expires (expires_at)
 );
 
-CREATE TABLE IF NOT EXISTS toy_rate_limits (
+CREATE TABLE IF NOT EXISTS sr_rate_limits (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     rate_key CHAR(64) NOT NULL,
     bucket VARCHAR(120) NOT NULL,
@@ -58,22 +58,22 @@ CREATE TABLE IF NOT EXISTS toy_rate_limits (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_rate_limits_key (rate_key),
-    KEY idx_toy_rate_limits_bucket_expires (bucket, expires_at),
-    KEY idx_toy_rate_limits_expires (expires_at)
+    UNIQUE KEY uq_sr_rate_limits_key (rate_key),
+    KEY idx_sr_rate_limits_bucket_expires (bucket, expires_at),
+    KEY idx_sr_rate_limits_expires (expires_at)
 );
 
-CREATE TABLE IF NOT EXISTS toy_schema_versions (
+CREATE TABLE IF NOT EXISTS sr_schema_versions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     scope VARCHAR(20) NOT NULL,
     module_key VARCHAR(60) NOT NULL DEFAULT '',
     version VARCHAR(40) NOT NULL,
     applied_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_schema_versions (scope, module_key, version)
+    UNIQUE KEY uq_sr_schema_versions (scope, module_key, version)
 );
 
-CREATE TABLE IF NOT EXISTS toy_audit_logs (
+CREATE TABLE IF NOT EXISTS sr_audit_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     actor_account_id BIGINT UNSIGNED NULL,
     actor_type VARCHAR(40) NOT NULL DEFAULT 'system',
@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS toy_audit_logs (
     metadata_json TEXT NULL,
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_audit_logs_actor (actor_account_id),
-    KEY idx_toy_audit_logs_event (event_type),
-    KEY idx_toy_audit_logs_target (target_type, target_id),
-    KEY idx_toy_audit_logs_created (created_at)
+    KEY idx_sr_audit_logs_actor (actor_account_id),
+    KEY idx_sr_audit_logs_event (event_type),
+    KEY idx_sr_audit_logs_target (target_type, target_id),
+    KEY idx_sr_audit_logs_created (created_at)
 );

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $account): ?array
+function sr_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $account): ?array
 {
     if ($attachmentId < 1) {
         return null;
@@ -10,7 +10,7 @@ function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $
 
     $stmt = $pdo->prepare(
         "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
-         FROM toy_community_attachments
+         FROM sr_community_attachments
          WHERE id = :id
            AND status = 'active'
          LIMIT 1"
@@ -21,7 +21,7 @@ function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $
         return null;
     }
 
-    $post = toy_community_post_for_read($pdo, (int) $attachment['post_id'], $account);
+    $post = sr_community_post_for_read($pdo, (int) $attachment['post_id'], $account);
     if (!is_array($post)) {
         return null;
     }
@@ -30,7 +30,7 @@ function toy_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $
     return $attachment;
 }
 
-function toy_community_attachment_read_board(PDO $pdo, int $attachmentId): ?array
+function sr_community_attachment_read_board(PDO $pdo, int $attachmentId): ?array
 {
     if ($attachmentId < 1) {
         return null;
@@ -38,9 +38,9 @@ function toy_community_attachment_read_board(PDO $pdo, int $attachmentId): ?arra
 
     $stmt = $pdo->prepare(
         "SELECT b.id, b.board_group_id, b.status, b.read_policy
-         FROM toy_community_attachments a
-         INNER JOIN toy_community_posts p ON p.id = a.post_id
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_attachments a
+         INNER JOIN sr_community_posts p ON p.id = a.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE a.id = :id
            AND a.status = 'active'
            AND p.status = 'published'
@@ -53,7 +53,7 @@ function toy_community_attachment_read_board(PDO $pdo, int $attachmentId): ?arra
     return is_array($board) ? $board : null;
 }
 
-function toy_community_post_attachments(PDO $pdo, int $postId): array
+function sr_community_post_attachments(PDO $pdo, int $postId): array
 {
     if ($postId < 1) {
         return [];
@@ -61,7 +61,7 @@ function toy_community_post_attachments(PDO $pdo, int $postId): array
 
     $stmt = $pdo->prepare(
         "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, width, height, status, created_at
-         FROM toy_community_attachments
+         FROM sr_community_attachments
          WHERE post_id = :post_id
            AND status = 'active'
          ORDER BY id ASC
@@ -72,7 +72,7 @@ function toy_community_post_attachments(PDO $pdo, int $postId): array
     return $stmt->fetchAll();
 }
 
-function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): ?int
+function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): ?int
 {
     if ($postId < 1 || $uploaderAccountId < 1 || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return null;
@@ -83,27 +83,27 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
     }
 
     $maxBytes = min(10485760, max(1, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
-    $validated = toy_upload_validate_file($file, [
+    $validated = sr_upload_validate_file($file, [
         'max_bytes' => $maxBytes,
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
         'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
     ]);
 
-    $targetFormat = toy_community_attachment_format_for_mime((string) $validated['mime_type']);
+    $targetFormat = sr_community_attachment_format_for_mime((string) $validated['mime_type']);
     if ($targetFormat === '') {
         throw new RuntimeException('허용되지 않은 이미지 형식입니다.');
     }
 
-    $directory = TOY_ROOT . '/storage/tmp/community-attachments/' . date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/community-attachments/' . date('Y/m');
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
         throw new RuntimeException('첨부 저장 디렉터리를 만들 수 없습니다.');
     }
 
-    $storedName = toy_upload_random_filename($targetFormat);
-    $targetPath = toy_upload_safe_target_path($directory, $storedName);
-    toy_upload_assert_target_path_writable($targetPath);
+    $storedName = sr_upload_random_filename($targetFormat);
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
 
-    if (!toy_upload_reencode_image((string) $validated['tmp_name'], $targetPath, $targetFormat, [
+    if (!sr_upload_reencode_image((string) $validated['tmp_name'], $targetPath, $targetFormat, [
         'max_pixels' => 25000000,
         'quality' => 85,
     ])) {
@@ -111,22 +111,22 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
     }
 
     $imageInfo = getimagesize($targetPath);
-    $storedMimeType = toy_upload_detect_mime($targetPath);
+    $storedMimeType = sr_upload_detect_mime($targetPath);
     $checksum = hash_file('sha256', $targetPath);
     $sizeBytes = filesize($targetPath);
-    if (!is_array($imageInfo) || !toy_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
+    if (!is_array($imageInfo) || !sr_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
         @unlink($targetPath);
         throw new RuntimeException('저장된 이미지 metadata를 확인할 수 없습니다.');
     }
 
     $storageKey = 'community/attachments/' . date('Y/m') . '/' . $storedName;
-    $stored = toy_storage_put_file($targetPath, $storageKey, [
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
         'content_type' => $storedMimeType,
     ]);
     @unlink($targetPath);
 
     try {
-        return toy_community_create_attachment($pdo, [
+        return sr_community_create_attachment($pdo, [
             'post_id' => $postId,
             'uploader_account_id' => $uploaderAccountId,
             'original_name' => (string) $validated['original_name'],
@@ -141,12 +141,12 @@ function toy_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcc
             'height' => (int) $imageInfo[1],
         ]);
     } catch (Throwable $exception) {
-        toy_storage_delete((string) $stored['driver'], $storageKey);
+        sr_storage_delete((string) $stored['driver'], $storageKey);
         throw $exception;
     }
 }
 
-function toy_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAccountId, array $files, array $settings = []): array
+function sr_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAccountId, array $files, array $settings = []): array
 {
     $uploadedIds = [];
     $maxCount = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
@@ -155,7 +155,7 @@ function toy_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAcc
     }
 
     $selectedFiles = [];
-    foreach (toy_community_normalize_upload_files($files) as $file) {
+    foreach (sr_community_normalize_upload_files($files) as $file) {
         if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
             continue;
         }
@@ -168,45 +168,45 @@ function toy_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAcc
     }
 
     foreach ($selectedFiles as $file) {
-        $uploadedIds[] = toy_community_upload_post_file($pdo, $postId, $uploaderAccountId, $file, $settings);
+        $uploadedIds[] = sr_community_upload_post_file($pdo, $postId, $uploaderAccountId, $file, $settings);
     }
 
     return $uploadedIds;
 }
 
-function toy_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): int
+function sr_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): int
 {
     if ($postId < 1 || $uploaderAccountId < 1) {
         throw new RuntimeException('첨부 대상이 올바르지 않습니다.');
     }
 
     $maxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
-    $allowedExtensions = toy_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
+    $allowedExtensions = sr_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
     if ($allowedExtensions === []) {
         throw new RuntimeException('허용된 첨부 파일 확장자가 없습니다.');
     }
 
-    $validated = toy_upload_validate_file($file, [
+    $validated = sr_upload_validate_file($file, [
         'max_bytes' => $maxBytes,
         'allowed_extensions' => $allowedExtensions,
-        'allowed_mime_types' => toy_community_file_mime_types_for_extensions($allowedExtensions),
+        'allowed_mime_types' => sr_community_file_mime_types_for_extensions($allowedExtensions),
     ]);
 
-    $storedName = toy_upload_random_filename((string) $validated['extension']);
-    $storedMimeType = toy_upload_detect_mime((string) $validated['tmp_name']);
+    $storedName = sr_upload_random_filename((string) $validated['extension']);
+    $storedMimeType = sr_upload_detect_mime((string) $validated['tmp_name']);
     $checksum = (string) $validated['checksum'];
     $sizeBytes = filesize((string) $validated['tmp_name']);
-    if (!toy_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
+    if (!sr_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
         throw new RuntimeException('저장된 첨부 파일 metadata를 확인할 수 없습니다.');
     }
 
     $storageKey = 'community/attachments/' . date('Y/m') . '/' . $storedName;
-    $stored = toy_storage_put_file((string) $validated['tmp_name'], $storageKey, [
+    $stored = sr_storage_put_file((string) $validated['tmp_name'], $storageKey, [
         'content_type' => $storedMimeType,
     ]);
 
     try {
-        return toy_community_create_attachment($pdo, [
+        return sr_community_create_attachment($pdo, [
             'post_id' => $postId,
             'uploader_account_id' => $uploaderAccountId,
             'original_name' => (string) $validated['original_name'],
@@ -221,12 +221,12 @@ function toy_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAcco
             'height' => null,
         ]);
     } catch (Throwable $exception) {
-        toy_storage_delete((string) $stored['driver'], $storageKey);
+        sr_storage_delete((string) $stored['driver'], $storageKey);
         throw $exception;
     }
 }
 
-function toy_community_normalize_upload_files(array $files): array
+function sr_community_normalize_upload_files(array $files): array
 {
     if (!isset($files['name']) || !is_array($files['name'])) {
         return [$files];
@@ -247,7 +247,7 @@ function toy_community_normalize_upload_files(array $files): array
     return $normalized;
 }
 
-function toy_community_attachment_format_for_mime(string $mimeType): string
+function sr_community_attachment_format_for_mime(string $mimeType): string
 {
     return match (strtolower(trim($mimeType))) {
         'image/jpeg' => 'jpg',
@@ -257,10 +257,10 @@ function toy_community_attachment_format_for_mime(string $mimeType): string
     };
 }
 
-function toy_community_create_attachment(PDO $pdo, array $data): int
+function sr_community_create_attachment(PDO $pdo, array $data): int
 {
     $stmt = $pdo->prepare(
-        "INSERT INTO toy_community_attachments
+        "INSERT INTO sr_community_attachments
             (post_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at)
          VALUES
             (:post_id, :uploader_account_id, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, :width, :height, 'active', :created_at)"
@@ -278,20 +278,20 @@ function toy_community_create_attachment(PDO $pdo, array $data): int
         'checksum_sha256' => (string) $data['checksum_sha256'],
         'width' => isset($data['width']) ? (int) $data['width'] : null,
         'height' => isset($data['height']) ? (int) $data['height'] : null,
-        'created_at' => toy_now(),
+        'created_at' => sr_now(),
     ]);
 
     return (int) $pdo->lastInsertId();
 }
 
-function toy_community_update_post_attachments_status(PDO $pdo, int $postId, string $status): int
+function sr_community_update_post_attachments_status(PDO $pdo, int $postId, string $status): int
 {
     if ($postId < 1 || !in_array($status, ['active', 'hidden', 'deleted'], true)) {
         return 0;
     }
 
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_attachments
+        'UPDATE sr_community_attachments
          SET status = :status
          WHERE post_id = :post_id
            AND status <> :current_status'
@@ -305,14 +305,14 @@ function toy_community_update_post_attachments_status(PDO $pdo, int $postId, str
     return $stmt->rowCount();
 }
 
-function toy_community_restore_hidden_post_attachments(PDO $pdo, int $postId): int
+function sr_community_restore_hidden_post_attachments(PDO $pdo, int $postId): int
 {
     if ($postId < 1) {
         return 0;
     }
 
     $stmt = $pdo->prepare(
-        "UPDATE toy_community_attachments
+        "UPDATE sr_community_attachments
          SET status = 'active'
          WHERE post_id = :post_id
            AND status = 'hidden'"
@@ -322,16 +322,16 @@ function toy_community_restore_hidden_post_attachments(PDO $pdo, int $postId): i
     return $stmt->rowCount();
 }
 
-function toy_community_attachment_mime_is_allowed(string $mimeType): bool
+function sr_community_attachment_mime_is_allowed(string $mimeType): bool
 {
     return in_array(strtolower(trim($mimeType)), array_merge([
         'image/jpeg',
         'image/png',
         'image/webp',
-    ], toy_community_file_mime_types_for_extensions(array_keys(toy_community_file_extension_mime_map()))), true);
+    ], sr_community_file_mime_types_for_extensions(array_keys(sr_community_file_extension_mime_map()))), true);
 }
 
-function toy_community_attachment_is_image(array $attachment): bool
+function sr_community_attachment_is_image(array $attachment): bool
 {
     return in_array(strtolower((string) ($attachment['mime_type'] ?? '')), [
         'image/jpeg',
@@ -340,7 +340,7 @@ function toy_community_attachment_is_image(array $attachment): bool
     ], true);
 }
 
-function toy_community_file_extension_mime_map(): array
+function sr_community_file_extension_mime_map(): array
 {
     return [
         'pdf' => ['application/pdf'],
@@ -357,11 +357,11 @@ function toy_community_file_extension_mime_map(): array
     ];
 }
 
-function toy_community_file_mime_types_for_extensions(array $extensions): array
+function sr_community_file_mime_types_for_extensions(array $extensions): array
 {
-    $map = toy_community_file_extension_mime_map();
+    $map = sr_community_file_extension_mime_map();
     $mimeTypes = [];
-    foreach (toy_community_normalize_file_extensions($extensions) as $extension) {
+    foreach (sr_community_normalize_file_extensions($extensions) as $extension) {
         foreach ($map[$extension] ?? [] as $mimeType) {
             $mimeTypes[$mimeType] = true;
         }
@@ -370,7 +370,7 @@ function toy_community_file_mime_types_for_extensions(array $extensions): array
     return array_keys($mimeTypes);
 }
 
-function toy_community_format_bytes(int $bytes): string
+function sr_community_format_bytes(int $bytes): string
 {
     if ($bytes >= 1048576) {
         return number_format($bytes / 1048576, 1) . ' MB';
@@ -383,15 +383,15 @@ function toy_community_format_bytes(int $bytes): string
     return number_format(max(0, $bytes)) . ' bytes';
 }
 
-function toy_community_attachment_file_path(array $attachment): ?string
+function sr_community_attachment_file_path(array $attachment): ?string
 {
     $driver = (string) ($attachment['storage_driver'] ?? 'local');
     $key = (string) ($attachment['storage_key'] ?? '');
     if ($driver === 'local' && $key !== '') {
-        return toy_storage_local_path($key);
+        return sr_storage_local_path($key);
     }
 
-    $storageRoot = realpath(TOY_ROOT . '/storage');
+    $storageRoot = realpath(SR_ROOT . '/storage');
     if (!is_string($storageRoot) || !is_dir($storageRoot)) {
         return null;
     }
@@ -403,7 +403,7 @@ function toy_community_attachment_file_path(array $attachment): ?string
 
     $candidate = str_starts_with($storagePath, DIRECTORY_SEPARATOR)
         ? $storagePath
-        : TOY_ROOT . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storagePath), DIRECTORY_SEPARATOR);
+        : SR_ROOT . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storagePath), DIRECTORY_SEPARATOR);
     $realPath = realpath($candidate);
     if (!is_string($realPath) && !str_starts_with($storagePath, DIRECTORY_SEPARATOR)) {
         $fallback = $storageRoot . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storagePath), DIRECTORY_SEPARATOR);
@@ -421,26 +421,26 @@ function toy_community_attachment_file_path(array $attachment): ?string
     return $realPath;
 }
 
-function toy_community_attachment_storage_driver(array $attachment): string
+function sr_community_attachment_storage_driver(array $attachment): string
 {
     $driver = strtolower((string) ($attachment['storage_driver'] ?? 'local'));
     return in_array($driver, ['local', 's3'], true) ? $driver : 'local';
 }
 
-function toy_community_attachment_storage_key(array $attachment): string
+function sr_community_attachment_storage_key(array $attachment): string
 {
     $key = (string) ($attachment['storage_key'] ?? '');
-    if ($key !== '' && toy_storage_key_is_safe($key)) {
+    if ($key !== '' && sr_storage_key_is_safe($key)) {
         return $key;
     }
 
     $storagePath = (string) ($attachment['storage_path'] ?? '');
-    if (str_starts_with($storagePath, TOY_ROOT . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR)) {
-        $storagePath = substr($storagePath, strlen(TOY_ROOT . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR));
+    if (str_starts_with($storagePath, SR_ROOT . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR)) {
+        $storagePath = substr($storagePath, strlen(SR_ROOT . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR));
     } elseif (str_starts_with($storagePath, 'storage/')) {
         $storagePath = substr($storagePath, strlen('storage/'));
     }
 
     $storagePath = str_replace('\\', '/', ltrim($storagePath, '/'));
-    return toy_storage_key_is_safe($storagePath) ? $storagePath : '';
+    return sr_storage_key_is_safe($storagePath) ? $storagePath : '';
 }

@@ -1,18 +1,18 @@
 <?php
 
 $adminPageTitle = '관리자 대시보드';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <section>
     <h2>사이트</h2>
     <dl>
         <dt>이름</dt>
-        <dd><?php echo toy_e((string) ($site['name'] ?? '')); ?></dd>
+        <dd><?php echo sr_e((string) ($site['name'] ?? '')); ?></dd>
         <dt>상태</dt>
-        <dd><?php echo toy_e(toy_admin_code_label((string) ($site['status'] ?? ''), 'site_status')); ?></dd>
+        <dd><?php echo sr_e(sr_admin_code_label((string) ($site['status'] ?? ''), 'site_status')); ?></dd>
         <dt>기본 locale</dt>
-        <dd><?php echo toy_e((string) ($site['default_locale'] ?? '')); ?></dd>
+        <dd><?php echo sr_e((string) ($site['default_locale'] ?? '')); ?></dd>
     </dl>
 </section>
 
@@ -30,10 +30,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php foreach ($installProtectionSummary as $summary) { ?>
                 <tr>
-                    <td><?php echo toy_e((string) $summary['label']); ?></td>
-                    <td><?php echo toy_e((string) $summary['value']); ?></td>
-                    <td><?php echo toy_e((string) $summary['state']); ?></td>
-                    <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                    <td><?php echo sr_e((string) $summary['label']); ?></td>
+                    <td><?php echo sr_e((string) $summary['value']); ?></td>
+                    <td><?php echo sr_e((string) $summary['state']); ?></td>
+                    <td><?php echo sr_e((string) $summary['detail']); ?></td>
                 </tr>
             <?php } ?>
         </tbody>
@@ -56,12 +56,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php foreach ($sensitiveSettingSummary as $summary) { ?>
                 <tr>
-                    <td><?php echo toy_e((string) $summary['label']); ?></td>
-                    <td><?php echo toy_e((string) $summary['setting_key']); ?></td>
-                    <td><?php echo toy_e((string) $summary['value']); ?></td>
-                    <td><?php echo toy_e((string) $summary['state']); ?></td>
-                    <td><?php echo toy_e((string) $summary['updated_at']); ?></td>
-                    <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                    <td><?php echo sr_e((string) $summary['label']); ?></td>
+                    <td><?php echo sr_e((string) $summary['setting_key']); ?></td>
+                    <td><?php echo sr_e((string) $summary['value']); ?></td>
+                    <td><?php echo sr_e((string) $summary['state']); ?></td>
+                    <td><?php echo sr_e((string) $summary['updated_at']); ?></td>
+                    <td><?php echo sr_e((string) $summary['detail']); ?></td>
                 </tr>
             <?php } ?>
         </tbody>
@@ -82,10 +82,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php foreach ($authRuntimeSummary as $summary) { ?>
                 <tr>
-                    <td><?php echo toy_e((string) $summary['label']); ?></td>
-                    <td><?php echo toy_e((string) $summary['value']); ?></td>
-                    <td><?php echo toy_e((string) $summary['state']); ?></td>
-                    <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                    <td><?php echo sr_e((string) $summary['label']); ?></td>
+                    <td><?php echo sr_e((string) $summary['value']); ?></td>
+                    <td><?php echo sr_e((string) $summary['state']); ?></td>
+                    <td><?php echo sr_e((string) $summary['detail']); ?></td>
                 </tr>
             <?php } ?>
         </tbody>
@@ -113,11 +113,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         $target = trim((string) ($marker['scope'] ?? '') . ' ' . (string) ($marker['module_key'] ?? '') . ' ' . (string) ($marker['version'] ?? ''));
                         ?>
                         <tr>
-                            <td><?php echo toy_e((string) $marker['label']); ?></td>
-                            <td><?php echo toy_e((string) $marker['stage']); ?></td>
-                            <td><?php echo toy_e($target); ?></td>
-                            <td><?php echo toy_e((string) $marker['recorded_at']); ?></td>
-                            <td><?php echo toy_e((string) $marker['message']); ?></td>
+                            <td><?php echo sr_e((string) $marker['label']); ?></td>
+                            <td><?php echo sr_e((string) $marker['stage']); ?></td>
+                            <td><?php echo sr_e($target); ?></td>
+                            <td><?php echo sr_e((string) $marker['recorded_at']); ?></td>
+                            <td><?php echo sr_e((string) $marker['message']); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
@@ -126,11 +126,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
         <?php if ((int) $moduleBackupSummary['count'] > 0) { ?>
             <p>
-                모듈 백업 <?php echo toy_e((string) $moduleBackupSummary['count']); ?>개
+                모듈 백업 <?php echo sr_e((string) $moduleBackupSummary['count']); ?>개
                 <?php if ((string) $moduleBackupSummary['latest_name'] !== '') { ?>
                     / 최근 백업:
-                    <?php echo toy_e((string) $moduleBackupSummary['latest_name']); ?>
-                    <?php echo toy_e((string) $moduleBackupSummary['latest_modified_at']); ?>
+                    <?php echo sr_e((string) $moduleBackupSummary['latest_name']); ?>
+                    <?php echo sr_e((string) $moduleBackupSummary['latest_modified_at']); ?>
                 <?php } ?>
             </p>
         <?php } ?>
@@ -151,9 +151,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($operationSummary as $summary) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $summary['label']); ?></td>
-                        <td><?php echo toy_e((string) $summary['value']); ?></td>
-                        <td><?php echo toy_e((string) $summary['detail']); ?></td>
+                        <td><?php echo sr_e((string) $summary['label']); ?></td>
+                        <td><?php echo sr_e((string) $summary['value']); ?></td>
+                        <td><?php echo sr_e((string) $summary['detail']); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -175,14 +175,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php foreach ($modules as $module) { ?>
                 <tr>
-                    <td><?php echo toy_e((string) $module['module_key']); ?></td>
-                    <td><?php echo toy_e(toy_admin_module_name_label((string) $module['name'])); ?></td>
-                    <td><?php echo toy_e((string) $module['version']); ?></td>
-                    <td><?php echo toy_e(toy_admin_code_label((string) $module['status'], 'module_status')); ?></td>
+                    <td><?php echo sr_e((string) $module['module_key']); ?></td>
+                    <td><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></td>
+                    <td><?php echo sr_e((string) $module['version']); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $module['status'], 'module_status')); ?></td>
                 </tr>
             <?php } ?>
         </tbody>
     </table>
 </section>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

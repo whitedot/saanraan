@@ -1,39 +1,39 @@
 <?php
 
 $adminPageTitle = 'SEO 설정';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo toy_e(toy_url('/admin/seo')); ?>">
-    <?php echo toy_csrf_field(); ?>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>">
+    <?php echo sr_csrf_field(); ?>
 
     <section>
         <h2>기본 메타</h2>
         <p>
             <label>제목 접미사<br>
-                <input type="text" name="title_suffix" value="<?php echo toy_e((string) $settings['title_suffix']); ?>" maxlength="80">
+                <input type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" maxlength="80">
             </label>
         </p>
         <p>
             <label>기본 설명<br>
-                <input type="text" name="default_description" value="<?php echo toy_e((string) $settings['default_description']); ?>" maxlength="255">
+                <input type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" maxlength="255">
             </label>
         </p>
         <p>
             <label>기본 OG 이미지 URL<br>
-                <input type="text" name="default_og_image" value="<?php echo toy_e((string) $settings['default_og_image']); ?>" maxlength="255">
+                <input type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" maxlength="255">
             </label>
         </p>
     </section>
@@ -47,7 +47,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </label>
         </p>
         <?php if ($sitemapUrl !== '') { ?>
-            <p><a href="<?php echo toy_e(toy_url('/sitemap.xml')); ?>">sitemap.xml 확인</a></p>
+            <p><a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>">sitemap.xml 확인</a></p>
         <?php } ?>
     </section>
 
@@ -55,14 +55,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <h2>로봇 설정</h2>
         <p>
             <label>차단 경로<br>
-                <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo toy_e((string) $settings['robots_disallow_paths']); ?></textarea>
+                <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
             </label>
         </p>
-        <pre><?php echo toy_e($robotsPreview); ?></pre>
-        <p><a href="<?php echo toy_e(toy_url('/robots.txt')); ?>">robots.txt 확인</a></p>
+        <pre><?php echo sr_e($robotsPreview); ?></pre>
+        <p><a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">robots.txt 확인</a></p>
     </section>
 
     <button type="submit">저장</button>
 </form>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

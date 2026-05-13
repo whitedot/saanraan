@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_member_groups (
+CREATE TABLE IF NOT EXISTS sr_member_groups (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     group_key VARCHAR(60) NOT NULL,
     title VARCHAR(120) NOT NULL,
@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS toy_member_groups (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_member_groups_key (group_key),
-    KEY idx_toy_member_groups_status_sort (status, sort_order, id)
+    UNIQUE KEY uq_sr_member_groups_key (group_key),
+    KEY idx_sr_member_groups_status_sort (status, sort_order, id)
 );
 
-CREATE TABLE IF NOT EXISTS toy_member_group_memberships (
+CREATE TABLE IF NOT EXISTS sr_member_group_memberships (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     group_id BIGINT UNSIGNED NOT NULL,
     account_id BIGINT UNSIGNED NOT NULL,
@@ -27,12 +27,12 @@ CREATE TABLE IF NOT EXISTS toy_member_group_memberships (
     created_by_account_id BIGINT UNSIGNED NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_member_group_memberships_group_status_account (group_id, status, account_id),
-    KEY idx_toy_member_group_memberships_account_status_group (account_id, status, group_id),
-    KEY idx_toy_member_group_memberships_source_status (source_module_key, source_rule_key, status)
+    KEY idx_sr_member_group_memberships_group_status_account (group_id, status, account_id),
+    KEY idx_sr_member_group_memberships_account_status_group (account_id, status, group_id),
+    KEY idx_sr_member_group_memberships_source_status (source_module_key, source_rule_key, status)
 );
 
-CREATE TABLE IF NOT EXISTS toy_member_group_rules (
+CREATE TABLE IF NOT EXISTS sr_member_group_rules (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     group_id BIGINT UNSIGNED NOT NULL,
     source_module_key VARCHAR(60) NOT NULL,
@@ -44,11 +44,11 @@ CREATE TABLE IF NOT EXISTS toy_member_group_rules (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_member_group_rules_group_status (group_id, status),
-    KEY idx_toy_member_group_rules_source_status (source_module_key, rule_key, status)
+    KEY idx_sr_member_group_rules_group_status (group_id, status),
+    KEY idx_sr_member_group_rules_source_status (source_module_key, rule_key, status)
 );
 
-CREATE TABLE IF NOT EXISTS toy_member_group_membership_logs (
+CREATE TABLE IF NOT EXISTS sr_member_group_membership_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     group_id BIGINT UNSIGNED NOT NULL,
     account_id BIGINT UNSIGNED NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS toy_member_group_membership_logs (
     metadata_json TEXT NULL,
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_member_group_membership_logs_group_account (group_id, account_id),
-    KEY idx_toy_member_group_membership_logs_account_created (account_id, created_at),
-    KEY idx_toy_member_group_membership_logs_source (source_module_key, source_rule_key)
+    KEY idx_sr_member_group_membership_logs_group_account (group_id, account_id),
+    KEY idx_sr_member_group_membership_logs_account_created (account_id, created_at),
+    KEY idx_sr_member_group_membership_logs_source (source_module_key, source_rule_key)
 );

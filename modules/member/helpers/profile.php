@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_member_empty_profile(): array
+function sr_member_empty_profile(): array
 {
     return [
         'nickname' => '',
@@ -13,11 +13,11 @@ function toy_member_empty_profile(): array
     ];
 }
 
-function toy_member_profile(PDO $pdo, int $accountId): array
+function sr_member_profile(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(
         'SELECT nickname, phone, birth_date, avatar_path, profile_text
-         FROM toy_member_profiles
+         FROM sr_member_profiles
          WHERE account_id = :account_id
          LIMIT 1'
     );
@@ -25,7 +25,7 @@ function toy_member_profile(PDO $pdo, int $accountId): array
     $profile = $stmt->fetch();
 
     if (!is_array($profile)) {
-        return toy_member_empty_profile();
+        return sr_member_empty_profile();
     }
 
     return [
@@ -37,16 +37,16 @@ function toy_member_profile(PDO $pdo, int $accountId): array
     ];
 }
 
-function toy_member_save_profile(PDO $pdo, int $accountId, array $profile): void
+function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
 {
-    $now = toy_now();
+    $now = sr_now();
     $birthDate = trim((string) ($profile['birth_date'] ?? ''));
     if ($birthDate === '') {
         $birthDate = null;
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_profiles
+        'INSERT INTO sr_member_profiles
             (account_id, nickname, phone, birth_date, avatar_path, profile_text, created_at, updated_at)
          VALUES
             (:account_id, :nickname, :phone, :birth_date, :avatar_path, :profile_text, :created_at, :updated_at)
@@ -70,8 +70,8 @@ function toy_member_save_profile(PDO $pdo, int $accountId, array $profile): void
     ]);
 }
 
-function toy_member_delete_profile(PDO $pdo, int $accountId): void
+function sr_member_delete_profile(PDO $pdo, int $accountId): void
 {
-    $stmt = $pdo->prepare('DELETE FROM toy_member_profiles WHERE account_id = :account_id');
+    $stmt = $pdo->prepare('DELETE FROM sr_member_profiles WHERE account_id = :account_id');
     $stmt->execute(['account_id' => $accountId]);
 }

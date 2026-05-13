@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-function toy_member_account_select_columns(): string
+function sr_member_account_select_columns(): string
 {
     return 'id, account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at';
 }
 
-function toy_member_default_settings(): array
+function sr_member_default_settings(): array
 {
-    $metadata = toy_module_metadata('member');
+    $metadata = sr_module_metadata('member');
     $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
     return [
@@ -36,60 +36,60 @@ function toy_member_default_settings(): array
     ];
 }
 
-function toy_member_settings(PDO $pdo): array
+function sr_member_settings(PDO $pdo): array
 {
-    $settings = array_merge(toy_member_default_settings(), toy_module_settings($pdo, 'member'));
+    $settings = array_merge(sr_member_default_settings(), sr_module_settings($pdo, 'member'));
 
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['login_identifier'] = (string) $settings['login_identifier'] === 'login_id' ? 'login_id' : 'email';
-    $settings['member_skin_key'] = toy_member_skin_key($settings);
-    foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+    $settings['member_skin_key'] = sr_member_skin_key($settings);
+    foreach (sr_member_profile_field_setting_keys() as $key => $label) {
         $settings[$key] = (bool) ($settings[$key] ?? false);
     }
 
-    foreach (toy_member_integer_setting_keys() as $key => $limits) {
-        $settings[$key] = toy_member_clamp_int((int) ($settings[$key] ?? $limits['default']), $limits['min'], $limits['max']);
+    foreach (sr_member_integer_setting_keys() as $key => $limits) {
+        $settings[$key] = sr_member_clamp_int((int) ($settings[$key] ?? $limits['default']), $limits['min'], $limits['max']);
     }
 
     return $settings;
 }
 
-function toy_member_skin_options(): array
+function sr_member_skin_options(): array
 {
     return [
         'basic' => [
             'label' => '기본',
             'views' => [
-                'login' => TOY_ROOT . '/modules/member/skins/basic/login.php',
-                'register' => TOY_ROOT . '/modules/member/skins/basic/register.php',
-                'account' => TOY_ROOT . '/modules/member/skins/basic/account.php',
-                'password-reset-request' => TOY_ROOT . '/modules/member/skins/basic/password-reset-request.php',
-                'password-reset' => TOY_ROOT . '/modules/member/skins/basic/password-reset.php',
-                'privacy-requests' => TOY_ROOT . '/modules/member/skins/basic/privacy-requests.php',
-                'withdraw' => TOY_ROOT . '/modules/member/skins/basic/withdraw.php',
-                'email-verified' => TOY_ROOT . '/modules/member/skins/basic/email-verified.php',
+                'login' => SR_ROOT . '/modules/member/skins/basic/login.php',
+                'register' => SR_ROOT . '/modules/member/skins/basic/register.php',
+                'account' => SR_ROOT . '/modules/member/skins/basic/account.php',
+                'password-reset-request' => SR_ROOT . '/modules/member/skins/basic/password-reset-request.php',
+                'password-reset' => SR_ROOT . '/modules/member/skins/basic/password-reset.php',
+                'privacy-requests' => SR_ROOT . '/modules/member/skins/basic/privacy-requests.php',
+                'withdraw' => SR_ROOT . '/modules/member/skins/basic/withdraw.php',
+                'email-verified' => SR_ROOT . '/modules/member/skins/basic/email-verified.php',
             ],
         ],
     ];
 }
 
-function toy_member_skin_key(array $settings): string
+function sr_member_skin_key(array $settings): string
 {
     $skinKey = (string) ($settings['member_skin_key'] ?? 'basic');
 
-    return isset(toy_member_skin_options()[$skinKey]) ? $skinKey : 'basic';
+    return isset(sr_member_skin_options()[$skinKey]) ? $skinKey : 'basic';
 }
 
-function toy_member_skin_view(string $skinKey, string $viewKey): string
+function sr_member_skin_view(string $skinKey, string $viewKey): string
 {
-    $options = toy_member_skin_options();
+    $options = sr_member_skin_options();
     $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
     return is_file($view) ? $view : (string) ($options['basic']['views'][$viewKey] ?? '');
 }
 
-function toy_member_integer_setting_keys(): array
+function sr_member_integer_setting_keys(): array
 {
     return [
         'login_throttle_window_seconds' => ['default' => 900, 'min' => 0, 'max' => 86400],
@@ -106,12 +106,12 @@ function toy_member_integer_setting_keys(): array
     ];
 }
 
-function toy_member_clamp_int(int $value, int $min, int $max): int
+function sr_member_clamp_int(int $value, int $min, int $max): int
 {
     return max($min, min($max, $value));
 }
 
-function toy_member_profile_field_setting_keys(): array
+function sr_member_profile_field_setting_keys(): array
 {
     return [
         'profile_nickname_enabled' => '닉네임',
@@ -122,7 +122,7 @@ function toy_member_profile_field_setting_keys(): array
     ];
 }
 
-function toy_member_profile_field_settings(array $settings): array
+function sr_member_profile_field_settings(array $settings): array
 {
     return [
         'nickname' => !empty($settings['profile_nickname_enabled']),

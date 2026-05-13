@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_admin_handle_modules_post(
+function sr_admin_handle_modules_post(
     PDO $pdo,
     array $account,
     bool $canManageAdvancedModuleSettings,
@@ -16,8 +16,8 @@ function toy_admin_handle_modules_post(
 ): array {
     $errors = [];
     $notice = '';
-    $intent = toy_post_string('intent', 40);
-    $moduleKey = toy_post_string('module_key', 60);
+    $intent = sr_post_string('intent', 40);
+    $moduleKey = sr_post_string('module_key', 60);
     $status = '';
     $module = null;
     $metadata = [];
@@ -25,10 +25,10 @@ function toy_admin_handle_modules_post(
     $installSql = '';
 
     if ($intent === 'upload_module_zip') {
-        $moduleKey = trim(toy_post_string('upload_module_key', 60));
+        $moduleKey = trim(sr_post_string('upload_module_key', 60));
     }
 
-    if ($intent !== 'upload_module_zip' && !toy_is_safe_module_key($moduleKey)) {
+    if ($intent !== 'upload_module_zip' && !sr_is_safe_module_key($moduleKey)) {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
@@ -55,7 +55,7 @@ function toy_admin_handle_modules_post(
             $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. 소유자가 admin.module_sources_enabled 설정을 참/거짓 유형의 참 값으로 저장해야 합니다.';
         }
     } elseif ($intent === 'status') {
-        $status = toy_post_string('status', 30);
+        $status = sr_post_string('status', 30);
         if (!in_array($status, $allowedStatuses, true)) {
             $errors[] = '모듈 상태 값이 올바르지 않습니다.';
         }
@@ -64,24 +64,24 @@ function toy_admin_handle_modules_post(
             $errors[] = '기본 모듈은 비활성화할 수 없습니다.';
         }
     } elseif ($intent === 'install') {
-        $status = toy_post_string('status', 30);
+        $status = sr_post_string('status', 30);
         if (!in_array($status, $allowedInstallStatuses, true)) {
             $errors[] = '설치 후 상태 값이 올바르지 않습니다.';
         }
     }
 
     if ($errors === [] && in_array($intent, $sourceWriteIntents, true)) {
-        foreach (toy_admin_module_source_reauth_errors($pdo, $account, $intent) as $reauthError) {
+        foreach (sr_admin_module_source_reauth_errors($pdo, $account, $intent) as $reauthError) {
             $errors[] = $reauthError;
         }
     }
 
     if ($errors === [] && $intent === 'install') {
-        $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
-        $realModulesDir = realpath(TOY_ROOT . '/modules');
+        $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+        $realModulesDir = realpath(SR_ROOT . '/modules');
         $realModuleDir = realpath($moduleDir);
         $installSql = $moduleDir . '/install.sql';
-        $metadata = toy_module_metadata($moduleKey);
+        $metadata = sr_module_metadata($moduleKey);
 
         if ($realModulesDir === false || $realModuleDir === false || strpos($realModuleDir, $realModulesDir . DIRECTORY_SEPARATOR) !== 0) {
             $errors[] = '설치할 모듈 디렉터리를 찾을 수 없습니다.';
@@ -96,29 +96,29 @@ function toy_admin_handle_modules_post(
         }
 
         if ($errors === []) {
-            foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+            foreach (sr_admin_module_metadata_errors($metadata) as $metadataError) {
                 $errors[] = $metadataError;
             }
 
-            foreach (toy_module_contract_file_errors($moduleDir, $metadata) as $metadataError) {
+            foreach (sr_module_contract_file_errors($moduleDir, $metadata) as $metadataError) {
                 $errors[] = $metadataError;
             }
         }
 
         if ($errors === []) {
-            foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
+            foreach (sr_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
                 $errors[] = $requirementError;
             }
         }
 
         if ($errors === [] && $status === 'enabled') {
-            foreach (toy_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
+            foreach (sr_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
                 $errors[] = $routeError;
             }
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id, status FROM toy_modules WHERE module_key = :module_key LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, status FROM sr_modules WHERE module_key = :module_key LIMIT 1');
             $stmt->execute(['module_key' => $moduleKey]);
             $existingModule = $stmt->fetch();
             if (is_array($existingModule) && !in_array((string) $existingModule['status'], ['failed', 'installing'], true)) {
@@ -126,7 +126,7 @@ function toy_admin_handle_modules_post(
             }
         }
     } elseif ($errors === [] && in_array($intent, ['status', 'module_setting', 'delete_module_setting', 'sync_module_version'], true)) {
-        $stmt = $pdo->prepare('SELECT id, status FROM toy_modules WHERE module_key = :module_key LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, status FROM sr_modules WHERE module_key = :module_key LIMIT 1');
         $stmt->execute(['module_key' => $moduleKey]);
         $module = $stmt->fetch();
 
@@ -139,60 +139,60 @@ function toy_admin_handle_modules_post(
         }
 
         if ($errors === [] && $intent === 'status' && $status === 'enabled') {
-            $metadata = toy_module_metadata($moduleKey);
+            $metadata = sr_module_metadata($moduleKey);
             if ($metadata === []) {
                 $errors[] = '모듈 메타데이터를 찾을 수 없습니다.';
             }
 
             if ($errors === []) {
-                foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                foreach (sr_admin_module_metadata_errors($metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
 
-                foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
+                foreach (sr_module_contract_file_errors(SR_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
             }
 
             if ($errors === []) {
-                foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
+                foreach (sr_module_requirement_errors($pdo, $moduleKey, $metadata, $status) as $requirementError) {
                     $errors[] = $requirementError;
                 }
             }
 
             if ($errors === [] && $status === 'enabled') {
-                foreach (toy_admin_module_code_older_errors($pdo, $moduleKey) as $versionError) {
+                foreach (sr_admin_module_code_older_errors($pdo, $moduleKey) as $versionError) {
                     $errors[] = $versionError;
                 }
             }
 
             if ($errors === []) {
-                foreach (toy_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
+                foreach (sr_admin_module_route_conflict_errors($pdo, $moduleKey) as $routeError) {
                     $errors[] = $routeError;
                 }
             }
         }
 
         if ($errors === [] && $intent === 'sync_module_version') {
-            $metadata = toy_module_metadata($moduleKey);
+            $metadata = sr_module_metadata($moduleKey);
             if ($metadata === []) {
                 $errors[] = '모듈 메타데이터를 찾을 수 없습니다.';
             }
 
             if ($errors === []) {
-                foreach (toy_admin_module_metadata_errors($metadata) as $metadataError) {
+                foreach (sr_admin_module_metadata_errors($metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
 
-                foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
+                foreach (sr_module_contract_file_errors(SR_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
                     $errors[] = $metadataError;
                 }
             }
 
             if ($errors === []) {
                 $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-                $pendingCounts = toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo));
-                foreach (toy_module_requirement_errors($pdo, $moduleKey, $metadata, (string) ($module['status'] ?? 'enabled')) as $requirementError) {
+                $pendingCounts = sr_admin_module_pending_update_counts(sr_admin_pending_updates($pdo));
+                foreach (sr_module_requirement_errors($pdo, $moduleKey, $metadata, (string) ($module['status'] ?? 'enabled')) as $requirementError) {
                     $errors[] = $requirementError;
                 }
 
@@ -214,25 +214,25 @@ function toy_admin_handle_modules_post(
                 throw new RuntimeException('업로드할 zip 파일을 선택하세요.');
             }
 
-            $source = toy_admin_extract_module_upload($upload, $moduleKey);
+            $source = sr_admin_extract_module_upload($upload, $moduleKey);
             $extractDir = (string) ($source['extract_dir'] ?? '');
             $uploadStats = is_array($source['upload'] ?? null) ? $source['upload'] : [];
             $moduleKey = (string) $source['module_key'];
             $metadata = is_array($source['metadata']) ? $source['metadata'] : [];
             $moduleVersion = (string) ($metadata['version'] ?? '');
             $replaceConfirmed = ($_POST['confirm_file_replace'] ?? '') === '1';
-            foreach (toy_admin_module_replace_errors($moduleKey, $replaceConfirmed) as $replaceError) {
+            foreach (sr_admin_module_replace_errors($moduleKey, $replaceConfirmed) as $replaceError) {
                 throw new RuntimeException($replaceError);
             }
 
             $allowDowngrade = ($_POST['allow_downgrade'] ?? '') === '1';
-            foreach (toy_admin_module_upload_version_errors($pdo, $moduleKey, $metadata, $allowDowngrade) as $versionError) {
+            foreach (sr_admin_module_upload_version_errors($pdo, $moduleKey, $metadata, $allowDowngrade) as $versionError) {
                 throw new RuntimeException($versionError);
             }
 
-            $result = toy_admin_install_module_source_files($moduleKey, (string) $source['source_dir']);
+            $result = sr_admin_install_module_source_files($moduleKey, (string) $source['source_dir']);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'module.source.uploaded',
@@ -250,14 +250,14 @@ function toy_admin_handle_modules_post(
                     'upload_checksum' => (string) ($uploadStats['checksum'] ?? ''),
                     'zip_entry_count' => (int) ($uploadStats['entry_count'] ?? 0),
                     'zip_uncompressed_bytes' => (int) ($uploadStats['uncompressed_bytes'] ?? 0),
-                    'backup_dir' => str_replace(TOY_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
+                    'backup_dir' => str_replace(SR_ROOT . '/', '', (string) ($result['backup_dir'] ?? '')),
                 ],
             ]);
 
             $notice = $moduleKey . ' 모듈 파일을 반영했습니다. 새 모듈이면 아래 목록에서 설치하고, 기존 모듈이면 업데이트 화면에서 미적용 SQL을 확인하세요.';
         } catch (Throwable $exception) {
-            toy_log_exception($exception, 'module_source_upload_failed');
-            toy_audit_log($pdo, [
+            sr_log_exception($exception, 'module_source_upload_failed');
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'module.source.uploaded',
@@ -267,21 +267,21 @@ function toy_admin_handle_modules_post(
                 'message' => 'Module source zip upload failed.',
                 'metadata' => [
                     'source' => $sourceType,
-                    'reason' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
+                    'reason' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)),
                 ],
             ]);
-            $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));
+            $errors[] = sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500));
         } finally {
             if ($extractDir !== '') {
                 try {
-                    toy_admin_remove_directory($extractDir);
+                    sr_admin_remove_directory($extractDir);
                 } catch (Throwable $ignored) {
                 }
             }
         }
     } elseif ($errors === [] && $intent === 'install') {
         try {
-            $now = toy_now();
+            $now = sr_now();
             $moduleName = is_string($metadata['name'] ?? null) && (string) $metadata['name'] !== ''
                 ? (string) $metadata['name']
                 : $moduleKey;
@@ -291,7 +291,7 @@ function toy_admin_handle_modules_post(
 
             if (is_array($existingModule)) {
                 $stmt = $pdo->prepare(
-                    "UPDATE toy_modules
+                    "UPDATE sr_modules
                      SET name = :name, version = :version, status = 'installing', updated_at = :updated_at
                      WHERE module_key = :module_key"
                 );
@@ -303,7 +303,7 @@ function toy_admin_handle_modules_post(
                 ]);
             } else {
                 $stmt = $pdo->prepare(
-                    "INSERT INTO toy_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
+                    "INSERT INTO sr_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
                      VALUES (:module_key, :name, :version, 'installing', :is_bundled, :installed_at, :updated_at)"
                 );
                 $stmt->execute([
@@ -316,13 +316,13 @@ function toy_admin_handle_modules_post(
                 ]);
             }
 
-            toy_execute_sql_file($pdo, $installSql);
+            sr_execute_sql_file($pdo, $installSql);
 
-            toy_record_installed_module_schema_versions($pdo, $moduleKey, $moduleVersion);
+            sr_record_installed_module_schema_versions($pdo, $moduleKey, $moduleVersion);
 
-            $completedAt = toy_now();
+            $completedAt = sr_now();
             $stmt = $pdo->prepare(
-                'UPDATE toy_modules
+                'UPDATE sr_modules
                  SET status = :status, installed_at = :installed_at, updated_at = :updated_at
                  WHERE module_key = :module_key'
             );
@@ -333,7 +333,7 @@ function toy_admin_handle_modules_post(
                 'module_key' => $moduleKey,
             ]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'module.installed',
@@ -351,18 +351,18 @@ function toy_admin_handle_modules_post(
         } catch (Throwable $exception) {
             try {
                 $stmt = $pdo->prepare(
-                    "UPDATE toy_modules
+                    "UPDATE sr_modules
                      SET status = 'failed', updated_at = :updated_at
                      WHERE module_key = :module_key AND status = 'installing'"
                 );
                 $stmt->execute([
-                    'updated_at' => toy_now(),
+                    'updated_at' => sr_now(),
                     'module_key' => $moduleKey,
                 ]);
             } catch (Throwable $ignored) {
             }
 
-            toy_log_exception($exception, 'module_install_failed');
+            sr_log_exception($exception, 'module_install_failed');
             $errors[] = '모듈 설치 중 오류가 발생했습니다.';
         }
     } elseif ($errors === [] && $intent === 'module_setting') {
@@ -370,9 +370,9 @@ function toy_admin_handle_modules_post(
             $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
         }
 
-        $settingKey = toy_post_string('setting_key', 120);
-        $settingValue = toy_post_string('setting_value', 5000);
-        $valueType = toy_post_string('value_type', 20);
+        $settingKey = sr_post_string('setting_key', 120);
+        $settingValue = sr_post_string('setting_value', 5000);
+        $valueType = sr_post_string('value_type', 20);
 
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
@@ -382,24 +382,24 @@ function toy_admin_handle_modules_post(
             $errors[] = '설정 타입이 올바르지 않습니다.';
         }
 
-        foreach (toy_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
+        foreach (sr_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
             $errors[] = $directEditError;
         }
 
-        foreach (toy_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
+        foreach (sr_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
             $errors[] = $valueError;
         }
 
-        if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
-            foreach (toy_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'save') as $reauthError) {
+        if ($errors === [] && sr_admin_setting_value_is_secret($settingKey)) {
+            foreach (sr_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'save') as $reauthError) {
                 $errors[] = $reauthError;
             }
         }
 
         if ($errors === []) {
-            $settingValue = toy_admin_normalize_setting_value($settingValue, $valueType);
+            $settingValue = sr_admin_normalize_setting_value($settingValue, $valueType);
             $stmt = $pdo->prepare(
-                'INSERT INTO toy_module_settings
+                'INSERT INTO sr_module_settings
                     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
                  VALUES
                     (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
@@ -413,12 +413,12 @@ function toy_admin_handle_modules_post(
                 'setting_key' => $settingKey,
                 'setting_value' => $settingValue,
                 'value_type' => $valueType,
-                'created_at' => toy_now(),
-                'updated_at' => toy_now(),
+                'created_at' => sr_now(),
+                'updated_at' => sr_now(),
             ]);
-            toy_clear_module_settings_cache($moduleKey);
+            sr_clear_module_settings_cache($moduleKey);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'module.setting.saved',
@@ -440,30 +440,30 @@ function toy_admin_handle_modules_post(
             $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
         }
 
-        $settingKey = toy_post_string('setting_key', 120);
+        $settingKey = sr_post_string('setting_key', 120);
         if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
             $errors[] = '설정 key 형식이 올바르지 않습니다.';
         }
 
-        foreach (toy_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
+        foreach (sr_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
             $errors[] = $directEditError;
         }
 
-        if ($errors === [] && toy_admin_setting_value_is_secret($settingKey)) {
-            foreach (toy_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'delete') as $reauthError) {
+        if ($errors === [] && sr_admin_setting_value_is_secret($settingKey)) {
+            foreach (sr_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'delete') as $reauthError) {
                 $errors[] = $reauthError;
             }
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM toy_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
+            $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
             $stmt->execute([
                 'module_id' => (int) $module['id'],
                 'setting_key' => $settingKey,
             ]);
-            toy_clear_module_settings_cache($moduleKey);
+            sr_clear_module_settings_cache($moduleKey);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'module.setting.deleted',
@@ -480,12 +480,12 @@ function toy_admin_handle_modules_post(
             $notice = '모듈 설정 항목을 삭제했습니다.';
         }
     } elseif ($errors === [] && $intent === 'sync_module_version') {
-        $metadata = toy_module_metadata($moduleKey);
+        $metadata = sr_module_metadata($moduleKey);
         $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
         $beforeVersion = (string) $module['version'];
-        toy_admin_sync_module_version($pdo, $moduleKey, $codeVersion);
+        sr_admin_sync_module_version($pdo, $moduleKey, $codeVersion);
 
-        toy_audit_log($pdo, [
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
             'event_type' => 'module.version.synced',
@@ -502,17 +502,17 @@ function toy_admin_handle_modules_post(
         $notice = '파일 전용 업데이트 버전을 반영했습니다.';
     } elseif ($errors === [] && $intent === 'status') {
         $stmt = $pdo->prepare(
-            'UPDATE toy_modules
+            'UPDATE sr_modules
              SET status = :status, updated_at = :updated_at
              WHERE module_key = :module_key'
         );
         $stmt->execute([
             'status' => $status,
-            'updated_at' => toy_now(),
+            'updated_at' => sr_now(),
             'module_key' => $moduleKey,
         ]);
 
-        toy_audit_log($pdo, [
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
             'event_type' => 'module.status.updated',
@@ -531,16 +531,16 @@ function toy_admin_handle_modules_post(
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 
-    return toy_admin_action_result($errors, $notice);
+    return sr_admin_action_result($errors, $notice);
 }
 
-function toy_admin_module_route_conflict_errors(PDO $pdo, string $candidateModuleKey): array
+function sr_admin_module_route_conflict_errors(PDO $pdo, string $candidateModuleKey): array
 {
-    if (!toy_is_safe_module_key($candidateModuleKey)) {
+    if (!sr_is_safe_module_key($candidateModuleKey)) {
         return ['모듈 키가 올바르지 않습니다.'];
     }
 
-    $candidateRoutes = toy_admin_module_route_map($candidateModuleKey);
+    $candidateRoutes = sr_admin_module_route_map($candidateModuleKey);
     if ($candidateRoutes['errors'] !== []) {
         return $candidateRoutes['errors'];
     }
@@ -551,8 +551,8 @@ function toy_admin_module_route_conflict_errors(PDO $pdo, string $candidateModul
     }
 
     $errors = [];
-    foreach (toy_enabled_module_contract_files($pdo, 'paths.php', [$candidateModuleKey]) as $moduleKey => $pathsFile) {
-        $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
+    foreach (sr_enabled_module_contract_files($pdo, 'paths.php', [$candidateModuleKey]) as $moduleKey => $pathsFile) {
+        $paths = sr_load_module_contract_file($moduleKey, $pathsFile);
         if (!is_array($paths)) {
             continue;
         }
@@ -575,15 +575,15 @@ function toy_admin_module_route_conflict_errors(PDO $pdo, string $candidateModul
     return array_values(array_unique($errors));
 }
 
-function toy_admin_module_route_map(string $moduleKey): array
+function sr_admin_module_route_map(string $moduleKey): array
 {
-    $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
+    $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
     $pathsFile = $moduleDir . '/paths.php';
     if (!is_file($pathsFile)) {
         return ['routes' => [], 'errors' => []];
     }
 
-    $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
+    $paths = sr_load_module_contract_file($moduleKey, $pathsFile);
     if (!is_array($paths)) {
         return ['routes' => [], 'errors' => [$moduleKey . ' 모듈의 paths.php는 배열을 반환해야 합니다.']];
     }
@@ -598,7 +598,7 @@ function toy_admin_module_route_map(string $moduleKey): array
             continue;
         }
 
-        if (!toy_is_safe_module_action($actionRelativePath)) {
+        if (!sr_is_safe_module_action($actionRelativePath)) {
             $errors[] = $moduleKey . ' 모듈 action 경로가 올바르지 않습니다: ' . $route;
             continue;
         }
@@ -614,7 +614,7 @@ function toy_admin_module_route_map(string $moduleKey): array
     return ['routes' => $routes, 'errors' => array_values(array_unique($errors))];
 }
 
-function toy_admin_module_setting_direct_edit_errors(string $moduleKey, string $settingKey): array
+function sr_admin_module_setting_direct_edit_errors(string $moduleKey, string $settingKey): array
 {
     $dedicatedSettingsPaths = [
         'member' => '/admin/member-settings',
@@ -626,7 +626,7 @@ function toy_admin_module_setting_direct_edit_errors(string $moduleKey, string $
         return [];
     }
 
-    $metadata = toy_module_metadata($moduleKey);
+    $metadata = sr_module_metadata($moduleKey);
     $declaredSettings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
     if (!array_key_exists($settingKey, $declaredSettings)) {
         return [];
@@ -637,19 +637,19 @@ function toy_admin_module_setting_direct_edit_errors(string $moduleKey, string $
     ];
 }
 
-function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array
+function sr_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array
 {
-    $password = toy_post_string('owner_password', 255);
+    $password = sr_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     $targetId = $moduleKey . ':' . $settingKey . ':' . $action;
     if ($accountId < 1) {
         return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
-    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
     if (!empty($throttle['limited'])) {
-        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'module.setting.reauth_blocked',
@@ -662,8 +662,8 @@ function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string
     }
 
     if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
-        toy_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'module.setting.reauth_failed',
@@ -675,22 +675,22 @@ function toy_admin_module_setting_reauth_errors(PDO $pdo, array $account, string
         return ['민감한 모듈 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
-    toy_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'success');
+    sr_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'success');
     return [];
 }
 
-function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array
+function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array
 {
-    $password = toy_post_string('owner_password', 255);
+    $password = sr_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
         return ['소유자 재인증 계정을 확인할 수 없습니다.'];
     }
 
-    $throttle = toy_member_reauth_throttle_status($pdo, $accountId);
+    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
     if (!empty($throttle['limited'])) {
-        toy_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'module.source.reauth_blocked',
@@ -703,8 +703,8 @@ function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string 
     }
 
     if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
-        toy_member_log_auth($pdo, $accountId, 'module_source_reauth', 'failure');
-        toy_audit_log($pdo, [
+        sr_member_log_auth($pdo, $accountId, 'module_source_reauth', 'failure');
+        sr_audit_log($pdo, [
             'actor_account_id' => $accountId,
             'actor_type' => 'admin',
             'event_type' => 'module.source.reauth_failed',
@@ -716,14 +716,14 @@ function toy_admin_module_source_reauth_errors(PDO $pdo, array $account, string 
         return ['모듈 소스 반영 전 소유자 비밀번호를 다시 입력하세요.'];
     }
 
-    toy_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');
+    sr_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');
     return [];
 }
 
-function toy_admin_module_code_older_errors(PDO $pdo, string $moduleKey): array
+function sr_admin_module_code_older_errors(PDO $pdo, string $moduleKey): array
 {
-    $module = toy_module_record_entry($pdo, $moduleKey);
-    $metadata = toy_module_metadata($moduleKey);
+    $module = sr_module_record_entry($pdo, $moduleKey);
+    $metadata = sr_module_metadata($moduleKey);
     $installedVersion = is_array($module) ? (string) ($module['version'] ?? '') : '';
     $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
 
@@ -738,7 +738,7 @@ function toy_admin_module_code_older_errors(PDO $pdo, string $moduleKey): array
     return [];
 }
 
-function toy_admin_module_lifecycle_state(array $module): array
+function sr_admin_module_lifecycle_state(array $module): array
 {
     $status = (string) ($module['status'] ?? '');
     $metadataErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
@@ -808,31 +808,31 @@ function toy_admin_module_lifecycle_state(array $module): array
     ];
 }
 
-function toy_admin_load_module_management_view_data(PDO $pdo): array
+function sr_admin_load_module_management_view_data(PDO $pdo): array
 {
     $modules = [];
-    $pendingUpdateCounts = toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo));
-    $stmt = $pdo->query('SELECT id, module_key, name, version, status, is_bundled, installed_at, updated_at FROM toy_modules ORDER BY id ASC');
+    $pendingUpdateCounts = sr_admin_module_pending_update_counts(sr_admin_pending_updates($pdo));
+    $stmt = $pdo->query('SELECT id, module_key, name, version, status, is_bundled, installed_at, updated_at FROM sr_modules ORDER BY id ASC');
     $installedModuleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $installedModuleKeys[(string) $row['module_key']] = true;
-        $metadata = toy_module_metadata((string) $row['module_key']);
-        $moduleDirectory = TOY_ROOT . '/modules/' . (string) $row['module_key'];
+        $metadata = sr_module_metadata((string) $row['module_key']);
+        $moduleDirectory = SR_ROOT . '/modules/' . (string) $row['module_key'];
         $metadataErrors = $metadata === [] ? ['module.php 파일을 읽을 수 없습니다.'] : array_merge(
-            toy_module_metadata_errors($metadata),
-            toy_module_contract_file_errors($moduleDirectory, $metadata)
+            sr_module_metadata_errors($metadata),
+            sr_module_contract_file_errors($moduleDirectory, $metadata)
         );
         $row['code_name'] = is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : '';
         $row['code_version'] = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
-        $row['code_type'] = toy_module_type((string) $row['module_key']);
+        $row['code_type'] = sr_module_type((string) $row['module_key']);
         $row['description'] = is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '';
-        $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
-        $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
-        $row['toycore_min_version'] = is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '';
-        $row['toycore_tested_with'] = is_array($toycoreTestedWith)
-            ? implode(', ', array_map('strval', $toycoreTestedWith))
-            : (is_string($toycoreTestedWith) ? $toycoreTestedWith : '');
-        $row['toycore_module_contract'] = is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '';
+        $saanraanMetadata = is_array($metadata['saanraan'] ?? null) ? $metadata['saanraan'] : [];
+        $saanraanTestedWith = $saanraanMetadata['tested_with'] ?? [];
+        $row['saanraan_min_version'] = is_string($saanraanMetadata['min_version'] ?? null) ? (string) $saanraanMetadata['min_version'] : '';
+        $row['saanraan_tested_with'] = is_array($saanraanTestedWith)
+            ? implode(', ', array_map('strval', $saanraanTestedWith))
+            : (is_string($saanraanTestedWith) ? $saanraanTestedWith : '');
+        $row['saanraan_module_contract'] = is_string($saanraanMetadata['module_contract'] ?? null) ? (string) $saanraanMetadata['module_contract'] : '';
         $row['metadata_errors'] = $metadataErrors;
         $row['pending_update_count'] = (int) ($pendingUpdateCounts[(string) $row['module_key']] ?? 0);
         $row['version_state'] = 'unknown';
@@ -846,7 +846,7 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                 $row['version_state'] = 'same';
             }
         }
-        $lifecycle = toy_admin_module_lifecycle_state($row);
+        $lifecycle = sr_admin_module_lifecycle_state($row);
         $row['lifecycle_state'] = (string) $lifecycle['state'];
         $row['lifecycle_label'] = (string) $lifecycle['label'];
         $row['lifecycle_action'] = (string) $lifecycle['action'];
@@ -854,27 +854,27 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     }
 
     $installableModules = [];
-    $moduleDirectories = glob(TOY_ROOT . '/modules/*', GLOB_ONLYDIR);
+    $moduleDirectories = glob(SR_ROOT . '/modules/*', GLOB_ONLYDIR);
     if (is_array($moduleDirectories)) {
         sort($moduleDirectories, SORT_STRING);
         foreach ($moduleDirectories as $moduleDirectory) {
             $moduleKey = basename($moduleDirectory);
-            if (!toy_is_safe_module_key($moduleKey) || isset($installedModuleKeys[$moduleKey])) {
+            if (!sr_is_safe_module_key($moduleKey) || isset($installedModuleKeys[$moduleKey])) {
                 continue;
             }
 
-            $metadata = toy_module_metadata($moduleKey);
+            $metadata = sr_module_metadata($moduleKey);
             if ($metadata === [] && !is_file($moduleDirectory . '/module.php')) {
                 continue;
             }
             $missingInstallSql = !is_file($moduleDirectory . '/install.sql');
-            $toycoreMetadata = is_array($metadata['toycore'] ?? null) ? $metadata['toycore'] : [];
-            $toycoreTestedWith = $toycoreMetadata['tested_with'] ?? [];
+            $saanraanMetadata = is_array($metadata['saanraan'] ?? null) ? $metadata['saanraan'] : [];
+            $saanraanTestedWith = $saanraanMetadata['tested_with'] ?? [];
             $metadataErrors = $metadata === []
                 ? ['module.php 파일을 읽을 수 없습니다.']
                 : array_merge(
-                    toy_module_metadata_errors($metadata),
-                    toy_module_contract_file_errors($moduleDirectory, $metadata)
+                    sr_module_metadata_errors($metadata),
+                    sr_module_contract_file_errors($moduleDirectory, $metadata)
                 );
             if ($missingInstallSql) {
                 $metadataErrors[] = 'install.sql 파일이 필요합니다.';
@@ -884,13 +884,13 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
                 'module_key' => $moduleKey,
                 'name' => is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : $moduleKey,
                 'version' => is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '',
-                'type' => toy_module_type($moduleKey),
+                'type' => sr_module_type($moduleKey),
                 'description' => is_string($metadata['description'] ?? null) ? (string) $metadata['description'] : '',
-                'toycore_min_version' => is_string($toycoreMetadata['min_version'] ?? null) ? (string) $toycoreMetadata['min_version'] : '',
-                'toycore_tested_with' => is_array($toycoreTestedWith)
-                    ? implode(', ', array_map('strval', $toycoreTestedWith))
-                    : (is_string($toycoreTestedWith) ? $toycoreTestedWith : ''),
-                'toycore_module_contract' => is_string($toycoreMetadata['module_contract'] ?? null) ? (string) $toycoreMetadata['module_contract'] : '',
+                'saanraan_min_version' => is_string($saanraanMetadata['min_version'] ?? null) ? (string) $saanraanMetadata['min_version'] : '',
+                'saanraan_tested_with' => is_array($saanraanTestedWith)
+                    ? implode(', ', array_map('strval', $saanraanTestedWith))
+                    : (is_string($saanraanTestedWith) ? $saanraanTestedWith : ''),
+                'saanraan_module_contract' => is_string($saanraanMetadata['module_contract'] ?? null) ? (string) $saanraanMetadata['module_contract'] : '',
                 'metadata_errors' => $metadataErrors,
                 'lifecycle_state' => $metadataErrors === [] ? 'not_installed' : 'install_blocked',
                 'lifecycle_label' => $metadataErrors === [] ? '미설치' : '설치 차단',
@@ -902,8 +902,8 @@ function toy_admin_load_module_management_view_data(PDO $pdo): array
     $moduleSettings = [];
     $stmt = $pdo->query(
         'SELECT m.module_key, s.setting_key, s.setting_value, s.value_type, s.updated_at
-         FROM toy_module_settings s
-         INNER JOIN toy_modules m ON m.id = s.module_id
+         FROM sr_module_settings s
+         INNER JOIN sr_modules m ON m.id = s.module_id
          ORDER BY m.module_key ASC, s.setting_key ASC'
     );
     foreach ($stmt->fetchAll() as $row) {

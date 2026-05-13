@@ -1,13 +1,13 @@
 <?php
 
-$pageTitle = isset($site['name']) ? (string) $site['name'] : 'Toycore';
+$pageTitle = isset($site['name']) ? (string) $site['name'] : 'Saanraan';
 $seo = [
     'title' => $pageTitle,
-    'canonical' => toy_canonical_url($site, '/'),
+    'canonical' => sr_canonical_url($site, '/'),
 ];
 
-if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'seo')) {
-    $seoSettings = toy_module_settings($pdo, 'seo');
+if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'seo')) {
+    $seoSettings = sr_module_settings($pdo, 'seo');
     if (!empty($seoSettings['title_suffix']) && is_string($seoSettings['title_suffix'])) {
         $seo['title'] .= ' - ' . $seoSettings['title_suffix'];
     }
@@ -19,13 +19,13 @@ if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'seo')) {
     }
 }
 
-toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
-        <h1><?php echo toy_e($pageTitle); ?></h1>
-        <p>Toycore MVP가 설치되었습니다.</p>
-        <p><a href="<?php echo toy_e(toy_url('/admin')); ?>">관리자 화면</a></p>
-        <?php echo toy_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
+        <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
+        <h1><?php echo sr_e($pageTitle); ?></h1>
+        <p>Saanraan MVP가 설치되었습니다.</p>
+        <p><a href="<?php echo sr_e(sr_url('/admin')); ?>">관리자 화면</a></p>
+        <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
     </main>
-<?php toy_public_layout_end(); ?>
+<?php sr_public_layout_end(); ?>

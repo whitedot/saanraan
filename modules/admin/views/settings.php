@@ -1,49 +1,49 @@
 <?php
 
 $adminPageTitle = '사이트 설정';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-    <?php echo toy_csrf_field(); ?>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+    <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
     <p>
         <label>사이트 이름<br>
-            <input type="text" name="name" value="<?php echo toy_e($values['name']); ?>" maxlength="120" required>
+            <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" maxlength="120" required>
         </label>
     </p>
     <p>
         <label>기본 URL<br>
-            <input type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>" maxlength="255">
+            <input type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" maxlength="255">
         </label>
     </p>
     <p>
         <label>시간대<br>
-            <input type="text" name="timezone" value="<?php echo toy_e($values['timezone']); ?>" maxlength="80" required>
+            <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" maxlength="80" required>
         </label>
     </p>
     <p>
         <label>기본 locale<br>
-            <input type="text" name="default_locale" value="<?php echo toy_e($values['default_locale']); ?>" maxlength="20" required>
+            <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" maxlength="20" required>
         </label>
     </p>
     <p>
         <label>지원 locale 목록<br>
-            <input type="text" name="supported_locales" value="<?php echo toy_e($values['supported_locales']); ?>" maxlength="255" required>
+            <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" maxlength="255" required>
         </label>
-        <span class="toy-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+        <span class="sr-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
     </p>
     <p>
         <label>운영 상태<br>
@@ -56,9 +56,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <p>
         <label>공통 레이아웃<br>
             <select name="public_layout_key">
-                <?php foreach (toy_public_layout_options() as $layoutKey => $layoutOption) { ?>
-                    <option value="<?php echo toy_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
-                        <?php echo toy_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
+                    <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
                     </option>
                 <?php } ?>
             </select>
@@ -67,9 +67,9 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <p>
         <label>UI 색상 모드<br>
             <select name="ui_color_scheme">
-                <?php foreach (toy_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                    <option value="<?php echo toy_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
-                        <?php echo toy_e((string) $colorSchemeLabel); ?>
+                <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
+                    <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $colorSchemeLabel); ?>
                     </option>
                 <?php } ?>
             </select>
@@ -80,15 +80,15 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>관리자 화면</h2>
-    <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-        <?php echo toy_csrf_field(); ?>
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+        <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="admin_skin">
         <p>
             <label>관리자 스킨<br>
                 <select name="admin_skin_key">
                     <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
-                        <option value="<?php echo toy_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                            <?php echo toy_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
                         </option>
                     <?php } ?>
                 </select>
@@ -102,8 +102,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <h2>추가 사이트 설정 항목</h2>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>
-        <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-            <?php echo toy_csrf_field(); ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+            <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="site_setting">
             <p>
                 <label>키<br>
@@ -119,7 +119,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>유형<br>
                     <select name="value_type">
                         <?php foreach ($allowedSettingTypes as $type) { ?>
-                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e(toy_admin_code_label($type, 'setting_type')); ?></option>
+                            <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -128,7 +128,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <label>소유자 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password">
                 </label>
-                <span class="toy-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
+                <span class="sr-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
             </p>
             <button type="submit">항목 저장</button>
         </form>
@@ -152,17 +152,17 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
             <?php foreach ($siteSettings as $setting) { ?>
                 <tr>
-                    <td><?php echo toy_e((string) $setting['setting_key']); ?></td>
-                    <td><?php echo toy_e(toy_admin_site_setting_display_value($setting)); ?></td>
-                    <td><?php echo toy_e(toy_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
-                    <td><?php echo toy_e((string) $setting['updated_at']); ?></td>
+                    <td><?php echo sr_e((string) $setting['setting_key']); ?></td>
+                    <td><?php echo sr_e(sr_admin_site_setting_display_value($setting)); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
+                    <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
                     <td>
                         <?php if ($canManageAdvancedSettings) { ?>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/settings')); ?>">
-                                <?php echo toy_csrf_field(); ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+                                <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete_site_setting">
-                                <input type="hidden" name="setting_key" value="<?php echo toy_e((string) $setting['setting_key']); ?>">
-                                <?php if (toy_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
+                                <input type="hidden" name="setting_key" value="<?php echo sr_e((string) $setting['setting_key']); ?>">
+                                <?php if (sr_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
                                     <label>소유자 비밀번호<br>
                                         <input type="password" name="owner_password" autocomplete="current-password" required>
                                     </label>
@@ -179,4 +179,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </table>
 </section>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

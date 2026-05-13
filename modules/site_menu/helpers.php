@@ -2,34 +2,34 @@
 
 declare(strict_types=1);
 
-function toy_site_menu_clean_key(string $value): string
+function sr_site_menu_clean_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
-function toy_site_menu_clean_label(string $value, int $maxLength = 120): string
+function sr_site_menu_clean_label(string $value, int $maxLength = 120): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
 }
 
-function toy_site_menu_clean_url(string $value): string
+function sr_site_menu_clean_url(string $value): string
 {
     $value = trim($value);
-    if (toy_is_safe_relative_url($value) || toy_is_http_url($value)) {
+    if (sr_is_safe_relative_url($value) || sr_is_http_url($value)) {
         return $value;
     }
 
     return '';
 }
 
-function toy_site_menu_link_suggestions(PDO $pdo): array
+function sr_site_menu_link_suggestions(PDO $pdo): array
 {
     $suggestions = [];
 
-    foreach (toy_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
-        $links = toy_load_module_contract_file($moduleKey, $file);
+    foreach (sr_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
+        $links = sr_load_module_contract_file($moduleKey, $file);
         if (!is_array($links)) {
             continue;
         }
@@ -39,8 +39,8 @@ function toy_site_menu_link_suggestions(PDO $pdo): array
                 continue;
             }
 
-            $label = toy_site_menu_clean_label((string) ($link['label'] ?? ''));
-            $url = toy_site_menu_clean_url((string) ($link['url'] ?? ''));
+            $label = sr_site_menu_clean_label((string) ($link['label'] ?? ''));
+            $url = sr_site_menu_clean_url((string) ($link['url'] ?? ''));
             if ($label === '' || $url === '') {
                 continue;
             }
@@ -56,26 +56,26 @@ function toy_site_menu_link_suggestions(PDO $pdo): array
     return $suggestions;
 }
 
-function toy_site_menu_item_href(string $url): string
+function sr_site_menu_item_href(string $url): string
 {
-    if (toy_is_safe_relative_url($url)) {
-        return toy_url($url);
+    if (sr_is_safe_relative_url($url)) {
+        return sr_url($url);
     }
 
     return $url;
 }
 
-function toy_site_menu_render(PDO $pdo, string $menuKey): string
+function sr_site_menu_render(PDO $pdo, string $menuKey): string
 {
-    $menuKey = toy_site_menu_clean_key($menuKey);
+    $menuKey = sr_site_menu_clean_key($menuKey);
     if ($menuKey === '') {
         return '';
     }
 
     $stmt = $pdo->prepare(
         "SELECT i.label, i.url, i.target
-         FROM toy_site_menus m
-         INNER JOIN toy_site_menu_items i ON i.menu_id = m.id
+         FROM sr_site_menus m
+         INNER JOIN sr_site_menu_items i ON i.menu_id = m.id
          WHERE m.menu_key = :menu_key
            AND m.status = 'enabled'
            AND i.status = 'enabled'
@@ -92,11 +92,11 @@ function toy_site_menu_render(PDO $pdo, string $menuKey): string
         return '';
     }
 
-    $html = '<nav class="toy-site-menu toy-site-menu-' . toy_e($menuKey) . '" aria-label="' . toy_e($menuKey) . '">';
+    $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . '" aria-label="' . sr_e($menuKey) . '">';
     foreach ($items as $item) {
         $target = (string) ($item['target'] ?? 'self');
         $targetAttribute = $target === 'blank' ? ' target="_blank" rel="noopener noreferrer"' : '';
-        $html .= '<a href="' . toy_e(toy_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . toy_e((string) $item['label']) . '</a>';
+        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . sr_e((string) $item['label']) . '</a>';
     }
     $html .= '</nav>';
 

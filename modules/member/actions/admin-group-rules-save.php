@@ -8,4 +8,4 @@ if (isset($_POST['rule_id']) && (string) $_POST['rule_id'] !== '') {
     $_GET['edit_rule_id'] = $_POST['rule_id'];
 }
 
-include TOY_ROOT . '/modules/member/actions/admin-groups.php';
+include SR_ROOT . '/modules/member/actions/admin-groups.php';

@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-function toy_reward_balance(PDO $pdo, int $accountId): int
+function sr_reward_balance(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0) {
         return 0;
     }
 
-    $stmt = $pdo->prepare('SELECT balance FROM toy_reward_balances WHERE account_id = :account_id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1');
     $stmt->execute(['account_id' => $accountId]);
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) $row['balance'] : 0;
 }
 
-function toy_reward_create_transaction(PDO $pdo, array $data): int
+function sr_reward_create_transaction(PDO $pdo, array $data): int
 {
     $accountId = (int) ($data['account_id'] ?? 0);
     $amount = (int) ($data['amount'] ?? 0);
-    $transactionType = toy_reward_clean_key((string) ($data['transaction_type'] ?? 'adjustment'), 40);
-    $reason = toy_reward_clean_text((string) ($data['reason'] ?? ''), 255);
-    $referenceType = toy_reward_clean_key((string) ($data['reference_type'] ?? ''), 60);
-    $referenceId = toy_reward_clean_reference_id((string) ($data['reference_id'] ?? ''), 120);
+    $transactionType = sr_reward_clean_key((string) ($data['transaction_type'] ?? 'adjustment'), 40);
+    $reason = sr_reward_clean_text((string) ($data['reason'] ?? ''), 255);
+    $referenceType = sr_reward_clean_key((string) ($data['reference_type'] ?? ''), 60);
+    $referenceId = sr_reward_clean_reference_id((string) ($data['reference_id'] ?? ''), 120);
     $createdByAccountId = isset($data['created_by_account_id']) ? (int) $data['created_by_account_id'] : null;
 
     if ($accountId <= 0) {
@@ -33,13 +33,13 @@ function toy_reward_create_transaction(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Amount must not be zero.');
     }
 
-    if (!toy_reward_transaction_type_allows_amount($transactionType, $amount)) {
+    if (!sr_reward_transaction_type_allows_amount($transactionType, $amount)) {
         throw new InvalidArgumentException('Reward transaction amount sign is invalid for type.');
     }
 
-    return toy_ledger_create_transaction($pdo, [
-        'balance_table' => 'toy_reward_balances',
-        'transaction_table' => 'toy_reward_transactions',
+    return sr_ledger_create_transaction($pdo, [
+        'balance_table' => 'sr_reward_balances',
+        'transaction_table' => 'sr_reward_transactions',
         'balance_row_error' => 'Reward balance row was not created.',
         'negative_balance_error' => 'Reward balance cannot be negative.',
     ], [
@@ -53,7 +53,7 @@ function toy_reward_create_transaction(PDO $pdo, array $data): int
     ]);
 }
 
-function toy_reward_transaction_type_allows_amount(string $transactionType, int $amount): bool
+function sr_reward_transaction_type_allows_amount(string $transactionType, int $amount): bool
 {
     if ($amount === 0) {
         return false;
@@ -70,7 +70,7 @@ function toy_reward_transaction_type_allows_amount(string $transactionType, int 
     return $transactionType === 'adjustment';
 }
 
-function toy_reward_clean_key(string $value, int $maxLength): string
+function sr_reward_clean_key(string $value, int $maxLength): string
 {
     $value = trim($value);
     if ($value === '') {
@@ -83,7 +83,7 @@ function toy_reward_clean_key(string $value, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
-function toy_reward_clean_reference_id(string $value, int $maxLength): string
+function sr_reward_clean_reference_id(string $value, int $maxLength): string
 {
     $value = trim($value);
     $value = preg_replace('/[^a-zA-Z0-9_.:-]/', '', $value);
@@ -92,7 +92,7 @@ function toy_reward_clean_reference_id(string $value, int $maxLength): string
     return substr($value, 0, $maxLength);
 }
 
-function toy_reward_clean_text(string $value, int $maxLength): string
+function sr_reward_clean_text(string $value, int $maxLength): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     if (function_exists('mb_substr')) {

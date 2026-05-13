@@ -11,10 +11,10 @@ return [
         'category_order' => 10,
         'menu_order' => 20,
     ],
-    'toycore' => [
-        'min_version' => '0.1.1',
-        'tested_with' => ['0.1.1'],
-        'module_contract' => '1.0',
+    'saanraan' => [
+        'min_version' => '0.2.0',
+        'tested_with' => ['0.2.0'],
+        'module_contract' => '2.0',
     ],
     'requires' => [
         'modules' => ['member', 'admin'],

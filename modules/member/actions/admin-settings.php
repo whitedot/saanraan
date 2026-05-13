@@ -2,40 +2,40 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $errors = [];
 $notice = '';
-$settings = toy_member_settings($pdo);
-$integerSettingKeys = toy_member_integer_setting_keys();
+$settings = sr_member_settings($pdo);
+$integerSettingKeys = sr_member_integer_setting_keys();
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
-    $memberSkinKey = toy_post_string('member_skin_key', 40);
-    if (!isset(toy_member_skin_options()[$memberSkinKey])) {
+    $memberSkinKey = sr_post_string('member_skin_key', 40);
+    if (!isset(sr_member_skin_options()[$memberSkinKey])) {
         $errors[] = '회원 스킨 값이 올바르지 않습니다.';
     } else {
         $settings['member_skin_key'] = $memberSkinKey;
     }
-    $loginIdentifier = toy_post_string('login_identifier', 20);
+    $loginIdentifier = sr_post_string('login_identifier', 20);
     if (!in_array($loginIdentifier, ['email', 'login_id'], true)) {
         $errors[] = '로그인 식별자 설정이 올바르지 않습니다.';
     } else {
         $settings['login_identifier'] = $loginIdentifier;
     }
-    foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+    foreach (sr_member_profile_field_setting_keys() as $key => $label) {
         $settings[$key] = ($_POST[$key] ?? '') === '1';
     }
 
     foreach ($integerSettingKeys as $key => $limits) {
-        $integerValue = toy_admin_post_int_in_range($key, (int) $limits['min'], (int) $limits['max']);
+        $integerValue = sr_admin_post_int_in_range($key, (int) $limits['min'], (int) $limits['max']);
         if ($integerValue === null) {
             $errors[] = $key . ' 값은 ' . (int) $limits['min'] . ' 이상 ' . (int) $limits['max'] . ' 이하의 정수여야 합니다.';
             continue;
@@ -44,7 +44,7 @@ if (toy_request_method() === 'POST') {
         $settings[$key] = $integerValue;
     }
 
-    $stmt = $pdo->prepare("SELECT id FROM toy_modules WHERE module_key = 'member' LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'member' LIMIT 1");
     $stmt->execute();
     $memberModule = $stmt->fetch();
     if (!is_array($memberModule)) {
@@ -53,7 +53,7 @@ if (toy_request_method() === 'POST') {
 
     if ($errors === []) {
         $stmt = $pdo->prepare(
-            'INSERT INTO toy_module_settings
+            'INSERT INTO sr_module_settings
                 (module_id, setting_key, setting_value, value_type, created_at, updated_at)
              VALUES
                 (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
@@ -69,7 +69,7 @@ if (toy_request_method() === 'POST') {
             ['login_identifier', (string) $settings['login_identifier'], 'string'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
         ];
-        foreach (toy_member_profile_field_setting_keys() as $key => $label) {
+        foreach (sr_member_profile_field_setting_keys() as $key => $label) {
             $rows[] = [$key, !empty($settings[$key]) ? '1' : '0', 'bool'];
         }
 
@@ -83,13 +83,13 @@ if (toy_request_method() === 'POST') {
                 'setting_key' => $row[0],
                 'setting_value' => $row[1],
                 'value_type' => $row[2],
-                'created_at' => toy_now(),
-                'updated_at' => toy_now(),
+                'created_at' => sr_now(),
+                'updated_at' => sr_now(),
             ]);
         }
-        toy_clear_module_settings_cache('member');
+        sr_clear_module_settings_cache('member');
 
-        toy_audit_log($pdo, [
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
             'event_type' => 'member.settings.updated',
@@ -102,7 +102,7 @@ if (toy_request_method() === 'POST') {
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
                 'login_identifier' => (string) $settings['login_identifier'],
                 'member_skin_key' => (string) $settings['member_skin_key'],
-                'profile_fields' => toy_member_profile_field_settings($settings),
+                'profile_fields' => sr_member_profile_field_settings($settings),
             ],
         ]);
 
@@ -110,4 +110,4 @@ if (toy_request_method() === 'POST') {
     }
 }
 
-include TOY_ROOT . '/modules/member/views/admin-settings.php';
+include SR_ROOT . '/modules/member/views/admin-settings.php';

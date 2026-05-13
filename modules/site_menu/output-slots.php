@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/site_menu/helpers.php';
+require_once SR_ROOT . '/modules/site_menu/helpers.php';
 
 return static function (PDO $pdo, array $context): string {
     if (
@@ -13,5 +13,5 @@ return static function (PDO $pdo, array $context): string {
         return '';
     }
 
-    return toy_site_menu_render($pdo, 'header');
+    return sr_site_menu_render($pdo, 'header');
 };

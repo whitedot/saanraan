@@ -7,4 +7,4 @@ if (isset($_GET['id']) && !isset($_GET['edit_id'])) {
     $_GET['edit_id'] = $_GET['id'];
 }
 
-include TOY_ROOT . '/modules/banner/actions/admin-banners.php';
+include SR_ROOT . '/modules/banner/actions/admin-banners.php';

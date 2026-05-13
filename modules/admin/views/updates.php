@@ -1,17 +1,17 @@
 <?php
 
 $adminPageTitle = '업데이트';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
@@ -21,19 +21,19 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <h2>이전 업데이트 실패 기록</h2>
         <dl>
             <dt>단계</dt>
-            <dd><?php echo toy_e((string) $previousUpdateFailure['stage']); ?></dd>
+            <dd><?php echo sr_e((string) $previousUpdateFailure['stage']); ?></dd>
             <dt>범위</dt>
-            <dd><?php echo toy_e((string) ($previousUpdateFailure['scope'] !== '' ? $previousUpdateFailure['scope'] : '-')); ?></dd>
+            <dd><?php echo sr_e((string) ($previousUpdateFailure['scope'] !== '' ? $previousUpdateFailure['scope'] : '-')); ?></dd>
             <dt>모듈</dt>
-            <dd><?php echo toy_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
+            <dd><?php echo sr_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
             <dt>버전</dt>
-            <dd><?php echo toy_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
+            <dd><?php echo sr_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
             <dt>체크섬</dt>
-            <dd><code><?php echo toy_e(substr((string) $previousUpdateFailure['checksum'], 0, 16)); ?></code></dd>
+            <dd><code><?php echo sr_e(substr((string) $previousUpdateFailure['checksum'], 0, 16)); ?></code></dd>
             <dt>기록 시각</dt>
-            <dd><?php echo toy_e((string) ($previousUpdateFailure['recorded_at'] !== '' ? $previousUpdateFailure['recorded_at'] : '-')); ?></dd>
+            <dd><?php echo sr_e((string) ($previousUpdateFailure['recorded_at'] !== '' ? $previousUpdateFailure['recorded_at'] : '-')); ?></dd>
             <dt>오류 요약</dt>
-            <dd><?php echo toy_e((string) ($previousUpdateFailure['message'] !== '' ? $previousUpdateFailure['message'] : '-')); ?></dd>
+            <dd><?php echo sr_e((string) ($previousUpdateFailure['message'] !== '' ? $previousUpdateFailure['message'] : '-')); ?></dd>
         </dl>
         <p>실패 원인과 백업 상태를 확인한 뒤 다시 업데이트를 실행하세요. 성공하면 이 기록은 자동으로 삭제됩니다.</p>
     </section>
@@ -54,12 +54,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($moduleVersionDrifts as $drift) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $drift['module_key']); ?></td>
-                        <td><?php echo toy_e((string) $drift['installed_version']); ?></td>
-                        <td><?php echo toy_e((string) $drift['code_version']); ?></td>
+                        <td><?php echo sr_e((string) $drift['module_key']); ?></td>
+                        <td><?php echo sr_e((string) $drift['installed_version']); ?></td>
+                        <td><?php echo sr_e((string) $drift['code_version']); ?></td>
                         <td>
                             <?php if ((int) $drift['pending_update_count'] > 0) { ?>
-                                <?php echo toy_e((string) $drift['pending_update_count']); ?>개 SQL 적용 필요
+                                <?php echo sr_e((string) $drift['pending_update_count']); ?>개 SQL 적용 필요
                             <?php } elseif ((string) $drift['state'] === 'code_newer') { ?>
                                 파일 전용 업데이트 반영 가능
                             <?php } else { ?>
@@ -71,8 +71,8 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
         <?php if ($fileOnlyModuleVersionDrifts !== []) { ?>
-            <form method="post" action="<?php echo toy_e(toy_url('/admin/updates')); ?>">
-                <?php echo toy_csrf_field(); ?>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
+                <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="sync_file_only_versions">
                 <p>SQL 적용 없이 설치 버전 기록만 코드 버전에 맞춥니다.</p>
                 <button type="submit">파일 전용 업데이트 반영</button>
@@ -99,22 +99,22 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($pendingUpdates as $update) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $update['label']); ?></td>
-                        <td><?php echo toy_e((string) $update['version']); ?></td>
+                        <td><?php echo sr_e((string) $update['label']); ?></td>
+                        <td><?php echo sr_e((string) $update['version']); ?></td>
                         <td>
                             <?php echo ((int) ($update['statements'] ?? 0) > 0)
-                                ? toy_e((string) $update['statements'])
+                                ? sr_e((string) $update['statements'])
                                 : '기록만'; ?>
                         </td>
-                        <td><?php echo toy_e(str_replace(TOY_ROOT . '/', '', (string) $update['path'])); ?></td>
-                        <td><code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
+                        <td><?php echo sr_e(str_replace(SR_ROOT . '/', '', (string) $update['path'])); ?></td>
+                        <td><code><?php echo sr_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
 
-        <form method="post" action="<?php echo toy_e(toy_url('/admin/updates')); ?>">
-            <?php echo toy_csrf_field(); ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
+            <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="apply_updates">
             <p>
                 <label>
@@ -144,10 +144,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($schemaVersions as $version) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $version['scope']); ?></td>
-                        <td><?php echo toy_e((string) ($version['module_key'] === '' ? 'core' : $version['module_key'])); ?></td>
-                        <td><?php echo toy_e((string) $version['version']); ?></td>
-                        <td><?php echo toy_e((string) $version['applied_at']); ?></td>
+                        <td><?php echo sr_e((string) $version['scope']); ?></td>
+                        <td><?php echo sr_e((string) ($version['module_key'] === '' ? 'core' : $version['module_key'])); ?></td>
+                        <td><?php echo sr_e((string) $version['version']); ?></td>
+                        <td><?php echo sr_e((string) $version['applied_at']); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -161,12 +161,12 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <ul>
             <?php foreach ($appliedUpdates as $update) { ?>
                 <li>
-                    <?php echo toy_e((string) $update['label'] . ' ' . (string) $update['version']); ?>
-                    <code><?php echo toy_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code>
+                    <?php echo sr_e((string) $update['label'] . ' ' . (string) $update['version']); ?>
+                    <code><?php echo sr_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code>
                 </li>
             <?php } ?>
         </ul>
     </section>
 <?php } ?>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

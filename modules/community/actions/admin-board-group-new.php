@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 $communityBoardGroupsPage = 'new';
 
-include TOY_ROOT . '/modules/community/actions/admin-board-groups.php';
+include SR_ROOT . '/modules/community/actions/admin-board-groups.php';

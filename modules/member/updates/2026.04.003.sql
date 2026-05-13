@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_member_sessions (
+CREATE TABLE IF NOT EXISTS sr_member_sessions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,
     session_token_hash CHAR(64) NOT NULL,
@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS toy_member_sessions (
     created_at DATETIME NOT NULL,
     last_seen_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_member_sessions_token (session_token_hash),
-    KEY idx_toy_member_sessions_account (account_id),
-    KEY idx_toy_member_sessions_expires (expires_at),
-    KEY idx_toy_member_sessions_revoked (revoked_at)
+    UNIQUE KEY uq_sr_member_sessions_token (session_token_hash),
+    KEY idx_sr_member_sessions_account (account_id),
+    KEY idx_sr_member_sessions_expires (expires_at),
+    KEY idx_sr_member_sessions_revoked (revoked_at)
 );

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_banners (
+CREATE TABLE IF NOT EXISTS sr_banners (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     title VARCHAR(120) NOT NULL,
     body_text TEXT NULL,
@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS toy_banners (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_banners_status_dates (status, starts_at, ends_at),
-    KEY idx_toy_banners_sort (sort_order, id)
+    KEY idx_sr_banners_status_dates (status, starts_at, ends_at),
+    KEY idx_sr_banners_sort (sort_order, id)
 );
 
-CREATE TABLE IF NOT EXISTS toy_banner_targets (
+CREATE TABLE IF NOT EXISTS sr_banner_targets (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     banner_id BIGINT UNSIGNED NOT NULL,
     module_key VARCHAR(60) NOT NULL,
@@ -27,16 +27,16 @@ CREATE TABLE IF NOT EXISTS toy_banner_targets (
     match_type VARCHAR(20) NOT NULL DEFAULT 'all',
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_banner_targets_banner (banner_id),
-    KEY idx_toy_banner_targets_lookup (module_key, point_key, slot_key, match_type, subject_id, banner_id)
+    KEY idx_sr_banner_targets_banner (banner_id),
+    KEY idx_sr_banner_targets_lookup (module_key, point_key, slot_key, match_type, subject_id, banner_id)
 );
 
-CREATE TABLE IF NOT EXISTS toy_banner_clicks (
+CREATE TABLE IF NOT EXISTS sr_banner_clicks (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     banner_id BIGINT UNSIGNED NOT NULL,
     click_key_hash CHAR(64) NOT NULL,
     clicked_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_banner_clicks_unique (banner_id, click_key_hash),
-    KEY idx_toy_banner_clicks_banner_clicked (banner_id, clicked_at)
+    UNIQUE KEY uq_sr_banner_clicks_unique (banner_id, click_key_hash),
+    KEY idx_sr_banner_clicks_banner_clicked (banner_id, clicked_at)
 );

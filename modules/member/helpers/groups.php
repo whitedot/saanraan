@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-function toy_member_group_key_is_valid(string $groupKey): bool
+function sr_member_group_key_is_valid(string $groupKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1;
 }
 
-function toy_member_group_statuses(): array
+function sr_member_group_statuses(): array
 {
     return ['enabled', 'disabled', 'archived'];
 }
 
-function toy_member_groups_table_exists(PDO $pdo): bool
+function sr_member_groups_table_exists(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -20,10 +20,10 @@ function toy_member_groups_table_exists(PDO $pdo): bool
     }
 
     try {
-        $pdo->query('SELECT 1 FROM toy_member_groups LIMIT 1');
-        $pdo->query('SELECT 1 FROM toy_member_group_memberships LIMIT 1');
-        $pdo->query('SELECT 1 FROM toy_member_group_rules LIMIT 1');
-        $pdo->query('SELECT 1 FROM toy_member_group_membership_logs LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_member_groups LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_member_group_memberships LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_member_group_rules LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_member_group_membership_logs LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -32,39 +32,39 @@ function toy_member_groups_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function toy_member_group_by_key(PDO $pdo, string $groupKey): ?array
+function sr_member_group_by_key(PDO $pdo, string $groupKey): ?array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return null;
     }
 
-    if (!toy_member_group_key_is_valid($groupKey)) {
+    if (!sr_member_group_key_is_valid($groupKey)) {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_member_groups WHERE group_key = :group_key LIMIT 1');
+    $stmt = $pdo->prepare('SELECT * FROM sr_member_groups WHERE group_key = :group_key LIMIT 1');
     $stmt->execute(['group_key' => $groupKey]);
     $group = $stmt->fetch();
 
     return is_array($group) ? $group : null;
 }
 
-function toy_member_group_exists(PDO $pdo, string $groupKey): bool
+function sr_member_group_exists(PDO $pdo, string $groupKey): bool
 {
-    $group = toy_member_group_by_key($pdo, $groupKey);
+    $group = sr_member_group_by_key($pdo, $groupKey);
     return is_array($group) && (string) $group['status'] === 'enabled';
 }
 
-function toy_member_account_group_keys(PDO $pdo, int $accountId): array
+function sr_member_account_group_keys(PDO $pdo, int $accountId): array
 {
-    if ($accountId < 1 || !toy_member_groups_table_exists($pdo)) {
+    if ($accountId < 1 || !sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->prepare(
         "SELECT DISTINCT g.group_key
-         FROM toy_member_group_memberships m
-         INNER JOIN toy_member_groups g ON g.id = m.group_id
+         FROM sr_member_group_memberships m
+         INNER JOIN sr_member_groups g ON g.id = m.group_id
          WHERE m.account_id = :account_id
            AND m.status = 'active'
            AND g.status = 'enabled'
@@ -73,7 +73,7 @@ function toy_member_account_group_keys(PDO $pdo, int $accountId): array
     );
     $stmt->execute([
         'account_id' => $accountId,
-        'now' => toy_now(),
+        'now' => sr_now(),
     ]);
 
     $groupKeys = [];
@@ -84,17 +84,17 @@ function toy_member_account_group_keys(PDO $pdo, int $accountId): array
     return $groupKeys;
 }
 
-function toy_member_account_in_group(PDO $pdo, int $accountId, string $groupKey): bool
+function sr_member_account_in_group(PDO $pdo, int $accountId, string $groupKey): bool
 {
-    return in_array($groupKey, toy_member_account_group_keys($pdo, $accountId), true);
+    return in_array($groupKey, sr_member_account_group_keys($pdo, $accountId), true);
 }
 
-function toy_member_account_in_any_group(PDO $pdo, int $accountId, array $groupKeys): bool
+function sr_member_account_in_any_group(PDO $pdo, int $accountId, array $groupKeys): bool
 {
     $normalizedKeys = [];
     foreach ($groupKeys as $groupKey) {
         $groupKey = (string) $groupKey;
-        if (toy_member_group_key_is_valid($groupKey)) {
+        if (sr_member_group_key_is_valid($groupKey)) {
             $normalizedKeys[] = $groupKey;
         }
     }
@@ -103,20 +103,20 @@ function toy_member_account_in_any_group(PDO $pdo, int $accountId, array $groupK
         return false;
     }
 
-    return array_intersect(toy_member_account_group_keys($pdo, $accountId), $normalizedKeys) !== [];
+    return array_intersect(sr_member_account_group_keys($pdo, $accountId), $normalizedKeys) !== [];
 }
 
-function toy_member_groups(PDO $pdo): array
+function sr_member_groups(PDO $pdo): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query(
         "SELECT g.*,
                 COUNT(DISTINCT CASE WHEN m.status = 'active' THEN m.account_id END) AS active_member_count
-         FROM toy_member_groups g
-         LEFT JOIN toy_member_group_memberships m ON m.group_id = g.id
+         FROM sr_member_groups g
+         LEFT JOIN sr_member_group_memberships m ON m.group_id = g.id
          GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.is_system, g.sort_order, g.created_at, g.updated_at
          ORDER BY g.sort_order ASC, g.id ASC"
     );
@@ -124,27 +124,27 @@ function toy_member_groups(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function toy_member_group_by_id(PDO $pdo, int $groupId): ?array
+function sr_member_group_by_id(PDO $pdo, int $groupId): ?array
 {
-    if ($groupId < 1 || !toy_member_groups_table_exists($pdo)) {
+    if ($groupId < 1 || !sr_member_groups_table_exists($pdo)) {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_member_groups WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT * FROM sr_member_groups WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $groupId]);
     $group = $stmt->fetch();
 
     return is_array($group) ? $group : null;
 }
 
-function toy_member_group_save(PDO $pdo, array $data): int
+function sr_member_group_save(PDO $pdo, array $data): int
 {
     $groupId = (int) ($data['id'] ?? 0);
-    $now = toy_now();
+    $now = sr_now();
 
     if ($groupId > 0) {
         $stmt = $pdo->prepare(
-            'UPDATE toy_member_groups
+            'UPDATE sr_member_groups
              SET title = :title,
                  description = :description,
                  status = :status,
@@ -165,7 +165,7 @@ function toy_member_group_save(PDO $pdo, array $data): int
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_groups
+        'INSERT INTO sr_member_groups
             (group_key, title, description, status, is_system, sort_order, created_at, updated_at)
          VALUES
             (:group_key, :title, :description, :status, 0, :sort_order, :created_at, :updated_at)'
@@ -183,23 +183,23 @@ function toy_member_group_save(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function toy_member_group_grant_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
+function sr_member_group_grant_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
 {
-    toy_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, true);
+    sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, true);
 }
 
-function toy_member_group_revoke_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
+function sr_member_group_revoke_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
 {
-    toy_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, false);
+    sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, false);
 }
 
-function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $groupId, int $actorAccountId, bool $grant): void
+function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $groupId, int $actorAccountId, bool $grant): void
 {
-    $now = toy_now();
+    $now = sr_now();
 
     if ($grant) {
         $stmt = $pdo->prepare(
-            "SELECT id FROM toy_member_group_memberships
+            "SELECT id FROM sr_member_group_memberships
              WHERE account_id = :account_id
                AND group_id = :group_id
                AND assignment_type = 'manual'
@@ -215,7 +215,7 @@ function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $g
         if (is_array($membership)) {
             $membershipId = (int) $membership['id'];
             $stmt = $pdo->prepare(
-                "UPDATE toy_member_group_memberships
+                "UPDATE sr_member_group_memberships
                  SET status = 'active',
                      granted_at = COALESCE(granted_at, :granted_at),
                      revoked_at = NULL,
@@ -232,7 +232,7 @@ function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $g
             ]);
         } else {
             $stmt = $pdo->prepare(
-                "INSERT INTO toy_member_group_memberships
+                "INSERT INTO sr_member_group_memberships
                     (group_id, account_id, assignment_type, source_module_key, source_rule_key, status, granted_at, expires_at, revoked_at, created_by_account_id, updated_at)
                  VALUES
                     (:group_id, :account_id, 'manual', '', '', 'active', :granted_at, NULL, NULL, :actor_account_id, :updated_at)"
@@ -247,12 +247,12 @@ function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $g
             $membershipId = (int) $pdo->lastInsertId();
         }
 
-        toy_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_granted', $actorAccountId, 'Manual group membership granted.', []);
+        sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_granted', $actorAccountId, 'Manual group membership granted.', []);
         return;
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id FROM toy_member_group_memberships
+        "SELECT id FROM sr_member_group_memberships
          WHERE account_id = :account_id
            AND group_id = :group_id
            AND assignment_type = 'manual'
@@ -271,7 +271,7 @@ function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $g
 
     $membershipId = (int) $membership['id'];
     $stmt = $pdo->prepare(
-        "UPDATE toy_member_group_memberships
+        "UPDATE sr_member_group_memberships
          SET status = 'revoked',
              revoked_at = :revoked_at,
              updated_at = :updated_at
@@ -283,10 +283,10 @@ function toy_member_group_set_manual_membership(PDO $pdo, int $accountId, int $g
         'id' => $membershipId,
     ]);
 
-    toy_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_revoked', $actorAccountId, 'Manual group membership revoked.', []);
+    sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_revoked', $actorAccountId, 'Manual group membership revoked.', []);
 }
 
-function toy_member_group_log(PDO $pdo, int $groupId, int $accountId, ?int $membershipId, string $eventType, ?int $actorAccountId, string $message, array $metadata): void
+function sr_member_group_log(PDO $pdo, int $groupId, int $accountId, ?int $membershipId, string $eventType, ?int $actorAccountId, string $message, array $metadata): void
 {
     $sourceModuleKey = (string) ($metadata['source_module_key'] ?? '');
     $sourceRuleKey = (string) ($metadata['source_rule_key'] ?? '');
@@ -296,7 +296,7 @@ function toy_member_group_log(PDO $pdo, int $groupId, int $accountId, ?int $memb
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_group_membership_logs
+        'INSERT INTO sr_member_group_membership_logs
             (group_id, account_id, membership_id, event_type, source_module_key, source_rule_key, actor_account_id, message, metadata_json, created_at)
          VALUES
             (:group_id, :account_id, :membership_id, :event_type, :source_module_key, :source_rule_key, :actor_account_id, :message, :metadata_json, :created_at)'
@@ -306,39 +306,39 @@ function toy_member_group_log(PDO $pdo, int $groupId, int $accountId, ?int $memb
         'account_id' => $accountId,
         'membership_id' => $membershipId,
         'event_type' => $eventType,
-        'source_module_key' => toy_is_safe_module_key($sourceModuleKey) ? $sourceModuleKey : '',
-        'source_rule_key' => toy_member_group_rule_key_is_valid($sourceRuleKey) ? $sourceRuleKey : '',
+        'source_module_key' => sr_is_safe_module_key($sourceModuleKey) ? $sourceModuleKey : '',
+        'source_rule_key' => sr_member_group_rule_key_is_valid($sourceRuleKey) ? $sourceRuleKey : '',
         'actor_account_id' => $actorAccountId,
         'message' => $message,
         'metadata_json' => $metadataJson,
-        'created_at' => toy_now(),
+        'created_at' => sr_now(),
     ]);
 }
 
-function toy_member_group_rule_key_is_valid(string $ruleKey): bool
+function sr_member_group_rule_key_is_valid(string $ruleKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\.[a-z0-9_.]{1,119}\z/', $ruleKey) === 1;
 }
 
-function toy_member_group_evaluation_policies(): array
+function sr_member_group_evaluation_policies(): array
 {
     return ['grant_only', 'sync'];
 }
 
-function toy_member_group_rule_statuses(): array
+function sr_member_group_rule_statuses(): array
 {
     return ['enabled', 'disabled'];
 }
 
-function toy_member_group_rule_definitions(PDO $pdo): array
+function sr_member_group_rule_definitions(PDO $pdo): array
 {
     $definitions = [];
 
-    foreach (toy_enabled_module_contract_files($pdo, 'member-group-rules.php', ['member']) as $moduleKey => $file) {
+    foreach (sr_enabled_module_contract_files($pdo, 'member-group-rules.php', ['member']) as $moduleKey => $file) {
         try {
-            $rules = toy_load_module_contract_file($moduleKey, $file);
+            $rules = sr_load_module_contract_file($moduleKey, $file);
         } catch (Throwable $exception) {
-            toy_log_exception($exception, 'member_group_rules_' . $moduleKey);
+            sr_log_exception($exception, 'member_group_rules_' . $moduleKey);
             continue;
         }
 
@@ -347,7 +347,7 @@ function toy_member_group_rule_definitions(PDO $pdo): array
         }
 
         foreach ($rules as $rule) {
-            $definition = toy_member_group_normalize_rule_definition($moduleKey, $rule);
+            $definition = sr_member_group_normalize_rule_definition($moduleKey, $rule);
             if ($definition === null) {
                 continue;
             }
@@ -360,7 +360,7 @@ function toy_member_group_rule_definitions(PDO $pdo): array
     return $definitions;
 }
 
-function toy_member_group_normalize_rule_definition(string $moduleKey, mixed $rule): ?array
+function sr_member_group_normalize_rule_definition(string $moduleKey, mixed $rule): ?array
 {
     if (!is_array($rule)) {
         return null;
@@ -372,7 +372,7 @@ function toy_member_group_normalize_rule_definition(string $moduleKey, mixed $ru
     $params = is_array($rule['params'] ?? null) ? $rule['params'] : [];
     $evaluator = (string) ($rule['evaluator'] ?? '');
 
-    if (!toy_is_safe_module_key($moduleKey) || !toy_member_group_rule_key_is_valid($ruleKey)) {
+    if (!sr_is_safe_module_key($moduleKey) || !sr_member_group_rule_key_is_valid($ruleKey)) {
         return null;
     }
 
@@ -389,12 +389,12 @@ function toy_member_group_normalize_rule_definition(string $moduleKey, mixed $ru
         'rule_key' => $ruleKey,
         'label' => $label,
         'description' => $description,
-        'params' => toy_member_group_normalize_rule_params($params),
+        'params' => sr_member_group_normalize_rule_params($params),
         'evaluator' => $evaluator,
     ];
 }
 
-function toy_member_group_normalize_rule_params(array $params): array
+function sr_member_group_normalize_rule_params(array $params): array
 {
     $normalized = [];
     foreach ($params as $param) {
@@ -426,16 +426,16 @@ function toy_member_group_normalize_rule_params(array $params): array
     return $normalized;
 }
 
-function toy_member_group_rules(PDO $pdo): array
+function sr_member_group_rules(PDO $pdo): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query(
         'SELECT r.*, g.group_key, g.title AS group_title
-         FROM toy_member_group_rules r
-         INNER JOIN toy_member_groups g ON g.id = r.group_id
+         FROM sr_member_group_rules r
+         INNER JOIN sr_member_groups g ON g.id = r.group_id
          ORDER BY r.id DESC
          LIMIT 100'
     );
@@ -443,27 +443,27 @@ function toy_member_group_rules(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function toy_member_group_rule_by_id(PDO $pdo, int $ruleId): ?array
+function sr_member_group_rule_by_id(PDO $pdo, int $ruleId): ?array
 {
-    if ($ruleId < 1 || !toy_member_groups_table_exists($pdo)) {
+    if ($ruleId < 1 || !sr_member_groups_table_exists($pdo)) {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM toy_member_group_rules WHERE id = :id LIMIT 1');
+    $stmt = $pdo->prepare('SELECT * FROM sr_member_group_rules WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $ruleId]);
     $rule = $stmt->fetch();
 
     return is_array($rule) ? $rule : null;
 }
 
-function toy_member_group_rule_save(PDO $pdo, array $data): int
+function sr_member_group_rule_save(PDO $pdo, array $data): int
 {
     $ruleId = (int) ($data['id'] ?? 0);
-    $now = toy_now();
+    $now = sr_now();
 
     if ($ruleId > 0) {
         $stmt = $pdo->prepare(
-            'UPDATE toy_member_group_rules
+            'UPDATE sr_member_group_rules
              SET group_id = :group_id,
                  source_module_key = :source_module_key,
                  rule_key = :rule_key,
@@ -488,7 +488,7 @@ function toy_member_group_rule_save(PDO $pdo, array $data): int
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_member_group_rules
+        'INSERT INTO sr_member_group_rules
             (group_id, source_module_key, rule_key, rule_params_json, evaluation_policy, status, last_evaluated_at, created_at, updated_at)
          VALUES
             (:group_id, :source_module_key, :rule_key, :rule_params_json, :evaluation_policy, :status, NULL, :created_at, :updated_at)'
@@ -507,21 +507,21 @@ function toy_member_group_rule_save(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function toy_member_group_evaluate_account(PDO $pdo, int $accountId, array $filters = []): array
+function sr_member_group_evaluate_account(PDO $pdo, int $accountId, array $filters = []): array
 {
-    if ($accountId < 1 || !toy_member_groups_table_exists($pdo)) {
+    if ($accountId < 1 || !sr_member_groups_table_exists($pdo)) {
         return ['evaluated' => 0, 'granted' => 0, 'revoked' => 0];
     }
 
-    $stmt = $pdo->prepare("SELECT id, status FROM toy_member_accounts WHERE id = :id LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, status FROM sr_member_accounts WHERE id = :id LIMIT 1");
     $stmt->execute(['id' => $accountId]);
     $account = $stmt->fetch();
     if (!is_array($account) || !in_array((string) $account['status'], ['active', 'pending'], true)) {
         return ['evaluated' => 0, 'granted' => 0, 'revoked' => 0];
     }
 
-    $definitions = toy_member_group_rule_definitions($pdo);
-    $rules = toy_member_group_enabled_rules($pdo, (string) ($filters['source_module_key'] ?? ''));
+    $definitions = sr_member_group_rule_definitions($pdo);
+    $rules = sr_member_group_enabled_rules($pdo, (string) ($filters['source_module_key'] ?? ''));
     $summary = ['evaluated' => 0, 'granted' => 0, 'revoked' => 0];
 
     foreach ($rules as $rule) {
@@ -535,23 +535,23 @@ function toy_member_group_evaluate_account(PDO $pdo, int $accountId, array $filt
             $params = [];
         }
 
-        $evaluation = toy_member_group_call_evaluator($definitions[$definitionKey], $pdo, $accountId, $params);
+        $evaluation = sr_member_group_call_evaluator($definitions[$definitionKey], $pdo, $accountId, $params);
         $summary['evaluated']++;
 
         if (!empty($evaluation['matched'])) {
-            if (toy_member_group_grant_auto($pdo, $accountId, $rule, $evaluation)) {
+            if (sr_member_group_grant_auto($pdo, $accountId, $rule, $evaluation)) {
                 $summary['granted']++;
             }
         } elseif ((string) $rule['evaluation_policy'] === 'sync') {
-            if (toy_member_group_revoke_auto($pdo, $accountId, $rule, $evaluation)) {
+            if (sr_member_group_revoke_auto($pdo, $accountId, $rule, $evaluation)) {
                 $summary['revoked']++;
             }
         }
 
-        $stmt = $pdo->prepare('UPDATE toy_member_group_rules SET last_evaluated_at = :last_evaluated_at, updated_at = :updated_at WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE sr_member_group_rules SET last_evaluated_at = :last_evaluated_at, updated_at = :updated_at WHERE id = :id');
         $stmt->execute([
-            'last_evaluated_at' => toy_now(),
-            'updated_at' => toy_now(),
+            'last_evaluated_at' => sr_now(),
+            'updated_at' => sr_now(),
             'id' => (int) $rule['id'],
         ]);
     }
@@ -559,16 +559,16 @@ function toy_member_group_evaluate_account(PDO $pdo, int $accountId, array $filt
     return $summary;
 }
 
-function toy_member_group_evaluate_accounts(PDO $pdo, array $filters = []): array
+function sr_member_group_evaluate_accounts(PDO $pdo, array $filters = []): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return ['accounts' => 0, 'evaluated' => 0, 'granted' => 0, 'revoked' => 0];
     }
 
     $limit = max(1, min(200, (int) ($filters['limit'] ?? 50)));
     $stmt = $pdo->prepare(
         "SELECT id
-         FROM toy_member_accounts
+         FROM sr_member_accounts
          WHERE status IN ('active', 'pending')
          ORDER BY id ASC
          LIMIT :limit_value"
@@ -578,7 +578,7 @@ function toy_member_group_evaluate_accounts(PDO $pdo, array $filters = []): arra
 
     $summary = ['accounts' => 0, 'evaluated' => 0, 'granted' => 0, 'revoked' => 0];
     foreach ($stmt->fetchAll() as $row) {
-        $accountSummary = toy_member_group_evaluate_account($pdo, (int) $row['id'], $filters);
+        $accountSummary = sr_member_group_evaluate_account($pdo, (int) $row['id'], $filters);
         $summary['accounts']++;
         $summary['evaluated'] += (int) $accountSummary['evaluated'];
         $summary['granted'] += (int) $accountSummary['granted'];
@@ -588,11 +588,11 @@ function toy_member_group_evaluate_accounts(PDO $pdo, array $filters = []): arra
     return $summary;
 }
 
-function toy_member_group_enabled_rules(PDO $pdo, string $sourceModuleKey = ''): array
+function sr_member_group_enabled_rules(PDO $pdo, string $sourceModuleKey = ''): array
 {
     if ($sourceModuleKey !== '') {
         $stmt = $pdo->prepare(
-            "SELECT * FROM toy_member_group_rules
+            "SELECT * FROM sr_member_group_rules
              WHERE status = 'enabled'
                AND source_module_key = :source_module_key
              ORDER BY id ASC"
@@ -601,17 +601,17 @@ function toy_member_group_enabled_rules(PDO $pdo, string $sourceModuleKey = ''):
         return $stmt->fetchAll();
     }
 
-    $stmt = $pdo->query("SELECT * FROM toy_member_group_rules WHERE status = 'enabled' ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT * FROM sr_member_group_rules WHERE status = 'enabled' ORDER BY id ASC");
     return $stmt->fetchAll();
 }
 
-function toy_member_group_call_evaluator(array $definition, PDO $pdo, int $accountId, array $params): array
+function sr_member_group_call_evaluator(array $definition, PDO $pdo, int $accountId, array $params): array
 {
     $evaluator = (string) $definition['evaluator'];
     try {
         $result = $evaluator($pdo, $accountId, $params);
     } catch (Throwable $exception) {
-        toy_log_exception($exception, 'member_group_evaluator_' . (string) $definition['rule_key']);
+        sr_log_exception($exception, 'member_group_evaluator_' . (string) $definition['rule_key']);
         return ['matched' => false, 'metric' => null, 'summary' => '평가 실패'];
     }
 
@@ -622,15 +622,15 @@ function toy_member_group_call_evaluator(array $definition, PDO $pdo, int $accou
     return [
         'matched' => !empty($result['matched']),
         'metric' => $result['metric'] ?? null,
-        'summary' => toy_log_line_value((string) ($result['summary'] ?? ''), 120),
+        'summary' => sr_log_line_value((string) ($result['summary'] ?? ''), 120),
     ];
 }
 
-function toy_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, array $evaluation): bool
+function sr_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, array $evaluation): bool
 {
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT id, status FROM toy_member_group_memberships
+        "SELECT id, status FROM sr_member_group_memberships
          WHERE account_id = :account_id
            AND group_id = :group_id
            AND assignment_type = 'auto'
@@ -654,7 +654,7 @@ function toy_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, arra
     if (is_array($membership)) {
         $membershipId = (int) $membership['id'];
         $stmt = $pdo->prepare(
-            "UPDATE toy_member_group_memberships
+            "UPDATE sr_member_group_memberships
              SET status = 'active',
                  granted_at = COALESCE(granted_at, :granted_at),
                  revoked_at = NULL,
@@ -668,7 +668,7 @@ function toy_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, arra
         ]);
     } else {
         $stmt = $pdo->prepare(
-            "INSERT INTO toy_member_group_memberships
+            "INSERT INTO sr_member_group_memberships
                 (group_id, account_id, assignment_type, source_module_key, source_rule_key, status, granted_at, expires_at, revoked_at, created_by_account_id, updated_at)
              VALUES
                 (:group_id, :account_id, 'auto', :source_module_key, :source_rule_key, 'active', :granted_at, NULL, NULL, NULL, :updated_at)"
@@ -684,7 +684,7 @@ function toy_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, arra
         $membershipId = (int) $pdo->lastInsertId();
     }
 
-    toy_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_granted', null, 'Auto group membership granted.', [
+    sr_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_granted', null, 'Auto group membership granted.', [
         'source_module_key' => (string) $rule['source_module_key'],
         'source_rule_key' => (string) $rule['rule_key'],
         'summary' => (string) $evaluation['summary'],
@@ -693,10 +693,10 @@ function toy_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, arra
     return true;
 }
 
-function toy_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, array $evaluation): bool
+function sr_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, array $evaluation): bool
 {
     $stmt = $pdo->prepare(
-        "SELECT id FROM toy_member_group_memberships
+        "SELECT id FROM sr_member_group_memberships
          WHERE account_id = :account_id
            AND group_id = :group_id
            AND assignment_type = 'auto'
@@ -719,19 +719,19 @@ function toy_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, arr
 
     $membershipId = (int) $membership['id'];
     $stmt = $pdo->prepare(
-        "UPDATE toy_member_group_memberships
+        "UPDATE sr_member_group_memberships
          SET status = 'revoked',
              revoked_at = :revoked_at,
              updated_at = :updated_at
          WHERE id = :id"
     );
     $stmt->execute([
-        'revoked_at' => toy_now(),
-        'updated_at' => toy_now(),
+        'revoked_at' => sr_now(),
+        'updated_at' => sr_now(),
         'id' => $membershipId,
     ]);
 
-    toy_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_revoked', null, 'Auto group membership revoked.', [
+    sr_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_revoked', null, 'Auto group membership revoked.', [
         'source_module_key' => (string) $rule['source_module_key'],
         'source_rule_key' => (string) $rule['rule_key'],
         'summary' => (string) $evaluation['summary'],
@@ -740,17 +740,17 @@ function toy_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, arr
     return true;
 }
 
-function toy_member_group_memberships(PDO $pdo, int $limit = 100): array
+function sr_member_group_memberships(PDO $pdo, int $limit = 100): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->prepare(
         'SELECT m.*, g.group_key, g.title AS group_title, a.email, a.display_name, a.status AS account_status
-         FROM toy_member_group_memberships m
-         INNER JOIN toy_member_groups g ON g.id = m.group_id
-         INNER JOIN toy_member_accounts a ON a.id = m.account_id
+         FROM sr_member_group_memberships m
+         INNER JOIN sr_member_groups g ON g.id = m.group_id
+         INNER JOIN sr_member_accounts a ON a.id = m.account_id
          ORDER BY m.id DESC
          LIMIT :limit_value'
     );
@@ -760,17 +760,17 @@ function toy_member_group_memberships(PDO $pdo, int $limit = 100): array
     return $stmt->fetchAll();
 }
 
-function toy_member_group_logs(PDO $pdo, int $limit = 50): array
+function sr_member_group_logs(PDO $pdo, int $limit = 50): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->prepare(
         'SELECT l.*, g.group_key, g.title AS group_title, a.email, a.display_name
-         FROM toy_member_group_membership_logs l
-         INNER JOIN toy_member_groups g ON g.id = l.group_id
-         INNER JOIN toy_member_accounts a ON a.id = l.account_id
+         FROM sr_member_group_membership_logs l
+         INNER JOIN sr_member_groups g ON g.id = l.group_id
+         INNER JOIN sr_member_accounts a ON a.id = l.account_id
          ORDER BY l.id DESC
          LIMIT :limit_value'
     );
@@ -780,17 +780,17 @@ function toy_member_group_logs(PDO $pdo, int $limit = 50): array
     return $stmt->fetchAll();
 }
 
-function toy_member_group_privacy_export(PDO $pdo, int $accountId): array
+function sr_member_group_privacy_export(PDO $pdo, int $accountId): array
 {
-    if (!toy_member_groups_table_exists($pdo)) {
+    if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
     $stmt = $pdo->prepare(
         'SELECT g.group_key, g.title, m.assignment_type, m.source_module_key, m.source_rule_key,
                 m.status, m.granted_at, m.expires_at, m.revoked_at, m.updated_at
-         FROM toy_member_group_memberships m
-         INNER JOIN toy_member_groups g ON g.id = m.group_id
+         FROM sr_member_group_memberships m
+         INNER JOIN sr_member_groups g ON g.id = m.group_id
          WHERE m.account_id = :account_id
          ORDER BY m.id ASC'
     );

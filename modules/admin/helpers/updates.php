@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function toy_admin_update_files(string $directory): array
+function sr_admin_update_files(string $directory): array
 {
     if (!is_dir($directory)) {
         return [];
@@ -25,14 +25,14 @@ function toy_admin_update_files(string $directory): array
         $updates[] = [
             'version' => $version,
             'path' => $path,
-            'checksum' => toy_admin_update_checksum($path),
+            'checksum' => sr_admin_update_checksum($path),
         ];
     }
 
     return $updates;
 }
 
-function toy_admin_update_checksum(string $path): string
+function sr_admin_update_checksum(string $path): string
 {
     if (!is_file($path)) {
         return '';
@@ -42,7 +42,7 @@ function toy_admin_update_checksum(string $path): string
     return is_string($checksum) ? $checksum : '';
 }
 
-function toy_admin_update_statement_count(string $path): int
+function sr_admin_update_statement_count(string $path): int
 {
     if (!is_file($path)) {
         return 0;
@@ -53,10 +53,10 @@ function toy_admin_update_statement_count(string $path): int
         return 0;
     }
 
-    return count(toy_split_sql_statements($sql));
+    return count(sr_split_sql_statements($sql));
 }
 
-function toy_admin_update_path_is_allowed(array $update): bool
+function sr_admin_update_path_is_allowed(array $update): bool
 {
     $scope = (string) ($update['scope'] ?? '');
     $moduleKey = (string) ($update['module_key'] ?? '');
@@ -68,10 +68,10 @@ function toy_admin_update_path_is_allowed(array $update): bool
     }
 
     if ($scope === 'core') {
-        $expectedDirectory = realpath(TOY_ROOT . '/database/core/updates');
+        $expectedDirectory = realpath(SR_ROOT . '/database/core/updates');
         $expectedModuleKey = '';
-    } elseif ($scope === 'module' && toy_is_safe_module_key($moduleKey)) {
-        $expectedDirectory = realpath(TOY_ROOT . '/modules/' . $moduleKey . '/updates');
+    } elseif ($scope === 'module' && sr_is_safe_module_key($moduleKey)) {
+        $expectedDirectory = realpath(SR_ROOT . '/modules/' . $moduleKey . '/updates');
         $expectedModuleKey = $moduleKey;
     } else {
         return false;
@@ -89,11 +89,11 @@ function toy_admin_update_path_is_allowed(array $update): bool
     return basename($realPath) === $version . '.sql';
 }
 
-function toy_admin_acquire_update_lock(PDO $pdo): bool
+function sr_admin_acquire_update_lock(PDO $pdo): bool
 {
     try {
         $stmt = $pdo->prepare('SELECT GET_LOCK(:lock_name, 10) AS lock_acquired');
-        $stmt->execute(['lock_name' => 'toycore_schema_updates']);
+        $stmt->execute(['lock_name' => 'saanraan_schema_updates']);
         $row = $stmt->fetch();
     } catch (Throwable $exception) {
         return false;
@@ -102,18 +102,18 @@ function toy_admin_acquire_update_lock(PDO $pdo): bool
     return is_array($row) && (string) ($row['lock_acquired'] ?? '') === '1';
 }
 
-function toy_admin_release_update_lock(PDO $pdo): void
+function sr_admin_release_update_lock(PDO $pdo): void
 {
     try {
         $stmt = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
-        $stmt->execute(['lock_name' => 'toycore_schema_updates']);
+        $stmt->execute(['lock_name' => 'saanraan_schema_updates']);
     } catch (Throwable $ignored) {
     }
 }
 
-function toy_admin_applied_schema_versions(PDO $pdo): array
+function sr_admin_applied_schema_versions(PDO $pdo): array
 {
-    $stmt = $pdo->query('SELECT scope, module_key, version FROM toy_schema_versions');
+    $stmt = $pdo->query('SELECT scope, module_key, version FROM sr_schema_versions');
     $applied = [];
 
     foreach ($stmt->fetchAll() as $row) {
@@ -124,23 +124,23 @@ function toy_admin_applied_schema_versions(PDO $pdo): array
     return $applied;
 }
 
-function toy_admin_schema_versions(PDO $pdo): array
+function sr_admin_schema_versions(PDO $pdo): array
 {
     $stmt = $pdo->query(
         'SELECT scope, module_key, version, applied_at
-         FROM toy_schema_versions
+         FROM sr_schema_versions
          ORDER BY scope ASC, module_key ASC, version ASC'
     );
 
     return $stmt->fetchAll();
 }
 
-function toy_admin_pending_updates(PDO $pdo): array
+function sr_admin_pending_updates(PDO $pdo): array
 {
-    $applied = toy_admin_applied_schema_versions($pdo);
+    $applied = sr_admin_applied_schema_versions($pdo);
     $pending = [];
 
-    foreach (toy_admin_update_files(TOY_ROOT . '/database/core/updates') as $update) {
+    foreach (sr_admin_update_files(SR_ROOT . '/database/core/updates') as $update) {
         $key = 'core||' . $update['version'];
         if (!isset($applied[$key])) {
             $pending[] = [
@@ -150,19 +150,19 @@ function toy_admin_pending_updates(PDO $pdo): array
                 'version' => $update['version'],
                 'path' => $update['path'],
                 'checksum' => $update['checksum'],
-                'statements' => toy_admin_update_statement_count((string) $update['path']),
+                'statements' => sr_admin_update_statement_count((string) $update['path']),
             ];
         }
     }
 
-    $stmt = $pdo->query('SELECT module_key FROM toy_modules ORDER BY module_key ASC');
+    $stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY module_key ASC');
     foreach ($stmt->fetchAll() as $module) {
         $moduleKey = (string) $module['module_key'];
-        if (!toy_is_safe_module_key($moduleKey)) {
+        if (!sr_is_safe_module_key($moduleKey)) {
             continue;
         }
 
-        foreach (toy_admin_update_files(TOY_ROOT . '/modules/' . $moduleKey . '/updates') as $update) {
+        foreach (sr_admin_update_files(SR_ROOT . '/modules/' . $moduleKey . '/updates') as $update) {
             $key = 'module|' . $moduleKey . '|' . $update['version'];
             if (!isset($applied[$key])) {
                 $pending[] = [
@@ -172,7 +172,7 @@ function toy_admin_pending_updates(PDO $pdo): array
                     'version' => $update['version'],
                     'path' => $update['path'],
                     'checksum' => $update['checksum'],
-                    'statements' => toy_admin_update_statement_count((string) $update['path']),
+                    'statements' => sr_admin_update_statement_count((string) $update['path']),
                 ];
             }
         }
@@ -181,24 +181,24 @@ function toy_admin_pending_updates(PDO $pdo): array
     return $pending;
 }
 
-function toy_admin_apply_update(PDO $pdo, array $update): void
+function sr_admin_apply_update(PDO $pdo, array $update): void
 {
-    if (!toy_admin_update_path_is_allowed($update)) {
+    if (!sr_admin_update_path_is_allowed($update)) {
         throw new RuntimeException('Schema update path is invalid.');
     }
 
     $expectedChecksum = (string) ($update['checksum'] ?? '');
-    if ($expectedChecksum !== '' && !hash_equals($expectedChecksum, toy_admin_update_checksum((string) $update['path']))) {
+    if ($expectedChecksum !== '' && !hash_equals($expectedChecksum, sr_admin_update_checksum((string) $update['path']))) {
         throw new RuntimeException('Schema update checksum changed.');
     }
 
-    toy_execute_sql_file($pdo, (string) $update['path']);
-    toy_record_schema_version($pdo, (string) $update['scope'], (string) $update['module_key'], (string) $update['version']);
+    sr_execute_sql_file($pdo, (string) $update['path']);
+    sr_record_schema_version($pdo, (string) $update['scope'], (string) $update['module_key'], (string) $update['version']);
 }
 
-function toy_admin_previous_update_failure(): ?array
+function sr_admin_previous_update_failure(): ?array
 {
-    $path = TOY_ROOT . '/storage/update-failed.json';
+    $path = SR_ROOT . '/storage/update-failed.json';
     if (!is_file($path) || !is_readable($path)) {
         return null;
     }
@@ -216,13 +216,13 @@ function toy_admin_previous_update_failure(): ?array
         'module_key' => (string) ($decoded['module_key'] ?? ''),
         'version' => (string) ($decoded['version'] ?? ''),
         'checksum' => (string) ($decoded['checksum'] ?? ''),
-        'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($decoded['message'] ?? ''), 500)),
+        'message' => sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($decoded['message'] ?? ''), 500)),
     ];
 }
 
-function toy_admin_audit_schema_update(PDO $pdo, array $account, array $update, string $eventType, string $result, string $message, array $metadata = []): void
+function sr_admin_audit_schema_update(PDO $pdo, array $account, array $update, string $eventType, string $result, string $message, array $metadata = []): void
 {
-    toy_audit_log($pdo, [
+    sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
         'actor_type' => 'admin',
         'event_type' => $eventType,
@@ -236,9 +236,9 @@ function toy_admin_audit_schema_update(PDO $pdo, array $account, array $update, 
     ]);
 }
 
-function toy_admin_audit_module_version_sync(PDO $pdo, array $account, array $syncedModule, string $message): void
+function sr_admin_audit_module_version_sync(PDO $pdo, array $account, array $syncedModule, string $message): void
 {
-    toy_audit_log($pdo, [
+    sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
         'actor_type' => 'admin',
         'event_type' => 'module.version.synced',
@@ -253,12 +253,12 @@ function toy_admin_audit_module_version_sync(PDO $pdo, array $account, array $sy
     ]);
 }
 
-function toy_admin_handle_updates_post(PDO $pdo, array $account): array
+function sr_admin_handle_updates_post(PDO $pdo, array $account): array
 {
     $errors = [];
     $notice = '';
     $appliedUpdates = [];
-    $intent = toy_post_string('intent', 40);
+    $intent = sr_post_string('intent', 40);
     if ($intent === '') {
         $intent = 'apply_updates';
     }
@@ -267,16 +267,16 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
         $errors[] = '업데이트 요청이 올바르지 않습니다.';
     }
 
-    $pendingUpdates = toy_admin_pending_updates($pdo);
+    $pendingUpdates = sr_admin_pending_updates($pdo);
     $backupConfirmed = ($_POST['backup_confirmed'] ?? '') === '1';
 
     if ($errors === [] && $intent === 'sync_file_only_versions') {
-        $syncedModules = toy_admin_sync_file_only_module_versions(
+        $syncedModules = sr_admin_sync_file_only_module_versions(
             $pdo,
-            toy_admin_module_pending_update_counts($pendingUpdates)
+            sr_admin_module_pending_update_counts($pendingUpdates)
         );
         foreach ($syncedModules as $syncedModule) {
-            toy_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced from updates screen.');
+            sr_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced from updates screen.');
         }
 
         return [
@@ -291,59 +291,59 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
     }
 
     if ($errors === [] && $pendingUpdates !== []) {
-        if (!toy_admin_acquire_update_lock($pdo)) {
+        if (!sr_admin_acquire_update_lock($pdo)) {
             $errors[] = '다른 업데이트가 실행 중입니다. 잠시 후 다시 시도하세요.';
-            toy_write_operational_marker('update-failed.json', [
+            sr_write_operational_marker('update-failed.json', [
                 'stage' => 'acquire_update_lock',
                 'message' => 'Schema update lock could not be acquired.',
             ]);
         } else {
             try {
-                $pendingUpdates = toy_admin_pending_updates($pdo);
+                $pendingUpdates = sr_admin_pending_updates($pdo);
                 foreach ($pendingUpdates as $update) {
                     try {
-                        toy_admin_audit_schema_update($pdo, $account, $update, 'schema.update.started', 'success', 'Schema update started.');
+                        sr_admin_audit_schema_update($pdo, $account, $update, 'schema.update.started', 'success', 'Schema update started.');
 
-                        toy_admin_apply_update($pdo, $update);
+                        sr_admin_apply_update($pdo, $update);
                         $appliedUpdates[] = $update;
 
-                        toy_admin_audit_schema_update($pdo, $account, $update, 'schema.update.completed', 'success', 'Schema update completed.');
+                        sr_admin_audit_schema_update($pdo, $account, $update, 'schema.update.completed', 'success', 'Schema update completed.');
                     } catch (Throwable $exception) {
-                        toy_admin_audit_schema_update(
+                        sr_admin_audit_schema_update(
                             $pdo,
                             $account,
                             $update,
                             'schema.update.failed',
                             'failure',
                             'Schema update failed.',
-                            ['error' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500))]
+                            ['error' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))]
                         );
                         $errors[] = (string) $update['label'] . ' ' . (string) $update['version'] . ' 업데이트 중 오류가 발생했습니다.';
-                        toy_write_operational_marker('update-failed.json', [
+                        sr_write_operational_marker('update-failed.json', [
                             'stage' => 'apply_update',
                             'scope' => (string) $update['scope'],
                             'module_key' => (string) $update['module_key'],
                             'version' => (string) $update['version'],
                             'checksum' => (string) ($update['checksum'] ?? ''),
-                            'message' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
+                            'message' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)),
                         ]);
                         break;
                     }
                 }
             } finally {
-                toy_admin_release_update_lock($pdo);
+                sr_admin_release_update_lock($pdo);
             }
         }
     }
 
     if ($errors === []) {
-        toy_clear_operational_marker('update-failed.json');
-        $syncedModules = toy_admin_sync_file_only_module_versions(
+        sr_clear_operational_marker('update-failed.json');
+        $syncedModules = sr_admin_sync_file_only_module_versions(
             $pdo,
-            toy_admin_module_pending_update_counts(toy_admin_pending_updates($pdo))
+            sr_admin_module_pending_update_counts(sr_admin_pending_updates($pdo))
         );
         foreach ($syncedModules as $syncedModule) {
-            toy_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced after schema updates.');
+            sr_admin_audit_module_version_sync($pdo, $account, $syncedModule, 'Module installed version synced after schema updates.');
         }
         if ($appliedUpdates === []) {
             $notice = $syncedModules === [] ? '' : '파일 전용 업데이트 버전을 반영했습니다.';
@@ -359,17 +359,17 @@ function toy_admin_handle_updates_post(PDO $pdo, array $account): array
     ];
 }
 
-function toy_admin_module_version_drifts(PDO $pdo, array $pendingUpdateCounts): array
+function sr_admin_module_version_drifts(PDO $pdo, array $pendingUpdateCounts): array
 {
     $moduleVersionDrifts = [];
-    $stmt = $pdo->query('SELECT module_key, version FROM toy_modules ORDER BY module_key ASC');
+    $stmt = $pdo->query('SELECT module_key, version FROM sr_modules ORDER BY module_key ASC');
     foreach ($stmt->fetchAll() as $module) {
         $moduleKey = (string) ($module['module_key'] ?? '');
-        if (!toy_is_safe_module_key($moduleKey)) {
+        if (!sr_is_safe_module_key($moduleKey)) {
             continue;
         }
 
-        $metadata = toy_module_metadata($moduleKey);
+        $metadata = sr_module_metadata($moduleKey);
         $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
         $installedVersion = (string) ($module['version'] ?? '');
         if ($codeVersion === '' || $installedVersion === '' || $codeVersion === $installedVersion) {
@@ -388,7 +388,7 @@ function toy_admin_module_version_drifts(PDO $pdo, array $pendingUpdateCounts): 
     return $moduleVersionDrifts;
 }
 
-function toy_admin_file_only_module_version_drifts(array $moduleVersionDrifts): array
+function sr_admin_file_only_module_version_drifts(array $moduleVersionDrifts): array
 {
     $fileOnlyDrifts = [];
     foreach ($moduleVersionDrifts as $drift) {

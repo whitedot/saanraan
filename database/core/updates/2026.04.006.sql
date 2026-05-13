@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_sessions (
+CREATE TABLE IF NOT EXISTS sr_sessions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     session_id VARCHAR(128) NOT NULL,
     payload MEDIUMBLOB NOT NULL,
@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS toy_sessions (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_sessions_session_id (session_id),
-    KEY idx_toy_sessions_expires (expires_at)
+    UNIQUE KEY uq_sr_sessions_session_id (session_id),
+    KEY idx_sr_sessions_expires (expires_at)
 );
 
-CREATE TABLE IF NOT EXISTS toy_rate_limits (
+CREATE TABLE IF NOT EXISTS sr_rate_limits (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     rate_key CHAR(64) NOT NULL,
     bucket VARCHAR(120) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS toy_rate_limits (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_toy_rate_limits_key (rate_key),
-    KEY idx_toy_rate_limits_bucket_expires (bucket, expires_at),
-    KEY idx_toy_rate_limits_expires (expires_at)
+    UNIQUE KEY uq_sr_rate_limits_key (rate_key),
+    KEY idx_sr_rate_limits_bucket_expires (bucket, expires_at),
+    KEY idx_sr_rate_limits_expires (expires_at)
 );

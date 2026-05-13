@@ -1,3 +1,3 @@
 <?php
 
-echo toy_banner_render_basic_item($banner);
+echo sr_banner_render_basic_item($banner);

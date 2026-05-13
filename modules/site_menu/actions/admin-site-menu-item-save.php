@@ -8,4 +8,4 @@ if (isset($_POST['item_id']) && (int) $_POST['item_id'] > 0) {
     $_GET['edit_item_id'] = $_POST['item_id'];
 }
 
-include TOY_ROOT . '/modules/site_menu/actions/admin-site-menus.php';
+include SR_ROOT . '/modules/site_menu/actions/admin-site-menus.php';

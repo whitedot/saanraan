@@ -1,17 +1,17 @@
 <?php
 
 $adminPageTitle = '관리자 권한';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
@@ -30,20 +30,20 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php foreach ($accounts as $adminAccount) { ?>
             <tr>
-                <td><?php echo toy_e((string) $adminAccount['account_public_hash']); ?></td>
-                <td><?php echo toy_e(toy_admin_member_email_display($adminAccount)); ?></td>
-                <td><?php echo toy_e(toy_admin_member_display_name_preview($adminAccount)); ?></td>
-                <td><?php echo toy_e(toy_admin_code_label((string) $adminAccount['status'], 'member_status')); ?></td>
-                <td><?php echo toy_e(implode(', ', array_map(static function (string $roleKey): string {
-                    return toy_admin_code_label($roleKey, 'role');
+                <td><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></td>
+                <td><?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?></td>
+                <td><?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?></td>
+                <td><?php echo sr_e(sr_admin_code_label((string) $adminAccount['status'], 'member_status')); ?></td>
+                <td><?php echo sr_e(implode(', ', array_map(static function (string $roleKey): string {
+                    return sr_admin_code_label($roleKey, 'role');
                 }, $adminAccount['roles']))); ?></td>
                 <td>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/roles')); ?>">
-                        <?php echo toy_csrf_field(); ?>
-                        <input type="hidden" name="account_id" value="<?php echo toy_e((string) $adminAccount['id']); ?>">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/roles')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
                         <select name="role_key">
                             <?php foreach ($allowedRoles as $roleKey) { ?>
-                                <option value="<?php echo toy_e($roleKey); ?>"><?php echo toy_e(toy_admin_code_label($roleKey, 'role')); ?></option>
+                                <option value="<?php echo sr_e($roleKey); ?>"><?php echo sr_e(sr_admin_code_label($roleKey, 'role')); ?></option>
                             <?php } ?>
                         </select>
                         <select name="role_action">
@@ -58,4 +58,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </tbody>
 </table>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

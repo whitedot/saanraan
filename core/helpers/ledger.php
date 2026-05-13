@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): int
+function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
 {
     $balanceTable = (string) ($config['balance_table'] ?? '');
     $transactionTable = (string) ($config['transaction_table'] ?? '');
     $balanceRowError = (string) ($config['balance_row_error'] ?? 'Ledger balance row was not created.');
     $negativeBalanceError = (string) ($config['negative_balance_error'] ?? 'Ledger balance cannot be negative.');
 
-    if (!toy_ledger_is_safe_table_name($balanceTable) || !toy_ledger_is_safe_table_name($transactionTable)) {
+    if (!sr_ledger_is_safe_table_name($balanceTable) || !sr_ledger_is_safe_table_name($transactionTable)) {
         throw new InvalidArgumentException('Ledger table name is invalid.');
     }
 
@@ -19,7 +19,7 @@ function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): in
     $reason = (string) ($data['reason'] ?? '');
     $referenceType = (string) ($data['reference_type'] ?? '');
     $referenceId = (string) ($data['reference_id'] ?? '');
-    $createdByAccountId = toy_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
+    $createdByAccountId = sr_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
 
     if ($accountId <= 0) {
         throw new InvalidArgumentException('Account id is required.');
@@ -29,7 +29,7 @@ function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): in
         throw new InvalidArgumentException('Amount must not be zero.');
     }
 
-    $now = toy_now();
+    $now = sr_now();
     $pdo->beginTransaction();
 
     try {
@@ -97,12 +97,12 @@ function toy_ledger_create_transaction(PDO $pdo, array $config, array $data): in
     }
 }
 
-function toy_ledger_is_safe_table_name(string $tableName): bool
+function sr_ledger_is_safe_table_name(string $tableName): bool
 {
-    return preg_match('/\Atoy_[a-z0-9_]{1,120}\z/', $tableName) === 1;
+    return preg_match('/\Asr_[a-z0-9_]{1,120}\z/', $tableName) === 1;
 }
 
-function toy_ledger_nullable_positive_int(mixed $value): ?int
+function sr_ledger_nullable_positive_int(mixed $value): ?int
 {
     if ($value === null || $value === '') {
         return null;

@@ -1,17 +1,17 @@
 <?php
 
 $adminPageTitle = '커뮤니티 게시글';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
@@ -38,34 +38,34 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($posts as $post) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $post['id']); ?></td>
-                        <td><?php echo toy_e((string) $post['board_title']); ?></td>
+                        <td><?php echo sr_e((string) $post['id']); ?></td>
+                        <td><?php echo sr_e((string) $post['board_title']); ?></td>
                         <td>
                             <?php if ((string) $post['status'] === 'published') { ?>
-                                <a href="<?php echo toy_e(toy_url('/community/post?id=' . (string) $post['id'])); ?>">
-                                    <?php echo toy_e((string) $post['title']); ?>
+                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
+                                    <?php echo sr_e((string) $post['title']); ?>
                                 </a>
                             <?php } else { ?>
-                                <?php echo toy_e((string) $post['title']); ?>
+                                <?php echo sr_e((string) $post['title']); ?>
                             <?php } ?>
                         </td>
-                        <td><?php echo toy_e(toy_community_report_account_label(
+                        <td><?php echo sr_e(sr_community_report_account_label(
                             is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : null,
                             (int) $post['author_account_id']
                         )); ?></td>
-                        <td><?php echo toy_e(toy_admin_code_label((string) $post['status'], 'content_status')); ?></td>
-                        <td><?php echo toy_e((string) $post['published_comment_count']); ?></td>
-                        <td><?php echo toy_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
-                        <td><?php echo toy_e((string) $post['created_at']); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $post['status'], 'content_status')); ?></td>
+                        <td><?php echo sr_e((string) $post['published_comment_count']); ?></td>
+                        <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
+                        <td><?php echo sr_e((string) $post['created_at']); ?></td>
                         <td>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
-                                <?php echo toy_csrf_field(); ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
+                                <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
-                                <input type="hidden" name="post_id" value="<?php echo toy_e((string) $post['id']); ?>">
+                                <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                                 <label>상태
                                     <select name="status">
                                         <?php foreach ($allowedPostStatuses as $status) { ?>
-                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
+                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
@@ -99,28 +99,28 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($comments as $comment) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $comment['id']); ?></td>
+                        <td><?php echo sr_e((string) $comment['id']); ?></td>
                         <td>
-                            <a href="<?php echo toy_e(toy_url('/community/post?id=' . (string) $comment['post_id'])); ?>">
-                                <?php echo toy_e((string) $comment['post_title']); ?>
+                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $comment['post_id'])); ?>">
+                                <?php echo sr_e((string) $comment['post_title']); ?>
                             </a>
                         </td>
-                        <td><?php echo toy_e(toy_community_report_account_label(
+                        <td><?php echo sr_e(sr_community_report_account_label(
                             is_string($comment['author_display_name'] ?? null) ? $comment['author_display_name'] : null,
                             (int) $comment['author_account_id']
                         )); ?></td>
-                        <td><?php echo toy_community_plain_text_html((string) $comment['body_text']); ?></td>
-                        <td><?php echo toy_e(toy_admin_code_label((string) $comment['status'], 'content_status')); ?></td>
-                        <td><?php echo toy_e((string) $comment['created_at']); ?></td>
+                        <td><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $comment['status'], 'content_status')); ?></td>
+                        <td><?php echo sr_e((string) $comment['created_at']); ?></td>
                         <td>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/community/posts')); ?>">
-                                <?php echo toy_csrf_field(); ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
+                                <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="comment_status">
-                                <input type="hidden" name="comment_id" value="<?php echo toy_e((string) $comment['id']); ?>">
+                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                 <label>상태
                                     <select name="status">
                                         <?php foreach ($allowedCommentStatuses as $status) { ?>
-                                            <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'content_status')); ?></option>
+                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
@@ -134,4 +134,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

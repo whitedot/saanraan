@@ -13,8 +13,8 @@ modules/{module_key}/install.sql
 modules/{module_key}/updates/*.sql
 
 DB 기준:
-toy_modules
-toy_schema_versions
+sr_modules
+sr_schema_versions
 ```
 
 ## 모듈 배치 방식
@@ -80,10 +80,10 @@ zip 업로드는 DB 업데이트를 자동 실행하지 않는다.
 ```text
 1. module.php 읽기
 2. install.sql 확인
-3. toy_modules에 installing 기록
+3. sr_modules에 installing 기록
 4. install.sql 실행
 5. 현재 모듈 버전까지 schema version 기록
-6. toy_modules 상태를 enabled 또는 disabled로 변경
+6. sr_modules 상태를 enabled 또는 disabled로 변경
 ```
 
 설치 실패 시 모듈 상태는 `failed`로 남을 수 있다. 운영자는 DB 상태를 확인한 뒤 재설치한다.
@@ -112,7 +112,7 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 5. DB 백업 확인 후 SQL 업데이트 실행
 ```
 
-새 모듈 버전의 `toycore.min_version`이 현재 본체 버전보다 높거나 `toycore.module_contract`가 현재 `TOY_MODULE_CONTRACT_VERSION`과 맞지 않으면 해당 모듈만 단독으로 업데이트하지 않는다. 이 경우 본체와 필요한 기본 모듈을 함께 업데이트한다.
+새 모듈 버전의 `saanraan.min_version`이 현재 본체 버전보다 높거나 `saanraan.module_contract`가 현재 `SR_MODULE_CONTRACT_VERSION`과 맞지 않으면 해당 모듈만 단독으로 업데이트하지 않는다. 이 경우 본체와 필요한 기본 모듈을 함께 업데이트한다.
 
 ## 완료 판정 기준
 
@@ -126,9 +126,9 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 
 설치:
 
-- 새 모듈 설치 전 `module.php`, `install.sql`, `toycore.min_version`, `toycore.module_contract`, 계약 파일 선언/존재를 확인한다.
+- 새 모듈 설치 전 `module.php`, `install.sql`, `saanraan.min_version`, `saanraan.module_contract`, 계약 파일 선언/존재를 확인한다.
 - 활성 설치를 선택한 경우 의존 모듈, 계약 의존성, route 충돌을 설치 전 확인한다.
-- 설치 중에는 `toy_modules.status = installing`으로 기록한다.
+- 설치 중에는 `sr_modules.status = installing`으로 기록한다.
 - 설치 성공 후 현재 코드 버전까지 schema version을 기록하고 요청한 상태로 전환한다.
 - 설치 실패 시 `failed` 상태를 남기고 운영자가 재설치할 수 있게 한다.
 - 설치 SQL 일부가 이미 실행된 상태에서 실패할 수 있으므로 `install.sql`은 반복 실행 가능한 `CREATE TABLE IF NOT EXISTS` 중심으로 작성한다.
@@ -169,8 +169,8 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 | 항목 | 의미 | 저장 위치 |
 | --- | --- | --- |
 | 코드 버전 | 현재 파일이 제공하는 모듈 버전 | `module.php` |
-| 설치 버전 | DB에 반영 완료된 모듈 버전 | `toy_modules.version` |
-| 스키마 적용 버전 | 실행 완료된 SQL 버전 | `toy_schema_versions` |
+| 설치 버전 | DB에 반영 완료된 모듈 버전 | `sr_modules.version` |
+| 스키마 적용 버전 | 실행 완료된 SQL 버전 | `sr_schema_versions` |
 | 산란 최소 버전 | 설치 가능한 산란 최소 버전 | `module.php` |
 | 모듈 계약 버전 | 파일/메타데이터 계약 버전 | `module.php` |
 

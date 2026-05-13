@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-function toy_storage_default_driver(?array $config = null): string
+function sr_storage_default_driver(?array $config = null): string
 {
-    $config = is_array($config) ? $config : toy_runtime_config();
+    $config = is_array($config) ? $config : sr_runtime_config();
     $storage = isset($config['storage']) && is_array($config['storage']) ? $config['storage'] : [];
     $driver = strtolower(trim((string) ($storage['default'] ?? 'local')));
 
     return in_array($driver, ['local', 's3'], true) ? $driver : 'local';
 }
 
-function toy_storage_key_is_safe(string $key): bool
+function sr_storage_key_is_safe(string $key): bool
 {
     if ($key === '' || strlen($key) > 512 || str_contains($key, "\0") || str_starts_with($key, '/') || str_contains($key, '//')) {
         return false;
@@ -26,17 +26,17 @@ function toy_storage_key_is_safe(string $key): bool
     return true;
 }
 
-function toy_storage_reference(string $driver, string $key): string
+function sr_storage_reference(string $driver, string $key): string
 {
     $driver = strtolower(trim($driver));
-    if (!in_array($driver, ['local', 's3'], true) || !toy_storage_key_is_safe($key)) {
+    if (!in_array($driver, ['local', 's3'], true) || !sr_storage_key_is_safe($key)) {
         throw new InvalidArgumentException('Storage reference is invalid.');
     }
 
     return $driver . ':' . $key;
 }
 
-function toy_storage_parse_reference(string $reference, string $fallbackDriver = 'local'): ?array
+function sr_storage_parse_reference(string $reference, string $fallbackDriver = 'local'): ?array
 {
     $reference = trim($reference);
     $fallbackDriver = in_array($fallbackDriver, ['local', 's3'], true) ? $fallbackDriver : 'local';
@@ -48,7 +48,7 @@ function toy_storage_parse_reference(string $reference, string $fallbackDriver =
         $key = $reference;
     }
 
-    if (!toy_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return null;
     }
 
@@ -58,104 +58,104 @@ function toy_storage_parse_reference(string $reference, string $fallbackDriver =
     ];
 }
 
-function toy_storage_put_file(string $sourcePath, string $key, array $options = []): array
+function sr_storage_put_file(string $sourcePath, string $key, array $options = []): array
 {
-    if (!is_file($sourcePath) || !toy_storage_key_is_safe($key)) {
+    if (!is_file($sourcePath) || !sr_storage_key_is_safe($key)) {
         throw new RuntimeException('저장할 파일 또는 저장 key가 올바르지 않습니다.');
     }
 
-    $config = isset($options['config']) && is_array($options['config']) ? $options['config'] : toy_runtime_config();
-    $driver = strtolower(trim((string) ($options['driver'] ?? toy_storage_default_driver($config))));
+    $config = isset($options['config']) && is_array($options['config']) ? $options['config'] : sr_runtime_config();
+    $driver = strtolower(trim((string) ($options['driver'] ?? sr_storage_default_driver($config))));
     if ($driver === 's3') {
-        return toy_storage_s3_put_file($config, $sourcePath, $key, $options);
+        return sr_storage_s3_put_file($config, $sourcePath, $key, $options);
     }
 
-    return toy_storage_local_put_file($sourcePath, $key, $options);
+    return sr_storage_local_put_file($sourcePath, $key, $options);
 }
 
-function toy_storage_delete(string $driver, string $key, ?array $config = null): bool
+function sr_storage_delete(string $driver, string $key, ?array $config = null): bool
 {
-    if (!toy_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return false;
     }
 
     $driver = strtolower(trim($driver));
     if ($driver === 's3') {
-        return toy_storage_s3_delete($config ?? toy_runtime_config(), $key);
+        return sr_storage_s3_delete($config ?? sr_runtime_config(), $key);
     }
 
-    $path = toy_storage_local_path($key);
+    $path = sr_storage_local_path($key);
     return is_string($path) && is_file($path) ? @unlink($path) : true;
 }
 
-function toy_storage_head(string $driver, string $key, ?array $config = null): ?array
+function sr_storage_head(string $driver, string $key, ?array $config = null): ?array
 {
-    if (!toy_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return null;
     }
 
     $driver = strtolower(trim($driver));
     if ($driver === 's3') {
-        return toy_storage_s3_head($config ?? toy_runtime_config(), $key);
+        return sr_storage_s3_head($config ?? sr_runtime_config(), $key);
     }
 
-    $path = toy_storage_local_path($key);
+    $path = sr_storage_local_path($key);
     if (!is_string($path) || !is_file($path)) {
         return null;
     }
 
     return [
         'content_length' => (int) filesize($path),
-        'content_type' => toy_upload_detect_mime($path),
+        'content_type' => sr_upload_detect_mime($path),
         'metadata' => [
             'sha256' => hash_file('sha256', $path) ?: '',
         ],
     ];
 }
 
-function toy_storage_public_url(string $driver, string $key, ?array $config = null): string
+function sr_storage_public_url(string $driver, string $key, ?array $config = null): string
 {
-    if ($driver !== 's3' || !toy_storage_key_is_safe($key)) {
+    if ($driver !== 's3' || !sr_storage_key_is_safe($key)) {
         return '';
     }
 
-    $config = $config ?? toy_runtime_config();
-    if (toy_storage_s3_config_errors($config) !== []) {
+    $config = $config ?? sr_runtime_config();
+    if (sr_storage_s3_config_errors($config) !== []) {
         return '';
     }
 
-    $s3 = toy_storage_s3_config($config);
+    $s3 = sr_storage_s3_config($config);
     $baseUrl = rtrim((string) ($s3['public_base_url'] ?? ''), '/');
-    if ($baseUrl === '' || !toy_is_http_url($baseUrl)) {
+    if ($baseUrl === '' || !sr_is_http_url($baseUrl)) {
         return '';
     }
 
-    return $baseUrl . '/' . toy_storage_uri_encode($key);
+    return $baseUrl . '/' . sr_storage_uri_encode($key);
 }
 
-function toy_storage_signed_url(string $driver, string $key, int $ttlSeconds = 300, array $options = [], ?array $config = null): string
+function sr_storage_signed_url(string $driver, string $key, int $ttlSeconds = 300, array $options = [], ?array $config = null): string
 {
-    if ($driver !== 's3' || !toy_storage_key_is_safe($key)) {
+    if ($driver !== 's3' || !sr_storage_key_is_safe($key)) {
         return '';
     }
 
     try {
-        return toy_storage_s3_presigned_url($config ?? toy_runtime_config(), $key, $ttlSeconds, $options);
+        return sr_storage_s3_presigned_url($config ?? sr_runtime_config(), $key, $ttlSeconds, $options);
     } catch (Throwable $exception) {
         return '';
     }
 }
 
-function toy_storage_local_put_file(string $sourcePath, string $key, array $options = []): array
+function sr_storage_local_put_file(string $sourcePath, string $key, array $options = []): array
 {
-    $targetPath = TOY_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $key);
+    $targetPath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $key);
     $directory = dirname($targetPath);
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
         throw new RuntimeException('로컬 저장 디렉터리를 만들 수 없습니다.');
     }
 
-    $targetPath = toy_upload_safe_target_path($directory, basename($key));
-    toy_upload_assert_target_path_writable($targetPath, !empty($options['overwrite']));
+    $targetPath = sr_upload_safe_target_path($directory, basename($key));
+    sr_upload_assert_target_path_writable($targetPath, !empty($options['overwrite']));
     if (!copy($sourcePath, $targetPath)) {
         throw new RuntimeException('로컬 저장소에 파일을 저장할 수 없습니다.');
     }
@@ -168,13 +168,13 @@ function toy_storage_local_put_file(string $sourcePath, string $key, array $opti
     ];
 }
 
-function toy_storage_local_path(string $key): ?string
+function sr_storage_local_path(string $key): ?string
 {
-    if (!toy_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return null;
     }
 
-    $storageRoot = realpath(TOY_ROOT . '/storage');
+    $storageRoot = realpath(SR_ROOT . '/storage');
     if (!is_string($storageRoot) || !is_dir($storageRoot)) {
         return null;
     }
@@ -189,12 +189,12 @@ function toy_storage_local_path(string $key): ?string
     return str_starts_with($realPath, $storagePrefix) ? $realPath : null;
 }
 
-function toy_storage_s3_config(array $config): array
+function sr_storage_s3_config(array $config): array
 {
     $storage = isset($config['storage']) && is_array($config['storage']) ? $config['storage'] : [];
     $s3 = isset($storage['s3']) && is_array($storage['s3']) ? $storage['s3'] : [];
-    $accessKey = toy_storage_env_or_value($s3, 'access_key', 'access_key_env');
-    $secretKey = toy_storage_env_or_value($s3, 'secret_key', 'secret_key_env');
+    $accessKey = sr_storage_env_or_value($s3, 'access_key', 'access_key_env');
+    $secretKey = sr_storage_env_or_value($s3, 'secret_key', 'secret_key_env');
 
     return [
         'bucket' => trim((string) ($s3['bucket'] ?? '')),
@@ -207,7 +207,7 @@ function toy_storage_s3_config(array $config): array
     ];
 }
 
-function toy_storage_env_or_value(array $settings, string $valueKey, string $envKey): string
+function sr_storage_env_or_value(array $settings, string $valueKey, string $envKey): string
 {
     $envName = trim((string) ($settings[$envKey] ?? ''));
     if ($envName !== '' && preg_match('/\A[A-Z][A-Z0-9_]{1,80}\z/', $envName) === 1) {
@@ -220,27 +220,27 @@ function toy_storage_env_or_value(array $settings, string $valueKey, string $env
     return (string) ($settings[$valueKey] ?? '');
 }
 
-function toy_storage_s3_ready(array $config): bool
+function sr_storage_s3_ready(array $config): bool
 {
     try {
-        $s3 = toy_storage_s3_config($config);
-        return toy_storage_s3_bucket_is_valid($s3['bucket'])
+        $s3 = sr_storage_s3_config($config);
+        return sr_storage_s3_bucket_is_valid($s3['bucket'])
             && $s3['region'] !== ''
             && $s3['access_key'] !== ''
             && $s3['secret_key'] !== ''
-            && toy_storage_s3_config_errors($config) === [];
+            && sr_storage_s3_config_errors($config) === [];
     } catch (Throwable $exception) {
         return false;
     }
 }
 
-function toy_storage_s3_config_errors(array $config): array
+function sr_storage_s3_config_errors(array $config): array
 {
     $errors = [];
-    $s3 = toy_storage_s3_config($config);
+    $s3 = sr_storage_s3_config($config);
     $env = (string) ($config['env'] ?? 'production');
 
-    if ($s3['bucket'] !== '' && !toy_storage_s3_bucket_is_valid($s3['bucket'])) {
+    if ($s3['bucket'] !== '' && !sr_storage_s3_bucket_is_valid($s3['bucket'])) {
         $errors[] = 'S3 bucket 형식이 올바르지 않습니다.';
     }
 
@@ -250,7 +250,7 @@ function toy_storage_s3_config_errors(array $config): array
             continue;
         }
 
-        if (!toy_is_http_url($url)) {
+        if (!sr_is_http_url($url)) {
             $errors[] = 'S3 ' . $key . ' URL이 올바르지 않습니다.';
             continue;
         }
@@ -263,7 +263,7 @@ function toy_storage_s3_config_errors(array $config): array
     return $errors;
 }
 
-function toy_storage_s3_put_file(array $config, string $sourcePath, string $key, array $options = []): array
+function sr_storage_s3_put_file(array $config, string $sourcePath, string $key, array $options = []): array
 {
     $contentType = (string) ($options['content_type'] ?? 'application/octet-stream');
     $body = file_get_contents($sourcePath);
@@ -272,10 +272,10 @@ function toy_storage_s3_put_file(array $config, string $sourcePath, string $key,
     }
 
     $headers = [
-        'content-type' => toy_download_content_type($contentType),
+        'content-type' => sr_download_content_type($contentType),
         'x-amz-meta-sha256' => hash_file('sha256', $sourcePath) ?: '',
     ];
-    $response = toy_storage_s3_request($config, 'PUT', $key, [], $headers, $body);
+    $response = sr_storage_s3_request($config, 'PUT', $key, [], $headers, $body);
     if ($response['status'] < 200 || $response['status'] >= 300) {
         throw new RuntimeException('S3 저장에 실패했습니다.');
     }
@@ -284,14 +284,14 @@ function toy_storage_s3_put_file(array $config, string $sourcePath, string $key,
         'driver' => 's3',
         'key' => $key,
         'path' => '',
-        'url' => toy_storage_public_url('s3', $key, $config),
+        'url' => sr_storage_public_url('s3', $key, $config),
     ];
 }
 
-function toy_storage_s3_head(array $config, string $key): ?array
+function sr_storage_s3_head(array $config, string $key): ?array
 {
     try {
-        $response = toy_storage_s3_request($config, 'HEAD', $key, [], [], '');
+        $response = sr_storage_s3_request($config, 'HEAD', $key, [], [], '');
     } catch (Throwable $exception) {
         return null;
     }
@@ -310,10 +310,10 @@ function toy_storage_s3_head(array $config, string $key): ?array
     ];
 }
 
-function toy_storage_s3_delete(array $config, string $key): bool
+function sr_storage_s3_delete(array $config, string $key): bool
 {
     try {
-        $response = toy_storage_s3_request($config, 'DELETE', $key, [], [], '');
+        $response = sr_storage_s3_request($config, 'DELETE', $key, [], [], '');
     } catch (Throwable $exception) {
         return false;
     }
@@ -321,10 +321,10 @@ function toy_storage_s3_delete(array $config, string $key): bool
     return $response['status'] >= 200 && $response['status'] < 300;
 }
 
-function toy_storage_s3_presigned_url(array $config, string $key, int $ttlSeconds, array $options = []): string
+function sr_storage_s3_presigned_url(array $config, string $key, int $ttlSeconds, array $options = []): string
 {
-    $s3 = toy_storage_s3_assert_runtime_config($config);
-    $urlParts = toy_storage_s3_object_url_parts($s3, $key);
+    $s3 = sr_storage_s3_assert_runtime_config($config);
+    $urlParts = sr_storage_s3_object_url_parts($s3, $key);
     $now = gmdate('Ymd\THis\Z');
     $date = substr($now, 0, 8);
     $ttlSeconds = max(60, min(3600, $ttlSeconds));
@@ -343,17 +343,17 @@ function toy_storage_s3_presigned_url(array $config, string $key, int $ttlSecond
         }
     }
 
-    $canonicalRequest = toy_storage_s3_canonical_request('GET', $urlParts['path'], $query, ['host' => $urlParts['host']], 'host', 'UNSIGNED-PAYLOAD');
-    $signature = toy_storage_s3_signature($s3['secret_key'], $s3['region'], $date, $now, $canonicalRequest);
+    $canonicalRequest = sr_storage_s3_canonical_request('GET', $urlParts['path'], $query, ['host' => $urlParts['host']], 'host', 'UNSIGNED-PAYLOAD');
+    $signature = sr_storage_s3_signature($s3['secret_key'], $s3['region'], $date, $now, $canonicalRequest);
     $query['X-Amz-Signature'] = $signature;
 
-    return $urlParts['base_url'] . '?' . toy_storage_s3_canonical_query($query);
+    return $urlParts['base_url'] . '?' . sr_storage_s3_canonical_query($query);
 }
 
-function toy_storage_s3_request(array $config, string $method, string $key, array $query, array $headers, string $body): array
+function sr_storage_s3_request(array $config, string $method, string $key, array $query, array $headers, string $body): array
 {
-    $s3 = toy_storage_s3_assert_runtime_config($config);
-    $urlParts = toy_storage_s3_object_url_parts($s3, $key);
+    $s3 = sr_storage_s3_assert_runtime_config($config);
+    $urlParts = sr_storage_s3_object_url_parts($s3, $key);
     $payloadHash = hash('sha256', $body);
     $now = gmdate('Ymd\THis\Z');
     $date = substr($now, 0, 8);
@@ -364,43 +364,43 @@ function toy_storage_s3_request(array $config, string $method, string $key, arra
     ksort($headers, SORT_STRING);
 
     $signedHeaders = implode(';', array_keys($headers));
-    $canonicalRequest = toy_storage_s3_canonical_request($method, $urlParts['path'], $query, $headers, $signedHeaders, $payloadHash);
+    $canonicalRequest = sr_storage_s3_canonical_request($method, $urlParts['path'], $query, $headers, $signedHeaders, $payloadHash);
     $credentialScope = $date . '/' . $s3['region'] . '/s3/aws4_request';
-    $signature = toy_storage_s3_signature($s3['secret_key'], $s3['region'], $date, $now, $canonicalRequest);
+    $signature = sr_storage_s3_signature($s3['secret_key'], $s3['region'], $date, $now, $canonicalRequest);
     $headers['authorization'] = 'AWS4-HMAC-SHA256 Credential=' . $s3['access_key'] . '/' . $credentialScope . ', SignedHeaders=' . $signedHeaders . ', Signature=' . $signature;
 
-    $url = $urlParts['base_url'] . ($query === [] ? '' : '?' . toy_storage_s3_canonical_query($query));
-    return toy_storage_http_request($method, $url, $headers, $body);
+    $url = $urlParts['base_url'] . ($query === [] ? '' : '?' . sr_storage_s3_canonical_query($query));
+    return sr_storage_http_request($method, $url, $headers, $body);
 }
 
-function toy_storage_s3_assert_config(array $s3): void
+function sr_storage_s3_assert_config(array $s3): void
 {
-    if (!toy_storage_s3_bucket_is_valid($s3['bucket']) || $s3['region'] === '' || $s3['access_key'] === '' || $s3['secret_key'] === '') {
+    if (!sr_storage_s3_bucket_is_valid($s3['bucket']) || $s3['region'] === '' || $s3['access_key'] === '' || $s3['secret_key'] === '') {
         throw new RuntimeException('S3 저장소 설정을 확인하세요.');
     }
 }
 
-function toy_storage_s3_assert_runtime_config(array $config): array
+function sr_storage_s3_assert_runtime_config(array $config): array
 {
-    $errors = toy_storage_s3_config_errors($config);
+    $errors = sr_storage_s3_config_errors($config);
     if ($errors !== []) {
         throw new RuntimeException('S3 저장소 설정을 확인하세요: ' . implode(' ', $errors));
     }
 
-    $s3 = toy_storage_s3_config($config);
-    toy_storage_s3_assert_config($s3);
+    $s3 = sr_storage_s3_config($config);
+    sr_storage_s3_assert_config($s3);
 
     return $s3;
 }
 
-function toy_storage_s3_bucket_is_valid(string $bucket): bool
+function sr_storage_s3_bucket_is_valid(string $bucket): bool
 {
     return preg_match('/\A[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]\z/', $bucket) === 1 && !str_contains($bucket, '..');
 }
 
-function toy_storage_s3_object_url_parts(array $s3, string $key): array
+function sr_storage_s3_object_url_parts(array $s3, string $key): array
 {
-    $encodedKey = toy_storage_uri_encode($key);
+    $encodedKey = sr_storage_uri_encode($key);
     $endpoint = (string) $s3['endpoint'];
     $bucket = (string) $s3['bucket'];
 
@@ -415,7 +415,7 @@ function toy_storage_s3_object_url_parts(array $s3, string $key): array
         ];
     }
 
-    if (!toy_is_http_url($endpoint)) {
+    if (!sr_is_http_url($endpoint)) {
         throw new RuntimeException('S3 endpoint URL이 올바르지 않습니다.');
     }
 
@@ -439,7 +439,7 @@ function toy_storage_s3_object_url_parts(array $s3, string $key): array
     ];
 }
 
-function toy_storage_s3_canonical_request(string $method, string $path, array $query, array $headers, string $signedHeaders, string $payloadHash): string
+function sr_storage_s3_canonical_request(string $method, string $path, array $query, array $headers, string $signedHeaders, string $payloadHash): string
 {
     $canonicalHeaders = '';
     ksort($headers, SORT_STRING);
@@ -449,13 +449,13 @@ function toy_storage_s3_canonical_request(string $method, string $path, array $q
 
     return strtoupper($method) . "\n"
         . ($path === '' ? '/' : $path) . "\n"
-        . toy_storage_s3_canonical_query($query) . "\n"
+        . sr_storage_s3_canonical_query($query) . "\n"
         . $canonicalHeaders . "\n"
         . $signedHeaders . "\n"
         . $payloadHash;
 }
 
-function toy_storage_s3_canonical_query(array $query): string
+function sr_storage_s3_canonical_query(array $query): string
 {
     ksort($query, SORT_STRING);
     $pairs = [];
@@ -466,7 +466,7 @@ function toy_storage_s3_canonical_query(array $query): string
     return implode('&', $pairs);
 }
 
-function toy_storage_s3_signature(string $secretKey, string $region, string $date, string $amzDate, string $canonicalRequest): string
+function sr_storage_s3_signature(string $secretKey, string $region, string $date, string $amzDate, string $canonicalRequest): string
 {
     $scope = $date . '/' . $region . '/s3/aws4_request';
     $stringToSign = "AWS4-HMAC-SHA256\n" . $amzDate . "\n" . $scope . "\n" . hash('sha256', $canonicalRequest);
@@ -478,12 +478,12 @@ function toy_storage_s3_signature(string $secretKey, string $region, string $dat
     return hash_hmac('sha256', $stringToSign, $signingKey);
 }
 
-function toy_storage_uri_encode(string $value): string
+function sr_storage_uri_encode(string $value): string
 {
     return str_replace('%2F', '/', rawurlencode($value));
 }
 
-function toy_storage_http_request(string $method, string $url, array $headers, string $body): array
+function sr_storage_http_request(string $method, string $url, array $headers, string $body): array
 {
     $headerLines = [];
     foreach ($headers as $name => $value) {
@@ -491,13 +491,13 @@ function toy_storage_http_request(string $method, string $url, array $headers, s
     }
 
     if (function_exists('curl_init')) {
-        return toy_storage_http_request_with_curl($method, $url, $headerLines, $body);
+        return sr_storage_http_request_with_curl($method, $url, $headerLines, $body);
     }
 
-    return toy_storage_http_request_with_stream($method, $url, $headerLines, $body);
+    return sr_storage_http_request_with_stream($method, $url, $headerLines, $body);
 }
 
-function toy_storage_http_request_with_curl(string $method, string $url, array $headerLines, string $body): array
+function sr_storage_http_request_with_curl(string $method, string $url, array $headerLines, string $body): array
 {
     $handle = curl_init($url);
     if ($handle === false) {
@@ -528,12 +528,12 @@ function toy_storage_http_request_with_curl(string $method, string $url, array $
 
     return [
         'status' => $status,
-        'headers' => toy_storage_parse_headers(substr($response, 0, $headerSize)),
+        'headers' => sr_storage_parse_headers(substr($response, 0, $headerSize)),
         'body' => substr($response, $headerSize),
     ];
 }
 
-function toy_storage_http_request_with_stream(string $method, string $url, array $headerLines, string $body): array
+function sr_storage_http_request_with_stream(string $method, string $url, array $headerLines, string $body): array
 {
     $context = stream_context_create([
         'http' => [
@@ -569,12 +569,12 @@ function toy_storage_http_request_with_stream(string $method, string $url, array
 
     return [
         'status' => $status,
-        'headers' => toy_storage_parse_headers(implode("\r\n", $responseHeaders)),
+        'headers' => sr_storage_parse_headers(implode("\r\n", $responseHeaders)),
         'body' => is_string($responseBody) ? $responseBody : '',
     ];
 }
 
-function toy_storage_parse_headers(string $rawHeaders): array
+function sr_storage_parse_headers(string $rawHeaders): array
 {
     $headers = [];
     foreach (preg_split('/\r\n|\n|\r/', $rawHeaders) ?: [] as $line) {

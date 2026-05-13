@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-function toy_community_member_group_rule_board_options(PDO $pdo): array
+function sr_community_member_group_rule_board_options(PDO $pdo): array
 {
     $options = [];
-    foreach (toy_community_enabled_boards($pdo) as $board) {
+    foreach (sr_community_enabled_boards($pdo) as $board) {
         $options[] = [
             'value' => (string) $board['id'],
             'label' => (string) $board['title'],
@@ -15,7 +15,7 @@ function toy_community_member_group_rule_board_options(PDO $pdo): array
     return $options;
 }
 
-function toy_community_member_group_evaluation_metadata(array $summary): array
+function sr_community_member_group_evaluation_metadata(array $summary): array
 {
     return [
         'group_rules_evaluated' => (int) ($summary['evaluated'] ?? 0),
@@ -24,7 +24,7 @@ function toy_community_member_group_evaluation_metadata(array $summary): array
     ];
 }
 
-function toy_community_member_group_rule_post_count_at_least(PDO $pdo, int $accountId, array $params): array
+function sr_community_member_group_rule_post_count_at_least(PDO $pdo, int $accountId, array $params): array
 {
     $boardId = (int) ($params['board_id'] ?? 0);
     $minCount = max(1, (int) ($params['min_count'] ?? 1));
@@ -34,7 +34,7 @@ function toy_community_member_group_rule_post_count_at_least(PDO $pdo, int $acco
 
     $stmt = $pdo->prepare(
         "SELECT COUNT(*) AS count_value
-         FROM toy_community_posts
+         FROM sr_community_posts
          WHERE author_account_id = :account_id
            AND board_id = :board_id
            AND status = 'published'"

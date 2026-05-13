@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
 
 $errors = [];
 $notice = '';
-$method = toy_request_method();
+$method = sr_request_method();
 $resetTokenSessionSeconds = 900;
 $token = '';
 $tokenInputInvalid = false;
-$memberSettings = toy_member_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 if ($method === 'GET') {
-    $tokenInput = toy_get_string_without_truncation('token', 64);
+    $tokenInput = sr_get_string_without_truncation('token', 64);
     if ($tokenInput === null) {
         $tokenInputInvalid = true;
     } else {
@@ -20,38 +20,38 @@ if ($method === 'GET') {
     }
 }
 $tokenHash = $method === 'GET' && $token !== ''
-    ? toy_member_password_reset_token_hash($config, $token)
-    : ($tokenInputInvalid ? '' : toy_member_password_reset_session_hash($resetTokenSessionSeconds));
+    ? sr_member_password_reset_token_hash($config, $token)
+    : ($tokenInputInvalid ? '' : sr_member_password_reset_session_hash($resetTokenSessionSeconds));
 
 if ($method === 'GET' && ($tokenInputInvalid || $token !== '')) {
-    $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
+    $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
-        toy_member_clear_password_reset_session_hash();
-        toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+        sr_member_clear_password_reset_session_hash();
+        sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
     }
 
-    toy_member_store_password_reset_session_hash($tokenHash);
-    toy_redirect('/password/reset/confirm');
+    sr_member_store_password_reset_session_hash($tokenHash);
+    sr_redirect('/password/reset/confirm');
 }
 
-$reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
+$reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
 
 if ($reset === null) {
-    toy_member_clear_password_reset_session_hash();
-    toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+    sr_member_clear_password_reset_session_hash();
+    sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
 }
 
 if ($method === 'POST') {
-    toy_require_csrf();
+    sr_require_csrf();
 
-    $reset = $tokenHash !== '' ? toy_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
+    $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
-        toy_member_clear_password_reset_session_hash();
-        toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+        sr_member_clear_password_reset_session_hash();
+        sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
     }
 
-    $password = toy_post_string_without_truncation('password', 255);
-    $passwordConfirm = toy_post_string_without_truncation('password_confirm', 255);
+    $password = sr_post_string_without_truncation('password', 255);
+    $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
 
     if ($password === null || $passwordConfirm === null) {
         $errors[] = '새 비밀번호는 255자 이하로 입력하세요.';
@@ -75,27 +75,27 @@ if ($method === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            if (!toy_member_mark_password_reset_used($pdo, (int) $reset['id'])) {
+            if (!sr_member_mark_password_reset_used($pdo, (int) $reset['id'])) {
                 $pdo->rollBack();
-                toy_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+                sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
             }
 
-            toy_member_update_password($pdo, (int) $reset['account_id'], $password);
-            $revokedSessions = toy_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
+            sr_member_update_password($pdo, (int) $reset['account_id'], $password);
+            $revokedSessions = sr_member_revoke_account_sessions($pdo, (int) $reset['account_id']);
             if ($revokedSessions < 0) {
                 throw new RuntimeException('Member sessions could not be revoked after password reset.');
             }
-            $shouldLogoutCurrentSession = toy_member_current_session_account_id() === (int) $reset['account_id'];
+            $shouldLogoutCurrentSession = sr_member_current_session_account_id() === (int) $reset['account_id'];
             $pdo->commit();
 
             $loggedOutCurrentSession = false;
-            toy_member_clear_password_reset_session_hash();
+            sr_member_clear_password_reset_session_hash();
             if ($shouldLogoutCurrentSession) {
-                $loggedOutCurrentSession = toy_member_logout_current_session_if_account($pdo, (int) $reset['account_id']);
+                $loggedOutCurrentSession = sr_member_logout_current_session_if_account($pdo, (int) $reset['account_id']);
             }
 
-            toy_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
-            toy_audit_log($pdo, [
+            sr_member_log_auth($pdo, (int) $reset['account_id'], 'password_reset', 'success');
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $reset['account_id'],
                 'actor_type' => 'member',
                 'event_type' => 'member.password_reset.completed',
@@ -110,7 +110,7 @@ if ($method === 'POST') {
                 ],
             ]);
 
-            toy_redirect('/login?password_reset=1');
+            sr_redirect('/login?password_reset=1');
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -121,5 +121,5 @@ if ($method === 'POST') {
     }
 }
 
-$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'password-reset');
+$memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'password-reset');
 include $memberSkinView;

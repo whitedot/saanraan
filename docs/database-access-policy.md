@@ -19,7 +19,7 @@
 ```php
 <?php
 
-$stmt = $pdo->query('SELECT module_key FROM toy_modules ORDER BY id ASC');
+$stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY id ASC');
 ```
 
 동적 값 조회:
@@ -27,7 +27,7 @@ $stmt = $pdo->query('SELECT module_key FROM toy_modules ORDER BY id ASC');
 ```php
 <?php
 
-$stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE id = :id LIMIT 1');
+$stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $accountId]);
 ```
 
@@ -41,7 +41,7 @@ $allowedSorts = [
     'email' => 'email',
 ];
 $sortColumn = $allowedSorts[$requestedSort] ?? 'created_at';
-$stmt = $pdo->query('SELECT id, email FROM toy_member_accounts ORDER BY ' . $sortColumn . ' DESC');
+$stmt = $pdo->query('SELECT id, email FROM sr_member_accounts ORDER BY ' . $sortColumn . ' DESC');
 ```
 
 ## 금지되는 패턴
@@ -49,7 +49,7 @@ $stmt = $pdo->query('SELECT id, email FROM toy_member_accounts ORDER BY ' . $sor
 ```php
 <?php
 
-$pdo->query("SELECT * FROM toy_member_accounts WHERE email = '" . $email . "'");
+$pdo->query("SELECT * FROM sr_member_accounts WHERE email = '" . $email . "'");
 $pdo->exec("DELETE FROM " . $_GET['table']);
 ```
 

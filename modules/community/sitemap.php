@@ -9,13 +9,13 @@ return static function (PDO $pdo, ?array $site): array {
 
     $stmt = $pdo->query(
         "SELECT id, board_group_id, board_key, status, read_policy, updated_at
-         FROM toy_community_boards
+         FROM sr_community_boards
          WHERE status = 'enabled'
          ORDER BY sort_order ASC, id ASC
          LIMIT 1000"
     );
     foreach ($stmt->fetchAll() as $board) {
-        if (!toy_community_account_can_read_board($pdo, $board, null)) {
+        if (!sr_community_account_can_read_board($pdo, $board, null)) {
             continue;
         }
 
@@ -28,8 +28,8 @@ return static function (PDO $pdo, ?array $site): array {
     $stmt = $pdo->query(
         "SELECT p.id, p.board_id, p.updated_at,
                 b.board_group_id, b.status AS board_status, b.read_policy
-         FROM toy_community_posts p
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE p.status = 'published'
            AND b.status = 'enabled'
          ORDER BY p.updated_at DESC
@@ -42,7 +42,7 @@ return static function (PDO $pdo, ?array $site): array {
             'status' => (string) $post['board_status'],
             'read_policy' => (string) $post['read_policy'],
         ];
-        if (!toy_community_account_can_read_board($pdo, $board, null)) {
+        if (!sr_community_account_can_read_board($pdo, $board, null)) {
             continue;
         }
 

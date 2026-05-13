@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
-if (!toy_member_groups_table_exists($pdo)) {
-    toy_render_error(500, '회원 그룹 테이블이 없습니다. 회원 모듈 업데이트를 먼저 적용하세요.');
+if (!sr_member_groups_table_exists($pdo)) {
+    sr_render_error(500, '회원 그룹 테이블이 없습니다. 회원 모듈 업데이트를 먼저 적용하세요.');
 }
 
 $errors = [];
@@ -18,26 +18,26 @@ $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'gro
 if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations', 'assignments'], true)) {
     $memberGroupsPage = 'groups';
 }
-$allowedStatuses = toy_member_group_statuses();
-$allowedRuleStatuses = toy_member_group_rule_statuses();
-$allowedEvaluationPolicies = toy_member_group_evaluation_policies();
-$ruleDefinitions = toy_member_group_rule_definitions($pdo);
-$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
+$allowedStatuses = sr_member_group_statuses();
+$allowedRuleStatuses = sr_member_group_rule_statuses();
+$allowedEvaluationPolicies = sr_member_group_evaluation_policies();
+$ruleDefinitions = sr_member_group_rule_definitions($pdo);
+$runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 
-if (toy_request_method() === 'POST') {
-    toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
+    $intent = sr_post_string('intent', 40);
     if ($intent === 'save_group') {
-        $groupId = toy_admin_post_positive_int('group_id');
-        $groupKey = toy_post_string('group_key', 60);
-        $title = toy_post_string('title', 120);
-        $description = toy_post_string_without_truncation('description', 2000);
-        $status = toy_post_string('status', 30);
-        $sortOrder = toy_admin_post_int_in_range('sort_order', 0, 1000000);
+        $groupId = sr_admin_post_positive_int('group_id');
+        $groupKey = sr_post_string('group_key', 60);
+        $title = sr_post_string('title', 120);
+        $description = sr_post_string_without_truncation('description', 2000);
+        $status = sr_post_string('status', 30);
+        $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
 
-        if ($groupId < 1 && !toy_member_group_key_is_valid($groupKey)) {
+        if ($groupId < 1 && !sr_member_group_key_is_valid($groupKey)) {
             $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
         }
 
@@ -60,18 +60,18 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === [] && $groupId > 0) {
-            $existingGroup = toy_member_group_by_id($pdo, $groupId);
+            $existingGroup = sr_member_group_by_id($pdo, $groupId);
             if (!is_array($existingGroup)) {
                 $errors[] = '수정할 그룹을 찾을 수 없습니다.';
             }
         }
 
-        if ($errors === [] && $groupId < 1 && toy_member_group_by_key($pdo, $groupKey) !== null) {
+        if ($errors === [] && $groupId < 1 && sr_member_group_by_key($pdo, $groupKey) !== null) {
             $errors[] = '이미 사용 중인 그룹 key입니다.';
         }
 
         if ($errors === []) {
-            $savedGroupId = toy_member_group_save($pdo, [
+            $savedGroupId = sr_member_group_save($pdo, [
                 'id' => $groupId,
                 'group_key' => $groupKey,
                 'title' => $title,
@@ -80,7 +80,7 @@ if (toy_request_method() === 'POST') {
                 'sort_order' => (int) $sortOrder,
             ]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => $groupId > 0 ? 'member.group.updated' : 'member.group.created',
@@ -96,14 +96,14 @@ if (toy_request_method() === 'POST') {
             $notice = $groupId > 0 ? '회원 그룹을 수정했습니다.' : '회원 그룹을 만들었습니다.';
         }
     } elseif ($intent === 'save_rule') {
-        $ruleId = toy_admin_post_positive_int('rule_id');
-        $groupId = toy_admin_post_positive_int('group_id');
-        $definitionKey = toy_post_string('definition_key', 200);
-        $ruleParamsJson = toy_post_string_without_truncation('rule_params_json', 5000);
-        $evaluationPolicy = toy_post_string('evaluation_policy', 30);
-        $status = toy_post_string('status', 30);
+        $ruleId = sr_admin_post_positive_int('rule_id');
+        $groupId = sr_admin_post_positive_int('group_id');
+        $definitionKey = sr_post_string('definition_key', 200);
+        $ruleParamsJson = sr_post_string_without_truncation('rule_params_json', 5000);
+        $evaluationPolicy = sr_post_string('evaluation_policy', 30);
+        $status = sr_post_string('status', 30);
 
-        if ($groupId < 1 || !is_array(toy_member_group_by_id($pdo, $groupId))) {
+        if ($groupId < 1 || !is_array(sr_member_group_by_id($pdo, $groupId))) {
             $errors[] = '자동 규칙을 적용할 그룹을 선택하세요.';
         }
 
@@ -130,7 +130,7 @@ if (toy_request_method() === 'POST') {
             $errors[] = '자동 규칙 상태 값이 올바르지 않습니다.';
         }
 
-        if ($errors === [] && $ruleId > 0 && !is_array(toy_member_group_rule_by_id($pdo, $ruleId))) {
+        if ($errors === [] && $ruleId > 0 && !is_array(sr_member_group_rule_by_id($pdo, $ruleId))) {
             $errors[] = '수정할 자동 규칙을 찾을 수 없습니다.';
         }
 
@@ -141,7 +141,7 @@ if (toy_request_method() === 'POST') {
                 $normalizedParamsJson = '{}';
             }
 
-            $savedRuleId = toy_member_group_rule_save($pdo, [
+            $savedRuleId = sr_member_group_rule_save($pdo, [
                 'id' => $ruleId,
                 'group_id' => $groupId,
                 'source_module_key' => (string) $definition['source_module_key'],
@@ -151,7 +151,7 @@ if (toy_request_method() === 'POST') {
                 'status' => $status,
             ]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => $ruleId > 0 ? 'member.group_rule.updated' : 'member.group_rule.created',
@@ -171,13 +171,13 @@ if (toy_request_method() === 'POST') {
             $notice = $ruleId > 0 ? '자동 규칙을 수정했습니다.' : '자동 규칙을 만들었습니다.';
         }
     } elseif ($intent === 'evaluate_account' || $intent === 'evaluate_batch') {
-        $targetAccountIdentifier = toy_post_string('account_identifier', 80);
+        $targetAccountIdentifier = sr_post_string('account_identifier', 80);
         if ($targetAccountIdentifier === '') {
-            $targetAccountIdentifier = toy_post_string('account_id', 80);
+            $targetAccountIdentifier = sr_post_string('account_id', 80);
         }
-        $targetAccountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
-        $sourceModuleKey = toy_post_string('source_module_key', 60);
-        $limit = toy_admin_post_int_in_range('limit', 1, 200);
+        $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
+        $sourceModuleKey = sr_post_string('source_module_key', 60);
+        $limit = sr_admin_post_int_in_range('limit', 1, 200);
 
         if ($intent === 'evaluate_account' && $targetAccountId < 1) {
             $errors[] = '재평가할 회원 공개 해시를 입력하세요.';
@@ -188,12 +188,12 @@ if (toy_request_method() === 'POST') {
             $limit = 50;
         }
 
-        if ($sourceModuleKey !== '' && !toy_is_safe_module_key($sourceModuleKey)) {
+        if ($sourceModuleKey !== '' && !sr_is_safe_module_key($sourceModuleKey)) {
             $errors[] = '모듈 key가 올바르지 않습니다.';
         }
 
         if ($errors === [] && $intent === 'evaluate_account') {
-            $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $targetAccountId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '회원을 찾을 수 없습니다.';
@@ -202,7 +202,7 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             if ($intent === 'evaluate_account') {
-                $summary = toy_member_group_evaluate_account($pdo, $targetAccountId, [
+                $summary = sr_member_group_evaluate_account($pdo, $targetAccountId, [
                     'source_module_key' => $sourceModuleKey,
                 ]);
                 $targetType = 'member_account';
@@ -210,7 +210,7 @@ if (toy_request_method() === 'POST') {
                 $eventType = 'member.group_rules.evaluated';
                 $notice = '회원 그룹 자동 규칙을 재평가했습니다. 평가 ' . (string) $summary['evaluated'] . '건, 부여 ' . (string) $summary['granted'] . '건, 회수 ' . (string) $summary['revoked'] . '건.';
             } else {
-                $summary = toy_member_group_evaluate_accounts($pdo, [
+                $summary = sr_member_group_evaluate_accounts($pdo, [
                     'source_module_key' => $sourceModuleKey,
                     'limit' => (int) $limit,
                 ]);
@@ -220,7 +220,7 @@ if (toy_request_method() === 'POST') {
                 $notice = '회원 그룹 자동 규칙을 batch 재평가했습니다. 회원 ' . (string) $summary['accounts'] . '명, 평가 ' . (string) $summary['evaluated'] . '건, 부여 ' . (string) $summary['granted'] . '건, 회수 ' . (string) $summary['revoked'] . '건.';
             }
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => $eventType,
@@ -232,12 +232,12 @@ if (toy_request_method() === 'POST') {
             ]);
         }
     } elseif ($intent === 'grant_manual' || $intent === 'revoke_manual') {
-        $groupId = toy_admin_post_positive_int('group_id');
-        $targetAccountIdentifier = toy_post_string('account_identifier', 80);
+        $groupId = sr_admin_post_positive_int('group_id');
+        $targetAccountIdentifier = sr_post_string('account_identifier', 80);
         if ($targetAccountIdentifier === '') {
-            $targetAccountIdentifier = toy_post_string('account_id', 80);
+            $targetAccountIdentifier = sr_post_string('account_id', 80);
         }
-        $targetAccountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
+        $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
 
         if ($groupId < 1) {
             $errors[] = '그룹을 선택하세요.';
@@ -248,14 +248,14 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $group = toy_member_group_by_id($pdo, $groupId);
+            $group = sr_member_group_by_id($pdo, $groupId);
             if (!is_array($group)) {
                 $errors[] = '그룹을 찾을 수 없습니다.';
             }
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id, status FROM toy_member_accounts WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, status FROM sr_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $targetAccountId]);
             $targetAccount = $stmt->fetch();
             if (!is_array($targetAccount)) {
@@ -265,16 +265,16 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             if ($intent === 'grant_manual') {
-                toy_member_group_grant_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
+                sr_member_group_grant_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
                 $eventType = 'member.group.manual_granted';
                 $notice = '회원에게 그룹을 수동 배정했습니다.';
             } else {
-                toy_member_group_revoke_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
+                sr_member_group_revoke_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
                 $eventType = 'member.group.manual_revoked';
                 $notice = '회원 그룹 수동 배정을 해제했습니다.';
             }
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => $eventType,
@@ -294,22 +294,22 @@ if (toy_request_method() === 'POST') {
 }
 
 $editGroupId = 0;
-$editIdValue = toy_get_string('edit_id', 20);
+$editIdValue = sr_get_string('edit_id', 20);
 if ($editIdValue !== '' && preg_match('/\A[1-9][0-9]*\z/', $editIdValue) === 1) {
     $editGroupId = (int) $editIdValue;
 }
 
 $editRuleId = 0;
-$editRuleIdValue = toy_get_string('edit_rule_id', 20);
+$editRuleIdValue = sr_get_string('edit_rule_id', 20);
 if ($editRuleIdValue !== '' && preg_match('/\A[1-9][0-9]*\z/', $editRuleIdValue) === 1) {
     $editRuleId = (int) $editRuleIdValue;
 }
 
-$editGroup = $editGroupId > 0 ? toy_member_group_by_id($pdo, $editGroupId) : null;
-$editRule = $editRuleId > 0 ? toy_member_group_rule_by_id($pdo, $editRuleId) : null;
-$groups = toy_member_groups($pdo);
-$groupRules = toy_member_group_rules($pdo);
-$memberships = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_member_group_memberships($pdo, 100));
-$membershipLogs = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_member_group_logs($pdo, 50));
+$editGroup = $editGroupId > 0 ? sr_member_group_by_id($pdo, $editGroupId) : null;
+$editRule = $editRuleId > 0 ? sr_member_group_rule_by_id($pdo, $editRuleId) : null;
+$groups = sr_member_groups($pdo);
+$groupRules = sr_member_group_rules($pdo);
+$memberships = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, 100));
+$membershipLogs = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, 50));
 
-include TOY_ROOT . '/modules/member/views/admin-groups.php';
+include SR_ROOT . '/modules/member/views/admin-groups.php';

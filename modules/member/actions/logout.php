@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
 
-if (toy_request_method() !== 'POST') {
-    toy_render_error(405, '허용되지 않는 요청입니다.');
+if (sr_request_method() !== 'POST') {
+    sr_render_error(405, '허용되지 않는 요청입니다.');
 }
 
-toy_require_csrf();
+sr_require_csrf();
 
-$account = toy_member_current_account($pdo);
-$loggedOut = toy_member_logout($pdo);
+$account = sr_member_current_account($pdo);
+$loggedOut = sr_member_logout($pdo);
 if ($account !== null) {
-    toy_member_log_auth($pdo, (int) $account['id'], 'logout', $loggedOut ? 'success' : 'failure');
-    toy_audit_log($pdo, [
+    sr_member_log_auth($pdo, (int) $account['id'], 'logout', $loggedOut ? 'success' : 'failure');
+    sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
         'actor_type' => 'member',
         'event_type' => 'member.logout',
@@ -28,4 +28,4 @@ if ($account !== null) {
     ]);
 }
 
-toy_redirect('/login');
+sr_redirect('/login');

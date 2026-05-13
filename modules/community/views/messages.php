@@ -6,21 +6,21 @@ $seo = [
     'canonical' => $box === 'sent' ? '/community/messages?box=sent' : '/community/messages',
     'robots' => 'noindex, nofollow',
 ];
-toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <p><a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a></p>
-        <h1><?php echo toy_e($pageTitle); ?></h1>
+        <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
+        <h1><?php echo sr_e($pageTitle); ?></h1>
         <p>
-            <a href="<?php echo toy_e(toy_url('/community/messages')); ?>">받은 쪽지함</a>
+            <a href="<?php echo sr_e(sr_url('/community/messages')); ?>">받은 쪽지함</a>
             /
-            <a href="<?php echo toy_e(toy_url('/community/messages?box=sent')); ?>">보낸 쪽지함</a>
+            <a href="<?php echo sr_e(sr_url('/community/messages?box=sent')); ?>">보낸 쪽지함</a>
             /
-            <a href="<?php echo toy_e(toy_url('/community/message/write')); ?>">쪽지 쓰기</a>
+            <a href="<?php echo sr_e(sr_url('/community/message/write')); ?>">쪽지 쓰기</a>
         </p>
 
         <?php if ($notice !== '') { ?>
-            <p><?php echo toy_e($notice); ?></p>
+            <p><?php echo sr_e($notice); ?></p>
         <?php } ?>
 
         <?php if ($messages === []) { ?>
@@ -40,7 +40,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php foreach ($messages as $message) { ?>
                         <tr>
                             <td>
-                                <?php echo toy_e(toy_community_message_account_label(
+                                <?php echo sr_e(sr_community_message_account_label(
                                     is_string($message['other_display_name'] ?? null) ? $message['other_display_name'] : null,
                                     $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id'],
                                     $canViewMemberIdentifiers,
@@ -48,12 +48,12 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                 )); ?>
                             </td>
                             <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음'); ?></td>
-                            <td><?php echo toy_e((string) $message['created_at']); ?></td>
-                            <td><a href="<?php echo toy_e(toy_url('/community/message?id=' . (string) $message['id'])); ?>">보기</a></td>
+                            <td><?php echo sr_e((string) $message['created_at']); ?></td>
+                            <td><a href="<?php echo sr_e(sr_url('/community/message?id=' . (string) $message['id'])); ?>">보기</a></td>
                             <td>
-                                <form method="post" action="<?php echo toy_e(toy_url('/community/message/delete')); ?>">
-                                    <?php echo toy_csrf_field(); ?>
-                                    <input type="hidden" name="message_id" value="<?php echo toy_e((string) $message['id']); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/community/message/delete')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
                                     <button type="submit">삭제</button>
                                 </form>
                             </td>
@@ -63,4 +63,4 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             </table>
         <?php } ?>
     </main>
-<?php toy_public_layout_end(); ?>
+<?php sr_public_layout_end(); ?>

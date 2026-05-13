@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_privacy_requests (
+CREATE TABLE IF NOT EXISTS sr_privacy_requests (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NULL,
     request_type VARCHAR(40) NOT NULL,
@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS toy_privacy_requests (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_toy_privacy_requests_account (account_id),
-    KEY idx_toy_privacy_requests_status (status),
-    KEY idx_toy_privacy_requests_type (request_type),
-    KEY idx_toy_privacy_requests_created (created_at)
+    KEY idx_sr_privacy_requests_account (account_id),
+    KEY idx_sr_privacy_requests_status (status),
+    KEY idx_sr_privacy_requests_type (request_type),
+    KEY idx_sr_privacy_requests_created (created_at)
 );

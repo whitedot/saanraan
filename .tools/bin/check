@@ -53,7 +53,7 @@ module_dirs \
             done
     done
 
-echo "toycore non-Docker checks completed."
+echo "saanraan non-Docker checks completed."
 
 if [ "${PHP_BIN}" = "./.tools/bin/php" ]; then
     if ! command -v docker >/dev/null 2>&1; then
@@ -91,4 +91,4 @@ fi
     ' sh {} +
 } | xargs -0 -n1 "${PHP_BIN}" -l
 
-echo "toycore checks completed."
+echo "saanraan checks completed."

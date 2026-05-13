@@ -1,23 +1,23 @@
 <?php
 
 $adminPageTitle = '관리자 메뉴';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo toy_e(toy_url('/admin/menu')); ?>">
-    <?php echo toy_csrf_field(); ?>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>">
+    <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_menu_overrides">
     <table>
         <thead>
@@ -32,14 +32,14 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php foreach ($menuRows as $row) { ?>
                 <tr>
-                    <td><?php echo toy_e(toy_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?></td>
-                    <td><?php echo toy_e((string) $row['label']); ?></td>
-                    <td><?php echo toy_e((string) $row['default_order']); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?></td>
+                    <td><?php echo sr_e((string) $row['label']); ?></td>
+                    <td><?php echo sr_e((string) $row['default_order']); ?></td>
                     <td>
                         <input
                             type="number"
-                            name="sort_order[<?php echo toy_e((string) $row['form_key']); ?>]"
-                            value="<?php echo toy_e((string) $row['sort_order']); ?>"
+                            name="sort_order[<?php echo sr_e((string) $row['form_key']); ?>]"
+                            value="<?php echo sr_e((string) $row['sort_order']); ?>"
                             min="-999999"
                             max="999999"
                             required
@@ -50,7 +50,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                             <input
                                 type="checkbox"
                                 name="is_hidden[]"
-                                value="<?php echo toy_e((string) $row['form_key']); ?>"
+                                value="<?php echo sr_e((string) $row['form_key']); ?>"
                                 <?php echo !empty($row['is_hidden']) ? 'checked' : ''; ?>
                             >
                             숨김
@@ -63,10 +63,10 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <button type="submit">메뉴 표시 설정 저장</button>
 </form>
 
-<form method="post" action="<?php echo toy_e(toy_url('/admin/menu')); ?>">
-    <?php echo toy_csrf_field(); ?>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>">
+    <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="reset_menu_overrides">
     <button type="submit">기본값으로 초기화</button>
 </form>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

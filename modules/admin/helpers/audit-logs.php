@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-function toy_admin_audit_log_filters(): array
+function sr_admin_audit_log_filters(): array
 {
     return [
-        'event_type' => toy_get_string('event_type', 80),
-        'target_type' => toy_get_string('target_type', 60),
-        'actor_account_id' => toy_get_string('actor_account_id', 20),
-        'result' => toy_get_string('result', 30),
-        'date_from' => toy_get_string('date_from', 30),
-        'date_to' => toy_get_string('date_to', 30),
+        'event_type' => sr_get_string('event_type', 80),
+        'target_type' => sr_get_string('target_type', 60),
+        'actor_account_id' => sr_get_string('actor_account_id', 20),
+        'result' => sr_get_string('result', 30),
+        'date_from' => sr_get_string('date_from', 30),
+        'date_to' => sr_get_string('date_to', 30),
     ];
 }
 
-function toy_admin_audit_log_identifier_filter(string $value, int $maxLength): string
+function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): string
 {
     if ($value === '' || strlen($value) > $maxLength) {
         return '';
@@ -23,12 +23,12 @@ function toy_admin_audit_log_identifier_filter(string $value, int $maxLength): s
     return preg_match('/\A[a-z][a-z0-9_.-]*\z/', $value) === 1 ? $value : '';
 }
 
-function toy_admin_audit_log_result_filter(string $value): string
+function sr_admin_audit_log_result_filter(string $value): string
 {
     return in_array($value, ['success', 'failure'], true) ? $value : '';
 }
 
-function toy_admin_audit_log_date_filter(string $value): string
+function sr_admin_audit_log_date_filter(string $value): string
 {
     if ($value === '' || preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) !== 1) {
         return '';
@@ -46,14 +46,14 @@ function toy_admin_audit_log_date_filter(string $value): string
     return $date->format('Y-m-d') === $value ? $value : '';
 }
 
-function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
+function sr_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
 {
-    if ($key !== '' && toy_admin_setting_value_is_secret($key)) {
+    if ($key !== '' && sr_admin_setting_value_is_secret($key)) {
         return $value === '' ? '' : '[masked]';
     }
 
     if (is_string($value)) {
-        return toy_log_sensitive_text_sanitize($value);
+        return sr_log_sensitive_text_sanitize($value);
     }
 
     if (!is_array($value)) {
@@ -62,13 +62,13 @@ function toy_admin_audit_metadata_redact(mixed $value, string $key = ''): mixed
 
     $redacted = [];
     foreach ($value as $childKey => $childValue) {
-        $redacted[$childKey] = toy_admin_audit_metadata_redact($childValue, is_string($childKey) ? $childKey : '');
+        $redacted[$childKey] = sr_admin_audit_metadata_redact($childValue, is_string($childKey) ? $childKey : '');
     }
 
     return $redacted;
 }
 
-function toy_admin_audit_log_display_metadata(array $log): string
+function sr_admin_audit_log_display_metadata(array $log): string
 {
     $metadataJson = (string) ($log['metadata_json'] ?? '');
     if ($metadataJson === '') {
@@ -80,14 +80,14 @@ function toy_admin_audit_log_display_metadata(array $log): string
         return '[invalid metadata]';
     }
 
-    $encoded = json_encode(toy_admin_audit_metadata_redact($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $encoded = json_encode(sr_admin_audit_metadata_redact($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
     return is_string($encoded) ? $encoded : '[invalid metadata]';
 }
 
-function toy_admin_audit_log_display_message(array $log): string
+function sr_admin_audit_log_display_message(array $log): string
 {
-    $message = toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($log['message'] ?? ''), 1000));
+    $message = sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($log['message'] ?? ''), 1000));
     $labels = [
         'Initial installation completed.' => '초기 설치가 완료되었습니다.',
         'Banner settings updated.' => '배너 설정이 변경되었습니다.',
@@ -157,15 +157,15 @@ function toy_admin_audit_log_display_message(array $log): string
     return (string) ($labels[$message] ?? $message);
 }
 
-function toy_admin_audit_log_query_parts(array &$filters): array
+function sr_admin_audit_log_query_parts(array &$filters): array
 {
     $where = [];
     $params = [];
-    $filters['event_type'] = toy_admin_audit_log_identifier_filter($filters['event_type'], 80);
-    $filters['target_type'] = toy_admin_audit_log_identifier_filter($filters['target_type'], 60);
-    $filters['result'] = toy_admin_audit_log_result_filter($filters['result']);
-    $filters['date_from'] = toy_admin_audit_log_date_filter($filters['date_from']);
-    $filters['date_to'] = toy_admin_audit_log_date_filter($filters['date_to']);
+    $filters['event_type'] = sr_admin_audit_log_identifier_filter($filters['event_type'], 80);
+    $filters['target_type'] = sr_admin_audit_log_identifier_filter($filters['target_type'], 60);
+    $filters['result'] = sr_admin_audit_log_result_filter($filters['result']);
+    $filters['date_from'] = sr_admin_audit_log_date_filter($filters['date_from']);
+    $filters['date_to'] = sr_admin_audit_log_date_filter($filters['date_to']);
 
     if ($filters['event_type'] !== '') {
         $where[] = 'event_type = :event_type';
@@ -213,14 +213,14 @@ function toy_admin_audit_log_query_parts(array &$filters): array
     ];
 }
 
-function toy_admin_audit_logs(PDO $pdo, array &$filters): array
+function sr_admin_audit_logs(PDO $pdo, array &$filters): array
 {
-    $queryParts = toy_admin_audit_log_query_parts($filters);
+    $queryParts = sr_admin_audit_log_query_parts($filters);
     $where = $queryParts['where'];
     $params = $queryParts['params'];
 
     $sql = 'SELECT id, actor_account_id, actor_type, event_type, target_type, target_id, result, ip_address, message, metadata_json, created_at
-            FROM toy_audit_logs';
+            FROM sr_audit_logs';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }

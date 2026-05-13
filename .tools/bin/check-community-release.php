@@ -4,62 +4,62 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
-define('TOY_ROOT', $root);
+define('SR_ROOT', $root);
 chdir($root);
 
 $errors = [];
 
-function toy_community_release_error(string $message): void
+function sr_community_release_error(string $message): void
 {
     global $errors;
     $errors[] = $message;
 }
 
-function toy_community_release_array_file(string $path): array
+function sr_community_release_array_file(string $path): array
 {
     if (!is_file($path)) {
-        toy_community_release_error('Required community release file is missing: ' . $path);
+        sr_community_release_error('Required community release file is missing: ' . $path);
         return [];
     }
 
     $value = include $path;
     if (!is_array($value)) {
-        toy_community_release_error('Community release file must return an array: ' . $path);
+        sr_community_release_error('Community release file must return an array: ' . $path);
         return [];
     }
 
     return $value;
 }
 
-function toy_community_release_value_file(string $path): mixed
+function sr_community_release_value_file(string $path): mixed
 {
     if (!is_file($path)) {
-        toy_community_release_error('Required community release file is missing: ' . $path);
+        sr_community_release_error('Required community release file is missing: ' . $path);
         return null;
     }
 
     return include $path;
 }
 
-function toy_community_release_require_list_values(array $actualValues, array $requiredValues, string $label): void
+function sr_community_release_require_list_values(array $actualValues, array $requiredValues, string $label): void
 {
     foreach ($requiredValues as $requiredValue) {
         if (!in_array($requiredValue, $actualValues, true)) {
-            toy_community_release_error($label . ' is missing required value: ' . $requiredValue);
+            sr_community_release_error($label . ' is missing required value: ' . $requiredValue);
         }
     }
 }
 
-function toy_community_release_file_contains(string $path, array $needles, string $label): void
+function sr_community_release_file_contains(string $path, array $needles, string $label): void
 {
     if (!is_file($path)) {
-        toy_community_release_error('Required community release file is missing: ' . $path);
+        sr_community_release_error('Required community release file is missing: ' . $path);
         return;
     }
 
     $content = file_get_contents($path);
     if (!is_string($content)) {
-        toy_community_release_error('Required community release file cannot be read: ' . $path);
+        sr_community_release_error('Required community release file cannot be read: ' . $path);
         return;
     }
 
@@ -68,12 +68,12 @@ function toy_community_release_file_contains(string $path, array $needles, strin
     foreach ($needles as $needle) {
         $normalizedNeedle = str_replace(["\r\n", "\r"], "\n", (string) $needle);
         if (!str_contains($normalizedContent, $normalizedNeedle)) {
-            toy_community_release_error($label . ' must contain: ' . $needle);
+            sr_community_release_error($label . ' must contain: ' . $needle);
         }
     }
 }
 
-function toy_community_release_files(string $directory, array $extensions): array
+function sr_community_release_files(string $directory, array $extensions): array
 {
     $files = [];
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
@@ -87,7 +87,7 @@ function toy_community_release_files(string $directory, array $extensions): arra
     return $files;
 }
 
-function toy_community_release_package_entries(string $directory): array
+function sr_community_release_package_entries(string $directory): array
 {
     $entries = [];
     foreach (new DirectoryIterator($directory) as $entry) {
@@ -102,7 +102,7 @@ function toy_community_release_package_entries(string $directory): array
     return $entries;
 }
 
-function toy_community_release_directory_is_empty(string $directory): bool
+function sr_community_release_directory_is_empty(string $directory): bool
 {
     if (!is_dir($directory)) {
         return true;
@@ -117,33 +117,33 @@ function toy_community_release_directory_is_empty(string $directory): bool
     return true;
 }
 
-$module = toy_community_release_array_file('modules/community/module.php');
-$paths = toy_community_release_array_file('modules/community/paths.php');
-$adminMenu = toy_community_release_array_file('modules/community/admin-menu.php');
-$menuLinks = toy_community_release_array_file('modules/community/menu-links.php');
-$extensionPoints = toy_community_release_array_file('modules/community/extension-points.php');
-$memberGroupRules = toy_community_release_array_file('modules/community/member-group-rules.php');
-$privacyExport = toy_community_release_value_file('modules/community/privacy-export.php');
-$sitemap = toy_community_release_value_file('modules/community/sitemap.php');
+$module = sr_community_release_array_file('modules/community/module.php');
+$paths = sr_community_release_array_file('modules/community/paths.php');
+$adminMenu = sr_community_release_array_file('modules/community/admin-menu.php');
+$menuLinks = sr_community_release_array_file('modules/community/menu-links.php');
+$extensionPoints = sr_community_release_array_file('modules/community/extension-points.php');
+$memberGroupRules = sr_community_release_array_file('modules/community/member-group-rules.php');
+$privacyExport = sr_community_release_value_file('modules/community/privacy-export.php');
+$sitemap = sr_community_release_value_file('modules/community/sitemap.php');
 
 if ((string) ($module['version'] ?? '') !== '2026.05.008') {
-    toy_community_release_error('Community module version must be 2026.05.008.');
+    sr_community_release_error('Community module version must be 2026.05.008.');
 }
 
-toy_community_release_file_contains('index.php', [
-    "toy_enabled_module_contract_files(\$pdo, 'paths.php')",
+sr_community_release_file_contains('index.php', [
+    "sr_enabled_module_contract_files(\$pdo, 'paths.php')",
 ], 'Front controller route loading');
-toy_community_release_file_contains('core/actions/install.php', [
+sr_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
     "'version' => '2026.05.008'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
-toy_community_release_file_contains('.tools/bin/smoke-http.php', [
-    'TOY_SMOKE_EXPECT_COMMUNITY=1',
-    '$expectCommunity = getenv(\'TOY_SMOKE_EXPECT_COMMUNITY\') === \'1\'',
+sr_community_release_file_contains('.tools/bin/smoke-http.php', [
+    'SR_SMOKE_EXPECT_COMMUNITY=1',
+    '$expectCommunity = getenv(\'SR_SMOKE_EXPECT_COMMUNITY\') === \'1\'',
     '$check[\'expect_installed_route\'] = true',
-    'returned 404 while TOY_SMOKE_EXPECT_COMMUNITY=1',
+    'returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1',
 ], 'Community installed HTTP smoke mode');
 
 $requiredPackageEntries = [
@@ -167,29 +167,29 @@ $allowedPackageEntries = array_merge($requiredPackageEntries, [
     'lang',
     'updates',
 ]);
-$packageEntries = toy_community_release_package_entries('modules/community');
-toy_community_release_require_list_values($packageEntries, $requiredPackageEntries, 'Community package structure');
+$packageEntries = sr_community_release_package_entries('modules/community');
+sr_community_release_require_list_values($packageEntries, $requiredPackageEntries, 'Community package structure');
 foreach ($packageEntries as $entry) {
     if (!in_array($entry, $allowedPackageEntries, true)) {
-        toy_community_release_error('Community v1 package must not include unexpected top-level entry: modules/community/' . $entry);
+        sr_community_release_error('Community v1 package must not include unexpected top-level entry: modules/community/' . $entry);
     }
 }
 
-if (!toy_community_release_directory_is_empty('modules/community/lang')) {
-    toy_community_release_error('Community v1 package must not include lang files before translation support is introduced.');
+if (!sr_community_release_directory_is_empty('modules/community/lang')) {
+    sr_community_release_error('Community v1 package must not include lang files before translation support is introduced.');
 }
 
-if (toy_community_release_directory_is_empty('modules/community/updates')) {
-    toy_community_release_error('Community module updates directory must include schema updates after 2026.05.001.');
+if (sr_community_release_directory_is_empty('modules/community/updates')) {
+    sr_community_release_error('Community module updates directory must include schema updates after 2026.05.001.');
 }
-toy_community_release_file_contains('modules/community/updates/2026.05.004.sql', [
+sr_community_release_file_contains('modules/community/updates/2026.05.004.sql', [
     "(10, '레벨 10', '커뮤니티 활동 점수 3000점 이상입니다.', 3000, 'enabled', 100, NOW(), NOW())",
     "SET version = '2026.05.004'",
 ], 'Community 2026.05.004 update');
 
 foreach (['actions', 'helpers', 'skins', 'themes', 'views'] as $requiredDirectory) {
     if (!is_dir('modules/community/' . $requiredDirectory)) {
-        toy_community_release_error('Community package directory is missing: modules/community/' . $requiredDirectory);
+        sr_community_release_error('Community package directory is missing: modules/community/' . $requiredDirectory);
     }
 }
 
@@ -205,12 +205,12 @@ $requiredContracts = [
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))
     : [];
-toy_community_release_require_list_values($provides, $requiredContracts, 'Community contracts.provides');
+sr_community_release_require_list_values($provides, $requiredContracts, 'Community contracts.provides');
 
 $requiredModules = isset($module['requires']['modules']) && is_array($module['requires']['modules'])
     ? array_values(array_map('strval', $module['requires']['modules']))
     : [];
-toy_community_release_require_list_values($requiredModules, ['member', 'admin'], 'Community requires.modules');
+sr_community_release_require_list_values($requiredModules, ['member', 'admin'], 'Community requires.modules');
 
 $requiredRoutes = [
     'GET /community',
@@ -244,11 +244,11 @@ $requiredRoutes = [
     'GET /admin/community/reports',
     'POST /admin/community/reports',
 ];
-toy_community_release_require_list_values(array_keys($paths), $requiredRoutes, 'Community paths.php');
+sr_community_release_require_list_values(array_keys($paths), $requiredRoutes, 'Community paths.php');
 foreach ($requiredRoutes as $route) {
     $actionPath = (string) ($paths[$route] ?? '');
     if (preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $actionPath) !== 1 || !is_file('modules/community/' . $actionPath)) {
-        toy_community_release_error('Community paths.php route must map to an existing action file: ' . $route);
+        sr_community_release_error('Community paths.php route must map to an existing action file: ' . $route);
     }
 }
 
@@ -260,9 +260,9 @@ foreach ($adminMenuItems as $entry) {
     }
 }
 if (($adminMenu['label'] ?? null) !== '커뮤니티') {
-    toy_community_release_error('Community admin-menu.php must use the community module group label.');
+    sr_community_release_error('Community admin-menu.php must use the community module group label.');
 }
-toy_community_release_require_list_values($adminMenuPaths, [
+sr_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/settings',
     '/admin/community/boards',
     '/admin/community/board-groups',
@@ -273,23 +273,23 @@ toy_community_release_require_list_values($adminMenuPaths, [
 $menuLinkUrls = [];
 foreach ($menuLinks as $entry) {
     if (!is_array($entry)) {
-        toy_community_release_error('Community menu-links.php entries must be arrays.');
+        sr_community_release_error('Community menu-links.php entries must be arrays.');
         continue;
     }
 
     $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
     $url = is_string($entry['url'] ?? null) ? (string) $entry['url'] : '';
     if ($label === '' || $url === '') {
-        toy_community_release_error('Community menu-links.php entries must include label and url.');
+        sr_community_release_error('Community menu-links.php entries must include label and url.');
         continue;
     }
     if ($url[0] !== '/' && preg_match('#\Ahttps?://#', $url) !== 1) {
-        toy_community_release_error('Community menu-links.php url must be an internal path or http(s) URL: ' . $url);
+        sr_community_release_error('Community menu-links.php url must be an internal path or http(s) URL: ' . $url);
     }
 
     $menuLinkUrls[] = $url;
 }
-toy_community_release_require_list_values($menuLinkUrls, [
+sr_community_release_require_list_values($menuLinkUrls, [
     '/community',
     '/community/scraps',
     '/community/messages',
@@ -298,40 +298,40 @@ toy_community_release_require_list_values($menuLinkUrls, [
 $pointKeys = [];
 foreach ($extensionPoints as $entry) {
     if (!is_array($entry)) {
-        toy_community_release_error('Community extension-points.php entries must be arrays.');
+        sr_community_release_error('Community extension-points.php entries must be arrays.');
         continue;
     }
 
     $pointKey = is_string($entry['point_key'] ?? null) ? (string) $entry['point_key'] : '';
     $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
     if ($pointKey === '' || $label === '') {
-        toy_community_release_error('Community extension-points.php entries must include point_key and label.');
+        sr_community_release_error('Community extension-points.php entries must include point_key and label.');
         continue;
     }
     if (!isset($entry['slots']) || !is_array($entry['slots']) || $entry['slots'] === []) {
-        toy_community_release_error('Community extension-points.php entries must include non-empty slots: ' . $pointKey);
+        sr_community_release_error('Community extension-points.php entries must include non-empty slots: ' . $pointKey);
         continue;
     }
 
     foreach ($entry['slots'] as $slot) {
         if (!is_array($slot) || !is_string($slot['slot_key'] ?? null) || trim((string) $slot['slot_key']) === '') {
-            toy_community_release_error('Community extension-points.php slots must include slot_key: ' . $pointKey);
+            sr_community_release_error('Community extension-points.php slots must include slot_key: ' . $pointKey);
             continue;
         }
         if (!is_string($slot['kind'] ?? null) || (string) $slot['kind'] !== 'content') {
-            toy_community_release_error('Community extension-points.php slots must use content kind: ' . $pointKey . ' ' . (string) $slot['slot_key']);
+            sr_community_release_error('Community extension-points.php slots must use content kind: ' . $pointKey . ' ' . (string) $slot['slot_key']);
         }
     }
 
     $pointKeys[] = $pointKey;
 }
-toy_community_release_require_list_values($pointKeys, [
+sr_community_release_require_list_values($pointKeys, [
     'community.home',
     'community.board.list',
     'community.post.view',
     'community.post.form',
 ], 'Community extension-points.php');
-toy_community_release_file_contains('modules/community/extension-points.php', [
+sr_community_release_file_contains('modules/community/extension-points.php', [
     "'point_key' => 'community.post.view'",
     "'slot_key' => 'before_content'",
     "'slot_key' => 'after_content'",
@@ -341,24 +341,24 @@ toy_community_release_file_contains('modules/community/extension-points.php', [
 ], 'Community extension-points.php major surfaces');
 
 if (!is_callable($privacyExport)) {
-    toy_community_release_error('Community privacy-export.php must return a callable.');
+    sr_community_release_error('Community privacy-export.php must return a callable.');
 }
 
 if (!is_callable($sitemap)) {
-    toy_community_release_error('Community sitemap.php must return a callable.');
+    sr_community_release_error('Community sitemap.php must return a callable.');
 }
 
-toy_community_release_file_contains('modules/community/sitemap.php', [
+sr_community_release_file_contains('modules/community/sitemap.php', [
     "WHERE status = 'enabled'",
-    'toy_community_account_can_read_board($pdo, $board, null)',
+    'sr_community_account_can_read_board($pdo, $board, null)',
     "WHERE p.status = 'published'",
     "AND b.status = 'enabled'",
-    'toy_community_account_can_read_board($pdo, $board, null)',
+    'sr_community_account_can_read_board($pdo, $board, null)',
     "'loc' => '/community/board?key='",
     "'loc' => '/community/post?id='",
 ], 'Community sitemap.php');
 
-toy_community_release_file_contains('modules/community/privacy-export.php', [
+sr_community_release_file_contains('modules/community/privacy-export.php', [
     "'posts' => []",
     "'comments' => []",
     "'attachments' => []",
@@ -375,13 +375,13 @@ toy_community_release_file_contains('modules/community/privacy-export.php', [
 ], 'Community privacy-export.php');
 $privacyExportContent = is_file('modules/community/privacy-export.php') ? (string) file_get_contents('modules/community/privacy-export.php') : '';
 if (str_contains($privacyExportContent, 'checksum_sha256')) {
-    toy_community_release_error('Community privacy export must not include attachment checksum hashes.');
+    sr_community_release_error('Community privacy export must not include attachment checksum hashes.');
 }
 
 $memberGroupRuleKeys = [];
 foreach ($memberGroupRules as $entry) {
     if (!is_array($entry)) {
-        toy_community_release_error('Community member-group-rules.php entries must be arrays.');
+        sr_community_release_error('Community member-group-rules.php entries must be arrays.');
         continue;
     }
 
@@ -389,122 +389,122 @@ foreach ($memberGroupRules as $entry) {
     $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
     $evaluator = is_string($entry['evaluator'] ?? null) ? (string) $entry['evaluator'] : '';
     if ($ruleKey === '' || $label === '' || $evaluator === '') {
-        toy_community_release_error('Community member-group-rules.php entries must include rule_key, label, and evaluator.');
+        sr_community_release_error('Community member-group-rules.php entries must include rule_key, label, and evaluator.');
         continue;
     }
     if (!str_starts_with($ruleKey, 'community.')) {
-        toy_community_release_error('Community member-group-rules.php rule_key must start with community.: ' . $ruleKey);
+        sr_community_release_error('Community member-group-rules.php rule_key must start with community.: ' . $ruleKey);
     }
     if (!function_exists($evaluator)) {
-        toy_community_release_error('Community member-group-rules.php evaluator must exist: ' . $evaluator);
+        sr_community_release_error('Community member-group-rules.php evaluator must exist: ' . $evaluator);
     }
     if (!isset($entry['params']) || !is_array($entry['params']) || $entry['params'] === []) {
-        toy_community_release_error('Community member-group-rules.php entries must include non-empty params: ' . $ruleKey);
+        sr_community_release_error('Community member-group-rules.php entries must include non-empty params: ' . $ruleKey);
     }
 
     $memberGroupRuleKeys[] = $ruleKey;
 }
-toy_community_release_require_list_values($memberGroupRuleKeys, [
+sr_community_release_require_list_values($memberGroupRuleKeys, [
     'community.board.post_count_at_least',
 ], 'Community member-group-rules.php');
 
 $installSql = is_file('modules/community/install.sql') ? (string) file_get_contents('modules/community/install.sql') : '';
 if ($installSql === '') {
-    toy_community_release_error('Community install.sql must not be empty.');
+    sr_community_release_error('Community install.sql must not be empty.');
 }
 
 $requiredTables = [
-    'toy_community_board_groups',
-    'toy_community_boards',
-    'toy_community_board_settings',
-    'toy_community_board_group_settings',
-    'toy_community_board_setting_sources',
-    'toy_community_posts',
-    'toy_community_comments',
-    'toy_community_attachments',
-    'toy_community_reports',
-    'toy_community_messages',
-    'toy_community_scraps',
-    'toy_community_levels',
-    'toy_community_account_levels',
-    'toy_community_level_logs',
+    'sr_community_board_groups',
+    'sr_community_boards',
+    'sr_community_board_settings',
+    'sr_community_board_group_settings',
+    'sr_community_board_setting_sources',
+    'sr_community_posts',
+    'sr_community_comments',
+    'sr_community_attachments',
+    'sr_community_reports',
+    'sr_community_messages',
+    'sr_community_scraps',
+    'sr_community_levels',
+    'sr_community_account_levels',
+    'sr_community_level_logs',
 ];
 foreach ($requiredTables as $tableName) {
     if (!str_contains($installSql, 'CREATE TABLE IF NOT EXISTS ' . $tableName)) {
-        toy_community_release_error('Community install.sql is missing table: ' . $tableName);
+        sr_community_release_error('Community install.sql is missing table: ' . $tableName);
     }
 }
 
 $requiredInstallFragments = [
-    'toy_community_boards' => [
+    'sr_community_boards' => [
         'board_group_id BIGINT UNSIGNED NULL',
         'board_key VARCHAR(60) NOT NULL',
-        'UNIQUE KEY uq_toy_community_boards_key (board_key)',
-        'KEY idx_toy_community_boards_group_sort (board_group_id, sort_order, id)',
+        'UNIQUE KEY uq_sr_community_boards_key (board_key)',
+        'KEY idx_sr_community_boards_group_sort (board_group_id, sort_order, id)',
         "('free', '자유게시판', '기본 커뮤니티 게시판입니다.', 'enabled', 'public', 'member', 'member', 1, 10, NOW(), NOW())",
     ],
-    'toy_community_board_groups' => [
-        'UNIQUE KEY uq_toy_community_board_groups_key (group_key)',
-        'KEY idx_toy_community_board_groups_status_sort (status, sort_order, id)',
+    'sr_community_board_groups' => [
+        'UNIQUE KEY uq_sr_community_board_groups_key (group_key)',
+        'KEY idx_sr_community_board_groups_status_sort (status, sort_order, id)',
     ],
-    'toy_community_board_group_settings' => [
-        'UNIQUE KEY uq_toy_community_board_group_settings_key (group_id, setting_key)',
+    'sr_community_board_group_settings' => [
+        'UNIQUE KEY uq_sr_community_board_group_settings_key (group_id, setting_key)',
     ],
-    'toy_community_board_setting_sources' => [
-        'UNIQUE KEY uq_toy_community_board_setting_sources_key (board_id, setting_key)',
+    'sr_community_board_setting_sources' => [
+        'UNIQUE KEY uq_sr_community_board_setting_sources_key (board_id, setting_key)',
     ],
-    'toy_community_posts' => [
+    'sr_community_posts' => [
         'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
-        'KEY idx_toy_community_posts_board_status_id (board_id, status, id)',
-        'KEY idx_toy_community_posts_author_id (author_account_id, id)',
+        'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',
+        'KEY idx_sr_community_posts_author_id (author_account_id, id)',
     ],
-    'toy_community_comments' => [
-        'KEY idx_toy_community_comments_post_status_id (post_id, status, id)',
-        'KEY idx_toy_community_comments_author_id (author_account_id, id)',
+    'sr_community_comments' => [
+        'KEY idx_sr_community_comments_post_status_id (post_id, status, id)',
+        'KEY idx_sr_community_comments_author_id (author_account_id, id)',
     ],
-    'toy_community_attachments' => [
+    'sr_community_attachments' => [
         'checksum_sha256 CHAR(64) NOT NULL',
-        'KEY idx_toy_community_attachments_checksum (checksum_sha256)',
+        'KEY idx_sr_community_attachments_checksum (checksum_sha256)',
     ],
-    'toy_community_reports' => [
-        'UNIQUE KEY uq_toy_community_reports_target_reporter (reporter_account_id, target_type, target_id)',
-        'KEY idx_toy_community_reports_status_created (status, created_at)',
+    'sr_community_reports' => [
+        'UNIQUE KEY uq_sr_community_reports_target_reporter (reporter_account_id, target_type, target_id)',
+        'KEY idx_sr_community_reports_status_created (status, created_at)',
     ],
-    'toy_community_messages' => [
+    'sr_community_messages' => [
         'sender_deleted_at DATETIME NULL',
         'recipient_deleted_at DATETIME NULL',
-        'KEY idx_toy_community_messages_recipient_deleted_id (recipient_account_id, recipient_deleted_at, id)',
-        'KEY idx_toy_community_messages_sender_deleted_id (sender_account_id, sender_deleted_at, id)',
+        'KEY idx_sr_community_messages_recipient_deleted_id (recipient_account_id, recipient_deleted_at, id)',
+        'KEY idx_sr_community_messages_sender_deleted_id (sender_account_id, sender_deleted_at, id)',
     ],
-    'toy_community_scraps' => [
-        'UNIQUE KEY uq_toy_community_scraps_account_post (account_id, post_id)',
-        'KEY idx_toy_community_scraps_account_id (account_id, id)',
+    'sr_community_scraps' => [
+        'UNIQUE KEY uq_sr_community_scraps_account_post (account_id, post_id)',
+        'KEY idx_sr_community_scraps_account_id (account_id, id)',
     ],
-    'toy_community_levels' => [
-        'UNIQUE KEY uq_toy_community_levels_value (level_value)',
-        'KEY idx_toy_community_levels_status_score (status, min_score, level_value)',
+    'sr_community_levels' => [
+        'UNIQUE KEY uq_sr_community_levels_value (level_value)',
+        'KEY idx_sr_community_levels_status_score (status, min_score, level_value)',
         "(10, '레벨 10', '커뮤니티 활동 점수 3000점 이상입니다.', 3000, 'enabled', 100, NOW(), NOW())",
     ],
-    'toy_community_account_levels' => [
-        'UNIQUE KEY uq_toy_community_account_levels_account (account_id)',
-        'KEY idx_toy_community_account_levels_level (level_value, account_id)',
+    'sr_community_account_levels' => [
+        'UNIQUE KEY uq_sr_community_account_levels_account (account_id)',
+        'KEY idx_sr_community_account_levels_level (level_value, account_id)',
     ],
-    'toy_community_level_logs' => [
-        'KEY idx_toy_community_level_logs_account_id (account_id, id)',
+    'sr_community_level_logs' => [
+        'KEY idx_sr_community_level_logs_account_id (account_id, id)',
     ],
 ];
 foreach ($requiredInstallFragments as $installArea => $fragments) {
     foreach ($fragments as $fragment) {
         if (!str_contains($installSql, $fragment)) {
-            toy_community_release_error('Community install.sql is missing required ' . $installArea . ' fragment: ' . $fragment);
+            sr_community_release_error('Community install.sql is missing required ' . $installArea . ' fragment: ' . $fragment);
         }
     }
 }
 
 preg_match_all('/CREATE TABLE IF NOT EXISTS\s+([a-z0-9_]+)/i', $installSql, $matches);
 foreach ($matches[1] as $tableName) {
-    if (!str_starts_with(strtolower((string) $tableName), 'toy_community_')) {
-        toy_community_release_error('Community install.sql must only create toy_community_* tables: ' . (string) $tableName);
+    if (!str_starts_with(strtolower((string) $tableName), 'sr_community_')) {
+        sr_community_release_error('Community install.sql must only create sr_community_* tables: ' . (string) $tableName);
     }
 }
 
@@ -524,347 +524,347 @@ $memberOnlyActions = [
     'modules/community/actions/message-delete.php',
 ];
 foreach ($memberOnlyActions as $actionPath) {
-    toy_community_release_file_contains($actionPath, ['toy_member_require_login($pdo)'], $actionPath);
+    sr_community_release_file_contains($actionPath, ['sr_member_require_login($pdo)'], $actionPath);
 }
 
-toy_community_release_file_contains('modules/community/actions/attachment.php', [
-    'toy_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null)',
-    'toy_community_attachment_read_board($pdo, $attachmentId)',
-    "toy_community_effective_board_policy(\$pdo, \$board, 'read_policy')",
-    'toy_member_require_login($pdo)',
-    'toy_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)',
-    'toy_community_attachment_mime_is_allowed($mimeType)',
+sr_community_release_file_contains('modules/community/actions/attachment.php', [
+    'sr_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null)',
+    'sr_community_attachment_read_board($pdo, $attachmentId)',
+    "sr_community_effective_board_policy(\$pdo, \$board, 'read_policy')",
+    'sr_member_require_login($pdo)',
+    'sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)',
+    'sr_community_attachment_mime_is_allowed($mimeType)',
     'hash_equals($recordedChecksum, $actualChecksum)',
     "header('X-Content-Type-Options: nosniff')",
     "header('Cache-Control: private, no-store, no-cache, must-revalidate')",
-    'toy_finish_response()',
+    'sr_finish_response()',
 ], 'Community attachment response');
-toy_community_release_file_contains('modules/community/helpers/attachments.php', [
+sr_community_release_file_contains('modules/community/helpers/attachments.php', [
     "WHERE id = :id\n           AND status = 'active'",
-    'toy_community_post_for_read($pdo, (int) $attachment[\'post_id\'], $account)',
+    'sr_community_post_for_read($pdo, (int) $attachment[\'post_id\'], $account)',
     "p.status = 'published'",
     "b.status = 'enabled'",
-    'function toy_community_upload_post_files',
-    'function toy_community_attachment_is_image',
-    'function toy_community_file_extension_mime_map',
-    "realpath(TOY_ROOT . '/storage')",
+    'function sr_community_upload_post_files',
+    'function sr_community_attachment_is_image',
+    'function sr_community_file_extension_mime_map',
+    "realpath(SR_ROOT . '/storage')",
     'str_starts_with($realPath, $storagePrefix)',
 ], 'Community attachment helpers');
 
-toy_community_release_file_contains('modules/community/actions/write.php', [
-    'toy_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'toy_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)',
-    'toy_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
-    'toy_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
-    'toy_member_group_evaluate_account($pdo, (int) $account[\'id\'], [',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'post_created\')',
-    'toy_community_upload_post_image($pdo, $postId, (int) $account[\'id\'], $_FILES[\'image_attachment\'], $settings)',
-    'toy_community_upload_post_files($pdo, $postId, (int) $account[\'id\'], $_FILES[\'file_attachments\'], $settings)',
+sr_community_release_file_contains('modules/community/actions/write.php', [
+    'sr_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)',
+    'sr_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_member_group_evaluate_account($pdo, (int) $account[\'id\'], [',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'post_created\')',
+    'sr_community_upload_post_image($pdo, $postId, (int) $account[\'id\'], $_FILES[\'image_attachment\'], $settings)',
+    'sr_community_upload_post_files($pdo, $postId, (int) $account[\'id\'], $_FILES[\'file_attachments\'], $settings)',
     "'event_type' => 'community.attachment.created'",
     "'event_type' => 'community.post.created'",
-    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+    'sr_community_member_group_evaluation_metadata($groupEvaluationSummary)',
 ], 'Community write action policy');
-toy_community_release_file_contains('modules/community/actions/view.php', [
-    '$postBoard = toy_community_board_by_id($pdo, (int) $post[\'board_id\'])',
+sr_community_release_file_contains('modules/community/actions/view.php', [
+    '$postBoard = sr_community_board_by_id($pdo, (int) $post[\'board_id\'])',
     "'banner_before_view_id'",
     "'banner_after_view_id'",
     "'popup_layer_view_id'",
 ], 'Community view display settings');
-toy_community_release_file_contains('modules/community/actions/edit.php', [
-    '$board = toy_community_board_by_id($pdo, (int) $post[\'board_id\'])',
+sr_community_release_file_contains('modules/community/actions/edit.php', [
+    '$board = sr_community_board_by_id($pdo, (int) $post[\'board_id\'])',
     "'board_key' => (string) \$post['board_key']",
 ], 'Community edit form board settings');
-toy_community_release_file_contains('modules/community/skins/basic/view.php', [
-    'toy_popup_layer_render_public_layer($pdo, (int) ($post[\'popup_layer_view_id\'] ?? 0))',
-    'toy_banner_render_public_banner($pdo, (int) ($post[\'banner_before_view_id\'] ?? 0))',
-    'toy_banner_render_public_banner($pdo, (int) ($post[\'banner_after_view_id\'] ?? 0))',
+sr_community_release_file_contains('modules/community/skins/basic/view.php', [
+    'sr_popup_layer_render_public_layer($pdo, (int) ($post[\'popup_layer_view_id\'] ?? 0))',
+    'sr_banner_render_public_banner($pdo, (int) ($post[\'banner_before_view_id\'] ?? 0))',
+    'sr_banner_render_public_banner($pdo, (int) ($post[\'banner_after_view_id\'] ?? 0))',
 ], 'Community post view public display');
-toy_community_release_file_contains('modules/community/skins/basic/form.php', [
-    'toy_popup_layer_render_public_layer($pdo, (int) ($board[\'popup_layer_form_id\'] ?? 0))',
-    'toy_banner_render_public_banner($pdo, (int) ($board[\'banner_before_form_id\'] ?? 0))',
-    'toy_banner_render_public_banner($pdo, (int) ($board[\'banner_after_form_id\'] ?? 0))',
+sr_community_release_file_contains('modules/community/skins/basic/form.php', [
+    'sr_popup_layer_render_public_layer($pdo, (int) ($board[\'popup_layer_form_id\'] ?? 0))',
+    'sr_banner_render_public_banner($pdo, (int) ($board[\'banner_before_form_id\'] ?? 0))',
+    'sr_banner_render_public_banner($pdo, (int) ($board[\'banner_after_form_id\'] ?? 0))',
 ], 'Community post form public display');
-toy_community_release_file_contains('modules/community/actions/delete.php', [
-    'toy_community_account_can_delete_post($post, $account)',
-    'toy_community_update_post_status($pdo, $postId, \'deleted\')',
-    'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_deleted\')',
-    'toy_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
+sr_community_release_file_contains('modules/community/actions/delete.php', [
+    'sr_community_account_can_delete_post($post, $account)',
+    'sr_community_update_post_status($pdo, $postId, \'deleted\')',
+    'sr_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_deleted\')',
+    'sr_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
     "'event_type' => 'community.post.deleted_by_author'",
-    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+    'sr_community_member_group_evaluation_metadata($groupEvaluationSummary)',
 ], 'Community delete action policy');
 
-toy_community_release_file_contains('modules/community/actions/comment.php', [
-    'toy_community_account_can_comment_post($pdo, $post, $account)',
-    'toy_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',
-    'toy_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'comment_created\')',
+sr_community_release_file_contains('modules/community/actions/comment.php', [
+    'sr_community_account_can_comment_post($pdo, $post, $account)',
+    'sr_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $account[\'id\'], $settings, \'comment_created\')',
     "'event_type' => 'community.comment.created'",
-    'toy_community_create_account_notification(',
+    'sr_community_create_account_notification(',
     "(int) \$post['author_account_id'] !== (int) \$account['id']",
 ], 'Community comment action policy');
-toy_community_release_file_contains('modules/community/actions/comment-edit.php', [
-    'toy_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
-    'toy_community_account_can_edit_comment($comment, $account)',
-    'toy_community_update_comment_content($pdo, $commentId, $values)',
+sr_community_release_file_contains('modules/community/actions/comment-edit.php', [
+    'sr_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
+    'sr_community_account_can_edit_comment($comment, $account)',
+    'sr_community_update_comment_content($pdo, $commentId, $values)',
     "'event_type' => 'community.comment.updated_by_author'",
 ], 'Community comment edit action policy');
-toy_community_release_file_contains('modules/community/actions/comment-delete.php', [
-    'toy_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
-    'toy_community_account_can_delete_comment($comment, $account)',
-    'toy_community_update_comment_status($pdo, $commentId, \'deleted\')',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_deleted\')',
+sr_community_release_file_contains('modules/community/actions/comment-delete.php', [
+    'sr_community_post_for_read($pdo, (int) $comment[\'post_id\'], $account)',
+    'sr_community_account_can_delete_comment($comment, $account)',
+    'sr_community_update_comment_status($pdo, $commentId, \'deleted\')',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_deleted\')',
     "'event_type' => 'community.comment.deleted_by_author'",
 ], 'Community comment delete action policy');
-toy_community_release_file_contains('modules/community/actions/report.php', [
-    'toy_community_report_target($pdo, $targetType, $targetId, (int) $account[\'id\'])',
-    'in_array($reasonKey, toy_community_report_reason_keys(), true)',
+sr_community_release_file_contains('modules/community/actions/report.php', [
+    'sr_community_report_target($pdo, $targetType, $targetId, (int) $account[\'id\'])',
+    'in_array($reasonKey, sr_community_report_reason_keys(), true)',
     '(int) $target[\'reported_account_id\'] === (int) $account[\'id\']',
-    'toy_community_report_rate_limited($pdo, (int) $account[\'id\'], $settings)',
-    'toy_community_report_exists($pdo, (int) $account[\'id\'], (string) $target[\'target_type\'], (int) $target[\'target_id\'])',
-    'toy_community_record_report_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_report_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_report_exists($pdo, (int) $account[\'id\'], (string) $target[\'target_type\'], (int) $target[\'target_id\'])',
+    'sr_community_record_report_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     "'event_type' => 'community.report.created'",
-    'toy_community_create_admin_report_notifications(',
+    'sr_community_create_admin_report_notifications(',
 ], 'Community report action policy');
 
-toy_community_release_file_contains('modules/community/actions/message-write.php', [
-    "toy_get_string('to_account', 40)",
-    'toy_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
+sr_community_release_file_contains('modules/community/actions/message-write.php', [
+    "sr_get_string('to_account', 40)",
+    'sr_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)',
     "'recipient_identifier' => ''",
 ], 'Community message write recipient preset');
 $messageWriteContent = is_file('modules/community/actions/message-write.php') ? (string) file_get_contents('modules/community/actions/message-write.php') : '';
-if (str_contains($messageWriteContent, "toy_get_string('to',")) {
-    toy_community_release_error('Community message write must not accept recipient identifier from GET to parameter; use to_account public hash.');
+if (str_contains($messageWriteContent, "sr_get_string('to',")) {
+    sr_community_release_error('Community message write must not accept recipient identifier from GET to parameter; use to_account public hash.');
 }
-toy_community_release_file_contains('modules/community/actions/scrap-toggle.php', [
-    'toy_community_remove_scrap($pdo, (int) $account[\'id\'], $postId)',
-    'toy_community_post_for_read($pdo, $postId, $account)',
-    'toy_community_add_scrap($pdo, (int) $account[\'id\'], $postId)',
+sr_community_release_file_contains('modules/community/actions/scrap-toggle.php', [
+    'sr_community_remove_scrap($pdo, (int) $account[\'id\'], $postId)',
+    'sr_community_post_for_read($pdo, $postId, $account)',
+    'sr_community_add_scrap($pdo, (int) $account[\'id\'], $postId)',
     "'event_type' => 'community.scrap.added'",
     "'event_type' => 'community.scrap.removed'",
 ], 'Community scrap action policy');
-toy_community_release_file_contains('modules/community/helpers/scraps.php', [
-    'INSERT IGNORE INTO toy_community_scraps',
+sr_community_release_file_contains('modules/community/helpers/scraps.php', [
+    'INSERT IGNORE INTO sr_community_scraps',
     'WHERE s.account_id = :account_id',
     '$scrap[\'can_view\'] = (string) ($scrap[\'post_status\'] ?? \'\') === \'published\'',
-    'toy_community_account_can_read_board($pdo, $board, $account)',
+    'sr_community_account_can_read_board($pdo, $board, $account)',
 ], 'Community scrap helper policy');
-toy_community_release_file_contains('modules/community/actions/message-write.php', [
-    'toy_member_public_account_summary_by_hash($pdo, $config, (string) $values[\'recipient_account_hash\'])',
-    'toy_member_find_by_identifier($pdo, $config, (string) $values[\'recipient_identifier\'])',
+sr_community_release_file_contains('modules/community/actions/message-write.php', [
+    'sr_member_public_account_summary_by_hash($pdo, $config, (string) $values[\'recipient_account_hash\'])',
+    'sr_member_find_by_identifier($pdo, $config, (string) $values[\'recipient_identifier\'])',
     '(int) $recipient[\'id\'] === (int) $account[\'id\']',
-    'toy_community_message_rate_limited($pdo, (int) $account[\'id\'], $settings)',
-    'toy_community_account_can_write_message($pdo, $account, $settings)',
-    'toy_community_record_message_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_message_rate_limited($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_account_can_write_message($pdo, $account, $settings)',
+    'sr_community_record_message_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     "'event_type' => 'community.message.sent'",
-    'toy_community_create_account_notification(',
+    'sr_community_create_account_notification(',
 ], 'Community message write policy');
-toy_community_release_file_contains('modules/community/actions/message-delete.php', [
-    'toy_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])',
-    'toy_community_soft_delete_message($pdo, $message, (int) $account[\'id\'])',
+sr_community_release_file_contains('modules/community/actions/message-delete.php', [
+    'sr_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])',
+    'sr_community_soft_delete_message($pdo, $message, (int) $account[\'id\'])',
     "'event_type' => 'community.message.deleted_by_account'",
 ], 'Community message delete policy');
-toy_community_release_file_contains('modules/community/helpers/messages.php', [
+sr_community_release_file_contains('modules/community/helpers/messages.php', [
     'recipient_account_hash',
-    'toy_member_public_account_hash_is_valid($recipientAccountHash)',
-    'toy_post_string_without_truncation(\'body_text\', 5000)',
-    'toy_rate_limit_count($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
-    'toy_rate_limit_increment($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
-    'UPDATE toy_community_messages SET sender_deleted_at = :deleted_at',
-    'UPDATE toy_community_messages SET recipient_deleted_at = :deleted_at',
+    'sr_member_public_account_hash_is_valid($recipientAccountHash)',
+    'sr_post_string_without_truncation(\'body_text\', 5000)',
+    'sr_rate_limit_count($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
+    'sr_rate_limit_increment($pdo, \'community.message.account\', (string) $accountId, $windowSeconds)',
+    'UPDATE sr_community_messages SET sender_deleted_at = :deleted_at',
+    'UPDATE sr_community_messages SET recipient_deleted_at = :deleted_at',
 ], 'Community message helper policy');
 
-toy_community_release_file_contains('modules/community/helpers/notifications.php', [
-    'toy_module_enabled($pdo, \'notification\')',
-    '$helperPath = TOY_ROOT . \'/modules/notification/helpers.php\'',
+sr_community_release_file_contains('modules/community/helpers/notifications.php', [
+    'sr_module_enabled($pdo, \'notification\')',
+    '$helperPath = SR_ROOT . \'/modules/notification/helpers.php\'',
     'is_file($helperPath)',
     'require_once $helperPath',
-    'function_exists(\'toy_notification_create\')',
+    'function_exists(\'sr_notification_create\')',
     'try {',
-    'toy_notification_create($pdo, [',
+    'sr_notification_create($pdo, [',
     "'audience' => 'account'",
     "'channels' => ['site']",
-    'toy_log_exception($exception, \'community_notification_create\')',
-    'toy_admin_account_roles',
+    'sr_log_exception($exception, \'community_notification_create\')',
+    'sr_admin_account_roles',
     "r.role_key IN ('owner', 'admin', 'manager')",
     "a.status = 'active'",
-    'toy_community_notification_admin_account_ids($pdo)',
+    'sr_community_notification_admin_account_ids($pdo)',
     "'/admin/community/reports'",
 ], 'Community notification optional integration');
-toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     "'intent' => 'add'",
-    "toy_auth_smoke_assert_status(\$errors, 'scrap add', \$scrapResponse, [302])",
-    "toy_auth_smoke_assert_body_contains(\$errors, 'scrap list', \$scraps, \$title)",
+    "sr_auth_smoke_assert_status(\$errors, 'scrap add', \$scrapResponse, [302])",
+    "sr_auth_smoke_assert_body_contains(\$errors, 'scrap list', \$scraps, \$title)",
     "'intent' => 'remove'",
-    "toy_auth_smoke_assert_status(\$errors, 'scrap remove', \$scrapRemoveResponse, [302])",
-    "toy_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
+    "sr_auth_smoke_assert_status(\$errors, 'scrap remove', \$scrapRemoveResponse, [302])",
+    "sr_auth_smoke_assert_body_not_contains(\$errors, 'scrap list after remove', \$scrapsAfterRemove, \$title)",
 ], 'Community authenticated smoke scrap flow');
-toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
-    "toy_auth_smoke_request(\$baseUrl, 'GET', '/community/edit?id=' . (string) \$createdPostId, [], \$cookies)",
-    "toy_auth_smoke_assert_status(\$errors, 'post edit form', \$editForm, [200])",
+sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    "sr_auth_smoke_request(\$baseUrl, 'GET', '/community/edit?id=' . (string) \$createdPostId, [], \$cookies)",
+    "sr_auth_smoke_assert_status(\$errors, 'post edit form', \$editForm, [200])",
     "'post_id' => (string) \$createdPostId",
     "'title' => \$editedTitle",
     "'body_text' => \$editedBody",
-    "toy_auth_smoke_assert_status(\$errors, 'post edit submit', \$editResponse, [302])",
-    "toy_auth_smoke_assert_body_contains(\$errors, 'edited post view', \$editedPostView, \$editedTitle)",
+    "sr_auth_smoke_assert_status(\$errors, 'post edit submit', \$editResponse, [302])",
+    "sr_auth_smoke_assert_body_contains(\$errors, 'edited post view', \$editedPostView, \$editedTitle)",
     '$title = $editedTitle',
 ], 'Community authenticated smoke post edit flow');
-toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
-    'function toy_auth_smoke_message_id_from_path(string $messagePath): string',
-    '$sentMessageId = toy_auth_smoke_message_id_from_path($sentMessagePath)',
-    "toy_auth_smoke_request(\$baseUrl, 'POST', '/community/message/delete', [",
+sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'function sr_auth_smoke_message_id_from_path(string $messagePath): string',
+    '$sentMessageId = sr_auth_smoke_message_id_from_path($sentMessagePath)',
+    "sr_auth_smoke_request(\$baseUrl, 'POST', '/community/message/delete', [",
     "'message_id' => \$sentMessageId",
-    "toy_auth_smoke_assert_status(\$errors, 'sent message delete', \$messageDeleteResponse, [302])",
-    "toy_auth_smoke_assert_body_not_contains(\$errors, 'sent message box after delete', \$sentMessagesAfterDelete, \$sentMessagePath)",
-    "toy_auth_smoke_assert_status(\$errors, 'deleted sent message view', \$deletedSentMessageView, [404])",
+    "sr_auth_smoke_assert_status(\$errors, 'sent message delete', \$messageDeleteResponse, [302])",
+    "sr_auth_smoke_assert_body_not_contains(\$errors, 'sent message box after delete', \$sentMessagesAfterDelete, \$sentMessagePath)",
+    "sr_auth_smoke_assert_status(\$errors, 'deleted sent message view', \$deletedSentMessageView, [404])",
 ], 'Community authenticated smoke message delete flow');
-toy_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
-    'function toy_auth_smoke_comment_id_for_body(array $response, string $commentBody): string',
+sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'function sr_auth_smoke_comment_id_for_body(array $response, string $commentBody): string',
     'admin comment list did not contain comment body',
     "'intent' => 'comment_status'",
     "'comment_id' => \$commentId",
     "'status' => 'hidden'",
-    "toy_auth_smoke_assert_status(\$errors, 'admin comment hide', \$commentHideResponse, [200])",
-    "toy_auth_smoke_assert_body_not_contains(\$errors, 'post view after comment hide', \$postAfterCommentHide, \$commentBody)",
+    "sr_auth_smoke_assert_status(\$errors, 'admin comment hide', \$commentHideResponse, [200])",
+    "sr_auth_smoke_assert_body_not_contains(\$errors, 'post view after comment hide', \$postAfterCommentHide, \$commentBody)",
 ], 'Community authenticated smoke admin comment flow');
 
-toy_community_release_file_contains('modules/community/actions/admin-boards.php', [
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
-    '$allowedReadPolicies = toy_community_policy_values(\'read\')',
-    '$allowedWritePolicies = toy_community_policy_values(\'write\')',
-    '$allowedCommentPolicies = toy_community_policy_values(\'comment\')',
-    '$communitySkinOptions = toy_community_skin_options()',
+sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    '$allowedReadPolicies = sr_community_policy_values(\'read\')',
+    '$allowedWritePolicies = sr_community_policy_values(\'write\')',
+    '$allowedCommentPolicies = sr_community_policy_values(\'comment\')',
+    '$communitySkinOptions = sr_community_skin_options()',
     '$intent === \'update_skin\'',
-    '$memberGroups = toy_member_groups($pdo)',
+    '$memberGroups = sr_member_groups($pdo)',
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
     '$publicBannerSettingLabels = [',
     "'banner_before_view_id' => '글보기 상단 배너'",
     "'banner_after_form_id' => '글쓰기 폼 하단 배너'",
     "'popup_layer_view_id' => '글보기 팝업레이어'",
-    '$publicDisplaySettingValues[$displaySettingKey] = toy_admin_post_int_in_range($displaySettingKey, 0, 999999999)',
-    'toy_admin_post_int_in_range(\'attachment_max_bytes\', 1024, 10485760)',
-    'toy_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
-    'toy_admin_post_int_in_range(\'file_attachment_max_bytes\', 1024, 20971520)',
-    'toy_admin_post_int_in_range(\'file_attachment_max_count\', 0, 5)',
-    '$maxLevel = toy_community_max_level_value()',
-    'toy_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
-    'toy_community_invalid_board_group_keys_from_input($groupKeysInput)',
-    'toy_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
+    '$publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range($displaySettingKey, 0, 999999999)',
+    'sr_admin_post_int_in_range(\'attachment_max_bytes\', 1024, 10485760)',
+    'sr_admin_post_int_in_range(\'attachment_max_count\', 0, 10)',
+    'sr_admin_post_int_in_range(\'file_attachment_max_bytes\', 1024, 20971520)',
+    'sr_admin_post_int_in_range(\'file_attachment_max_count\', 0, 5)',
+    '$maxLevel = sr_community_max_level_value()',
+    'sr_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
+    'sr_community_invalid_board_group_keys_from_input($groupKeysInput)',
+    'sr_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
     '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',
     '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
     'if (!isset($communitySkinOptions[$skinKey]))',
-    'toy_community_board_by_key($pdo, $boardKey) !== null',
-    'toy_community_set_board_setting($pdo, $boardId, \'skin_key\', $skinKey, \'string\')',
-    'toy_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
-    'toy_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, \'int\')',
-    'toy_community_set_board_setting($pdo, $boardId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
-    'toy_community_set_board_setting($pdo, $boardId, \'read_min_level\', (string) $readMinLevel, \'int\')',
-    'toy_community_set_board_setting($pdo, $boardId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
+    'sr_community_board_by_key($pdo, $boardKey) !== null',
+    'sr_community_set_board_setting($pdo, $boardId, \'skin_key\', $skinKey, \'string\')',
+    'sr_community_set_board_setting($pdo, $boardId, \'attachment_max_bytes\', (string) $attachmentMaxBytes, \'int\')',
+    'sr_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, \'int\')',
+    'sr_community_set_board_setting($pdo, $boardId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
+    'sr_community_set_board_setting($pdo, $boardId, \'read_min_level\', (string) $readMinLevel, \'int\')',
+    'sr_community_set_board_setting($pdo, $boardId, \'read_group_keys\', sr_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
 ], 'Community admin board policy');
-toy_community_release_file_contains('modules/community/helpers/themes.php', [
-    'function toy_community_theme_options(): array',
-    "'home' => TOY_ROOT . '/modules/community/themes/basic/home.php'",
-    'function toy_community_skin_options(): array',
+sr_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function sr_community_theme_options(): array',
+    "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
+    'function sr_community_skin_options(): array',
 ], 'Community theme and skin allowlists');
-toy_community_release_file_contains('modules/community/helpers/themes.php', [
-    'function toy_community_skin_options(): array',
+sr_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function sr_community_skin_options(): array',
     "'label' => '기본'",
-    "'list' => TOY_ROOT . '/modules/community/skins/basic/list.php'",
-    "'post' => TOY_ROOT . '/modules/community/skins/basic/view.php'",
-    "'form' => TOY_ROOT . '/modules/community/skins/basic/form.php'",
+    "'list' => SR_ROOT . '/modules/community/skins/basic/list.php'",
+    "'post' => SR_ROOT . '/modules/community/skins/basic/view.php'",
+    "'form' => SR_ROOT . '/modules/community/skins/basic/form.php'",
     'return is_file($view) ? $view',
 ], 'Community skin allowlist');
-toy_community_release_file_contains('modules/community/actions/admin-settings.php', [
-    '$communityThemeOptions = toy_community_theme_options()',
+sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    '$communityThemeOptions = sr_community_theme_options()',
     'if (!isset($communityThemeOptions[$themeKey]))',
     '커뮤니티 테마 값이 올바르지 않습니다.',
     "['theme_key', \$themeKey, 'string']",
 ], 'Community admin theme setting policy');
-toy_community_release_file_contains('modules/community/views/admin-settings.php', [
+sr_community_release_file_contains('modules/community/views/admin-settings.php', [
     '<label>커뮤니티 테마<br>',
     '<select name="theme_key">',
     'foreach ($communityThemeOptions as $themeKey => $themeOption)',
 ], 'Community admin theme field');
-toy_community_release_file_contains('modules/community/views/admin-boards.php', [
+sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     '<input type="hidden" name="intent" value="update_skin">',
     '<label>게시판 스킨<br>',
     '<select name="skin_key">',
     'foreach ($communitySkinOptions as $skinKey => $skinOption)',
 ], 'Community admin board skin field');
-toy_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
-    '$allowedGroupStatuses = toy_community_board_group_statuses()',
-    '$memberGroups = toy_member_groups($pdo)',
+sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    '$allowedGroupStatuses = sr_community_board_group_statuses()',
+    '$memberGroups = sr_member_groups($pdo)',
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
-    'toy_community_board_group_by_id($pdo, $groupId)',
-    'toy_community_board_group_by_key($pdo, $groupKey) !== null',
-    'toy_community_create_board_group($pdo, [',
-    'toy_community_update_board_group($pdo, $groupId, [',
-    'toy_community_set_board_group_setting($pdo, $groupId, \'read_policy\', $readPolicy)',
-    'toy_community_set_board_group_setting($pdo, $groupId, \'read_min_level\', (string) $readMinLevel, \'int\')',
-    'toy_community_set_board_group_setting($pdo, $groupId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
-    'toy_community_set_board_group_setting($pdo, $groupId, \'read_group_keys\', toy_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
-    'toy_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys)',
+    'sr_community_board_group_by_id($pdo, $groupId)',
+    'sr_community_board_group_by_key($pdo, $groupKey) !== null',
+    'sr_community_create_board_group($pdo, [',
+    'sr_community_update_board_group($pdo, $groupId, [',
+    'sr_community_set_board_group_setting($pdo, $groupId, \'read_policy\', $readPolicy)',
+    'sr_community_set_board_group_setting($pdo, $groupId, \'read_min_level\', (string) $readMinLevel, \'int\')',
+    'sr_community_set_board_group_setting($pdo, $groupId, \'file_attachment_max_bytes\', (string) $fileAttachmentMaxBytes, \'int\')',
+    'sr_community_set_board_group_setting($pdo, $groupId, \'read_group_keys\', sr_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
+    'sr_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys)',
     "'event_type' => \$eventType",
     "'target_type' => 'community_board_group'",
 ], 'Community admin board group policy');
-toy_community_release_file_contains('modules/community/actions/admin-settings.php', [
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
-    'toy_require_csrf()',
+sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    'sr_require_csrf()',
     '$levelAutoRecalculate = ($_POST[\'level_auto_recalculate\'] ?? \'\') === \'1\'',
     '[\'level_auto_recalculate\', $levelAutoRecalculate ? \'1\' : \'0\', \'bool\']',
     '$intent === \'save_level_definitions\'',
-    'toy_community_update_level_min_scores($pdo, $minScoresById)',
-    'toy_community_access_condition_priority(toy_post_string(\'access_condition_priority\', 40))',
-    'toy_community_message_write_policy(toy_post_string(\'message_write_policy\', 40))',
-    'toy_community_recalculate_recent_account_levels($pdo, 200)',
+    'sr_community_update_level_min_scores($pdo, $minScoresById)',
+    'sr_community_access_condition_priority(sr_post_string(\'access_condition_priority\', 40))',
+    'sr_community_message_write_policy(sr_post_string(\'message_write_policy\', 40))',
+    'sr_community_recalculate_recent_account_levels($pdo, 200)',
     "'event_type' => 'community.settings.updated'",
     "'event_type' => 'community.level_definitions.updated'",
     "'event_type' => 'community.levels.recalculated'",
 ], 'Community admin settings policy');
-toy_community_release_file_contains('modules/community/actions/admin-posts.php', [
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    '$allowedPostStatuses = toy_community_post_statuses()',
-    '$allowedCommentStatuses = toy_community_comment_statuses()',
-    'toy_community_update_post_status($pdo, $postId, $status)',
-    'toy_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_status_updated\')',
-    'toy_community_update_post_attachments_status($pdo, $postId, $status)',
-    'toy_community_restore_hidden_post_attachments($pdo, $postId)',
+sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    '$allowedPostStatuses = sr_community_post_statuses()',
+    '$allowedCommentStatuses = sr_community_comment_statuses()',
+    'sr_community_update_post_status($pdo, $postId, $status)',
+    'sr_member_group_evaluate_account($pdo, (int) $post[\'author_account_id\'], [',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $post[\'author_account_id\'], null, \'post_status_updated\')',
+    'sr_community_update_post_attachments_status($pdo, $postId, $status)',
+    'sr_community_restore_hidden_post_attachments($pdo, $postId)',
     "'event_type' => 'community.post.status_updated'",
-    'toy_community_member_group_evaluation_metadata($groupEvaluationSummary)',
-    'toy_community_update_comment_status($pdo, $commentId, $status)',
-    'toy_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_status_updated\')',
+    'sr_community_member_group_evaluation_metadata($groupEvaluationSummary)',
+    'sr_community_update_comment_status($pdo, $commentId, $status)',
+    'sr_community_maybe_recalculate_account_level($pdo, (int) $comment[\'author_account_id\'], null, \'comment_status_updated\')',
     "'event_type' => 'community.comment.status_updated'",
 ], 'Community admin post policy');
-toy_community_release_file_contains('modules/community/helpers/levels.php', [
+sr_community_release_file_contains('modules/community/helpers/levels.php', [
     "'level_auto_recalculate' => (bool) (\$settings['level_auto_recalculate'] ?? false)",
-    "function toy_community_maybe_recalculate_account_level(PDO \$pdo, int \$accountId, ?array \$settings = null, string \$reasonKey = 'activity_changed'): array",
+    "function sr_community_maybe_recalculate_account_level(PDO \$pdo, int \$accountId, ?array \$settings = null, string \$reasonKey = 'activity_changed'): array",
     "empty(\$settings['level_auto_recalculate'])",
-    'toy_community_account_level_snapshot($pdo, $accountId)',
-    'function toy_community_update_level_min_scores(PDO $pdo, array $minScoresById): int',
+    'sr_community_account_level_snapshot($pdo, $accountId)',
+    'function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById): int',
     '레벨 최소 점수는 낮은 레벨부터 같거나 커야 합니다.',
 ], 'Community level helper policy');
-toy_community_release_file_contains('modules/community/views/admin-settings.php', [
+sr_community_release_file_contains('modules/community/views/admin-settings.php', [
     'name="level_auto_recalculate"',
     '게시글/댓글 활동 후 레벨 자동 재계산',
     'name="intent" value="save_level_definitions"',
     'name="level_min_score[',
     '레벨 정의 저장',
 ], 'Community admin settings level UI');
-toy_community_release_file_contains('modules/community/actions/admin-reports.php', [
-    'toy_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    '$allowedStatuses = toy_community_report_statuses()',
-    'toy_post_string_without_truncation(\'review_note\', 1000)',
-    'toy_community_report_by_id($pdo, $reportId)',
+sr_community_release_file_contains('modules/community/actions/admin-reports.php', [
+    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    '$allowedStatuses = sr_community_report_statuses()',
+    'sr_post_string_without_truncation(\'review_note\', 1000)',
+    'sr_community_report_by_id($pdo, $reportId)',
     'in_array($status, $allowedStatuses, true)',
     '$reviewNote === null',
-    'toy_community_update_report_status($pdo, $reportId, $status, (int) $account[\'id\'], (string) $reviewNote)',
+    'sr_community_update_report_status($pdo, $reportId, $status, (int) $account[\'id\'], (string) $reviewNote)',
     "'event_type' => 'community.report.status_updated'",
     "'review_note_present' => trim((string) \$reviewNote) !== ''",
     "'reported_account_id' => (int) \$report['reported_account_id']",
@@ -888,14 +888,14 @@ $stateChangingActions = [
     'modules/community/actions/admin-reports.php',
 ];
 foreach ($stateChangingActions as $actionPath) {
-    toy_community_release_file_contains($actionPath, ['toy_require_csrf('], $actionPath);
+    sr_community_release_file_contains($actionPath, ['sr_require_csrf('], $actionPath);
 }
 
-foreach (toy_community_release_files('modules/community', ['css', 'scss', 'js']) as $assetFile) {
-    toy_community_release_error('Community v1 must not ship dedicated CSS/JS assets: ' . $assetFile);
+foreach (sr_community_release_files('modules/community', ['css', 'scss', 'js']) as $assetFile) {
+    sr_community_release_error('Community v1 must not ship dedicated CSS/JS assets: ' . $assetFile);
 }
 
-foreach (toy_community_release_files('modules/community', ['php']) as $phpFile) {
+foreach (sr_community_release_files('modules/community', ['php']) as $phpFile) {
     $content = file_get_contents($phpFile);
     if (!is_string($content)) {
         continue;
@@ -903,7 +903,7 @@ foreach (toy_community_release_files('modules/community', ['php']) as $phpFile) 
 
     foreach (['<style', 'style=', 'class=', 'data-'] as $forbiddenFragment) {
         if (str_contains($content, $forbiddenFragment)) {
-            toy_community_release_error('Community v1 must not include styling hooks "' . $forbiddenFragment . '" in ' . $phpFile);
+            sr_community_release_error('Community v1 must not include styling hooks "' . $forbiddenFragment . '" in ' . $phpFile);
         }
     }
 }

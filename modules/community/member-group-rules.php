@@ -25,6 +25,6 @@ return [
                 'default' => 5,
             ],
         ],
-        'evaluator' => 'toy_community_member_group_rule_post_count_at_least',
+        'evaluator' => 'sr_community_member_group_rule_post_count_at_least',
     ],
 ];

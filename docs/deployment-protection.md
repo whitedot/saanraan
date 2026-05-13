@@ -96,8 +96,8 @@ Nginx: server/location 규칙
         'endpoint' => '',
         'public_base_url' => '',
         'path_style' => false,
-        'access_key_env' => 'TOY_S3_ACCESS_KEY',
-        'secret_key_env' => 'TOY_S3_SECRET_KEY',
+        'access_key_env' => 'SR_S3_ACCESS_KEY',
+        'secret_key_env' => 'SR_S3_SECRET_KEY',
     ],
 ],
 ```

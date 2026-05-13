@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-function toy_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
+function sr_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
 {
-    $board = toy_community_board_by_key($pdo, $boardKey);
-    if (!is_array($board) || (string) $board['status'] !== 'enabled' || !toy_community_account_can_read_board($pdo, $board, null)) {
+    $board = sr_community_board_by_key($pdo, $boardKey);
+    if (!is_array($board) || (string) $board['status'] !== 'enabled' || !sr_community_account_can_read_board($pdo, $board, null)) {
         return null;
     }
 
     return $board;
 }
 
-function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $account): bool
+function sr_community_account_can_read_board(PDO $pdo, array $board, ?array $account): bool
 {
     if ((string) ($board['status'] ?? '') !== 'enabled') {
         return false;
     }
 
-    $policy = toy_community_effective_board_policy($pdo, $board, 'read_policy');
+    $policy = sr_community_effective_board_policy($pdo, $board, 'read_policy');
     if ($policy === 'public') {
         return true;
     }
@@ -29,16 +29,16 @@ function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $ac
     }
 
     if ($policy === 'member') {
-        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'min_level' => $minLevel,
         ])['allowed']);
     }
 
     if ($policy === 'group') {
-        $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $groupKeys = sr_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
+        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
             'group_required' => true,
             'min_level' => $minLevel,
@@ -48,12 +48,12 @@ function toy_community_account_can_read_board(PDO $pdo, array $board, ?array $ac
     return false;
 }
 
-function toy_community_board_requires_login(array $board): bool
+function sr_community_board_requires_login(array $board): bool
 {
     return in_array((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? ''), ['member', 'group'], true);
 }
 
-function toy_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
+function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
 {
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
@@ -62,14 +62,14 @@ function toy_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int 
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
         $where .= " AND (p.title LIKE :keyword ESCAPE '\\\\' OR p.body_text LIKE :keyword ESCAPE '\\\\')";
-        $params['keyword'] = toy_community_like_pattern($keyword);
+        $params['keyword'] = sr_community_like_pattern($keyword);
     }
 
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
-                (SELECT COUNT(*) FROM toy_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
-         FROM toy_community_posts p
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
+         FROM sr_community_posts p
          WHERE ' . $where . '
          ORDER BY p.id DESC
          LIMIT :limit_value OFFSET :offset_value'
@@ -84,7 +84,7 @@ function toy_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int 
     return $stmt->fetchAll();
 }
 
-function toy_community_board_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
+function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
 {
     if ($boardId < 1) {
         return 0;
@@ -95,12 +95,12 @@ function toy_community_board_post_count(PDO $pdo, int $boardId, string $keyword 
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
         $where .= " AND (title LIKE :keyword ESCAPE '\\\\' OR body_text LIKE :keyword ESCAPE '\\\\')";
-        $params['keyword'] = toy_community_like_pattern($keyword);
+        $params['keyword'] = sr_community_like_pattern($keyword);
     }
 
     $stmt = $pdo->prepare(
         'SELECT COUNT(*)
-         FROM toy_community_posts
+         FROM sr_community_posts
          WHERE ' . $where
     );
     foreach ($params as $key => $value) {
@@ -111,22 +111,22 @@ function toy_community_board_post_count(PDO $pdo, int $boardId, string $keyword 
     return (int) $stmt->fetchColumn();
 }
 
-function toy_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
+function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = ''): array
 {
-    return toy_community_board_posts($pdo, $boardId, $limit, $offset, $keyword);
+    return sr_community_board_posts($pdo, $boardId, $limit, $offset, $keyword);
 }
 
-function toy_community_public_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
+function sr_community_public_post_count(PDO $pdo, int $boardId, string $keyword = ''): int
 {
-    return toy_community_board_post_count($pdo, $boardId, $keyword);
+    return sr_community_board_post_count($pdo, $boardId, $keyword);
 }
 
-function toy_community_like_pattern(string $keyword): string
+function sr_community_like_pattern(string $keyword): string
 {
     return '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($keyword)) . '%';
 }
 
-function toy_community_public_post(PDO $pdo, int $postId): ?array
+function sr_community_public_post(PDO $pdo, int $postId): ?array
 {
     if ($postId < 1) {
         return null;
@@ -135,8 +135,8 @@ function toy_community_public_post(PDO $pdo, int $postId): ?array
     $stmt = $pdo->prepare(
         "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
-         FROM toy_community_posts p
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE p.id = :id
            AND p.status = 'published'
            AND b.status = 'enabled'
@@ -156,15 +156,15 @@ function toy_community_public_post(PDO $pdo, int $postId): ?array
         'read_policy' => (string) $post['read_policy'],
     ];
 
-    if (!toy_community_account_can_read_board($pdo, $board, null)) {
+    if (!sr_community_account_can_read_board($pdo, $board, null)) {
         return null;
     }
 
-    $post['read_policy'] = toy_community_effective_board_policy($pdo, $board, 'read_policy');
+    $post['read_policy'] = sr_community_effective_board_policy($pdo, $board, 'read_policy');
     return $post;
 }
 
-function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?array
+function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?array
 {
     if ($postId < 1) {
         return null;
@@ -173,8 +173,8 @@ function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?a
     $stmt = $pdo->prepare(
         "SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
-         FROM toy_community_posts p
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE p.id = :id
            AND p.status = 'published'
            AND b.status = 'enabled'
@@ -194,35 +194,35 @@ function toy_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?a
         'comment_policy' => (string) $post['comment_policy'],
     ];
 
-    if (!toy_community_account_can_read_board($pdo, $board, $account)) {
+    if (!sr_community_account_can_read_board($pdo, $board, $account)) {
         return null;
     }
 
-    $post['read_policy'] = toy_community_effective_board_policy($pdo, $board, 'read_policy');
-    $post['comment_policy'] = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
+    $post['read_policy'] = sr_community_effective_board_policy($pdo, $board, 'read_policy');
+    $post['comment_policy'] = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     return $post;
 }
 
-function toy_community_increment_post_view_count(PDO $pdo, int $postId): void
+function sr_community_increment_post_view_count(PDO $pdo, int $postId): void
 {
     if ($postId < 1) {
         return;
     }
 
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_posts
+        'UPDATE sr_community_posts
          SET view_count = view_count + 1
          WHERE id = :id'
     );
     $stmt->execute(['id' => $postId]);
 }
 
-function toy_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
+function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));
     $stmt = $pdo->prepare(
         "SELECT id, post_id, author_account_id, body_text, status, created_at, updated_at
-         FROM toy_community_comments
+         FROM sr_community_comments
          WHERE post_id = :post_id
            AND status = 'published'
          ORDER BY id ASC
@@ -235,28 +235,28 @@ function toy_community_post_comments(PDO $pdo, int $postId, int $limit = 50): ar
     return $stmt->fetchAll();
 }
 
-function toy_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
+function sr_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
-    return toy_community_post_comments($pdo, $postId, $limit);
+    return sr_community_post_comments($pdo, $postId, $limit);
 }
 
-function toy_community_post_statuses(): array
+function sr_community_post_statuses(): array
 {
     return ['published', 'hidden', 'deleted', 'pending'];
 }
 
-function toy_community_admin_posts(PDO $pdo, int $limit = 100): array
+function sr_community_admin_posts(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(200, $limit));
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
-                (SELECT COUNT(*) FROM toy_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
-                (SELECT COUNT(*) FROM toy_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
-         FROM toy_community_posts p
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
-         LEFT JOIN toy_member_accounts a ON a.id = p.author_account_id
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
          ORDER BY p.id DESC
          LIMIT :limit_value'
     );
@@ -266,7 +266,7 @@ function toy_community_admin_posts(PDO $pdo, int $limit = 100): array
     return $stmt->fetchAll();
 }
 
-function toy_community_admin_post_by_id(PDO $pdo, int $postId): ?array
+function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
 {
     if ($postId < 1) {
         return null;
@@ -276,9 +276,9 @@ function toy_community_admin_post_by_id(PDO $pdo, int $postId): ?array
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name
-         FROM toy_community_posts p
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
-         LEFT JOIN toy_member_accounts a ON a.id = p.author_account_id
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
          WHERE p.id = :id
          LIMIT 1'
     );
@@ -288,25 +288,25 @@ function toy_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     return is_array($post) ? $post : null;
 }
 
-function toy_community_update_post_status(PDO $pdo, int $postId, string $status): void
+function sr_community_update_post_status(PDO $pdo, int $postId, string $status): void
 {
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_posts
+        'UPDATE sr_community_posts
          SET status = :status,
              updated_at = :updated_at
          WHERE id = :id'
     );
     $stmt->execute([
         'status' => $status,
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $postId,
     ]);
 }
 
-function toy_community_update_post_content(PDO $pdo, int $postId, array $values): void
+function sr_community_update_post_content(PDO $pdo, int $postId, array $values): void
 {
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_posts
+        'UPDATE sr_community_posts
          SET title = :title,
              body_text = :body_text,
              updated_at = :updated_at
@@ -315,31 +315,31 @@ function toy_community_update_post_content(PDO $pdo, int $postId, array $values)
     $stmt->execute([
         'title' => trim((string) $values['title']),
         'body_text' => trim((string) $values['body_text']),
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $postId,
     ]);
 }
 
-function toy_community_account_can_edit_post(array $post, array $account): bool
+function sr_community_account_can_edit_post(array $post, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0
         && (int) $post['author_account_id'] === (int) $account['id']
         && (string) $post['status'] === 'published';
 }
 
-function toy_community_account_can_delete_post(array $post, array $account): bool
+function sr_community_account_can_delete_post(array $post, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0
         && (int) $post['author_account_id'] === (int) $account['id']
         && (string) $post['status'] === 'published';
 }
 
-function toy_community_comment_statuses(): array
+function sr_community_comment_statuses(): array
 {
     return ['published', 'hidden', 'deleted'];
 }
 
-function toy_community_admin_comments(PDO $pdo, int $limit = 100): array
+function sr_community_admin_comments(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(200, $limit));
     $stmt = $pdo->prepare(
@@ -347,10 +347,10 @@ function toy_community_admin_comments(PDO $pdo, int $limit = 100): array
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name
-         FROM toy_community_comments c
-         INNER JOIN toy_community_posts p ON p.id = c.post_id
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
-         LEFT JOIN toy_member_accounts a ON a.id = c.author_account_id
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          ORDER BY c.id DESC
          LIMIT :limit_value'
     );
@@ -360,7 +360,7 @@ function toy_community_admin_comments(PDO $pdo, int $limit = 100): array
     return $stmt->fetchAll();
 }
 
-function toy_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
+function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
 {
     if ($commentId < 1) {
         return null;
@@ -371,10 +371,10 @@ function toy_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name
-         FROM toy_community_comments c
-         INNER JOIN toy_community_posts p ON p.id = c.post_id
-         INNER JOIN toy_community_boards b ON b.id = p.board_id
-         LEFT JOIN toy_member_accounts a ON a.id = c.author_account_id
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          WHERE c.id = :id
          LIMIT 1'
     );
@@ -384,69 +384,69 @@ function toy_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
     return is_array($comment) ? $comment : null;
 }
 
-function toy_community_update_comment_status(PDO $pdo, int $commentId, string $status): void
+function sr_community_update_comment_status(PDO $pdo, int $commentId, string $status): void
 {
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_comments
+        'UPDATE sr_community_comments
          SET status = :status,
              updated_at = :updated_at
          WHERE id = :id'
     );
     $stmt->execute([
         'status' => $status,
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $commentId,
     ]);
 }
 
-function toy_community_update_comment_content(PDO $pdo, int $commentId, array $values): void
+function sr_community_update_comment_content(PDO $pdo, int $commentId, array $values): void
 {
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_comments
+        'UPDATE sr_community_comments
          SET body_text = :body_text,
              updated_at = :updated_at
          WHERE id = :id'
     );
     $stmt->execute([
         'body_text' => trim((string) $values['body_text']),
-        'updated_at' => toy_now(),
+        'updated_at' => sr_now(),
         'id' => $commentId,
     ]);
 }
 
-function toy_community_account_can_edit_comment(array $comment, array $account): bool
+function sr_community_account_can_edit_comment(array $comment, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0
         && (int) $comment['author_account_id'] === (int) $account['id']
         && (string) $comment['status'] === 'published';
 }
 
-function toy_community_account_can_delete_comment(array $comment, array $account): bool
+function sr_community_account_can_delete_comment(array $comment, array $account): bool
 {
     return (int) ($account['id'] ?? 0) > 0
         && (int) $comment['author_account_id'] === (int) $account['id']
         && (string) $comment['status'] === 'published';
 }
 
-function toy_community_account_can_write_board(PDO $pdo, array $board, array $account, bool $isAdminWriter = false): bool
+function sr_community_account_can_write_board(PDO $pdo, array $board, array $account, bool $isAdminWriter = false): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1 || (string) ($board['status'] ?? '') !== 'enabled') {
         return false;
     }
 
-    $policy = toy_community_effective_board_policy($pdo, $board, 'write_policy');
+    $policy = sr_community_effective_board_policy($pdo, $board, 'write_policy');
     if ($policy === 'member') {
-        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'min_level' => $minLevel,
         ])['allowed']);
     }
 
     if ($policy === 'group') {
-        $groupKeys = toy_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
-        $minLevel = toy_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $groupKeys = sr_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
+        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
             'group_required' => true,
             'min_level' => $minLevel,
@@ -460,49 +460,49 @@ function toy_community_account_can_write_board(PDO $pdo, array $board, array $ac
     return false;
 }
 
-function toy_community_board_group_keys(PDO $pdo, int $boardId, string $settingKey): array
+function sr_community_board_group_keys(PDO $pdo, int $boardId, string $settingKey): array
 {
     if ($boardId < 1 || !in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
         return [];
     }
 
-    $board = toy_community_board_by_id($pdo, $boardId);
+    $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board)) {
         return [];
     }
 
-    $value = trim(toy_community_effective_board_setting($pdo, $board, $settingKey, ''));
+    $value = trim(sr_community_effective_board_setting($pdo, $board, $settingKey, ''));
     if ($value === '') {
         return [];
     }
 
     $decoded = json_decode($value, true);
     $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
-    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
-function toy_community_board_own_group_keys(PDO $pdo, int $boardId, string $settingKey): array
+function sr_community_board_own_group_keys(PDO $pdo, int $boardId, string $settingKey): array
 {
     if ($boardId < 1 || !in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
         return [];
     }
 
-    $value = trim((string) toy_community_board_setting_value($pdo, $boardId, $settingKey));
+    $value = trim((string) sr_community_board_setting_value($pdo, $boardId, $settingKey));
     if ($value === '') {
         return [];
     }
 
     $decoded = json_decode($value, true);
     $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
-    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
-function toy_community_normalize_board_group_keys(array $rawKeys): array
+function sr_community_normalize_board_group_keys(array $rawKeys): array
 {
     $groupKeys = [];
     foreach ($rawKeys as $rawKey) {
         $groupKey = trim((string) $rawKey);
-        if ($groupKey !== '' && toy_member_group_key_is_valid($groupKey)) {
+        if ($groupKey !== '' && sr_member_group_key_is_valid($groupKey)) {
             $groupKeys[] = $groupKey;
         }
     }
@@ -510,17 +510,17 @@ function toy_community_normalize_board_group_keys(array $rawKeys): array
     return array_values(array_unique($groupKeys));
 }
 
-function toy_community_board_group_keys_from_input(string $value): array
+function sr_community_board_group_keys_from_input(string $value): array
 {
     if (trim($value) === '') {
         return [];
     }
 
     $rawKeys = preg_split('/[\s,]+/', $value);
-    return toy_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
-function toy_community_invalid_board_group_keys_from_input(string $value): array
+function sr_community_invalid_board_group_keys_from_input(string $value): array
 {
     if (trim($value) === '') {
         return [];
@@ -534,7 +534,7 @@ function toy_community_invalid_board_group_keys_from_input(string $value): array
     $invalidKeys = [];
     foreach ($rawKeys as $rawKey) {
         $groupKey = trim((string) $rawKey);
-        if ($groupKey !== '' && !toy_member_group_key_is_valid($groupKey)) {
+        if ($groupKey !== '' && !sr_member_group_key_is_valid($groupKey)) {
             $invalidKeys[] = $groupKey;
         }
     }
@@ -542,23 +542,23 @@ function toy_community_invalid_board_group_keys_from_input(string $value): array
     return array_values(array_unique($invalidKeys));
 }
 
-function toy_community_board_group_keys_setting_value(array $groupKeys): string
+function sr_community_board_group_keys_setting_value(array $groupKeys): string
 {
-    $normalizedKeys = toy_community_normalize_board_group_keys($groupKeys);
+    $normalizedKeys = sr_community_normalize_board_group_keys($groupKeys);
     $encoded = json_encode($normalizedKeys, JSON_UNESCAPED_SLASHES);
 
     return is_string($encoded) ? $encoded : '[]';
 }
 
-function toy_community_post_input_values(): array
+function sr_community_post_input_values(): array
 {
     return [
-        'title' => toy_post_string_without_truncation('title', 160),
-        'body_text' => toy_post_string_without_truncation('body_text', 20000),
+        'title' => sr_post_string_without_truncation('title', 160),
+        'body_text' => sr_post_string_without_truncation('body_text', 20000),
     ];
 }
 
-function toy_community_validate_post_input(array $values): array
+function sr_community_validate_post_input(array $values): array
 {
     $errors = [];
     $title = $values['title'];
@@ -579,11 +579,11 @@ function toy_community_validate_post_input(array $values): array
     return $errors;
 }
 
-function toy_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, array $values): int
+function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, array $values): int
 {
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_community_posts
+        'INSERT INTO sr_community_posts
             (board_id, author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
             (:board_id, :author_account_id, :title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
@@ -602,26 +602,26 @@ function toy_community_create_post(PDO $pdo, int $boardId, int $authorAccountId,
     return (int) $pdo->lastInsertId();
 }
 
-function toy_community_post_rate_limited(PDO $pdo, int $accountId, array $settings): bool
+function sr_community_post_rate_limited(PDO $pdo, int $accountId, array $settings): bool
 {
     $windowSeconds = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
     $limit = min(100, max(1, (int) ($settings['post_create_limit'] ?? 10)));
 
-    return toy_community_rate_limits_table_exists($pdo)
-        && toy_rate_limit_count($pdo, 'community.post.account', (string) $accountId, $windowSeconds) >= $limit;
+    return sr_community_rate_limits_table_exists($pdo)
+        && sr_rate_limit_count($pdo, 'community.post.account', (string) $accountId, $windowSeconds) >= $limit;
 }
 
-function toy_community_record_post_rate_limit(PDO $pdo, int $accountId, array $settings): void
+function sr_community_record_post_rate_limit(PDO $pdo, int $accountId, array $settings): void
 {
-    if (!toy_community_rate_limits_table_exists($pdo)) {
+    if (!sr_community_rate_limits_table_exists($pdo)) {
         return;
     }
 
     $windowSeconds = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
-    toy_rate_limit_increment($pdo, 'community.post.account', (string) $accountId, $windowSeconds);
+    sr_rate_limit_increment($pdo, 'community.post.account', (string) $accountId, $windowSeconds);
 }
 
-function toy_community_account_can_comment_post(PDO $pdo, array $post, array $account): bool
+function sr_community_account_can_comment_post(PDO $pdo, array $post, array $account): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1 || (string) ($post['status'] ?? '') !== 'published' || (string) ($post['board_status'] ?? '') !== 'enabled') {
@@ -633,18 +633,18 @@ function toy_community_account_can_comment_post(PDO $pdo, array $post, array $ac
         'board_group_id' => (int) ($post['board_group_id'] ?? 0),
         'comment_policy' => (string) ($post['comment_policy'] ?? ''),
     ];
-    $policy = toy_community_effective_board_policy($pdo, $board, 'comment_policy');
+    $policy = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     if ($policy === 'member') {
-        $minLevel = toy_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $minLevel = sr_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'min_level' => $minLevel,
         ])['allowed']);
     }
 
     if ($policy === 'group') {
-        $groupKeys = toy_community_board_group_keys($pdo, (int) $post['board_id'], 'comment_group_keys');
-        $minLevel = toy_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
-        return !empty(toy_community_account_satisfies_access($pdo, $accountId, [
+        $groupKeys = sr_community_board_group_keys($pdo, (int) $post['board_id'], 'comment_group_keys');
+        $minLevel = sr_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
+        return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
             'group_required' => true,
             'min_level' => $minLevel,
@@ -654,14 +654,14 @@ function toy_community_account_can_comment_post(PDO $pdo, array $post, array $ac
     return false;
 }
 
-function toy_community_comment_input_values(): array
+function sr_community_comment_input_values(): array
 {
     return [
-        'body_text' => toy_post_string_without_truncation('body_text', 5000),
+        'body_text' => sr_post_string_without_truncation('body_text', 5000),
     ];
 }
 
-function toy_community_validate_comment_input(array $values): array
+function sr_community_validate_comment_input(array $values): array
 {
     $bodyText = $values['body_text'];
     if (!is_string($bodyText)) {
@@ -675,11 +675,11 @@ function toy_community_validate_comment_input(array $values): array
     return [];
 }
 
-function toy_community_create_comment(PDO $pdo, int $postId, int $authorAccountId, array $values): int
+function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId, array $values): int
 {
-    $now = toy_now();
+    $now = sr_now();
     $stmt = $pdo->prepare(
-        'INSERT INTO toy_community_comments
+        'INSERT INTO sr_community_comments
             (post_id, author_account_id, body_text, status, created_at, updated_at)
          VALUES
             (:post_id, :author_account_id, :body_text, :status, :created_at, :updated_at)'
@@ -695,7 +695,7 @@ function toy_community_create_comment(PDO $pdo, int $postId, int $authorAccountI
     $commentId = (int) $pdo->lastInsertId();
 
     $stmt = $pdo->prepare(
-        'UPDATE toy_community_posts
+        'UPDATE sr_community_posts
          SET last_commented_at = :last_commented_at,
              updated_at = :updated_at
          WHERE id = :id'
@@ -709,26 +709,26 @@ function toy_community_create_comment(PDO $pdo, int $postId, int $authorAccountI
     return $commentId;
 }
 
-function toy_community_comment_rate_limited(PDO $pdo, int $accountId, array $settings): bool
+function sr_community_comment_rate_limited(PDO $pdo, int $accountId, array $settings): bool
 {
     $windowSeconds = min(86400, max(60, (int) ($settings['comment_create_window_seconds'] ?? 300)));
     $limit = min(300, max(1, (int) ($settings['comment_create_limit'] ?? 30)));
 
-    return toy_community_rate_limits_table_exists($pdo)
-        && toy_rate_limit_count($pdo, 'community.comment.account', (string) $accountId, $windowSeconds) >= $limit;
+    return sr_community_rate_limits_table_exists($pdo)
+        && sr_rate_limit_count($pdo, 'community.comment.account', (string) $accountId, $windowSeconds) >= $limit;
 }
 
-function toy_community_record_comment_rate_limit(PDO $pdo, int $accountId, array $settings): void
+function sr_community_record_comment_rate_limit(PDO $pdo, int $accountId, array $settings): void
 {
-    if (!toy_community_rate_limits_table_exists($pdo)) {
+    if (!sr_community_rate_limits_table_exists($pdo)) {
         return;
     }
 
     $windowSeconds = min(86400, max(60, (int) ($settings['comment_create_window_seconds'] ?? 300)));
-    toy_rate_limit_increment($pdo, 'community.comment.account', (string) $accountId, $windowSeconds);
+    sr_rate_limit_increment($pdo, 'community.comment.account', (string) $accountId, $windowSeconds);
 }
 
-function toy_community_rate_limits_table_exists(PDO $pdo): bool
+function sr_community_rate_limits_table_exists(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -736,7 +736,7 @@ function toy_community_rate_limits_table_exists(PDO $pdo): bool
     }
 
     try {
-        $pdo->query('SELECT 1 FROM toy_rate_limits LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_rate_limits LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -745,21 +745,21 @@ function toy_community_rate_limits_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function toy_community_public_author_label(PDO $pdo, int $accountId, bool $showIdentifier = false, ?array $config = null): string
+function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showIdentifier = false, ?array $config = null): string
 {
-    $summary = toy_member_public_account_summary($pdo, $accountId);
+    $summary = sr_member_public_account_summary($pdo, $accountId);
     if (!is_array($summary) || (string) $summary['status'] === 'anonymized') {
         return '탈퇴 회원';
     }
 
     $displayName = trim((string) $summary['display_name']);
     $label = $displayName !== '' ? $displayName : '회원';
-    $runtimeConfig = is_array($config) ? $config : toy_runtime_config();
+    $runtimeConfig = is_array($config) ? $config : sr_runtime_config();
 
-    return toy_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
+    return sr_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
 }
 
-function toy_community_plain_text_html(string $value): string
+function sr_community_plain_text_html(string $value): string
 {
-    return nl2br(toy_e($value), false);
+    return nl2br(sr_e($value), false);
 }

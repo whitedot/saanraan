@@ -8,4 +8,4 @@ if (isset($_POST['group_id'])) {
     $_GET['edit_id'] = $_POST['group_id'];
 }
 
-include TOY_ROOT . '/modules/community/actions/admin-board-groups.php';
+include SR_ROOT . '/modules/community/actions/admin-board-groups.php';

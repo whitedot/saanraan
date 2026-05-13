@@ -1,4 +1,4 @@
-INSERT IGNORE INTO toy_community_levels
+INSERT IGNORE INTO sr_community_levels
     (level_value, title, description, min_score, status, sort_order, created_at, updated_at)
 VALUES
     (1, '레벨 1', '기본 커뮤니티 레벨입니다.', 0, 'enabled', 10, NOW(), NOW()),
@@ -12,7 +12,7 @@ VALUES
     (9, '레벨 9', '커뮤니티 활동 점수 2100점 이상입니다.', 2100, 'enabled', 90, NOW(), NOW()),
     (10, '레벨 10', '커뮤니티 활동 점수 3000점 이상입니다.', 3000, 'enabled', 100, NOW(), NOW());
 
-UPDATE toy_modules
+UPDATE sr_modules
 SET version = '2026.05.004',
     updated_at = NOW()
 WHERE module_key = 'community';

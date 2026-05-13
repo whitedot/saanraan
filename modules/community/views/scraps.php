@@ -6,14 +6,14 @@ $seo = [
     'canonical' => '/community/scraps',
     'robots' => 'noindex, nofollow',
 ];
-toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <p><a href="<?php echo toy_e(toy_url('/community')); ?>">커뮤니티</a></p>
-        <h1><?php echo toy_e($pageTitle); ?></h1>
+        <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
+        <h1><?php echo sr_e($pageTitle); ?></h1>
 
         <?php if ($notice !== '') { ?>
-            <p><?php echo toy_e($notice); ?></p>
+            <p><?php echo sr_e($notice); ?></p>
         <?php } ?>
 
         <?php if ($scraps === []) { ?>
@@ -32,28 +32,28 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php foreach ($scraps as $scrap) { ?>
                         <tr>
                             <td>
-                                <?php if (toy_community_scrap_row_can_view($scrap)) { ?>
-                                    <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $scrap['board_key']))); ?>">
-                                        <?php echo toy_e((string) ($scrap['board_title'] ?? '')); ?>
+                                <?php if (sr_community_scrap_row_can_view($scrap)) { ?>
+                                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $scrap['board_key']))); ?>">
+                                        <?php echo sr_e((string) ($scrap['board_title'] ?? '')); ?>
                                     </a>
                                 <?php } else { ?>
                                     비공개 또는 삭제된 게시판
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php if (toy_community_scrap_row_can_view($scrap)) { ?>
-                                    <a href="<?php echo toy_e(toy_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
-                                        <?php echo toy_e((string) $scrap['title']); ?>
+                                <?php if (sr_community_scrap_row_can_view($scrap)) { ?>
+                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
+                                        <?php echo sr_e((string) $scrap['title']); ?>
                                     </a>
                                 <?php } else { ?>
                                     비공개 또는 삭제된 게시글
                                 <?php } ?>
                             </td>
-                            <td><?php echo toy_e((string) $scrap['created_at']); ?></td>
+                            <td><?php echo sr_e((string) $scrap['created_at']); ?></td>
                             <td>
-                                <form method="post" action="<?php echo toy_e(toy_url('/community/scrap')); ?>">
-                                    <?php echo toy_csrf_field(); ?>
-                                    <input type="hidden" name="post_id" value="<?php echo toy_e((string) $scrap['post_id']); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $scrap['post_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
                                     <button type="submit">해제</button>
                                 </form>
@@ -64,4 +64,4 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             </table>
         <?php } ?>
     </main>
-<?php toy_public_layout_end(); ?>
+<?php sr_public_layout_end(); ?>

@@ -4,14 +4,14 @@
 
 This project is named `saanraan`.
 
-Use `toy` as the project prefix for database tables and related identifiers that need a shared project namespace.
+Use `sr` as the project prefix for database tables and related identifiers that need a shared project namespace.
 
 Examples:
 
-- `toy_site_settings`
-- `toy_modules`
-- `toy_module_settings`
-- `toy_member_accounts`
+- `sr_site_settings`
+- `sr_modules`
+- `sr_module_settings`
+- `sr_member_accounts`
 
 Avoid generic prefixes such as `core_` or module-only prefixes such as `member_` for database table names unless there is a specific compatibility reason.
 
@@ -41,7 +41,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 - Keep request flow readable as procedural PHP.
 - Prefer direct `if` / `elseif` request branches or explicit `include` files over hidden dispatch flows.
-- Do not use route registration APIs such as `toy_route()` as the default routing model.
+- Do not use route registration APIs such as `sr_route()` as the default routing model.
 - If a module exposes routable handlers, prefer a plain array file that returns allowed method/path to handler mappings, then validate and include explicitly.
 - Do not use PHP short tags or short echo tags.
 - Use `<?php echo ...; ?>` instead of `<?= ... ?>`.

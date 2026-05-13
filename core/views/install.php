@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = 'Toycore 설치';
+$pageTitle = 'Saanraan 설치';
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -12,18 +12,18 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php echo toy_seo_tags($seo, null); ?>
-    <?php echo toy_stylesheet_tag(); ?>
+    <?php echo sr_seo_tags($seo, null); ?>
+    <?php echo sr_stylesheet_tag(); ?>
 </head>
-<body class="toy-install-page">
-    <main class="toy-install-shell">
-        <section class="toy-install-intro">
+<body class="sr-install-page">
+    <main class="sr-install-shell">
+        <section class="sr-install-intro">
             <div>
-                <p class="toy-install-kicker">초기 설정</p>
-                <h1><?php echo toy_e($pageTitle); ?></h1>
-                <p>Toycore 실행에 필요한 DB 연결, 사이트 기본값, 최초 관리자 계정, 기본 제공 모듈을 한 번에 설정합니다.</p>
+                <p class="sr-install-kicker">초기 설정</p>
+                <h1><?php echo sr_e($pageTitle); ?></h1>
+                <p>Saanraan 실행에 필요한 DB 연결, 사이트 기본값, 최초 관리자 계정, 기본 제공 모듈을 한 번에 설정합니다.</p>
             </div>
-            <ol class="toy-install-steps" aria-label="설치 단계">
+            <ol class="sr-install-steps" aria-label="설치 단계">
                 <li>환경 확인</li>
                 <li>DB 연결</li>
                 <li>사이트 설정</li>
@@ -33,13 +33,13 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
         </section>
 
         <?php if ($previousInstallFailure !== null) { ?>
-            <section class="toy-install-alert toy-install-alert-warning">
+            <section class="sr-install-alert sr-install-alert-warning">
                 <h2>이전 설치 시도 기록</h2>
                 <p>
                     단계:
-                    <code><?php echo toy_e($previousInstallFailure['stage']); ?></code>
+                    <code><?php echo sr_e($previousInstallFailure['stage']); ?></code>
                     <?php if ($previousInstallFailure['recorded_at'] !== '') { ?>
-                        <span>기록 시각: <?php echo toy_e($previousInstallFailure['recorded_at']); ?></span>
+                        <span>기록 시각: <?php echo sr_e($previousInstallFailure['recorded_at']); ?></span>
                     <?php } ?>
                 </p>
                 <p>
@@ -49,7 +49,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <?php echo $previousInstallFailure['installed_lock_written'] ? '예' : '아니오'; ?>
                 </p>
                 <?php if ((string) ($previousInstallFailure['message'] ?? '') !== '') { ?>
-                    <p>오류 요약: <?php echo toy_e((string) $previousInstallFailure['message']); ?></p>
+                    <p>오류 요약: <?php echo sr_e((string) $previousInstallFailure['message']); ?></p>
                 <?php } ?>
                 <ul>
                     <li><code>storage/install-failed.json</code>의 stage와 message를 확인하세요.</li>
@@ -60,53 +60,53 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
         <?php } ?>
 
         <?php if ($errors !== []) { ?>
-            <section class="toy-install-alert toy-install-alert-error">
+            <section class="sr-install-alert sr-install-alert-error">
                 <h2>확인 필요</h2>
                 <ul>
                     <?php foreach ($errors as $error) { ?>
-                        <li><?php echo toy_e($error); ?></li>
+                        <li><?php echo sr_e($error); ?></li>
                     <?php } ?>
                 </ul>
             </section>
         <?php } ?>
 
         <?php if ($installWarnings !== []) { ?>
-            <section class="toy-install-alert toy-install-alert-warning">
+            <section class="sr-install-alert sr-install-alert-warning">
                 <h2>주의 안내</h2>
                 <ul>
                     <?php foreach ($installWarnings as $warning) { ?>
-                        <li><?php echo toy_e($warning); ?></li>
+                        <li><?php echo sr_e($warning); ?></li>
                     <?php } ?>
                 </ul>
             </section>
         <?php } ?>
 
-        <section class="toy-install-panel">
-            <div class="toy-install-panel-head">
+        <section class="sr-install-panel">
+            <div class="sr-install-panel-head">
                 <div>
-                    <p class="toy-install-kicker">환경 확인</p>
+                    <p class="sr-install-kicker">환경 확인</p>
                     <h2>설치 전 상태</h2>
                 </div>
                 <p>테스트 설치는 HTTP로 진행할 수 있지만, 운영 전에는 HTTPS와 내부 파일 직접 접근 차단을 확인하세요.</p>
             </div>
-            <div class="toy-install-check-grid">
+            <div class="sr-install-check-grid">
                 <?php foreach ($installChecks as $check) { ?>
-                    <div class="toy-install-check">
-                        <span class="toy-install-status toy-install-status-<?php echo toy_e((string) $check['status']); ?>">
+                    <div class="sr-install-check">
+                        <span class="sr-install-status sr-install-status-<?php echo sr_e((string) $check['status']); ?>">
                             <?php echo ((string) $check['status'] === 'ok') ? '확인됨' : (((string) $check['status'] === 'warning') ? '주의' : '필요'); ?>
                         </span>
-                        <strong><?php echo toy_e((string) $check['label']); ?></strong>
-                        <p><?php echo toy_e((string) $check['message']); ?></p>
+                        <strong><?php echo sr_e((string) $check['label']); ?></strong>
+                        <p><?php echo sr_e((string) $check['message']); ?></p>
                         <?php if ((string) ($check['guide'] ?? '') !== '') { ?>
-                            <p class="toy-install-check-guide">
+                            <p class="sr-install-check-guide">
                                 <span>조치</span>
-                                <?php echo toy_e((string) $check['guide']); ?>
+                                <?php echo sr_e((string) $check['guide']); ?>
                             </p>
                         <?php } ?>
                     </div>
                 <?php } ?>
             </div>
-            <div class="toy-install-permission-guide">
+            <div class="sr-install-permission-guide">
                 <h3>쓰기 권한 설정 방법</h3>
                 <p>
                     설치 전에 <code>config</code>와 <code>storage</code> 디렉터리가 있어야 하며, PHP가 이 두 디렉터리에 파일을 만들 수 있어야 합니다.
@@ -123,70 +123,70 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </div>
         </section>
 
-        <form method="post" action="<?php echo toy_e(toy_url('/')); ?>" class="toy-install-form">
-            <?php echo toy_csrf_field(); ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/')); ?>" class="sr-install-form">
+            <?php echo sr_csrf_field(); ?>
 
-            <section class="toy-install-panel">
-                <div class="toy-install-panel-head">
+            <section class="sr-install-panel">
+                <div class="sr-install-panel-head">
                     <div>
-                        <p class="toy-install-kicker">데이터베이스</p>
+                        <p class="sr-install-kicker">데이터베이스</p>
                         <h2>DB 연결 정보</h2>
                     </div>
-                    <p>빈 DB 또는 Toycore 전용 DB를 사용하세요. 테이블 prefix는 기본값 <code>toy_</code>를 권장합니다.</p>
+                    <p>빈 DB 또는 Saanraan 전용 DB를 사용하세요. 테이블 prefix는 기본값 <code>sr_</code>를 권장합니다.</p>
                 </div>
 
-                <div class="toy-install-field-grid">
+                <div class="sr-install-field-grid">
                     <p>
                         <label for="db_host">DB host</label>
-                        <input id="db_host" type="text" name="db_host" value="<?php echo toy_e($values['db_host']); ?>" autocomplete="off" required>
-                        <span class="toy-install-help">일반 웹호스팅은 보통 localhost를 사용합니다.</span>
+                        <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required>
+                        <span class="sr-install-help">일반 웹호스팅은 보통 localhost를 사용합니다.</span>
                     </p>
                     <p>
                         <label for="db_name">DB name</label>
-                        <input id="db_name" type="text" name="db_name" value="<?php echo toy_e($values['db_name']); ?>" autocomplete="off" required>
+                        <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required>
                     </p>
                     <p>
                         <label for="db_user">DB user</label>
-                        <input id="db_user" type="text" name="db_user" value="<?php echo toy_e($values['db_user']); ?>" autocomplete="off" required>
+                        <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required>
                     </p>
                     <p>
                         <label for="db_password">DB password</label>
                         <input id="db_password" type="password" name="db_password" autocomplete="new-password">
-                        <span class="toy-install-help">보안을 위해 오류 후에도 비밀번호는 다시 표시하지 않습니다.</span>
+                        <span class="sr-install-help">보안을 위해 오류 후에도 비밀번호는 다시 표시하지 않습니다.</span>
                     </p>
                     <p>
                         <label for="db_table_prefix">테이블 prefix</label>
-                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo toy_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
-                        <span class="toy-install-help">기본값은 toy_입니다. 예: toy_, site1_</span>
+                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
+                        <span class="sr-install-help">기본값은 sr_입니다. 예: sr_, site1_</span>
                     </p>
                 </div>
             </section>
 
-            <section class="toy-install-panel">
-                <div class="toy-install-panel-head">
+            <section class="sr-install-panel">
+                <div class="sr-install-panel-head">
                     <div>
-                        <p class="toy-install-kicker">사이트</p>
+                        <p class="sr-install-kicker">사이트</p>
                         <h2>기본 정보</h2>
                     </div>
                     <p>설치 후 관리자 설정에서 다시 변경할 수 있습니다.</p>
                 </div>
 
-                <div class="toy-install-field-grid">
+                <div class="sr-install-field-grid">
                     <p>
                         <label for="site_name">사이트 이름</label>
-                        <input id="site_name" type="text" name="site_name" value="<?php echo toy_e($values['site_name']); ?>" required>
+                        <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required>
                     </p>
                     <p>
                         <label for="base_url">기본 URL</label>
-                        <input id="base_url" type="url" name="base_url" value="<?php echo toy_e($values['base_url']); ?>" placeholder="https://example.com">
-                        <span class="toy-install-help">테스트 설치는 HTTP도 가능하지만, 운영 사이트는 HTTPS URL을 권장합니다.</span>
+                        <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com">
+                        <span class="sr-install-help">테스트 설치는 HTTP도 가능하지만, 운영 사이트는 HTTPS URL을 권장합니다.</span>
                     </p>
                     <p>
                         <label for="timezone">timezone</label>
                         <select id="timezone" name="timezone" required>
                             <?php foreach ($timezoneOptions as $timezoneOption) { ?>
-                                <option value="<?php echo toy_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($timezoneOption); ?>
+                                <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($timezoneOption); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -195,8 +195,8 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <label for="default_locale">기본 locale</label>
                         <select id="default_locale" name="default_locale" required>
                             <?php foreach ($localeOptions as $localeOption) { ?>
-                                <option value="<?php echo toy_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
-                                    <?php echo toy_e($localeOption); ?>
+                                <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($localeOption); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -204,29 +204,29 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 </div>
             </section>
 
-            <section class="toy-install-panel">
-                <div class="toy-install-panel-head">
+            <section class="sr-install-panel">
+                <div class="sr-install-panel-head">
                     <div>
-                        <p class="toy-install-kicker">관리자</p>
+                        <p class="sr-install-kicker">관리자</p>
                         <h2>최초 관리자 계정</h2>
                     </div>
                     <p>이 계정에 소유자 권한이 부여됩니다.</p>
                 </div>
 
-                <div class="toy-install-field-grid">
+                <div class="sr-install-field-grid">
                     <p>
                         <label for="admin_email">이메일</label>
-                        <input id="admin_email" type="email" name="admin_email" value="<?php echo toy_e($values['admin_email']); ?>" autocomplete="email" required>
+                        <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required>
                     </p>
                     <p>
                         <label for="admin_login_id">로그인 아이디</label>
-                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo toy_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                        <span class="toy-install-help">비우면 이메일로 로그인하고, 입력하면 이 아이디로 로그인합니다. 예: admin, site_admin</span>
+                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                        <span class="sr-install-help">비우면 이메일로 로그인하고, 입력하면 이 아이디로 로그인합니다. 예: admin, site_admin</span>
                     </p>
                     <p>
                         <label for="admin_password">비밀번호</label>
                         <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
-                        <span class="toy-install-help">8자 이상 입력하세요.</span>
+                        <span class="sr-install-help">8자 이상 입력하세요.</span>
                     </p>
                     <p>
                         <label for="admin_password_confirm">비밀번호 확인</label>
@@ -234,33 +234,33 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     </p>
                     <p>
                         <label for="admin_display_name">표시 이름</label>
-                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo toy_e($values['admin_display_name']); ?>" required>
+                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required>
                     </p>
                 </div>
             </section>
 
-            <section class="toy-install-panel">
-                <div class="toy-install-panel-head">
+            <section class="sr-install-panel">
+                <div class="sr-install-panel-head">
                     <div>
-                        <p class="toy-install-kicker">모듈</p>
+                        <p class="sr-install-kicker">모듈</p>
                         <h2>설치할 기능</h2>
                     </div>
                     <p>선택하지 않은 기본 제공 모듈은 설치 후 관리자 모듈 화면에서 추가할 수 있습니다.</p>
                 </div>
 
                 <h3>필수 모듈</h3>
-                <div class="toy-install-module-grid">
+                <div class="sr-install-module-grid">
                     <?php foreach ($requiredModules as $moduleKey => $module) { ?>
                         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                        <div class="toy-install-module">
-                            <span class="toy-install-status toy-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '필수' : '확인 필요'; ?></span>
-                            <strong><?php echo toy_e((string) $module['label']); ?></strong>
-                            <code><?php echo toy_e((string) $moduleKey); ?></code>
-                            <p><?php echo toy_e((string) $module['description']); ?></p>
+                        <div class="sr-install-module">
+                            <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '필수' : '확인 필요'; ?></span>
+                            <strong><?php echo sr_e((string) $module['label']); ?></strong>
+                            <code><?php echo sr_e((string) $moduleKey); ?></code>
+                            <p><?php echo sr_e((string) $module['description']); ?></p>
                             <?php if ($moduleErrors !== []) { ?>
                                 <ul>
                                     <?php foreach ($moduleErrors as $moduleError) { ?>
-                                        <li><?php echo toy_e((string) $moduleError); ?></li>
+                                        <li><?php echo sr_e((string) $moduleError); ?></li>
                                     <?php } ?>
                                 </ul>
                             <?php } ?>
@@ -272,29 +272,29 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <?php if ($optionalModules === []) { ?>
                     <p>현재 코드에는 설치 화면에서 선택할 수 있는 선택 모듈이 없습니다. 설치 후 필요한 모듈 zip을 <code>modules/{module_key}</code>에 업로드하고 관리자 모듈 화면에서 설치하세요.</p>
                 <?php } else { ?>
-                    <div class="toy-install-module-grid">
+                    <div class="sr-install-module-grid">
                         <?php foreach ($optionalModules as $moduleKey => $module) { ?>
                             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                            <label class="toy-install-module toy-install-module-option">
-                                <span class="toy-install-module-title">
+                            <label class="sr-install-module sr-install-module-option">
+                                <span class="sr-install-module-title">
                                     <input
                                         type="checkbox"
                                         name="optional_modules[]"
-                                        value="<?php echo toy_e((string) $moduleKey); ?>"
+                                        value="<?php echo sr_e((string) $moduleKey); ?>"
                                         <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                         <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                     >
-                                    <strong><?php echo toy_e((string) $module['label']); ?></strong>
+                                    <strong><?php echo sr_e((string) $module['label']); ?></strong>
                                 </span>
                                 <?php if ($moduleErrors !== []) { ?>
-                                    <span class="toy-install-status toy-install-status-error">설치 불가</span>
+                                    <span class="sr-install-status sr-install-status-error">설치 불가</span>
                                 <?php } ?>
-                                <code><?php echo toy_e((string) $moduleKey); ?></code>
-                                <p><?php echo toy_e((string) $module['description']); ?></p>
+                                <code><?php echo sr_e((string) $moduleKey); ?></code>
+                                <p><?php echo sr_e((string) $module['description']); ?></p>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <ul>
                                         <?php foreach ($moduleErrors as $moduleError) { ?>
-                                            <li><?php echo toy_e((string) $moduleError); ?></li>
+                                            <li><?php echo sr_e((string) $moduleError); ?></li>
                                         <?php } ?>
                                     </ul>
                                 <?php } ?>
@@ -304,7 +304,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <?php } ?>
             </section>
 
-            <div class="toy-install-actions">
+            <div class="sr-install-actions">
                 <p>설치하면 설정 파일과 DB 테이블을 생성하고, 완료 후 관리자 로그인 화면으로 이동합니다.</p>
                 <button type="submit">설치 시작</button>
             </div>

@@ -6,7 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $errors = [];
 
-function toy_skin_theme_check_read(string $path): string
+function sr_skin_theme_check_read(string $path): string
 {
     global $root, $errors;
     $fullPath = $root . '/' . $path;
@@ -24,10 +24,10 @@ function toy_skin_theme_check_read(string $path): string
     return str_replace(["\r\n", "\r"], "\n", $content);
 }
 
-function toy_skin_theme_check_contains(string $path, array $needles, string $label): void
+function sr_skin_theme_check_contains(string $path, array $needles, string $label): void
 {
     global $errors;
-    $content = toy_skin_theme_check_read($path);
+    $content = sr_skin_theme_check_read($path);
     if ($content === '') {
         return;
     }
@@ -39,7 +39,7 @@ function toy_skin_theme_check_contains(string $path, array $needles, string $lab
     }
 }
 
-function toy_skin_theme_check_file_exists(string $path, string $label): void
+function sr_skin_theme_check_file_exists(string $path, string $label): void
 {
     global $root, $errors;
     if (!is_file($root . '/' . $path)) {
@@ -56,16 +56,16 @@ $targets = [
         'render_views' => ['modules/admin/views/layout-header.php', 'modules/admin/views/layout-footer.php'],
         'files' => ['modules/admin/skins/basic/layout-header.php', 'modules/admin/skins/basic/layout-footer.php'],
         'helper_needles' => [
-            'function toy_admin_skin_options(): array',
-            "'layout-header' => TOY_ROOT . '/modules/admin/skins/basic/layout-header.php'",
-            "'layout-footer' => TOY_ROOT . '/modules/admin/skins/basic/layout-footer.php'",
+            'function sr_admin_skin_options(): array',
+            "'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php'",
+            "'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php'",
             'return is_file($view) ? $view',
         ],
         'action_needles' => [
-            '$adminSkinOptions = toy_admin_skin_options()',
-            "toy_post_string('admin_skin_key', 40)",
+            '$adminSkinOptions = sr_admin_skin_options()',
+            "sr_post_string('admin_skin_key', 40)",
             'if (!isset($adminSkinOptions[$postedSkinKey]))',
-            'toy_admin_save_skin_key($pdo, $postedSkinKey)',
+            'sr_admin_save_skin_key($pdo, $postedSkinKey)',
             "'admin_skin_key' => \$adminSkinKey",
         ],
         'view_needles' => [
@@ -74,8 +74,8 @@ $targets = [
             'foreach ($adminSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
-            "toy_admin_skin_view(toy_admin_skin_key(\$adminSettings), 'layout-header')",
-            "toy_admin_skin_view(toy_admin_skin_key(\$adminSettings), 'layout-footer')",
+            "sr_admin_skin_view(sr_admin_skin_key(\$adminSettings), 'layout-header')",
+            "sr_admin_skin_view(sr_admin_skin_key(\$adminSettings), 'layout-footer')",
         ],
     ],
     [
@@ -86,23 +86,23 @@ $targets = [
         'render_views' => ['modules/banner/helpers.php'],
         'files' => ['modules/banner/skins/basic/item.php'],
         'helper_needles' => [
-            'function toy_banner_skin_options(): array',
+            'function sr_banner_skin_options(): array',
             "'supports' => ['public', 'inline']",
-            "'item' => TOY_ROOT . '/modules/banner/skins/basic/item.php'",
-            'function toy_banner_skin_supports(string $skinKey, string $placementKind): bool',
-            'function toy_banner_skin_key_for_placement(string $skinKey, string $placementKind): ?string',
-            'function toy_banner_target_placement_kind(?array $target, bool $isPublicBanner = false): string',
+            "'item' => SR_ROOT . '/modules/banner/skins/basic/item.php'",
+            'function sr_banner_skin_supports(string $skinKey, string $placementKind): bool',
+            'function sr_banner_skin_key_for_placement(string $skinKey, string $placementKind): ?string',
+            'function sr_banner_target_placement_kind(?array $target, bool $isPublicBanner = false): string',
             'return is_file($view) ? $view',
-            'function toy_banner_save_skin_key(PDO $pdo, string $skinKey): void',
+            'function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
-            '$bannerSkinOptions = toy_banner_skin_options()',
-            "toy_post_string('banner_skin_key', 40)",
-            "toy_post_string('skin_key', 40)",
+            '$bannerSkinOptions = sr_banner_skin_options()',
+            "sr_post_string('banner_skin_key', 40)",
+            "sr_post_string('skin_key', 40)",
             'if (!isset($bannerSkinOptions[$postedSkinKey]))',
             'if (!isset($bannerSkinOptions[$skinKey]))',
-            'toy_banner_skin_supports($skinKey, toy_banner_target_placement_kind($target, $isPublicBanner))',
-            'toy_banner_save_skin_key($pdo, $postedSkinKey)',
+            'sr_banner_skin_supports($skinKey, sr_banner_target_placement_kind($target, $isPublicBanner))',
+            'sr_banner_save_skin_key($pdo, $postedSkinKey)',
             "'banner_skin_key' => \$bannerSkinKey",
             "'skin_key' => \$skinKey",
         ],
@@ -113,9 +113,9 @@ $targets = [
             'foreach ($bannerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
-            'toy_banner_target_for_context($pdo, $context)',
-            'toy_banner_skin_key_for_placement($requestedSkinKey, $placementKind)',
-            'toy_banner_render_item($banner, $skinKey)',
+            'sr_banner_target_for_context($pdo, $context)',
+            'sr_banner_skin_key_for_placement($requestedSkinKey, $placementKind)',
+            'sr_banner_render_item($banner, $skinKey)',
         ],
     ],
     [
@@ -126,18 +126,18 @@ $targets = [
         'render_views' => ['modules/popup_layer/helpers.php'],
         'files' => ['modules/popup_layer/skins/basic/layer.php'],
         'helper_needles' => [
-            'function toy_popup_layer_skin_options(): array',
-            "'layer' => TOY_ROOT . '/modules/popup_layer/skins/basic/layer.php'",
+            'function sr_popup_layer_skin_options(): array',
+            "'layer' => SR_ROOT . '/modules/popup_layer/skins/basic/layer.php'",
             'return is_file($view) ? $view',
-            'function toy_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void',
+            'function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
-            '$popupLayerSkinOptions = toy_popup_layer_skin_options()',
-            "toy_post_string('popup_layer_skin_key', 40)",
-            "toy_post_string('skin_key', 40)",
+            '$popupLayerSkinOptions = sr_popup_layer_skin_options()',
+            "sr_post_string('popup_layer_skin_key', 40)",
+            "sr_post_string('skin_key', 40)",
             'if (!isset($popupLayerSkinOptions[$postedSkinKey]))',
             'if (!isset($popupLayerSkinOptions[$skinKey]))',
-            'toy_popup_layer_save_skin_key($pdo, $postedSkinKey)',
+            'sr_popup_layer_save_skin_key($pdo, $postedSkinKey)',
             "'popup_layer_skin_key' => \$popupLayerSkinKey",
             "'skin_key' => \$skinKey",
         ],
@@ -149,8 +149,8 @@ $targets = [
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
-            "\$skinKey = toy_popup_layer_skin_key(['popup_layer_skin_key' => (string) (\$row['skin_key'] ?? 'basic')])",
-            'toy_popup_layer_render_stack($skinPopups, $skinKey)',
+            "\$skinKey = sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) (\$row['skin_key'] ?? 'basic')])",
+            'sr_popup_layer_render_stack($skinPopups, $skinKey)',
         ],
     ],
     [
@@ -178,22 +178,22 @@ $targets = [
             'modules/member/skins/basic/email-verified.php',
         ],
         'helper_needles' => [
-            'function toy_member_skin_options(): array',
-            "'login' => TOY_ROOT . '/modules/member/skins/basic/login.php'",
+            'function sr_member_skin_options(): array',
+            "'login' => SR_ROOT . '/modules/member/skins/basic/login.php'",
             'return is_file($view) ? $view',
         ],
         'action_needles' => [
-            "toy_post_string('member_skin_key', 40)",
-            'if (!isset(toy_member_skin_options()[$memberSkinKey]))',
+            "sr_post_string('member_skin_key', 40)",
+            'if (!isset(sr_member_skin_options()[$memberSkinKey]))',
             "['member_skin_key', (string) \$settings['member_skin_key'], 'string']",
         ],
         'view_needles' => [
             '<label>회원 스킨<br>',
             '<select name="member_skin_key">',
-            'foreach (toy_member_skin_options() as $skinKey => $skinOption)',
+            'foreach (sr_member_skin_options() as $skinKey => $skinOption)',
         ],
         'render_needles' => [
-            'toy_member_skin_view(toy_member_skin_key($memberSettings),',
+            'sr_member_skin_view(sr_member_skin_key($memberSettings),',
         ],
     ],
     [
@@ -204,13 +204,13 @@ $targets = [
         'render_views' => ['modules/community/actions/home.php'],
         'files' => ['modules/community/themes/basic/home.php'],
         'helper_needles' => [
-            'function toy_community_theme_options(): array',
-            "'home' => TOY_ROOT . '/modules/community/themes/basic/home.php'",
+            'function sr_community_theme_options(): array',
+            "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
             'return is_file($view) ? $view',
         ],
         'action_needles' => [
-            '$communityThemeOptions = toy_community_theme_options()',
-            "toy_post_string('theme_key', 40)",
+            '$communityThemeOptions = sr_community_theme_options()',
+            "sr_post_string('theme_key', 40)",
             'if (!isset($communityThemeOptions[$themeKey]))',
             "['theme_key', \$themeKey, 'string']",
         ],
@@ -220,8 +220,8 @@ $targets = [
             'foreach ($communityThemeOptions as $themeKey => $themeOption)',
         ],
         'render_needles' => [
-            '$themeKey = toy_community_theme_key($settings)',
-            'toy_community_theme_view($themeKey, \'home\')',
+            '$themeKey = sr_community_theme_key($settings)',
+            'sr_community_theme_view($themeKey, \'home\')',
         ],
     ],
     [
@@ -232,17 +232,17 @@ $targets = [
         'render_views' => ['modules/community/actions/list.php', 'modules/community/actions/view.php', 'modules/community/actions/write.php', 'modules/community/actions/edit.php'],
         'files' => ['modules/community/skins/basic/list.php', 'modules/community/skins/basic/view.php', 'modules/community/skins/basic/form.php'],
         'helper_needles' => [
-            'function toy_community_skin_options(): array',
-            "'list' => TOY_ROOT . '/modules/community/skins/basic/list.php'",
-            "'post' => TOY_ROOT . '/modules/community/skins/basic/view.php'",
-            "'form' => TOY_ROOT . '/modules/community/skins/basic/form.php'",
+            'function sr_community_skin_options(): array',
+            "'list' => SR_ROOT . '/modules/community/skins/basic/list.php'",
+            "'post' => SR_ROOT . '/modules/community/skins/basic/view.php'",
+            "'form' => SR_ROOT . '/modules/community/skins/basic/form.php'",
         ],
         'action_needles' => [
-            '$communitySkinOptions = toy_community_skin_options()',
+            '$communitySkinOptions = sr_community_skin_options()',
             '$intent === \'update_skin\'',
-            "toy_post_string('skin_key', 40)",
+            "sr_post_string('skin_key', 40)",
             'if (!isset($communitySkinOptions[$skinKey]))',
-            "toy_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
+            "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
         ],
         'view_needles' => [
             '<label>게시판 스킨<br>',
@@ -251,26 +251,26 @@ $targets = [
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
-            '$skinKey = toy_community_board_skin_key($pdo,',
-            'toy_community_skin_view($skinKey,',
+            '$skinKey = sr_community_board_skin_key($pdo,',
+            'sr_community_skin_view($skinKey,',
         ],
     ],
 ];
 
 foreach ($targets as $target) {
     $label = (string) $target['label'];
-    toy_skin_theme_check_contains((string) $target['helper'], $target['helper_needles'], $label . ' helper');
-    toy_skin_theme_check_contains((string) $target['action'], $target['action_needles'], $label . ' admin action');
-    toy_skin_theme_check_contains((string) $target['view'], $target['view_needles'], $label . ' admin view');
+    sr_skin_theme_check_contains((string) $target['helper'], $target['helper_needles'], $label . ' helper');
+    sr_skin_theme_check_contains((string) $target['action'], $target['action_needles'], $label . ' admin action');
+    sr_skin_theme_check_contains((string) $target['view'], $target['view_needles'], $label . ' admin view');
 
     foreach ($target['files'] as $file) {
-        toy_skin_theme_check_file_exists((string) $file, $label);
+        sr_skin_theme_check_file_exists((string) $file, $label);
     }
 
     $renderNeedles = $target['render_needles'];
     $renderContent = '';
     foreach ($target['render_views'] as $renderView) {
-        $renderContent .= "\n" . toy_skin_theme_check_read((string) $renderView);
+        $renderContent .= "\n" . sr_skin_theme_check_read((string) $renderView);
     }
     foreach ($renderNeedles as $needle) {
         if (!str_contains($renderContent, (string) $needle)) {
@@ -292,7 +292,7 @@ foreach (['modules', 'core'] as $viewRoot) {
         }
 
         $relativePath = substr($file->getPathname(), strlen($root) + 1);
-        $content = toy_skin_theme_check_read($relativePath);
+        $content = sr_skin_theme_check_read($relativePath);
         if ($content === '') {
             continue;
         }
@@ -303,9 +303,9 @@ foreach (['modules', 'core'] as $viewRoot) {
     }
 }
 
-toy_skin_theme_check_contains('modules/admin/views/settings.php', [
+sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '<select name="public_layout_key">',
-    'foreach (toy_public_layout_options() as $layoutKey => $layoutOption)',
+    'foreach (sr_public_layout_options() as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
 
 if ($errors !== []) {

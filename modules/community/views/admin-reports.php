@@ -1,17 +1,17 @@
 <?php
 
 $adminPageTitle = '커뮤니티 신고';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
@@ -40,45 +40,45 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($reports as $report) { ?>
                     <tr>
-                        <td><?php echo toy_e((string) $report['id']); ?></td>
-                        <td><?php echo toy_e(toy_admin_code_label((string) $report['target_type']) . ' #' . (string) $report['target_id']); ?></td>
-                        <td><?php echo toy_e(toy_community_report_reason_label((string) $report['reason_key'])); ?></td>
-                        <td><?php echo toy_e(toy_admin_code_label((string) $report['status'], 'report_status')); ?></td>
-                        <td><?php echo toy_e(toy_community_report_account_label(
+                        <td><?php echo sr_e((string) $report['id']); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $report['target_type']) . ' #' . (string) $report['target_id']); ?></td>
+                        <td><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $report['status'], 'report_status')); ?></td>
+                        <td><?php echo sr_e(sr_community_report_account_label(
                             is_string($report['reporter_display_name'] ?? null) ? $report['reporter_display_name'] : null,
                             (int) $report['reporter_account_id']
                         )); ?></td>
-                        <td><?php echo toy_e(toy_community_report_account_label(
+                        <td><?php echo sr_e(sr_community_report_account_label(
                             is_string($report['reported_display_name'] ?? null) ? $report['reported_display_name'] : null,
                             (int) $report['reported_account_id']
                         )); ?></td>
-                        <td><?php echo toy_e((string) ($report['memo_text'] ?? '')); ?></td>
-                        <td><?php echo toy_e((string) $report['created_at']); ?></td>
+                        <td><?php echo sr_e((string) ($report['memo_text'] ?? '')); ?></td>
+                        <td><?php echo sr_e((string) $report['created_at']); ?></td>
                         <td>
                             <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
-                                <?php echo toy_e(toy_community_report_account_label(
+                                <?php echo sr_e(sr_community_report_account_label(
                                     is_string($report['reviewer_display_name'] ?? null) ? $report['reviewer_display_name'] : null,
                                     (int) $report['reviewer_account_id']
                                 )); ?>
                             <?php } ?>
                         </td>
-                        <td><?php echo toy_e((string) ($report['reviewed_at'] ?? '')); ?></td>
+                        <td><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
                         <td>
-                            <form method="post" action="<?php echo toy_e(toy_url('/admin/community/reports')); ?>">
-                                <?php echo toy_csrf_field(); ?>
-                                <input type="hidden" name="report_id" value="<?php echo toy_e((string) $report['id']); ?>">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
                                 <p>
                                     <label>상태<br>
                                         <select name="status">
                                             <?php foreach ($allowedStatuses as $status) { ?>
-                                                <option value="<?php echo toy_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($status, 'report_status')); ?></option>
+                                                <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
                                             <?php } ?>
                                         </select>
                                     </label>
                                 </p>
                                 <p>
                                     <label>처리 메모<br>
-                                        <textarea name="review_note" rows="3" cols="30"><?php echo toy_e((string) ($report['review_note'] ?? '')); ?></textarea>
+                                        <textarea name="review_note" rows="3" cols="30"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
                                     </label>
                                 </p>
                                 <button type="submit">변경</button>
@@ -91,4 +91,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

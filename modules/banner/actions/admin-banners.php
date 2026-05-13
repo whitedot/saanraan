@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
-require_once TOY_ROOT . '/modules/banner/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/banner/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
@@ -17,40 +17,40 @@ $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
     $bannerAdminPage = 'list';
 }
-$availableTargets = toy_banner_available_targets($pdo);
-$bannerSettings = toy_banner_settings($pdo);
-$bannerSkinOptions = toy_banner_skin_options();
-$bannerSkinKey = toy_banner_skin_key($bannerSettings);
+$availableTargets = sr_banner_available_targets($pdo);
+$bannerSettings = sr_banner_settings($pdo);
+$bannerSkinOptions = sr_banner_skin_options();
+$bannerSkinKey = sr_banner_skin_key($bannerSettings);
 $filters = [
-    'status' => toy_get_string('status', 30),
-    'target' => toy_get_string('target', 300),
+    'status' => sr_get_string('status', 30),
+    'target' => sr_get_string('target', 300),
 ];
 if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
     $filters['status'] = '';
 }
-$filterPublicTarget = toy_banner_is_public_target_option($filters['target']);
-$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? toy_banner_target_from_option($filters['target']) : null;
+$filterPublicTarget = sr_banner_is_public_target_option($filters['target']);
+$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? sr_banner_target_from_option($filters['target']) : null;
 if ($filters['target'] !== '' && !$filterPublicTarget && $filterTarget === null) {
     $filters['target'] = '';
 }
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
-    $bannerId = (int) toy_post_string('banner_id', 20);
+    $intent = sr_post_string('intent', 40);
+    $bannerId = (int) sr_post_string('banner_id', 20);
 
     if ($intent === 'save_settings') {
-        $postedSkinKey = toy_post_string('banner_skin_key', 40);
+        $postedSkinKey = sr_post_string('banner_skin_key', 40);
         if (!isset($bannerSkinOptions[$postedSkinKey])) {
             $errors[] = '배너 스킨 값이 올바르지 않습니다.';
         }
 
         if ($errors === []) {
-            toy_banner_save_skin_key($pdo, $postedSkinKey);
-            $bannerSettings = toy_banner_settings($pdo);
-            $bannerSkinKey = toy_banner_skin_key($bannerSettings);
-            toy_audit_log($pdo, [
+            sr_banner_save_skin_key($pdo, $postedSkinKey);
+            $bannerSettings = sr_banner_settings($pdo);
+            $bannerSkinKey = sr_banner_skin_key($bannerSettings);
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'banner.settings.updated',
@@ -72,15 +72,15 @@ if (toy_request_method() === 'POST') {
         if ($errors === []) {
             try {
                 $pdo->beginTransaction();
-                $stmt = $pdo->prepare('DELETE FROM toy_banner_targets WHERE banner_id = :banner_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_banner_targets WHERE banner_id = :banner_id');
                 $stmt->execute(['banner_id' => $bannerId]);
-                $stmt = $pdo->prepare('DELETE FROM toy_banner_clicks WHERE banner_id = :banner_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_banner_clicks WHERE banner_id = :banner_id');
                 $stmt->execute(['banner_id' => $bannerId]);
-                $stmt = $pdo->prepare('DELETE FROM toy_banners WHERE id = :id');
+                $stmt = $pdo->prepare('DELETE FROM sr_banners WHERE id = :id');
                 $stmt->execute(['id' => $bannerId]);
                 $pdo->commit();
 
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'banner.deleted',
@@ -99,27 +99,27 @@ if (toy_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'save') {
-        $title = toy_banner_clean_single_line(toy_post_string('title', 120), 120);
-        $bodyText = toy_banner_clean_text(toy_post_string('body_text', 3000), 3000);
-        $rawLinkUrl = toy_post_string('link_url', 255);
-        $linkUrl = toy_banner_clean_url($rawLinkUrl);
-        $rawImageUrl = toy_post_string('image_url', 255);
-        $imageUrl = toy_banner_clean_image_url($rawImageUrl);
+        $title = sr_banner_clean_single_line(sr_post_string('title', 120), 120);
+        $bodyText = sr_banner_clean_text(sr_post_string('body_text', 3000), 3000);
+        $rawLinkUrl = sr_post_string('link_url', 255);
+        $linkUrl = sr_banner_clean_url($rawLinkUrl);
+        $rawImageUrl = sr_post_string('image_url', 255);
+        $imageUrl = sr_banner_clean_image_url($rawImageUrl);
         $imageUploadFile = $_FILES['image_upload'] ?? null;
-        $imageUploadProvided = toy_banner_image_upload_was_provided($imageUploadFile);
+        $imageUploadProvided = sr_banner_image_upload_was_provided($imageUploadFile);
         $uploadedImage = null;
-        $status = toy_post_string('status', 30);
-        $skinKey = toy_post_string('skin_key', 40);
-        $startsAtInput = toy_post_string('starts_at', 30);
-        $endsAtInput = toy_post_string('ends_at', 30);
-        $startsAt = toy_banner_clean_admin_datetime($startsAtInput);
-        $endsAt = toy_banner_clean_admin_datetime($endsAtInput);
-        $sortOrder = max(-100000, min(100000, (int) toy_post_string('sort_order', 20)));
-        $targetOption = toy_post_string('target_option', 300);
-        $isPublicBanner = toy_banner_is_public_target_option($targetOption);
-        $target = $isPublicBanner ? null : toy_banner_find_target($availableTargets, $targetOption);
-        $matchType = toy_post_string('match_type', 20);
-        $subjectId = toy_banner_clean_single_line(toy_post_string('subject_id', 80), 80);
+        $status = sr_post_string('status', 30);
+        $skinKey = sr_post_string('skin_key', 40);
+        $startsAtInput = sr_post_string('starts_at', 30);
+        $endsAtInput = sr_post_string('ends_at', 30);
+        $startsAt = sr_banner_clean_admin_datetime($startsAtInput);
+        $endsAt = sr_banner_clean_admin_datetime($endsAtInput);
+        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $targetOption = sr_post_string('target_option', 300);
+        $isPublicBanner = sr_banner_is_public_target_option($targetOption);
+        $target = $isPublicBanner ? null : sr_banner_find_target($availableTargets, $targetOption);
+        $matchType = sr_post_string('match_type', 20);
+        $subjectId = sr_banner_clean_single_line(sr_post_string('subject_id', 80), 80);
 
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
@@ -150,15 +150,15 @@ if (toy_request_method() === 'POST') {
             if ($bannerId > 0) {
                 $stmt = $pdo->prepare(
                     'SELECT module_key, point_key, slot_key
-                     FROM toy_banner_targets
+                     FROM sr_banner_targets
                      WHERE banner_id = :banner_id
                      LIMIT 1'
                 );
                 $stmt->execute(['banner_id' => $bannerId]);
                 $storedTarget = $stmt->fetch();
                 if (is_array($storedTarget)) {
-                    $storedTargetData = toy_banner_target_from_row($storedTarget);
-                    if ($storedTargetData !== null && toy_banner_target_option_value($storedTargetData) === $targetOption) {
+                    $storedTargetData = sr_banner_target_from_row($storedTarget);
+                    if ($storedTargetData !== null && sr_banner_target_option_value($storedTargetData) === $targetOption) {
                         $target = $storedTargetData;
                     }
                 }
@@ -174,12 +174,12 @@ if (toy_request_method() === 'POST') {
         if (!$isPublicBanner && $matchType === 'exact' && $subjectId === '') {
             $errors[] = '특정 subject ID를 입력하세요.';
         }
-        if (($isPublicBanner || $target !== null) && !toy_banner_skin_supports($skinKey, toy_banner_target_placement_kind($target, $isPublicBanner))) {
+        if (($isPublicBanner || $target !== null) && !sr_banner_skin_supports($skinKey, sr_banner_target_placement_kind($target, $isPublicBanner))) {
             $errors[] = '선택한 배너 스킨은 출력 위치와 호환되지 않습니다.';
         }
 
         if ($errors === [] && $bannerId > 0) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_banners WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_banners WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $bannerId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '수정할 배너를 찾을 수 없습니다.';
@@ -191,7 +191,7 @@ if (toy_request_method() === 'POST') {
                 $errors[] = '업로드할 배너 이미지를 확인할 수 없습니다.';
             } else {
                 try {
-                    $uploadedImage = toy_banner_upload_image($imageUploadFile);
+                    $uploadedImage = sr_banner_upload_image($imageUploadFile);
                     if (is_array($uploadedImage)) {
                         $imageUrl = (string) $uploadedImage['url'];
                     }
@@ -203,12 +203,12 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === [] && ($isPublicBanner || $target !== null)) {
             try {
-                $now = toy_now();
+                $now = sr_now();
                 $pdo->beginTransaction();
 
                 if ($bannerId > 0) {
                     $stmt = $pdo->prepare(
-                        'UPDATE toy_banners
+                        'UPDATE sr_banners
                          SET title = :title, body_text = :body_text, link_url = :link_url, image_url = :image_url,
                              status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, sort_order = :sort_order, updated_at = :updated_at
                          WHERE id = :id'
@@ -228,7 +228,7 @@ if (toy_request_method() === 'POST') {
                     ]);
                 } else {
                     $stmt = $pdo->prepare(
-                        'INSERT INTO toy_banners
+                        'INSERT INTO sr_banners
                             (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, created_at, updated_at)
                          VALUES
                             (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
@@ -249,12 +249,12 @@ if (toy_request_method() === 'POST') {
                     $bannerId = (int) $pdo->lastInsertId();
                 }
 
-                $stmt = $pdo->prepare('DELETE FROM toy_banner_targets WHERE banner_id = :banner_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_banner_targets WHERE banner_id = :banner_id');
                 $stmt->execute(['banner_id' => $bannerId]);
 
                 if (!$isPublicBanner && $target !== null) {
                     $stmt = $pdo->prepare(
-                        'INSERT INTO toy_banner_targets
+                        'INSERT INTO sr_banner_targets
                             (banner_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
                          VALUES
                             (:banner_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
@@ -272,7 +272,7 @@ if (toy_request_method() === 'POST') {
 
                 $pdo->commit();
 
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'banner.saved',
@@ -295,7 +295,7 @@ if (toy_request_method() === 'POST') {
                     $pdo->rollBack();
                 }
                 if (is_array($uploadedImage)) {
-                    toy_banner_delete_uploaded_image($uploadedImage);
+                    sr_banner_delete_uploaded_image($uploadedImage);
                 }
                 $errors[] = '배너 저장 중 오류가 발생했습니다.';
             }
@@ -306,13 +306,13 @@ if (toy_request_method() === 'POST') {
 }
 
 $editBanner = null;
-$editId = (int) toy_get_string('edit_id', 20);
+$editId = (int) sr_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
         'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
-         FROM toy_banners b
-         LEFT JOIN toy_banner_targets t ON t.banner_id = b.id
+         FROM sr_banners b
+         LEFT JOIN sr_banner_targets t ON t.banner_id = b.id
          WHERE b.id = :id
          LIMIT 1'
     );
@@ -320,20 +320,20 @@ if ($editId > 0) {
     $row = $stmt->fetch();
     if (is_array($row)) {
         $editBanner = $row;
-        $editTarget = toy_banner_target_from_row($row, '선언이 사라진 저장 위치');
-        if ($editTarget !== null && toy_banner_find_target($availableTargets, toy_banner_target_option_value($editTarget)) === null) {
+        $editTarget = sr_banner_target_from_row($row, '선언이 사라진 저장 위치');
+        if ($editTarget !== null && sr_banner_find_target($availableTargets, sr_banner_target_option_value($editTarget)) === null) {
             $availableTargets[] = $editTarget;
         }
     }
 }
 
-$targetLabels = toy_banner_target_labels($availableTargets);
+$targetLabels = sr_banner_target_labels($availableTargets);
 
 $banners = [];
 $bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
-              FROM toy_banners b
-              LEFT JOIN toy_banner_targets t ON t.banner_id = b.id';
+              FROM sr_banners b
+              LEFT JOIN sr_banner_targets t ON t.banner_id = b.id';
 $bannerParams = [];
 $bannerWhere = [];
 if ($filters['status'] !== '') {
@@ -358,4 +358,4 @@ foreach ($stmt->fetchAll() as $row) {
     $banners[] = $row;
 }
 
-include TOY_ROOT . '/modules/banner/views/admin-banners.php';
+include SR_ROOT . '/modules/banner/views/admin-banners.php';

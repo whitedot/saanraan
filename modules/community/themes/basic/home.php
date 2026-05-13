@@ -5,22 +5,22 @@ $seo = [
     'title' => $pageTitle,
     'canonical' => '/community',
 ];
-toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <?php echo toy_render_output_slot($pdo, [
+        <?php echo sr_render_output_slot($pdo, [
             'module_key' => 'community',
             'point_key' => 'community.home',
             'slot_key' => 'before_content',
         ]); ?>
 
-        <h1><?php echo toy_e($pageTitle); ?></h1>
+        <h1><?php echo sr_e($pageTitle); ?></h1>
 
         <?php if (is_array($account)) { ?>
             <p>
-                <a href="<?php echo toy_e(toy_url('/community/scraps')); ?>">내 스크랩</a>
+                <a href="<?php echo sr_e(sr_url('/community/scraps')); ?>">내 스크랩</a>
                 /
-                <a href="<?php echo toy_e(toy_url('/community/messages')); ?>">쪽지함</a>
+                <a href="<?php echo sr_e(sr_url('/community/messages')); ?>">쪽지함</a>
             </p>
         <?php } ?>
 
@@ -29,15 +29,15 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } else { ?>
             <?php foreach ($boardSections as $section) { ?>
                 <section>
-                    <h2><?php echo toy_e((string) $section['title']); ?></h2>
+                    <h2><?php echo sr_e((string) $section['title']); ?></h2>
                     <ul>
                         <?php foreach ($section['boards'] as $board) { ?>
                             <li>
-                                <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                                    <?php echo toy_e((string) $board['title']); ?>
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                    <?php echo sr_e((string) $board['title']); ?>
                                 </a>
                                 <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                                    <br><?php echo toy_e((string) $board['description']); ?>
+                                    <br><?php echo sr_e((string) $board['description']); ?>
                                 <?php } ?>
                             </li>
                         <?php } ?>
@@ -53,11 +53,11 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <ul>
                         <?php foreach ($ungroupedBoards as $board) { ?>
                             <li>
-                                <a href="<?php echo toy_e(toy_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                                    <?php echo toy_e((string) $board['title']); ?>
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                    <?php echo sr_e((string) $board['title']); ?>
                                 </a>
                                 <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                                    <br><?php echo toy_e((string) $board['description']); ?>
+                                    <br><?php echo sr_e((string) $board['description']); ?>
                                 <?php } ?>
                             </li>
                         <?php } ?>
@@ -66,10 +66,10 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php } ?>
         <?php } ?>
 
-        <?php echo toy_render_output_slot($pdo, [
+        <?php echo sr_render_output_slot($pdo, [
             'module_key' => 'community',
             'point_key' => 'community.home',
             'slot_key' => 'after_content',
         ]); ?>
     </main>
-<?php toy_public_layout_end(); ?>
+<?php sr_public_layout_end(); ?>

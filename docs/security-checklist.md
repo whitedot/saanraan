@@ -18,7 +18,7 @@
 
 - 공격자가 산란 사용 여부, 기본 디렉터리 구조, 기본 테이블명, 요청 path를 알고 있어도 방어되는가
 - 관리자 URL, 파일명, 테이블 prefix, 모듈 key를 숨기는 방식에 보안을 의존하지 않는가
-- `toy_` table prefix를 보안 장치가 아니라 네임스페이스로만 취급했는가
+- `sr_` table prefix를 보안 장치가 아니라 네임스페이스로만 취급했는가
 - 설치/업데이트 경로가 알려져도 설치 상태, 인증, 권한 검증으로 실행이 차단되는가
 - 직접 action 파일 위치가 알려져도 허용된 method/path, 활성 모듈, 권한, CSRF 검증 없이는 상태 변경이 불가능한가
 
@@ -65,11 +65,11 @@
 ## 요청 contract
 
 - action 파일이 `exit` 또는 `die`를 직접 호출하지 않는가
-- action 파일이 `header('Location: ...')`를 직접 호출하지 않고 `toy_redirect()`를 사용하는가
-- 다운로드처럼 응답을 직접 끝내는 action은 `toy_finish_response()`를 사용하는가
-- 관리자 action은 `toy_member_require_login()`과 `toy_admin_require_role()`을 모두 호출하는가
+- action 파일이 `header('Location: ...')`를 직접 호출하지 않고 `sr_redirect()`를 사용하는가
+- 다운로드처럼 응답을 직접 끝내는 action은 `sr_finish_response()`를 사용하는가
+- 관리자 action은 `sr_member_require_login()`과 `sr_admin_require_role()`을 모두 호출하는가
 - action 파일이 low-level contract mark 함수를 직접 호출하지 않는가
-- 권한 판단에 `$_SERVER['REQUEST_URI']` 원문 대신 정규화된 `toy_request_path()` 기준을 사용하는가
+- 권한 판단에 `$_SERVER['REQUEST_URI']` 원문 대신 정규화된 `sr_request_path()` 기준을 사용하는가
 
 ## 권한
 
@@ -137,7 +137,7 @@
 
 ## 파일 업로드
 
-- 업로드 action이 `toy_upload_validate_file()` 또는 같은 수준의 검증을 통과하는가
+- 업로드 action이 `sr_upload_validate_file()` 또는 같은 수준의 검증을 통과하는가
 - 업로드 파일 크기를 제한했는가
 - 확장자 allowlist와 MIME 검증을 함께 적용했는가
 - 실행 가능한 확장자를 차단했는가

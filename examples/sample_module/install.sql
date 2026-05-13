@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS toy_sample_notices (
+CREATE TABLE IF NOT EXISTS sr_sample_notices (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     title VARCHAR(120) NOT NULL,
     body_text TEXT NULL,

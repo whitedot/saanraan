@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
 
 $errors = [];
 $requiredModules = [
@@ -82,23 +82,23 @@ $optionalModules = [
     ],
 ];
 
-function toy_install_module_definition(string $moduleKey, array $defaults): array
+function sr_install_module_definition(string $moduleKey, array $defaults): array
 {
-    $metadata = toy_module_metadata($moduleKey);
+    $metadata = sr_module_metadata($moduleKey);
     $metadataErrors = [];
     if ($metadata === []) {
         $metadataErrors[] = 'module.php 파일을 읽을 수 없습니다.';
     } else {
-        foreach (toy_module_metadata_errors($metadata) as $metadataError) {
+        foreach (sr_module_metadata_errors($metadata) as $metadataError) {
             $metadataErrors[] = $metadataError;
         }
 
-        foreach (toy_module_contract_file_errors(TOY_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
+        foreach (sr_module_contract_file_errors(SR_ROOT . '/modules/' . $moduleKey, $metadata) as $metadataError) {
             $metadataErrors[] = $metadataError;
         }
     }
 
-    if (!is_file(TOY_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
+    if (!is_file(SR_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
         $metadataErrors[] = 'install.sql 파일을 찾을 수 없습니다.';
     }
 
@@ -115,10 +115,10 @@ function toy_install_module_definition(string $moduleKey, array $defaults): arra
     return $defaults;
 }
 
-function toy_install_database_owner_count(PDO $pdo): int
+function sr_install_database_owner_count(PDO $pdo): int
 {
     try {
-        $stmt = $pdo->query("SELECT COUNT(*) AS count_value FROM toy_admin_account_roles WHERE role_key = 'owner'");
+        $stmt = $pdo->query("SELECT COUNT(*) AS count_value FROM sr_admin_account_roles WHERE role_key = 'owner'");
         $row = $stmt->fetch();
     } catch (PDOException $exception) {
         if ((string) $exception->getCode() === '42S02') {
@@ -132,16 +132,16 @@ function toy_install_database_owner_count(PDO $pdo): int
 }
 
 foreach (array_keys($requiredModules) as $moduleKey) {
-    $requiredModules[$moduleKey] = toy_install_module_definition($moduleKey, $requiredModules[$moduleKey]);
+    $requiredModules[$moduleKey] = sr_install_module_definition($moduleKey, $requiredModules[$moduleKey]);
 }
 
 foreach (array_keys($optionalModules) as $moduleKey) {
-    if (!is_file(TOY_ROOT . '/modules/' . $moduleKey . '/module.php') || !is_file(TOY_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
+    if (!is_file(SR_ROOT . '/modules/' . $moduleKey . '/module.php') || !is_file(SR_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
         unset($optionalModules[$moduleKey]);
         continue;
     }
 
-    $optionalModules[$moduleKey] = toy_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
+    $optionalModules[$moduleKey] = sr_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
 }
 
 $selectedOptionalModuleKeys = [];
@@ -150,8 +150,8 @@ $values = [
     'db_name' => '',
     'db_user' => '',
     'db_password' => '',
-    'db_table_prefix' => 'toy_',
-    'site_name' => 'Toycore',
+    'db_table_prefix' => 'sr_',
+    'site_name' => 'Saanraan',
     'base_url' => '',
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
@@ -160,13 +160,13 @@ $values = [
     'admin_display_name' => '관리자',
 ];
 
-$currentBaseUrl = toy_current_base_url();
-if ($values['base_url'] === '' && toy_is_site_base_url($currentBaseUrl)) {
+$currentBaseUrl = sr_current_base_url();
+if ($values['base_url'] === '' && sr_is_site_base_url($currentBaseUrl)) {
     $values['base_url'] = $currentBaseUrl;
 }
 
 $previousInstallFailure = null;
-$previousInstallFailurePath = TOY_ROOT . '/storage/install-failed.json';
+$previousInstallFailurePath = SR_ROOT . '/storage/install-failed.json';
 if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailurePath)) {
     $previousInstallFailureJson = file_get_contents($previousInstallFailurePath);
     $decodedPreviousInstallFailure = is_string($previousInstallFailureJson) ? json_decode($previousInstallFailureJson, true) : null;
@@ -174,21 +174,21 @@ if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailureP
         $previousInstallFailure = [
             'recorded_at' => (string) ($decodedPreviousInstallFailure['recorded_at'] ?? ''),
             'stage' => (string) ($decodedPreviousInstallFailure['stage'] ?? ''),
-            'message' => toy_log_sensitive_text_sanitize(toy_log_line_value((string) ($decodedPreviousInstallFailure['message'] ?? ''), 500)),
+            'message' => sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($decodedPreviousInstallFailure['message'] ?? ''), 500)),
             'config_written' => !empty($decodedPreviousInstallFailure['config_written']),
             'installed_lock_written' => !empty($decodedPreviousInstallFailure['installed_lock_written']),
         ];
     }
 }
 
-$configPath = TOY_ROOT . '/config/config.php';
-$installedLockPath = TOY_ROOT . '/storage/installed.lock';
+$configPath = SR_ROOT . '/config/config.php';
+$installedLockPath = SR_ROOT . '/storage/installed.lock';
 $configWritable = is_file($configPath)
     ? is_writable($configPath)
-    : (is_dir(TOY_ROOT . '/config') ? is_writable(TOY_ROOT . '/config') : is_writable(TOY_ROOT));
-$storageWritable = is_dir(TOY_ROOT . '/storage')
-    ? is_writable(TOY_ROOT . '/storage')
-    : is_writable(TOY_ROOT);
+    : (is_dir(SR_ROOT . '/config') ? is_writable(SR_ROOT . '/config') : is_writable(SR_ROOT));
+$storageWritable = is_dir(SR_ROOT . '/storage')
+    ? is_writable(SR_ROOT . '/storage')
+    : is_writable(SR_ROOT);
 $minimumPhpVersion = '8.1.0';
 $minimumPhpVersionId = 80100;
 $phpVersionSupported = PHP_VERSION_ID >= $minimumPhpVersionId;
@@ -219,14 +219,14 @@ $installChecks = [
     ],
     [
         'label' => '현재 URL',
-        'status' => $currentBaseUrl === '' ? 'warning' : (toy_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
+        'status' => $currentBaseUrl === '' ? 'warning' : (sr_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
         'message' => $currentBaseUrl === '' ? '요청 host를 확인할 수 없습니다.' : $currentBaseUrl,
-        'guide' => $currentBaseUrl === '' ? 'Base URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (toy_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),
+        'guide' => $currentBaseUrl === '' ? 'Base URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (sr_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),
     ],
 ];
 $timezoneOptions = timezone_identifiers_list();
 $localeOptions = [];
-$langDir = TOY_ROOT . '/lang';
+$langDir = SR_ROOT . '/lang';
 if (is_dir($langDir)) {
     foreach (scandir($langDir) ?: [] as $localeDirectory) {
         if (!is_string($localeDirectory) || preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $localeDirectory) !== 1) {
@@ -243,11 +243,11 @@ if ($localeOptions === []) {
     $localeOptions = ['ko'];
 }
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
     foreach ($values as $key => $default) {
-        $values[$key] = toy_post_string($key, $key === 'db_password' ? 255 : 120);
+        $values[$key] = sr_post_string($key, $key === 'db_password' ? 255 : 120);
     }
 
     $values['db_table_prefix'] = strtolower($values['db_table_prefix']);
@@ -285,8 +285,8 @@ if (toy_request_method() === 'POST') {
         }
     }
 
-    $adminPassword = toy_post_string_without_truncation('admin_password', 255);
-    $adminPasswordConfirm = toy_post_string_without_truncation('admin_password_confirm', 255);
+    $adminPassword = sr_post_string_without_truncation('admin_password', 255);
+    $adminPasswordConfirm = sr_post_string_without_truncation('admin_password_confirm', 255);
 
     if (!extension_loaded('pdo_mysql')) {
         $errors[] = 'pdo_mysql PHP 확장을 사용할 수 없습니다.';
@@ -312,8 +312,8 @@ if (toy_request_method() === 'POST') {
         $errors[] = 'DB host, DB 이름, DB 사용자를 입력하세요.';
     }
 
-    if (!toy_is_safe_table_prefix($values['db_table_prefix'])) {
-        $errors[] = 'DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: toy_';
+    if (!sr_is_safe_table_prefix($values['db_table_prefix'])) {
+        $errors[] = 'DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: sr_';
     }
 
     if ($values['site_name'] === '') {
@@ -328,8 +328,8 @@ if (toy_request_method() === 'POST') {
         $errors[] = '관리자 표시 이름을 입력하세요.';
     }
 
-    $values['admin_login_id'] = toy_member_normalize_login_id($values['admin_login_id']);
-    if ($values['admin_login_id'] !== '' && !toy_member_is_valid_login_id($values['admin_login_id'])) {
+    $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
+    if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
         $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
     }
 
@@ -341,7 +341,7 @@ if (toy_request_method() === 'POST') {
         $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
     }
 
-    if ($values['base_url'] !== '' && !toy_is_site_base_url($values['base_url'])) {
+    if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
         $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
     }
 
@@ -360,10 +360,10 @@ if (toy_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $checkBaseUrl = toy_current_base_url();
-        if ($checkBaseUrl !== '' && !toy_is_local_host($checkBaseUrl)) {
-            if (toy_is_public_http_url($checkBaseUrl)) {
-                $publicFindings = toy_public_internal_access_findings($checkBaseUrl);
+        $checkBaseUrl = sr_current_base_url();
+        if ($checkBaseUrl !== '' && !sr_is_local_host($checkBaseUrl)) {
+            if (sr_is_public_http_url($checkBaseUrl)) {
+                $publicFindings = sr_public_internal_access_findings($checkBaseUrl);
                 if ($publicFindings !== []) {
                     foreach ($publicFindings as $finding) {
                         $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];
@@ -376,9 +376,9 @@ if (toy_request_method() === 'POST') {
     if ($errors === []) {
         $installStage = 'prepare_config';
         $existingAppKey = '';
-        if (is_file(TOY_ROOT . '/config/config.php')) {
+        if (is_file(SR_ROOT . '/config/config.php')) {
             try {
-                $existingConfig = toy_load_config();
+                $existingConfig = sr_load_config();
                 $existingAppKey = is_string($existingConfig['app_key'] ?? null) ? $existingConfig['app_key'] : '';
             } catch (Throwable $ignored) {
                 $existingAppKey = '';
@@ -391,7 +391,7 @@ if (toy_request_method() === 'POST') {
             'timezone' => $values['timezone'],
             'app_key' => $existingAppKey !== '' ? $existingAppKey : bin2hex(random_bytes(32)),
             'secrets' => [
-                'app_key_env' => 'TOY_APP_KEY',
+                'app_key_env' => 'SR_APP_KEY',
             ],
             'security' => [
                 'force_https' => false,
@@ -409,8 +409,8 @@ if (toy_request_method() === 'POST') {
                     'endpoint' => '',
                     'public_base_url' => '',
                     'path_style' => false,
-                    'access_key_env' => 'TOY_S3_ACCESS_KEY',
-                    'secret_key_env' => 'TOY_S3_SECRET_KEY',
+                    'access_key_env' => 'SR_S3_ACCESS_KEY',
+                    'secret_key_env' => 'SR_S3_SECRET_KEY',
                 ],
             ],
             'mail' => [
@@ -438,30 +438,30 @@ if (toy_request_method() === 'POST') {
 
         try {
             $installStage = 'connect_database';
-            $pdo = toy_db($config);
+            $pdo = sr_db($config);
 
             $installStage = 'check_existing_owner';
-            if (toy_install_database_owner_count($pdo) > 0) {
+            if (sr_install_database_owner_count($pdo) > 0) {
                 throw new RuntimeException('설치 잠금 파일이 없지만 기존 소유자 계정이 있습니다.');
             }
 
             $installStage = 'write_config';
-            toy_write_config($config);
-            toy_set_runtime_config($config);
-            toy_apply_runtime_config($config);
+            sr_write_config($config);
+            sr_set_runtime_config($config);
+            sr_apply_runtime_config($config);
 
             $installStage = 'execute_schema';
-            toy_execute_sql_file($pdo, TOY_ROOT . '/database/core/install.sql');
+            sr_execute_sql_file($pdo, SR_ROOT . '/database/core/install.sql');
             foreach (array_keys($requiredModules) as $moduleKey) {
-                toy_execute_sql_file($pdo, TOY_ROOT . '/modules/' . $moduleKey . '/install.sql');
+                sr_execute_sql_file($pdo, SR_ROOT . '/modules/' . $moduleKey . '/install.sql');
             }
             foreach ($selectedOptionalModuleKeys as $moduleKey) {
-                toy_execute_sql_file($pdo, TOY_ROOT . '/modules/' . $moduleKey . '/install.sql');
+                sr_execute_sql_file($pdo, SR_ROOT . '/modules/' . $moduleKey . '/install.sql');
             }
 
             $installStage = 'save_site_settings';
-            $now = toy_now();
-            toy_save_site_settings($pdo, [
+            $now = sr_now();
+            sr_save_site_settings($pdo, [
                 'site.name' => ['value' => $values['site_name'], 'type' => 'string'],
                 'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
@@ -495,7 +495,7 @@ if (toy_request_method() === 'POST') {
             $installStage = 'register_modules';
             foreach ($modules as $module) {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO toy_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
+                    'INSERT INTO sr_modules (module_key, name, version, status, is_bundled, installed_at, updated_at)
                      VALUES (:module_key, :name, :version, :status, :is_bundled, :installed_at, :updated_at)
                      ON DUPLICATE KEY UPDATE version = VALUES(version), status = VALUES(status), updated_at = VALUES(updated_at)'
                 );
@@ -511,19 +511,19 @@ if (toy_request_method() === 'POST') {
             }
 
             $installStage = 'record_schema_versions';
-            toy_record_installed_core_schema_versions($pdo, '2026.04.008');
+            sr_record_installed_core_schema_versions($pdo, '2026.04.008');
             foreach ($requiredModules as $moduleKey => $module) {
-                toy_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
+                sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
             }
             foreach ($selectedOptionalModuleKeys as $moduleKey) {
-                toy_record_installed_module_schema_versions($pdo, $moduleKey, (string) $optionalModules[$moduleKey]['version']);
+                sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $optionalModules[$moduleKey]['version']);
             }
 
-            require_once TOY_ROOT . '/modules/member/helpers.php';
-            require_once TOY_ROOT . '/modules/admin/helpers.php';
+            require_once SR_ROOT . '/modules/member/helpers.php';
+            require_once SR_ROOT . '/modules/admin/helpers.php';
 
             $installStage = 'create_owner_account';
-            $accountId = toy_member_create_account($pdo, $config, [
+            $accountId = sr_member_create_account($pdo, $config, [
                 'email' => $values['admin_email'],
                 'login_id' => $values['admin_login_id'],
                 'password' => $adminPassword,
@@ -535,8 +535,8 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $installStage = 'grant_owner_role';
-            toy_admin_grant_role($pdo, $accountId, 'owner');
-            toy_audit_log($pdo, [
+            sr_admin_grant_role($pdo, $accountId, 'owner');
+            sr_audit_log($pdo, [
                 'actor_account_id' => $accountId,
                 'actor_type' => 'system',
                 'event_type' => 'install.completed',
@@ -550,37 +550,37 @@ if (toy_request_method() === 'POST') {
             ]);
 
             $installStage = 'write_install_lock';
-            $storageDir = TOY_ROOT . '/storage';
+            $storageDir = SR_ROOT . '/storage';
             if (!is_dir($storageDir) && !mkdir($storageDir, 0755, true)) {
                 throw new RuntimeException('storage directory cannot be created.');
             }
 
             $installedLock = [
                 'installed_at' => $now,
-                'app_fingerprint' => substr(hash('sha256', toy_app_key($config)), 0, 16),
-                'table_prefix' => toy_table_prefix($config),
+                'app_fingerprint' => substr(hash('sha256', sr_app_key($config)), 0, 16),
+                'table_prefix' => sr_table_prefix($config),
             ];
             $installedLockJson = json_encode($installedLock, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             if (!is_string($installedLockJson) || file_put_contents($storageDir . '/installed.lock', $installedLockJson . "\n", LOCK_EX) === false) {
                 throw new RuntimeException('installed.lock cannot be written.');
             }
 
-            toy_clear_operational_marker('install-failed.json');
-            toy_redirect('/login?next=/admin');
+            sr_clear_operational_marker('install-failed.json');
+            sr_redirect('/login?next=/admin');
         } catch (Throwable $exception) {
-            toy_log_exception($exception, 'install_failed_' . $installStage);
-            toy_write_operational_marker('install-failed.json', [
+            sr_log_exception($exception, 'install_failed_' . $installStage);
+            sr_write_operational_marker('install-failed.json', [
                 'stage' => $installStage,
-                'message' => toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500)),
-                'config_written' => is_file(TOY_ROOT . '/config/config.php'),
-                'installed_lock_written' => is_file(TOY_ROOT . '/storage/installed.lock'),
+                'message' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)),
+                'config_written' => is_file(SR_ROOT . '/config/config.php'),
+                'installed_lock_written' => is_file(SR_ROOT . '/storage/installed.lock'),
             ]);
             $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
             if ($installStage === 'check_existing_owner') {
                 $errors[] = '기존 소유자 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.';
             }
             if (!empty($config['debug'])) {
-                $errors[] = toy_log_sensitive_text_sanitize(toy_log_line_value($exception->getMessage(), 500));
+                $errors[] = sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500));
             }
         }
     }
@@ -589,7 +589,7 @@ if (toy_request_method() === 'POST') {
 $installWarnings = [];
 if (
     $currentBaseUrl !== ''
-    && !toy_is_local_host($currentBaseUrl)
+    && !sr_is_local_host($currentBaseUrl)
     && parse_url($currentBaseUrl, PHP_URL_SCHEME) !== 'https'
 ) {
     $installWarnings['current_http'] = '현재 설치 URL이 HTTP입니다. 테스트 설치는 진행할 수 있지만, 실제 운영 전에는 HTTPS로 전환하세요.';
@@ -597,8 +597,8 @@ if (
 
 if (
     $values['base_url'] !== ''
-    && toy_is_site_base_url($values['base_url'])
-    && !toy_is_local_host($values['base_url'])
+    && sr_is_site_base_url($values['base_url'])
+    && !sr_is_local_host($values['base_url'])
     && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https'
 ) {
     $installWarnings['base_url_http'] = '기본 URL이 HTTP입니다. 임시 테스트에는 사용할 수 있지만, 로그인과 관리자 기능을 운영하려면 HTTPS URL을 권장합니다.';
@@ -606,11 +606,11 @@ if (
 
 if (
     $currentBaseUrl !== ''
-    && !toy_is_local_host($currentBaseUrl)
-    && !toy_is_public_http_url($currentBaseUrl)
+    && !sr_is_local_host($currentBaseUrl)
+    && !sr_is_public_http_url($currentBaseUrl)
 ) {
     $installWarnings['internal_check_skipped'] = '현재 설치 URL이 공개 라우팅 가능한 host가 아니어서 내부 파일 직접 접근 자동 점검을 생략합니다.';
 }
 $installWarnings = array_values($installWarnings);
 
-include TOY_ROOT . '/core/views/install.php';
+include SR_ROOT . '/core/views/install.php';

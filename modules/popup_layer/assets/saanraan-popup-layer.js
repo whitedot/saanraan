@@ -5,12 +5,12 @@
             return;
         }
 
-        var button = target.closest('[data-toy-popup-layer-close]');
+        var button = target.closest('[data-sr-popup-layer-close]');
         if (!button) {
             return;
         }
 
-        var popup = button.closest('[data-toy-popup-layer]');
+        var popup = button.closest('[data-sr-popup-layer]');
         if (!popup) {
             return;
         }
@@ -20,7 +20,7 @@
         if (popupId && days > 0) {
             var expires = new Date();
             expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = 'toy_popup_layer_' + popupId + '_dismissed=1; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
         }
 
         popup.remove();

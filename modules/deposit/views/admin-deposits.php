@@ -7,44 +7,44 @@ if ($depositAdminPage === 'adjust') {
 } elseif ($depositAdminPage === 'transactions') {
     $adminPageTitle = '예치금 거래 내역';
 }
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
 <p>
-    <a href="<?php echo toy_e(toy_url('/admin/deposits/balances')); ?>">잔액</a>
+    <a href="<?php echo sr_e(sr_url('/admin/deposits/balances')); ?>">잔액</a>
     |
-    <a href="<?php echo toy_e(toy_url('/admin/deposits/adjust')); ?>">조정</a>
+    <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust')); ?>">조정</a>
     |
-    <a href="<?php echo toy_e(toy_url('/admin/deposits/transactions')); ?>">거래 내역</a>
+    <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions')); ?>">거래 내역</a>
 </p>
 
 <section>
     <h2>회원 조회</h2>
-    <form method="get" action="<?php echo toy_e(toy_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>">
+    <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>">
         <label>회원 공개 해시<br>
-            <input type="text" name="account_identifier" value="<?php echo toy_e($accountIdentifierFilter); ?>" maxlength="80">
+            <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80">
         </label>
         <button type="submit">조회</button>
     </form>
 
     <?php if (is_array($selectedAccount)) { ?>
         <p>
-            <?php echo toy_e((string) $selectedAccount['display_name']); ?>
-            (<?php echo toy_e((string) $selectedAccount['email']); ?>)
-            공개 해시: <?php echo toy_e((string) $selectedAccount['account_public_hash']); ?>
-            잔액: <?php echo toy_e(number_format((int) $selectedBalance)); ?> 원
+            <?php echo sr_e((string) $selectedAccount['display_name']); ?>
+            (<?php echo sr_e((string) $selectedAccount['email']); ?>)
+            공개 해시: <?php echo sr_e((string) $selectedAccount['account_public_hash']); ?>
+            잔액: <?php echo sr_e(number_format((int) $selectedBalance)); ?> 원
         </p>
     <?php } elseif ($accountIdentifierFilter !== '') { ?>
         <p>회원을 찾을 수 없습니다.</p>
@@ -54,18 +54,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($depositAdminPage === 'adjust') { ?>
     <section>
         <h2>예치금 조정</h2>
-        <form method="post" action="<?php echo toy_e(toy_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>">
-            <?php echo toy_csrf_field(); ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>">
+            <?php echo sr_csrf_field(); ?>
             <p>
                 <label>회원 공개 해시<br>
-                    <input type="text" name="account_identifier" value="<?php echo toy_e($accountIdentifierFilter); ?>" maxlength="80" required>
+                    <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80" required>
                 </label>
             </p>
             <p>
                 <label>거래 유형<br>
                     <select name="transaction_type">
                         <?php foreach ($allowedTransactionTypes as $type) { ?>
-                            <option value="<?php echo toy_e($type); ?>"><?php echo toy_e(toy_admin_code_label($type, 'transaction_type')); ?></option>
+                            <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -117,18 +117,18 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php foreach ($transactions as $transaction) { ?>
                         <tr>
-                            <td><?php echo toy_e((string) $transaction['id']); ?></td>
+                            <td><?php echo sr_e((string) $transaction['id']); ?></td>
                             <td>
-                                <?php echo toy_e((string) $transaction['display_name']); ?><br>
-                                <?php echo toy_e((string) $transaction['email']); ?><br>
-                                <?php echo toy_e((string) $transaction['account_public_hash']); ?>
+                                <?php echo sr_e((string) $transaction['display_name']); ?><br>
+                                <?php echo sr_e((string) $transaction['email']); ?><br>
+                                <?php echo sr_e((string) $transaction['account_public_hash']); ?>
                             </td>
-                            <td><?php echo toy_e(toy_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
-                            <td><?php echo toy_e(number_format((int) $transaction['amount'])); ?> 원</td>
-                            <td><?php echo toy_e(number_format((int) $transaction['balance_after'])); ?> 원</td>
-                            <td><?php echo toy_e((string) $transaction['reason']); ?></td>
-                            <td><?php echo toy_e((string) $transaction['reference_type'] . ((string) $transaction['reference_id'] !== '' ? ':' . (string) $transaction['reference_id'] : '')); ?></td>
-                            <td><?php echo toy_e((string) $transaction['created_at']); ?></td>
+                            <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
+                            <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> 원</td>
+                            <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> 원</td>
+                            <td><?php echo sr_e((string) $transaction['reason']); ?></td>
+                            <td><?php echo sr_e((string) $transaction['reference_type'] . ((string) $transaction['reference_id'] !== '' ? ':' . (string) $transaction['reference_id'] : '')); ?></td>
+                            <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
@@ -154,11 +154,11 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
-                            <td><a href="<?php echo toy_e(toy_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>"><?php echo toy_e((string) $balance['account_public_hash']); ?></a></td>
-                            <td><?php echo toy_e((string) $balance['display_name']); ?><br><?php echo toy_e((string) $balance['email']); ?></td>
-                            <td><?php echo toy_e(toy_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
-                            <td><?php echo toy_e(number_format((int) $balance['balance'])); ?> 원</td>
-                            <td><?php echo toy_e((string) $balance['updated_at']); ?></td>
+                            <td><a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>"><?php echo sr_e((string) $balance['account_public_hash']); ?></a></td>
+                            <td><?php echo sr_e((string) $balance['display_name']); ?><br><?php echo sr_e((string) $balance['email']); ?></td>
+                            <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
+                            <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> 원</td>
+                            <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
@@ -167,4 +167,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

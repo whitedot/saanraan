@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
-require_once TOY_ROOT . '/modules/notification/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/notification/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedAudiences = ['account', 'all'];
-$allowedChannels = toy_notification_allowed_channels();
+$allowedChannels = sr_notification_allowed_channels();
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
@@ -18,11 +18,11 @@ $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationA
 if (!in_array($notificationAdminPage, ['list', 'new', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
 }
-$runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
+$runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $filters = [
-    'audience' => toy_get_string('audience', 30),
-    'delivery_channel' => toy_get_string('delivery_channel', 30),
-    'delivery_status' => toy_get_string('delivery_status', 30),
+    'audience' => sr_get_string('audience', 30),
+    'delivery_channel' => sr_get_string('delivery_channel', 30),
+    'delivery_status' => sr_get_string('delivery_status', 30),
 ];
 if ($filters['audience'] !== '' && !in_array($filters['audience'], $allowedAudiences, true)) {
     $filters['audience'] = '';
@@ -34,20 +34,20 @@ if ($filters['delivery_status'] !== '' && !in_array($filters['delivery_status'],
     $filters['delivery_status'] = '';
 }
 
-if (toy_request_method() === 'POST') {
-    toy_require_csrf();
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $intent = toy_post_string('intent', 40);
+    $intent = sr_post_string('intent', 40);
 
     if ($intent === 'delete_notification') {
-        $notificationId = (int) toy_post_string('notification_id', 20);
+        $notificationId = (int) sr_post_string('notification_id', 20);
 
         if ($notificationId <= 0) {
             $errors[] = '삭제할 알림을 찾을 수 없습니다.';
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_notifications WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_notifications WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $notificationId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '삭제할 알림을 찾을 수 없습니다.';
@@ -58,20 +58,20 @@ if (toy_request_method() === 'POST') {
             try {
                 $pdo->beginTransaction();
 
-                $stmt = $pdo->prepare('DELETE FROM toy_notification_deliveries WHERE notification_id = :notification_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_notification_deliveries WHERE notification_id = :notification_id');
                 $stmt->execute(['notification_id' => $notificationId]);
                 $deletedDeliveries = $stmt->rowCount();
 
-                $stmt = $pdo->prepare('DELETE FROM toy_notification_reads WHERE notification_id = :notification_id');
+                $stmt = $pdo->prepare('DELETE FROM sr_notification_reads WHERE notification_id = :notification_id');
                 $stmt->execute(['notification_id' => $notificationId]);
                 $deletedReads = $stmt->rowCount();
 
-                $stmt = $pdo->prepare('DELETE FROM toy_notifications WHERE id = :id');
+                $stmt = $pdo->prepare('DELETE FROM sr_notifications WHERE id = :id');
                 $stmt->execute(['id' => $notificationId]);
 
                 $pdo->commit();
 
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'notification.deleted',
@@ -95,8 +95,8 @@ if (toy_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'delivery_status') {
-        $deliveryId = (int) toy_post_string('delivery_id', 20);
-        $status = toy_post_string('status', 30);
+        $deliveryId = (int) sr_post_string('delivery_id', 20);
+        $status = sr_post_string('status', 30);
 
         if ($deliveryId <= 0) {
             $errors[] = '발송 항목을 찾을 수 없습니다.';
@@ -106,7 +106,7 @@ if (toy_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_notification_deliveries WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_notification_deliveries WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $deliveryId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '발송 항목을 찾을 수 없습니다.';
@@ -115,13 +115,13 @@ if (toy_request_method() === 'POST') {
 
         if ($errors === []) {
             $stmt = $pdo->prepare(
-                'UPDATE toy_notification_deliveries
+                'UPDATE sr_notification_deliveries
                  SET status = :status,
                      attempted_at = :attempted_at,
                      updated_at = :updated_at
                  WHERE id = :id'
             );
-            $now = toy_now();
+            $now = sr_now();
             $stmt->execute([
                 'status' => $status,
                 'attempted_at' => in_array($status, ['sent', 'failed'], true) ? $now : null,
@@ -129,7 +129,7 @@ if (toy_request_method() === 'POST') {
                 'id' => $deliveryId,
             ]);
 
-            toy_audit_log($pdo, [
+            sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'notification.delivery.updated',
@@ -143,17 +143,17 @@ if (toy_request_method() === 'POST') {
             $notice = '발송 상태를 저장했습니다.';
         }
     } else {
-        $audience = toy_post_string('audience', 30);
-        $accountIdentifier = toy_post_string('account_identifier', 80);
+        $audience = sr_post_string('audience', 30);
+        $accountIdentifier = sr_post_string('account_identifier', 80);
         if ($accountIdentifier === '') {
-            $accountIdentifier = toy_post_string('account_id', 80);
+            $accountIdentifier = sr_post_string('account_id', 80);
         }
-        $accountId = toy_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
-        $title = toy_notification_clean_single_line(toy_post_string('title', 160), 160);
-        $bodyText = toy_notification_clean_text(toy_post_string('body_text', 5000), 5000);
-        $rawLinkUrl = toy_post_string('link_url', 255);
-        $linkUrl = toy_notification_clean_link_url($rawLinkUrl);
-        $recipient = toy_notification_clean_single_line(toy_post_string('recipient', 255), 255);
+        $accountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
+        $title = sr_notification_clean_single_line(sr_post_string('title', 160), 160);
+        $bodyText = sr_notification_clean_text(sr_post_string('body_text', 5000), 5000);
+        $rawLinkUrl = sr_post_string('link_url', 255);
+        $linkUrl = sr_notification_clean_link_url($rawLinkUrl);
+        $recipient = sr_notification_clean_single_line(sr_post_string('recipient', 255), 255);
         $postedChannels = $_POST['channels'] ?? [];
         $channels = [];
 
@@ -164,7 +164,7 @@ if (toy_request_method() === 'POST') {
             $errors[] = '회원 공개 해시를 입력하세요.';
         }
         if ($audience === 'account' && $accountId > 0) {
-            $stmt = $pdo->prepare('SELECT id FROM toy_member_accounts WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $accountId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '대상 회원을 찾을 수 없습니다.';
@@ -189,13 +189,13 @@ if (toy_request_method() === 'POST') {
         if ($channels === []) {
             $errors[] = '발송 채널을 하나 이상 선택하세요.';
         }
-        if (toy_notification_external_channels(array_values($channels)) !== [] && $recipient === '') {
+        if (sr_notification_external_channels(array_values($channels)) !== [] && $recipient === '') {
             $errors[] = '이메일, SMS, 알림톡 채널은 외부 수신자를 입력해야 합니다.';
         }
 
         if ($errors === []) {
             try {
-                $notificationId = toy_notification_create($pdo, [
+                $notificationId = sr_notification_create($pdo, [
                     'audience' => $audience,
                     'account_id' => $audience === 'account' ? $accountId : null,
                     'title' => $title,
@@ -206,7 +206,7 @@ if (toy_request_method() === 'POST') {
                     'created_by_account_id' => (int) $account['id'],
                 ]);
 
-                toy_audit_log($pdo, [
+                sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'notification.created',
@@ -230,7 +230,7 @@ if (toy_request_method() === 'POST') {
 
 $notifications = [];
 $notificationSql = 'SELECT id, audience, status, created_at
-                    FROM toy_notifications';
+                    FROM sr_notifications';
 $notificationParams = [];
 if ($filters['audience'] !== '') {
     $notificationSql .= ' WHERE audience = :audience';
@@ -245,7 +245,7 @@ foreach ($stmt->fetchAll() as $row) {
 
 $deliveries = [];
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.updated_at
-                FROM toy_notification_deliveries d';
+                FROM sr_notification_deliveries d';
 $deliveryParams = [];
 $deliveryWhere = [];
 if ($filters['delivery_channel'] !== '') {
@@ -266,4 +266,4 @@ foreach ($stmt->fetchAll() as $row) {
     $deliveries[] = $row;
 }
 
-include TOY_ROOT . '/modules/notification/views/admin-notifications.php';
+include SR_ROOT . '/modules/notification/views/admin-notifications.php';

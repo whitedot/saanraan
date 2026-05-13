@@ -1,3 +1,3 @@
 <?php
 
-include TOY_ROOT . '/modules/privacy/views/account-privacy-requests.php';
+include SR_ROOT . '/modules/privacy/views/account-privacy-requests.php';

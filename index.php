@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-define('TOY_ROOT', __DIR__);
+define('SR_ROOT', __DIR__);
 
 if (PHP_SAPI === 'cli-server') {
     $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
@@ -13,18 +13,18 @@ if (PHP_SAPI === 'cli-server') {
             || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
         )
     ) {
-        $staticPath = realpath(TOY_ROOT . $requestPath);
-        if (is_string($staticPath) && str_starts_with($staticPath, TOY_ROOT . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
+        $staticPath = realpath(SR_ROOT . $requestPath);
+        if (is_string($staticPath) && str_starts_with($staticPath, SR_ROOT . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
             return false;
         }
     }
 }
 
-require TOY_ROOT . '/core/helpers.php';
-toy_send_security_headers();
+require SR_ROOT . '/core/helpers.php';
+sr_send_security_headers();
 
 set_exception_handler(function (Throwable $exception): void {
-    toy_render_error(500, '서버 오류가 발생했습니다.', $exception);
+    sr_render_error(500, '서버 오류가 발생했습니다.', $exception);
 });
 
 set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
@@ -35,28 +35,28 @@ set_error_handler(function (int $severity, string $message, string $file, int $l
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
-$method = toy_request_method();
-$path = toy_request_path();
+$method = sr_request_method();
+$path = sr_request_path();
 
-if (!toy_is_installed()) {
-    toy_start_session();
-    include TOY_ROOT . '/core/actions/install.php';
+if (!sr_is_installed()) {
+    sr_start_session();
+    include SR_ROOT . '/core/actions/install.php';
     exit;
 }
 
-$config = toy_load_config();
-toy_set_runtime_config($config);
-toy_apply_runtime_config($config);
-toy_send_security_headers($config);
+$config = sr_load_config();
+sr_set_runtime_config($config);
+sr_apply_runtime_config($config);
+sr_send_security_headers($config);
 
 try {
-    $pdo = toy_db($config);
-    $site = toy_load_site($pdo);
-    toy_apply_site_runtime_settings($site);
-    toy_start_session($config, $pdo);
-    toy_set_locale(toy_resolve_locale($pdo, $site));
+    $pdo = sr_db($config);
+    $site = sr_load_site($pdo);
+    sr_apply_site_runtime_settings($site);
+    sr_start_session($config, $pdo);
+    sr_set_locale(sr_resolve_locale($pdo, $site));
 } catch (Throwable $exception) {
-    toy_render_error(500, 'DB 연결 또는 사이트 설정을 확인할 수 없습니다.', $exception);
+    sr_render_error(500, 'DB 연결 또는 사이트 설정을 확인할 수 없습니다.', $exception);
     exit;
 }
 
@@ -67,22 +67,22 @@ if (
     && $path !== '/logout'
     && strpos($path, '/admin') !== 0
 ) {
-    toy_render_error(503, '현재 점검 중입니다.');
+    sr_render_error(503, '현재 점검 중입니다.');
     exit;
 }
 
 if ($path === '/') {
-    include TOY_ROOT . '/core/views/home.php';
+    include SR_ROOT . '/core/views/home.php';
     exit;
 }
 
 $routeKey = $method . ' ' . $path;
 $routeMatches = [];
 
-foreach (toy_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $pathsFile) {
-    $moduleDir = TOY_ROOT . '/modules/' . $moduleKey;
+foreach (sr_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $pathsFile) {
+    $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
 
-    $paths = toy_load_module_contract_file($moduleKey, $pathsFile);
+    $paths = sr_load_module_contract_file($moduleKey, $pathsFile);
     if (!is_array($paths)) {
         continue;
     }
@@ -92,8 +92,8 @@ foreach (toy_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $
     }
 
     $actionRelativePath = (string) $paths[$routeKey];
-    if (!toy_is_safe_module_action($actionRelativePath)) {
-        toy_render_error(500, '모듈 action 경로가 올바르지 않습니다.');
+    if (!sr_is_safe_module_action($actionRelativePath)) {
+        sr_render_error(500, '모듈 action 경로가 올바르지 않습니다.');
         exit;
     }
 
@@ -102,7 +102,7 @@ foreach (toy_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $
     $realActionFile = realpath($actionFile);
 
     if ($realModuleDir === false || $realActionFile === false || strpos($realActionFile, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
-        toy_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
         exit;
     }
 
@@ -117,19 +117,19 @@ if (count($routeMatches) > 1) {
         return (string) $match['module_key'];
     }, $routeMatches);
 
-    toy_log_exception(
+    sr_log_exception(
         new RuntimeException('Route conflict: ' . $routeKey . ' -> ' . implode(', ', $conflicts)),
         'module_route_conflict'
     );
-    toy_render_error(500, '모듈 요청 경로가 중복되었습니다.');
+    sr_render_error(500, '모듈 요청 경로가 중복되었습니다.');
     exit;
 }
 
 if (count($routeMatches) === 1) {
-    toy_start_request_contract($method, $path, (string) $routeMatches[0]['module_key'], (string) $routeMatches[0]['action_file']);
+    sr_start_request_contract($method, $path, (string) $routeMatches[0]['module_key'], (string) $routeMatches[0]['action_file']);
     include $routeMatches[0]['action_file'];
-    toy_enforce_request_contract('after_action');
+    sr_enforce_request_contract('after_action');
     exit;
 }
 
-toy_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');

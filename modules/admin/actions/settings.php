@@ -2,34 +2,34 @@
 
 declare(strict_types=1);
 
-require_once TOY_ROOT . '/modules/member/helpers.php';
-require_once TOY_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 
-$account = toy_member_require_login($pdo);
-toy_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
-$canManageAdvancedSettings = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
+$account = sr_member_require_login($pdo);
+sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+$canManageAdvancedSettings = sr_admin_has_role($pdo, (int) $account['id'], ['owner']);
 
 $errors = [];
 $notice = '';
-$allowedSettingTypes = toy_admin_settings_allowed_types();
-$reservedSiteSettingKeys = toy_admin_reserved_site_setting_keys();
-$values = toy_admin_site_setting_values($site ?? null);
-$adminSettings = toy_admin_settings($pdo);
-$adminSkinOptions = toy_admin_skin_options();
-$adminSkinKey = toy_admin_skin_key($adminSettings);
+$allowedSettingTypes = sr_admin_settings_allowed_types();
+$reservedSiteSettingKeys = sr_admin_reserved_site_setting_keys();
+$values = sr_admin_site_setting_values($site ?? null);
+$adminSettings = sr_admin_settings($pdo);
+$adminSkinOptions = sr_admin_skin_options();
+$adminSkinKey = sr_admin_skin_key($adminSettings);
 
-if (toy_request_method() === 'POST' && toy_post_string('intent', 40) === 'admin_skin') {
-    toy_require_csrf();
-    $postedSkinKey = toy_post_string('admin_skin_key', 40);
+if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'admin_skin') {
+    sr_require_csrf();
+    $postedSkinKey = sr_post_string('admin_skin_key', 40);
     if (!isset($adminSkinOptions[$postedSkinKey])) {
         $errors[] = '관리자 스킨 값이 올바르지 않습니다.';
     }
 
     if ($errors === []) {
-        toy_admin_save_skin_key($pdo, $postedSkinKey);
-        $adminSettings = toy_admin_settings($pdo);
-        $adminSkinKey = toy_admin_skin_key($adminSettings);
-        toy_audit_log($pdo, [
+        sr_admin_save_skin_key($pdo, $postedSkinKey);
+        $adminSettings = sr_admin_settings($pdo);
+        $adminSkinKey = sr_admin_skin_key($adminSettings);
+        sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
             'event_type' => 'admin.settings.updated',
@@ -43,10 +43,10 @@ if (toy_request_method() === 'POST' && toy_post_string('intent', 40) === 'admin_
         ]);
         $notice = '관리자 설정을 저장했습니다.';
     }
-} elseif (toy_request_method() === 'POST') {
-    toy_require_csrf();
+} elseif (sr_request_method() === 'POST') {
+    sr_require_csrf();
 
-    $postResult = toy_admin_handle_settings_post(
+    $postResult = sr_admin_handle_settings_post(
         $pdo,
         $account,
         $site ?? null,
@@ -60,6 +60,6 @@ if (toy_request_method() === 'POST' && toy_post_string('intent', 40) === 'admin_
     $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
 }
 
-$siteSettings = toy_admin_site_settings($pdo);
+$siteSettings = sr_admin_site_settings($pdo);
 
-include TOY_ROOT . '/modules/admin/views/settings.php';
+include SR_ROOT . '/modules/admin/views/settings.php';

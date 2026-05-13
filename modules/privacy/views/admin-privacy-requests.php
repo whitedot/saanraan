@@ -1,28 +1,28 @@
 <?php
 
 $adminPageTitle = '개인정보 처리 요청';
-include TOY_ROOT . '/modules/admin/views/layout-header.php';
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php if ($notice !== '') { ?>
-    <p><?php echo toy_e($notice); ?></p>
+    <p><?php echo sr_e($notice); ?></p>
 <?php } ?>
 
 <?php if ($errors !== []) { ?>
     <ul>
         <?php foreach ($errors as $error) { ?>
-            <li><?php echo toy_e($error); ?></li>
+            <li><?php echo sr_e($error); ?></li>
         <?php } ?>
     </ul>
 <?php } ?>
 
-<form method="get" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>">
     <label>상태<br>
         <select name="status">
             <option value="">전체</option>
             <?php foreach ($allowedStatuses as $status) { ?>
-                <option value="<?php echo toy_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                    <?php echo toy_e(toy_admin_code_label($status, 'privacy_request_status')); ?>
+                <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                    <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
                 </option>
             <?php } ?>
         </select>
@@ -51,29 +51,29 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php foreach ($requests as $request) { ?>
             <tr>
-                <td><?php echo toy_e((string) $request['id']); ?></td>
-                <td><?php echo toy_e((string) ($request['account_id'] ?? '')); ?></td>
-                <td><?php echo toy_e(toy_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
-                <td><?php echo toy_e(toy_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
-                <td><?php echo toy_e(toy_admin_privacy_request_requester_display($request)); ?></td>
-                <td><?php echo toy_e(toy_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
-                <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
+                <td><?php echo sr_e((string) $request['id']); ?></td>
+                <td><?php echo sr_e((string) ($request['account_id'] ?? '')); ?></td>
+                <td><?php echo sr_e(sr_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
+                <td><?php echo sr_e(sr_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
+                <td><?php echo sr_e(sr_admin_privacy_request_requester_display($request)); ?></td>
+                <td><?php echo sr_e(sr_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
+                <td><?php echo sr_e((string) ($request['handled_at'] ?? '')); ?></td>
                 <td>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests/export')); ?>">
-                        <?php echo toy_csrf_field(); ?>
-                        <input type="hidden" name="id" value="<?php echo toy_e((string) $request['id']); ?>">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests/export')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="id" value="<?php echo sr_e((string) $request['id']); ?>">
                         <label>관리자 비밀번호<br>
                             <input type="password" name="admin_password" autocomplete="current-password" required>
                         </label>
                         <button type="submit">처리 자료 내려받기</button>
                     </form>
-                    <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">
-                        <?php echo toy_csrf_field(); ?>
-                        <input type="hidden" name="request_id" value="<?php echo toy_e((string) $request['id']); ?>">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
-                                <option value="<?php echo toy_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
-                                    <?php echo toy_e(toy_admin_code_label($status, 'privacy_request_status')); ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
+                                    <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -98,4 +98,4 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     </tbody>
 </table>
 
-<?php include TOY_ROOT . '/modules/admin/views/layout-footer.php'; ?>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

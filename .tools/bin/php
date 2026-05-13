@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-IMAGE="${PHP_DOCKER_IMAGE:-toycore-php:8.3-cli}"
+IMAGE="${PHP_DOCKER_IMAGE:-saanraan-php:8.3-cli}"
 WORKDIR="${PWD}"
 TOOL_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 
