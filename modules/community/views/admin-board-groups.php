@@ -70,15 +70,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">커뮤니티 설정</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>">게시판 그룹 목록</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>">게시판 그룹 생성</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">게시판 관리</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-surface-default-soft">커뮤니티 설정</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-surface-default-soft">게시판 그룹 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-surface-default-soft">게시판 그룹 생성</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft">게시판 관리</a>
+    </div>
+</div>
 
 <?php if ($communityBoardGroupsPage !== 'list' && $enabledMemberGroups !== []) { ?>
     <section>
@@ -95,24 +94,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communityBoardGroupsPage === 'list') { ?>
-    <section>
-        <h2>게시판 그룹 목록</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>">새 게시판 그룹 추가</a></p>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">게시판 그룹 목록</h2>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 게시판 그룹 추가</a>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
                     <th>이름</th>
                     <th>상태</th>
                     <th>게시판 수</th>
-                    <th>관리</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($boardGroups === []) { ?>
                     <tr>
-                        <td colspan="6">게시판 그룹이 없습니다.</td>
+                        <td colspan="6" class="admin-dashboard-empty">게시판 그룹이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boardGroups as $boardGroup) { ?>
@@ -122,13 +124,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $boardGroup['title']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $boardGroup['status'], 'content_status')); ?></td>
                         <td><?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?></td>
-                        <td>
-                            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>">수정</a>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
+                                <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } else { ?>
     <section>

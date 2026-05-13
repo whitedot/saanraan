@@ -16,13 +16,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<section>
-    <h2>게시글 목록</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header"><h2 class="card-title">게시글 목록</h2></div>
     <?php if ($posts === []) { ?>
         <p>게시글이 없습니다.</p>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>게시판</th>
@@ -32,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>댓글</th>
                     <th>첨부</th>
                     <th>작성일</th>
-                    <th>처리</th>
+                    <th class="text-end">처리</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,7 +58,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                         <td><?php echo sr_e((string) $post['created_at']); ?></td>
-                        <td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
@@ -69,23 +71,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit">변경</button>
+                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
                             </form>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     <?php } ?>
 </section>
 
-<section>
-    <h2>댓글 목록</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header"><h2 class="card-title">댓글 목록</h2></div>
     <?php if ($comments === []) { ?>
         <p>댓글이 없습니다.</p>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>게시글</th>
@@ -93,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>본문</th>
                     <th>상태</th>
                     <th>작성일</th>
-                    <th>처리</th>
+                    <th class="text-end">처리</th>
                 </tr>
             </thead>
             <tbody>
@@ -112,7 +117,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $comment['status'], 'content_status')); ?></td>
                         <td><?php echo sr_e((string) $comment['created_at']); ?></td>
-                        <td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="comment_status">
@@ -124,13 +130,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit">변경</button>
+                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
                             </form>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     <?php } ?>
 </section>
 

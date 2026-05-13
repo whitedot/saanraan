@@ -44,8 +44,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <button type="submit">조회</button>
 </form>
 
-<table>
-    <thead>
+<div class="member-table-card admin-member-list-form">
+<div class="table-wrapper">
+<table class="table">
+    <thead class="ui-table-head">
         <tr>
             <th>ID</th>
             <th>시각</th>
@@ -61,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($logs === []) { ?>
             <tr>
-                <td colspan="9">감사 로그가 없습니다.</td>
+                <td colspan="9" class="admin-dashboard-empty">감사 로그가 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($logs as $log) { ?>
@@ -79,5 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </tbody>
 </table>
+</div>
+</div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

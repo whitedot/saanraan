@@ -22,11 +22,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>">배너 목록</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>">배너 추가</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">배너 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-surface-default-soft">배너 추가</a>
+    </div>
+</div>
 
 <?php if ($bannerAdminPage === 'form') { ?>
     <section>
@@ -164,10 +165,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </section>
 
-    <section>
-        <h2>배너 목록</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>">새 배너 추가</a></p>
-        <p>사용 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">배너 목록</h2>
+                <p class="admin-dashboard-meta">사용 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
+            </div>
+            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 배너 추가</a>
+        </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>">
             <p>
                 <label>상태<br>
@@ -200,8 +205,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if ($banners === []) { ?>
             <p>등록된 배너가 없습니다.</p>
         <?php } else { ?>
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>제목</th>
                         <th>상태</th>
@@ -211,7 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>출력 위치</th>
                         <th>기간</th>
                         <th>정렬</th>
-                        <th>관리</th>
+                        <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -244,18 +250,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_e((string) ($banner['ends_at'] ?? '-')); ?>
                             </td>
                             <td><?php echo sr_e((string) $banner['sort_order']); ?></td>
-                            <td>
-                                <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>">수정</a>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>" style="display:inline">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">
-                                    <button type="submit">삭제</button>
-                                </form>
+                            <td class="member-cell-manage">
+                                <div class="member-manage">
+                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </section>
 <?php } ?>

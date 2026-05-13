@@ -16,10 +16,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </dl>
 </section>
 
-<section>
-    <h2>설치 보호</h2>
-    <table>
-        <thead>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">설치 보호</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>항목</th>
                 <th>상태</th>
@@ -38,12 +41,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
-<section>
-    <h2>고위험 설정</h2>
-    <table>
-        <thead>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">고위험 설정</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>항목</th>
                 <th>키</th>
@@ -66,12 +73,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
-<section>
-    <h2>인증 런타임</h2>
-    <table>
-        <thead>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">인증 런타임</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>항목</th>
                 <th>상태</th>
@@ -90,15 +101,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
-    <section>
-        <h2>복구 상태</h2>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">복구 상태</h2>
+        </div>
 
         <?php if ($recoveryMarkers !== []) { ?>
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>항목</th>
                         <th>단계</th>
@@ -122,6 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
 
         <?php if ((int) $moduleBackupSummary['count'] > 0) { ?>
@@ -138,10 +154,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($operationSummary !== []) { ?>
-    <section>
-        <h2>운영 모듈</h2>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">운영 모듈</h2>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>항목</th>
                     <th>주요 수치</th>
@@ -158,13 +177,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } ?>
 
-<section>
-    <h2>모듈</h2>
-    <table>
-        <thead>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">모듈</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>키</th>
                 <th>이름</th>
@@ -183,6 +206,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

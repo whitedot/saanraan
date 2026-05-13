@@ -102,8 +102,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 </section>
 
-<section>
-    <h2>추가 사이트 설정 항목</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">추가 사이트 설정 항목</h2>
+    </div>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
@@ -138,20 +140,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     <?php } ?>
 
-    <table>
-        <thead>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>키</th>
                 <th>값</th>
                 <th>유형</th>
                 <th>수정일</th>
-                <th>삭제</th>
+                <th class="text-end">삭제</th>
             </tr>
         </thead>
         <tbody>
             <?php if ($siteSettings === []) { ?>
                 <tr>
-                    <td colspan="5">설정 항목이 없습니다.</td>
+                    <td colspan="5" class="admin-dashboard-empty">설정 항목이 없습니다.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($siteSettings as $setting) { ?>
@@ -160,19 +163,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo sr_e(sr_admin_site_setting_display_value($setting)); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td>
+                    <td class="member-cell-manage">
                         <?php if ($canManageAdvancedSettings) { ?>
+                            <div class="member-manage admin-setting-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete_site_setting">
                                 <input type="hidden" name="setting_key" value="<?php echo sr_e((string) $setting['setting_key']); ?>">
                                 <?php if (sr_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
-                                    <label>소유자 비밀번호<br>
-                                        <input type="password" name="owner_password" autocomplete="current-password" required>
-                                    </label>
+                                    <label class="sr-only" for="delete_owner_password_<?php echo sr_e(preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $setting['setting_key'])); ?>">소유자 비밀번호</label>
+                                    <input type="password" name="owner_password" id="delete_owner_password_<?php echo sr_e(preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $setting['setting_key'])); ?>" class="form-input" autocomplete="current-password" placeholder="소유자 비밀번호" required>
                                 <?php } ?>
-                                <button type="submit">삭제</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                             </form>
+                            </div>
                         <?php } else { ?>
                             소유자 전용
                         <?php } ?>
@@ -181,6 +185,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

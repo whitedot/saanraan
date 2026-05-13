@@ -29,17 +29,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>">그룹 목록</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>">그룹 생성</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>">자동 규칙</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/member-group-evaluations')); ?>">재평가</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/member-group-assignments')); ?>">수동 배정</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-surface-default-soft">그룹 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-surface-default-soft">그룹 생성</a>
+        <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-surface-default-soft">자동 규칙</a>
+        <a href="<?php echo sr_e(sr_url('/admin/member-group-evaluations')); ?>" class="btn btn-surface-default-soft">재평가</a>
+        <a href="<?php echo sr_e(sr_url('/admin/member-group-assignments')); ?>" class="btn btn-surface-default-soft">수동 배정</a>
+    </div>
+</div>
 
 <?php if ($memberGroupsPage === 'group_form') { ?>
     <section>
@@ -89,11 +87,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </section>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
-    <section>
-        <h2>그룹 목록</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>">새 그룹 추가</a></p>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">그룹 목록</h2>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 그룹 추가</a>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
@@ -101,13 +102,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>상태</th>
                     <th>회원 수</th>
                     <th>정렬</th>
-                    <th>수정</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($groups === []) { ?>
                     <tr>
-                        <td colspan="7">회원 그룹이 없습니다.</td>
+                        <td colspan="7" class="admin-dashboard-empty">회원 그룹이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
@@ -118,17 +119,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e(sr_admin_code_label((string) $group['status'], 'content_status')); ?></td>
                         <td><?php echo sr_e((string) $group['active_member_count']); ?></td>
                         <td><?php echo sr_e((string) $group['sort_order']); ?></td>
-                        <td><a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>">수정</a></td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
+                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                            </div>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } elseif ($memberGroupsPage === 'rules') { ?>
-    <section>
-        <h2>자동 조건 후보</h2>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">자동 조건 후보</h2>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>모듈</th>
                     <th>조건</th>
@@ -139,7 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($ruleDefinitions === []) { ?>
                     <tr>
-                        <td colspan="4">설치된 활성 모듈이 제공하는 회원 그룹 조건 후보가 없습니다.</td>
+                        <td colspan="4" class="admin-dashboard-empty">설치된 활성 모듈이 제공하는 회원 그룹 조건 후보가 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($ruleDefinitions as $definition) { ?>
@@ -169,13 +178,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 
-    <section>
-        <h2>저장된 자동 규칙</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>">새 자동 규칙 추가</a></p>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">저장된 자동 규칙</h2>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 자동 규칙 추가</a>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>그룹</th>
@@ -183,13 +196,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>정책</th>
                     <th>상태</th>
                     <th>최근 평가</th>
-                    <th>수정</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($groupRules === []) { ?>
                     <tr>
-                        <td colspan="7">자동 규칙이 없습니다.</td>
+                        <td colspan="7" class="admin-dashboard-empty">자동 규칙이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groupRules as $rule) { ?>
@@ -203,11 +216,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e(sr_admin_code_label((string) $rule['evaluation_policy'], 'evaluation_policy')); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $rule['status'], 'content_status')); ?></td>
                         <td><?php echo sr_e((string) ($rule['last_evaluated_at'] ?? '')); ?></td>
-                        <td><a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>">수정</a></td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
+                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                            </div>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
     <section>
@@ -323,10 +341,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </section>
 
-    <section>
-        <h2>최근 배정</h2>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">최근 배정</h2>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>회원</th>
@@ -334,13 +355,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>유형</th>
                     <th>상태</th>
                     <th>부여</th>
-                    <th>회수</th>
+                    <th class="text-end">회수</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($memberships === []) { ?>
                     <tr>
-                        <td colspan="7">배정 이력이 없습니다.</td>
+                        <td colspan="7" class="admin-dashboard-empty">배정 이력이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($memberships as $membership) { ?>
@@ -354,28 +375,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e(sr_admin_code_label((string) $membership['assignment_type'], 'assignment_type')); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $membership['status'], 'membership_status')); ?></td>
                         <td><?php echo sr_e((string) ($membership['granted_at'] ?? '')); ?></td>
-                        <td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
                             <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/revoke')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
                                     <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
-                                    <button type="submit">해제</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">해제</button>
                                 </form>
                             <?php } else { ?>
                                 <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
                             <?php } ?>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 
-    <section>
-        <h2>배정 이력</h2>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">배정 이력</h2>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>회원</th>
@@ -388,7 +415,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($membershipLogs === []) { ?>
                     <tr>
-                        <td colspan="6">이력이 없습니다.</td>
+                        <td colspan="6" class="admin-dashboard-empty">이력이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($membershipLogs as $log) { ?>
@@ -406,6 +433,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } ?>
 

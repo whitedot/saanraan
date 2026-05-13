@@ -163,8 +163,10 @@
 .member-notice-copy strong,.member-notice-copy p{margin:calc(var(--spacing) * 0)}
 .member-notice-copy p{color:var(--color-default-600)}
 .member-notice-icon{height:calc(var(--spacing) * 8);width:calc(var(--spacing) * 8);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-bold);color:var(--color-info-hover);border-radius:0;justify-content:center;align-items:center;display:inline-flex}
-.member-table-card{margin-bottom:calc(var(--spacing) * 4);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);overflow:hidden}
-.member-table-card .table-wrapper{width:100%;overflow:auto}
+.member-table-card{margin-bottom:calc(var(--spacing) * 4);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
+.member-table-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
+.member-table-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
+.member-table-card .table-wrapper{min-width:0;width:100%;overflow:auto}
 .admin-member-list-form .member-cell-fixed,.admin-member-list-form .member-cell-manage{white-space:nowrap}
 .admin-member-list-form .member-cell-manage{min-width:9.75rem}
 .admin-member-list-form .member-cell-email{white-space:normal;word-break:break-all}
@@ -264,7 +266,7 @@ body.admin-sidebar-condensed #gnb .gnb_menu_scroll_wrap,body.admin-sidebar-conde
 body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 @media (min-width:1024px){body.admin-sidebar-condensed #btn_gnb_mobile{display:inline-flex}}
 @media (max-width:1023px){.member-search-fields,.community-search-fields-wide,.community-search-fields-compact{grid-template-columns:1fr}.member-search-submit{justify-content:center;width:100%}#hd{width:var(--admin-sidebar-width)}body:not(.admin-sidebar-open) #hd{pointer-events:none}body.admin-sidebar-open #hd{pointer-events:auto}#gnb{width:var(--admin-sidebar-width);z-index:50;pointer-events:auto;box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;position:fixed;inset:0 auto 0 0;transform:translate(-100%)}body.admin-sidebar-open #gnb{transform:translate(0)}#wrapper,body.admin-sidebar-condensed #wrapper{padding-left:0}#gnb .gnb_scrollbar{display:none}}
-@media (max-width:767px){.member-summary{align-items:flex-start}.member-notice{grid-template-columns:1fr}.member-list-actions{flex-direction:column;align-items:stretch}.member-list-actions>*{width:100%}.member-list-actions .btn{justify-content:center}}
+@media (max-width:767px){.member-summary{align-items:flex-start}.member-summary-links{display:grid;grid-template-columns:1fr;width:100%}.member-summary-links .btn{min-width:0}.member-table-card>.card-header{align-items:stretch;flex-direction:column}.member-table-card>.card-header>.btn{justify-content:center;width:100%}.member-notice{grid-template-columns:1fr}.member-list-actions{flex-direction:column;align-items:stretch}.member-list-actions>*{width:100%}.member-list-actions .btn{justify-content:center}}
 /* Saanraan admin adapters: keep common.css as the ui-kit and define Saanraan-specific admin structures here. */
 
 .admin-content .table td form {
@@ -441,6 +443,31 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     flex: none;
 }
 
+.admin-member-list-form .privacy-request-manage,
+.admin-member-list-form .privacy-request-manage form {
+    align-items: stretch;
+    flex-direction: column;
+    white-space: normal;
+}
+
+.admin-member-list-form .privacy-request-manage {
+    min-width: 18rem;
+}
+
+.admin-member-list-form .privacy-request-manage .form-input,
+.admin-member-list-form .privacy-request-manage .form-select,
+.admin-member-list-form .privacy-request-manage .form-textarea,
+.admin-member-list-form .admin-setting-manage .form-input {
+    width: 100%;
+}
+
+.admin-member-list-form .privacy-request-manage .af-check {
+    align-items: center;
+    display: inline-flex;
+    gap: calc(var(--spacing) * 1.5);
+    margin: 0;
+}
+
 @media (max-width: 1023px) {
     .admin-filter-fields {
         grid-template-columns: 1fr;
@@ -462,3 +489,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 #adminPopupContainer #popupOverlay.hidden,#adminPopupContainer #popupOverlay.is-hidden{display:none!important}
 .admin-sidebar-backdrop.hidden,.admin-toolbar-menu.hidden,.admin-nav-panel.hidden{display:none!important}
+
+/* Community point admin summaries */
+:where(.community-point>:not(:last-child)){margin-block-start:calc(calc(var(--spacing) * 4) * 0);margin-block-end:calc(calc(var(--spacing) * 4) * calc(1 - 0))}.community-point>header h2{font-size:var(--text-2xl);line-height:var(--text-2xl--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-950)}.community-point-summary{gap:calc(var(--spacing) * 3);display:grid}@media (min-width:48rem){.community-point-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}.community-point-summary>div{border-radius:var(--radius-md);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);padding:calc(var(--spacing) * 4);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm)}.community-point-summary span{font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-default-600);display:block}.community-point-summary strong{margin-top:calc(var(--spacing) * 1);font-size:var(--text-xl);line-height:var(--text-xl--line-height);color:var(--color-default-950);display:block}.community-point-expiry{border-radius:var(--radius-md);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-default-100);padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-default-700)}.community-point-table-wrap{border-radius:var(--radius-md);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);overflow-x:auto}.community-point-table{width:100%;font-size:var(--text-sm);line-height:var(--text-sm--line-height)}.community-point-table caption{clip-path:inset(50%);white-space:nowrap;border-width:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}.community-point-table th,.community-point-table td{border-bottom-style:solid;border-bottom-width:1px;border-color:var(--color-default-300);padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);text-align:start;vertical-align:middle}.community-point-table thead th{background-color:var(--color-default-100);font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-700)}.community-point-table tbody tr:last-child td{border-bottom-style:solid;border-bottom-width:0}.community-point-table td strong{color:var(--color-default-950);display:block}.community-point-table td span{margin-top:calc(var(--spacing) * 1);font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-default-500);display:block}.community-point-table .is-positive{font-weight:var(--font-weight-semibold);color:var(--color-success)}.community-point-table .is-negative{font-weight:var(--font-weight-semibold);color:var(--color-danger)}

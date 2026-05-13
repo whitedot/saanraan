@@ -16,13 +16,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<section>
-    <h2>신고 목록</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header"><h2 class="card-title">신고 목록</h2></div>
     <?php if ($reports === []) { ?>
         <p>접수된 신고가 없습니다.</p>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>대상</th>
@@ -34,7 +35,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>접수일</th>
                     <th>처리자</th>
                     <th>처리일</th>
-                    <th>처리</th>
+                    <th class="text-end">처리</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,7 +64,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
-                        <td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
@@ -81,13 +83,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <textarea name="review_note" rows="3" cols="30"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
                                     </label>
                                 </p>
-                                <button type="submit">변경</button>
+                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
                             </form>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     <?php } ?>
 </section>
 

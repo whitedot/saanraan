@@ -22,13 +22,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/points/balances')); ?>">잔액</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/points/adjust')); ?>">조정</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/points/transactions')); ?>">거래 내역</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/points/balances')); ?>" class="btn btn-surface-default-soft">잔액</a>
+        <a href="<?php echo sr_e(sr_url('/admin/points/adjust')); ?>" class="btn btn-surface-default-soft">조정</a>
+        <a href="<?php echo sr_e(sr_url('/admin/points/transactions')); ?>" class="btn btn-surface-default-soft">거래 내역</a>
+    </div>
+</div>
 
 <section>
     <h2>회원 조회</h2>
@@ -96,13 +96,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </section>
 <?php } elseif ($pointAdminPage === 'transactions') { ?>
-    <section>
-        <h2>최근 거래</h2>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header"><h2 class="card-title">최근 거래</h2></div>
         <?php if ($transactions === []) { ?>
             <p>포인트 거래가 없습니다.</p>
         <?php } else { ?>
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>ID</th>
                         <th>회원</th>
@@ -133,16 +134,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </section>
 <?php } else { ?>
-    <section>
-        <h2>최근 잔액</h2>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header"><h2 class="card-title">최근 잔액</h2></div>
         <?php if ($balances === []) { ?>
             <p>포인트 잔액이 없습니다.</p>
         <?php } else { ?>
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>회원 공개 해시</th>
                         <th>회원</th>
@@ -163,6 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </section>
 <?php } ?>

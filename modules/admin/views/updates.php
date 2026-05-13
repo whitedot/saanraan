@@ -40,10 +40,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($moduleVersionDrifts !== []) { ?>
-    <section>
-        <h2>모듈 버전 차이</h2>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">모듈 버전 차이</h2>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th scope="col">모듈</th>
                     <th scope="col">설치 버전</th>
@@ -70,24 +73,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
         <?php if ($fileOnlyModuleVersionDrifts !== []) { ?>
             <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="sync_file_only_versions">
                 <p>SQL 적용 없이 설치 버전 기록만 코드 버전에 맞춥니다.</p>
-                <button type="submit">파일 전용 업데이트 반영</button>
+                <div class="member-list-actions">
+                    <button type="submit" class="btn btn-solid-primary">파일 전용 업데이트 반영</button>
+                </div>
             </form>
         <?php } ?>
     </section>
 <?php } ?>
 
-<section>
-    <h2>대기 중인 업데이트</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">대기 중인 업데이트</h2>
+    </div>
     <?php if ($pendingUpdates === []) { ?>
-        <p>적용할 업데이트가 없습니다.</p>
+        <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><td class="admin-dashboard-empty">적용할 업데이트가 없습니다.</td></tr>
+            </tbody>
+        </table>
+        </div>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th scope="col">범위</th>
                     <th scope="col">버전</th>
@@ -112,6 +127,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
 
         <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
             <?php echo sr_csrf_field(); ?>
@@ -122,18 +138,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     DB와 파일 백업을 확인했습니다.
                 </label>
             </p>
-            <button type="submit">업데이트 적용</button>
+            <div class="member-list-actions">
+                <button type="submit" class="btn btn-solid-primary">업데이트 적용</button>
+            </div>
         </form>
     <?php } ?>
 </section>
 
-<section>
-    <h2>적용된 스키마 버전</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">적용된 스키마 버전</h2>
+    </div>
     <?php if ($schemaVersions === []) { ?>
-        <p>기록된 스키마 버전이 없습니다.</p>
+        <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><td class="admin-dashboard-empty">기록된 스키마 버전이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        </div>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th scope="col">범위</th>
                     <th scope="col">모듈</th>
@@ -152,6 +179,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     <?php } ?>
 </section>
 

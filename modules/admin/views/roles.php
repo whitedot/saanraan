@@ -16,15 +16,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<table>
-    <thead>
+<div class="member-table-card admin-member-list-form">
+<div class="table-wrapper">
+<table class="table">
+    <thead class="ui-table-head">
         <tr>
             <th>공개 해시</th>
             <th>이메일</th>
             <th>표시명</th>
             <th>계정 상태</th>
             <th>현재 역할</th>
-            <th>변경</th>
+            <th class="text-end">변경</th>
         </tr>
     </thead>
     <tbody>
@@ -37,7 +39,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo sr_e(implode(', ', array_map(static function (string $roleKey): string {
                     return sr_admin_code_label($roleKey, 'role');
                 }, $adminAccount['roles']))); ?></td>
-                <td>
+                <td class="member-cell-manage">
+                    <div class="member-manage">
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/roles')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
@@ -50,12 +53,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="grant">부여</option>
                             <option value="revoke">회수</option>
                         </select>
-                        <button type="submit">저장</button>
+                        <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
                     </form>
+                    </div>
                 </td>
             </tr>
         <?php } ?>
     </tbody>
 </table>
+</div>
+</div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

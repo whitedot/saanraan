@@ -23,11 +23,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>">팝업 목록</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>">팝업 추가</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-surface-default-soft">팝업 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-surface-default-soft">팝업 추가</a>
+    </div>
+</div>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <section>
@@ -143,14 +144,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </section>
 
-    <section>
-        <h2>팝업 목록</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>">새 팝업 추가</a></p>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">팝업 목록</h2>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 팝업 추가</a>
+        </div>
         <?php if ($popups === []) { ?>
             <p>등록된 팝업이 없습니다.</p>
         <?php } else { ?>
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>제목</th>
                         <th>상태</th>
@@ -159,7 +163,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>기간</th>
                         <th>닫기 유지일</th>
                         <th>수정일</th>
-                        <th>관리</th>
+                        <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,18 +189,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
                             <td><?php echo sr_e((string) $popup['updated_at']); ?></td>
-                            <td>
-                                <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>">수정</a>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>" style="display:inline">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
-                                    <button type="submit">삭제</button>
-                                </form>
+                            <td class="member-cell-manage">
+                                <div class="member-manage">
+                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </section>
 <?php } ?>

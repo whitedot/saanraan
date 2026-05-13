@@ -16,11 +16,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="member-table-card admin-member-list-form">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_menu_overrides">
-    <table>
-        <thead>
+    <div class="card-header">
+        <h2 class="card-title">관리자 메뉴 표시 설정</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>범위</th>
                 <th>대상</th>
@@ -60,13 +64,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </tbody>
     </table>
-    <button type="submit">메뉴 표시 설정 저장</button>
+    </div>
+    <div class="member-list-actions">
+        <button type="submit" class="btn btn-solid-primary">메뉴 표시 설정 저장</button>
+    </div>
 </form>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="reset_menu_overrides">
-    <button type="submit">기본값으로 초기화</button>
+    <button type="submit" class="btn btn-outline-danger">기본값으로 초기화</button>
 </form>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

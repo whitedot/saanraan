@@ -117,16 +117,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <button type="submit">설정 저장</button>
 </form>
 
-<section>
-    <h2>레벨 정의</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">레벨 정의</h2>
+    </div>
     <?php if ($levels === []) { ?>
-        <p>레벨 테이블이 없거나 정의된 레벨이 없습니다.</p>
+        <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><td class="admin-dashboard-empty">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        </div>
     <?php } else { ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_level_definitions">
-            <table>
-                <thead>
+            <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
                     <tr>
                         <th>레벨</th>
                         <th>이름</th>
@@ -143,6 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input
                                     type="number"
                                     name="level_min_score[<?php echo sr_e((string) $level['id']); ?>]"
+                                    class="form-input"
                                     min="0"
                                     max="1000000000"
                                     value="<?php echo sr_e((string) $level['min_score']); ?>"
@@ -153,14 +163,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </tbody>
             </table>
-            <button type="submit">레벨 정의 저장</button>
+            </div>
+            <div class="member-list-actions">
+                <button type="submit" class="btn btn-solid-primary">레벨 정의 저장</button>
+            </div>
         </form>
     <?php } ?>
 
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
-        <button type="submit">최근 회원 레벨 재계산</button>
+        <div class="member-list-actions">
+            <button type="submit" class="btn btn-surface-default-soft">최근 회원 레벨 재계산</button>
+        </div>
     </form>
 </section>
 

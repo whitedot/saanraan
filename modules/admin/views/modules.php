@@ -16,10 +16,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>설치 차단 상태는 메타데이터나 계약 오류가 있는 미설치 모듈을 뜻합니다.</p>
+<div class="member-notice">
+    <span class="member-notice-icon" aria-hidden="true">i</span>
+    <div class="member-notice-copy">
+        <strong>모듈 상태 안내</strong>
+        <p>설치 차단 상태는 메타데이터나 계약 오류가 있는 미설치 모듈을 뜻합니다.</p>
+    </div>
+</div>
 
-<table>
-    <thead>
+<section class="member-table-card admin-member-list-form">
+<div class="card-header">
+    <h2 class="card-title">설치된 모듈</h2>
+</div>
+<div class="table-wrapper">
+<table class="table">
+    <thead class="ui-table-head">
         <tr>
             <th>키</th>
             <th>이름</th>
@@ -35,7 +46,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <th>기본 포함</th>
             <th>설치일</th>
             <th>설명</th>
-            <th>변경</th>
+            <th class="text-end">변경</th>
         </tr>
     </thead>
     <tbody>
@@ -101,7 +112,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo !empty($module['is_bundled']) ? '예' : '아니오'; ?></td>
                 <td><?php echo sr_e((string) ($module['installed_at'] ?? '')); ?></td>
                 <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
-                <td>
+                <td class="member-cell-manage">
+                    <div class="member-manage">
                     <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
                             <?php echo sr_csrf_field(); ?>
@@ -114,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </option>
                                 <?php } ?>
                             </select>
-                            <button type="submit">재설치</button>
+                            <button type="submit" class="btn btn-sm btn-surface-default-soft">재설치</button>
                         </form>
                     <?php } else { ?>
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
@@ -128,14 +140,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </option>
                                 <?php } ?>
                             </select>
-                            <button type="submit"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
+                            <button type="submit" class="btn btn-sm btn-surface-default-soft"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
                         </form>
                     <?php } ?>
+                    </div>
                 </td>
             </tr>
         <?php } ?>
     </tbody>
 </table>
+</div>
+</section>
 
 <section>
     <h2>모듈 zip 업로드</h2>
@@ -182,13 +197,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<section>
-    <h2>설치 가능한 모듈</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">설치 가능한 모듈</h2>
+    </div>
     <?php if ($installableModules === []) { ?>
         <p>설치 가능한 새 모듈이 없습니다.</p>
     <?php } else { ?>
-        <table>
-            <thead>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>키</th>
                     <th>이름</th>
@@ -199,7 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>Saanraan 검증</th>
                     <th>계약</th>
                     <th>설명</th>
-                    <th>설치</th>
+                    <th class="text-end">설치</th>
                 </tr>
             </thead>
             <tbody>
@@ -230,7 +248,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
-                        <td>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
                             <?php if ($moduleErrors !== []) { ?>
                                 설치 불가
                             <?php } else { ?>
@@ -245,19 +264,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             </option>
                                         <?php } ?>
                                     </select>
-                                    <button type="submit">설치</button>
+                                    <button type="submit" class="btn btn-sm btn-surface-default-soft">설치</button>
                                 </form>
                             <?php } ?>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     <?php } ?>
 </section>
 
-<section>
-    <h2>모듈 설정 항목</h2>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">모듈 설정 항목</h2>
+    </div>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedModuleSettings) { ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
@@ -302,21 +325,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     <?php } ?>
 
-    <table>
-        <thead>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
                 <th>모듈</th>
                 <th>키</th>
                 <th>값</th>
                 <th>유형</th>
                 <th>수정일</th>
-                <th>삭제</th>
+                <th class="text-end">삭제</th>
             </tr>
         </thead>
         <tbody>
             <?php if ($moduleSettings === []) { ?>
                 <tr>
-                    <td colspan="6">설정 항목이 없습니다.</td>
+                    <td colspan="6" class="admin-dashboard-empty">설정 항목이 없습니다.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($moduleSettings as $setting) { ?>
@@ -326,7 +350,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo sr_e(sr_admin_module_setting_display_value($setting)); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td>
+                    <td class="member-cell-manage">
+                        <div class="member-manage">
                         <?php if ($canManageAdvancedModuleSettings) { ?>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
                                 <?php echo sr_csrf_field(); ?>
@@ -336,16 +361,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php if (sr_admin_setting_value_is_secret((string) $setting['setting_key'])) { ?>
                                     <input type="password" name="owner_password" autocomplete="current-password" required>
                                 <?php } ?>
-                                <button type="submit">삭제</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                             </form>
                         <?php } else { ?>
                             소유자 전용
                         <?php } ?>
+                        </div>
                     </td>
                 </tr>
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -76,15 +76,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">커뮤니티 설정</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">게시판 목록</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>">게시판 생성</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>">게시판 그룹 관리</a>
-</p>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-surface-default-soft">커뮤니티 설정</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft">게시판 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-surface-default-soft">게시판 생성</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-surface-default-soft">게시판 그룹 관리</a>
+    </div>
+</div>
 
 <?php if ($communityBoardsPage !== 'list' && $enabledMemberGroups !== []) { ?>
     <section>
@@ -101,11 +100,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communityBoardsPage === 'list') { ?>
-    <section>
-        <h2>게시판 목록</h2>
-        <p><a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>">새 게시판 추가</a></p>
-        <table>
-            <thead>
+    <section class="member-table-card admin-member-list-form">
+        <div class="card-header">
+            <h2 class="card-title">게시판 목록</h2>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 게시판 추가</a>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
@@ -113,13 +115,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>그룹</th>
                     <th>상태</th>
                     <th>스킨</th>
-                    <th>관리</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($boards === []) { ?>
                     <tr>
-                        <td colspan="7">게시판이 없습니다.</td>
+                        <td colspan="7" class="admin-dashboard-empty">게시판이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
@@ -141,18 +143,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                                 </select>
-                                <button type="submit">저장</button>
+                                <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
                             </form>
                         </td>
-                        <td>
-                            <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">바로가기</a>
-                            |
-                            <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>">수정</a>
+                        <td class="member-cell-manage">
+                            <div class="member-manage">
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-surface-default-soft">바로가기</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </section>
 <?php } else { ?>
     <section>

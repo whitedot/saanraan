@@ -66,85 +66,92 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <button type="submit">정리 실행</button>
 </form>
 
-<table>
-    <thead>
-        <tr>
-            <th>대상</th>
-            <th>기준 시각</th>
-            <th>삭제 후보</th>
-            <th>이번 삭제</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>인증 로그</td>
-            <td><?php echo sr_e($previewCutoffs['auth_logs']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['auth_logs']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['auth_logs'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>감사 로그</td>
-            <td><?php echo sr_e($previewCutoffs['audit_logs']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['audit_logs']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['audit_logs'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>비밀번호 재설정 토큰</td>
-            <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['password_resets']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['password_resets'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>이메일 인증 토큰</td>
-            <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['email_verifications']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['email_verifications'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>만료/폐기 세션</td>
-            <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['sessions']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['sessions'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>PHP 런타임 세션</td>
-            <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['runtime_sessions']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['runtime_sessions'] ?? '')); ?></td>
-        </tr>
-        <tr>
-            <td>인증 제한 카운터</td>
-            <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['rate_limits']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['rate_limits'] ?? '')); ?></td>
-        </tr>
-        <?php if ($hasNotificationTables) { ?>
+<section class="member-table-card admin-member-list-form">
+    <div class="card-header">
+        <h2 class="card-title">삭제 후보 미리보기</h2>
+    </div>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
             <tr>
-                <td>알림</td>
-                <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                <td><?php echo sr_e((string) $previewCounts['notifications']); ?></td>
-                <td><?php echo sr_e((string) ($deletedCounts['notifications'] ?? '')); ?></td>
+                <th>대상</th>
+                <th>기준 시각</th>
+                <th>삭제 후보</th>
+                <th>이번 삭제</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>인증 로그</td>
+                <td><?php echo sr_e($previewCutoffs['auth_logs']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['auth_logs']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['auth_logs'] ?? '')); ?></td>
             </tr>
             <tr>
-                <td>알림 발송 대기열</td>
-                <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                <td><?php echo sr_e((string) $previewCounts['notification_deliveries']); ?></td>
-                <td><?php echo sr_e((string) ($deletedCounts['notification_deliveries'] ?? '')); ?></td>
+                <td>감사 로그</td>
+                <td><?php echo sr_e($previewCutoffs['audit_logs']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['audit_logs']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['audit_logs'] ?? '')); ?></td>
             </tr>
             <tr>
-                <td>알림 읽음 기록</td>
-                <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                <td><?php echo sr_e((string) $previewCounts['notification_reads']); ?></td>
-                <td><?php echo sr_e((string) ($deletedCounts['notification_reads'] ?? '')); ?></td>
+                <td>비밀번호 재설정 토큰</td>
+                <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['password_resets']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['password_resets'] ?? '')); ?></td>
             </tr>
-        <?php } ?>
-        <tr>
-            <td>모듈 파일 백업</td>
-            <td><?php echo sr_e($previewCutoffs['module_backups']); ?></td>
-            <td><?php echo sr_e((string) $previewCounts['module_backups']); ?></td>
-            <td><?php echo sr_e((string) ($deletedCounts['module_backups'] ?? '')); ?></td>
-        </tr>
-    </tbody>
-</table>
+            <tr>
+                <td>이메일 인증 토큰</td>
+                <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['email_verifications']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['email_verifications'] ?? '')); ?></td>
+            </tr>
+            <tr>
+                <td>만료/폐기 세션</td>
+                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['sessions']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['sessions'] ?? '')); ?></td>
+            </tr>
+            <tr>
+                <td>PHP 런타임 세션</td>
+                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['runtime_sessions']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['runtime_sessions'] ?? '')); ?></td>
+            </tr>
+            <tr>
+                <td>인증 제한 카운터</td>
+                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['rate_limits']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['rate_limits'] ?? '')); ?></td>
+            </tr>
+            <?php if ($hasNotificationTables) { ?>
+                <tr>
+                    <td>알림</td>
+                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
+                    <td><?php echo sr_e((string) $previewCounts['notifications']); ?></td>
+                    <td><?php echo sr_e((string) ($deletedCounts['notifications'] ?? '')); ?></td>
+                </tr>
+                <tr>
+                    <td>알림 발송 대기열</td>
+                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
+                    <td><?php echo sr_e((string) $previewCounts['notification_deliveries']); ?></td>
+                    <td><?php echo sr_e((string) ($deletedCounts['notification_deliveries'] ?? '')); ?></td>
+                </tr>
+                <tr>
+                    <td>알림 읽음 기록</td>
+                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
+                    <td><?php echo sr_e((string) $previewCounts['notification_reads']); ?></td>
+                    <td><?php echo sr_e((string) ($deletedCounts['notification_reads'] ?? '')); ?></td>
+                </tr>
+            <?php } ?>
+            <tr>
+                <td>모듈 파일 백업</td>
+                <td><?php echo sr_e($previewCutoffs['module_backups']); ?></td>
+                <td><?php echo sr_e((string) $previewCounts['module_backups']); ?></td>
+                <td><?php echo sr_e((string) ($deletedCounts['module_backups'] ?? '')); ?></td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
