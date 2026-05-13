@@ -23,6 +23,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'privacy-export.php',
         ],
     ],
 ];
