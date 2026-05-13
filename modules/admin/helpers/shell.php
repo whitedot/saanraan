@@ -198,7 +198,7 @@ function sr_admin_stylesheet_tag(): string
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . PHP_EOL
         . '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
         . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/common.css')) . '">' . PHP_EOL
+        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common.css')) . '">' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">';
 }
 
@@ -427,6 +427,22 @@ function sr_admin_normalize_section_actions(DOMElement $root): void
         sr_admin_dom_add_class($action, 'btn-surface-default-soft');
         $header->appendChild($action);
         $body->removeChild($firstElement);
+        sr_admin_remove_empty_card_body($body);
+    }
+}
+
+function sr_admin_remove_empty_card_body(DOMElement $body): void
+{
+    foreach ($body->childNodes as $child) {
+        if ($child instanceof DOMText && trim($child->textContent) === '') {
+            continue;
+        }
+
+        return;
+    }
+
+    if ($body->parentNode instanceof DOMNode) {
+        $body->parentNode->removeChild($body);
     }
 }
 
