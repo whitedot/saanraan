@@ -22,7 +22,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
 
 function sr_admin_shell_site_title(?array $site): string
 {
-    $siteName = is_array($site) ? trim((string) ($site['site_name'] ?? '')) : '';
+    $siteName = is_array($site) ? trim((string) ($site['site_name'] ?? $site['name'] ?? '')) : '';
 
     return $siteName !== '' ? $siteName : '산란';
 }
@@ -170,10 +170,22 @@ function sr_admin_shell_class_attr(string $class): string
 
 function sr_admin_stylesheet_tag(): string
 {
-    return '<link rel="stylesheet" href="' . sr_e(sr_url('/modules/admin/assets/admin.css')) . '">';
+    return '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">' . PHP_EOL
+        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/saanraan-admin-bridge.css')) . '">';
 }
 
 function sr_admin_shell_script_tag(): string
 {
     return '<script src="' . sr_e(sr_url('/modules/admin/assets/admin-shell.js')) . '" defer></script>';
+}
+
+function sr_admin_asset_url(string $path): string
+{
+    $url = sr_url($path);
+    $file = SR_ROOT . $path;
+    if (!is_file($file)) {
+        return $url;
+    }
+
+    return $url . '?v=' . rawurlencode((string) filemtime($file));
 }
