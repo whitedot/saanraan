@@ -117,7 +117,9 @@ function toy_auth_smoke_request(string $baseUrl, string $method, string $path, a
     });
     $body = file_get_contents(toy_auth_smoke_url($baseUrl, $path), false, $context);
     restore_error_handler();
-    $responseHeaders = $http_response_header ?? [];
+    $responseHeaders = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
     toy_auth_smoke_store_cookies($responseHeaders, $cookies);
 
     $status = 0;

@@ -1132,11 +1132,14 @@ function toy_send_http_api_mail(array $mailConfig, string $to, string $subject, 
     });
     $response = file_get_contents($endpoint, false, $context);
     restore_error_handler();
-    if ($response === false || empty($http_response_header) || !is_array($http_response_header)) {
+    $responseHeaders = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
+    if ($response === false || empty($responseHeaders) || !is_array($responseHeaders)) {
         return false;
     }
 
-    foreach ($http_response_header as $header) {
+    foreach ($responseHeaders as $header) {
         if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
             $status = (int) $matches[1];
             return $status >= 200 && $status < 300;

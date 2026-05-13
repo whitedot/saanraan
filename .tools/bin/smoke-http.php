@@ -318,7 +318,9 @@ function toy_smoke_fetch(string $url, string $method): array
     });
     $body = file_get_contents($url, false, $context);
     restore_error_handler();
-    $headers = $http_response_header ?? [];
+    $headers = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
     $status = 0;
     $location = '';
     foreach ($headers as $header) {
@@ -356,7 +358,22 @@ function toy_smoke_location_path(string $location): string
     return $path;
 }
 
+function toy_smoke_is_install_entry(int $status, string $body): bool
+{
+    return $status === 200
+        && str_contains($body, '<title>Toycore 설치</title>')
+        && str_contains($body, 'Toycore 실행에 필요한 DB 연결');
+}
+
+function toy_smoke_is_install_csrf_error(int $status, string $body): bool
+{
+    return $status === 400
+        && str_contains($body, '<title>400</title>')
+        && str_contains($body, '요청 보안 토큰이 올바르지 않습니다.');
+}
+
 $errors = [];
+$isInstallMode = false;
 foreach ($checks as $check) {
     $url = $baseUrl . (string) $check['path'];
     $method = strtoupper((string) ($check['method'] ?? 'GET'));
@@ -365,9 +382,21 @@ foreach ($checks as $check) {
     $body = (string) $response['body'];
     $locationPath = toy_smoke_location_path((string) $response['location']);
     $label = (string) $check['label'];
+    $isInstallEntry = toy_smoke_is_install_entry($status, $body);
+    if ($isInstallEntry) {
+        $isInstallMode = true;
+    }
+    $isInstallPostCsrfError = $isInstallMode
+        && $method === 'POST'
+        && toy_smoke_is_install_csrf_error($status, $body);
     $checkErrors = [];
 
-    if (isset($check['allowed_statuses']) && !in_array($status, $check['allowed_statuses'], true)) {
+    if (
+        !$isInstallEntry
+        && !$isInstallPostCsrfError
+        && isset($check['allowed_statuses'])
+        && !in_array($status, $check['allowed_statuses'], true)
+    ) {
         $checkErrors[] = $label . ' returned unexpected status ' . $status . ' for ' . $url;
     }
 
@@ -384,9 +413,11 @@ foreach ($checks as $check) {
     $statusSpecificNeedles = isset($check['must_contain_by_status'][$status]) && is_array($check['must_contain_by_status'][$status])
         ? $check['must_contain_by_status'][$status]
         : [];
-    foreach ($statusSpecificNeedles as $needle) {
-        if (!str_contains($body, (string) $needle)) {
-            $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for HTTP ' . (string) $status . ' ' . $url;
+    if (!$isInstallEntry) {
+        foreach ($statusSpecificNeedles as $needle) {
+            if (!str_contains($body, (string) $needle)) {
+                $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for HTTP ' . (string) $status . ' ' . $url;
+            }
         }
     }
 

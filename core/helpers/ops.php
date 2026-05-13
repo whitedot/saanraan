@@ -25,11 +25,14 @@ function toy_fetch_http_response(string $url): ?array
     $body = file_get_contents($url, false, $context);
     restore_error_handler();
 
-    if ($body === false || empty($http_response_header) || !is_array($http_response_header)) {
+    $responseHeaders = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
+    if ($body === false || empty($responseHeaders) || !is_array($responseHeaders)) {
         return null;
     }
 
-    foreach ($http_response_header as $header) {
+    foreach ($responseHeaders as $header) {
         if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
             return [
                 'status' => (int) $matches[1],
