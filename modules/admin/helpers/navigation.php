@@ -321,8 +321,6 @@ function sr_admin_default_menu_category_label(string $category): string
         'site' => '사이트',
         'content' => '사이트 구성',
         'operation' => '운영',
-        'member_asset' => '회원 자산',
-        'asset' => '자산',
         'other' => '기타',
     ];
 
@@ -337,8 +335,6 @@ function sr_admin_default_menu_category_order(string $category): int
         'site' => 20,
         'content' => 30,
         'operation' => 40,
-        'member_asset' => 50,
-        'asset' => 60,
         'other' => 1000,
     ];
 

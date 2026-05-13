@@ -173,8 +173,6 @@ function sr_admin_shell_icon_id(string $category): string
         'site' => 'content',
         'content' => 'content',
         'operation' => 'stats',
-        'member_asset' => 'folder',
-        'asset' => 'folder',
         'other' => 'folder',
     ];
 

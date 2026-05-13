@@ -136,6 +136,9 @@ if (isset($pdo) && $pdo instanceof PDO) {
                 <div class="gnb_menu_scroll admin-sidebar-scroll" id="gnbMenuScroll">
                     <ul class="admin-nav-list" id="adminNavList">
                         <?php foreach ($adminShell['navigation_items'] as $navSection) { ?>
+                            <li class="admin-nav-section-label-item<?php echo sr_e((string) ($navSection['section_class'] ?? '')); ?>">
+                                <span class="gnb_label admin-nav-section-label"><?php echo sr_e((string) $navSection['title']); ?></span>
+                            </li>
                             <?php foreach ($navSection['groups'] as $navItem) { ?>
                                 <li class="admin-nav-item<?php echo sr_e((string) $navItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $navItem['menu_code']); ?>">
                                     <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
