@@ -73,6 +73,27 @@ sr_output_helper_assert(
     sr_absolute_url(['base_url' => 'https://example.com/base'], '/\\evil.test') === 'https://example.com/base/',
     'Absolute URL should replace unsafe paths with the site root path.'
 );
+$seoTags = sr_seo_tags(
+    [
+        'canonical' => '/community',
+        'og' => [
+            'image' => '/assets/card.png',
+        ],
+    ],
+    ['base_url' => 'https://example.com/base']
+);
+sr_output_helper_assert(
+    strpos($seoTags, '<link rel="canonical" href="https://example.com/base/community">') !== false,
+    'Relative canonical URLs should use the configured site base URL.'
+);
+sr_output_helper_assert(
+    strpos($seoTags, '<meta property="og:url" content="https://example.com/base/community">') !== false,
+    'Open Graph URLs should use the normalized canonical URL.'
+);
+sr_output_helper_assert(
+    strpos($seoTags, '<meta property="og:image" content="https://example.com/base/assets/card.png">') !== false,
+    'Relative Open Graph image URLs should use the configured site base URL.'
+);
 sr_output_helper_assert(
     sr_load_translations('ko', '0module') === [],
     'Translation loader should reject module keys outside the shared module key policy.'

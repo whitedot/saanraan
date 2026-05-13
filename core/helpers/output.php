@@ -314,6 +314,12 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
     $title = (string) ($seo['title'] ?? ($site['name'] ?? 'Saanraan'));
     $description = (string) ($seo['description'] ?? '');
     $canonical = (string) ($seo['canonical'] ?? sr_canonical_url($site));
+    if (sr_is_safe_relative_url($canonical)) {
+        $canonical = sr_absolute_url($site, $canonical);
+    } elseif (!sr_is_http_url($canonical)) {
+        $canonical = '';
+    }
+
     $robots = (string) ($seo['robots'] ?? 'index, follow');
     $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
 
@@ -324,7 +330,7 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
         $tags[] = '<meta name="description" content="' . sr_e($description) . '">';
     }
 
-    if ($canonical !== '' && (sr_is_http_url($canonical) || sr_is_safe_relative_url($canonical))) {
+    if ($canonical !== '') {
         $tags[] = '<link rel="canonical" href="' . sr_e($canonical) . '">';
     }
 
@@ -336,6 +342,11 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
     $ogDescription = (string) ($og['description'] ?? $description);
     $ogType = (string) ($og['type'] ?? 'website');
     $ogImage = (string) ($og['image'] ?? '');
+    if (sr_is_safe_relative_url($ogImage)) {
+        $ogImage = sr_absolute_url($site, $ogImage);
+    } elseif ($ogImage !== '' && !sr_is_http_url($ogImage)) {
+        $ogImage = '';
+    }
 
     if ($ogTitle !== '') {
         $tags[] = '<meta property="og:title" content="' . sr_e($ogTitle) . '">';
@@ -345,7 +356,7 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
         $tags[] = '<meta property="og:description" content="' . sr_e($ogDescription) . '">';
     }
 
-    if ($canonical !== '' && (sr_is_http_url($canonical) || sr_is_safe_relative_url($canonical))) {
+    if ($canonical !== '') {
         $tags[] = '<meta property="og:url" content="' . sr_e($canonical) . '">';
     }
 
@@ -353,7 +364,7 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
         $tags[] = '<meta property="og:type" content="' . sr_e($ogType) . '">';
     }
 
-    if ($ogImage !== '' && (sr_is_http_url($ogImage) || sr_is_safe_relative_url($ogImage))) {
+    if ($ogImage !== '') {
         $tags[] = '<meta property="og:image" content="' . sr_e($ogImage) . '">';
     }
 
