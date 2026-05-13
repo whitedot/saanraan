@@ -136,9 +136,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 <?php } else { ?>
-    <section>
-        <h2><?php echo $communityBoardGroupsPage === 'edit' ? '게시판 그룹 수정' : '게시판 그룹 생성'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo $communityBoardGroupsPage === 'edit' ? '게시판 그룹 수정' : '게시판 그룹 생성'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
@@ -174,8 +174,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>">
                 </label>
             </p>
-            <fieldset>
-                <legend>그룹 기본 설정</legend>
+        </section>
+
+        <section class="card">
+            <h2>그룹 기본 설정</h2>
                 <p>
                     <label>읽기 정책<br>
                         <select name="group_read_policy">
@@ -270,21 +272,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" placeholder="pdf, txt, zip">
                     </label>
                 </p>
-            </fieldset>
+        </section>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
-                <fieldset>
-                    <legend>같은 그룹 게시판에 적용</legend>
+                <section class="card">
+                    <h2>같은 그룹 게시판에 적용</h2>
                     <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
                         <label>
                             <input type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>">
                             <?php echo sr_e($settingLabel); ?>
                         </label><br>
                     <?php } ?>
-                </fieldset>
+                </section>
             <?php } ?>
-            <button type="submit"><?php echo $communityBoardGroupsPage === 'edit' ? '그룹 변경' : '그룹 생성'; ?></button>
-        </form>
-    </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? '그룹 변경' : '그룹 생성'; ?></button>
+        </div>
+    </form>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

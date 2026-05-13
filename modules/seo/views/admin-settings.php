@@ -16,10 +16,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
 
-    <section>
+    <section class="card">
         <h2>기본 메타</h2>
         <p>
             <label>제목 접미사<br>
@@ -38,7 +38,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>사이트맵</h2>
         <p>
             <label>
@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <section>
+    <section class="card">
         <h2>로봇 설정</h2>
         <p>
             <label>차단 경로<br>
@@ -62,7 +62,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p><a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">robots.txt 확인</a></p>
     </section>
 
-    <button type="submit">저장</button>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">저장</button>
+    </div>
 </form>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

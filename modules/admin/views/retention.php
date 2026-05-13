@@ -16,54 +16,62 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
-    <p>
-        <label>인증 로그 보관일<br>
-            <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" min="1" max="3650" required>
-        </label>
-    </p>
-    <p>
-        <label>감사 로그 보관일<br>
-            <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" min="1" max="3650" required>
-        </label>
-    </p>
-    <p>
-        <label>사용 완료 토큰 보관일<br>
-            <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required>
-        </label>
-    </p>
-    <p>
-        <label>만료/폐기 세션 보관일<br>
-            <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
-        </label>
-    </p>
-    <?php if ($hasNotificationTables) { ?>
+    <section class="card">
+        <h2>보관 기간</h2>
         <p>
-            <label>알림 보관일<br>
-                <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" min="1" max="3650" required>
+            <label>인증 로그 보관일<br>
+                <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" min="1" max="3650" required>
             </label>
         </p>
-    <?php } else { ?>
-        <input type="hidden" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>">
-    <?php } ?>
-    <p>
-        <label>모듈 백업 보관일<br>
-            <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" min="1" max="3650" required>
-        </label>
-    </p>
-    <p>
-        <label>
-            <input type="checkbox" name="cleanup_confirmed" value="1" required>
-            아래 삭제 후보 수를 확인했습니다.
-        </label>
-    </p>
-    <p>
-        <label>확인 문구<br>
-            <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required>
-        </label>
-    </p>
-    <button type="submit">정리 실행</button>
+        <p>
+            <label>감사 로그 보관일<br>
+                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" min="1" max="3650" required>
+            </label>
+        </p>
+        <p>
+            <label>사용 완료 토큰 보관일<br>
+                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required>
+            </label>
+        </p>
+        <p>
+            <label>만료/폐기 세션 보관일<br>
+                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
+            </label>
+        </p>
+        <?php if ($hasNotificationTables) { ?>
+            <p>
+                <label>알림 보관일<br>
+                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" min="1" max="3650" required>
+                </label>
+            </p>
+        <?php } else { ?>
+            <input type="hidden" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>">
+        <?php } ?>
+        <p>
+            <label>모듈 백업 보관일<br>
+                <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" min="1" max="3650" required>
+            </label>
+        </p>
+    </section>
+    <section class="card">
+        <h2>실행 확인</h2>
+        <p>
+            <label>
+                <input type="checkbox" name="cleanup_confirmed" value="1" required>
+                아래 삭제 후보 수를 확인했습니다.
+            </label>
+        </p>
+        <p>
+            <label>확인 문구<br>
+                <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required>
+            </label>
+        </p>
+    </section>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">정리 실행</button>
+    </div>
 </form>
 
 <section class="member-table-card admin-member-list-form">

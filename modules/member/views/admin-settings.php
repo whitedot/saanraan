@@ -16,10 +16,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
 
-    <section>
+    <section class="card">
         <h2>가입과 인증</h2>
         <p>
             <label>
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>화면</h2>
         <p>
             <label>회원 스킨<br>
@@ -58,7 +58,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>선택 프로필 항목</h2>
         <?php foreach (sr_member_profile_field_setting_keys() as $key => $label) { ?>
             <p>
@@ -70,7 +70,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <section>
+    <section class="card">
         <h2>로그인 시도 제한</h2>
         <p>
             <label>제한 시간(초)<br>
@@ -89,7 +89,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>회원가입 제한</h2>
         <p>
             <label>제한 시간(초)<br>
@@ -103,7 +103,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>비밀번호 재설정 제한</h2>
         <p>
             <label>제한 시간(초)<br>
@@ -122,7 +122,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>이메일 인증 제한</h2>
         <p>
             <label>제한 시간(초)<br>
@@ -141,7 +141,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <button type="submit">저장</button>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">저장</button>
+    </div>
 </form>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

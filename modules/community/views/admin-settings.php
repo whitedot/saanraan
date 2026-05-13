@@ -37,11 +37,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
-    <section>
+    <section class="card">
         <h2>레벨</h2>
         <p>
             <label>
@@ -76,7 +76,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>쪽지</h2>
         <p>
             <label>발송 정책<br>
@@ -99,7 +99,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <section>
+    <section class="card">
         <h2>화면</h2>
         <p>
             <label>커뮤니티 테마<br>
@@ -114,7 +114,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </p>
     </section>
 
-    <button type="submit">설정 저장</button>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">설정 저장</button>
+    </div>
 </form>
 
 <section class="member-table-card admin-member-list-form">

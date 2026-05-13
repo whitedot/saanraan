@@ -37,9 +37,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($siteMenuPage === 'menu_form') { ?>
-    <section>
-        <h2><?php echo $editingMenu ? '메뉴 수정' : '메뉴 추가'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/save')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo $editingMenu ? '메뉴 수정' : '메뉴 추가'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : ''; ?>">
             <p>
@@ -64,9 +64,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
-            <button type="submit">메뉴 저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">메뉴 저장</button>
+        </div>
+    </form>
 <?php } elseif ($siteMenuPage === 'menus') { ?>
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">
@@ -112,12 +115,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 <?php } elseif ($siteMenuPage === 'item_form') { ?>
-    <section>
-        <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
-        <?php if ($menus === []) { ?>
+    <?php if ($menus === []) { ?>
+        <section class="card">
+            <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
             <p>먼저 메뉴를 추가하세요.</p>
-        <?php } else { ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/save')); ?>">
+        </section>
+    <?php } else { ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+            <section class="card">
+                <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="item_id" value="<?php echo $editingItem ? sr_e((string) $editItem['id']) : '0'; ?>">
                 <p>
@@ -171,10 +177,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="number" name="sort_order" value="<?php echo $editingItem ? sr_e((string) $editItem['sort_order']) : '100'; ?>">
                     </label>
                 </p>
-                <button type="submit">항목 저장</button>
-            </form>
-        <?php } ?>
-    </section>
+            </section>
+            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+                <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-surface-default-soft">목록</a>
+                <button type="submit" class="btn btn-solid-primary">항목 저장</button>
+            </div>
+        </form>
+    <?php } ?>
 <?php } elseif ($siteMenuPage === 'items') { ?>
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">

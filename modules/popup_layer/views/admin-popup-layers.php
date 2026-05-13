@@ -31,9 +31,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
-    <section>
-        <h2><?php echo $editing ? '팝업 수정' : '팝업 추가'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo $editing ? '팝업 수정' : '팝업 추가'; ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
@@ -120,13 +120,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" min="0" max="365">
                     </label>
                 </p>
-                <button type="submit">저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
+    </form>
 <?php } else { ?>
-    <section>
-        <h2>팝업레이어 설정</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>팝업레이어 설정</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_settings">
             <p>
@@ -140,9 +143,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
-            <button type="submit">팝업레이어 설정 저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+            <button type="submit" class="btn btn-solid-primary">팝업레이어 설정 저장</button>
+        </div>
+    </form>
 
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">

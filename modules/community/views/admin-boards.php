@@ -159,9 +159,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 <?php } else { ?>
-    <section>
-        <h2><?php echo $communityBoardsPage === 'edit' ? '게시판 수정' : '게시판 생성'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo $communityBoardsPage === 'edit' ? '게시판 수정' : '게시판 생성'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
@@ -219,7 +219,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="source_<?php echo sr_e($settingKey); ?>" value="board">
                 <?php } ?>
             <?php } ?>
+        </section>
 
+        <section class="card">
+            <h2>접근 정책</h2>
             <p>
                 <label>읽기 정책<br>
                     <select name="read_policy">
@@ -439,8 +442,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small>적용값: <?php echo sr_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
                 <?php } ?>
             </p>
-            <section>
-                <h3>배너</h3>
+        </section>
+
+        <section class="card">
+            <h2>배너</h2>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
                     <p>
                         <label><?php echo sr_e((string) $bannerSettingLabel); ?><br>
@@ -456,10 +461,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </p>
                 <?php } ?>
                 <p><small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small></p>
-            </section>
+        </section>
 
-            <section>
-                <h3>팝업레이어</h3>
+        <section class="card">
+            <h2>팝업레이어</h2>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                     <p>
                         <label><?php echo sr_e((string) $popupLayerSettingLabel); ?><br>
@@ -475,15 +480,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </p>
                 <?php } ?>
                 <p><small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small></p>
-            </section>
+        </section>
+
+        <section class="card">
+            <h2>정렬</h2>
             <p>
                 <label>정렬 순서<br>
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'sort_order', '0')); ?>">
                 </label>
             </p>
-            <button type="submit"><?php echo $communityBoardsPage === 'edit' ? '변경' : '생성'; ?></button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? '변경' : '생성'; ?></button>
+        </div>
+    </form>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

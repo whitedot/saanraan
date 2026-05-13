@@ -16,75 +16,83 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
-    <p>
-        <label>사이트 이름<br>
-            <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" maxlength="120" required>
-        </label>
-    </p>
-    <p>
-        <strong>공개 기준 URL</strong><br>
-        <?php if ($values['base_url'] !== '') { ?>
-            <code><?php echo sr_e($values['base_url']); ?></code>
-        <?php } else { ?>
-            <span>설정되지 않음</span>
-        <?php } ?>
-        <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 관리자 설정에서는 변경하지 않습니다.</span>
-    </p>
-    <p>
-        <label>시간대<br>
-            <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" maxlength="80" required>
-        </label>
-    </p>
-    <p>
-        <label>기본 locale<br>
-            <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" maxlength="20" required>
-        </label>
-    </p>
-    <p>
-        <label>지원 locale 목록<br>
-            <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" maxlength="255" required>
-        </label>
-        <span class="sr-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
-    </p>
-    <p>
-        <label>운영 상태<br>
-            <select name="status">
-                <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
-                <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>>점검</option>
-            </select>
-        </label>
-    </p>
-    <p>
-        <label>공통 레이아웃<br>
-            <select name="public_layout_key">
-                <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
-                    <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </label>
-    </p>
-    <p>
-        <label>UI 색상 모드<br>
-            <select name="ui_color_scheme">
-                <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                    <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) $colorSchemeLabel); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </label>
-    </p>
-    <button type="submit">저장</button>
+    <section class="card">
+        <h2>사이트 기본값</h2>
+        <p>
+            <label>사이트 이름<br>
+                <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" maxlength="120" required>
+            </label>
+        </p>
+        <p>
+            <strong>공개 기준 URL</strong><br>
+            <?php if ($values['base_url'] !== '') { ?>
+                <code><?php echo sr_e($values['base_url']); ?></code>
+            <?php } else { ?>
+                <span>설정되지 않음</span>
+            <?php } ?>
+            <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 관리자 설정에서는 변경하지 않습니다.</span>
+        </p>
+        <p>
+            <label>시간대<br>
+                <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" maxlength="80" required>
+            </label>
+        </p>
+        <p>
+            <label>기본 locale<br>
+                <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" maxlength="20" required>
+            </label>
+        </p>
+        <p>
+            <label>지원 locale 목록<br>
+                <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" maxlength="255" required>
+            </label>
+            <span class="sr-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+        </p>
+        <p>
+            <label>운영 상태<br>
+                <select name="status">
+                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
+                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>>점검</option>
+                </select>
+            </label>
+        </p>
+    </section>
+    <section class="card">
+        <h2>화면</h2>
+        <p>
+            <label>공통 레이아웃<br>
+                <select name="public_layout_key">
+                    <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
+                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+        <p>
+            <label>UI 색상 모드<br>
+                <select name="ui_color_scheme">
+                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
+                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $colorSchemeLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </label>
+        </p>
+    </section>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">저장</button>
+    </div>
 </form>
 
-<section>
-    <h2>관리자 화면</h2>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+    <section class="card">
+        <h2>관리자 화면</h2>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="admin_skin">
         <p>
@@ -98,9 +106,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </label>
         </p>
-        <button type="submit">관리자 화면 설정 저장</button>
-    </form>
-</section>
+    </section>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">관리자 화면 설정 저장</button>
+    </div>
+</form>
 
 <section class="member-table-card admin-member-list-form">
     <div class="card-header">
@@ -108,35 +118,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="site_setting">
-            <p>
-                <label>키<br>
-                    <input type="text" name="setting_key" maxlength="120" required>
-                </label>
-            </p>
-            <p>
-                <label>값<br>
-                    <textarea name="setting_value" maxlength="5000"></textarea>
-                </label>
-            </p>
-            <p>
-                <label>유형<br>
-                    <select name="value_type">
-                        <?php foreach ($allowedSettingTypes as $type) { ?>
-                            <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
-                        <?php } ?>
-                    </select>
-                </label>
-            </p>
-            <p>
-                <label>소유자 비밀번호<br>
-                    <input type="password" name="owner_password" autocomplete="current-password">
-                </label>
-                <span class="sr-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
-            </p>
-            <button type="submit">항목 저장</button>
+            <section class="card">
+                <h2>설정 항목 추가</h2>
+                <p>
+                    <label>키<br>
+                        <input type="text" name="setting_key" maxlength="120" required>
+                    </label>
+                </p>
+                <p>
+                    <label>값<br>
+                        <textarea name="setting_value" maxlength="5000"></textarea>
+                    </label>
+                </p>
+                <p>
+                    <label>유형<br>
+                        <select name="value_type">
+                            <?php foreach ($allowedSettingTypes as $type) { ?>
+                                <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                </p>
+                <p>
+                    <label>소유자 비밀번호<br>
+                        <input type="password" name="owner_password" autocomplete="current-password">
+                    </label>
+                    <span class="sr-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
+                </p>
+            </section>
+            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+                <button type="submit" class="btn btn-solid-primary">항목 저장</button>
+            </div>
         </form>
     <?php } ?>
 

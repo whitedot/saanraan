@@ -40,9 +40,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($memberGroupsPage === 'group_form') { ?>
-    <section>
-        <h2><?php echo is_array($editGroup) ? '그룹 수정' : '그룹 생성'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo is_array($editGroup) ? '그룹 수정' : '그룹 생성'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="group_id" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['id'] : ''); ?>">
 
@@ -83,9 +83,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>">
                 </label>
             </p>
-            <button type="submit">저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
+    </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">
@@ -228,9 +231,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
-    <section>
-        <h2><?php echo is_array($editRule) ? '자동 규칙 수정' : '자동 규칙 생성'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo is_array($editRule) ? '자동 규칙 수정' : '자동 규칙 생성'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($editRule) ? (string) $editRule['id'] : ''); ?>">
             <p>
@@ -279,13 +282,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
-            <button type="submit">자동 규칙 저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">자동 규칙 저장</button>
+        </div>
+    </form>
 <?php } elseif ($memberGroupsPage === 'evaluations') { ?>
-    <section>
-        <h2>자동 규칙 재평가</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>자동 규칙 재평가</h2>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label>회원 공개 해시<br>
@@ -297,11 +303,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="text" name="source_module_key" maxlength="60">
                 </label>
             </p>
-            <button type="submit">재평가</button>
-        </form>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+            <button type="submit" class="btn btn-solid-primary">재평가</button>
+        </div>
+    </form>
 
-        <h3>일괄 재평가</h3>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/batch')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/batch')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>일괄 재평가</h2>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label>모듈 key<br>
@@ -313,13 +323,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="number" name="limit" min="1" max="200" value="50">
                 </label>
             </p>
-            <button type="submit">일괄 재평가</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+            <button type="submit" class="btn btn-solid-primary">일괄 재평가</button>
+        </div>
+    </form>
 <?php } elseif ($memberGroupsPage === 'assignments') { ?>
-    <section>
-        <h2>수동 배정</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>수동 배정</h2>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label>회원 공개 해시<br>
@@ -337,9 +349,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
-            <button type="submit">배정</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+            <button type="submit" class="btn btn-solid-primary">배정</button>
+        </div>
+    </form>
 
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">

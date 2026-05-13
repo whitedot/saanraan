@@ -269,6 +269,47 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 @media (max-width:767px){.member-summary{align-items:flex-start}.member-summary-links{display:grid;grid-template-columns:1fr;width:100%}.member-summary-links .btn{min-width:0}.member-table-card>.card-header{align-items:stretch;flex-direction:column}.member-table-card>.card-header>.btn{justify-content:center;width:100%}.member-notice{grid-template-columns:1fr}.member-list-actions{flex-direction:column;align-items:stretch}.member-list-actions>*{width:100%}.member-list-actions .btn{justify-content:center}}
 /* Saanraan admin adapters: keep common.css as the ui-kit and define Saanraan-specific admin structures here. */
 
+@media (max-width:767px){
+    .admin-anchor-tabs{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:0;
+        width:100%;
+        overflow:visible;
+    }
+
+    .admin-anchor-tabs .tab-trigger-underline-justified{
+        width:100%;
+        min-width:0;
+        padding-inline:calc(var(--spacing) * 2);
+        white-space:normal;
+    }
+
+    .admin-form-sticky-actions{
+        padding-inline:calc(var(--spacing) * 4);
+    }
+
+    .admin-form-actions-split{
+        align-items:stretch;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+    }
+
+    .admin-form-actions-split>button[type=submit],
+    .admin-form-actions-split>input[type=submit],
+    .admin-form-actions-split>[data-admin-member-export-download]{
+        margin-left:0;
+    }
+
+    .admin-form-actions .btn,
+    .admin-form-actions button,
+    .admin-form-actions input[type=submit]{
+        justify-content:center;
+        min-width:0;
+        width:100%;
+    }
+}
+
 .admin-content .table td form {
     align-items: center;
     display: inline-flex;

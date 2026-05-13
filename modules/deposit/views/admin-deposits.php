@@ -52,9 +52,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($depositAdminPage === 'adjust') { ?>
-    <section>
-        <h2>예치금 조정</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>예치금 조정</h2>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label>회원 공개 해시<br>
@@ -92,9 +92,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="text" name="reference_id" maxlength="120">
                 </label>
             </p>
-            <button type="submit">저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/deposits/balances')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
+    </form>
 <?php } elseif ($depositAdminPage === 'transactions') { ?>
     <section class="member-table-card admin-member-list-form">
         <div class="card-header"><h2 class="card-title">최근 거래</h2></div>

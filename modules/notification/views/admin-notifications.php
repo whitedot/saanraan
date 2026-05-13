@@ -31,9 +31,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($notificationAdminPage === 'new') { ?>
-    <section>
-        <h2>알림 등록</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>알림 등록</h2>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label>대상<br>
@@ -76,9 +76,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
                 </label><br>
             <?php } ?>
-            <p><button type="submit">알림 등록</button></p>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">알림 등록</button>
+        </div>
+    </form>
 <?php } elseif ($notificationAdminPage === 'deliveries') { ?>
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">

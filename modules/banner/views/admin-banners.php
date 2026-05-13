@@ -30,9 +30,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($bannerAdminPage === 'form') { ?>
-    <section>
-        <h2><?php echo $editing ? '배너 수정' : '배너 추가'; ?></h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2><?php echo $editing ? '배너 수정' : '배너 추가'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? sr_e((string) $editBanner['id']) : '0'; ?>">
             <p>
@@ -140,13 +140,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>">
                 </label>
             </p>
-            <button type="submit">저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
+    </form>
 <?php } else { ?>
-    <section>
-        <h2>배너 설정</h2>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/banners')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <section class="card">
+            <h2>배너 설정</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_settings">
             <p>
@@ -161,9 +164,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </label>
             </p>
-            <button type="submit">배너 설정 저장</button>
-        </form>
-    </section>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+            <button type="submit" class="btn btn-solid-primary">배너 설정 저장</button>
+        </div>
+    </form>
 
     <section class="member-table-card admin-member-list-form">
         <div class="card-header">
