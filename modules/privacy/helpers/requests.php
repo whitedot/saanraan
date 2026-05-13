@@ -68,7 +68,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
     }
 
     if ($status === 'completed' && (!$identityConfirmed || !$exportConfirmed || !$actionConfirmed)) {
-        $errors[] = '완료 처리 전 요청자 확인, 내보내기/처리 확인, 처리 내용 확인이 필요합니다.';
+        $errors[] = '완료 처리 전 요청자 확인, 처리 자료 또는 처리 결과 확인, 처리 내용 확인이 필요합니다.';
     }
 
     if ($errors === []) {
@@ -77,7 +77,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         $privacyRequest = $stmt->fetch();
 
         if (!is_array($privacyRequest)) {
-            $errors[] = '개인정보 요청을 찾을 수 없습니다.';
+            $errors[] = '개인정보 처리 요청을 찾을 수 없습니다.';
         }
     }
 
@@ -95,7 +95,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
         && in_array((string) $privacyRequest['status'], toy_admin_privacy_request_terminal_statuses(), true)
         && $status !== (string) $privacyRequest['status']
     ) {
-        $errors[] = '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.';
+        $errors[] = '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.';
     }
 
     if ($errors === []) {
@@ -137,7 +137,7 @@ function toy_admin_handle_privacy_request_post(PDO $pdo, array $account, array $
             ],
         ]);
 
-        $notice = '개인정보 요청 상태를 저장했습니다.';
+        $notice = '개인정보 처리 요청 상태를 저장했습니다.';
     }
 
     return toy_admin_action_result($errors, $notice);
@@ -220,14 +220,85 @@ function toy_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest):
 
     if (!empty($privacyRequest['account_id'])) {
         try {
-            $export['member_data'] = toy_member_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
+            $export['account_data'] = toy_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
         } catch (Throwable $exception) {
-            toy_log_exception($exception, 'privacy_request_export_member_' . (int) $privacyRequest['id']);
-            $export['member_data_unavailable'] = true;
+            toy_log_exception($exception, 'privacy_request_export_account_' . (int) $privacyRequest['id']);
+            $export['account_data_unavailable'] = true;
         }
     }
 
     return $export;
+}
+
+function toy_privacy_export_data(PDO $pdo, int $accountId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT id, request_type, status, request_message, admin_note, handled_at, created_at, updated_at
+         FROM toy_privacy_requests
+         WHERE account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return [
+        'exported_at' => toy_now(),
+        'account_id' => $accountId,
+        'privacy_requests' => $stmt->fetchAll(),
+        'module_exports' => toy_privacy_module_exports($pdo, $accountId),
+    ];
+}
+
+function toy_privacy_module_exports(PDO $pdo, int $accountId): array
+{
+    $exports = [];
+    foreach (toy_enabled_module_contract_files($pdo, 'privacy-export.php', ['privacy']) as $moduleKey => $exportFile) {
+        try {
+            $moduleExport = toy_load_module_contract_file($moduleKey, $exportFile);
+            if (is_callable($moduleExport)) {
+                $moduleExportData = $moduleExport($pdo, $accountId);
+                if (is_array($moduleExportData)) {
+                    $exports[$moduleKey] = toy_privacy_export_sanitize_module_data($moduleExportData);
+                }
+            } elseif (is_array($moduleExport)) {
+                $exports[$moduleKey] = toy_privacy_export_sanitize_module_data($moduleExport);
+            }
+        } catch (Throwable $exception) {
+            toy_log_exception($exception, 'privacy_export_module_' . $moduleKey);
+        }
+    }
+
+    return $exports;
+}
+
+function toy_privacy_export_sanitize_module_data(mixed $value): mixed
+{
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $sanitized = [];
+    foreach ($value as $key => $childValue) {
+        if (is_string($key) && toy_privacy_export_internal_key($key)) {
+            continue;
+        }
+
+        $sanitized[$key] = toy_privacy_export_sanitize_module_data($childValue);
+    }
+
+    return $sanitized;
+}
+
+function toy_privacy_export_internal_key(string $key): bool
+{
+    $normalizedKey = strtolower($key);
+    return $normalizedKey === 'password_hash'
+        || $normalizedKey === 'account_identifier_hash'
+        || preg_match(
+            '/(?:^|[._-])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
+            $normalizedKey
+        ) === 1
+        || str_ends_with($normalizedKey, '_token_hash')
+        || str_ends_with($normalizedKey, '_hash');
 }
 
 function toy_admin_privacy_request_export_reauth_errors(PDO $pdo, array $account, int $requestId): array
@@ -264,7 +335,7 @@ function toy_admin_privacy_request_export_reauth_errors(PDO $pdo, array $account
             'result' => 'failure',
             'message' => 'Privacy request export reauthentication failed.',
         ]);
-        return ['개인정보 요청 내보내기 전 관리자 비밀번호를 다시 입력하세요.'];
+        return ['개인정보 처리 자료를 내려받기 전 관리자 비밀번호를 다시 입력하세요.'];
     }
 
     toy_member_log_auth($pdo, $accountId, 'privacy_request_export_reauth', 'success');

@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/privacy/helpers.php';
 
 $account = toy_member_require_login($pdo);
-$memberSettings = toy_member_settings($pdo);
 $allowedTypes = ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
 $errors = [];
 $notice = '';
@@ -51,7 +51,7 @@ if (toy_request_method() === 'POST') {
         ]);
 
         if (is_array($stmt->fetch())) {
-            $errors[] = '이미 처리 대기 중인 같은 유형의 개인정보 요청이 있습니다.';
+            $errors[] = '이미 처리 대기 중인 같은 유형의 개인정보 처리 요청이 있습니다.';
         }
     }
 
@@ -88,7 +88,7 @@ if (toy_request_method() === 'POST') {
             ],
         ]);
 
-        $notice = '개인정보 요청을 접수했습니다.';
+        $notice = '개인정보 처리 요청을 접수했습니다.';
         $values = [
             'request_type' => 'access',
             'request_message' => '',
@@ -109,5 +109,4 @@ foreach ($stmt->fetchAll() as $row) {
     $requests[] = $row;
 }
 
-$memberSkinView = toy_member_skin_view(toy_member_skin_key($memberSettings), 'privacy-requests');
-include $memberSkinView;
+include TOY_ROOT . '/modules/privacy/views/account-privacy-requests.php';

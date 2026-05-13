@@ -123,15 +123,6 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
         $sessions = $stmt->fetchAll();
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT id, request_type, status, request_message, admin_note, handled_at, created_at, updated_at
-         FROM toy_privacy_requests
-         WHERE account_id = :account_id
-         ORDER BY id ASC'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-    $privacyRequests = $stmt->fetchAll();
-
     return [
         'exported_at' => toy_now(),
         'account' => $account,
@@ -140,8 +131,6 @@ function toy_member_privacy_export_data(PDO $pdo, int $accountId): array
         'consents' => $consents,
         'auth_logs' => $authLogs,
         'sessions' => $sessions,
-        'privacy_requests' => $privacyRequests,
-        'module_exports' => toy_member_module_privacy_exports($pdo, $accountId),
     ];
 }
 
@@ -179,62 +168,9 @@ function toy_member_privacy_export_reauth_errors(PDO $pdo, array $account): arra
             'result' => 'failure',
             'message' => 'Member privacy export reauthentication failed.',
         ]);
-        return ['개인정보 내보내기 전 현재 비밀번호를 다시 입력하세요.'];
+        return ['개인정보 사본을 내려받기 전 현재 비밀번호를 다시 입력하세요.'];
     }
 
     toy_member_log_auth($pdo, $accountId, 'privacy_export_reauth', 'success');
     return [];
-}
-
-function toy_member_module_privacy_exports(PDO $pdo, int $accountId): array
-{
-    $exports = [];
-    foreach (toy_enabled_module_contract_files($pdo, 'privacy-export.php', ['member']) as $moduleKey => $exportFile) {
-        try {
-            $moduleExport = toy_load_module_contract_file($moduleKey, $exportFile);
-            if (is_callable($moduleExport)) {
-                $moduleExportData = $moduleExport($pdo, $accountId);
-                if (is_array($moduleExportData)) {
-                    $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExportData);
-                }
-            } elseif (is_array($moduleExport)) {
-                $exports[$moduleKey] = toy_member_privacy_export_sanitize_module_data($moduleExport);
-            }
-        } catch (Throwable $exception) {
-            toy_log_exception($exception, 'privacy_export_module_' . $moduleKey);
-        }
-    }
-
-    return $exports;
-}
-
-function toy_member_privacy_export_sanitize_module_data(mixed $value): mixed
-{
-    if (!is_array($value)) {
-        return $value;
-    }
-
-    $sanitized = [];
-    foreach ($value as $key => $childValue) {
-        if (is_string($key) && toy_member_privacy_export_internal_key($key)) {
-            continue;
-        }
-
-        $sanitized[$key] = toy_member_privacy_export_sanitize_module_data($childValue);
-    }
-
-    return $sanitized;
-}
-
-function toy_member_privacy_export_internal_key(string $key): bool
-{
-    $normalizedKey = strtolower($key);
-    return $normalizedKey === 'password_hash'
-        || $normalizedKey === 'account_identifier_hash'
-        || preg_match(
-            '/(?:^|[._-])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)(?:$|[._-])/',
-            $normalizedKey
-        ) === 1
-        || str_ends_with($normalizedKey, '_token_hash')
-        || str_ends_with($normalizedKey, '_hash');
 }

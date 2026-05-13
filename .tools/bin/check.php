@@ -121,7 +121,7 @@ function toy_check_core_version_satisfies(string $minimumVersion): bool
 
 function toy_check_module_lifecycle_metadata(): void
 {
-    $requiredModules = ['member', 'admin'];
+    $requiredModules = ['member', 'admin', 'privacy'];
     $knownContractFiles = [
         'admin-menu.php' => true,
         'extension-points.php' => true,

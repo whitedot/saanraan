@@ -1,9 +1,14 @@
 <?php
 
 return [
-    'label' => '회원 설정',
+    'label' => '회원',
     'order' => 10,
     'items' => [
+        [
+            'label' => '회원 목록',
+            'path' => '/admin/members',
+            'order' => 5,
+        ],
         [
             'label' => '기본 설정',
             'path' => '/admin/member-settings',

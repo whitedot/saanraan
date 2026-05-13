@@ -11,7 +11,7 @@ $canManageAdvancedModuleSettings = toy_admin_has_role($pdo, (int) $account['id']
 $canManageModuleSources = toy_admin_has_role($pdo, (int) $account['id'], ['owner']);
 $moduleSourcesEnabled = toy_admin_module_sources_enabled($pdo, $config);
 
-$requiredModules = ['member', 'admin'];
+$requiredModules = ['member', 'admin', 'privacy'];
 $allowedStatuses = ['enabled', 'disabled'];
 $allowedSettingTypes = ['string', 'int', 'bool', 'json'];
 $allowedInstallStatuses = ['enabled', 'disabled'];

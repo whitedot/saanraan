@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once TOY_ROOT . '/modules/member/helpers.php';
+require_once TOY_ROOT . '/modules/privacy/helpers.php';
 
 if (toy_request_method() !== 'POST') {
     toy_render_error(405, '허용되지 않는 요청입니다.');
@@ -16,10 +17,10 @@ foreach (toy_member_privacy_export_reauth_errors($pdo, $account) as $reauthError
     toy_render_error(403, $reauthError);
 }
 
-$export = toy_member_privacy_export_data($pdo, (int) $account['id']);
+$export = toy_privacy_export_data($pdo, (int) $account['id']);
 $encodedExport = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 if (!is_string($encodedExport)) {
-    toy_render_error(500, '개인정보 내보내기 파일을 생성할 수 없습니다.');
+    toy_render_error(500, '개인정보 사본 파일을 생성할 수 없습니다.');
 }
 
 toy_audit_log($pdo, [

@@ -572,8 +572,8 @@ function toy_admin_find_module_source(string $extractDir, string $requestedModul
 function toy_admin_validate_module_source(string $moduleKey, string $sourceDir, array $metadata): array
 {
     $errors = [];
-    if (in_array($moduleKey, ['member', 'admin'], true)) {
-        $errors[] = '회원과 관리자 기본 모듈은 zip 업로드로 교체할 수 없습니다.';
+    if (in_array($moduleKey, ['member', 'admin', 'privacy'], true)) {
+        $errors[] = '회원, 관리자, 개인정보 기본 모듈은 zip 업로드로 교체할 수 없습니다.';
     }
 
     if (!is_file($sourceDir . '/module.php')) {

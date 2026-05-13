@@ -22,9 +22,9 @@ return [
             'admin-menu.php',
             'extension-points.php',
             'menu-links.php',
+            'privacy-export.php',
         ],
         'consumes' => [
-            'privacy-export.php',
             'member-group-rules.php',
         ],
     ],

@@ -25,4 +25,4 @@ $statusFilter = toy_admin_member_status_filter($allowedStatuses);
 $runtimeConfig = isset($config) && is_array($config) ? $config : toy_runtime_config();
 $members = toy_admin_member_rows_with_public_hash($runtimeConfig, toy_admin_members($pdo, $statusFilter));
 
-include TOY_ROOT . '/modules/admin/views/members.php';
+include TOY_ROOT . '/modules/member/views/admin-members.php';

@@ -164,7 +164,6 @@ $targets = [
             'modules/member/actions/account.php',
             'modules/member/actions/password-reset-request.php',
             'modules/member/actions/password-reset.php',
-            'modules/member/actions/privacy-requests.php',
             'modules/member/actions/withdraw.php',
             'modules/member/actions/email-verified.php',
         ],

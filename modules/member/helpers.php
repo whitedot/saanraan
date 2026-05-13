@@ -10,3 +10,4 @@ require_once TOY_ROOT . '/modules/member/helpers/tokens.php';
 require_once TOY_ROOT . '/modules/member/helpers/groups.php';
 require_once TOY_ROOT . '/modules/member/helpers/privacy.php';
 require_once TOY_ROOT . '/modules/member/helpers/throttle.php';
+require_once TOY_ROOT . '/modules/member/helpers/admin-members.php';

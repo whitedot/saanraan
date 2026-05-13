@@ -51,7 +51,7 @@
 - 옵션: `toy_member_skin_options()`
 - 선택 UI: `/admin/member-settings`의 `member_skin_key` select
 - 저장: 회원 설정 저장 흐름에서 `member_skin_key`를 `toy_module_settings`에 저장
-- 렌더링: 로그인, 회원가입, 계정, 비밀번호 재설정, 개인정보 요청, 탈퇴, 이메일 인증 완료 action이 `toy_member_skin_view()` 사용
+- 렌더링: 로그인, 회원가입, 계정, 비밀번호 재설정, 탈퇴, 이메일 인증 완료 action이 `toy_member_skin_view()` 사용
 
 커뮤니티 테마:
 

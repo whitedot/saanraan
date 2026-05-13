@@ -13,8 +13,4 @@ return [
         'label' => '내 계정',
         'url' => '/account',
     ],
-    [
-        'label' => '개인정보 요청',
-        'url' => '/account/privacy-requests',
-    ],
 ];

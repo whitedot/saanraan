@@ -16,7 +16,13 @@ $requiredModules = [
         'name' => '관리자',
         'version' => '2026.05.001',
         'label' => '관리자',
-        'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 회원 관리 화면을 제공합니다.',
+        'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
+    ],
+    'privacy' => [
+        'name' => '개인정보',
+        'version' => '2026.05.001',
+        'label' => '개인정보',
+        'description' => '개인정보 처리 요청과 개인정보 사본 제공 조정 기능을 제공합니다.',
     ],
 ];
 $optionalModules = [
@@ -446,8 +452,9 @@ if (toy_request_method() === 'POST') {
 
             $installStage = 'execute_schema';
             toy_execute_sql_file($pdo, TOY_ROOT . '/database/core/install.sql');
-            toy_execute_sql_file($pdo, TOY_ROOT . '/modules/member/install.sql');
-            toy_execute_sql_file($pdo, TOY_ROOT . '/modules/admin/install.sql');
+            foreach (array_keys($requiredModules) as $moduleKey) {
+                toy_execute_sql_file($pdo, TOY_ROOT . '/modules/' . $moduleKey . '/install.sql');
+            }
             foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 toy_execute_sql_file($pdo, TOY_ROOT . '/modules/' . $moduleKey . '/install.sql');
             }
@@ -504,9 +511,10 @@ if (toy_request_method() === 'POST') {
             }
 
             $installStage = 'record_schema_versions';
-            toy_record_installed_core_schema_versions($pdo, '2026.04.007');
-            toy_record_installed_module_schema_versions($pdo, 'member', (string) $requiredModules['member']['version']);
-            toy_record_installed_module_schema_versions($pdo, 'admin', (string) $requiredModules['admin']['version']);
+            toy_record_installed_core_schema_versions($pdo, '2026.04.008');
+            foreach ($requiredModules as $moduleKey => $module) {
+                toy_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
+            }
             foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 toy_record_installed_module_schema_versions($pdo, $moduleKey, (string) $optionalModules[$moduleKey]['version']);
             }

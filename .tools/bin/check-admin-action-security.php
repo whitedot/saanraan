@@ -238,7 +238,7 @@ if (!is_string($adminInputHelper)) {
     $errors[] = 'Admin POST numeric inputs must be accepted only as strict integer strings.';
 }
 
-$adminMembersHelper = file_get_contents($root . '/modules/admin/helpers/members.php');
+$adminMembersHelper = file_get_contents($root . '/modules/member/helpers/admin-members.php');
 if (!is_string($adminMembersHelper)) {
     $errors[] = 'Admin members helper cannot be read.';
 } else {
@@ -275,7 +275,7 @@ if (!is_string($adminMembersHelper)) {
     }
 }
 
-$adminMembersView = file_get_contents($root . '/modules/admin/views/members.php');
+$adminMembersView = file_get_contents($root . '/modules/member/views/admin-members.php');
 if (!is_string($adminMembersView)) {
     $errors[] = 'Admin members view cannot be read.';
 } elseif (
@@ -470,7 +470,7 @@ if (is_string($adminRolesHelper) && (
     $errors[] = 'Admin role guard must mark request contract role checks and guard-blocked errors.';
 }
 
-$adminPrivacyRequestsHelper = file_get_contents($root . '/modules/admin/helpers/privacy-requests.php');
+$adminPrivacyRequestsHelper = file_get_contents($root . '/modules/privacy/helpers/requests.php');
 if (!is_string($adminPrivacyRequestsHelper)) {
     $errors[] = 'Admin privacy requests helper cannot be read.';
 } elseif (
@@ -482,9 +482,9 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, "toy_post_string_without_truncation('admin_note', 2000)") === false
     || strpos($adminPrivacyRequestsHelper, '$adminNote === null') === false
     || strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') === false
-    || strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") === false
-    || strpos($adminPrivacyRequestsHelper, "'member_data_unavailable'") === false
-    || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') === false
+    || strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'])") === false
+    || strpos($adminPrivacyRequestsHelper, "'account_data_unavailable'") === false
+    || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.') === false
     || strpos($adminPrivacyRequestsHelper, "toy_admin_post_positive_int('request_id')") === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
@@ -492,7 +492,7 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     $errors[] = 'Admin privacy request helpers must reduce list exposure, validate request ids, protect terminal status changes, isolate member export failures, and reauthenticate exports.';
 }
 
-$adminPrivacyRequestsView = file_get_contents($root . '/modules/admin/views/privacy-requests.php');
+$adminPrivacyRequestsView = file_get_contents($root . '/modules/privacy/views/admin-privacy-requests.php');
 if (!is_string($adminPrivacyRequestsView)) {
     $errors[] = 'Admin privacy requests view cannot be read.';
 } elseif (
@@ -505,7 +505,7 @@ if (!is_string($adminPrivacyRequestsView)) {
     $errors[] = 'Admin privacy requests view must reduce requester/message exposure and avoid prefilled admin notes.';
 }
 
-$adminPrivacyRequestExportAction = file_get_contents($root . '/modules/admin/actions/privacy-request-export.php');
+$adminPrivacyRequestExportAction = file_get_contents($root . '/modules/privacy/actions/admin-privacy-request-export.php');
 if (!is_string($adminPrivacyRequestExportAction)) {
     $errors[] = 'Admin privacy request export action cannot be read.';
 } elseif (strpos($adminPrivacyRequestExportAction, "toy_admin_post_positive_int('id')") === false) {
@@ -583,7 +583,8 @@ if (!is_string($adminNavigationHelper)) {
     || strpos($adminNavigationHelper, 'toy_load_module_contract_file($moduleKey, $pathsFile)') === false
     || strpos($adminNavigationHelper, 'function toy_admin_navigation_groups(PDO $pdo): array') === false
     || strpos($adminNavigationHelper, 'function toy_admin_builtin_menu_groups(PDO $pdo): array') === false
-    || strpos($adminNavigationHelper, "'path' => '/admin/members'") === false
+    || !is_file($root . '/modules/member/admin-menu.php')
+    || !is_file($root . '/modules/privacy/admin-menu.php')
 ) {
     $errors[] = 'Admin navigation must group builtin admin links and load module paths.php through the contract file loader.';
 }

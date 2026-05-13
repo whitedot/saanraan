@@ -160,7 +160,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php echo toy_csrf_field(); ?>
             <button type="submit">로그아웃</button>
         </form>
-        <p><a href="<?php echo toy_e(toy_url('/account/privacy-requests')); ?>">개인정보 요청</a></p>
+        <p><a href="<?php echo toy_e(toy_url('/account/privacy-requests')); ?>">개인정보 처리 요청</a></p>
         <?php if (isset($pdo) && $pdo instanceof PDO && toy_module_enabled($pdo, 'notification')) { ?>
             <p><a href="<?php echo toy_e(toy_url('/account/notifications')); ?>">알림</a></p>
         <?php } ?>
@@ -169,7 +169,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <label>현재 비밀번호<br>
                 <input type="password" name="current_password" autocomplete="current-password" required>
             </label>
-            <button type="submit">개인정보 JSON 내보내기</button>
+            <button type="submit">개인정보 사본 내려받기</button>
         </form>
         <p><a href="<?php echo toy_e(toy_url('/account/withdraw')); ?>">회원 탈퇴</a></p>
     </main>

@@ -136,18 +136,6 @@ function toy_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '보관 정리', 'path' => '/admin/retention', 'order' => 70],
             ],
         ],
-        [
-            'module_key' => 'admin',
-            'label' => '회원 계정',
-            'admin_category' => 'member',
-            'admin_category_label' => '회원',
-            'admin_category_order' => 10,
-            'order' => 10,
-            'items' => [
-                ['label' => '회원 목록', 'path' => '/admin/members', 'order' => 5],
-                ['label' => '개인정보 요청', 'path' => '/admin/privacy-requests', 'order' => 30],
-            ],
-        ],
     ];
 
     foreach ($groups as &$group) {

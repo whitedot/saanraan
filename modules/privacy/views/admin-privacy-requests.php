@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '개인정보 요청';
+$adminPageTitle = '개인정보 처리 요청';
 include TOY_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -46,7 +46,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($requests === []) { ?>
             <tr>
-                <td colspan="8">개인정보 요청이 없습니다.</td>
+                <td colspan="8">개인정보 처리 요청이 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($requests as $request) { ?>
@@ -65,7 +65,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         <label>관리자 비밀번호<br>
                             <input type="password" name="admin_password" autocomplete="current-password" required>
                         </label>
-                        <button type="submit">JSON</button>
+                        <button type="submit">처리 자료 내려받기</button>
                     </form>
                     <form method="post" action="<?php echo toy_e(toy_url('/admin/privacy-requests')); ?>">
                         <?php echo toy_csrf_field(); ?>
@@ -84,7 +84,7 @@ include TOY_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                         <label>
                             <input type="checkbox" name="export_confirmed" value="1">
-                            내보내기 또는 처리 결과 확인
+                            처리 자료 또는 처리 결과 확인
                         </label>
                         <label>
                             <input type="checkbox" name="action_confirmed" value="1">

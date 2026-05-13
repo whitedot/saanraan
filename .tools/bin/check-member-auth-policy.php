@@ -333,7 +333,7 @@ if ($withdrawAction !== '') {
     );
 }
 
-$privacyExportAction = toy_member_auth_policy_read('modules/member/actions/privacy-export.php');
+$privacyExportAction = toy_member_auth_policy_read('modules/privacy/actions/account-privacy-export.php');
 if ($privacyExportAction !== '') {
     toy_member_auth_policy_assert(
         strpos($privacyExportAction, 'toy_member_privacy_export_reauth_errors($pdo, $account)') !== false
@@ -362,7 +362,8 @@ if ($memberSettingsHelper !== '' && $memberLoginAction !== '') {
 }
 
 $privacyHelper = toy_member_auth_policy_read('modules/member/helpers/privacy.php');
-if ($privacyHelper !== '') {
+$privacyOrchestrationHelper = toy_member_auth_policy_read('modules/privacy/helpers/requests.php');
+if ($privacyHelper !== '' && $privacyOrchestrationHelper !== '') {
     toy_member_auth_policy_assert(
         strpos($privacyHelper, 'function toy_member_privacy_export_reauth_errors') !== false
             && strpos($privacyHelper, "toy_post_string('current_password', 255)") !== false
@@ -372,18 +373,18 @@ if ($privacyHelper !== '') {
         'Privacy helper should require throttled current-password reauthentication for member privacy exports.'
     );
     toy_member_auth_policy_assert(
-        strpos($privacyHelper, 'function toy_member_privacy_export_sanitize_module_data') !== false
-            && strpos($privacyHelper, "toy_enabled_module_contract_files(\$pdo, 'privacy-export.php', ['member'])") !== false
-            && strpos($privacyHelper, 'toy_load_module_contract_file($moduleKey, $exportFile)') !== false
-            && strpos($privacyHelper, 'function toy_member_privacy_export_internal_key') !== false
-            && strpos($privacyHelper, '$moduleExportData = $moduleExport($pdo, $accountId)') !== false
-            && strpos($privacyHelper, 'if (is_array($moduleExportData))') !== false
-            && strpos($privacyHelper, 'toy_member_privacy_export_sanitize_module_data($moduleExportData)') !== false
-            && strpos($privacyHelper, 'catch (Throwable $exception)') !== false
-            && strpos($privacyHelper, "toy_log_exception(\$exception, 'privacy_export_module_' . \$moduleKey)") !== false
-            && strpos($privacyHelper, 'password|token|secret|credential|bearer|authorization') !== false
-            && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_token_hash')") !== false
-            && strpos($privacyHelper, "str_ends_with(\$normalizedKey, '_hash')") !== false,
+        strpos($privacyOrchestrationHelper, 'function toy_privacy_export_sanitize_module_data') !== false
+            && strpos($privacyOrchestrationHelper, "toy_enabled_module_contract_files(\$pdo, 'privacy-export.php', ['privacy'])") !== false
+            && strpos($privacyOrchestrationHelper, 'toy_load_module_contract_file($moduleKey, $exportFile)') !== false
+            && strpos($privacyOrchestrationHelper, 'function toy_privacy_export_internal_key') !== false
+            && strpos($privacyOrchestrationHelper, '$moduleExportData = $moduleExport($pdo, $accountId)') !== false
+            && strpos($privacyOrchestrationHelper, 'if (is_array($moduleExportData))') !== false
+            && strpos($privacyOrchestrationHelper, 'toy_privacy_export_sanitize_module_data($moduleExportData)') !== false
+            && strpos($privacyOrchestrationHelper, 'catch (Throwable $exception)') !== false
+            && strpos($privacyOrchestrationHelper, "toy_log_exception(\$exception, 'privacy_export_module_' . \$moduleKey)") !== false
+            && strpos($privacyOrchestrationHelper, 'password|token|secret|credential|bearer|authorization') !== false
+            && strpos($privacyOrchestrationHelper, "str_ends_with(\$normalizedKey, '_token_hash')") !== false
+            && strpos($privacyOrchestrationHelper, "str_ends_with(\$normalizedKey, '_hash')") !== false,
         'Privacy helper should isolate module privacy export failures and remove internal hash/token/secret fields.'
     );
 }
@@ -414,7 +415,7 @@ if ($privacyHelper !== '') {
     );
 }
 
-$privacyRequestsAction = toy_member_auth_policy_read('modules/member/actions/privacy-requests.php');
+$privacyRequestsAction = toy_member_auth_policy_read('modules/privacy/actions/account-privacy-requests.php');
 if ($privacyRequestsAction !== '') {
     toy_member_auth_policy_assert(
         strpos($privacyRequestsAction, "\$values = [\n    'request_type' => 'access',\n    'request_message' => '',\n];") !== false
@@ -430,12 +431,12 @@ if ($privacyRequestsAction !== '') {
     );
     toy_member_auth_policy_assert(
         strpos($privacyRequestsAction, "AND status IN (\\'requested\\', \\'reviewing\\')") !== false
-            && strpos($privacyRequestsAction, '이미 처리 대기 중인 같은 유형의 개인정보 요청이 있습니다.') !== false,
+            && strpos($privacyRequestsAction, '이미 처리 대기 중인 같은 유형의 개인정보 처리 요청이 있습니다.') !== false,
         'Privacy request action should block duplicate in-progress requests of the same type.'
     );
 }
 
-$privacyRequestsView = toy_member_auth_policy_read('modules/member/views/privacy-requests.php');
+$privacyRequestsView = toy_member_auth_policy_read('modules/privacy/views/account-privacy-requests.php');
 if ($privacyRequestsView !== '') {
     toy_member_auth_policy_assert(
         strpos($privacyRequestsView, "\$values['request_type'] === \$requestType ? ' selected' : ''") !== false
@@ -443,12 +444,12 @@ if ($privacyRequestsView !== '') {
         'Privacy request view should render preserved form values safely.'
     );
     toy_member_auth_policy_assert(
-        strpos($privacyRequestsView, "toy_member_privacy_request_list_preview(\$request['admin_note'] ?? null)") !== false,
+        strpos($privacyRequestsView, "toy_admin_privacy_request_list_preview(\$request['admin_note'] ?? null)") !== false,
         'Privacy request view should render admin notes through the bounded preview helper.'
     );
 }
 
-$adminPrivacyRequestsAction = toy_member_auth_policy_read('modules/admin/actions/privacy-requests.php');
+$adminPrivacyRequestsAction = toy_member_auth_policy_read('modules/privacy/actions/admin-privacy-requests.php');
 if ($adminPrivacyRequestsAction !== '') {
     toy_member_auth_policy_assert(
         strpos($adminPrivacyRequestsAction, "if (toy_request_method() === 'GET')") !== false
@@ -459,12 +460,12 @@ if ($adminPrivacyRequestsAction !== '') {
     );
 }
 
-$adminPrivacyRequestsHelper = toy_member_auth_policy_read('modules/admin/helpers/privacy-requests.php');
+$adminPrivacyRequestsHelper = toy_member_auth_policy_read('modules/privacy/helpers/requests.php');
 if ($adminPrivacyRequestsHelper !== '') {
     toy_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, 'function toy_admin_privacy_request_terminal_statuses') !== false
             && strpos($adminPrivacyRequestsHelper, "in_array((string) \$privacyRequest['status'], toy_admin_privacy_request_terminal_statuses(), true)") !== false
-            && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 상태는 다시 변경할 수 없습니다.') !== false,
+            && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.') !== false,
         'Admin privacy request helper should prevent reopening terminal privacy request statuses.'
     );
     toy_member_auth_policy_assert(
@@ -488,15 +489,15 @@ if ($adminPrivacyRequestsHelper !== '') {
         'Admin privacy request export should require throttled current-admin reauthentication.'
     );
     toy_member_auth_policy_assert(
-        strpos($adminPrivacyRequestsHelper, 'toy_member_privacy_export_data($pdo, (int) $privacyRequest[\'account_id\'])') !== false
+        strpos($adminPrivacyRequestsHelper, 'toy_privacy_export_data($pdo, (int) $privacyRequest[\'account_id\'])') !== false
             && strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') !== false
-            && strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_member_' . (int) \$privacyRequest['id'])") !== false
-            && strpos($adminPrivacyRequestsHelper, "\$export['member_data_unavailable'] = true") !== false,
-        'Admin privacy request export should isolate linked member export failures.'
+            && strpos($adminPrivacyRequestsHelper, "toy_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'])") !== false
+            && strpos($adminPrivacyRequestsHelper, "\$export['account_data_unavailable'] = true") !== false,
+        'Admin privacy request export should isolate linked account export failures.'
     );
 }
 
-$adminPrivacyRequestsView = toy_member_auth_policy_read('modules/admin/views/privacy-requests.php');
+$adminPrivacyRequestsView = toy_member_auth_policy_read('modules/privacy/views/admin-privacy-requests.php');
 if ($adminPrivacyRequestsView !== '') {
     toy_member_auth_policy_assert(
         strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') !== false
@@ -510,7 +511,7 @@ if ($adminPrivacyRequestsView !== '') {
     );
 }
 
-$adminPrivacyRequestExportAction = toy_member_auth_policy_read('modules/admin/actions/privacy-request-export.php');
+$adminPrivacyRequestExportAction = toy_member_auth_policy_read('modules/privacy/actions/admin-privacy-request-export.php');
 if ($adminPrivacyRequestExportAction !== '') {
     toy_member_auth_policy_assert(
         strpos($adminPrivacyRequestExportAction, 'toy_admin_privacy_request_export_reauth_errors($pdo, $account, $requestId)') !== false

@@ -742,7 +742,7 @@ return [
 - `menu-links.php`: 사이트 메뉴 후보 링크
 - `output-slots.php`: 출력 renderer
 - `extension-points.php`: 확장 가능한 화면/기능 위치
-- `privacy-export.php`: 회원 개인정보 내보내기 확장
+- `privacy-export.php`: 회원 개인정보 사본 제공 확장
 - `sitemap.php`: SEO sitemap URL 확장
 - `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보
 
@@ -830,7 +830,7 @@ return [
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
 | `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
 | `output-slots.php` | core output helper | 화면 소유 모듈이 `toy_render_output_slot()` 호출 시 | 저장된 출력 규칙 렌더링 |
-| `privacy-export.php` | `member` 모듈 | 회원 개인정보 export 생성 | 모듈별 회원 귀속 데이터 수집 |
+| `privacy-export.php` | `privacy` 모듈 | 개인정보 사본 생성 | 모듈별 회원 귀속 데이터 수집 |
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 
@@ -839,7 +839,8 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php` | `privacy-export.php`, `member-group-rules.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php` |
+| `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |
@@ -1009,9 +1010,9 @@ return [
 - `url`은 내부 상대 경로 또는 허용된 외부 URL이어야 한다.
 - 메뉴 후보는 화면 위치가 아니므로 `extension-points.php`로 선언하지 않는다.
 
-## 19. 개인정보 내보내기
+## 19. 개인정보 사본 제공
 
-회원 모듈은 회원 계정, 인증, 동의처럼 자신이 소유한 데이터만 기본 JSON 내보내기에 포함한다. 게시판, 커머스, 예약, 알림 같은 확장 모듈의 개인정보는 각 모듈이 `privacy-export.php`로 제공한다.
+`privacy` 모듈은 개인정보 처리 요청과 개인정보 사본 제공 흐름을 조정한다. 회원 계정, 인증, 동의처럼 `member`가 소유한 데이터도 `modules/member/privacy-export.php`로 제공하고, 게시판, 커머스, 예약, 알림 같은 확장 모듈의 개인정보도 각 모듈이 `privacy-export.php`로 제공한다.
 
 ```php
 <?php
@@ -1104,7 +1105,7 @@ return function (PDO $pdo, ?array $site): array {
 - 정렬 컬럼, 테이블명, 상태 값은 allowlist를 사용하는가?
 - redirect 대상은 내부 상대 경로로 제한했는가?
 - 토큰 원문을 DB나 로그에 저장하지 않는가?
-- 개인정보 내보내기에 hash/token/password가 빠져 있는가?
+- 개인정보 사본 제공에 hash/token/password가 빠져 있는가?
 - 감사 로그에 민감 원문을 넣지 않았는가?
 - 파일 경로 입력이 있으면 모듈 디렉터리 밖으로 나갈 수 없는가?
 - 외부 링크 출력에는 `rel="noopener noreferrer"`가 붙는가?

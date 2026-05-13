@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '개인정보 요청';
+$pageTitle = '개인정보 처리 요청';
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -28,7 +28,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <label>요청 유형<br>
                     <select name="request_type">
                         <?php foreach ($allowedTypes as $requestType) { ?>
-                            <option value="<?php echo toy_e($requestType); ?>"<?php echo $values['request_type'] === $requestType ? ' selected' : ''; ?>><?php echo toy_e($requestType); ?></option>
+                            <option value="<?php echo toy_e($requestType); ?>"<?php echo $values['request_type'] === $requestType ? ' selected' : ''; ?>><?php echo toy_e(toy_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                         <?php } ?>
                     </select>
                 </label>
@@ -38,7 +38,7 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <textarea name="request_message" rows="5" cols="60"><?php echo toy_e($values['request_message']); ?></textarea>
                 </label>
             </p>
-            <button type="submit">요청 접수</button>
+            <button type="submit">처리 요청 접수</button>
         </form>
 
         <table>
@@ -61,11 +61,11 @@ toy_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php foreach ($requests as $request) { ?>
                     <tr>
                         <td><?php echo toy_e((string) $request['id']); ?></td>
-                        <td><?php echo toy_e((string) $request['request_type']); ?></td>
-                        <td><?php echo toy_e((string) $request['status']); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
+                        <td><?php echo toy_e(toy_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
                         <td><?php echo toy_e((string) $request['created_at']); ?></td>
                         <td><?php echo toy_e((string) ($request['handled_at'] ?? '')); ?></td>
-                        <td><?php echo toy_e(toy_member_privacy_request_list_preview($request['admin_note'] ?? null)); ?></td>
+                        <td><?php echo toy_e(toy_admin_privacy_request_list_preview($request['admin_note'] ?? null)); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>
