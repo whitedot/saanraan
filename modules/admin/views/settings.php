@@ -25,10 +25,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </label>
     </p>
     <p>
-        <label>기본 URL<br>
-            <input type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" maxlength="255">
-        </label>
-        <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 관리자 내부 링크는 현재 설치 경로를 사용합니다.</span>
+        <strong>공개 기준 URL</strong><br>
+        <?php if ($values['base_url'] !== '') { ?>
+            <code><?php echo sr_e($values['base_url']); ?></code>
+        <?php } else { ?>
+            <span>설정되지 않음</span>
+        <?php } ?>
+        <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 관리자 설정에서는 변경하지 않습니다.</span>
     </p>
     <p>
         <label>시간대<br>

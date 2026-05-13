@@ -487,11 +487,11 @@ function sr_admin_previous_site_setting_values(?array $site): array
     ];
 }
 
-function sr_admin_post_site_setting_values(): array
+function sr_admin_post_site_setting_values(?array $site): array
 {
     return [
         'name' => sr_post_string('name', 120),
-        'base_url' => sr_post_string('base_url', 255),
+        'base_url' => (string) ($site['base_url'] ?? ''),
         'timezone' => sr_post_string('timezone', 80),
         'default_locale' => sr_post_string('default_locale', 20),
         'supported_locales' => sr_post_string('supported_locales', 255),
@@ -633,14 +633,14 @@ function sr_admin_handle_settings_post(
             $notice = '사이트 설정 항목을 삭제했습니다.';
         }
     } elseif ($errors === [] && $intent === 'site') {
-        $values = sr_admin_post_site_setting_values();
+        $values = sr_admin_post_site_setting_values($site);
 
         if ($values['name'] === '') {
             $errors[] = '사이트 이름을 입력하세요.';
         }
 
         if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
-            $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
+            $errors[] = '공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
         }
 
         if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {

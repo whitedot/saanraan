@@ -221,7 +221,7 @@ $installChecks = [
         'label' => '현재 URL',
         'status' => $currentBaseUrl === '' ? 'warning' : (sr_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
         'message' => $currentBaseUrl === '' ? '요청 host를 확인할 수 없습니다.' : $currentBaseUrl,
-        'guide' => $currentBaseUrl === '' ? 'Base URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (sr_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),
+        'guide' => $currentBaseUrl === '' ? '공개 기준 URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (sr_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),
     ],
 ];
 $timezoneOptions = timezone_identifiers_list();
@@ -342,7 +342,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
-        $errors[] = 'Base URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
+        $errors[] = '공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
     }
 
     if ($adminPassword === null || $adminPasswordConfirm === null) {
@@ -601,7 +601,7 @@ if (
     && !sr_is_local_host($values['base_url'])
     && parse_url($values['base_url'], PHP_URL_SCHEME) !== 'https'
 ) {
-    $installWarnings['base_url_http'] = '기본 URL이 HTTP입니다. 임시 테스트에는 사용할 수 있지만, 로그인과 관리자 기능을 운영하려면 HTTPS URL을 권장합니다.';
+    $installWarnings['base_url_http'] = '공개 기준 URL이 HTTP입니다. 임시 테스트에는 사용할 수 있지만, 로그인과 관리자 기능을 운영하려면 HTTPS URL을 권장합니다.';
 }
 
 if (

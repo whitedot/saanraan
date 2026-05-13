@@ -168,7 +168,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <p class="sr-install-kicker">사이트</p>
                         <h2>기본 정보</h2>
                     </div>
-                    <p>설치 후 관리자 설정에서 다시 변경할 수 있습니다.</p>
+                    <p>설치 후 일반 사이트 정보는 관리자 설정에서 다시 변경할 수 있습니다.</p>
                 </div>
 
                 <div class="sr-install-field-grid">
@@ -177,9 +177,9 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required>
                     </p>
                     <p>
-                        <label for="base_url">기본 URL</label>
+                        <label for="base_url">공개 기준 URL</label>
                         <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com">
-                        <span class="sr-install-help">테스트 설치는 HTTP도 가능하지만, 운영 사이트는 HTTPS URL을 권장합니다.</span>
+                        <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 운영 사이트는 HTTPS URL을 권장합니다.</span>
                     </p>
                     <p>
                         <label for="timezone">timezone</label>
