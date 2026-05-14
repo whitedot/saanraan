@@ -17,9 +17,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'stylesheets' => [
-        '/modules/community/assets/community-skin-compact.css',
-    ],
+    'stylesheets' => sr_community_skin_stylesheets('compact'),
 ]);
 ?>
     <main class="community-skin-compact">

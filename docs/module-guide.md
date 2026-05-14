@@ -145,6 +145,45 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 ]);
 ```
 
+커뮤니티 게시판처럼 스킨별 기능 차이가 자연스러운 모듈은 `skins/{skin_key}/skin.php` 계약 파일을 둔다. 이 파일은 필수 view, 선택 asset, 선택 action을 plain array로 드러낸다.
+
+```php
+<?php
+
+return [
+    'label' => 'Q&A',
+    'views' => [
+        'list' => __DIR__ . '/list.php',
+        'post' => __DIR__ . '/view.php',
+        'form' => __DIR__ . '/form.php',
+    ],
+    'actions' => [
+        'accept_answer' => [
+            'method' => 'POST',
+            'file' => __DIR__ . '/actions/accept-answer.php',
+        ],
+    ],
+    'stylesheets' => [
+        '/modules/community/skins/qna/assets/qna.css',
+    ],
+];
+```
+
+스킨 action은 스킨 파일이 직접 실행하지 않는다. 스킨 view는 `/community/skin-action`으로 POST 폼을 만들고, 커뮤니티 모듈의 단일 action이 현재 게시판에 선택된 스킨인지 확인한 뒤 `skin.php`에 등록된 action 파일만 include한다. action 파일 안에서는 일반 모듈 action과 같이 로그인/권한 확인, 입력 검증, DB 변경, 감사 로그, redirect를 명시적으로 처리한다.
+
+```php
+<form method="post" action="<?php echo sr_e(sr_url('/community/skin-action')); ?>">
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="skin_key" value="qna">
+    <input type="hidden" name="action_key" value="accept_answer">
+    <input type="hidden" name="board_id" value="<?php echo sr_e((string) $board['id']); ?>">
+    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+    <button type="submit">답변 채택</button>
+</form>
+```
+
+`list`, `post`, `form`은 필수 view다. 필수 view 파일이 없거나 스킨 폴더 밖을 가리키면 그 스킨은 선택 가능한 스킨 목록에서 제외된다. 이미 DB에 저장된 스킨 key가 더 이상 유효하지 않으면 `basic`으로 fallback한다. `basic`의 필수 view가 누락되면 복구가 필요한 설치 오류로 보고 예외를 발생시킨다.
+
 ## 3. 이름 규칙
 
 `module_key`는 `\A[a-z][a-z0-9_]{1,39}\z` 형식을 사용한다. 즉 영문 소문자로 시작하고, 전체 길이는 2-40자이며, 이후 문자는 영문 소문자, 숫자, 밑줄만 허용한다.

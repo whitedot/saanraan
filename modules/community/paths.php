@@ -16,6 +16,7 @@ return [
     'POST /community/report' => 'actions/report.php',
     'GET /community/scraps' => 'actions/scraps.php',
     'POST /community/scrap' => 'actions/scrap-toggle.php',
+    'POST /community/skin-action' => 'actions/skin-action.php',
     'GET /community/messages' => 'actions/messages.php',
     'GET /community/message' => 'actions/message-view.php',
     'GET /community/message/write' => 'actions/message-write.php',

@@ -149,6 +149,7 @@ sr_community_release_file_contains('.tools/bin/smoke-http.php', [
 $requiredPackageEntries = [
     'actions',
     'admin-menu.php',
+    'assets',
     'extension-points.php',
     'helpers',
     'helpers.php',
@@ -770,12 +771,14 @@ sr_community_release_file_contains('modules/community/helpers/themes.php', [
     'function sr_community_skin_options(): array',
 ], 'Community theme and skin allowlists');
 sr_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function sr_community_skin_files(): array',
     'function sr_community_skin_options(): array',
-    "'label' => '기본'",
-    "'list' => SR_ROOT . '/modules/community/skins/basic/list.php'",
-    "'post' => SR_ROOT . '/modules/community/skins/basic/view.php'",
-    "'form' => SR_ROOT . '/modules/community/skins/basic/form.php'",
-    'return is_file($view) ? $view',
+    "'basic' => SR_ROOT . '/modules/community/skins/basic/skin.php'",
+    "'compact' => SR_ROOT . '/modules/community/skins/compact/skin.php'",
+    'function sr_community_skin_definition_is_valid(string $skinKey, array $definition): bool',
+    'function sr_community_required_skin_view_keys(): array',
+    "return ['list', 'post', 'form'];",
+    'function sr_community_skin_action(string $skinKey, string $actionKey, string $method): ?array',
 ], 'Community skin allowlist');
 sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
     '$communityThemeOptions = sr_community_theme_options()',
@@ -879,6 +882,7 @@ $stateChangingActions = [
     'modules/community/actions/comment-delete.php',
     'modules/community/actions/report.php',
     'modules/community/actions/scrap-toggle.php',
+    'modules/community/actions/skin-action.php',
     'modules/community/actions/message-write.php',
     'modules/community/actions/message-delete.php',
     'modules/community/actions/admin-settings.php',
@@ -891,8 +895,15 @@ foreach ($stateChangingActions as $actionPath) {
     sr_community_release_file_contains($actionPath, ['sr_require_csrf('], $actionPath);
 }
 
-foreach (sr_community_release_files('modules/community', ['css', 'scss', 'js']) as $assetFile) {
-    sr_community_release_error('Community v1 must not ship dedicated CSS/JS assets: ' . $assetFile);
+foreach (sr_community_release_files('modules/community/assets', ['css']) as $assetFile) {
+    $basename = basename($assetFile);
+    if (!str_starts_with($basename, 'community-')) {
+        sr_community_release_error('Community CSS asset must use community- prefix: ' . $assetFile);
+    }
+}
+
+foreach (sr_community_release_files('modules/community', ['js', 'scss']) as $assetFile) {
+    sr_community_release_error('Community module must not ship JS/SCSS assets without a release policy update: ' . $assetFile);
 }
 
 foreach (sr_community_release_files('modules/community', ['php']) as $phpFile) {
@@ -901,9 +912,9 @@ foreach (sr_community_release_files('modules/community', ['php']) as $phpFile) {
         continue;
     }
 
-    foreach (['<style', 'style=', 'class=', 'data-'] as $forbiddenFragment) {
+    foreach (['<style', 'style='] as $forbiddenFragment) {
         if (str_contains($content, $forbiddenFragment)) {
-            sr_community_release_error('Community v1 must not include styling hooks "' . $forbiddenFragment . '" in ' . $phpFile);
+            sr_community_release_error('Community module must not include inline styling "' . $forbiddenFragment . '" in ' . $phpFile);
         }
     }
 }

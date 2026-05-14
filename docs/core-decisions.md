@@ -585,3 +585,5 @@ DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `theme_key`, 
 CSS class는 충돌을 줄이기 위해 책임 범위별 접두어를 사용합니다. 반복 가능한 공통 UI는 `ui-*`, 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
 
 모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공하고, 어떤 모듈 파일을 선택할지는 각 모듈의 allowlist helper가 결정합니다.
+
+스킨별 기능이 필요한 모듈은 스킨 폴더의 `skin.php` 계약으로 필수 view와 선택 action을 명시합니다. action은 스킨 view에서 직접 실행하지 않고 모듈이 소유한 단일 진입 action을 거쳐 현재 선택된 스킨과 allowlist를 검증한 뒤 include합니다. 필수 view가 누락된 스킨은 선택 목록에서 제외하고 저장된 key도 `basic`으로 fallback합니다.
