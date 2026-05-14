@@ -16,7 +16,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | 언어 | PHP 8.1 이상 |
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
-| 기본 설치 | `core + member + admin + privacy`, 설치 화면에서 시스템 자산 모듈 기본 선택 |
+| 기본 설치 | `core + member + admin + privacy` |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅 |

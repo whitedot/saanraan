@@ -144,20 +144,7 @@ foreach (array_keys($optionalModules) as $moduleKey) {
     $optionalModules[$moduleKey] = sr_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
 }
 
-$defaultOptionalModuleKeys = ['seo', 'site_menu', 'banner', 'popup_layer'];
 $selectedOptionalModuleKeys = [];
-foreach ($defaultOptionalModuleKeys as $moduleKey) {
-    if (!isset($optionalModules[$moduleKey])) {
-        continue;
-    }
-
-    $moduleErrors = isset($optionalModules[$moduleKey]['metadata_errors']) && is_array($optionalModules[$moduleKey]['metadata_errors'])
-        ? $optionalModules[$moduleKey]['metadata_errors']
-        : [];
-    if ($moduleErrors === []) {
-        $selectedOptionalModuleKeys[] = $moduleKey;
-    }
-}
 $values = [
     'db_host' => 'localhost',
     'db_name' => '',

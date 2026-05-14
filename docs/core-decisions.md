@@ -337,7 +337,7 @@ core + member + admin + privacy
 - `admin` 모듈: 관리자 화면, 관리자 권한, 관리 기능
 - `privacy` 모듈: 개인정보 처리 요청과 개인정보 사본 제공 조정
 
-`seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 다만 `seo`, `site_menu`, `banner`, `popup_layer`는 초기 사이트 운영에 자주 필요한 시스템 자산 모듈이므로 최초 설치 화면에서 기본 선택합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다.
+`seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다.
 
 sitemap 같은 SEO 운영 기능은 코어가 아니라 `seo` 모듈 책임으로 두고, 팝업 정책과 대상 규칙은 `popup_layer` 모듈 책임으로 둡니다. 포인트, 예치금, 적립금 같은 회원 연계 도메인도 코어나 `member` 테이블을 넓히지 않고 각 모듈이 `account_id` 기반 확장 테이블로 소유합니다.
 
