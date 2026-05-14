@@ -26,6 +26,8 @@
     </script>
     <!-- Tailwind CSS (compiled or CDN depending on setup) -->
     <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="../admin-ui.css">
+    <link rel="stylesheet" href="../public-ui.css">
     <link rel="stylesheet" href="css/ui-kit.css">
     <!-- UI Guide Custom CSS -->
     <link rel="stylesheet" href="css/ui-guide.css">
@@ -144,6 +146,36 @@
     <div class="ui-content-body">
 
 <div class="container-fluid">
+    <div class="card mb-base">
+        <div class="card-header">
+            <h4 class="card-title">사용 맥락 구분</h4>
+        </div>
+        <div class="card-body">
+            <p class="text-default-400 mb-4">이 항목은 기존 UI-KIT 분류를 유지하면서 Base, Admin, Public, Skin 맥락으로 나누어 확인합니다.</p>
+            <div class="ui-context-grid">
+                <div class="ui-context-card">
+                    <span class="ui-context-label ui-context-label-base">Base</span>
+                    <h5>공통 원형</h5>
+                    <p><code>common.css</code>의 토큰과 기본 컴포넌트 클래스를 우선 확인합니다.</p>
+                </div>
+                <div class="ui-context-card admin-ui-scope">
+                    <span class="ui-context-label ui-context-label-admin">Admin</span>
+                    <h5>관리자 화면</h5>
+                    <p>목록, 설정, 필터, 반복 작업처럼 밀도 높은 운영 화면에서 쓰는 조합입니다.</p>
+                </div>
+                <div class="ui-context-card public-ui-scope">
+                    <span class="ui-context-label ui-context-label-public">Public</span>
+                    <h5>사용자 화면</h5>
+                    <p>회원, 콘텐츠, 공개 페이지처럼 읽기 흐름과 화면 맥락이 중요한 조합입니다.</p>
+                </div>
+                <div class="ui-context-card ui-skin-basic">
+                    <span class="ui-context-label ui-context-label-skin">Skin</span>
+                    <h5>스킨 예시</h5>
+                    <p>스킨은 자기 영역 안에서만 최종 표현을 조정하고 공통 원형을 직접 흔들지 않습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-base mb-base">
                         <!-- 기본 카드 -->
                         <div class="card">

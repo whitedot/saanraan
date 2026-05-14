@@ -218,6 +218,82 @@ body {
     box-shadow: none;
 }
 
+.ui-context-grid {
+    display: grid;
+    gap: var(--spacing-base, 1rem);
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.ui-context-card {
+    border: 1px solid var(--color-default-300);
+    background: var(--color-card);
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    align-content: start;
+    min-width: 0;
+    padding: calc(var(--spacing) * 4);
+}
+
+.ui-context-card h5 {
+    color: var(--color-default-900);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--text-sm--line-height);
+    margin: 0;
+}
+
+.ui-context-card p {
+    color: var(--color-default-600);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    margin: 0;
+}
+
+.ui-context-label {
+    align-items: center;
+    border-radius: var(--radius);
+    display: inline-flex;
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    justify-self: start;
+    line-height: var(--text-xs--line-height);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+}
+
+.ui-context-label-base {
+    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+    color: var(--color-primary);
+}
+
+.ui-context-label-admin {
+    background: color-mix(in oklab, var(--color-info) 12%, transparent);
+    color: var(--color-info);
+}
+
+.ui-context-label-public {
+    background: color-mix(in oklab, var(--color-success) 12%, transparent);
+    color: var(--color-success);
+}
+
+.ui-context-label-skin {
+    background: color-mix(in oklab, var(--color-warning) 14%, transparent);
+    color: var(--color-warning);
+}
+
+.ui-skin-basic {
+    --skin-accent: #243b5a;
+    border-color: color-mix(in oklab, var(--skin-accent) 24%, var(--color-default-300));
+}
+
+.ui-skin-basic .btn {
+    border-radius: var(--radius-lg);
+}
+
+.ui-skin-basic .badge {
+    background: color-mix(in oklab, var(--skin-accent) 12%, transparent);
+    color: var(--skin-accent);
+}
+
 .ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-success']:not(:disabled):is(.active, [aria-selected='true']) {
     background-color: var(--color-success) !important;
     border-color: var(--color-success) !important;

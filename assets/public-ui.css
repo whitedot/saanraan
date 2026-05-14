@@ -1,0 +1,55 @@
+/* Saanraan public UI layer.
+   This file is intentionally separate from admin UI so customer-facing screens can evolve independently. */
+
+.public-ui-scope {
+    --public-ui-surface: var(--color-card);
+    --public-ui-surface-soft: var(--color-default-100);
+    --public-ui-border: var(--color-default-300);
+    --public-ui-text: var(--color-default-900);
+    --public-ui-muted: var(--color-default-600);
+}
+
+.public-ui-scope .public-ui-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2.5);
+}
+
+.public-ui-scope .public-ui-card {
+    background: var(--public-ui-surface);
+    border: 1px solid var(--public-ui-border);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 5);
+}
+
+.public-ui-scope .public-ui-title {
+    color: var(--public-ui-text);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--text-lg--line-height);
+    margin: 0;
+}
+
+.public-ui-scope .public-ui-copy {
+    color: var(--public-ui-muted);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    margin: 0;
+}
+
+.public-ui-scope .public-ui-form-panel {
+    background: var(--public-ui-surface);
+    border: 1px solid var(--public-ui-border);
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    max-width: var(--container-lg);
+    padding: calc(var(--spacing) * 5);
+}
+
+.public-ui-scope .public-ui-content-list {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+}

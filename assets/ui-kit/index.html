@@ -26,6 +26,8 @@
     </script>
     <!-- Tailwind CSS (compiled or CDN depending on setup) -->
     <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="../admin-ui.css">
+    <link rel="stylesheet" href="../public-ui.css">
     <link rel="stylesheet" href="css/ui-kit.css">
     <!-- UI Guide Custom CSS -->
     <link rel="stylesheet" href="css/ui-guide.css">
@@ -126,7 +128,7 @@
                 aria-expanded="false">
                 <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
             </button>
-            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+            <h2 class="text-lg font-semibold ui-guide-title">Saanraan UI Guide</h2>
         </div>
         <div class="flex items-center gap-2">
             <button
@@ -147,14 +149,46 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-header">
-            <h4 class="card-title">README</h4>
+            <h4 class="card-title">Saanraan UI 모음</h4>
         </div>
         <div class="card-body" id="readme-content">
-            <p><img src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="UI-KIT 미리보기" style="max-width:100%;height:auto;border-radius:12px;display:block;margin:0 0 1rem;"></p>
-<p>바이브 코딩 때 사용하실 수 있는 UI-KIT  </p>
-<p>SIR 지운아빠가 바이브 코딩으로 제작했습니다.</p>
-<p>저장소 링크: <a href="https://github.com/whitedot/ui-kit.git">https://github.com/whitedot/ui-kit.git</a></p>
-<p>데모: <a href="https://lab.gnuboard.net/ui-kit">https://lab.gnuboard.net/ui-kit</a></p>        </div>
+            <p class="text-default-400 mb-4">
+                Saanraan 관리자 화면과 사용자 화면에서 사용하는 UI를 같은 컴포넌트 분류 안에서 확인하는 개발자 참고 화면입니다.
+                버튼, 카드, 알림, 배지, 모달, 드롭다운, 탭, 폼, 테이블, 아이콘 예시는 기존 UI-KIT 항목을 유지합니다.
+            </p>
+            <p class="text-default-400 mb-0">
+                각 항목 안에서는 <code>Base</code>, <code>Admin</code>, <code>Public</code>, <code>Skin</code> 맥락을 구분해 확인하고,
+                실제 화면에서는 <code>common.css</code>, <code>admin-ui.css</code>, <code>public-ui.css</code>, 스킨 CSS를 역할별로 분리해 사용합니다.
+            </p>        </div>
+    </div>
+    <div class="card mt-base">
+        <div class="card-header">
+            <h4 class="card-title">레이어 기준</h4>
+        </div>
+        <div class="card-body">
+            <div class="ui-context-grid">
+                <div class="ui-context-card">
+                    <span class="ui-context-label ui-context-label-base">Base</span>
+                    <h5>공통 원형</h5>
+                    <p><code>common.css</code>의 토큰과 기본 컴포넌트 클래스를 기준으로 삼습니다.</p>
+                </div>
+                <div class="ui-context-card admin-ui-scope">
+                    <span class="ui-context-label ui-context-label-admin">Admin</span>
+                    <h5>관리자 UI</h5>
+                    <p><code>admin-ui.css</code>에서 운영 화면의 밀도와 반복 작업 패턴을 확장합니다.</p>
+                </div>
+                <div class="ui-context-card public-ui-scope">
+                    <span class="ui-context-label ui-context-label-public">Public</span>
+                    <h5>사용자 UI</h5>
+                    <p><code>public-ui.css</code>에서 공개 화면, 회원 화면, 콘텐츠 흐름을 확장합니다.</p>
+                </div>
+                <div class="ui-context-card ui-skin-basic">
+                    <span class="ui-context-label ui-context-label-skin">Skin</span>
+                    <h5>스킨</h5>
+                    <p>스킨은 자기 범위 안에서 최종 표현을 조정하고 Base/Admin/Public 원형을 직접 오염시키지 않습니다.</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
