@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Guide - UI-KIT</title>
+    <script>
+        (function () {
+            var storageKey = 'g5aif-ui-theme';
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem(storageKey);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var isDark =
+                savedTheme === 'dark' ||
+                (!savedTheme &&
+                    window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <!-- Tailwind CSS (compiled or CDN depending on setup) -->
+    <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="css/ui-kit.css">
+    <!-- UI Guide Custom CSS -->
+    <link rel="stylesheet" href="css/ui-guide.css">
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="ui-layout-wrapper">
+<aside class="ui-sidebar" id="ui-sidebar">
+    <div class="ui-sidebar-logo">
+        <span class="text-2xl font-bold ui-guide-title">UI-KIT</span>
+    </div>
+    
+    <nav class="mt-4">
+        <!-- GENERAL -->
+        <div class="ui-nav-section-title">General</div>
+        <a href="index.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
+            Dashboard
+        </a>
+
+        <!-- UI COMPONENTS -->
+        <div class="ui-nav-section-title">UI Components</div>
+        <a href="ui-buttons.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
+            Buttons
+        </a>
+        <a href="ui-cards.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
+            Cards
+        </a>
+        <a href="ui-alerts.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
+            Alerts
+        </a>
+        <a href="ui-badges.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
+            Badges
+        </a>
+        <a href="ui-modals.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
+            Modals
+        </a>
+        <a href="ui-dropdowns.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
+            Dropdowns
+        </a>
+        <a href="ui-tabs.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
+            Tabs
+        </a>
+        <a href="ui-sidebar.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:menu-2"></i>
+            Sidebar
+        </a>
+
+        <!-- FORMS -->
+        <div class="ui-nav-section-title">Forms</div>
+        <a href="form-elements.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
+            Elements
+        </a>
+        <a href="form-validation.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
+            Validation
+        </a>
+
+        <!-- TABLES -->
+        <div class="ui-nav-section-title">Tables</div>
+        <a href="tables-static.html" class="ui-nav-link active">
+            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
+            Static Tables
+        </a>
+
+        <!-- ICONS -->
+        <div class="ui-nav-section-title">Icons</div>
+        <a href="icons-tabler.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
+            Tabler Icons
+        </a>
+        <a href="icons-lucide.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
+            Lucide Icons
+        </a>
+    </nav>
+</aside>
+<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
+
+<main class="ui-main-content">
+    <header class="ui-top-navbar">
+        <div class="flex items-center">
+            <button
+                id="ui-sidebar-toggle"
+                type="button"
+                class="ui-sidebar-toggle"
+                aria-label="사이드바 열기"
+                aria-controls="ui-sidebar"
+                aria-expanded="false">
+                <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
+            </button>
+            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                id="theme-toggle"
+                type="button"
+                class="btn btn-sm btn-solid-light text-default-700 ui-theme-toggle"
+                aria-label="다크 모드로 전환"
+                title="다크 모드로 전환"
+                aria-pressed="false">
+                <i id="theme-toggle-icon" class="iconify text-base" data-icon="tabler:moon"></i>
+                <span id="theme-toggle-label">다크모드</span>
+            </button>
+        </div>
+    </header>
+    <div class="ui-content-body">
+
+<div class="container-fluid">
+                    <div class="grid grid-cols-1 gap-base">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 테이블</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th>작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">무선 헤드폰</td>
+                                                <td>전자제품</td>
+                                                <td>$99.00</td>
+                                                <td>120</td>
+                                                <td>4.5 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="flex gap-1.5">
+                                                    <button
+                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                    <button
+                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">러닝화</td>
+                                                <td>신발</td>
+                                                <td>$59.99</td>
+                                                <td>80</td>
+                                                <td>4.2 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="flex gap-1.5">
+                                                    <button
+                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                    <button
+                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">스마트워치</td>
+                                                <td>웨어러블</td>
+                                                <td>$129.00</td>
+                                                <td>0</td>
+                                                <td>4.0 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Out of
+                                                        Stock</span>
+                                                </td>
+                                                <td class="flex gap-1.5">
+                                                    <button
+                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                    <button
+                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">게이밍 마우스</td>
+                                                <td>액세서리</td>
+                                                <td>$39.50</td>
+                                                <td>250</td>
+                                                <td>4.7 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="flex gap-1.5">
+                                                    <button
+                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                    <button
+                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">사무용 의자</td>
+                                                <td>가구</td>
+                                                <td>$149.00</td>
+                                                <td>35</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="flex gap-1.5">
+                                                    <button
+                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                    <button
+                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- end card body-->
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">커스텀 테이블</h4>
+                            </div>
+
+                            <div class="table-wrapper">
+                                <table class="table">
+                                    <thead class="border-default-300 bg-default-100 border-b font-semibold text-xs">
+                                        <tr>
+                                            <th>상품명</th>
+                                            <th>카테고리</th>
+                                            <th>가격</th>
+                                            <th>재고</th>
+                                            <th>평점</th>
+                                            <th>상태</th>
+                                            <th class="text-end">작업</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-medium">블루투스 스피커</td>
+                                            <td>오디오</td>
+                                            <td>$49.00</td>
+                                            <td>200</td>
+                                            <td>4.6 ★</td>
+                                            <td>
+                                                <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="hs-dropdown relative inline-flex">
+                                                    <button type="button"
+                                                        class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"
+                                                        hs-dropdown-placement="bottom-end">
+                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                    </button>
+                                                    <div class="hs-dropdown-menu" role="menu"
+                                                        aria-orientation="vertical">
+                                                        <a class="dropdown-item" href="#">
+                                                            <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                            개요
+                                                        </a>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                            수정
+                                                        </a>
+                                                        <a class="dropdown-item text-danger" href="#">
+                                                            <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                            삭제
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="font-medium">가죽 지갑</td>
+                                            <td>액세서리</td>
+                                            <td>$29.99</td>
+                                            <td>150</td>
+                                            <td>4.3 ★</td>
+                                            <td>
+                                                <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="hs-dropdown relative inline-flex">
+                                                    <button type="button"
+                                                        class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"
+                                                        hs-dropdown-placement="bottom-end">
+                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                    </button>
+                                                    <div class="hs-dropdown-menu" role="menu"
+                                                        aria-orientation="vertical">
+                                                        <div>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                개요
+                                                            </a>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                수정
+                                                            </a>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                삭제
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="font-medium">피트니스 트래커</td>
+                                            <td>웨어러블</td>
+                                            <td>$89.00</td>
+                                            <td>60</td>
+                                            <td>4.1 ★</td>
+                                            <td>
+                                                <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                    Stock</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="hs-dropdown relative inline-flex">
+                                                    <button type="button"
+                                                        class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"
+                                                        hs-dropdown-placement="bottom-end">
+                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                    </button>
+                                                    <div class="hs-dropdown-menu" role="menu"
+                                                        aria-orientation="vertical">
+                                                        <div>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                개요
+                                                            </a>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                수정
+                                                            </a>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                삭제
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="font-medium">4K 모니터</td>
+                                            <td>전자제품</td>
+                                            <td>$349.00</td>
+                                            <td>30</td>
+                                            <td>4.8 ★</td>
+                                            <td>
+                                                <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="hs-dropdown relative inline-flex">
+                                                    <button type="button"
+                                                        class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"
+                                                        hs-dropdown-placement="bottom-end">
+                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                    </button>
+                                                    <div class="hs-dropdown-menu" role="menu"
+                                                        aria-orientation="vertical">
+                                                        <div>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                개요
+                                                            </a>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                수정
+                                                            </a>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                삭제
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="font-medium">스탠딩 데스크</td>
+                                            <td>가구</td>
+                                            <td>$499.00</td>
+                                            <td>10</td>
+                                            <td>4.4 ★</td>
+                                            <td>
+                                                <span class="badge badge-label bg-info/10 text-info">신규</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="hs-dropdown relative inline-flex">
+                                                    <button type="button"
+                                                        class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"
+                                                        hs-dropdown-placement="bottom-end">
+                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                    </button>
+                                                    <div class="hs-dropdown-menu" role="menu"
+                                                        aria-orientation="vertical">
+                                                        <div>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                개요
+                                                            </a>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                수정
+                                                            </a>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                삭제
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 변형</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="border-default-300 bg-default-100 border-b font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end w-[1%]">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-default-300 bg-primary/15 border-b">
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td class="bg-warning/15 px-2.25 py-3">4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td class="bg-info/15 px-2.25 py-3">$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="bg-light/15 px-2.25 py-3 text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">4K 모니터</td>
+                                                <td>전자제품</td>
+                                                <td>$349.00</td>
+                                                <td class="bg-danger/15 px-2.25 py-3">30</td>
+                                                <td>4.8 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="bg-dark px-2.25 py-3 font-medium text-white">스탠딩 데스크
+                                                </td>
+                                                <td>가구</td>
+                                                <td>$499.00</td>
+                                                <td>10</td>
+                                                <td>4.4 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-info/10 text-info">신규</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">줄무늬 행</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end w-[1%]">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-default-300 odd:bg-default-100 border-b">
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="border-default-300 odd:bg-default-100 border-b">
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="border-default-300 odd:bg-default-100 border-b">
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">줄무늬 열</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <td class="bg-default-100 p-2 text-start">카테고리</td>
+                                                <th>가격</th>
+                                                <td class="bg-default-100 p-2 text-start">재고</td>
+                                                <th>평점</th>
+                                                <td class="bg-default-100 p-2 text-start">상태</td>
+                                                <th class="text-end w-[1%]">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td class="bg-default-100 px-2.25 py-3">오디오</td>
+                                                <td>$49.00</td>
+                                                <td class="bg-default-100 px-2.25 py-3">200</td>
+                                                <td>4.6 ★</td>
+                                                <td class="bg-default-100 px-2.25 py-3">
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td class="bg-default-100 px-2.25 py-3">액세서리</td>
+                                                <td>$29.99</td>
+                                                <td class="bg-default-100 px-2.25 py-3">150</td>
+                                                <td>4.3 ★</td>
+                                                <td class="bg-default-100 px-2.25 py-3">
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td class="bg-default-100 px-2.25 py-3">웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td class="bg-default-100 px-2.25 py-3">60</td>
+                                                <td>4.1 ★</td>
+                                                <td class="bg-default-100 px-2.25 py-3">
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">마우스 오버 행</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table table-hover">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">활성 Tables</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-default-300 bg-default-100 border-b">
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td class="bg-default-100 px-2 py-3">$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리가 있는 테이블</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="border-default-300 border font-semibold text-xs">
+                                            <tr class="divide-default-300 divide-x">
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end" style="width: 1%">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-default-300 divide-default-300 divide-x border">
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="border-default-300 divide-default-300 divide-x border">
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr class="border-default-300 divide-default-300 divide-x border">
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리 없는 테이블</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end" style="width: 1%">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">작은 테이블</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="p-2 font-medium">블루투스 스피커</td>
+                                                <td class="p-2">오디오</td>
+                                                <td class="p-2">$49.00</td>
+                                                <td class="p-2">200</td>
+                                                <td class="p-2">4.6 ★</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="p-2 font-medium">가죽 지갑</td>
+                                                <td class="p-2">액세서리</td>
+                                                <td class="p-2">$29.99</td>
+                                                <td class="p-2">150</td>
+                                                <td class="p-2">4.3 ★</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="p-2 font-medium">피트니스 트래커</td>
+                                                <td class="p-2">웨어러블</td>
+                                                <td class="p-2">$89.00</td>
+                                                <td class="p-2">60</td>
+                                                <td class="p-2">4.1 ★</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 그룹 구분선</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="border-default-600 border-b-2 font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">중첩 테이블</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td colspan="7" class="border-default-300 w-full border-b p-5">
+                                                    <table class="table">
+                                                        <thead class="font-semibold text-xs">
+                                                            <tr>
+                                                                <th>Variant</th>
+                                                                <th>Color</th>
+                                                                <th>SKU</th>
+                                                                <th>재고</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="p-2 font-medium">Mini</td>
+                                                                <td class="p-2">Black</td>
+                                                                <td class="p-2">SPK-M-BLK</td>
+                                                                <td class="p-2">80</td>
+                                                            </tr>
+
+                                                            <tr>
+                                                                <td class="p-2 font-medium">Standard</td>
+                                                                <td class="p-2">Blue</td>
+                                                                <td class="p-2">SPK-S-BLU</td>
+                                                                <td class="p-2">120</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 헤더</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
+                                        <thead class="bg-dark">
+                                            <tr class="*:text-white!">
+                                                <th class="text-start">상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">캡션</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="w-full table table-hover">
+                                        <caption class="text-default-400 caption-bottom py-3 text-start">
+                                            이커머스 상품 목록
+                                        </caption>
+                                        <thead class="font-semibold text-xs">
+                                            <tr>
+                                                <th>상품명</th>
+                                                <th>카테고리</th>
+                                                <th>가격</th>
+                                                <th>재고</th>
+                                                <th>평점</th>
+                                                <th>상태</th>
+                                                <th class="p-2 text-end">작업</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">블루투스 스피커</td>
+                                                <td>오디오</td>
+                                                <td>$49.00</td>
+                                                <td>200</td>
+                                                <td>4.6 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">가죽 지갑</td>
+                                                <td>액세서리</td>
+                                                <td>$29.99</td>
+                                                <td>150</td>
+                                                <td>4.3 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-success/10 text-success">활성</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="font-medium">피트니스 트래커</td>
+                                                <td>웨어러블</td>
+                                                <td>$89.00</td>
+                                                <td>60</td>
+                                                <td>4.1 ★</td>
+                                                <td>
+                                                    <span class="badge badge-label bg-warning/10 text-warning">Limited
+                                                        Stock</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="hs-dropdown relative inline-flex">
+                                                        <button type="button"
+                                                            class="hs-dropdown-toggle flex h-7.5 w-11.25 items-center justify-center font-semibold"
+                                                            aria-haspopup="menu" aria-expanded="false"
+                                                            aria-label="Dropdown" hs-dropdown-placement="bottom-end">
+                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical text-xl"></i>
+                                                        </button>
+                                                        <div class="hs-dropdown-menu" role="menu"
+                                                            aria-orientation="vertical">
+                                                            <div>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye text-xs"></i>
+                                                                    개요
+                                                                </a>
+                                                                <a class="dropdown-item" href="#">
+                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit text-xs"></i>
+                                                                    수정
+                                                                </a>
+                                                                <a class="dropdown-item text-danger" href="#">
+                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash text-xs"></i>
+                                                                    삭제
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card -->
+                    </div>
+                </div>
+
+    </div> <!-- End ui-content-body -->
+</main> <!-- End ui-main-content -->
+</div> <!-- End ui-layout-wrapper -->
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/ui-kit/ui-overlay.js"></script>
+<script src="js/ui-kit/ui-dropdown-menu.js"></script>
+<script src="js/ui-kit/ui-theme-toggle.js"></script>
+<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
+</body>
+</html>

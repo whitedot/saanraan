@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Guide - UI-KIT</title>
+    <script>
+        (function () {
+            var storageKey = 'g5aif-ui-theme';
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem(storageKey);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var isDark =
+                savedTheme === 'dark' ||
+                (!savedTheme &&
+                    window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <!-- Tailwind CSS (compiled or CDN depending on setup) -->
+    <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="css/ui-kit.css">
+    <!-- UI Guide Custom CSS -->
+    <link rel="stylesheet" href="css/ui-guide.css">
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="ui-layout-wrapper">
+<aside class="ui-sidebar" id="ui-sidebar">
+    <div class="ui-sidebar-logo">
+        <span class="text-2xl font-bold ui-guide-title">UI-KIT</span>
+    </div>
+    
+    <nav class="mt-4">
+        <!-- GENERAL -->
+        <div class="ui-nav-section-title">General</div>
+        <a href="index.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
+            Dashboard
+        </a>
+
+        <!-- UI COMPONENTS -->
+        <div class="ui-nav-section-title">UI Components</div>
+        <a href="ui-buttons.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
+            Buttons
+        </a>
+        <a href="ui-cards.html" class="ui-nav-link active">
+            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
+            Cards
+        </a>
+        <a href="ui-alerts.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
+            Alerts
+        </a>
+        <a href="ui-badges.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
+            Badges
+        </a>
+        <a href="ui-modals.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
+            Modals
+        </a>
+        <a href="ui-dropdowns.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
+            Dropdowns
+        </a>
+        <a href="ui-tabs.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
+            Tabs
+        </a>
+        <a href="ui-sidebar.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:menu-2"></i>
+            Sidebar
+        </a>
+
+        <!-- FORMS -->
+        <div class="ui-nav-section-title">Forms</div>
+        <a href="form-elements.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
+            Elements
+        </a>
+        <a href="form-validation.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
+            Validation
+        </a>
+
+        <!-- TABLES -->
+        <div class="ui-nav-section-title">Tables</div>
+        <a href="tables-static.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
+            Static Tables
+        </a>
+
+        <!-- ICONS -->
+        <div class="ui-nav-section-title">Icons</div>
+        <a href="icons-tabler.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
+            Tabler Icons
+        </a>
+        <a href="icons-lucide.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
+            Lucide Icons
+        </a>
+    </nav>
+</aside>
+<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
+
+<main class="ui-main-content">
+    <header class="ui-top-navbar">
+        <div class="flex items-center">
+            <button
+                id="ui-sidebar-toggle"
+                type="button"
+                class="ui-sidebar-toggle"
+                aria-label="사이드바 열기"
+                aria-controls="ui-sidebar"
+                aria-expanded="false">
+                <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
+            </button>
+            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                id="theme-toggle"
+                type="button"
+                class="btn btn-sm btn-solid-light text-default-700 ui-theme-toggle"
+                aria-label="다크 모드로 전환"
+                title="다크 모드로 전환"
+                aria-pressed="false">
+                <i id="theme-toggle-icon" class="iconify text-base" data-icon="tabler:moon"></i>
+                <span id="theme-toggle-label">다크모드</span>
+            </button>
+        </div>
+    </header>
+    <div class="ui-content-body">
+
+<div class="container-fluid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-base mb-base">
+                        <!-- 기본 카드 -->
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
+
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <!-- 기본 카드 -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5">제목이 있는 기본 카드</h5>
+                                <p class="mb-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <!-- 기본 카드 -->
+                        <div class="card bg-primary">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5 text-white">배경색이 있는 카드</h5>
+                                <p class="mb-4 text-white">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
+                                    카드의 핵심 내용을 빠르게 보여줍니다.</p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm btn-solid-light">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <!-- 기본 카드 -->
+                        <div class="card bg-success">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5 text-white">배경 그라데이션이 있는 카드</h5>
+                                <p class="mb-4 text-white">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
+                                    카드의 핵심 내용을 빠르게 보여줍니다.</p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm btn-solid-light">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-base mb-base">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">헤더가 있는 카드</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5">특별한 제목 처리</h5>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로 이동</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card">
+                            <div class="card-header block border-dashed">
+                                <h4 class="card-title mb-1.25">서브 헤더가 있는 카드</h4>
+                                <h6 class="text-default-400 text-2xs">카드 부제목</h6>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="mb-4">로렘 입숨은 전통적인 라틴어 텍스트로, 디자인의 레이아웃을 보여주기 위해 사용됩니다.</p>
+                                <p>출처 제목의 유명한 누군가</p>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card">
+                            <div class="card-header">주요 카드 제목</div>
+
+                            <div class="card-body">
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로 이동</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+
+                            <div class="card-footer text-default-400">2일 전</div>
+                        </div>
+                        <!-- 카드 끝-->
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">고급 카드</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-base mb-base">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">작업 도구가 있는 카드</h4>
+                                <div class="flex gap-1">
+
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로 이동</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card bg-primary">
+                            <div class="card-header border-dashed border-white">
+                                <h4 class="card-title text-white">작업 도구 및 배경색이 있는 카드</h4>
+                                <div class="flex gap-1">
+                                    <button class="btn size-6 rounded-full bg-white/25 text-white">
+                                        <i data-icon="tabler:chevron-up" class="iconify tabler--chevron-up text-base"></i>
+                                    </button>
+
+                                    <button class="btn size-6 rounded-full bg-white/25 text-white">
+                                        <i data-icon="tabler:refresh" class="iconify tabler--refresh text-base"></i>
+                                    </button>
+
+                                    <button class="btn size-6 rounded-full bg-white/25 text-white">
+                                        <i data-icon="tabler:x" class="iconify tabler--x text-base"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="mb-4 text-white">아래 보조 텍스트는 추가 콘텐츠로 자연스럽게 이어집니다.</p>
+                                <a href="javascript: void(0);" class="btn btn-sm btn-solid-light">어딘가로
+                                    이동</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">작업 도구가 있는 카드</h4>
+                                <div class="flex gap-1">
+
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로 이동</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">테두리가 있는 카드</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-base mb-base">
+                        <div class="card border-primary border">
+                            <div class="card-body">
+                                <h4 class="card-title mb-2.5">유색 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card border-primary border border-dashed">
+                            <div class="card-body">
+                                <h4 class="card-title text-primary mb-3">심플한 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card border-primary border-2">
+                            <div class="card-body">
+                                <h4 class="card-title text-primary mb-3">이중 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card border-dark border-s-3">
+                            <div class="card-body">
+                                <h4 class="card-title text-dark mb-3">이중 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-dark hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card border-primary border-s-3">
+                            <div class="card-body">
+                                <h4 class="card-title text-primary mb-3">유색 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-primary hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+
+                        <div class="card border-info border-s-3">
+                            <div class="card-body">
+                                <h4 class="card-title mb-2.5">유색 테두리가 있는 카드</h4>
+                                <p class="mb-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                </p>
+                                <a href="javascript: void(0);"
+                                    class="btn btn-sm bg-info hover:bg-primary-hover text-white">버튼</a>
+                            </div>
+                            <!-- 카드 본문 끝-->
+                        </div>
+                        <!-- 카드 끝-->
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">수평 카드</h4>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-base mb-base">
+                        <div class="card">
+                            <div class="grid grid-cols-1 items-center md:grid-cols-3">
+                                <div>
+                                    <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-s-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                </div>
+
+                                <div class="col-span-2">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-2.5">수평 모드 카드</h5>
+                                        <p class="mb-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 내용은 조금 더 깁니다.
+                                        </p>
+                                        <p>
+                                            <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="grid grid-cols-1 items-center md:grid-cols-3">
+                                <div class="col-span-2">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-2.5">수평 모드 카드</h5>
+                                        <p class="mb-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 내용은 조금 더 깁니다.
+                                        </p>
+                                        <p>
+                                            <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-e-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">확장된 링크</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-base mb-base">
+                        <div class="card group">
+                            <a href="#">
+                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <div class="card-body">
+                                    <h5 class="card-title mb-2.5">확장 링크가 있는 카드</h5>
+                                    <a href="#"
+                                        class="btn btn-sm bg-primary group-hover:bg-primary-hover mt-3 text-white">버튼</a>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="card">
+                            <a href="#">
+                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary mb-3">확장 링크가 있는 카드</h5>
+                                    <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="card group">
+                            <a href="#">
+                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <div class="card-body">
+                                    <h5 class="card-title mb-2.5">확장 링크가 있는 카드</h5>
+                                    <a href="#"
+                                        class="btn btn-sm bg-primary group-hover:bg-primary-hover mt-3 text-white">버튼</a>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="card">
+                            <a href="#">
+                                <img src="images/WChwGxuZl7SE6RiHti5x.jpg" class="rounded-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary mb-3">확장 링크가 있는 카드</h5>
+                                    <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">카드 그룹</h4>
+
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-0 mb-base">
+                        <div class="card h-full md:rounded-s-sm md:rounded-e-none">
+                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p class="mb-4">이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
+                                    내용이 조금 더 깁니다.</p>
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card h-full md:rounded-none">
+                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p class="mb-4">이 카드는 추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트를 포함하고 있습니다.</p>
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card h-full md:rounded-s-none md:rounded-e-sm">
+                            <img class="card-img-top" src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <div class="card-body">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p class="mb-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 카드는 동일한 높이 동작을 보여주기 위해 첫
+                                    번째 카드보다 더 긴 내용을 가지고 있습니다.</p>
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3 rounded md:grid-cols-3 md:gap-0 mb-base">
+                        <div class="card h-full md:rounded-s-sm md:rounded-e-none">
+                            <div class="card-body flex-1">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
+                                    내용이 조금 더 깁니다.</p>
+                            </div>
+
+                            <div class="card-footer">
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card h-full md:rounded-none">
+                            <div class="card-body flex-1">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어집니다.</p>
+                            </div>
+
+                            <div class="card-footer">
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card h-full md:rounded-s-none md:rounded-e-sm">
+                            <div class="card-body flex-1">
+                                <h5 class="card-title mb-2.5">카드 제목</h5>
+                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
+                                    동일한 높이 동작을 보여주기 위해 첫 번째 카드보다 내용이 더 깁니다.</p>
+                            </div>
+
+                            <div class="card-footer">
+                                <p>
+                                    <small class="text-default-400 text-2xs">최근 업데이트: 3분 전</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="mb-base mt-4 text-base">카드가 있는 내비게이션</h4>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-base">
+                        <div class="card">
+                            <div class="card-header border-dashed pb-0">
+                                <nav class="flex">
+                                    <a href="#"
+                                        class="text-primary border-default-300 rounded-t-lg border border-b-0 px-4 py-2 text-center text-sm font-medium">활성</a>
+
+                                    <a href="#" class="text-default-600 px-4 py-2 font-medium">링크</a>
+
+                                    <a href="#" class="px-4 py-2 font-medium" disabled>비활성화됨</a>
+                                </nav>
+                            </div>
+
+                            <div class="card-body">
+                                <h5 class="text-md mb-2 text-center">특별한 제목 처리</h5>
+                                <p class="mb-4 text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
+                                <div class="text-center">
+                                    <a href="#" class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로
+                                        이동</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <nav class="flex">
+                                    <a href="#" class="btn btn-sm bg-primary hover:bg-primary-hover text-white">활성</a>
+                                    <a href="#" class="text-default-600 px-4 py-2 font-medium">링크</a>
+                                    <a hrf="#" class="px-4 py-2 font-medium" disabled>비활성화됨</a>
+                                </nav>
+                            </div>
+
+                            <div class="card-body">
+                                <h5 class="text-md mb-2 text-center">특별한 제목 처리</h5>
+                                <p class="mb-4 text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
+
+                                <div class="text-center">
+                                    <a href="#" class="btn btn-sm bg-primary hover:bg-primary-hover text-white">어딘가로
+                                        이동</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+    </div> <!-- End ui-content-body -->
+</main> <!-- End ui-main-content -->
+</div> <!-- End ui-layout-wrapper -->
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/ui-kit/ui-overlay.js"></script>
+<script src="js/ui-kit/ui-dropdown-menu.js"></script>
+<script src="js/ui-kit/ui-theme-toggle.js"></script>
+<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
+</body>
+</html>

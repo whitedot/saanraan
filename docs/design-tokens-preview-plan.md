@@ -1,54 +1,51 @@
-# 디자인 토큰 미리보기 구현 계획
+# UI-KIT 정적 변환 계획
 
-관리자 `디자인 토큰` 화면은 `assets/common.css`에 정의된 디자인 토큰과 시맨틱 클래스를 눈으로 확인하는 내부 카탈로그다. 새 UI를 만들기 전에 기존 버튼, 배지, 폼, 카드, 테이블, 탭, 모달, 토스트 스타일을 먼저 확인하고 같은 어휘를 재사용하게 하는 것이 목적이다.
+루트 `/ui-kit`의 PHP 기반 UI-KIT을 개발자가 바로 참고할 수 있는 정적 HTML/CSS/JS 묶음으로 변환해 `assets/ui-kit` 아래에 둔다. 목적은 관리자 라우트나 PHP include 없이, 운영에서 공개 정적 파일로 허용된 `assets/` 경로에서 UI-KIT 구조와 컴포넌트 예시를 확인하는 것이다.
 
-## 기준 자료
+## 산출물
 
-- `whitedot/chmedical.git`의 `docs/ui-kit`는 화면 구성과 미리보기 방식의 참고 자료다.
-- 원본 UI Kit를 화면에 비교 리포트처럼 노출하지 않는다.
-- 실제 표시 기준은 현재 프로젝트에서 로드하는 `assets/common.css`다.
+- 정적 HTML: `assets/ui-kit/*.html`
+- UI-KIT 전용 CSS: `assets/ui-kit/css/ui-kit.css`, `assets/ui-kit/css/ui-guide.css`
+- 공통 CSS: `assets/common.css`
+- UI-KIT JS: `assets/ui-kit/js/common.js`, `assets/ui-kit/js/ui-kit/*.js`
+- 이미지: `assets/ui-kit/images/*`
 
-## 화면 방향
+## 변환 규칙
 
-`/admin/design-tokens`는 다음 원칙으로 구성한다.
+- 원본 `/ui-kit/*.php`를 PHP 실행 결과 HTML로 렌더링한다.
+- 내부 페이지 링크는 `.php`에서 `.html`로 바꾼다.
+- `css/common.css`는 복사하지 않고 프로젝트 공통 파일인 `../common.css`를 참조한다.
+- `css/ui-kit.css`, `css/ui-guide.css`, `js/`, `images/`는 `assets/ui-kit` 아래로 복사한다.
+- footer의 PHP `filemtime()` 기반 query string은 제거하고 정적 JS 경로만 남긴다.
+- `docs/`는 배포 보호 기준상 직접 접근이 차단되므로, 브라우저 접근용 산출물은 `assets/ui-kit` 아래에 둔다.
 
-- 상단에는 현재 CSS 경로, 토큰 수, 클래스 수만 표시한다.
-- 색상 토큰은 실제 스와치로 표시한다.
-- 타이포그래피 토큰은 실제 텍스트 크기와 굵기로 표시한다.
-- 전체 토큰 목록은 `:root`, dark theme, `@property`, 전체값을 함께 표시한다.
-- 클래스는 UI Kit 계열 섹션 기준으로 그룹화한다.
-- 버튼, 배지, 폼, 카드, 테이블, 탭, 드롭다운, 모달, 토스트는 실제 시맨틱 클래스 조합으로 렌더링한다.
-- 미리보기 레이아웃에만 `admin-design-tokens-*` 클래스를 사용한다.
+## 포함 페이지
 
-## 섹션
-
-- 요약
-- 색상
-- 타이포그래피
-- 토큰 전체
-- 버튼과 배지
-- 폼 컨트롤
-- 카드와 테이블
-- 탭, 드롭다운, 모달
-- 클래스 전체
+- `index.html`
+- `ui-buttons.html`
+- `ui-cards.html`
+- `ui-alerts.html`
+- `ui-badges.html`
+- `ui-modals.html`
+- `ui-dropdowns.html`
+- `ui-tabs.html`
+- `ui-sidebar.html`
+- `form-elements.html`
+- `form-validation.html`
+- `tables-static.html`
+- `icons-tabler.html`
+- `icons-lucide.html`
 
 ## 구현 상태
 
-2026-05-14 기준으로 다음 범위까지 구현했다.
+2026-05-14 기준으로 루트 `/ui-kit`을 `assets/ui-kit` 아래 정적 파일로 변환했다.
 
-- 현재 `assets/common.css`에서 CSS custom property와 클래스 선택자를 추출한다.
-- 토큰을 색상, 타이포그래피, 간격과 레이아웃, 모서리, 그림자, 모션, 내부 속성, 기타로 분류한다.
-- 클래스를 버튼, 배지, 폼 컨트롤, 유효성 및 피드백, 카드, 테이블과 페이지네이션, 탭과 내비게이션, 드롭다운, 모달과 오버레이, 간격과 레이아웃, 유틸리티, 기타로 분류한다.
-- 대표 컴포넌트는 실제 `common.css` 시맨틱 클래스로 렌더링한다.
-- 원본 UI Kit는 화면 표현의 참고 기준으로만 사용하고, 비교 상태는 기본 화면에 노출하지 않는다.
+개발자는 `/assets/ui-kit/index.html` 또는 필요한 개별 HTML 파일을 브라우저에서 열어 확인한다.
 
 ## 검증 계획
 
-구현 후 다음 순서로 확인한다.
-
-1. `php -l modules/admin/actions/design-tokens.php`
-2. `php -l modules/admin/views/design-tokens.php`
-3. `php .tools/bin/check.php`
-4. `/admin/design-tokens` 데스크톱 화면 확인
-5. `/admin/design-tokens` 모바일 화면 확인
-6. 버튼, 탭, 토스트, 모달이 기존 시맨틱 클래스 조합으로 렌더링되는지 확인
+1. `/assets/ui-kit/index.html`을 브라우저에서 연다.
+2. 각 사이드바 링크가 `.html` 페이지로 이동하는지 확인한다.
+3. `../common.css`, `css/ui-kit.css`, `css/ui-guide.css`가 로드되는지 확인한다.
+4. 드롭다운, 모달, 탭, 테마 토글, 모바일 사이드바 JS가 동작하는지 확인한다.
+5. `docs/` 직접 접근 차단은 그대로 유지한다.

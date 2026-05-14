@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Guide - UI-KIT</title>
+    <script>
+        (function () {
+            var storageKey = 'g5aif-ui-theme';
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem(storageKey);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var isDark =
+                savedTheme === 'dark' ||
+                (!savedTheme &&
+                    window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <!-- Tailwind CSS (compiled or CDN depending on setup) -->
+    <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="css/ui-kit.css">
+    <!-- UI Guide Custom CSS -->
+    <link rel="stylesheet" href="css/ui-guide.css">
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="ui-layout-wrapper">
+<aside class="ui-sidebar" id="ui-sidebar">
+    <div class="ui-sidebar-logo">
+        <span class="text-2xl font-bold ui-guide-title">UI-KIT</span>
+    </div>
+    
+    <nav class="mt-4">
+        <!-- GENERAL -->
+        <div class="ui-nav-section-title">General</div>
+        <a href="index.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
+            Dashboard
+        </a>
+
+        <!-- UI COMPONENTS -->
+        <div class="ui-nav-section-title">UI Components</div>
+        <a href="ui-buttons.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
+            Buttons
+        </a>
+        <a href="ui-cards.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
+            Cards
+        </a>
+        <a href="ui-alerts.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
+            Alerts
+        </a>
+        <a href="ui-badges.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
+            Badges
+        </a>
+        <a href="ui-modals.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
+            Modals
+        </a>
+        <a href="ui-dropdowns.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
+            Dropdowns
+        </a>
+        <a href="ui-tabs.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
+            Tabs
+        </a>
+        <a href="ui-sidebar.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:menu-2"></i>
+            Sidebar
+        </a>
+
+        <!-- FORMS -->
+        <div class="ui-nav-section-title">Forms</div>
+        <a href="form-elements.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
+            Elements
+        </a>
+        <a href="form-validation.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
+            Validation
+        </a>
+
+        <!-- TABLES -->
+        <div class="ui-nav-section-title">Tables</div>
+        <a href="tables-static.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
+            Static Tables
+        </a>
+
+        <!-- ICONS -->
+        <div class="ui-nav-section-title">Icons</div>
+        <a href="icons-tabler.html" class="ui-nav-link active">
+            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
+            Tabler Icons
+        </a>
+        <a href="icons-lucide.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
+            Lucide Icons
+        </a>
+    </nav>
+</aside>
+<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
+
+<main class="ui-main-content">
+    <header class="ui-top-navbar">
+        <div class="flex items-center">
+            <button
+                id="ui-sidebar-toggle"
+                type="button"
+                class="ui-sidebar-toggle"
+                aria-label="사이드바 열기"
+                aria-controls="ui-sidebar"
+                aria-expanded="false">
+                <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
+            </button>
+            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                id="theme-toggle"
+                type="button"
+                class="btn btn-sm btn-solid-light text-default-700 ui-theme-toggle"
+                aria-label="다크 모드로 전환"
+                title="다크 모드로 전환"
+                aria-pressed="false">
+                <i id="theme-toggle-icon" class="iconify text-base" data-icon="tabler:moon"></i>
+                <span id="theme-toggle-label">다크모드</span>
+            </button>
+        </div>
+    </header>
+    <div class="ui-content-body">
+
+<div class="container-fluid">
+                    <div class="card">
+                        <div class="card-header block">
+                            <h4 class="card-title mb-1.25">개요 (Overview)</h4>
+                            <p class="text-default-400">웹사이트나 앱을 매력적이고 시각적으로 일관되며 아름답게 만들기 위해 디자인된 무료 오픈 소스 아이콘입니다.</p>
+                        </div>
+                        <!-- end card-header-->
+
+                        <div class="card-body">
+                            <h4 class="mb-2 text-sm">사용법 (Usage)</h4>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx&quot;&gt;&lt;/i&gt;</code>
+
+                            <div class="mt-3 flex items-center gap-3">
+                                <i data-icon="tabler:phone" class="iconify tabler--phone text-2xl"></i>
+                                <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 text-2xl"></i>
+                                <i data-icon="tabler:device-desktop" class="iconify tabler--device-desktop text-2xl"></i>
+                                <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet text-2xl"></i>
+                                <i data-icon="tabler:device-gamepad" class="iconify tabler--device-gamepad text-2xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-2xl"></i>
+                            </div>
+                        </div>
+                        <!-- end card-body-->
+                        <div class="card-body border-default-300 border-t border-dashed">
+                            <h4 class="mb-2 text-sm">색상 (Colors)</h4>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
+
+                            <div class="mt-3 flex items-center gap-3">
+                                <i data-icon="tabler:camera" class="iconify tabler--camera text-primary text-2xl"></i>
+                                <i data-icon="tabler:chart-pie-2" class="iconify tabler--chart-pie-2 text-secondary text-2xl"></i>
+                                <i data-icon="tabler:bell" class="iconify tabler--bell text-success text-2xl"></i>
+                                <i data-icon="tabler:credit-card" class="iconify tabler--credit-card text-info text-2xl"></i>
+                                <i data-icon="tabler:cloud" class="iconify tabler--cloud text-warning text-2xl"></i>
+                                <i data-icon="tabler:mail" class="iconify tabler--mail text-danger text-2xl"></i>
+                                <i data-icon="tabler:lock" class="iconify tabler--lock text-dark text-2xl"></i>
+                                <i data-icon="tabler:user" class="iconify tabler--user text-purple text-2xl"></i>
+                                <i data-icon="tabler:star" class="iconify tabler--star text-light text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="card-body border-default-300 border-t border-dashed">
+                            <h4 class="mb-2 text-sm">크기 (Sizes)</h4>
+                            <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
+
+                            <div class="mt-3 flex items-center gap-3">
+                                <i data-icon="tabler:phone" class="iconify tabler--phone text-xs"></i>
+                                <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 text-sm"></i>
+                                <i data-icon="tabler:device-desktop" class="iconify tabler--device-desktop text-base"></i>
+                                <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet text-lg"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-2xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-3xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-4xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-5xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-6xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-7xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-8xl"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-9xl"></i>
+                            </div>
+
+                            <div class="mt-3 flex items-center gap-3">
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-3.25"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-3.75"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-base"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-lg"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-6"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-8"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-9"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-10.5"></i>
+                                <i data-icon="tabler:device-watch" class="iconify tabler--device-watch size-15"></i>
+                            </div>
+                        </div>
+                        <!-- end card-body-->
+
+                        <div class="card-body border-default-300 border-t border-dashed">
+                            <h4 class="mt-0 mb-3">아이콘 (Icons)</h4>
+
+                            <div class="items-center flex flex-wrap gap-3 text-center">
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:phone" class="iconify tabler--phone text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">전화 (Phone)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:ad-2" class="iconify tabler--ad-2 text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">광고 2 (Ad 2)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:headphones" class="iconify tabler--headphones text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">헤드폰
+                                        (Headphones)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:camera" class="iconify tabler--camera text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">카메라 (Camera)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:device-watch" class="iconify tabler--device-watch text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">시계 (Watch)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:microphone" class="iconify tabler--microphone text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">마이크
+                                        (Microphone)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:headset" class="iconify tabler--headset text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">헤드셋 (Headset)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:device-tablet" class="iconify tabler--device-tablet text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">태블릿 (Tablet)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:device-gamepad" class="iconify tabler--device-gamepad text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">게임패드 (Gamepad)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:printer" class="iconify tabler--printer text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">프린터 (Printer)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:device-speaker" class="iconify tabler--device-speaker text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">스피커 (Speaker)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:database" class="iconify tabler--database text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">데이터베이스
+                                        (Database)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:cloud" class="iconify tabler--cloud text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">클라우드 (Cloud)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:wifi" class="iconify tabler--wifi text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">와이파이 (Wi-Fi)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:bluetooth" class="iconify tabler--bluetooth text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">블루투스
+                                        (Bluetooth)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:usb" class="iconify tabler--usb text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">USB</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:folder" class="iconify tabler--folder text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">폴더 (Folder)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:lock" class="iconify tabler--lock text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">잠금 (Lock)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:key" class="iconify tabler--key text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">열쇠 (Key)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:shield" class="iconify tabler--shield text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">방패 (Shield)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:paperclip" class="iconify tabler--paperclip text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">클립 (Paperclip)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:bell" class="iconify tabler--bell text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">알림 (Bell)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:search" class="iconify tabler--search text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">검색 (Search)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:briefcase" class="iconify tabler--briefcase text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">서류가방
+                                        (Briefcase)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:package" class="iconify tabler--package text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">패키지 (Package)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:file" class="iconify tabler--file text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">파일 (File)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:book" class="iconify tabler--book text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">책 (Book)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:mail" class="iconify tabler--mail text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">메일 (Mail)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:user" class="iconify tabler--user text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">사용자 (User)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:user-circle" class="iconify tabler--user-circle text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">사용자 원형 (User
+                                        Circle)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:phone-call" class="iconify tabler--phone-call text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">전화 걸기 (Phone
+                                        Call)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:music" class="iconify tabler--music text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">음악 (Music)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:movie" class="iconify tabler--movie text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">영화 (Movie)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:file-upload" class="iconify tabler--file-upload text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">업로드 (Upload)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:cloud-upload" class="iconify tabler--cloud-upload text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">클라우드 업로드 (Cloud
+                                        Upload)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:share" class="iconify tabler--share text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">상단 공유 (Share)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:arrow-right" class="iconify tabler--arrow-right text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">오른쪽 화살표 (Arrow
+                                        Right)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:arrow-left" class="iconify tabler--arrow-left text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">왼쪽 화살표 (Arrow
+                                        Left)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:arrow-up" class="iconify tabler--arrow-up text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">위쪽 화살표 (Arrow
+                                        Up)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:arrow-down" class="iconify tabler--arrow-down text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">아래쪽 화살표 (Arrow
+                                        Down)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:search" class="iconify tabler--search text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">검색 (Search)</span>
+                                </div>
+
+                                <div
+                                    class="border-default-300 flex size-20 flex-col items-center justify-center gap-3 truncate rounded border border-dashed">
+                                    <i data-icon="tabler:refresh" class="iconify tabler--refresh text-2xl"></i>
+                                    <span class="block w-full truncate text-center font-semibold">새로고침 (Refresh)</span>
+                                </div>
+                            </div>
+                            <!-- end display-->
+
+                            <div class="mt-3 text-center">
+                                <a href="https://tabler.io/icons" target="_blank"
+                                    class="btn btn-solid-danger">모든 아이콘 보기</a>
+                            </div>
+                        </div>
+                        <!-- end card-body-->
+                    </div>
+                    <!-- end card-->
+                </div>
+
+    </div> <!-- End ui-content-body -->
+</main> <!-- End ui-main-content -->
+</div> <!-- End ui-layout-wrapper -->
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/ui-kit/ui-overlay.js"></script>
+<script src="js/ui-kit/ui-dropdown-menu.js"></script>
+<script src="js/ui-kit/ui-theme-toggle.js"></script>
+<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
+</body>
+</html>

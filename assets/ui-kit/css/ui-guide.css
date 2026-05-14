@@ -1,0 +1,416 @@
+/* UI 가이드 전용 스타일시트 */
+
+:root {
+    --ui-side-nav-width: 260px;
+    --ui-side-nav-bg: #f8f9fa;
+    --ui-side-nav-active-bg: #ffffff;
+    --ui-side-nav-active-color: #4f46e5;
+    --ui-border-color: #e5e7eb;
+    --ui-body-bg: #ffffff;
+    --ui-body-color: #1a1a1a;
+    --ui-content-bg: #f9fafb;
+    --ui-top-nav-bg: #ffffff;
+    --ui-nav-title-color: #6b7280;
+    --ui-nav-link-color: #4b5563;
+    --ui-nav-link-hover-bg: #f3f4f6;
+    --ui-nav-link-hover-color: #111827;
+    --ui-top-nav-height: 64px;
+}
+
+[data-theme='dark'] {
+    --ui-side-nav-bg: #1b1e27;
+    --ui-side-nav-active-bg: #242938;
+    --ui-side-nav-active-color: #8ea1ff;
+    --ui-border-color: #2f3645;
+    --ui-body-bg: #17181e;
+    --ui-body-color: #d5d9e4;
+    --ui-content-bg: #111827;
+    --ui-top-nav-bg: #1b1e27;
+    --ui-nav-title-color: #8b97a8;
+    --ui-nav-link-color: #c4ccda;
+    --ui-nav-link-hover-bg: #232734;
+    --ui-nav-link-hover-color: #f3f6fc;
+}
+
+body {
+    background-color: var(--ui-body-bg);
+    color: var(--ui-body-color);
+}
+
+.ui-layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* 사이드바 스타일 */
+.ui-sidebar {
+    width: var(--ui-side-nav-width);
+    background-color: var(--ui-side-nav-bg);
+    border-right: 1px solid var(--ui-border-color);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.ui-sidebar-logo {
+    height: var(--ui-top-nav-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--ui-border-color);
+}
+
+.ui-nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--ui-nav-title-color);
+    padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.ui-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--ui-nav-link-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.ui-nav-link:hover {
+    background-color: var(--ui-nav-link-hover-bg);
+    color: var(--ui-nav-link-hover-color);
+}
+
+.ui-nav-link.active {
+    background-color: var(--ui-side-nav-active-bg);
+    color: var(--ui-side-nav-active-color);
+    border-left-color: var(--ui-side-nav-active-color);
+}
+
+.ui-nav-icon {
+    font-size: 1.25rem;
+    margin-right: 0.75rem;
+}
+
+/* 메인 콘텐츠 영역 */
+.ui-main-content {
+    margin-left: var(--ui-side-nav-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.ui-top-navbar {
+    height: var(--ui-top-nav-height);
+    background-color: var(--ui-top-nav-bg);
+    border-bottom: 1px solid var(--ui-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.ui-top-navbar h2 {
+    color: var(--ui-body-color);
+}
+
+.ui-guide-title {
+    color: #000000;
+}
+
+.ui-content-body {
+    padding: 2rem;
+    flex: 1;
+    background-color: var(--ui-content-bg);
+}
+
+.ui-theme-toggle {
+    min-width: 110px;
+}
+
+.ui-sidebar-toggle {
+    display: none;
+    margin-right: 0.75rem;
+    color: var(--ui-body-color);
+}
+
+.ui-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 95;
+}
+
+/* Tabs active visibility */
+.ui-content-body [role='tablist'] [role='tab'] {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-content-body [role='tablist'] [role='tab']:not(:disabled):is(.active, [aria-selected='true']) {
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: inset 0 -2px 0 0 var(--color-primary);
+}
+
+/* Pill 탭은 공통 활성 스타일(파란 텍스트/하단 라인)에서 제외하고 솔리드 상태를 유지 */
+.ui-content-body [role='tablist'] .tab-trigger-pill-primary:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.ui-content-body [role='tablist'] .tab-trigger-pill-secondary:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-card']:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-card) !important;
+    border-color: var(--color-default-300) !important;
+    box-shadow: inset 0 -2px 0 0 var(--color-primary);
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:border-secondary']:not(:disabled):is(.active, [aria-selected='true']) {
+    color: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+    box-shadow: inset 0 -2px 0 0 var(--color-secondary);
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:border-success']:not(:disabled):is(.active, [aria-selected='true']) {
+    color: var(--color-success) !important;
+    border-color: var(--color-success) !important;
+    box-shadow: inset 0 -2px 0 0 var(--color-success);
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:border-danger']:not(:disabled):is(.active, [aria-selected='true']) {
+    color: var(--color-danger) !important;
+    border-color: var(--color-danger) !important;
+    box-shadow: inset 0 -2px 0 0 var(--color-danger);
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-primary']:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: #ffffff !important;
+    box-shadow: none;
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-secondary']:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+    color: #ffffff !important;
+    box-shadow: none;
+}
+
+.ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-success']:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-success) !important;
+    border-color: var(--color-success) !important;
+    color: #ffffff !important;
+    box-shadow: none;
+}
+
+[data-theme='dark'] .ui-content-body [role='tablist'] [role='tab'][class*='hs-tab-active:bg-card']:not(:disabled):is(.active, [aria-selected='true']) {
+    background-color: var(--color-card) !important;
+    border-color: var(--color-default-300) !important;
+}
+
+/* README markdown readability */
+#readme-content {
+    color: #374151;
+    line-height: 1.8;
+}
+
+#readme-content :is(h1, h2, h3, h4, h5, h6) {
+    color: #111827;
+    margin-top: 1.4em;
+    margin-bottom: 0.6em;
+    line-height: 1.35;
+}
+
+#readme-content :is(p, li, blockquote, td, th) {
+    color: #374151;
+}
+
+#readme-content a {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+#readme-content code {
+    background: #e5e7eb;
+    color: #1f2937;
+    border-radius: 4px;
+    padding: 0.15em 0.4em;
+}
+
+#readme-content pre {
+    background: #111827;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+#readme-content pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+#readme-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+#readme-content th,
+#readme-content td {
+    border: 1px solid #d1d5db;
+    padding: 0.6rem 0.7rem;
+}
+
+[data-theme='dark'] #readme-content {
+    color: #d1d5db;
+    --tw-prose-body: #d1d5db;
+    --tw-prose-headings: #f3f4f6;
+    --tw-prose-lead: #cbd5e1;
+    --tw-prose-links: #93c5fd;
+    --tw-prose-bold: #f8fafc;
+    --tw-prose-counters: #cbd5e1;
+    --tw-prose-bullets: #94a3b8;
+    --tw-prose-hr: #334155;
+    --tw-prose-quotes: #e5e7eb;
+    --tw-prose-quote-borders: #475569;
+    --tw-prose-captions: #a3adc2;
+    --tw-prose-code: #e5e7eb;
+    --tw-prose-pre-code: #e5e7eb;
+    --tw-prose-pre-bg: #0f172a;
+    --tw-prose-th-borders: #475569;
+    --tw-prose-td-borders: #334155;
+}
+
+[data-theme='dark'] #readme-content :is(h1, h2, h3, h4, h5, h6) {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] #readme-content :is(p, li, blockquote, td, th) {
+    color: #d1d5db;
+}
+
+[data-theme='dark'] #readme-content a {
+    color: #93c5fd;
+}
+
+[data-theme='dark'] #readme-content code {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] #readme-content pre {
+    background: #0f172a;
+    color: #e5e7eb;
+    border-color: #475569;
+}
+
+[data-theme='dark'] #readme-content th,
+[data-theme='dark'] #readme-content td {
+    border-color: #475569;
+}
+
+[data-theme='dark'] #readme-content :is(strong, b) {
+    color: #f8fafc !important;
+}
+
+[data-theme='dark'] #readme-content :is(span, em) {
+    color: inherit;
+}
+
+[data-theme='dark'] #readme-content li::marker {
+    color: #94a3b8;
+}
+
+[data-theme='dark'] .ui-guide-title {
+    color: #ffffff;
+}
+
+@media (max-width: 1024px) {
+    .ui-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .ui-sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .ui-sidebar-backdrop.is-open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .ui-main-content {
+        margin-left: 0;
+    }
+
+    .ui-top-navbar {
+        padding: 0 1rem;
+    }
+
+    .ui-content-body {
+        padding: 1rem;
+    }
+
+    .ui-sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.ui-sidebar-open {
+        overflow: hidden;
+    }
+}
+
+/* Modal overlay tweaks */
+.hs-overlay {
+    z-index: 120 !important;
+}
+
+.hs-overlay.size-full {
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+/* Dropdown visibility fallback */
+.ui-content-body .hs-dropdown-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin-top: 0;
+}
+
+.ui-content-body :where(.hs-dropdown.hs-dropdown-open, .hs-dropdown.open) > .hs-dropdown-menu {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}

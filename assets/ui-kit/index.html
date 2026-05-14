@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Guide - UI-KIT</title>
+    <script>
+        (function () {
+            var storageKey = 'g5aif-ui-theme';
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem(storageKey);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var isDark =
+                savedTheme === 'dark' ||
+                (!savedTheme &&
+                    window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <!-- Tailwind CSS (compiled or CDN depending on setup) -->
+    <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="css/ui-kit.css">
+    <!-- UI Guide Custom CSS -->
+    <link rel="stylesheet" href="css/ui-guide.css">
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="ui-layout-wrapper">
+<aside class="ui-sidebar" id="ui-sidebar">
+    <div class="ui-sidebar-logo">
+        <span class="text-2xl font-bold ui-guide-title">UI-KIT</span>
+    </div>
+    
+    <nav class="mt-4">
+        <!-- GENERAL -->
+        <div class="ui-nav-section-title">General</div>
+        <a href="index.html" class="ui-nav-link active">
+            <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
+            Dashboard
+        </a>
+
+        <!-- UI COMPONENTS -->
+        <div class="ui-nav-section-title">UI Components</div>
+        <a href="ui-buttons.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
+            Buttons
+        </a>
+        <a href="ui-cards.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
+            Cards
+        </a>
+        <a href="ui-alerts.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
+            Alerts
+        </a>
+        <a href="ui-badges.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
+            Badges
+        </a>
+        <a href="ui-modals.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
+            Modals
+        </a>
+        <a href="ui-dropdowns.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
+            Dropdowns
+        </a>
+        <a href="ui-tabs.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
+            Tabs
+        </a>
+        <a href="ui-sidebar.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:menu-2"></i>
+            Sidebar
+        </a>
+
+        <!-- FORMS -->
+        <div class="ui-nav-section-title">Forms</div>
+        <a href="form-elements.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
+            Elements
+        </a>
+        <a href="form-validation.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
+            Validation
+        </a>
+
+        <!-- TABLES -->
+        <div class="ui-nav-section-title">Tables</div>
+        <a href="tables-static.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
+            Static Tables
+        </a>
+
+        <!-- ICONS -->
+        <div class="ui-nav-section-title">Icons</div>
+        <a href="icons-tabler.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
+            Tabler Icons
+        </a>
+        <a href="icons-lucide.html" class="ui-nav-link ">
+            <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
+            Lucide Icons
+        </a>
+    </nav>
+</aside>
+<div class="ui-sidebar-backdrop" id="ui-sidebar-backdrop"></div>
+
+<main class="ui-main-content">
+    <header class="ui-top-navbar">
+        <div class="flex items-center">
+            <button
+                id="ui-sidebar-toggle"
+                type="button"
+                class="ui-sidebar-toggle"
+                aria-label="사이드바 열기"
+                aria-controls="ui-sidebar"
+                aria-expanded="false">
+                <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
+            </button>
+            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                id="theme-toggle"
+                type="button"
+                class="btn btn-sm btn-solid-light text-default-700 ui-theme-toggle"
+                aria-label="다크 모드로 전환"
+                title="다크 모드로 전환"
+                aria-pressed="false">
+                <i id="theme-toggle-icon" class="iconify text-base" data-icon="tabler:moon"></i>
+                <span id="theme-toggle-label">다크모드</span>
+            </button>
+        </div>
+    </header>
+    <div class="ui-content-body">
+
+
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">README</h4>
+        </div>
+        <div class="card-body" id="readme-content">
+            <p><img src="images/WChwGxuZl7SE6RiHti5x.jpg" alt="UI-KIT 미리보기" style="max-width:100%;height:auto;border-radius:12px;display:block;margin:0 0 1rem;"></p>
+<p>바이브 코딩 때 사용하실 수 있는 UI-KIT  </p>
+<p>SIR 지운아빠가 바이브 코딩으로 제작했습니다.</p>
+<p>저장소 링크: <a href="https://github.com/whitedot/ui-kit.git">https://github.com/whitedot/ui-kit.git</a></p>
+<p>데모: <a href="https://lab.gnuboard.net/ui-kit">https://lab.gnuboard.net/ui-kit</a></p>        </div>
+    </div>
+</div>
+
+    </div> <!-- End ui-content-body -->
+</main> <!-- End ui-main-content -->
+</div> <!-- End ui-layout-wrapper -->
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/ui-kit/ui-overlay.js"></script>
+<script src="js/ui-kit/ui-dropdown-menu.js"></script>
+<script src="js/ui-kit/ui-theme-toggle.js"></script>
+<script src="js/ui-kit/ui-sidebar-toggle.js"></script>
+</body>
+</html>
