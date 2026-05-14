@@ -336,8 +336,10 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
 
 sr_skin_theme_check_contains('modules/admin/helpers/shell.php', [
     'sr_admin_form_paragraph_label_text($child) === \'\'',
-    'function sr_admin_choice_label_text(string $labelText): string',
+    'function sr_admin_choice_label_parts(string $labelText): array',
+    'function sr_admin_simplify_choice_label(DOMDocument $document, DOMElement $label, string $labelText): void',
     '$label = $document->createElement(\'span\');',
+    '$hidden->setAttribute(\'class\', \'sr-only\');',
     'sr_admin_normalize_inline_checks($fieldCell);',
 ], 'Admin form label normalization');
 

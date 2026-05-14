@@ -745,11 +745,15 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
                 $label->setAttribute('for', $firstControl->getAttribute('id'));
             }
         }
-        $label->appendChild($document->createTextNode($isChoiceControl ? sr_admin_choice_label_text($labelText) : $labelText));
+        $label->appendChild($document->createTextNode($labelText));
         $labelCell->appendChild($label);
     }
 
     foreach (iterator_to_array($paragraph->childNodes) as $child) {
+        if ($child instanceof DOMElement && strtolower($child->tagName) === 'label' && $isChoiceControl) {
+            sr_admin_simplify_choice_label($document, $child, $labelText);
+        }
+
         if ($child instanceof DOMElement && strtolower($child->tagName) === 'label' && !$isChoiceControl) {
             sr_admin_move_label_fields_to_container($child, $fieldCell);
             continue;
@@ -765,7 +769,7 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
     return $row;
 }
 
-function sr_admin_choice_label_text(string $labelText): string
+function sr_admin_choice_label_parts(string $labelText): array
 {
     $text = trim(preg_replace('/\s+/u', ' ', $labelText) ?? '');
     $suffixes = [
@@ -782,15 +786,38 @@ function sr_admin_choice_label_text(string $labelText): string
 
     foreach ($suffixes as $suffix) {
         if ($text === $suffix || str_ends_with($text, ' ' . $suffix)) {
-            return match ($suffix) {
+            $visible = match ($suffix) {
                 '동의합니다.' => '동의',
                 '확인했습니다.' => '확인',
                 default => $suffix,
             };
+
+            $prefix = $text === $suffix ? '' : trim(substr($text, 0, -strlen($suffix)));
+
+            return [$prefix !== '' ? $prefix . ' ' : '', $visible];
         }
     }
 
-    return $text;
+    return ['', $text];
+}
+
+function sr_admin_simplify_choice_label(DOMDocument $document, DOMElement $label, string $labelText): void
+{
+    foreach (iterator_to_array($label->childNodes) as $child) {
+        if ($child instanceof DOMText) {
+            $label->removeChild($child);
+        }
+    }
+
+    [$hiddenText, $visibleText] = sr_admin_choice_label_parts($labelText);
+    if ($hiddenText !== '') {
+        $hidden = $document->createElement('span');
+        $hidden->setAttribute('class', 'sr-only');
+        $hidden->appendChild($document->createTextNode($hiddenText));
+        $label->appendChild($hidden);
+    }
+
+    $label->appendChild($document->createTextNode($visibleText));
 }
 
 function sr_admin_form_first_control(DOMElement $root): ?DOMElement
