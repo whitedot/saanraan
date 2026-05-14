@@ -426,6 +426,45 @@ function sr_member_group_normalize_rule_params(array $params): array
     return $normalized;
 }
 
+function sr_member_group_rule_params_from_input(array $definition, mixed $input): array
+{
+    $input = is_array($input) ? $input : [];
+    $values = [];
+    foreach ((array) ($definition['params'] ?? []) as $param) {
+        if (!is_array($param)) {
+            continue;
+        }
+
+        $key = (string) ($param['key'] ?? '');
+        if ($key === '') {
+            continue;
+        }
+
+        $rawValue = $input[$key] ?? ($param['default'] ?? '');
+        if (is_array($rawValue)) {
+            $rawValue = '';
+        }
+
+        $type = (string) ($param['type'] ?? 'string');
+        if ($type === 'int' || $type === 'subject') {
+            $value = (int) $rawValue;
+            if (isset($param['min']) && $value < (int) $param['min']) {
+                $value = (int) $param['min'];
+            }
+            if (isset($param['max']) && $value > (int) $param['max']) {
+                $value = (int) $param['max'];
+            }
+            $values[$key] = $value;
+        } elseif ($type === 'bool') {
+            $values[$key] = in_array(strtolower(trim((string) $rawValue)), ['1', 'true', 'yes', 'on'], true);
+        } else {
+            $values[$key] = trim((string) $rawValue);
+        }
+    }
+
+    return $values;
+}
+
 function sr_member_group_rules(PDO $pdo): array
 {
     if (!sr_member_groups_table_exists($pdo)) {

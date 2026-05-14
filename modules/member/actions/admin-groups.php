@@ -100,6 +100,7 @@ if (sr_request_method() === 'POST') {
         $groupId = sr_admin_post_positive_int('group_id');
         $definitionKey = sr_post_string('definition_key', 200);
         $ruleParamsJson = sr_post_string_without_truncation('rule_params_json', 5000);
+        $ruleParamInputs = $_POST['rule_param'][$definitionKey] ?? null;
         $evaluationPolicy = sr_post_string('evaluation_policy', 30);
         $status = sr_post_string('status', 30);
 
@@ -111,15 +112,19 @@ if (sr_request_method() === 'POST') {
             $errors[] = '자동 규칙 조건 후보가 올바르지 않습니다.';
         }
 
-        if ($ruleParamsJson === null) {
+        if (is_array($ruleParamInputs) && isset($ruleDefinitions[$definitionKey])) {
+            $decodedParams = sr_member_group_rule_params_from_input($ruleDefinitions[$definitionKey], $ruleParamInputs);
+            $ruleParamsJson = '{}';
+        } elseif ($ruleParamsJson === null) {
             $errors[] = '조건 설정 JSON은 5000자 이하로 입력하세요.';
             $ruleParamsJson = '{}';
-        }
-
-        $decodedParams = json_decode((string) $ruleParamsJson, true);
-        if (!is_array($decodedParams)) {
-            $errors[] = '조건 설정 JSON 형식이 올바르지 않습니다.';
             $decodedParams = [];
+        } else {
+            $decodedParams = json_decode((string) $ruleParamsJson, true);
+            if (!is_array($decodedParams)) {
+                $errors[] = '조건 설정 JSON 형식이 올바르지 않습니다.';
+                $decodedParams = [];
+            }
         }
 
         if (!in_array($evaluationPolicy, $allowedEvaluationPolicies, true)) {
@@ -172,10 +177,11 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'evaluate_account' || $intent === 'evaluate_batch') {
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
+        $targetAccountField = sr_post_string('account_identifier_field', 20);
         if ($targetAccountIdentifier === '') {
             $targetAccountIdentifier = sr_post_string('account_id', 80);
         }
-        $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
+        $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, $runtimeConfig, $targetAccountField, $targetAccountIdentifier);
         $sourceModuleKey = sr_post_string('source_module_key', 60);
         $limit = sr_admin_post_int_in_range('limit', 1, 200);
 
@@ -234,10 +240,11 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'grant_manual' || $intent === 'revoke_manual') {
         $groupId = sr_admin_post_positive_int('group_id');
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
+        $targetAccountField = sr_post_string('account_identifier_field', 20);
         if ($targetAccountIdentifier === '') {
             $targetAccountIdentifier = sr_post_string('account_id', 80);
         }
-        $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
+        $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, $runtimeConfig, $targetAccountField, $targetAccountIdentifier);
 
         if ($groupId < 1) {
             $errors[] = '그룹을 선택하세요.';

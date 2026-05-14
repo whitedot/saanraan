@@ -322,6 +322,9 @@ function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array
     $commentCount = is_array($row) ? (int) $row['comment_count'] : 0;
     $scoreValue = ($postCount * (int) $settings['level_post_score']) + ($commentCount * (int) $settings['level_comment_score']);
     $levelValue = sr_community_level_value_for_score($pdo, $scoreValue);
+    if (sr_community_account_is_owner($pdo, $accountId)) {
+        $levelValue = sr_community_max_level_value();
+    }
     $before = sr_community_account_level_snapshot($pdo, $accountId);
     $now = sr_now();
 
@@ -357,6 +360,21 @@ function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array
     }
 
     return sr_community_account_level_snapshot($pdo, $accountId);
+}
+
+function sr_community_account_is_owner(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT 1 FROM sr_admin_account_roles WHERE account_id = :account_id AND role_key = 'owner' LIMIT 1");
+        $stmt->execute(['account_id' => $accountId]);
+        return is_array($stmt->fetch());
+    } catch (Throwable $exception) {
+        return false;
+    }
 }
 
 function sr_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, ?array $settings = null, string $reasonKey = 'activity_changed'): array

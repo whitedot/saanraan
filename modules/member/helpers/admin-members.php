@@ -56,6 +56,39 @@ function sr_admin_member_account_id_from_identifier(PDO $pdo, array $config, str
     return 0;
 }
 
+function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string $field, string $keyword): int
+{
+    $keyword = trim($keyword);
+    if ($keyword === '') {
+        return 0;
+    }
+
+    if ($field === 'hash' || $field === '') {
+        return sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+    }
+
+    if ($field === 'email') {
+        $email = sr_normalize_identifier($keyword);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return 0;
+        }
+
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash LIMIT 1');
+        $stmt->execute(['email_hash' => sr_hmac_hash($email, $config)]);
+        $row = $stmt->fetch();
+        return is_array($row) ? (int) $row['id'] : 0;
+    }
+
+    if ($field === 'name') {
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
+        $stmt->execute(['display_name' => $keyword]);
+        $row = $stmt->fetch();
+        return is_array($row) ? (int) $row['id'] : 0;
+    }
+
+    return sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+}
+
 function sr_admin_member_row_with_public_hash(array $config, array $row): array
 {
     $accountId = (int) ($row['account_id'] ?? ($row['id'] ?? 0));

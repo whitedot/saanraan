@@ -31,6 +31,7 @@ window.AdminShell = {
         const toastStack = document.querySelector('.admin-toast-stack');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
+        const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
         let hideScrollbarTimer = null;
 
         const isMobileViewport = () => mobileQuery.matches;
@@ -395,6 +396,21 @@ window.AdminShell = {
                 button.addEventListener('click', () => activateTab(button.dataset.adminTabTarget || ''));
             });
             tabRoot.setAttribute('role', 'tablist');
+        }
+
+        if (memberRuleDefinition) {
+            const panels = Array.prototype.slice.call(document.querySelectorAll('[data-rule-param-panel]'));
+            const syncRuleParamPanel = () => {
+                panels.forEach(panel => {
+                    const active = panel.dataset.ruleParamPanel === memberRuleDefinition.value;
+                    panel.hidden = !active;
+                    Array.prototype.slice.call(panel.querySelectorAll('input, select, textarea')).forEach(input => {
+                        input.disabled = !active;
+                    });
+                });
+            };
+            memberRuleDefinition.addEventListener('change', syncRuleParamPanel);
+            syncRuleParamPanel();
         }
 
         syncDesktopSidebarState();

@@ -1,26 +1,19 @@
 <?php
 
-$adminPageTitle = '커뮤니티 설정';
+$communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
+$adminPageTitle = $communitySettingsPage === 'levels' ? '커뮤니티 레벨 정의' : '커뮤니티 설정';
 $messageWriteGroupKeysValue = implode(', ', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : []);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <p>
     <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">게시판 관리</a>
     |
     <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>">게시판 그룹 관리</a>
+    |
+    <a href="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">레벨 정의</a>
 </p>
 
 <?php if ($enabledMemberGroups !== []) { ?>
@@ -37,6 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
+<?php if ($communitySettingsPage === 'settings') { ?>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
@@ -125,7 +119,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="af-field">
                 <label>
                     <span class="sr-only">발송 최소 레벨</span>
-                <input type="number" name="message_write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e((string) $settings['message_write_min_level']); ?>">
+                <select name="message_write_min_level">
+                    <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
+                        <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e('레벨 ' . (string) $levelValue); ?>
+                        </option>
+                    <?php } ?>
+                </select>
                 </label>
             </div>
         </div>
@@ -154,7 +154,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary">설정 저장</button>
     </div>
 </form>
+<?php } ?>
 
+<?php if ($communitySettingsPage === 'levels') { ?>
 <section class="member-table-card admin-member-list-form">
     <div class="card-header">
         <h2 class="card-title">레벨 정의</h2>
@@ -168,7 +170,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     <?php } else { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_level_definitions">
             <div class="table-wrapper">
@@ -208,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     <?php } ?>
 
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
         <div class="member-list-actions">
@@ -216,5 +218,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 </section>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

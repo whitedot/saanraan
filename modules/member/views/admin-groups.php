@@ -17,17 +17,7 @@ if ($memberGroupsPage === 'group_form') {
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -276,7 +266,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="af-field">
                     <label>
                         <span class="sr-only">조건 후보</span>
-                    <select name="definition_key" required>
+                    <select name="definition_key" required data-member-rule-definition>
                         <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
                         <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
                             <option value="<?php echo sr_e((string) $definitionKey); ?>"<?php echo $currentDefinitionKey === (string) $definitionKey ? ' selected' : ''; ?>>
@@ -288,12 +278,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="af-row">
-                <div class="af-label"><span class="form-label">조건 설정 JSON</span></div>
+                <div class="af-label"><span class="form-label">조건 설정</span></div>
                 <div class="af-field">
-                    <label>
-                        <span class="sr-only">조건 설정 JSON</span>
-                    <textarea name="rule_params_json" rows="4" cols="70"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
-                    </label>
+                    <?php
+                    $currentRuleParams = [];
+                    if (is_array($editRule)) {
+                        $decodedRuleParams = json_decode((string) $editRule['rule_params_json'], true);
+                        $currentRuleParams = is_array($decodedRuleParams) ? $decodedRuleParams : [];
+                    }
+                    ?>
+                    <div class="member-rule-param-panels" data-member-rule-param-panels>
+                        <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
+                            <?php $panelActive = $currentDefinitionKey === (string) $definitionKey || ($currentDefinitionKey === '' && $definitionKey === array_key_first($ruleDefinitions)); ?>
+                            <div class="member-rule-param-panel"<?php echo $panelActive ? '' : ' hidden'; ?> data-rule-param-panel="<?php echo sr_e((string) $definitionKey); ?>">
+                                <?php if ((string) ($definition['description'] ?? '') !== '') { ?>
+                                    <p><?php echo sr_e((string) $definition['description']); ?></p>
+                                <?php } ?>
+                                <?php if (($definition['params'] ?? []) === []) { ?>
+                                    <p>추가 조건 설정이 필요하지 않습니다.</p>
+                                <?php } ?>
+                                <?php foreach ((array) ($definition['params'] ?? []) as $param) { ?>
+                                    <?php
+                                    $paramKey = (string) ($param['key'] ?? '');
+                                    $paramType = (string) ($param['type'] ?? 'string');
+                                    $paramValue = array_key_exists($paramKey, $currentRuleParams) ? $currentRuleParams[$paramKey] : ($param['default'] ?? '');
+                                    ?>
+                                    <label class="member-field">
+                                        <span class="member-field-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
+                                        <?php if ($paramType === 'bool') { ?>
+                                            <select name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?>>
+                                                <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>>예</option>
+                                                <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>>아니오</option>
+                                            </select>
+                                        <?php } elseif ($paramType === 'int' || $paramType === 'subject') { ?>
+                                            <input type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?>>
+                                        <?php } else { ?>
+                                            <input type="text" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo $panelActive ? '' : ' disabled'; ?>>
+                                        <?php } ?>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <details class="admin-advanced-details">
+                        <summary>JSON 직접 입력</summary>
+                        <textarea name="rule_params_json" rows="4" cols="70"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
+                    </details>
                 </div>
             </div>
             <div class="af-row">
@@ -334,11 +364,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>자동 규칙 재평가</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="af-row">
-                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="af-label"><span class="form-label">회원 조회</span></div>
                 <div class="af-field">
                     <label>
-                        <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" maxlength="80" required>
+                        <span class="sr-only">회원 조회 조건</span>
+                    <select name="account_identifier_field">
+                        <option value="hash">해시 아이디</option>
+                        <option value="email">이메일</option>
+                        <option value="name">이름</option>
+                    </select>
+                    </label>
+                    <label>
+                        <span class="sr-only">회원 조회어</span>
+                    <input type="text" name="account_identifier" maxlength="120" required>
                     </label>
                 </div>
             </div>
@@ -390,11 +428,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>수동 배정</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="af-row">
-                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="af-label"><span class="form-label">회원 조회</span></div>
                 <div class="af-field">
                     <label>
-                        <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" maxlength="80" required>
+                        <span class="sr-only">회원 조회 조건</span>
+                    <select name="account_identifier_field">
+                        <option value="hash">해시 아이디</option>
+                        <option value="email">이메일</option>
+                        <option value="name">이름</option>
+                    </select>
+                    </label>
+                    <label>
+                        <span class="sr-only">회원 조회어</span>
+                    <input type="text" name="account_identifier" maxlength="120" required>
                     </label>
                 </div>
             </div>

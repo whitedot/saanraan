@@ -24,6 +24,8 @@ return [
     'POST /community/message/delete' => 'actions/message-delete.php',
     'GET /admin/community/settings' => 'actions/admin-settings.php',
     'POST /admin/community/settings' => 'actions/admin-settings.php',
+    'GET /admin/community/levels' => 'actions/admin-levels.php',
+    'POST /admin/community/levels' => 'actions/admin-levels.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
     'GET /admin/community/boards/new' => 'actions/admin-board-new.php',

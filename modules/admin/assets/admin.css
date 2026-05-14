@@ -229,6 +229,12 @@
 .member-edit-form button{justify-self:end}
 .privacy-request-edit-form .af-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
 .privacy-request-edit-form .af-check input{width:1rem;min-height:1rem}
+.member-rule-param-panels{border:1px solid var(--color-default-300);background:var(--color-default-50);padding:1rem;display:grid;gap:.75rem}
+.member-rule-param-panel{display:grid;gap:.75rem}
+.member-rule-param-panel p{margin:0;color:var(--color-default-600);font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
+.admin-advanced-details{margin-top:.75rem}
+.admin-advanced-details summary{color:var(--color-default-600);cursor:pointer;font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
+.admin-advanced-details textarea{margin-top:.5rem;width:100%;border:1px solid var(--color-default-300);background:var(--color-card);padding:.75rem}
 .community-search-fields-wide{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto}
 .community-search-fields-compact{grid-template-columns:minmax(0,16rem) auto;justify-content:start}
 .community-table-card .table-wrapper{width:100%;overflow:auto}

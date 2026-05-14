@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '레벨 정의',
+            'path' => '/admin/community/levels',
+            'order' => 25,
+        ],
+        [
             'label' => '게시판 그룹',
             'path' => '/admin/community/board-groups',
             'order' => 30,
