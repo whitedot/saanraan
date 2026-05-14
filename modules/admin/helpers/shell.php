@@ -676,6 +676,11 @@ function sr_admin_normalize_form_row_container(DOMDocument $document, DOMElement
     $grid = null;
     foreach (iterator_to_array($container->childNodes) as $child) {
         if ($child instanceof DOMElement && strtolower($child->tagName) === 'p' && sr_admin_form_paragraph_has_field($child)) {
+            if (sr_admin_form_paragraph_label_text($child) === '') {
+                $grid = null;
+                continue;
+            }
+
             if (!$grid instanceof DOMElement) {
                 $grid = $document->createElement('div');
                 $grid->setAttribute('class', 'af-grid');
@@ -727,19 +732,28 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
     $firstControl = sr_admin_form_first_control($paragraph);
     $firstControlType = $firstControl instanceof DOMElement ? strtolower($firstControl->getAttribute('type') ?: $firstControl->tagName) : '';
     $labelText = sr_admin_form_paragraph_label_text($paragraph);
+    $isChoiceControl = in_array($firstControlType, ['checkbox', 'radio'], true);
 
-    if ($labelText !== '' && !in_array($firstControlType, ['checkbox', 'radio'], true)) {
+    if ($labelText !== '') {
         $label = $document->createElement('label');
         $label->setAttribute('class', 'form-label');
-        if ($firstControl instanceof DOMElement && $firstControl->getAttribute('id') !== '') {
-            $label->setAttribute('for', $firstControl->getAttribute('id'));
+        if ($firstControl instanceof DOMElement) {
+            $controlId = $isChoiceControl ? sr_admin_ensure_control_id($firstControl) : $firstControl->getAttribute('id');
+            if ($controlId !== '') {
+                $label->setAttribute('for', $controlId);
+            }
         }
         $label->appendChild($document->createTextNode($labelText));
         $labelCell->appendChild($label);
     }
 
     foreach (iterator_to_array($paragraph->childNodes) as $child) {
-        if ($child instanceof DOMElement && strtolower($child->tagName) === 'label' && !in_array($firstControlType, ['checkbox', 'radio'], true)) {
+        if ($child instanceof DOMElement && strtolower($child->tagName) === 'label' && $isChoiceControl) {
+            sr_admin_move_choice_fields_to_container($child, $fieldCell);
+            continue;
+        }
+
+        if ($child instanceof DOMElement && strtolower($child->tagName) === 'label' && !$isChoiceControl) {
             sr_admin_move_label_fields_to_container($child, $fieldCell);
             continue;
         }
@@ -752,6 +766,29 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
     $row->appendChild($fieldCell);
 
     return $row;
+}
+
+function sr_admin_ensure_control_id(DOMElement $control): string
+{
+    $id = trim($control->getAttribute('id'));
+    if ($id !== '') {
+        return $id;
+    }
+
+    static $counter = 0;
+    $counter++;
+
+    $name = trim($control->getAttribute('name'));
+    $base = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $name) ?? '';
+    $base = trim($base, '_');
+    if ($base === '') {
+        $base = strtolower($control->tagName);
+    }
+
+    $id = 'admin_field_' . $base . '_' . (string) $counter;
+    $control->setAttribute('id', $id);
+
+    return $id;
 }
 
 function sr_admin_form_first_control(DOMElement $root): ?DOMElement
@@ -850,6 +887,26 @@ function sr_admin_move_label_fields_to_container(DOMElement $label, DOMElement $
     }
 
     foreach (iterator_to_array($label->childNodes) as $child) {
+        if ($child instanceof DOMElement && strtolower($child->tagName) === 'br') {
+            $label->removeChild($child);
+            continue;
+        }
+
+        if ($child instanceof DOMElement && in_array(strtolower($child->tagName), ['span', 'small', 'code'], true)) {
+            $container->appendChild($child);
+        }
+    }
+}
+
+function sr_admin_move_choice_fields_to_container(DOMElement $label, DOMElement $container): void
+{
+    foreach (iterator_to_array($label->childNodes) as $child) {
+        if ($child instanceof DOMElement && in_array(strtolower($child->tagName), ['input', 'select', 'textarea'], true)) {
+            sr_admin_ensure_control_id($child);
+            $container->appendChild($child);
+            continue;
+        }
+
         if ($child instanceof DOMElement && strtolower($child->tagName) === 'br') {
             $label->removeChild($child);
             continue;

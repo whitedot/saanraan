@@ -334,6 +334,12 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
     '기본 공개 레이아웃 파일이 누락되었습니다.',
 ], 'Shared view option validation');
 
+sr_skin_theme_check_contains('modules/admin/helpers/shell.php', [
+    'sr_admin_form_paragraph_label_text($child) === \'\'',
+    'function sr_admin_ensure_control_id(DOMElement $control): string',
+    'function sr_admin_move_choice_fields_to_container(DOMElement $label, DOMElement $container): void',
+], 'Admin form label normalization');
+
 if ($errors !== []) {
     fwrite(STDERR, "skin/theme UI checks failed:\n");
     foreach ($errors as $error) {
