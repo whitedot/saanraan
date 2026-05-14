@@ -20,40 +20,64 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
     <section class="card">
         <h2>보관 기간</h2>
-        <p>
-            <label>인증 로그 보관일<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">인증 로그 보관일</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">인증 로그 보관일</span>
                 <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" min="1" max="3650" required>
-            </label>
-        </p>
-        <p>
-            <label>감사 로그 보관일<br>
-                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" min="1" max="3650" required>
-            </label>
-        </p>
-        <p>
-            <label>사용 완료 토큰 보관일<br>
-                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required>
-            </label>
-        </p>
-        <p>
-            <label>만료/폐기 세션 보관일<br>
-                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
-            </label>
-        </p>
-        <?php if ($hasNotificationTables) { ?>
-            <p>
-                <label>알림 보관일<br>
-                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" min="1" max="3650" required>
                 </label>
-            </p>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">감사 로그 보관일</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">감사 로그 보관일</span>
+                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" min="1" max="3650" required>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">사용 완료 토큰 보관일</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">사용 완료 토큰 보관일</span>
+                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">만료/폐기 세션 보관일</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">만료/폐기 세션 보관일</span>
+                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" min="1" max="3650" required>
+                </label>
+            </div>
+        </div>
+        <?php if ($hasNotificationTables) { ?>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">알림 보관일</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">알림 보관일</span>
+                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" min="1" max="3650" required>
+                    </label>
+                </div>
+            </div>
         <?php } else { ?>
             <input type="hidden" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>">
         <?php } ?>
-        <p>
-            <label>모듈 백업 보관일<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">모듈 백업 보관일</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">모듈 백업 보관일</span>
                 <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" min="1" max="3650" required>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
     <section class="card">
         <h2>실행 확인</h2>
@@ -68,11 +92,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <p>
-            <label>확인 문구<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">확인 문구</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">확인 문구</span>
                 <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <button type="submit" class="btn btn-solid-primary">정리 실행</button>

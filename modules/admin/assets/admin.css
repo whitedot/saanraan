@@ -134,7 +134,7 @@
 .admin-form-layout.ui-form-showcase>section.card>.card-body>div:not(.ui-form-grid):not(.af-grid){border-style:solid;padding-inline:calc(var(--spacing) * 0);padding-block:calc(var(--spacing) * 0);border-width:0}
 .admin-form-layout>section.card>.card-body>div:not(.ui-form-grid):not(.af-grid):last-child{border-bottom-style:solid;border-bottom-width:0}
 .admin-form-layout>section.card>p{border-bottom:1px solid var(--color-default-200);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3);font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-default-400)}
-.admin-form-layout.ui-form-showcase>section.card>p{margin-bottom:var(--spacing-base,1rem);border-width:0;padding:0}
+.admin-form-layout.ui-form-showcase>section.card>p{margin-bottom:var(--spacing-base,1rem);border-width:0;padding-inline:calc(var(--spacing) * 5);padding-block:0}
 .admin-form-layout>section.card>p:last-child{border-bottom-width:0}
 .admin-form-layout>section.card>.af-grid{padding:calc(var(--spacing) * 5)}
 .admin-form-layout>section.card>.af-grid + p{margin-top:calc(var(--spacing) * -2)}

@@ -49,25 +49,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (is_array($editGroup)) { ?>
                 <p>그룹 key: <?php echo sr_e((string) $editGroup['group_key']); ?></p>
             <?php } else { ?>
-                <p>
-                    <label>그룹 key<br>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">그룹 key</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">그룹 key</span>
                         <input type="text" name="group_key" maxlength="60" required>
-                    </label>
-                </p>
+                        </label>
+                    </div>
+                </div>
             <?php } ?>
 
-            <p>
-                <label>이름<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이름</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이름</span>
                     <input type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" required>
-                </label>
-            </p>
-            <p>
-                <label>설명<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">설명</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">설명</span>
                     <textarea name="description" rows="3" cols="60"><?php echo sr_e(is_array($editGroup) ? (string) ($editGroup['description'] ?? '') : ''); ?></textarea>
-                </label>
-            </p>
-            <p>
-                <label>상태<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
                         <?php foreach ($allowedStatuses as $status) { ?>
@@ -76,13 +91,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>정렬 순서<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">정렬 순서</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">정렬 순서</span>
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -236,8 +256,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2><?php echo is_array($editRule) ? '자동 규칙 수정' : '자동 규칙 생성'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($editRule) ? (string) $editRule['id'] : ''); ?>">
-            <p>
-                <label>대상 그룹<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">대상 그룹</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">대상 그룹</span>
                     <select name="group_id" required>
                         <?php foreach ($groups as $group) { ?>
                             <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($editRule) && (int) $editRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
@@ -245,10 +268,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>조건 후보<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">조건 후보</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">조건 후보</span>
                     <select name="definition_key" required>
                         <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
                         <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
@@ -257,31 +284,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>조건 설정 JSON<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">조건 설정 JSON</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">조건 설정 JSON</span>
                     <textarea name="rule_params_json" rows="4" cols="70"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
-                </label>
-            </p>
-            <p>
-                <label>평가 정책<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">평가 정책</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">평가 정책</span>
                     <select name="evaluation_policy">
                         <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo is_array($editRule) && (string) $editRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>상태<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <?php foreach ($allowedRuleStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo is_array($editRule) && (string) $editRule['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -293,16 +333,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>자동 규칙 재평가</h2>
             <?php echo sr_csrf_field(); ?>
-            <p>
-                <label>회원 공개 해시<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">회원 공개 해시</span>
                     <input type="text" name="account_identifier" maxlength="80" required>
-                </label>
-            </p>
-            <p>
-                <label>모듈 key<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">모듈 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">모듈 key</span>
                     <input type="text" name="source_module_key" maxlength="60">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">재평가</button>
@@ -313,16 +361,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>일괄 재평가</h2>
             <?php echo sr_csrf_field(); ?>
-            <p>
-                <label>모듈 key<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">모듈 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">모듈 key</span>
                     <input type="text" name="source_module_key" maxlength="60">
-                </label>
-            </p>
-            <p>
-                <label>최대 회원 수<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">최대 회원 수</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">최대 회원 수</span>
                     <input type="number" name="limit" min="1" max="200" value="50">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">일괄 재평가</button>
@@ -333,13 +389,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>수동 배정</h2>
             <?php echo sr_csrf_field(); ?>
-            <p>
-                <label>회원 공개 해시<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">회원 공개 해시</span>
                     <input type="text" name="account_identifier" maxlength="80" required>
-                </label>
-            </p>
-            <p>
-                <label>그룹<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">그룹</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">그룹</span>
                     <select name="group_id" required>
                         <?php foreach ($groups as $group) { ?>
                             <option value="<?php echo sr_e((string) $group['id']); ?>">
@@ -347,8 +410,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">배정</button>

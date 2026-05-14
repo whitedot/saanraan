@@ -35,35 +35,58 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2><?php echo $editing ? '배너 수정' : '배너 추가'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? sr_e((string) $editBanner['id']) : '0'; ?>">
-            <p>
-                <label>제목<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">제목</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">제목</span>
                     <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" maxlength="120" required>
-                </label>
-            </p>
-            <p>
-                <label>내용<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">내용</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">내용</span>
                     <textarea name="body_text" maxlength="3000"><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
-                </label>
-            </p>
-            <p>
-                <label>링크 URL (외부 http/https 링크는 새 창으로 열림)<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">링크 URL (외부 http/https 링크는 새 창으로 열림)</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">링크 URL (외부 http/https 링크는 새 창으로 열림)</span>
                     <input type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" maxlength="255">
-                </label>
-            </p>
-            <p>
-                <label>이미지 URL (/ 내부 경로 또는 http/https URL)<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이미지 URL (/ 내부 경로 또는 http/https URL)</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이미지 URL (/ 내부 경로 또는 http/https URL)</span>
                     <input type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" maxlength="255">
-                </label>
-            </p>
-            <p>
-                <label>이미지 업로드<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이미지 업로드</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이미지 업로드</span>
                     <input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp">
-                </label>
+                    </label>
                 <br>
                 <small>JPEG, PNG, WebP / 최대 <?php echo sr_e(sr_banner_format_bytes(sr_banner_image_upload_max_bytes())); ?>. 업로드하면 이미지 URL보다 우선 적용됩니다.</small>
-            </p>
-            <p>
-                <label>출력 위치<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">출력 위치</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">출력 위치</span>
                     <select name="target_option">
                         <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
                             공용 배너
@@ -75,12 +98,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <br>
                 <small>공용 배너는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
-            </p>
-            <p>
-                <label>매칭 방식<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">매칭 방식</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">매칭 방식</span>
                     <select name="match_type">
                         <?php foreach ($allowedMatchTypes as $matchType) { ?>
                             <?php $currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all'; ?>
@@ -89,15 +116,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>특정 subject ID<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">특정 subject ID</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">특정 subject ID</span>
                     <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" maxlength="80">
-                </label>
-            </p>
-            <p>
-                <label>상태<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <?php $currentStatus = $editing ? (string) $editBanner['status'] : 'draft'; ?>
@@ -106,12 +141,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <br>
                 <small>사용 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.</small>
-            </p>
-            <p>
-                <label>배너 스킨<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">배너 스킨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">배너 스킨</span>
                     <select name="skin_key">
                         <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                             <?php $currentSkinKey = $editing ? (string) ($editBanner['skin_key'] ?? $bannerSkinKey) : $bannerSkinKey; ?>
@@ -121,25 +160,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <br>
                 <small>저장 시 출력 위치와 호환되는 스킨인지 확인합니다.</small>
-            </p>
-            <p>
-                <label>시작 시각<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">시작 시각</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">시작 시각</span>
                     <input type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['starts_at'] ?? null)) : ''; ?>">
-                </label>
-            </p>
-            <p>
-                <label>종료 시각<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">종료 시각</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">종료 시각</span>
                     <input type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['ends_at'] ?? null)) : ''; ?>">
-                </label>
-            </p>
-            <p>
-                <label>정렬<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">정렬</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">정렬</span>
                     <input type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -152,8 +204,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>배너 설정</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_settings">
-            <p>
-                <label>배너 스킨<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">배너 스킨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">배너 스킨</span>
                     <select name="banner_skin_key">
                         <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -162,8 +217,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">배너 설정 저장</button>
@@ -179,8 +235,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 배너 추가</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>">
-            <p>
-                <label>상태<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedStatuses as $status) { ?>
@@ -189,10 +248,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>출력 위치<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">출력 위치</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">출력 위치</span>
                     <select name="target">
                         <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
                         <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $filters['target'] === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
@@ -203,8 +266,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
             <button type="submit">조회</button>
         </form>
         <?php if ($banners === []) { ?>

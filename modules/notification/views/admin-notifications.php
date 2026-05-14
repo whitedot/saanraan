@@ -35,40 +35,64 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>알림 등록</h2>
             <?php echo sr_csrf_field(); ?>
-            <p>
-                <label>대상<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">대상</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">대상</span>
                     <select name="audience">
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo sr_e($audience); ?>"><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>회원 공개 해시<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">회원 공개 해시</span>
                     <input type="text" name="account_identifier" value="" maxlength="80">
-                </label>
-            </p>
-            <p>
-                <label>제목<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">제목</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">제목</span>
                     <input type="text" name="title" value="" maxlength="160" required>
-                </label>
-            </p>
-            <p>
-                <label>내용<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">내용</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">내용</span>
                     <textarea name="body_text" maxlength="5000"></textarea>
-                </label>
-            </p>
-            <p>
-                <label>링크 URL (/로 시작하는 내부 URL 또는 http/https URL)<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span>
                     <input type="text" name="link_url" value="" maxlength="255">
-                </label>
-            </p>
-            <p>
-                <label>외부 수신자<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">외부 수신자</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">외부 수신자</span>
                     <input type="text" name="recipient" value="" maxlength="255">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
             <p>채널</p>
             <?php foreach ($allowedChannels as $channel) { ?>
                 <label>

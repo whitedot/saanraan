@@ -37,18 +37,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
-                <p>
-                    <label>제목<br>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">제목</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">제목</span>
                         <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" maxlength="120" required>
-                    </label>
-                </p>
-                <p>
-                    <label>내용<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">내용</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">내용</span>
                         <textarea name="body_text" maxlength="5000"><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
-                    </label>
-                </p>
-                <p>
-                    <label>상태<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">상태</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">상태</span>
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <?php $currentStatus = $editing ? (string) $editPopup['status'] : 'draft'; ?>
@@ -57,10 +68,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>팝업 스킨<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">팝업 스킨</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">팝업 스킨</span>
                         <select name="skin_key">
                             <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
                                 <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
@@ -69,10 +84,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>노출 대상<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">노출 대상</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">노출 대상</span>
                         <select name="target_option">
                             <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
                                 공용 팝업레이어
@@ -84,12 +103,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
+                        </label>
                     <br>
                     <small>공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
-                </p>
-                <p>
-                    <label>매칭 방식<br>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">매칭 방식</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">매칭 방식</span>
                         <select name="match_type">
                             <?php foreach ($allowedMatchTypes as $matchType) { ?>
                                 <?php $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all'; ?>
@@ -98,28 +121,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>특정 subject ID<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">특정 subject ID</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">특정 subject ID</span>
                         <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" maxlength="80">
-                    </label>
-                </p>
-                <p>
-                    <label>시작 시각<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">시작 시각</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">시작 시각</span>
                         <input type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>">
-                    </label>
-                </p>
-                <p>
-                    <label>종료 시각<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">종료 시각</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">종료 시각</span>
                         <input type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>">
-                    </label>
-                </p>
-                <p>
-                    <label>닫기 유지일<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">닫기 유지일</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">닫기 유지일</span>
                         <input type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" min="0" max="365">
-                    </label>
-                </p>
+                        </label>
+                    </div>
+                </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -132,8 +172,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>팝업레이어 설정</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_settings">
-            <p>
-                <label>팝업레이어 스킨<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">팝업레이어 스킨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">팝업레이어 스킨</span>
                     <select name="popup_layer_skin_key">
                         <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $popupLayerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -141,8 +184,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">팝업레이어 설정 저장</button>

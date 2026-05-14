@@ -41,20 +41,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <p>
-            <label>로그인 식별자<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">로그인 식별자</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">로그인 식별자</span>
                 <select name="login_identifier">
                     <option value="email"<?php echo (string) $settings['login_identifier'] === 'email' ? ' selected' : ''; ?>>이메일</option>
                     <option value="login_id"<?php echo (string) $settings['login_identifier'] === 'login_id' ? ' selected' : ''; ?>>로그인 아이디</option>
                 </select>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>화면</h2>
-        <p>
-            <label>회원 스킨<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">회원 스킨</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">회원 스킨</span>
                 <select name="member_skin_key">
                     <?php foreach (sr_member_skin_options() as $skinKey => $skinOption) { ?>
                         <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) $settings['member_skin_key'] === (string) $skinKey ? ' selected' : ''; ?>>
@@ -62,8 +69,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
@@ -85,73 +93,117 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>로그인 시도 제한</h2>
-        <p>
-            <label>제한 시간(초)<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">제한 시간(초)</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">제한 시간(초)</span>
                 <input type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" min="0" max="86400">
-            </label>
-        </p>
-        <p>
-            <label>계정 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">계정 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">계정 기준 제한 횟수</span>
                 <input type="number" name="login_throttle_account_limit" value="<?php echo sr_e((string) $settings['login_throttle_account_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
-        <p>
-            <label>IP 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">IP 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">IP 기준 제한 횟수</span>
                 <input type="number" name="login_throttle_ip_limit" value="<?php echo sr_e((string) $settings['login_throttle_ip_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>회원가입 제한</h2>
-        <p>
-            <label>제한 시간(초)<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">제한 시간(초)</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">제한 시간(초)</span>
                 <input type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" min="0" max="86400">
-            </label>
-        </p>
-        <p>
-            <label>IP 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">IP 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">IP 기준 제한 횟수</span>
                 <input type="number" name="register_throttle_ip_limit" value="<?php echo sr_e((string) $settings['register_throttle_ip_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>비밀번호 재설정 제한</h2>
-        <p>
-            <label>제한 시간(초)<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">제한 시간(초)</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">제한 시간(초)</span>
                 <input type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" min="0" max="86400">
-            </label>
-        </p>
-        <p>
-            <label>계정 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">계정 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">계정 기준 제한 횟수</span>
                 <input type="number" name="password_reset_throttle_account_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_account_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
-        <p>
-            <label>IP 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">IP 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">IP 기준 제한 횟수</span>
                 <input type="number" name="password_reset_throttle_ip_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_ip_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>이메일 인증 제한</h2>
-        <p>
-            <label>제한 시간(초)<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">제한 시간(초)</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">제한 시간(초)</span>
                 <input type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" min="0" max="86400">
-            </label>
-        </p>
-        <p>
-            <label>계정 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">계정 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">계정 기준 제한 횟수</span>
                 <input type="number" name="email_verification_throttle_account_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_account_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
-        <p>
-            <label>IP 기준 제한 횟수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">IP 기준 제한 횟수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">IP 기준 제한 횟수</span>
                 <input type="number" name="email_verification_throttle_ip_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_ip_limit']); ?>" min="0" max="1000">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

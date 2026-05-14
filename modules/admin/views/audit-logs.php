@@ -4,25 +4,23 @@ $adminPageTitle = '관리자 작업 로그';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>">
-    <p>
-        <label>이벤트 유형<br>
-            <input type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" maxlength="80">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter-form ui-form-theme">
+    <div class="admin-filter-fields">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">이벤트 유형</span>
+            <input type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" maxlength="80" class="form-input">
         </label>
-    </p>
-    <p>
-        <label>대상 유형<br>
-            <input type="text" name="target_type" value="<?php echo sr_e($filters['target_type']); ?>" maxlength="60">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">대상 유형</span>
+            <input type="text" name="target_type" value="<?php echo sr_e($filters['target_type']); ?>" maxlength="60" class="form-input">
         </label>
-    </p>
-    <p>
-        <label>처리자 계정 ID<br>
-            <input type="text" name="actor_account_id" value="<?php echo sr_e($filters['actor_account_id']); ?>" maxlength="20" inputmode="numeric" pattern="[0-9]*">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">처리자 계정 ID</span>
+            <input type="text" name="actor_account_id" value="<?php echo sr_e($filters['actor_account_id']); ?>" maxlength="20" inputmode="numeric" pattern="[0-9]*" class="form-input">
         </label>
-    </p>
-    <p>
-        <label>결과<br>
-            <select name="result">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">결과</span>
+            <select name="result" class="form-select">
                 <?php foreach (['' => '전체', 'success' => '성공', 'failure' => '실패'] as $value => $label) { ?>
                     <option value="<?php echo sr_e((string) $value); ?>"<?php echo $filters['result'] === (string) $value ? ' selected' : ''; ?>>
                         <?php echo sr_e($label); ?>
@@ -30,18 +28,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </label>
-    </p>
-    <p>
-        <label>시작일<br>
-            <input type="date" name="date_from" value="<?php echo sr_e($filters['date_from']); ?>">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">시작일</span>
+            <input type="date" name="date_from" value="<?php echo sr_e($filters['date_from']); ?>" class="form-input">
         </label>
-    </p>
-    <p>
-        <label>종료일<br>
-            <input type="date" name="date_to" value="<?php echo sr_e($filters['date_to']); ?>">
+        <label class="admin-filter-field">
+            <span class="admin-filter-label">종료일</span>
+            <input type="date" name="date_to" value="<?php echo sr_e($filters['date_to']); ?>" class="form-input">
         </label>
-    </p>
-    <button type="submit">조회</button>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+    </div>
 </form>
 
 <div class="member-table-card admin-member-list-form">

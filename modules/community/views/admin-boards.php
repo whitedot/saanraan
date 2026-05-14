@@ -167,43 +167,66 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                 <p>게시판 key: <?php echo sr_e((string) $formBoard['board_key']); ?></p>
             <?php } else { ?>
-                <p>
-                    <label>게시판 key<br>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">게시판 key</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">게시판 key</span>
                         <input type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" required>
-                    </label>
-                </p>
+                        </label>
+                    </div>
+                </div>
             <?php } ?>
-            <p>
-                <label>게시판 그룹<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">게시판 그룹</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">게시판 그룹</span>
                     <select name="board_group_id">
                         <option value="0">없음</option>
                         <?php foreach ($boardGroups as $boardGroup) { ?>
                             <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>이름<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이름</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이름</span>
                     <input type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" required>
-                </label>
-            </p>
-            <p>
-                <label>설명<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">설명</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">설명</span>
                     <textarea name="description" rows="3" cols="60"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
-                </label>
-            </p>
-            <p>
-                <label>상태<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
-            <p>
-                <label>게시판 스킨<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">게시판 스킨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">게시판 스킨</span>
                     <select name="skin_key">
                         <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $boardField($formBoard, 'skin_key', 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
@@ -211,8 +234,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
 
             <?php foreach (sr_community_board_group_setting_keys() as $settingKey) { ?>
                 <?php if ($communityBoardsPage === 'new') { ?>
@@ -223,14 +247,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="card">
             <h2>접근 정책</h2>
-            <p>
-                <label>읽기 정책<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">읽기 정책</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">읽기 정책</span>
                     <select name="read_policy">
                         <?php foreach ($allowedReadPolicies as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_read_policy">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -239,11 +266,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy']), 'policy')); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>읽기 그룹 key<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">읽기 그룹 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">읽기 그룹 key</span>
                     <input type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" placeholder="regular_member, vip">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_read_group_keys">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -251,11 +282,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 <?php } ?>
-            </p>
-            <p>
-                <label>읽기 최소 레벨<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">읽기 최소 레벨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">읽기 최소 레벨</span>
                     <input type="number" name="read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($boardField($formBoard, 'read_min_level', '0')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_read_min_level">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -264,15 +299,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_read_min_level'] ?? $formBoard['read_min_level'])); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>쓰기 정책<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">쓰기 정책</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">쓰기 정책</span>
                     <select name="write_policy">
                         <?php foreach ($allowedWritePolicies as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_write_policy">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -281,11 +320,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy']), 'policy')); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>쓰기 그룹 key<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">쓰기 그룹 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">쓰기 그룹 key</span>
                     <input type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" placeholder="regular_member, vip">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_write_group_keys">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -293,11 +336,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 <?php } ?>
-            </p>
-            <p>
-                <label>쓰기 최소 레벨<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">쓰기 최소 레벨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">쓰기 최소 레벨</span>
                     <input type="number" name="write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($boardField($formBoard, 'write_min_level', '0')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_write_min_level">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -306,15 +353,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_write_min_level'] ?? $formBoard['write_min_level'])); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>댓글 정책<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">댓글 정책</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">댓글 정책</span>
                     <select name="comment_policy">
                         <?php foreach ($allowedCommentPolicies as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                         <?php } ?>
                     </select>
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_comment_policy">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -323,11 +374,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy']), 'policy')); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>댓글 그룹 key<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">댓글 그룹 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">댓글 그룹 key</span>
                     <input type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" placeholder="regular_member, vip">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_comment_group_keys">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -335,11 +390,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 <?php } ?>
-            </p>
-            <p>
-                <label>댓글 최소 레벨<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">댓글 최소 레벨</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">댓글 최소 레벨</span>
                     <input type="number" name="comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_comment_min_level">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -348,7 +407,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
                 <?php } ?>
-            </p>
+                </div>
+            </div>
             <div class="af-row">
                 <div class="af-label"><span class="form-label">이미지 첨부 허용</span></div>
                 <div class="af-field">
@@ -366,10 +426,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
                 </div>
             </div>
-            <p>
-                <label>이미지 최대 용량(bytes)<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이미지 최대 용량(bytes)</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이미지 최대 용량(bytes)</span>
                     <input type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_attachment_max_bytes">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -378,11 +441,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_bytes'] ?? $formBoard['attachment_max_bytes'])); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>이미지 최대 개수<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이미지 최대 개수</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">이미지 최대 개수</span>
                     <input type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_attachment_max_count">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -391,7 +458,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
                 <?php } ?>
-            </p>
+                </div>
+            </div>
             <div class="af-row">
                 <div class="af-label"><span class="form-label">파일 첨부 허용</span></div>
                 <div class="af-field">
@@ -409,10 +477,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
                 </div>
             </div>
-            <p>
-                <label>파일 최대 용량(bytes)<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">파일 최대 용량(bytes)</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">파일 최대 용량(bytes)</span>
                     <input type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_file_attachment_max_bytes">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -421,11 +492,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_bytes'] ?? $formBoard['file_attachment_max_bytes'])); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>파일 최대 개수<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">파일 최대 개수</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">파일 최대 개수</span>
                     <input type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_file_attachment_max_count">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -434,11 +509,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_count'] ?? $formBoard['file_attachment_max_count'])); ?></small>
                 <?php } ?>
-            </p>
-            <p>
-                <label>파일 허용 확장자<br>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">파일 허용 확장자</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">파일 허용 확장자</span>
                     <input type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" placeholder="pdf, txt, zip">
-                </label>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_file_allowed_extensions">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -447,24 +526,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo sr_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
                 <?php } ?>
-            </p>
+                </div>
+            </div>
         </section>
 
         <section class="card">
             <h2>배너</h2>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
-                    <p>
-                        <label><?php echo sr_e((string) $bannerSettingLabel); ?><br>
-                            <select name="<?php echo sr_e((string) $bannerSettingKey); ?>">
-                                <option value="0">사용 안 함</option>
-                                <?php foreach ($publicBanners as $publicBanner) { ?>
-                                    <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $publicBanner['title']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </label>
-                    </p>
+                    <div class="af-row">
+                        <div class="af-label"><span class="form-label"><?php echo sr_e((string) $bannerSettingLabel); ?></span></div>
+                        <div class="af-field">
+                            <label>
+                                <span class="sr-only"><?php echo sr_e((string) $bannerSettingLabel); ?></span>
+                                <select name="<?php echo sr_e((string) $bannerSettingKey); ?>">
+                                    <option value="0">사용 안 함</option>
+                                    <?php foreach ($publicBanners as $publicBanner) { ?>
+                                        <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) $publicBanner['title']); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
                 <?php } ?>
                 <p><small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small></p>
         </section>
@@ -472,29 +556,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>팝업레이어</h2>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
-                    <p>
-                        <label><?php echo sr_e((string) $popupLayerSettingLabel); ?><br>
-                            <select name="<?php echo sr_e((string) $popupLayerSettingKey); ?>">
-                                <option value="0">사용 안 함</option>
-                                <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
-                                    <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $publicPopupLayer['title']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </label>
-                    </p>
+                    <div class="af-row">
+                        <div class="af-label"><span class="form-label"><?php echo sr_e((string) $popupLayerSettingLabel); ?></span></div>
+                        <div class="af-field">
+                            <label>
+                                <span class="sr-only"><?php echo sr_e((string) $popupLayerSettingLabel); ?></span>
+                                <select name="<?php echo sr_e((string) $popupLayerSettingKey); ?>">
+                                    <option value="0">사용 안 함</option>
+                                    <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                                        <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) $publicPopupLayer['title']); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
                 <?php } ?>
                 <p><small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small></p>
         </section>
 
         <section class="card">
             <h2>정렬</h2>
-            <p>
-                <label>정렬 순서<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">정렬 순서</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">정렬 순서</span>
                     <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'sort_order', '0')); ?>">
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft">목록</a>

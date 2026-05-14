@@ -86,7 +86,7 @@ $targets = [
             "'admin_skin_key' => \$adminSkinKey",
         ],
         'view_needles' => [
-            '<label>관리자 스킨<br>',
+            '<span class="form-label">관리자 스킨</span>',
             '<select name="admin_skin_key">',
             'foreach ($adminSkinOptions as $skinKey => $skinOption)',
         ],
@@ -126,7 +126,7 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<label>배너 스킨<br>',
+            '<span class="form-label">배너 스킨</span>',
             '<select name="banner_skin_key">',
             '<select name="skin_key">',
             'foreach ($bannerSkinOptions as $skinKey => $skinOption)',
@@ -163,9 +163,9 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<label>팝업레이어 스킨<br>',
+            '<span class="form-label">팝업레이어 스킨</span>',
             '<select name="popup_layer_skin_key">',
-            '<label>팝업 스킨<br>',
+            '<span class="form-label">팝업 스킨</span>',
             '<select name="skin_key">',
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
@@ -212,7 +212,7 @@ $targets = [
             "['member_skin_key', (string) \$settings['member_skin_key'], 'string']",
         ],
         'view_needles' => [
-            '<label>회원 스킨<br>',
+            '<span class="form-label">회원 스킨</span>',
             '<select name="member_skin_key">',
             'foreach (sr_member_skin_options() as $skinKey => $skinOption)',
         ],
@@ -241,7 +241,7 @@ $targets = [
             "['theme_key', \$themeKey, 'string']",
         ],
         'view_needles' => [
-            '<label>커뮤니티 테마<br>',
+            '<span class="form-label">커뮤니티 테마</span>',
             '<select name="theme_key">',
             'foreach ($communityThemeOptions as $themeKey => $themeOption)',
         ],
@@ -280,7 +280,7 @@ $targets = [
             "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
         ],
         'view_needles' => [
-            '<label>게시판 스킨<br>',
+            '<span class="form-label">게시판 스킨</span>',
             '<input type="hidden" name="intent" value="update_skin">',
             '<select name="skin_key">',
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',

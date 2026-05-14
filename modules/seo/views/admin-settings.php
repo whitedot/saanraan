@@ -21,21 +21,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>기본 메타</h2>
-        <p>
-            <label>제목 접미사<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">제목 접미사</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">제목 접미사</span>
                 <input type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" maxlength="80">
-            </label>
-        </p>
-        <p>
-            <label>기본 설명<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">기본 설명</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">기본 설명</span>
                 <input type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" maxlength="255">
-            </label>
-        </p>
-        <p>
-            <label>기본 OG 이미지 URL<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">기본 OG 이미지 URL</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">기본 OG 이미지 URL</span>
                 <input type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" maxlength="255">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
@@ -58,11 +70,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>로봇 설정</h2>
-        <p>
-            <label>차단 경로<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">차단 경로</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">차단 경로</span>
                 <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
         <pre><?php echo sr_e($robotsPreview); ?></pre>
         <p><a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">robots.txt 확인</a></p>
     </section>

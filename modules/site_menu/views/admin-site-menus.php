@@ -42,18 +42,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2><?php echo $editingMenu ? '메뉴 수정' : '메뉴 추가'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : ''; ?>">
-            <p>
-                <label>메뉴 key<br>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">메뉴 key</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">메뉴 key</span>
                     <input type="text" name="menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : 'header'; ?>" maxlength="60" required>
-                </label>
-            </p>
-            <p>
-                <label>메뉴 이름<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">메뉴 이름</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">메뉴 이름</span>
                     <input type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" maxlength="120" required>
-                </label>
-            </p>
-            <p>
-                <label>상태<br>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">상태</span></div>
+                <div class="af-field">
+                    <label>
+                        <span class="sr-only">상태</span>
                     <select name="status">
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <?php $currentMenuStatus = $editingMenu ? (string) $editMenu['status'] : 'enabled'; ?>
@@ -62,8 +73,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                </label>
-            </p>
+                    </label>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -126,8 +138,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="item_id" value="<?php echo $editingItem ? sr_e((string) $editItem['id']) : '0'; ?>">
-                <p>
-                    <label>메뉴<br>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">메뉴</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">메뉴</span>
                         <select name="menu_id">
                             <?php $selectedMenuId = $editingItem ? (int) $editItem['menu_id'] : (int) $menus[0]['id']; ?>
                             <?php foreach ($menus as $menu) { ?>
@@ -136,21 +151,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>항목 이름<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">항목 이름</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">항목 이름</span>
                         <input type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" maxlength="120" required>
-                    </label>
-                </p>
-                <p>
-                    <label>URL<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">URL</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">URL</span>
                         <input type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" maxlength="255" required>
-                    </label>
-                </p>
-                <p>
-                <label>링크 대상<br>
-                        <select name="target">
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">링크 대상</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">링크 대상</span>
+                            <select name="target">
                             <?php foreach ($allowedTargets as $target) { ?>
                                 <?php $currentTarget = $editingItem ? (string) $editItem['target'] : 'self'; ?>
                                 <option value="<?php echo sr_e($target); ?>"<?php echo $currentTarget === $target ? ' selected' : ''; ?>>
@@ -158,10 +185,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>상태<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">상태</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">상태</span>
                         <select name="status">
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <?php $currentStatus = $editingItem ? (string) $editItem['status'] : 'enabled'; ?>
@@ -170,13 +201,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                    </label>
-                </p>
-                <p>
-                    <label>정렬<br>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">정렬</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">정렬</span>
                         <input type="number" name="sort_order" value="<?php echo $editingItem ? sr_e((string) $editItem['sort_order']) : '100'; ?>">
-                    </label>
-                </p>
+                        </label>
+                    </div>
+                </div>
             </section>
             <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
                 <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-surface-default-soft">목록</a>

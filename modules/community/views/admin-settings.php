@@ -63,54 +63,81 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <p>
-            <label>게시글 점수<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">게시글 점수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">게시글 점수</span>
                 <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>">
-            </label>
-        </p>
-        <p>
-            <label>댓글 점수<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">댓글 점수</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">댓글 점수</span>
                 <input type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>">
-            </label>
-        </p>
-        <p>
-            <label>그룹+레벨 판정<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">그룹+레벨 판정</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">그룹+레벨 판정</span>
                 <select name="access_condition_priority">
                     <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
                         <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e($priority); ?></option>
                     <?php } ?>
                 </select>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>쪽지</h2>
-        <p>
-            <label>발송 정책<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">발송 정책</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">발송 정책</span>
                 <select name="message_write_policy">
                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
                         <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e($policy); ?></option>
                     <?php } ?>
                 </select>
-            </label>
-        </p>
-        <p>
-            <label>발송 그룹 key<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">발송 그룹 key</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">발송 그룹 key</span>
                 <input type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" placeholder="regular_member, vip">
-            </label>
-        </p>
-        <p>
-            <label>발송 최소 레벨<br>
+                </label>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">발송 최소 레벨</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">발송 최소 레벨</span>
                 <input type="number" name="message_write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e((string) $settings['message_write_min_level']); ?>">
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>화면</h2>
-        <p>
-            <label>커뮤니티 테마<br>
+        <div class="af-row">
+            <div class="af-label"><span class="form-label">커뮤니티 테마</span></div>
+            <div class="af-field">
+                <label>
+                    <span class="sr-only">커뮤니티 테마</span>
                 <select name="theme_key">
                     <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
                         <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) $settings['theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
@@ -118,8 +145,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-            </label>
-        </p>
+                </label>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

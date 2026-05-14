@@ -786,13 +786,13 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     "['theme_key', \$themeKey, 'string']",
 ], 'Community admin theme setting policy');
 sr_community_release_file_contains('modules/community/views/admin-settings.php', [
-    '<label>커뮤니티 테마<br>',
+    '<span class="form-label">커뮤니티 테마</span>',
     '<select name="theme_key">',
     'foreach ($communityThemeOptions as $themeKey => $themeOption)',
 ], 'Community admin theme field');
 sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     '<input type="hidden" name="intent" value="update_skin">',
-    '<label>게시판 스킨<br>',
+    '<span class="form-label">게시판 스킨</span>',
     '<select name="skin_key">',
     'foreach ($communitySkinOptions as $skinKey => $skinOption)',
 ], 'Community admin board skin field');
