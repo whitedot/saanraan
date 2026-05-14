@@ -745,7 +745,7 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
                 $label->setAttribute('for', $firstControl->getAttribute('id'));
             }
         }
-        $label->appendChild($document->createTextNode($labelText));
+        $label->appendChild($document->createTextNode($isChoiceControl ? sr_admin_choice_label_text($labelText) : $labelText));
         $labelCell->appendChild($label);
     }
 
@@ -763,6 +763,34 @@ function sr_admin_form_paragraph_to_row(DOMDocument $document, DOMElement $parag
     $row->appendChild($fieldCell);
 
     return $row;
+}
+
+function sr_admin_choice_label_text(string $labelText): string
+{
+    $text = trim(preg_replace('/\s+/u', ' ', $labelText) ?? '');
+    $suffixes = [
+        '자동 재계산',
+        '동의합니다.',
+        '확인했습니다.',
+        '허용',
+        '사용',
+        '확인',
+        '숨김',
+        '포함',
+        '기록',
+    ];
+
+    foreach ($suffixes as $suffix) {
+        if ($text === $suffix || str_ends_with($text, ' ' . $suffix)) {
+            return match ($suffix) {
+                '동의합니다.' => '동의',
+                '확인했습니다.' => '확인',
+                default => $suffix,
+            };
+        }
+    }
+
+    return $text;
 }
 
 function sr_admin_form_first_control(DOMElement $root): ?DOMElement

@@ -336,9 +336,16 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
 
 sr_skin_theme_check_contains('modules/admin/helpers/shell.php', [
     'sr_admin_form_paragraph_label_text($child) === \'\'',
+    'function sr_admin_choice_label_text(string $labelText): string',
     '$label = $document->createElement(\'span\');',
     'sr_admin_normalize_inline_checks($fieldCell);',
 ], 'Admin form label normalization');
+
+sr_skin_theme_check_contains('assets/common.css', [
+    '.form-checkbox::after',
+    '.form-checkbox:checked',
+    'background-image: url("data:image/svg+xml',
+], 'Checkbox checked indicator');
 
 if ($errors !== []) {
     fwrite(STDERR, "skin/theme UI checks failed:\n");
