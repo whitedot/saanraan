@@ -136,7 +136,7 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '권한', 'path' => '/admin/roles', 'order' => 20],
                 ['label' => '관리자 작업 로그', 'path' => '/admin/audit-logs', 'order' => 30],
                 ['label' => '설정', 'path' => '/admin/settings', 'order' => 40],
-                ['label' => '디자인 시스템', 'path' => '/admin/design-system', 'order' => 42],
+                ['label' => '디자인 토큰', 'path' => '/admin/design-system', 'order' => 42],
                 ['label' => '메뉴', 'path' => '/admin/menu', 'order' => 45],
                 ['label' => '모듈', 'path' => '/admin/modules', 'order' => 50],
                 ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 60],

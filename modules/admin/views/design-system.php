@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '디자인 시스템';
+$adminPageTitle = '디자인 토큰';
 $adminPageSubtitle = 'assets/common.css에서 추출한 디자인 토큰과 클래스 항목을 확인합니다.';
 $adminContainerClass = 'admin-page-design-system';
 
@@ -8,7 +8,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <div class="admin-design-system">
-    <nav class="tab-nav-bordered admin-design-system-nav" aria-label="디자인 시스템 미리보기 목차">
+    <nav class="tab-nav-bordered admin-design-system-nav" aria-label="디자인 토큰 미리보기 목차">
         <a class="tab-trigger-underline active" href="#ds-tokens">토큰 <?php echo sr_e((string) $commonCssTokenCount); ?></a>
         <a class="tab-trigger-underline" href="#ds-classes">클래스 <?php echo sr_e((string) $commonCssClassCount); ?></a>
         <a class="tab-trigger-underline" href="#ds-buttons">버튼/배지</a>
