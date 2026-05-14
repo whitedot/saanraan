@@ -28,7 +28,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 
         <form method="get" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
             <p>
-                <label>상태<br>
+                <label>
+                    <span>상태</span>
                     <select name="status">
                         <?php foreach (['' => '전체', 'unread' => '읽지 않음', 'read' => '읽음'] as $value => $label) { ?>
                             <option value="<?php echo sr_e((string) $value); ?>"<?php echo $filters['status'] === (string) $value ? ' selected' : ''; ?>>

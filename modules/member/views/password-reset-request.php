@@ -29,7 +29,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <form method="post" action="<?php echo sr_e(sr_url('/password/reset')); ?>">
             <?php echo sr_csrf_field(); ?>
             <p>
-                <label>이메일<br>
+                <label>
+                    <span>이메일</span>
                     <input type="email" name="email" value="<?php echo sr_e($email); ?>" required>
                 </label>
             </p>

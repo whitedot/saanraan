@@ -25,7 +25,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-requests')); ?>">
             <?php echo sr_csrf_field(); ?>
             <p>
-                <label>요청 유형<br>
+                <label>
+                    <span>요청 유형</span>
                     <select name="request_type">
                         <?php foreach ($allowedTypes as $requestType) { ?>
                             <option value="<?php echo sr_e($requestType); ?>"<?php echo $values['request_type'] === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
@@ -34,7 +35,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 </label>
             </p>
             <p>
-                <label>요청 내용<br>
+                <label>
+                    <span>요청 내용</span>
                     <textarea name="request_message" rows="5" cols="60"><?php echo sr_e($values['request_message']); ?></textarea>
                 </label>
             </p>

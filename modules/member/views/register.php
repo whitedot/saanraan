@@ -24,47 +24,52 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <p>
-                    <label>이메일<br>
+                    <label>
+                    <span>이메일</span>
                         <input type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required>
                     </label>
                 </p>
                 <?php if ($loginIdentifierMode === 'login_id') { ?>
                     <p>
-                        <label>로그인 아이디<br>
+                        <label>
+                    <span>로그인 아이디</span>
                             <input type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" required>
                         </label>
                     </p>
                 <?php } ?>
                 <p>
-                    <label>표시 이름<br>
+                    <label>
+                    <span>표시 이름</span>
                         <input type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
                 <p>
-                    <label>비밀번호<br>
+                    <label>
+                    <span>비밀번호</span>
                         <input type="password" name="password" required>
                     </label>
                 </p>
                 <p>
-                    <label>비밀번호 확인<br>
+                    <label>
+                    <span>비밀번호 확인</span>
                         <input type="password" name="password_confirm" required>
                     </label>
                 </p>
                 <p>
                     <label>
-                        <input type="checkbox" name="terms_consent" value="1" required>
+                        <input type="checkbox" name="terms_consent" value="1" class="form-checkbox" required>
                         필수 약관에 동의합니다.
                     </label>
                 </p>
                 <p>
                     <label>
-                        <input type="checkbox" name="privacy_consent" value="1" required>
+                        <input type="checkbox" name="privacy_consent" value="1" class="form-checkbox" required>
                         개인정보 처리방침에 동의합니다.
                     </label>
                 </p>
                 <p>
                     <label>
-                        <input type="checkbox" name="marketing_consent" value="1"<?php echo $marketingConsent ? ' checked' : ''; ?>>
+                        <input type="checkbox" name="marketing_consent" value="1" class="form-checkbox"<?php echo $marketingConsent ? ' checked' : ''; ?>>
                         마케팅 수신에 동의합니다.
                     </label>
                 </p>

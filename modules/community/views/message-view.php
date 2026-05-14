@@ -58,7 +58,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <input type="hidden" name="target_type" value="message">
             <input type="hidden" name="target_id" value="<?php echo sr_e((string) $message['id']); ?>">
             <p>
-                <label>신고 사유<br>
+                <label>
+                    <span>신고 사유</span>
                     <select name="reason_key" required>
                         <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                             <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
@@ -67,7 +68,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 </label>
             </p>
             <p>
-                <label>신고 메모<br>
+                <label>
+                    <span>신고 메모</span>
                     <textarea name="memo_text" rows="3" cols="60"></textarea>
                 </label>
             </p>

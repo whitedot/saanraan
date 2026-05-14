@@ -73,10 +73,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="sync_module_version">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
-                                <label>소유자 비밀번호<br>
-                                    <input type="password" name="owner_password" autocomplete="current-password" required>
+                                <label>
+                                    <span class="sr-only">소유자 비밀번호</span>
+                                    <input type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
                                 </label>
-                                <button type="submit">파일 업데이트 반영</button>
+                                <button type="submit" class="btn btn-sm btn-surface-default-soft">파일 업데이트 반영</button>
                             </form>
                         <?php } elseif ($canManageModuleSources) { ?>
                             소스 반영 비활성화

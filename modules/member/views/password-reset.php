@@ -25,12 +25,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <p>
-                    <label>새 비밀번호<br>
+                    <label>
+                    <span>새 비밀번호</span>
                         <input type="password" name="password" required>
                     </label>
                 </p>
                 <p>
-                    <label>새 비밀번호 확인<br>
+                    <label>
+                    <span>새 비밀번호 확인</span>
                         <input type="password" name="password_confirm" required>
                     </label>
                 </p>

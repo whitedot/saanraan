@@ -69,20 +69,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
-                                <p>
-                                    <label>상태<br>
-                                        <select name="status">
+                                <label>
+                                    <span class="sr-only">상태</span>
+                                    <select name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
                                             <?php } ?>
                                         </select>
-                                    </label>
-                                </p>
-                                <p>
-                                    <label>처리 메모<br>
-                                        <textarea name="review_note" rows="3" cols="30"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
-                                    </label>
-                                </p>
+                                </label>
+                                <label>
+                                    <span class="sr-only">처리 메모</span>
+                                    <textarea name="review_note" rows="3" cols="30" class="form-textarea" placeholder="처리 메모"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
+                                </label>
                                 <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
                             </form>
                             </div>

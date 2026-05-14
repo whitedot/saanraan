@@ -50,11 +50,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         >
                     </td>
                     <td>
-                        <label>
+                        <label class="af-check form-label">
                             <input
                                 type="checkbox"
                                 name="is_hidden[]"
                                 value="<?php echo sr_e((string) $row['form_key']); ?>"
+                                class="form-checkbox"
                                 <?php echo !empty($row['is_hidden']) ? 'checked' : ''; ?>
                             >
                             숨김

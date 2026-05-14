@@ -38,12 +38,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="basics">
                 <p>
-                    <label>표시 이름<br>
+                    <label>
+                    <span>표시 이름</span>
                         <input type="text" name="display_name" value="<?php echo sr_e((string) $account['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
                 <p>
-                    <label>선호 locale<br>
+                    <label>
+                    <span>선호 locale</span>
                         <input type="text" name="locale" value="<?php echo sr_e((string) $account['locale']); ?>" maxlength="20" required>
                     </label>
                 </p>
@@ -74,17 +76,20 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="password">
                 <p>
-                    <label>현재 비밀번호<br>
+                    <label>
+                    <span>현재 비밀번호</span>
                         <input type="password" name="current_password" required>
                     </label>
                 </p>
                 <p>
-                    <label>새 비밀번호<br>
+                    <label>
+                    <span>새 비밀번호</span>
                         <input type="password" name="new_password" required>
                     </label>
                 </p>
                 <p>
-                    <label>새 비밀번호 확인<br>
+                    <label>
+                    <span>새 비밀번호 확인</span>
                         <input type="password" name="new_password_confirm" required>
                     </label>
                 </p>
@@ -100,35 +105,40 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <input type="hidden" name="intent" value="profile">
                     <?php if ($profileFields['nickname']) { ?>
                         <p>
-                            <label>닉네임<br>
+                            <label>
+                    <span>닉네임</span>
                                 <input type="text" name="nickname" value="<?php echo sr_e($profile['nickname']); ?>" maxlength="80">
                             </label>
                         </p>
                     <?php } ?>
                     <?php if ($profileFields['phone']) { ?>
                         <p>
-                            <label>전화번호<br>
+                            <label>
+                    <span>전화번호</span>
                                 <input type="text" name="phone" value="<?php echo sr_e($profile['phone']); ?>" maxlength="40">
                             </label>
                         </p>
                     <?php } ?>
                     <?php if ($profileFields['birth_date']) { ?>
                         <p>
-                            <label>생년월일<br>
+                            <label>
+                    <span>생년월일</span>
                                 <input type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>">
                             </label>
                         </p>
                     <?php } ?>
                     <?php if ($profileFields['avatar_path']) { ?>
                         <p>
-                            <label>아바타 경로<br>
+                            <label>
+                    <span>아바타 경로</span>
                                 <input type="text" name="avatar_path" value="<?php echo sr_e($profile['avatar_path']); ?>" maxlength="255">
                             </label>
                         </p>
                     <?php } ?>
                     <?php if ($profileFields['profile_text']) { ?>
                         <p>
-                            <label>소개<br>
+                            <label>
+                    <span>소개</span>
                                 <textarea name="profile_text" maxlength="1000"><?php echo sr_e($profile['profile_text']); ?></textarea>
                             </label>
                         </p>
@@ -166,7 +176,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } ?>
         <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-export')); ?>">
             <?php echo sr_csrf_field(); ?>
-            <label>현재 비밀번호<br>
+            <label>
+                    <span>현재 비밀번호</span>
                 <input type="password" name="current_password" autocomplete="current-password" required>
             </label>
             <button type="submit">개인정보 사본 내려받기</button>

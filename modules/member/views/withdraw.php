@@ -21,12 +21,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <form method="post" action="<?php echo sr_e(sr_url('/account/withdraw')); ?>">
             <?php echo sr_csrf_field(); ?>
             <p>
-                <label>비밀번호<br>
+                <label>
+                    <span>비밀번호</span>
                     <input type="password" name="password" required>
                 </label>
             </p>
             <p>
-                <label>확인 문구<br>
+                <label>
+                    <span>확인 문구</span>
                     <input type="text" name="confirm_text" required>
                 </label>
             </p>

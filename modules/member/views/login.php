@@ -29,12 +29,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
             <p>
-                <label><?php echo sr_e($identifierLabel); ?><br>
+                <label>
+                    <span><?php echo sr_e($identifierLabel); ?></span>
                     <input type="text" name="identifier" value="<?php echo sr_e($identifier); ?>" autocomplete="username" required>
                 </label>
             </p>
             <p>
-                <label>비밀번호<br>
+                <label>
+                    <span>비밀번호</span>
                     <input type="password" name="password" required>
                 </label>
             </p>
