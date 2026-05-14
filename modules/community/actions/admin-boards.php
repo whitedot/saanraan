@@ -70,8 +70,15 @@ foreach ($memberGroups as $memberGroup) {
 
 $boardGroups = sr_community_board_groups($pdo);
 $boardGroupIds = [];
+$boardGroupTitles = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupIds[(int) $boardGroup['id']] = true;
+    $boardGroupTitles[(int) $boardGroup['id']] = (string) $boardGroup['title'];
+}
+$boardGroupFilterValue = sr_get_string('group_id', 20);
+$boardGroupFilterId = preg_match('/\A[1-9][0-9]*\z/', $boardGroupFilterValue) === 1 ? (int) $boardGroupFilterValue : 0;
+if ($boardGroupFilterId > 0 && !isset($boardGroupIds[$boardGroupFilterId])) {
+    $boardGroupFilterId = 0;
 }
 
 if (sr_request_method() === 'POST') {
@@ -520,6 +527,12 @@ foreach ($boards as &$board) {
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
 }
 unset($board);
+
+if ($communityBoardsPage === 'list' && $boardGroupFilterId > 0) {
+    $boards = array_values(array_filter($boards, static function (array $board) use ($boardGroupFilterId): bool {
+        return (int) ($board['board_group_id'] ?? 0) === $boardGroupFilterId;
+    }));
+}
 
 $editBoard = null;
 if ($communityBoardsPage === 'edit') {

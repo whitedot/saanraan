@@ -1,21 +1,20 @@
 <?php
 
-$adminPageTitle = '커뮤니티 게시글';
+$communityPostsPage = isset($communityPostsPage) ? (string) $communityPostsPage : 'posts';
+$adminPageTitle = $communityPostsPage === 'comments' ? '커뮤니티 댓글' : '커뮤니티 게시글';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<div class="member-summary">
+    <div class="member-summary-links">
+        <a href="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="btn btn-surface-default-soft">게시글</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="btn btn-surface-default-soft">댓글</a>
+    </div>
+</div>
 
+<?php if ($communityPostsPage !== 'comments') { ?>
 <section class="member-table-card admin-member-list-form">
     <div class="card-header"><h2 class="card-title">게시글 목록</h2></div>
     <?php if ($posts === []) { ?>
@@ -82,7 +81,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     <?php } ?>
 </section>
+<?php } ?>
 
+<?php if ($communityPostsPage === 'comments') { ?>
 <section class="member-table-card admin-member-list-form">
     <div class="card-header"><h2 class="card-title">댓글 목록</h2></div>
     <?php if ($comments === []) { ?>
@@ -119,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $comment['created_at']); ?></td>
                         <td class="member-cell-manage">
                             <div class="member-manage">
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="comment_status">
                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
@@ -141,5 +142,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     <?php } ?>
 </section>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

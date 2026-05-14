@@ -10,17 +10,7 @@ if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -192,6 +182,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
+            <p>배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">목록</a>
@@ -220,6 +211,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
+            <p>배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
             <button type="submit" class="btn btn-solid-primary">배너 설정 저장</button>
@@ -234,12 +226,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 배너 추가</a>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>">
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">상태</span></div>
-                <div class="af-field">
-                    <label>
-                        <span class="sr-only">상태</span>
+        <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter-form ui-form-theme">
+            <div class="admin-filter-fields admin-filter-fields-compact">
+                <label class="admin-filter-field">
+                    <span class="admin-filter-label">상태</span>
                     <select name="status">
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedStatuses as $status) { ?>
@@ -248,14 +238,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    </label>
-                </div>
-            </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">출력 위치</span></div>
-                <div class="af-field">
-                    <label>
-                        <span class="sr-only">출력 위치</span>
+                </label>
+                <label class="admin-filter-field">
+                    <span class="admin-filter-label">출력 위치</span>
                     <select name="target">
                         <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
                         <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $filters['target'] === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
@@ -266,10 +251,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    </label>
-                </div>
+                </label>
+                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
-            <button type="submit">조회</button>
         </form>
         <?php if ($banners === []) { ?>
             <p>등록된 배너가 없습니다.</p>

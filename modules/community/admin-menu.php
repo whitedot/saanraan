@@ -30,6 +30,11 @@ return [
             'order' => 40,
         ],
         [
+            'label' => '댓글',
+            'path' => '/admin/community/comments',
+            'order' => 45,
+        ],
+        [
             'label' => '신고',
             'path' => '/admin/community/reports',
             'order' => 50,

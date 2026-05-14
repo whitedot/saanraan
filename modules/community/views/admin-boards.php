@@ -64,17 +64,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -105,6 +95,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">게시판 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 게시판 추가</a>
         </div>
+        <?php if ((int) ($boardGroupFilterId ?? 0) > 0) { ?>
+            <div class="admin-filter-form">
+                <div class="admin-filter-heading">
+                    <strong><?php echo sr_e((string) ($boardGroupTitles[(int) $boardGroupFilterId] ?? '선택한 그룹')); ?> 그룹에 속한 게시판만 표시 중</strong>
+                    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-sm btn-surface-default-soft">전체 보기</a>
+                </div>
+            </div>
+        <?php } ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">

@@ -10,17 +10,7 @@ if ($notificationAdminPage === 'new') {
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -93,13 +83,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
-            <p>채널</p>
-            <?php foreach ($allowedChannels as $channel) { ?>
-                <label>
-                    <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
-                    <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
-                </label><br>
-            <?php } ?>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">채널</span></div>
+                <div class="af-field">
+                    <div class="admin-check-list">
+                        <?php foreach ($allowedCreateChannels as $channel) { ?>
+                            <label class="af-check form-label">
+                                <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                    <p class="field-help">알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</p>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft">목록</a>

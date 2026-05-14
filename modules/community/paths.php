@@ -40,6 +40,8 @@ return [
     'POST /admin/community/board-groups/update' => 'actions/admin-board-group-update.php',
     'GET /admin/community/posts' => 'actions/admin-posts.php',
     'POST /admin/community/posts' => 'actions/admin-posts.php',
+    'GET /admin/community/comments' => 'actions/admin-comments.php',
+    'POST /admin/community/comments' => 'actions/admin-comments.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',
     'POST /admin/community/reports' => 'actions/admin-reports.php',
 ];

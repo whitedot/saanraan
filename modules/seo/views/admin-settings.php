@@ -4,17 +4,7 @@ $adminPageTitle = 'SEO 설정';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
@@ -70,17 +60,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>로봇 설정</h2>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">차단 경로</span></div>
-            <div class="af-field">
-                <label>
-                    <span class="sr-only">차단 경로</span>
-                <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
-                </label>
+        <div class="seo-robots-table">
+            <div class="seo-robots-name">
+                <strong>robots.txt</strong>
+                <a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">파일 확인</a>
+            </div>
+            <div class="seo-robots-content">
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">차단 경로</span></div>
+                    <div class="af-field">
+                        <label>
+                            <span class="sr-only">차단 경로</span>
+                        <textarea name="robots_disallow_paths" rows="8" maxlength="2000"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
+                        </label>
+                    </div>
+                </div>
+                <pre><?php echo sr_e($robotsPreview); ?></pre>
             </div>
         </div>
-        <pre><?php echo sr_e($robotsPreview); ?></pre>
-        <p><a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">robots.txt 확인</a></p>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

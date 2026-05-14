@@ -11,6 +11,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedAudiences = ['account', 'all'];
 $allowedChannels = sr_notification_allowed_channels();
+$allowedCreateChannels = array_values(array_intersect($allowedChannels, ['site', 'email']));
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
@@ -181,7 +182,7 @@ if (sr_request_method() === 'POST') {
         } else {
             foreach ($postedChannels as $channel) {
                 $channel = is_string($channel) ? $channel : '';
-                if (in_array($channel, $allowedChannels, true)) {
+                if (in_array($channel, $allowedCreateChannels, true)) {
                     $channels[$channel] = $channel;
                 }
             }
@@ -190,7 +191,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '발송 채널을 하나 이상 선택하세요.';
         }
         if (sr_notification_external_channels(array_values($channels)) !== [] && $recipient === '') {
-            $errors[] = '이메일, SMS, 알림톡 채널은 외부 수신자를 입력해야 합니다.';
+            $errors[] = '이메일 채널은 외부 수신자를 입력해야 합니다.';
         }
 
         if ($errors === []) {
@@ -220,7 +221,7 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
 
-                $notice = '알림을 등록했습니다. 이메일/SMS/알림톡은 발송 대기열에 쌓입니다.';
+                $notice = '알림을 등록했습니다. 이메일은 발송 대기열에 쌓입니다.';
             } catch (Throwable $exception) {
                 $errors[] = '알림 등록 중 오류가 발생했습니다.';
             }

@@ -58,17 +58,7 @@ if ($communityBoardGroupsPage === 'edit' && isset($formBoardGroup['id'])) {
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -123,7 +113,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $boardGroup['group_key']); ?></td>
                         <td><?php echo sr_e((string) $boardGroup['title']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $boardGroup['status'], 'content_status')); ?></td>
-                        <td><?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?></td>
+                        <td>
+                            <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">
+                                <?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?>개 보기
+                            </a>
+                        </td>
                         <td class="member-cell-manage">
                             <div class="member-manage">
                                 <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>

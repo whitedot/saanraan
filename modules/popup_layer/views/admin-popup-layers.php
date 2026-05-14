@@ -11,17 +11,7 @@ if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-summary">
     <div class="member-summary-links">
@@ -138,8 +128,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="af-field">
                         <label>
                             <span class="sr-only">시작 시각</span>
-                        <input type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>">
+                        <input type="datetime-local" name="starts_at" id="popup_starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>">
                         </label>
+                        <div class="admin-date-quick-actions">
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick="now" data-datetime-target="popup_starts_at">지금</button>
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="1" data-datetime-target="popup_starts_at">+1일</button>
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="3" data-datetime-target="popup_starts_at">+3일</button>
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="7" data-datetime-target="popup_starts_at">+7일</button>
+                        </div>
                     </div>
                 </div>
                 <div class="af-row">
@@ -147,8 +143,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="af-field">
                         <label>
                             <span class="sr-only">종료 시각</span>
-                        <input type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>">
+                        <input type="datetime-local" name="ends_at" id="popup_ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>">
                         </label>
+                        <div class="admin-date-quick-actions">
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="1" data-datetime-target="popup_ends_at">+1일</button>
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="3" data-datetime-target="popup_ends_at">+3일</button>
+                            <button type="button" class="btn btn-sm btn-surface-default-soft" data-datetime-quick-days="7" data-datetime-target="popup_ends_at">+7일</button>
+                        </div>
                     </div>
                 </div>
                 <div class="af-row">

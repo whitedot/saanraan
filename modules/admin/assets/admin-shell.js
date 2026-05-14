@@ -32,6 +32,7 @@ window.AdminShell = {
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
         const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
+        const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         let hideScrollbarTimer = null;
 
         const isMobileViewport = () => mobileQuery.matches;
@@ -411,6 +412,34 @@ window.AdminShell = {
             };
             memberRuleDefinition.addEventListener('change', syncRuleParamPanel);
             syncRuleParamPanel();
+        }
+
+        if (dateQuickButtons.length > 0) {
+            const toLocalDatetimeValue = date => {
+                const pad = value => String(value).padStart(2, '0');
+                return [
+                    date.getFullYear(),
+                    pad(date.getMonth() + 1),
+                    pad(date.getDate()),
+                ].join('-') + 'T' + [pad(date.getHours()), pad(date.getMinutes())].join(':');
+            };
+
+            dateQuickButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = document.getElementById(button.dataset.datetimeTarget || '');
+                    if (!target) {
+                        return;
+                    }
+
+                    const days = Number(button.dataset.datetimeQuickDays || '0');
+                    const date = new Date();
+                    if (button.dataset.datetimeQuick !== 'now' && Number.isFinite(days)) {
+                        date.setDate(date.getDate() + days);
+                    }
+                    target.value = toLocalDatetimeValue(date);
+                    target.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
         }
 
         syncDesktopSidebarState();
