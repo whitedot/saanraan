@@ -28,7 +28,7 @@ window.AdminShell = {
         const themeToggleIconUse = document.getElementById('admin_theme_toggle_icon_use');
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
-        const toastStack = document.querySelector('.admin-toast-stack');
+        const toastStack = document.querySelector('[data-admin-toast-stack]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
         const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
@@ -385,7 +385,7 @@ window.AdminShell = {
             const activateTab = tabName => {
                 buttons.forEach(button => {
                     const active = button.dataset.adminTabTarget === tabName;
-                    button.classList.toggle('is-active', active);
+                    button.classList.toggle('active', active);
                     button.setAttribute('aria-selected', active ? 'true' : 'false');
                 });
                 panels.forEach(panel => {

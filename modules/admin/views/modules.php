@@ -6,19 +6,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-notice">
-    <span class="member-notice-icon" aria-hidden="true">i</span>
-    <div class="member-notice-copy">
+<div class="ui-notice">
+    <span class="ui-notice-icon" aria-hidden="true">i</span>
+    <div class="ui-notice-copy">
         <strong>모듈 상태 안내</strong>
         <p>설치 차단 상태는 메타데이터나 계약 오류가 있는 미설치 모듈을 뜻합니다.</p>
     </div>
 </div>
 
-<nav class="admin-tabs" data-admin-tabs>
-    <button type="button" class="admin-tab-button is-active" data-admin-tab-target="installed">설치된 모듈</button>
-    <button type="button" class="admin-tab-button" data-admin-tab-target="installable">설치 가능한 모듈</button>
-    <button type="button" class="admin-tab-button" data-admin-tab-target="upload">zip 업로드</button>
-    <button type="button" class="admin-tab-button" data-admin-tab-target="settings">고급 설정</button>
+<nav class="tab-nav-bordered admin-tabs" data-admin-tabs>
+    <button type="button" class="tab-trigger-underline active" data-admin-tab-target="installed">설치된 모듈</button>
+    <button type="button" class="tab-trigger-underline" data-admin-tab-target="installable">설치 가능한 모듈</button>
+    <button type="button" class="tab-trigger-underline" data-admin-tab-target="upload">zip 업로드</button>
+    <button type="button" class="tab-trigger-underline" data-admin-tab-target="settings">고급 설정</button>
 </nav>
 
 <section id="module-tab-installed" class="member-table-card admin-member-list-form" data-admin-tab-panel="installed">
