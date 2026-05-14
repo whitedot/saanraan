@@ -21,18 +21,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>가입과 인증</h2>
-        <p>
-            <label>
-                <input type="checkbox" name="allow_registration" value="1"<?php echo !empty($settings['allow_registration']) ? ' checked' : ''; ?>>
-                공개 회원가입 허용
-            </label>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="email_verification_enabled" value="1"<?php echo !empty($settings['email_verification_enabled']) ? ' checked' : ''; ?>>
-                이메일 인증 사용
-            </label>
-        </p>
+        <div class="af-grid">
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">공개 회원가입 허용</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="allow_registration" value="1" class="form-checkbox"<?php echo !empty($settings['allow_registration']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('공개 회원가입 허용'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이메일 인증 사용</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="email_verification_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['email_verification_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이메일 인증 사용'); ?>
+                    </label>
+                </div>
+            </div>
+        </div>
         <p>
             <label>로그인 식별자<br>
                 <select name="login_identifier">
@@ -60,14 +68,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>선택 프로필 항목</h2>
+        <div class="af-grid">
         <?php foreach (sr_member_profile_field_setting_keys() as $key => $label) { ?>
-            <p>
-                <label>
-                    <input type="checkbox" name="<?php echo sr_e($key); ?>" value="1"<?php echo !empty($settings[$key]) ? ' checked' : ''; ?>>
-                    <?php echo sr_e($label); ?>
-                </label>
-            </p>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label"><?php echo sr_e($label); ?></span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="<?php echo sr_e($key); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$key]) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html((string) $label); ?>
+                    </label>
+                </div>
+            </div>
         <?php } ?>
+        </div>
     </section>
 
     <section class="card">

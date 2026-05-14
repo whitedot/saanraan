@@ -133,9 +133,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="apply_updates">
             <p>
-                <label>
-                    <input type="checkbox" name="backup_confirmed" value="1" required>
-                    DB와 파일 백업을 확인했습니다.
+                <label class="af-check form-label">
+                    <input type="checkbox" name="backup_confirmed" value="1" class="form-checkbox" required>
+                    <?php echo sr_admin_choice_label_html('DB와 파일 백업을 확인했습니다.'); ?>
                 </label>
             </p>
             <div class="member-list-actions">

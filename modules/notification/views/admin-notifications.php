@@ -72,7 +72,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <p>채널</p>
             <?php foreach ($allowedChannels as $channel) { ?>
                 <label>
-                    <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
+                    <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
                     <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
                 </label><br>
             <?php } ?>

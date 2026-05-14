@@ -235,12 +235,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="number" name="group_comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>">
                     </label>
                 </p>
-                <p>
-                    <label>
-                        <input type="checkbox" name="group_image_uploads_enabled" value="1"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                        이미지 첨부 허용
-                    </label>
-                </p>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">이미지 첨부 허용</span></div>
+                    <div class="af-field">
+                        <label class="af-check form-label">
+                            <input type="checkbox" name="group_image_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
+                        </label>
+                    </div>
+                </div>
                 <p>
                     <label>이미지 최대 용량(bytes)<br>
                         <input type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>">
@@ -251,12 +254,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>">
                     </label>
                 </p>
-                <p>
-                    <label>
-                        <input type="checkbox" name="group_file_uploads_enabled" value="1"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                        파일 첨부 허용
-                    </label>
-                </p>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">파일 첨부 허용</span></div>
+                    <div class="af-field">
+                        <label class="af-check form-label">
+                            <input type="checkbox" name="group_file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
+                        </label>
+                    </div>
+                </div>
                 <p>
                     <label>파일 최대 용량(bytes)<br>
                         <input type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>">
@@ -276,11 +282,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <section class="card">
                     <h2>같은 그룹 게시판에 적용</h2>
+                    <p>적용할 설정을 선택하세요.</p>
                     <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
-                        <label>
-                            <input type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>">
+                        <label class="af-check form-label">
+                            <input type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">
                             <?php echo sr_e($settingLabel); ?>
-                        </label><br>
+                        </label>
                     <?php } ?>
                 </section>
             <?php } ?>

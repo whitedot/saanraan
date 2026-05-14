@@ -349,11 +349,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
                 <?php } ?>
             </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="image_uploads_enabled" value="1"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
-                    이미지 첨부 허용
-                </label>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">이미지 첨부 허용</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="image_uploads_enabled" value="1" class="form-checkbox"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_image_uploads_enabled">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -362,7 +364,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo !empty($formBoard['effective_image_uploads_enabled']) ? '허용' : '차단'; ?></small>
                 <?php } ?>
-            </p>
+                </div>
+            </div>
             <p>
                 <label>이미지 최대 용량(bytes)<br>
                     <input type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>">
@@ -389,11 +392,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
                 <?php } ?>
             </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="file_uploads_enabled" value="1"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                    파일 첨부 허용
-                </label>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">파일 첨부 허용</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
+                    </label>
                 <?php if ($communityBoardsPage === 'edit') { ?>
                     <select name="source_file_uploads_enabled">
                         <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -402,7 +407,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <small>적용값: <?php echo !empty($formBoard['effective_file_uploads_enabled']) ? '허용' : '차단'; ?></small>
                 <?php } ?>
-            </p>
+                </div>
+            </div>
             <p>
                 <label>파일 최대 용량(bytes)<br>
                     <input type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>">

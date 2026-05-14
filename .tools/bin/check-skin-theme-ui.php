@@ -39,6 +39,21 @@ function sr_skin_theme_check_contains(string $path, array $needles, string $labe
     }
 }
 
+function sr_skin_theme_check_not_contains(string $path, array $needles, string $label): void
+{
+    global $errors;
+    $content = sr_skin_theme_check_read($path);
+    if ($content === '') {
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($content, (string) $needle)) {
+            $errors[] = $label . ' must not contain: ' . $needle;
+        }
+    }
+}
+
 function sr_skin_theme_check_file_exists(string $path, string $label): void
 {
     global $root, $errors;
@@ -335,13 +350,19 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
 ], 'Shared view option validation');
 
 sr_skin_theme_check_contains('modules/admin/helpers/shell.php', [
-    'sr_admin_form_paragraph_label_text($child) === \'\'',
     'function sr_admin_choice_label_parts(string $labelText): array',
-    'function sr_admin_simplify_choice_label(DOMDocument $document, DOMElement $label, string $labelText): void',
-    '$label = $document->createElement(\'span\');',
-    '$hidden->setAttribute(\'class\', \'sr-only\');',
-    'sr_admin_normalize_inline_checks($fieldCell);',
-], 'Admin form label normalization');
+    'function sr_admin_choice_label_html(string $labelText): string',
+    '\'<span class="sr-only">\' . sr_e($hiddenText) . \'</span>\'',
+], 'Admin form explicit choice labels');
+
+sr_skin_theme_check_not_contains('modules/admin/helpers/shell.php', [
+    'DOMDocument',
+    'loadHTML',
+    'sr_admin_normalize_content_html',
+    'sr_admin_normalize_form_controls',
+    'ob_start',
+    'ob_get_clean',
+], 'Admin shell post-render DOM normalization');
 
 sr_skin_theme_check_contains('assets/common.css', [
     '.form-checkbox::after',

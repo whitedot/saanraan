@@ -10,6 +10,7 @@ const SR_ROOT = __DIR__ . '/../..';
 
 require_once SR_ROOT . '/core/version.php';
 require_once SR_ROOT . '/core/helpers/settings.php';
+require_once SR_ROOT . '/core/helpers/output.php';
 require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 
 final class SrPopupLayerCheckStatement extends PDOStatement

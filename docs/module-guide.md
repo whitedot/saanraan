@@ -129,7 +129,7 @@ modules/board/
 - 전역 public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
 - 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
-- 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다.
+- 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다.
 
 모듈은 DB에 view 파일 경로를 저장하지 않는다. `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist에서 결정한다. 알 수 없는 key는 `basic`으로 fallback한다.
 

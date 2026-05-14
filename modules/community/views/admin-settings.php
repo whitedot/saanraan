@@ -43,18 +43,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>레벨</h2>
-        <p>
-            <label>
-                <input type="checkbox" name="level_enabled" value="1"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
-                커뮤니티 레벨 사용
-            </label>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="level_auto_recalculate" value="1"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
-                게시글/댓글 활동 후 레벨 자동 재계산
-            </label>
-        </p>
+        <div class="af-grid">
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">커뮤니티 레벨 사용</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('커뮤니티 레벨 사용'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">게시글/댓글 활동 후 레벨 자동 재계산</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('게시글/댓글 활동 후 레벨 자동 재계산'); ?>
+                    </label>
+                </div>
+            </div>
+        </div>
         <p>
             <label>게시글 점수<br>
                 <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>">

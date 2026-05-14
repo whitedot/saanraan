@@ -40,12 +40,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="card">
         <h2>사이트맵</h2>
-        <p>
-            <label>
-                <input type="checkbox" name="sitemap_include_home" value="1"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
-                홈 URL 포함
-            </label>
-        </p>
+        <div class="af-grid">
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">홈 URL 포함</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="sitemap_include_home" value="1" class="form-checkbox"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('홈 URL 포함'); ?>
+                    </label>
+                </div>
+            </div>
+        </div>
         <?php if ($sitemapUrl !== '') { ?>
             <p><a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>">sitemap.xml 확인</a></p>
         <?php } ?>

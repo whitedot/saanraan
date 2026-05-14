@@ -179,18 +179,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*">
                 </label>
             </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="confirm_file_replace" value="1">
-                    기존 모듈 파일 백업과 교체 확인
-                </label>
-            </p>
-            <p>
-                <label>
-                    <input type="checkbox" name="allow_downgrade" value="1">
-                    낮은 버전 덮어쓰기 허용
-                </label>
-            </p>
+            <div class="af-grid">
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
+                    <div class="af-field">
+                        <label class="af-check form-label">
+                            <input type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
+                            <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
+                        </label>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
+                    <div class="af-field">
+                        <label class="af-check form-label">
+                            <input type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
+                            <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
+                        </label>
+                    </div>
+                </div>
+            </div>
             <p>
                 <label>소유자 비밀번호<br>
                     <input type="password" name="owner_password" autocomplete="current-password" required>

@@ -57,12 +57,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
     <section class="card">
         <h2>실행 확인</h2>
-        <p>
-            <label>
-                <input type="checkbox" name="cleanup_confirmed" value="1" required>
-                아래 삭제 후보 수를 확인했습니다.
-            </label>
-        </p>
+        <div class="af-grid">
+            <div class="af-row">
+                <div class="af-label"><span class="form-label">아래 삭제 후보 수를 확인했습니다.</span></div>
+                <div class="af-field">
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="cleanup_confirmed" value="1" class="form-checkbox" required>
+                        <?php echo sr_admin_choice_label_html('아래 삭제 후보 수를 확인했습니다.'); ?>
+                    </label>
+                </div>
+            </div>
+        </div>
         <p>
             <label>확인 문구<br>
                 <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required>
