@@ -45,7 +45,9 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
             <div class="admin-flash-message admin-flash-message-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
                 <strong><?php echo sr_e((string) $item['title']); ?></strong>
                 <span><?php echo sr_e((string) $item['message']); ?></span>
-                <button type="button" class="btn btn-sm btn-surface-default-soft" data-admin-toast-close aria-label="알림 닫기">닫기</button>
+                <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="알림 닫기">
+                    <span class="close-icon" aria-hidden="true"></span>
+                </button>
             </div>
         <?php } ?>
     </div>

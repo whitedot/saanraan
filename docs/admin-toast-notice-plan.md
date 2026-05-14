@@ -134,6 +134,9 @@ $_SESSION['sr_admin_flash_notices']
     <div class="admin-flash-message admin-flash-message-success" data-admin-toast>
         <strong>완료</strong>
         <span><?php echo sr_e('회원 세션을 폐기했습니다.'); ?></span>
+        <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="알림 닫기">
+            <span class="close-icon" aria-hidden="true"></span>
+        </button>
     </div>
 </div>
 ```
