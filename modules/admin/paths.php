@@ -4,7 +4,7 @@ return [
     'GET /admin' => 'actions/dashboard.php',
     'GET /admin/settings' => 'actions/settings.php',
     'POST /admin/settings' => 'actions/settings.php',
-    'GET /admin/design-system' => 'actions/design-system.php',
+    'GET /admin/design-tokens' => 'actions/design-tokens.php',
     'GET /admin/menu' => 'actions/menu.php',
     'POST /admin/menu' => 'actions/menu.php',
     'GET /admin/modules' => 'actions/modules.php',

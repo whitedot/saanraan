@@ -15,7 +15,7 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 - 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
 - 탭처럼 공통 CSS에 이미 정의된 반복 UI는 `tab-nav-*`, `tab-trigger-*` 같은 기존 시맨틱 클래스를 먼저 사용한다. 토스트는 기존 관리자 메시지 클래스인 `admin-flash-message-*`에 `data-admin-toast` 동작 속성만 더해 사용하고, 위치와 닫기 버튼 배치는 `data-admin-toast-*` 속성 선택자로 처리한다.
-- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/design-system` 미리보기 페이지에서 `assets/common.css`의 전체 디자인 토큰과 클래스 항목을 먼저 확인한다.
+- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/design-tokens` 미리보기 페이지에서 `assets/common.css`의 전체 디자인 토큰과 클래스 항목을 먼저 확인한다.
 
 ## 사이드바
 

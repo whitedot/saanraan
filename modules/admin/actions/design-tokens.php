@@ -11,7 +11,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $commonCssPath = SR_ROOT . '/assets/common.css';
 $commonCss = is_file($commonCssPath) ? (string) file_get_contents($commonCssPath) : '';
 
-function sr_admin_design_system_token_category(string $name): string
+function sr_admin_design_tokens_token_category(string $name): string
 {
     if (str_starts_with($name, '--color-')) {
         return '색상';
@@ -44,7 +44,7 @@ function sr_admin_design_system_token_category(string $name): string
     return '기타';
 }
 
-function sr_admin_design_system_class_category(string $className): string
+function sr_admin_design_tokens_class_category(string $className): string
 {
     if ($className === 'btn' || str_starts_with($className, 'btn-') || $className === 'badge' || str_starts_with($className, 'badge-')) {
         return '버튼/배지';
@@ -77,7 +77,7 @@ function sr_admin_design_system_class_category(string $className): string
     return '기타';
 }
 
-function sr_admin_design_system_tokens(string $css): array
+function sr_admin_design_tokens_token_groups(string $css): array
 {
     preg_match_all('/(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+);/', $css, $matches, PREG_SET_ORDER);
     $tokens = [];
@@ -91,7 +91,7 @@ function sr_admin_design_system_tokens(string $css): array
         if (!isset($tokens[$name])) {
             $tokens[$name] = [
                 'name' => $name,
-                'category' => sr_admin_design_system_token_category($name),
+                'category' => sr_admin_design_tokens_token_category($name),
                 'values' => [],
             ];
         }
@@ -111,7 +111,7 @@ function sr_admin_design_system_tokens(string $css): array
     return $groups;
 }
 
-function sr_admin_design_system_classes(string $css): array
+function sr_admin_design_tokens_class_groups(string $css): array
 {
     preg_match_all('/(?<![A-Za-z0-9_-])\.([A-Za-z_][A-Za-z0-9_-]*)/', $css, $matches);
     $classes = array_values(array_unique(array_map('strval', $matches[1] ?? [])));
@@ -119,14 +119,14 @@ function sr_admin_design_system_classes(string $css): array
 
     $groups = [];
     foreach ($classes as $className) {
-        $groups[sr_admin_design_system_class_category($className)][] = $className;
+        $groups[sr_admin_design_tokens_class_category($className)][] = $className;
     }
 
     return $groups;
 }
 
-$commonCssTokenGroups = sr_admin_design_system_tokens($commonCss);
-$commonCssClassGroups = sr_admin_design_system_classes($commonCss);
+$commonCssTokenGroups = sr_admin_design_tokens_token_groups($commonCss);
+$commonCssClassGroups = sr_admin_design_tokens_class_groups($commonCss);
 $commonCssTokenCount = array_sum(array_map('count', $commonCssTokenGroups));
 $commonCssClassCount = array_sum(array_map('count', $commonCssClassGroups));
 $commonCssButtonClasses = array_values(array_filter($commonCssClassGroups['버튼/배지'] ?? [], function (string $className): bool {
@@ -141,4 +141,4 @@ $commonCssTableClasses = $commonCssClassGroups['테이블/페이지'] ?? [];
 $commonCssTabClasses = $commonCssClassGroups['탭/내비게이션'] ?? [];
 $commonCssModalClasses = $commonCssClassGroups['모달/오버레이'] ?? [];
 
-include SR_ROOT . '/modules/admin/views/design-system.php';
+include SR_ROOT . '/modules/admin/views/design-tokens.php';
