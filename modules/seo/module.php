@@ -6,8 +6,8 @@ return [
     'type' => 'module',
     'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
     'admin' => [
-        'category' => 'content',
-        'category_label' => '사이트 구성',
+        'category' => 'system_asset',
+        'category_label' => '시스템 자산',
         'category_order' => 30,
         'menu_order' => 40,
     ],

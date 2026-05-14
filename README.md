@@ -6,7 +6,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 - 절차형 PHP 기반.
 - 작은 코어와 모듈 경계 중심.
 - 회원, 관리자, 업데이트, 보안 helper 같은 운영 기준선 제공.
-- 현재 상태: 기본 설치, 회원/관리자, 커뮤니티, 사이트 구성, 운영 보조 모듈을 포함한 개발 진행 중인 베이스.
+- 현재 상태: 기본 설치, 회원/관리자, 커뮤니티, 시스템 자산, 운영 보조 모듈을 포함한 개발 진행 중인 베이스.
 
 ## 한눈에 보기
 
@@ -16,7 +16,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | 언어 | PHP 8.1 이상 |
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
-| 기본 설치 | `core + member + admin + privacy` |
+| 기본 설치 | `core + member + admin + privacy`, 설치 화면에서 시스템 자산 모듈 기본 선택 |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅 |

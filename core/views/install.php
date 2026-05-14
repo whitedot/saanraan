@@ -245,7 +245,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <p class="sr-install-kicker">모듈</p>
                         <h2>설치할 기능</h2>
                     </div>
-                    <p>선택하지 않은 기본 제공 모듈은 설치 후 관리자 모듈 화면에서 추가할 수 있습니다.</p>
+                    <p>시스템 자산 모듈은 기본 선택되어 있으며, 선택하지 않은 기본 제공 모듈은 설치 후 관리자 모듈 화면에서 추가할 수 있습니다.</p>
                 </div>
 
                 <h3>필수 모듈</h3>

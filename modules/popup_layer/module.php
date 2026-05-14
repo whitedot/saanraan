@@ -6,8 +6,8 @@ return [
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [
-        'category' => 'content',
-        'category_label' => '사이트 구성',
+        'category' => 'system_asset',
+        'category_label' => '시스템 자산',
         'category_order' => 30,
         'menu_order' => 30,
     ],
