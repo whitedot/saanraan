@@ -336,8 +336,8 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
 
 sr_skin_theme_check_contains('modules/admin/helpers/shell.php', [
     'sr_admin_form_paragraph_label_text($child) === \'\'',
-    'function sr_admin_ensure_control_id(DOMElement $control): string',
-    'function sr_admin_move_choice_fields_to_container(DOMElement $label, DOMElement $container): void',
+    '$label = $document->createElement(\'span\');',
+    'sr_admin_normalize_inline_checks($fieldCell);',
 ], 'Admin form label normalization');
 
 if ($errors !== []) {
