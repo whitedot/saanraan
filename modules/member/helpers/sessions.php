@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 function sr_member_login(PDO $pdo, array $account): bool
 {
+    sr_member_cleanup_sessions($pdo);
+
     session_regenerate_id(true);
     $_SESSION['sr_account_id'] = (int) $account['id'];
     $_SESSION['sr_csrf_token'] = bin2hex(random_bytes(32));
@@ -57,8 +59,38 @@ function sr_member_create_session(PDO $pdo, int $accountId): string
     return $sessionTokenHash;
 }
 
+function sr_member_cleanup_sessions(PDO $pdo, int $revokedRetentionDays = 30): int
+{
+    if (!sr_member_sessions_table_exists($pdo)) {
+        return 0;
+    }
+
+    $now = sr_now();
+    $revokedBefore = date('Y-m-d H:i:s', time() - max(1, $revokedRetentionDays) * 86400);
+
+    try {
+        $stmt = $pdo->prepare(
+            'DELETE FROM sr_member_sessions
+             WHERE expires_at < :now
+                OR (revoked_at IS NOT NULL AND revoked_at < :revoked_before)'
+        );
+        $stmt->execute([
+            'now' => $now,
+            'revoked_before' => $revokedBefore,
+        ]);
+    } catch (PDOException $exception) {
+        return -1;
+    }
+
+    return $stmt->rowCount();
+}
+
 function sr_member_session_is_current(PDO $pdo, int $accountId): bool
 {
+    if (random_int(1, 100) === 1) {
+        sr_member_cleanup_sessions($pdo);
+    }
+
     $sessionTokenHash = $_SESSION['sr_session_token_hash'] ?? '';
     if (!is_string($sessionTokenHash) || preg_match('/\A[a-f0-9]{64}\z/', $sessionTokenHash) !== 1) {
         return !sr_member_sessions_table_exists($pdo);

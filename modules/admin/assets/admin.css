@@ -162,13 +162,18 @@
 .admin-dashboard-card .table th:first-child,.admin-dashboard-card .table td:first-child{padding-left:calc(var(--spacing) * 0)}
 .admin-dashboard-card .table th:last-child,.admin-dashboard-card .table td:last-child{padding-right:calc(var(--spacing) * 0)}
 .admin-dashboard-empty{text-align:center;color:var(--color-default-600)}
+.admin-dashboard-site-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:0;display:grid}
+.admin-dashboard-site-grid>div{border-right:1px solid var(--color-default-200);padding:1rem 1.25rem;min-width:0}
+.admin-dashboard-site-grid>div:last-child{border-right-width:0}
+.admin-dashboard-site-grid dt{font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-500)}
+.admin-dashboard-site-grid dd{margin-top:.25rem;font-size:var(--text-base);line-height:var(--text-base--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-900);overflow-wrap:anywhere}
 .member-summary,.member-search-card,.member-notice{margin-bottom:calc(var(--spacing) * 4)}
 .member-summary{justify-content:space-between;align-items:center;column-gap:calc(var(--spacing) * 4);row-gap:calc(var(--spacing) * 3);flex-wrap:wrap;display:flex}
 .member-summary-links,.member-summary-stats{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
 .member-summary-meta{color:var(--color-default-700);align-items:center;gap:.35rem;font-size:.8125rem;display:inline-flex}
 .member-summary-meta strong{color:var(--color-default-900)}
 .member-search-card form{gap:.875rem;display:grid}
-.member-search-fields{grid-template-columns:minmax(0,11rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
+.member-search-fields{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
 .member-field{min-width:calc(var(--spacing) * 0);gap:.45rem;display:grid}
 .member-field label{margin:calc(var(--spacing) * 0);font-size:.8125rem;font-weight:var(--font-weight-semibold);color:var(--color-default-700)}
 .member-field select,.member-field input[type=text],.member-field input[type=number]{border:1px solid var(--color-default-300);background:var(--color-card);width:100%;min-height:2.75rem;color:var(--color-default-900);border-radius:0;padding:.65rem .8rem}
@@ -205,6 +210,13 @@
 .admin-member-list-form .member-status.is-left{color:var(--color-danger-hover)}
 .admin-member-list-form .member-manage{justify-content:flex-end;align-items:center;gap:calc(var(--spacing) * 1.5);white-space:nowrap;flex-wrap:nowrap;display:flex}
 .admin-member-list-form .member-manage .btn{flex:none}
+.member-edit-details{position:relative}
+.member-edit-details>summary{list-style:none}
+.member-edit-details>summary::-webkit-details-marker{display:none}
+.member-edit-form{right:0;top:calc(100% + .5rem);z-index:25;border:1px solid var(--color-default-300);background:var(--color-card);box-shadow:var(--shadow);width:min(22rem,80vw);padding:1rem;gap:.75rem;display:grid;position:absolute}
+.member-edit-form label{gap:.35rem;display:grid;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold);color:var(--color-default-700)}
+.member-edit-form input,.member-edit-form select{border:1px solid var(--color-default-300);background:var(--color-card);width:100%;min-height:2.35rem;color:var(--color-default-900);border-radius:0;padding:.45rem .6rem;font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
+.member-edit-form button{justify-self:end}
 .community-search-fields-wide{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto}
 .community-search-fields-compact{grid-template-columns:minmax(0,16rem) auto;justify-content:start}
 .community-table-card .table-wrapper{width:100%;overflow:auto}
@@ -286,7 +298,7 @@ body.admin-sidebar-condensed #gnb .gnb_menu_scroll_wrap,body.admin-sidebar-conde
 body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 @media (min-width:1024px){body.admin-sidebar-condensed #btn_gnb_mobile{display:inline-flex}}
 @media (max-width:1023px){.member-search-fields,.community-search-fields-wide,.community-search-fields-compact{grid-template-columns:1fr}.member-search-submit{justify-content:center;width:100%}#hd{width:var(--admin-sidebar-width)}body:not(.admin-sidebar-open) #hd{pointer-events:none}body.admin-sidebar-open #hd{pointer-events:auto}#gnb{width:var(--admin-sidebar-width);z-index:50;pointer-events:auto;box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;position:fixed;inset:0 auto 0 0;transform:translate(-100%)}body.admin-sidebar-open #gnb{transform:translate(0)}#wrapper,body.admin-sidebar-condensed #wrapper{padding-left:0}#gnb .gnb_scrollbar{display:none}}
-@media (max-width:767px){.member-summary{align-items:flex-start}.member-summary-links{display:grid;grid-template-columns:1fr;width:100%}.member-summary-links .btn{min-width:0}.member-table-card>.card-header{align-items:stretch;flex-direction:column}.member-table-card>.card-header>.btn{justify-content:center;width:100%}.member-notice{grid-template-columns:1fr}.member-list-actions{flex-direction:column;align-items:stretch}.member-list-actions>*{width:100%}.member-list-actions .btn{justify-content:center}}
+@media (max-width:767px){.admin-dashboard-site-grid{grid-template-columns:1fr}.admin-dashboard-site-grid>div{border-right-width:0;border-bottom:1px solid var(--color-default-200)}.admin-dashboard-site-grid>div:last-child{border-bottom-width:0}.member-summary{align-items:flex-start}.member-summary-links{display:grid;grid-template-columns:1fr;width:100%}.member-summary-links .btn{min-width:0}.member-table-card>.card-header{align-items:stretch;flex-direction:column}.member-table-card>.card-header>.btn{justify-content:center;width:100%}.member-notice{grid-template-columns:1fr}.member-list-actions{flex-direction:column;align-items:stretch}.member-list-actions>*{width:100%}.member-list-actions .btn{justify-content:center}}
 /* Saanraan admin adapters: keep common.css as the ui-kit and define Saanraan-specific admin structures here. */
 
 @media (max-width:767px){

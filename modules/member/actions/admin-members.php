@@ -23,6 +23,8 @@ if (sr_request_method() === 'POST') {
 
 $statusFilter = sr_admin_member_status_filter($allowedStatuses);
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
-$members = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter));
+$searchFilter = sr_admin_member_search_filter($pdo, $runtimeConfig);
+$statusCounts = sr_admin_member_status_counts($pdo);
+$members = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter));
 
 include SR_ROOT . '/modules/member/views/admin-members.php';

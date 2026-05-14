@@ -244,6 +244,7 @@ if (!is_string($adminMembersHelper)) {
 } else {
     if (
         strpos($adminMembersHelper, "in_array(\$intent, ['status', 'revoke_sessions'], true)") === false
+        && strpos($adminMembersHelper, "in_array(\$intent, ['status', 'edit', 'revoke_sessions'], true)") === false
         || strpos($adminMembersHelper, '회원 작업 값이 올바르지 않습니다.') === false
         || strpos($adminMembersHelper, "sr_admin_post_positive_int('account_id')") === false
     ) {

@@ -3,14 +3,9 @@
 $adminPageTitle = '회원관리';
 $adminPageSubtitle = '회원 상태를 한눈에 확인하고, 조건 검색과 빠른 관리 동선을 자연스럽게 이어가세요.';
 $adminContainerClass = 'admin-page-member-list';
-$totalMembers = count($members);
-$statusCounts = array_fill_keys($allowedStatuses, 0);
-foreach ($members as $member) {
-    $statusKey = (string) ($member['status'] ?? '');
-    if (array_key_exists($statusKey, $statusCounts)) {
-        $statusCounts[$statusKey]++;
-    }
-}
+$statusCounts = isset($statusCounts) && is_array($statusCounts) ? $statusCounts : [];
+$totalMembers = (int) ($statusCounts['total'] ?? count($members));
+$searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -51,6 +46,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
             </div>
+            <div class="member-field">
+                <label for="member-search-field" class="member-field-label">검색 조건</label>
+                <select name="field" id="member-search-field" class="form-select member-field-input">
+                    <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="member-field">
+                <label for="member-search-keyword" class="member-field-label">검색어</label>
+                <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input member-field-input" placeholder="해시 아이디, 이메일, 이름">
+            </div>
             <button type="submit" class="btn btn-solid-primary member-search-submit">검색</button>
         </div>
     </form>
@@ -64,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th scope="col">공개 해시</th>
                     <th scope="col">이메일</th>
-                    <th scope="col">표시명</th>
+                    <th scope="col">이름</th>
                     <th scope="col">상태</th>
                     <th scope="col">이메일 인증</th>
                     <th scope="col">최근 로그인</th>
@@ -99,19 +108,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $member['created_at']); ?></td>
                         <td class="member-cell-manage">
                             <div class="member-manage">
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="intent" value="status">
-                                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                    <select name="status" class="form-select form-select-sm">
-                                        <?php foreach ($allowedStatuses as $status) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $memberStatus === $status ? ' selected' : ''; ?>>
-                                                <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
-                                </form>
+                                <details class="member-edit-details">
+                                    <summary class="btn btn-sm btn-surface-default-soft">정보 수정</summary>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="member-edit-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="edit">
+                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                                        <label>
+                                            <span>이메일</span>
+                                            <input type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" required>
+                                        </label>
+                                        <label>
+                                            <span>이름</span>
+                                            <input type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" maxlength="120" required>
+                                        </label>
+                                        <label>
+                                            <span>Locale</span>
+                                            <input type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" maxlength="20" required>
+                                        </label>
+                                        <label>
+                                            <span>상태</span>
+                                            <select name="status" class="form-select form-select-sm">
+                                                <?php foreach ($allowedStatuses as $status) { ?>
+                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $memberStatus === $status ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>
+                                    </form>
+                                </details>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="revoke_sessions">

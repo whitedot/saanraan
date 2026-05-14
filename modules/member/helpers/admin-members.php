@@ -87,7 +87,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $errors[] = '회원을 선택하세요.';
     }
 
-    if (!in_array($intent, ['status', 'revoke_sessions'], true)) {
+    if (!in_array($intent, ['status', 'edit', 'revoke_sessions'], true)) {
         $errors[] = '회원 작업 값이 올바르지 않습니다.';
     }
 
@@ -100,7 +100,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     }
 
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT status FROM sr_member_accounts WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, account_identifier_hash, email, email_hash, login_id_hash, display_name, locale, status FROM sr_member_accounts WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $targetAccountId]);
         $targetAccount = $stmt->fetch();
 
@@ -161,6 +161,98 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
 
                 $notice = '회원 세션을 폐기했습니다.';
             }
+        }
+    } elseif ($errors === [] && $intent === 'edit') {
+        $runtimeConfig = sr_runtime_config();
+        $email = sr_normalize_identifier(sr_post_string('email', 255));
+        $displayName = trim(sr_post_string('display_name', 120));
+        $locale = sr_post_string('locale', 20);
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = '이메일 형식이 올바르지 않습니다.';
+        }
+
+        if ($displayName === '') {
+            $errors[] = '이름을 입력하세요.';
+        }
+
+        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+            $errors[] = '선호 locale 값이 올바르지 않습니다.';
+        }
+
+        $emailHash = $errors === [] ? sr_hmac_hash($email, $runtimeConfig) : '';
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash AND id <> :id LIMIT 1');
+            $stmt->execute([
+                'email_hash' => $emailHash,
+                'id' => $targetAccountId,
+            ]);
+            if (is_array($stmt->fetch())) {
+                $errors[] = '이미 사용 중인 이메일입니다.';
+            }
+        }
+
+        if ($errors === []) {
+            $accountIdentifierHash = (string) ($targetAccount['login_id_hash'] ?? '') === ''
+                ? $emailHash
+                : (string) ($targetAccount['account_identifier_hash'] ?? '');
+            if ($accountIdentifierHash === '') {
+                $accountIdentifierHash = $emailHash;
+            }
+
+            $pdo->beginTransaction();
+            try {
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_member_accounts
+                     SET account_identifier_hash = :account_identifier_hash,
+                         email = :email,
+                         email_hash = :email_hash,
+                         display_name = :display_name,
+                         locale = :locale,
+                         status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id'
+                );
+                $stmt->execute([
+                    'account_identifier_hash' => $accountIdentifierHash,
+                    'email' => $email,
+                    'email_hash' => $emailHash,
+                    'display_name' => $displayName,
+                    'locale' => $locale,
+                    'status' => $status,
+                    'updated_at' => sr_now(),
+                    'id' => $targetAccountId,
+                ]);
+
+                $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
+                if ($revokedSessions < 0) {
+                    throw new RuntimeException('Member sessions could not be revoked after account update.');
+                }
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errors[] = '회원 정보를 저장할 수 없습니다.';
+            }
+        }
+
+        if ($errors === []) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'member.account.updated',
+                'target_type' => 'member_account',
+                'target_id' => (string) $targetAccountId,
+                'result' => 'success',
+                'message' => 'Member account updated by admin.',
+                'metadata' => [
+                    'before_status' => (string) $targetAccount['status'],
+                    'after_status' => $status,
+                    'email_changed' => $email !== (string) $targetAccount['email'],
+                ],
+            ]);
+            $notice = '회원 정보를 저장했습니다.';
         }
     } elseif ($errors === []) {
         $pdo->beginTransaction();
@@ -235,54 +327,111 @@ function sr_admin_member_status_filter(array $allowedStatuses): string
     return $statusFilter;
 }
 
-function sr_admin_members(PDO $pdo, string $statusFilter): array
+function sr_admin_member_search_filter(PDO $pdo, array $config): array
+{
+    $field = sr_get_string('field', 30);
+    $keyword = trim(sr_get_string('q', 120));
+    $allowedFields = ['all', 'hash', 'email', 'name'];
+    if (!in_array($field, $allowedFields, true)) {
+        $field = 'all';
+    }
+
+    $accountId = 0;
+    if (($field === 'all' || $field === 'hash') && sr_member_public_account_hash_is_valid($keyword)) {
+        $accountId = sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+    }
+
+    return [
+        'field' => $field,
+        'keyword' => $keyword,
+        'account_id' => $accountId,
+    ];
+}
+
+function sr_admin_member_status_counts(PDO $pdo): array
+{
+    $counts = [
+        'total' => 0,
+        'active' => 0,
+        'pending' => 0,
+        'suspended' => 0,
+        'withdrawn' => 0,
+        'anonymized' => 0,
+    ];
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_member_accounts GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
+function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = []): array
 {
     $members = [];
     $hasSessionTable = sr_member_sessions_table_exists($pdo);
-    if ($statusFilter !== '' && $hasSessionTable) {
-        $stmt = $pdo->prepare(
-            'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
-                    COUNT(s.id) AS active_session_count
-             FROM sr_member_accounts a
-             LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
-             WHERE a.status = :status
-             GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
-             ORDER BY a.id DESC
-             LIMIT 50'
-        );
-        $stmt->execute([
-            'status' => $statusFilter,
-            'now' => sr_now(),
-        ]);
-    } elseif ($hasSessionTable) {
-        $stmt = $pdo->prepare(
-            'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
-                    COUNT(s.id) AS active_session_count
-             FROM sr_member_accounts a
-             LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
-             GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
-             ORDER BY a.id DESC
-             LIMIT 50'
-        );
-        $stmt->execute(['now' => sr_now()]);
-    } elseif ($statusFilter !== '') {
-        $stmt = $pdo->prepare(
-            'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at, 0 AS active_session_count
-             FROM sr_member_accounts
-             WHERE status = :status
-             ORDER BY id DESC
-             LIMIT 50'
-        );
-        $stmt->execute(['status' => $statusFilter]);
-    } else {
-        $stmt = $pdo->query(
-            'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at, 0 AS active_session_count
-             FROM sr_member_accounts
-             ORDER BY id DESC
-             LIMIT 50'
-        );
+    $params = [];
+    $where = [];
+
+    if ($statusFilter !== '') {
+        $where[] = 'a.status = :status';
+        $params['status'] = $statusFilter;
     }
 
+    $field = (string) ($searchFilter['field'] ?? 'all');
+    $keyword = trim((string) ($searchFilter['keyword'] ?? ''));
+    $accountId = (int) ($searchFilter['account_id'] ?? 0);
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        if ($field === 'hash') {
+            $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
+            if ($accountId > 0) {
+                $params['account_id'] = $accountId;
+            }
+        } elseif ($field === 'email') {
+            $where[] = 'a.email LIKE :keyword_like';
+            $params['keyword_like'] = $like;
+        } elseif ($field === 'name') {
+            $where[] = 'a.display_name LIKE :keyword_like';
+            $params['keyword_like'] = $like;
+        } else {
+            $clauses = ['a.email LIKE :keyword_like', 'a.display_name LIKE :keyword_like'];
+            $params['keyword_like'] = $like;
+            if ($accountId > 0) {
+                $clauses[] = 'a.id = :account_id';
+                $params['account_id'] = $accountId;
+            }
+            $where[] = '(' . implode(' OR ', $clauses) . ')';
+        }
+    }
+
+    $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    if ($hasSessionTable) {
+        $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
+                       COUNT(s.id) AS active_session_count
+                FROM sr_member_accounts a
+                LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
+                ' . $whereSql . '
+                GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
+                ORDER BY a.id DESC
+                LIMIT 50';
+        $params['now'] = sr_now();
+    } else {
+        $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at, 0 AS active_session_count
+                FROM sr_member_accounts a
+                ' . $whereSql . '
+                ORDER BY a.id DESC
+                LIMIT 50';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     foreach ($stmt->fetchAll() as $row) {
         $members[] = $row;
     }

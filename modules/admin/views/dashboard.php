@@ -4,15 +4,23 @@ $adminPageTitle = '관리자 대시보드';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<section>
-    <h2>사이트</h2>
-    <dl>
-        <dt>이름</dt>
-        <dd><?php echo sr_e((string) ($site['name'] ?? '')); ?></dd>
-        <dt>상태</dt>
-        <dd><?php echo sr_e(sr_admin_code_label((string) ($site['status'] ?? ''), 'site_status')); ?></dd>
-        <dt>기본 locale</dt>
-        <dd><?php echo sr_e((string) ($site['default_locale'] ?? '')); ?></dd>
+<section class="member-table-card admin-dashboard-site-card">
+    <div class="card-header">
+        <h2 class="card-title">사이트</h2>
+    </div>
+    <dl class="admin-dashboard-site-grid">
+        <div>
+            <dt>이름</dt>
+            <dd><?php echo sr_e((string) ($site['name'] ?? '')); ?></dd>
+        </div>
+        <div>
+            <dt>상태</dt>
+            <dd><?php echo sr_e(sr_admin_code_label((string) ($site['status'] ?? ''), 'site_status')); ?></dd>
+        </div>
+        <div>
+            <dt>기본 locale</dt>
+            <dd><?php echo sr_e((string) ($site['default_locale'] ?? '')); ?></dd>
+        </div>
     </dl>
 </section>
 
