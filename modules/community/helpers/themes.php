@@ -45,6 +45,14 @@ function sr_community_skin_options(): array
                 'form' => SR_ROOT . '/modules/community/skins/basic/form.php',
             ],
         ],
+        'compact' => [
+            'label' => '압축 목록',
+            'views' => [
+                'list' => SR_ROOT . '/modules/community/skins/compact/list.php',
+                'post' => SR_ROOT . '/modules/community/skins/basic/view.php',
+                'form' => SR_ROOT . '/modules/community/skins/basic/form.php',
+            ],
+        ],
     ];
 }
 

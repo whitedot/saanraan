@@ -69,6 +69,8 @@ modules/{module_key}/
 - sitemap.php (optional)
 - actions/ (optional)
 - views/ (optional)
+- themes/ (optional)
+- skins/ (optional)
 - assets/ (optional)
 - lang/ (optional)
 - install.sql
@@ -114,8 +116,33 @@ modules/board/
 - views/list.php
 - views/view.php
 - views/admin-posts.php
+- themes/basic/home.php
+- skins/basic/list.php
+- skins/basic/view.php
+- skins/basic/form.php
 - install.sql
 - updates/2026.05.002.sql
+```
+
+공개 화면 디자인 책임은 전역 public layout, 모듈 theme, 모듈 skin을 구분한다.
+
+- 전역 public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
+- 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
+- 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
+- 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다.
+
+모듈은 DB에 view 파일 경로를 저장하지 않는다. `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist에서 결정한다. 알 수 없는 key는 `basic`으로 fallback한다.
+
+CSS class는 범위를 드러내는 이름을 사용한다. 모듈 전용 class는 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용 class는 `{module_key}-skin-{skin_key}-*` 형식을 우선한다. 모듈 skin은 전역 `body`, `a`, `.container`, `.btn`처럼 넓은 선택자를 직접 재정의하지 않고, 필요한 경우 자기 wrapper 아래에서만 스타일을 제한한다.
+
+모듈 theme나 skin에 전용 CSS가 필요하면 view에서 `sr_public_layout_begin()`의 네 번째 인자로 stylesheet를 요청한다. public layout은 `<head>` 출력만 담당하고, 파일 선택과 key 검증은 모듈 helper의 allowlist가 담당한다.
+
+```php
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'stylesheets' => [
+        '/modules/community/assets/community-skin-compact.css',
+    ],
+]);
 ```
 
 ## 3. 이름 규칙

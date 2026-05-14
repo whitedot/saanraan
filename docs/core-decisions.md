@@ -570,3 +570,18 @@ modules/community/skins/basic/list.php
 DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `theme_key`, `skin_key` 같은 key만 저장합니다. 실제 파일 경로는 코드의 allowlist helper가 결정하고, 알 수 없는 key는 `basic`으로 fallback합니다.
 
 페이지나 URL마다 레이아웃을 고르는 규칙은 만들지 않습니다. 전역 public 레이아웃은 사이트 단위로 하나를 선택하고, 모듈별 theme/skin 선택은 해당 모듈 책임으로 제한합니다.
+
+디자인 책임은 다음 경계를 유지합니다.
+
+| 범위 | 책임 | 피할 것 |
+| --- | --- | --- |
+| public layout | 문서 골격, 공통 head, 사이트 header/footer, 공통 메뉴, output slot, 전체 폭과 기본 여백 | 게시판 목록, 회원 폼, 상품 카드처럼 모듈 도메인 표시를 직접 소유 |
+| public UI kit | 버튼, 폼, 카드, 테이블, 알림, 페이지네이션 같은 반복 가능한 기본 class | 특정 모듈의 정책이나 화면 흐름을 전제로 한 class |
+| module theme | 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치 | 특정 게시판/항목의 세부 표시를 모두 흡수 |
+| module skin | 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시 | 사이트 전체 header/footer나 다른 모듈 화면을 변경 |
+| admin skin | 관리자 shell, 사이드바, 상단바, 관리자 공통 asset, 관리자 콘텐츠 컨테이너 | 모듈별 관리자 도메인 정책이나 저장 흐름 |
+| admin view | 각 모듈의 관리자 본문 마크업과 도메인 출력 | 관리자 shell, 전역 navigation, 공통 관리자 asset 선택 |
+
+CSS class는 충돌을 줄이기 위해 책임 범위별 접두어를 사용합니다. 반복 가능한 공통 UI는 `ui-*`, 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
+
+모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공하고, 어떤 모듈 파일을 선택할지는 각 모듈의 allowlist helper가 결정합니다.

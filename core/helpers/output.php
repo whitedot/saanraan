@@ -140,9 +140,36 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function sr_stylesheet_tag(): string
+function sr_stylesheet_tag(array $stylesheets = []): string
 {
-    return '<link rel="stylesheet" href="' . sr_e(sr_url('/assets/saanraan.css')) . '">';
+    $tags = [
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
+    ];
+
+    foreach ($stylesheets as $stylesheet) {
+        if (!is_string($stylesheet) || !sr_is_safe_relative_url($stylesheet)) {
+            continue;
+        }
+
+        $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_asset_url($stylesheet)) . '">';
+    }
+
+    return implode(PHP_EOL, $tags);
+}
+
+function sr_asset_url(string $path): string
+{
+    $url = sr_url($path);
+    if (!str_starts_with($path, '/')) {
+        return $url;
+    }
+
+    $file = SR_ROOT . $path;
+    if (!is_file($file)) {
+        return $url;
+    }
+
+    return $url . '?v=' . rawurlencode((string) filemtime($file));
 }
 
 function sr_color_scheme_options(): array
