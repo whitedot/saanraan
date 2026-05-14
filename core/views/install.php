@@ -281,6 +281,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                         type="checkbox"
                                         name="optional_modules[]"
                                         value="<?php echo sr_e((string) $moduleKey); ?>"
+                                        class="form-checkbox"
                                         <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                         <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                     >

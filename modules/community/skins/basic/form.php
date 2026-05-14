@@ -63,18 +63,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">
             <?php } ?>
             <p>
-                <label>제목<br>
+                <label>
+                    <span>제목</span>
                     <input type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
                 </label>
             </p>
             <p>
-                <label>본문<br>
+                <label>
+                    <span>본문</span>
                     <textarea name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
-                    <label>이미지 첨부<br>
+                    <label>
+                    <span>이미지 첨부</span>
                         <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
                     </label>
                     <br>
@@ -83,7 +86,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php } ?>
             <?php if ($fileUploadEnabled) { ?>
                 <p>
-                    <label>파일 첨부<br>
+                    <label>
+                    <span>파일 첨부</span>
                         <input type="file" name="file_attachments[]" multiple>
                     </label>
                     <br>
