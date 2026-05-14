@@ -715,6 +715,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     gap: calc(var(--spacing) * 2);
 }
 
+.admin-design-system-panel > .member-summary,
+.admin-design-system-panel > .member-search-card,
+.admin-design-system-panel > .admin-member-list-form,
+.admin-design-system-panel > .admin-form-layout {
+    margin: calc(var(--spacing) * 5);
+}
+
 .admin-design-system-form-grid label {
     display: grid;
     gap: calc(var(--spacing) * 1.5);

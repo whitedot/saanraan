@@ -1,8 +1,17 @@
 <?php
 
 $adminPageTitle = '디자인 시스템';
-$adminPageSubtitle = 'assets/common.css 기본 UI와 관리자 보조 패턴을 한 화면에서 확인합니다.';
+$adminPageSubtitle = 'g5codex 원본 관리자 UI 조합을 기준으로 common.css와 admin.css를 확인합니다.';
 $adminContainerClass = 'admin-page-design-system';
+
+$sourceFiles = [
+    ['role' => '공통 CSS 원본', 'path' => 'g5codex/css/common.css'],
+    ['role' => '공통 CSS 소스', 'path' => 'g5codex/tailwind4/common.css'],
+    ['role' => '관리자 CSS 원본', 'path' => 'g5codex/adm/css/admin.css'],
+    ['role' => '관리자 CSS 소스', 'path' => 'g5codex/tailwind4/admin.css'],
+    ['role' => '목록 마크업 기준', 'path' => 'g5codex/adm/member_list_parts/*.php'],
+    ['role' => '폼 마크업 기준', 'path' => 'g5codex/adm/*_parts/form.php'],
+];
 
 $colorTokens = [
     ['label' => 'Primary', 'var' => '--color-primary'],
@@ -17,46 +26,14 @@ $colorTokens = [
     ['label' => 'Default 900', 'var' => '--color-default-900'],
 ];
 
-$buttonGroups = [
-    'Solid' => [
-        ['label' => 'Primary', 'class' => 'btn btn-solid-primary'],
-        ['label' => 'Secondary', 'class' => 'btn btn-solid-secondary'],
-        ['label' => 'Success', 'class' => 'btn btn-solid-success'],
-        ['label' => 'Info', 'class' => 'btn btn-solid-info'],
-        ['label' => 'Warning', 'class' => 'btn btn-solid-warning'],
-        ['label' => 'Danger', 'class' => 'btn btn-solid-danger'],
-        ['label' => 'Dark', 'class' => 'btn btn-solid-dark'],
-    ],
-    'Outline' => [
-        ['label' => 'Primary', 'class' => 'btn btn-outline-primary'],
-        ['label' => 'Secondary', 'class' => 'btn btn-outline-secondary'],
-        ['label' => 'Success', 'class' => 'btn btn-outline-success'],
-        ['label' => 'Info', 'class' => 'btn btn-outline-info'],
-        ['label' => 'Warning', 'class' => 'btn btn-outline-warning'],
-        ['label' => 'Danger', 'class' => 'btn btn-outline-danger'],
-    ],
-    'Soft / Ghost' => [
-        ['label' => 'Soft Primary', 'class' => 'btn btn-soft-primary'],
-        ['label' => 'Soft Info', 'class' => 'btn btn-soft-info'],
-        ['label' => 'Ghost Primary', 'class' => 'btn btn-ghost-primary'],
-        ['label' => 'Ghost Danger', 'class' => 'btn btn-ghost-danger'],
-        ['label' => 'Surface', 'class' => 'btn btn-surface-default-soft'],
-        ['label' => 'Inline', 'class' => 'btn-inline'],
-    ],
-    'Size' => [
-        ['label' => 'Small', 'class' => 'btn btn-sm btn-solid-primary'],
-        ['label' => 'Default', 'class' => 'btn btn-solid-primary'],
-        ['label' => 'Large', 'class' => 'btn btn-lg btn-solid-primary'],
-        ['label' => 'Pill', 'class' => 'btn btn-pill btn-outline-primary'],
-    ],
-];
-
-$badges = [
-    ['label' => '기본', 'class' => 'badge'],
-    ['label' => '라벨', 'class' => 'badge badge-label'],
-    ['label' => '성공', 'class' => 'badge badge-label btn-soft-success'],
-    ['label' => '위험', 'class' => 'badge badge-label btn-soft-danger'],
-    ['label' => '정보', 'class' => 'badge badge-label btn-soft-info'],
+$primaryButtons = [
+    ['label' => '검색', 'class' => 'btn btn-solid-primary'],
+    ['label' => '저장', 'class' => 'btn btn-solid-primary'],
+    ['label' => '만료 포인트 정산', 'class' => 'btn btn-solid-secondary'],
+    ['label' => '목록', 'class' => 'btn btn-surface-default-soft'],
+    ['label' => '수정', 'class' => 'btn btn-sm btn-surface-default-soft'],
+    ['label' => '선택삭제', 'class' => 'btn btn-outline-danger'],
+    ['label' => '선택삭제', 'class' => 'btn btn-sm btn-outline-danger'],
 ];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -64,17 +41,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-design-system">
     <nav class="tab-nav-bordered admin-design-system-nav" aria-label="디자인 시스템 미리보기 목차">
-        <a class="tab-trigger-underline active" href="#ds-foundation">토큰</a>
+        <a class="tab-trigger-underline active" href="#ds-source">기준</a>
+        <a class="tab-trigger-underline" href="#ds-foundation">토큰</a>
         <a class="tab-trigger-underline" href="#ds-buttons">버튼</a>
-        <a class="tab-trigger-underline" href="#ds-forms">폼</a>
-        <a class="tab-trigger-underline" href="#ds-data">데이터</a>
+        <a class="tab-trigger-underline" href="#ds-list">목록</a>
+        <a class="tab-trigger-underline" href="#ds-form">폼</a>
         <a class="tab-trigger-underline" href="#ds-feedback">피드백</a>
     </nav>
 
-    <div id="ds-foundation" class="admin-design-system-panel">
+    <section id="ds-source" class="admin-design-system-panel">
         <div class="admin-design-system-panel-header">
-            <h2>토큰</h2>
-            <p>색상, 글자 크기, 간격 변수의 실제 렌더링을 확인합니다.</p>
+            <h2>원본 확인 기준</h2>
+            <p>이 화면은 g5codex 원본의 CSS 소스와 관리자 부분 템플릿에서 실제로 반복 사용된 조합을 기준으로 구성합니다.</p>
+        </div>
+        <div class="table-wrapper admin-design-system-table">
+            <table class="table">
+                <thead class="ui-table-head">
+                    <tr>
+                        <th>역할</th>
+                        <th>원본 경로</th>
+                        <th>이 preview에서 확인하는 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($sourceFiles as $sourceFile) { ?>
+                        <tr>
+                            <td><?php echo sr_e($sourceFile['role']); ?></td>
+                            <td><code><?php echo sr_e($sourceFile['path']); ?></code></td>
+                            <td>
+                                <?php if ($sourceFile['role'] === '공통 CSS 원본') { ?>
+                                    버튼, 배지, 카드, 폼, 테이블, 탭, 모달 기본 클래스
+                                <?php } elseif ($sourceFile['role'] === '관리자 CSS 원본') { ?>
+                                    관리자 shell, 목록, 폼, 상태, 안내 메시지 보조 클래스
+                                <?php } elseif ($sourceFile['role'] === '목록 마크업 기준') { ?>
+                                    <code>member-summary</code>, <code>member-search-card</code>, <code>member-table-card</code>
+                                <?php } elseif ($sourceFile['role'] === '폼 마크업 기준') { ?>
+                                    <code>admin-form-layout</code>, <code>af-grid</code>, <code>af-row</code>, <code>af-inline</code>
+                                <?php } else { ?>
+                                    Tailwind source 기준 토큰과 컴포넌트 정의
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="ds-foundation" class="admin-design-system-panel">
+        <div class="admin-design-system-panel-header">
+            <h2>기본 토큰</h2>
+            <p><code>g5codex/tailwind4/common.css</code>의 theme token을 현재 CSS 변수 렌더링으로 확인합니다.</p>
         </div>
         <div class="admin-design-system-color-grid">
             <?php foreach ($colorTokens as $token) { ?>
@@ -92,191 +109,234 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div><span class="admin-design-system-type-lg">Text LG</span><code>--text-lg</code></div>
             <div><span class="admin-design-system-type-xl">Text XL</span><code>--text-xl</code></div>
         </div>
-    </div>
+    </section>
 
-    <div id="ds-buttons" class="admin-design-system-panel">
+    <section id="ds-buttons" class="admin-design-system-panel">
         <div class="admin-design-system-panel-header">
-            <h2>버튼과 배지</h2>
-            <p>공통 버튼 계열과 상태 배지의 조합을 확인합니다.</p>
+            <h2>버튼</h2>
+            <p>원본 관리자 화면에서 실제로 반복 사용된 버튼 조합을 우선 표시합니다.</p>
         </div>
-        <?php foreach ($buttonGroups as $groupLabel => $buttons) { ?>
-            <div class="admin-design-system-row">
-                <h3><?php echo sr_e((string) $groupLabel); ?></h3>
-                <div class="admin-design-system-inline">
-                    <?php foreach ($buttons as $button) { ?>
-                        <button type="button" class="<?php echo sr_e($button['class']); ?>"><?php echo sr_e($button['label']); ?></button>
-                    <?php } ?>
-                    <?php if ($groupLabel === 'Size') { ?>
-                        <button type="button" class="btn btn-icon btn-outline-primary" aria-label="닫기 아이콘">
-                            <span class="close-icon" aria-hidden="true"></span>
-                        </button>
-                    <?php } ?>
-                </div>
-            </div>
-        <?php } ?>
         <div class="admin-design-system-row">
-            <h3>Badge</h3>
+            <h3>관리자 주요 작업 버튼</h3>
             <div class="admin-design-system-inline">
-                <?php foreach ($badges as $badge) { ?>
-                    <span class="<?php echo sr_e($badge['class']); ?>"><?php echo sr_e($badge['label']); ?></span>
+                <?php foreach ($primaryButtons as $button) { ?>
+                    <button type="button" class="<?php echo sr_e($button['class']); ?>"><?php echo sr_e($button['label']); ?></button>
                 <?php } ?>
             </div>
         </div>
-    </div>
+        <div class="admin-design-system-row">
+            <h3>원본 common.css 기본 요소</h3>
+            <div class="admin-design-system-inline">
+                <span class="badge">badge</span>
+                <span class="badge badge-label">badge-label</span>
+                <button type="button" class="btn btn-icon btn-outline-primary" aria-label="아이콘 버튼">
+                    <span class="close-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </section>
 
-    <div id="ds-forms" class="admin-design-system-panel ui-form-theme">
+    <section id="ds-list" class="admin-design-system-panel">
         <div class="admin-design-system-panel-header">
-            <h2>폼</h2>
-            <p>입력 필드, 선택 필드, 체크박스, 라디오, 스위치 상태를 확인합니다.</p>
+            <h2>목록 화면 패턴</h2>
+            <p><code>g5codex/adm/member_list_parts</code>와 배너/게시판 목록의 실제 구조를 기준으로 합니다.</p>
         </div>
-        <div class="admin-design-system-form-grid">
-            <label>
-                <span class="form-label">텍스트 입력</span>
-                <input type="text" class="form-input" value="Saanraan">
-            </label>
-            <label>
-                <span class="form-label">작은 입력</span>
-                <input type="text" class="form-input form-input-sm" value="Small">
-            </label>
-            <label>
-                <span class="form-label">큰 입력</span>
-                <input type="text" class="form-input form-input-lg" value="Large">
-            </label>
-            <label>
-                <span class="form-label">선택</span>
-                <select class="form-select">
-                    <option>기본 옵션</option>
-                    <option>보조 옵션</option>
-                </select>
-            </label>
-            <label class="admin-design-system-form-wide">
-                <span class="form-label">텍스트 영역</span>
-                <textarea class="form-textarea" rows="4">공통 textarea 스타일입니다.</textarea>
-            </label>
-            <label>
-                <span class="form-label">파일</span>
-                <input type="file" class="form-input">
-            </label>
-        </div>
-        <div class="admin-design-system-inline admin-design-system-control-row">
-            <label class="af-check form-label">
-                <input type="checkbox" class="form-checkbox" checked>
-                체크박스
-            </label>
-            <label class="af-check form-label">
-                <input type="radio" name="design_system_radio" class="form-radio" checked>
-                라디오 A
-            </label>
-            <label class="af-check form-label">
-                <input type="radio" name="design_system_radio" class="form-radio">
-                라디오 B
-            </label>
-            <label class="af-check form-label">
-                <input type="checkbox" class="form-switch" checked>
-                스위치
-            </label>
-        </div>
-    </div>
 
-    <div id="ds-data" class="admin-design-system-panel">
-        <div class="admin-design-system-panel-header">
-            <h2>카드, 탭, 테이블</h2>
-            <p>목록 화면과 상세 화면에서 자주 쓰는 컨테이너와 데이터 표시를 확인합니다.</p>
+        <div class="member-summary">
+            <div class="member-summary-links">
+                <a href="#ds-list" class="btn btn-surface-default-soft">전체 보기</a>
+                <a href="#ds-list" class="btn btn-solid-primary">항목 추가</a>
+            </div>
+            <div class="member-summary-stats">
+                <span class="member-summary-meta">총 항목 <strong>128</strong></span>
+                <a href="#ds-list" class="member-summary-meta">정상 120</a>
+                <a href="#ds-list" class="member-summary-meta">차단 8</a>
+            </div>
         </div>
-        <div class="admin-design-system-grid">
-            <div class="card">
+
+        <div class="member-search-card">
+            <form method="get" action="<?php echo sr_e(sr_url('/admin/design-system')); ?>">
+                <div class="member-search-fields community-search-fields community-search-fields-wide">
+                    <div class="member-field">
+                        <label for="preview_search_field" class="member-field-label">검색대상</label>
+                        <select name="preview_search_field" id="preview_search_field" class="form-select member-field-input">
+                            <option>이름</option>
+                            <option>이메일</option>
+                            <option>상태</option>
+                        </select>
+                    </div>
+                    <div class="member-field">
+                        <label for="preview_search_keyword" class="member-field-label">검색어</label>
+                        <input type="text" name="preview_search_keyword" value="" id="preview_search_keyword" class="form-input member-field-input" placeholder="검색어를 입력하세요">
+                    </div>
+                    <button type="submit" class="btn btn-solid-primary member-search-submit">검색</button>
+                </div>
+            </form>
+        </div>
+
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/design-system')); ?>" class="admin-member-list-form">
+            <div class="member-table-card">
+                <div class="table-wrapper">
+                    <table class="table community-list-table">
+                        <caption>원본 목록 테이블 패턴</caption>
+                        <thead class="ui-table-head">
+                            <tr>
+                                <th scope="col">항목</th>
+                                <th scope="col">상태</th>
+                                <th scope="col">날짜</th>
+                                <th scope="col" class="text-end">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="community-primary">
+                                        <strong>common.css</strong>
+                                        <span>#ui-kit</span>
+                                    </div>
+                                </td>
+                                <td><span class="community-status is-active">활성</span></td>
+                                <td class="community-date">2026-05-14</td>
+                                <td class="text-end">
+                                    <div class="member-manage">
+                                        <a href="#ds-list" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="community-primary">
+                                        <strong>admin.css</strong>
+                                        <span>#admin</span>
+                                    </div>
+                                </td>
+                                <td><span class="community-status is-hidden">숨김</span></td>
+                                <td class="community-date">2026-05-14</td>
+                                <td class="text-end">
+                                    <div class="member-manage">
+                                        <a href="#ds-list" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="member-list-actions">
+                    <div class="ui-table-actions">
+                        <button type="button" class="btn btn-outline-danger">선택삭제</button>
+                    </div>
+                    <a href="#ds-list" class="btn btn-surface-default-soft">회원추가</a>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section id="ds-form" class="admin-design-system-panel">
+        <div class="admin-design-system-panel-header">
+            <h2>폼 화면 패턴</h2>
+            <p><code>admin-form-layout ui-form-theme ui-form-showcase</code>와 <code>af-*</code> 행 구조를 원본 그대로 확인합니다.</p>
+        </div>
+
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/design-system')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase admin-design-system-form-sample">
+            <section class="card">
                 <div class="card-header">
-                    <h3 class="card-title">카드 제목</h3>
-                    <span class="badge badge-label btn-soft-primary">Preview</span>
+                    <h2 class="card-title">기본 설정</h2>
                 </div>
                 <div class="card-body">
-                    <p>카드 본문은 짧은 설명, 상태 요약, 보조 액션을 담습니다.</p>
+                    <div class="af-grid">
+                        <div class="af-row">
+                            <div class="af-label">
+                                <label for="preview_title" class="form-label">이름<strong class="caption-sr-only">필수</strong></label>
+                            </div>
+                            <div class="af-field">
+                                <input type="text" name="preview_title" value="Saanraan" id="preview_title" class="required form-input" required>
+                            </div>
+                        </div>
+                        <div class="af-row">
+                            <div class="af-label">
+                                <label for="preview_status" class="form-label">상태</label>
+                            </div>
+                            <div class="af-field">
+                                <select name="preview_status" id="preview_status" class="form-select">
+                                    <option>활성</option>
+                                    <option>숨김</option>
+                                    <option>보류</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="af-row">
+                            <div class="af-label">
+                                <label for="preview_summary" class="form-label">설명</label>
+                            </div>
+                            <div class="af-field">
+                                <textarea name="preview_summary" id="preview_summary" rows="4" class="form-textarea">원본 폼 행 구조의 textarea입니다.</textarea>
+                            </div>
+                        </div>
+                        <div class="af-row">
+                            <div class="af-label">
+                                <span class="form-label">사용 기능</span>
+                            </div>
+                            <div class="af-field">
+                                <div class="af-inline">
+                                    <label class="af-check form-label"><input type="checkbox" name="preview_feature[]" value="category" class="form-checkbox" checked><span class="form-label">카테고리</span></label>
+                                    <label class="af-check form-label"><input type="checkbox" name="preview_feature[]" value="latest" class="form-checkbox" checked><span class="form-label">최신글</span></label>
+                                    <label class="af-check form-label"><input type="checkbox" name="preview_feature[]" value="comment" class="form-checkbox"><span class="form-label">댓글</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="af-row">
+                            <div class="af-label">
+                                <span class="form-label">노출 기간</span>
+                            </div>
+                            <div class="af-field">
+                                <div class="af-inline">
+                                    <label for="preview_started_date" class="ui-form-inline-note">시작</label>
+                                    <input type="date" name="preview_started_date" id="preview_started_date" class="form-input af-input-sm">
+                                    <input type="time" name="preview_started_time" class="form-input af-input-sm">
+                                    <label for="preview_ended_date" class="ui-form-inline-note">종료</label>
+                                    <input type="date" name="preview_ended_date" id="preview_ended_date" class="form-input af-input-sm">
+                                    <input type="time" name="preview_ended_time" class="form-input af-input-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <button type="button" class="btn btn-sm btn-surface-default-soft">보조</button>
-                    <button type="button" class="btn btn-sm btn-solid-primary">확인</button>
-                </div>
-            </div>
-            <div>
-                <nav class="tab-nav-bordered-tight" aria-label="탭 미리보기">
-                    <button type="button" class="tab-trigger-underline active">전체</button>
-                    <button type="button" class="tab-trigger-underline">활성</button>
-                    <button type="button" class="tab-trigger-underline">보류</button>
-                </nav>
-                <div class="tab-panel-space">
-                    <p>탭 본문 간격과 활성 상태를 확인합니다.</p>
-                </div>
-            </div>
-        </div>
-        <div class="table-wrapper admin-design-system-table">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>항목</th>
-                        <th>상태</th>
-                        <th>버전</th>
-                        <th>작업</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>common.css</td>
-                        <td><span class="badge badge-label btn-soft-success">정상</span></td>
-                        <td>현재</td>
-                        <td><button type="button" class="btn btn-sm btn-outline-primary">보기</button></td>
-                    </tr>
-                    <tr>
-                        <td>admin.css</td>
-                        <td><span class="badge badge-label btn-soft-info">참조</span></td>
-                        <td>현재</td>
-                        <td><button type="button" class="btn btn-sm btn-outline-secondary">보기</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <ul class="pagination admin-design-system-pagination" aria-label="페이지네이션 미리보기">
-            <li class="page-item disabled"><span class="page-link">‹</span></li>
-            <li class="page-item active"><span class="page-link">1</span></li>
-            <li class="page-item"><a class="page-link" href="#ds-data">2</a></li>
-            <li class="page-item"><a class="page-link" href="#ds-data">›</a></li>
-        </ul>
-    </div>
+            </section>
 
-    <div id="ds-feedback" class="admin-design-system-panel">
+            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+                <a href="#ds-form" class="btn btn-surface-default-soft">목록</a>
+                <button type="button" class="btn btn-solid-primary">저장</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="ds-feedback" class="admin-design-system-panel">
         <div class="admin-design-system-panel-header">
-            <h2>피드백과 모달</h2>
-            <p>관리자 알림 메시지와 공통 모달 구조의 시각 상태를 확인합니다.</p>
+            <h2>피드백과 상태</h2>
+            <p>원본 관리자 CSS에 있는 flash, notice, status 클래스를 현재 화면에서 확인합니다.</p>
         </div>
         <div class="admin-design-system-grid">
             <div class="admin-design-system-feedback-stack">
-                <div class="admin-flash-message admin-flash-message-success">
-                    <strong>완료</strong>
-                    <span>저장되었습니다.</span>
-                </div>
-                <div class="admin-flash-message admin-flash-message-error">
-                    <strong>확인 필요</strong>
-                    <span>필수 값을 확인해주세요.</span>
+                <div class="admin-flash-message admin-flash-message-success">저장완료</div>
+                <div class="admin-flash-message admin-flash-message-error">입력값을 확인해주세요.</div>
+                <div class="member-notice">
+                    <span class="member-notice-icon" aria-hidden="true">i</span>
+                    <div class="member-notice-copy">
+                        <strong>회원 관리 안내</strong>
+                        <p>상태 변경과 삭제 같은 작업 전 안내 문구를 표시합니다.</p>
+                    </div>
                 </div>
             </div>
-            <div class="admin-design-system-modal-sample">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <strong class="modal-title">모달 제목</strong>
-                        <button type="button" class="btn btn-sm btn-icon modal-close" aria-label="닫기">
-                            <span class="close-icon" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>모달 본문 영역입니다. 확인이 필요한 작업을 담습니다.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-surface-default-soft">취소</button>
-                        <button type="button" class="btn btn-solid-primary">저장</button>
-                    </div>
-                </div>
+            <div class="admin-design-system-feedback-stack admin-member-list-form">
+                <span class="member-status is-normal">정상</span>
+                <span class="member-status is-blocked">차단</span>
+                <span class="member-status is-left">탈퇴</span>
+                <span class="community-status is-active">활성</span>
+                <span class="community-status is-warning">주의</span>
+                <span class="community-status is-deleted">삭제</span>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
