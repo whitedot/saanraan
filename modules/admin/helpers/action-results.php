@@ -40,12 +40,12 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
 
     ob_start();
     ?>
-    <div class="toast-stack admin-toast-stack" data-admin-toast-stack role="status" aria-live="polite" aria-atomic="false">
+    <div data-admin-toast-stack role="status" aria-live="polite" aria-atomic="false">
         <?php foreach ($items as $item) { ?>
-            <div class="toast toast-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
-                <strong class="toast-title"><?php echo sr_e((string) $item['title']); ?></strong>
-                <span class="toast-message"><?php echo sr_e((string) $item['message']); ?></span>
-                <button type="button" class="btn btn-sm btn-surface-default-soft toast-close" data-admin-toast-close aria-label="알림 닫기">닫기</button>
+            <div class="admin-flash-message admin-flash-message-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
+                <strong><?php echo sr_e((string) $item['title']); ?></strong>
+                <span><?php echo sr_e((string) $item['message']); ?></span>
+                <button type="button" class="btn btn-sm btn-surface-default-soft" data-admin-toast-close aria-label="알림 닫기">닫기</button>
             </div>
         <?php } ?>
     </div>

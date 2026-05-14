@@ -6,9 +6,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="ui-notice">
-    <span class="ui-notice-icon" aria-hidden="true">i</span>
-    <div class="ui-notice-copy">
+<div class="member-notice">
+    <span class="member-notice-icon" aria-hidden="true">i</span>
+    <div class="member-notice-copy">
         <strong>모듈 상태 안내</strong>
         <p>설치 차단 상태는 메타데이터나 계약 오류가 있는 미설치 모듈을 뜻합니다.</p>
     </div>

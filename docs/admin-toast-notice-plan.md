@@ -130,9 +130,10 @@ $_SESSION['sr_admin_flash_notices']
 토스트 markup 예:
 
 ```php
-<div class="sr-admin-toasts" aria-live="polite" aria-atomic="true">
-    <div class="sr-admin-toast sr-admin-toast-success" role="status">
-        회원 세션을 폐기했습니다.
+<div data-admin-toast-stack role="status" aria-live="polite" aria-atomic="false">
+    <div class="admin-flash-message admin-flash-message-success" data-admin-toast>
+        <strong>완료</strong>
+        <span><?php echo sr_e('회원 세션을 폐기했습니다.'); ?></span>
     </div>
 </div>
 ```
@@ -145,12 +146,12 @@ JavaScript 없이도 보이게 만든다.
 
 1차 CSS 동작:
 
-- 화면 오른쪽 위 또는 오른쪽 아래 고정
+- 화면 상단 중앙 고정
 - 관리자 header와 겹치지 않도록 여백 확보
 - 4-6초 정도 보이다가 CSS animation으로 사라짐
 - `prefers-reduced-motion: reduce`에서는 사라짐 animation을 끈다.
 
-닫기 버튼은 1차에서는 생략 가능하다. 여러 메시지와 긴 표시가 필요해지면 이후 단계에서 JS 기반 닫기를 추가한다.
+닫기 버튼은 `data-admin-toast-close` 속성으로 연결하고, 버튼 자체는 기존 `btn` 계열 클래스를 사용한다.
 
 ## 접근성
 

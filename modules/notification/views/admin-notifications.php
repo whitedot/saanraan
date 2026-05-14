@@ -86,7 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="af-row">
                 <div class="af-label"><span class="form-label">채널</span></div>
                 <div class="af-field">
-                    <div class="ui-stack-inline admin-check-list">
+                    <div class="admin-check-list">
                         <?php foreach ($allowedCreateChannels as $channel) { ?>
                             <label class="af-check form-label">
                                 <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
@@ -94,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                    <p class="ui-help">알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</p>
+                    <small>알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
                 </div>
             </div>
         </section>

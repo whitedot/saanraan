@@ -144,9 +144,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div class="ui-notice">
-    <span class="ui-notice-icon" aria-hidden="true">i</span>
-    <div class="ui-notice-copy">
+<div class="member-notice">
+    <span class="member-notice-icon" aria-hidden="true">i</span>
+    <div class="member-notice-copy">
         <strong>회원 관리 안내</strong>
         <p>상태 변경은 즉시 적용되며, 세션 폐기 시 해당 회원의 활성 로그인 세션이 모두 종료됩니다.</p>
     </div>
