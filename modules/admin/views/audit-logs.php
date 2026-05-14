@@ -5,6 +5,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter-form ui-form-theme">
+    <div class="admin-filter-heading">
+        <strong>로그 검색</strong>
+        <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-surface-default-soft">초기화</a>
+    </div>
     <div class="admin-filter-fields">
         <label class="admin-filter-field">
             <span class="admin-filter-label">이벤트 유형</span>

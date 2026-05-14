@@ -28,6 +28,7 @@ window.AdminShell = {
         const themeToggleIconUse = document.getElementById('admin_theme_toggle_icon_use');
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
+        const toastStack = document.querySelector('.admin-toast-stack');
         let hideScrollbarTimer = null;
 
         const isMobileViewport = () => mobileQuery.matches;
@@ -294,6 +295,35 @@ window.AdminShell = {
                     top: 0,
                     behavior: 'smooth',
                 });
+            });
+        }
+
+        if (toastStack) {
+            const closeToast = toast => {
+                if (!toast) {
+                    return;
+                }
+
+                toast.classList.add('is-hiding');
+                window.setTimeout(() => {
+                    toast.remove();
+                    if (toastStack.children.length === 0) {
+                        toastStack.remove();
+                    }
+                }, 180);
+            };
+
+            toastStack.addEventListener('click', event => {
+                const closeButton = event.target.closest('[data-admin-toast-close]');
+                if (!closeButton) {
+                    return;
+                }
+
+                closeToast(closeButton.closest('[data-admin-toast]'));
+            });
+
+            Array.prototype.slice.call(toastStack.querySelectorAll('[data-admin-toast]')).forEach(toast => {
+                window.setTimeout(() => closeToast(toast), 6500);
             });
         }
 

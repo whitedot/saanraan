@@ -4,41 +4,29 @@ $adminPageTitle = '개인정보 처리 요청';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter-form ui-form-theme">
+    <div class="admin-filter-fields admin-filter-fields-compact">
+        <label class="admin-filter-field" for="privacy_request_status">
+            <span class="admin-filter-label">상태</span>
+            <select name="status" id="privacy_request_status" class="form-select">
+                <option value="">전체</option>
+                <?php foreach ($allowedStatuses as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                        <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </label>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+    </div>
+</form>
 
 <section class="member-table-card admin-member-list-form">
     <div class="card-header">
         <h2 class="card-title">개인정보 처리 요청 목록</h2>
     </div>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>">
-        <div class="member-search-card">
-            <div class="member-search-fields community-search-fields-compact">
-                <div class="member-field">
-                    <label for="privacy_request_status" class="member-field-label">상태</label>
-                    <select name="status" id="privacy_request_status" class="form-select member-field-input">
-                        <option value="">전체</option>
-                        <?php foreach ($allowedStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-solid-primary member-search-submit">조회</button>
-            </div>
-        </div>
-    </form>
-
     <div class="table-wrapper">
     <table class="table">
         <thead class="ui-table-head">
@@ -77,33 +65,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>" class="form-input" autocomplete="current-password" required placeholder="관리자 비밀번호">
                                 <button type="submit" class="btn btn-sm btn-surface-default-soft">처리 자료 내려받기</button>
                             </form>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
-                                <label class="sr-only" for="privacy_status_<?php echo sr_e((string) $request['id']); ?>">상태</label>
-                                <select name="status" id="privacy_status_<?php echo sr_e((string) $request['id']); ?>" class="form-select">
-                                    <?php foreach ($allowedStatuses as $status) { ?>
-                                        <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
-                                            <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                                <label class="sr-only" for="privacy_note_<?php echo sr_e((string) $request['id']); ?>">새 관리자 메모</label>
-                                <textarea name="admin_note" id="privacy_note_<?php echo sr_e((string) $request['id']); ?>" class="form-textarea" rows="2" cols="30" placeholder="새 관리자 메모"></textarea>
-                                <label class="af-check form-label">
-                                    <input type="checkbox" name="identity_confirmed" value="1" class="form-checkbox">
-                                    <span class="form-label">요청자 확인</span>
-                                </label>
-                                <label class="af-check form-label">
-                                    <input type="checkbox" name="export_confirmed" value="1" class="form-checkbox">
-                                    <span class="form-label">처리 자료 또는 처리 결과 확인</span>
-                                </label>
-                                <label class="af-check form-label">
-                                    <input type="checkbox" name="action_confirmed" value="1" class="form-checkbox">
-                                    <span class="form-label">관리자 메모에 처리 내용 기록</span>
-                                </label>
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
-                            </form>
+                            <details class="member-edit-details privacy-request-details">
+                                <summary class="btn btn-sm btn-surface-default-soft">상태 변경</summary>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="member-edit-form privacy-request-edit-form">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
+                                    <label for="privacy_status_<?php echo sr_e((string) $request['id']); ?>">
+                                        <span>상태</span>
+                                        <select name="status" id="privacy_status_<?php echo sr_e((string) $request['id']); ?>" class="form-select">
+                                            <?php foreach ($allowedStatuses as $status) { ?>
+                                                <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    </label>
+                                    <label for="privacy_note_<?php echo sr_e((string) $request['id']); ?>">
+                                        <span>새 관리자 메모</span>
+                                        <textarea name="admin_note" id="privacy_note_<?php echo sr_e((string) $request['id']); ?>" class="form-textarea" rows="3" cols="30" placeholder="새 관리자 메모"></textarea>
+                                    </label>
+                                    <label class="af-check form-label">
+                                        <input type="checkbox" name="identity_confirmed" value="1" class="form-checkbox">
+                                        <span class="form-label">요청자 확인</span>
+                                    </label>
+                                    <label class="af-check form-label">
+                                        <input type="checkbox" name="export_confirmed" value="1" class="form-checkbox">
+                                        <span class="form-label">처리 자료 또는 처리 결과 확인</span>
+                                    </label>
+                                    <label class="af-check form-label">
+                                        <input type="checkbox" name="action_confirmed" value="1" class="form-checkbox">
+                                        <span class="form-label">관리자 메모에 처리 내용 기록</span>
+                                    </label>
+                                    <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>
+                                </form>
+                            </details>
                         </div>
                     </td>
                 </tr>
