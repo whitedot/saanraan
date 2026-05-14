@@ -79,3 +79,13 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 - 상단 요약/탭 성격의 이동 링크는 `member-summary`와 `member-summary-links`를 사용한다.
 - 목록 테이블은 `member-table-card admin-member-list-form` 섹션 안에서 `table-wrapper`와 `table`을 사용한다.
 - 행 단위 관리 버튼은 `member-cell-manage`와 `member-manage` 안에 둔다.
+
+목록 위 필터는 테이블 카드 안에서 임의의 문단으로 붙이지 않고 `admin-filter-form`, `admin-filter-fields`, `admin-filter-field`, `admin-filter-label` 구조를 사용한다. 필터가 목록 범위를 바꾸는 조건일 때는 목록 위에 두고, 화면 전체 범위를 바꾸는 조건일 때는 목록 섹션 바깥에 둔다.
+
+저장, 삭제, 적용 같은 짧은 결과 안내는 `sr_admin_feedback_toasts($notice, $errors)`를 사용해 토스트로 출력한다. 화면 본문에 영구적으로 남아야 하는 설명과 작업 결과 피드백을 섞지 않는다.
+
+## 대시보드
+
+관리자 대시보드는 기본 운영 섹션과 활성 모듈의 `dashboard.php` 계약 섹션을 함께 표시한다. 각 섹션은 `data-admin-dashboard-section` 값을 가진 독립 카드로 두고, 사용자가 드래그 앤 드롭으로 순서를 바꾸면 브라우저 `localStorage`에 표시 순서가 저장된다.
+
+대시보드 섹션은 화면 구조를 바꾸는 관리 도구가 아니라 개인 작업 배치에 가깝다. 따라서 드래그 순서는 DB에 저장하지 않고, 모듈이 제공하는 기본 표시 순서는 `dashboard.php`의 `order` 값으로 유지한다.

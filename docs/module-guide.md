@@ -817,6 +817,7 @@ return [
 - `privacy-export.php`: 회원 개인정보 사본 제공 확장
 - `sitemap.php`: SEO sitemap URL 확장
 - `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보
+- `dashboard.php`: 관리자 대시보드 모듈 섹션 후보
 
 계약 파일 규칙:
 
@@ -885,6 +886,14 @@ return [
 - `evaluator` callable 형식은 `function (PDO $pdo, int $accountId, array $params): array`이다.
 - evaluator는 자기 모듈 테이블만 조회하고 member 그룹 membership을 직접 변경하지 않는다.
 
+`dashboard.php`:
+
+- 배열을 반환한다.
+- 각 섹션은 `key`, `title`, 선택 `order`, `rows`를 가진다.
+- 각 row는 `label`과 `value_sql` 또는 `value`, 선택 `detail_sql` 또는 `detail`을 가진다.
+- SQL은 단일 `SELECT`만 사용하고 `value_sql`은 `value`, `detail_sql`은 `detail` 컬럼을 반환한다.
+- admin 모듈은 SQL 실행 실패를 해당 row의 빈 값으로 처리하므로, 모듈은 자기 테이블이 없거나 비활성 상태인 경우에도 전체 대시보드를 깨지 않게 작성한다.
+
 ## 15-2. 계약 파일 소비 지도
 
 계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `sr_enabled_module_contract_files()`와 `sr_load_module_contract_file()`로 명시적으로 읽는다.
@@ -905,6 +914,7 @@ return [
 | `privacy-export.php` | `privacy` 모듈 | 개인정보 사본 생성 | 모듈별 회원 귀속 데이터 수집 |
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
+| `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
@@ -913,15 +923,15 @@ return [
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
-| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
+| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |
-| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php` |
-| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 없음 |
+| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
+| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
+| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
 | `point` | `paths.php`, `admin-menu.php` | 없음 |
 | `deposit` | `paths.php`, `admin-menu.php` | 없음 |
 | `reward` | `paths.php`, `admin-menu.php` | 없음 |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 
 모듈 메타데이터 작성 기준:
 
@@ -930,6 +940,19 @@ return [
 - `sr_render_output_slot()`처럼 코어 helper를 호출해 출력 renderer를 실행하는 경우, 화면 소유 모듈은 어떤 point/slot을 호출하는지 view에서 명시한다. `output-slots.php` 파일 탐색 자체는 core helper가 담당한다.
 - 계약 파일을 읽는 모듈은 반환 구조를 다시 검증하고, 깨진 계약 파일 하나 때문에 전체 화면이 500으로 죽지 않게 안전 로더를 사용한다.
 - 계약 파일 소비 관계가 새로 생기면 이 표와 `module.php`의 `contracts.consumes`를 함께 갱신한다.
+
+서비스 도메인 모듈이 설치 시 메인 페이지 후보가 될 수 있으면 `module.php`에 선택 메타데이터를 둔다.
+
+```php
+'service_domain' => [
+    'main_page' => [
+        'label' => '커뮤니티 홈',
+        'path' => '/community',
+    ],
+],
+```
+
+설치 화면은 이 값을 읽어 `site.home_path`에 저장한다. 값은 `/`로 시작하는 안전한 내부 경로여야 하며, 해당 모듈을 함께 설치하지 않으면 선택할 수 없다.
 
 ## 16. Output Slots
 
