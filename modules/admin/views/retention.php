@@ -1,20 +1,10 @@
 <?php
 
-$adminPageTitle = '보관 정리';
+$adminPageTitle = '데이터 정리';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
@@ -81,6 +71,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
     <section class="card">
         <h2>실행 확인</h2>
+        <p>정리 실행은 되돌릴 수 없습니다. 삭제 후보 수를 확인한 뒤 확인 문구를 입력하세요.</p>
         <div class="af-grid">
             <div class="af-row">
                 <div class="af-label"><span class="form-label">아래 삭제 후보 수를 확인했습니다.</span></div>

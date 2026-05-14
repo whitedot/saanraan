@@ -4,17 +4,7 @@ $adminPageTitle = '모듈 관리';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="member-notice">
     <span class="member-notice-icon" aria-hidden="true">i</span>
@@ -24,7 +14,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<section class="member-table-card admin-member-list-form">
+<nav class="admin-tabs" data-admin-tabs>
+    <button type="button" class="admin-tab-button is-active" data-admin-tab-target="installed">설치된 모듈</button>
+    <button type="button" class="admin-tab-button" data-admin-tab-target="installable">설치 가능한 모듈</button>
+    <button type="button" class="admin-tab-button" data-admin-tab-target="upload">zip 업로드</button>
+    <button type="button" class="admin-tab-button" data-admin-tab-target="settings">고급 설정</button>
+</nav>
+
+<section id="module-tab-installed" class="member-table-card admin-member-list-form" data-admin-tab-panel="installed">
 <div class="card-header">
     <h2 class="card-title">설치된 모듈</h2>
 </div>
@@ -116,33 +113,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td class="member-cell-manage">
                     <div class="member-manage">
                     <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
-                        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="install">
-                            <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
-                            <select name="status">
-                                <?php foreach ($allowedInstallStatuses as $status) { ?>
-                                    <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-surface-default-soft">재설치</button>
-                        </form>
+                        <details class="member-edit-details">
+                            <summary class="btn btn-sm btn-surface-default-soft">재설치</summary>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="install">
+                                <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
+                                <label>
+                                    <span>설치 후 상태</span>
+                                    <select name="status">
+                                        <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                                <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </label>
+                                <button type="submit" class="btn btn-sm btn-solid-primary">재설치</button>
+                            </form>
+                        </details>
                     <?php } else { ?>
-                        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="status">
-                            <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
-                            <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
-                                <?php foreach ($allowedStatuses as $status) { ?>
-                                    <option value="<?php echo sr_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
-                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-surface-default-soft"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
-                        </form>
+                        <details class="member-edit-details">
+                            <summary class="btn btn-sm btn-surface-default-soft"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="status">
+                                <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
+                                <label>
+                                    <span>상태</span>
+                                    <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
+                                        <?php foreach ($allowedStatuses as $status) { ?>
+                                            <option value="<?php echo sr_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
+                                                <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </label>
+                                <button type="submit" class="btn btn-sm btn-solid-primary"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
+                            </form>
+                        </details>
                     <?php } ?>
                     </div>
                 </td>
@@ -153,6 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 </section>
 
+<div data-admin-tab-panel="upload" hidden>
 <?php if (!$canManageModuleSources || !$moduleSourcesEnabled || !$moduleUploadAvailable) { ?>
     <section class="card">
         <h2>모듈 zip 업로드</h2>
@@ -224,8 +234,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </form>
 <?php } ?>
+</div>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form" data-admin-tab-panel="installable" hidden>
     <div class="card-header">
         <h2 class="card-title">설치 가능한 모듈</h2>
     </div>
@@ -281,19 +292,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php if ($moduleErrors !== []) { ?>
                                 설치 불가
                             <?php } else { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="intent" value="install">
-                                    <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
-                                    <select name="status">
-                                        <?php foreach ($allowedInstallStatuses as $status) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                                <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-surface-default-soft">설치</button>
-                                </form>
+                                <details class="member-edit-details">
+                                    <summary class="btn btn-sm btn-surface-default-soft">설치</summary>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="install">
+                                        <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
+                                        <label>
+                                            <span>설치 후 상태</span>
+                                            <select name="status">
+                                                <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-solid-primary">설치</button>
+                                    </form>
+                                </details>
                             <?php } ?>
                             </div>
                         </td>
@@ -305,7 +322,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<section class="member-table-card admin-member-list-form">
+<section class="member-table-card admin-member-list-form" data-admin-tab-panel="settings" hidden>
     <div class="card-header">
         <h2 class="card-title">모듈 설정 항목</h2>
     </div>

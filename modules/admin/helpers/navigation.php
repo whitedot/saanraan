@@ -139,7 +139,7 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '메뉴', 'path' => '/admin/menu', 'order' => 45],
                 ['label' => '모듈', 'path' => '/admin/modules', 'order' => 50],
                 ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 60],
-                ['label' => '보관 정리', 'path' => '/admin/retention', 'order' => 70],
+                ['label' => '데이터 정리', 'path' => '/admin/retention', 'order' => 70],
             ],
         ],
     ];
@@ -486,6 +486,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
         $rows[] = sr_admin_menu_override_form_row(
             'category',
             $categoryKey,
+            '',
             (string) ($group['label'] ?? $categoryKey),
             $categoryOrder,
             $categoryOverride
@@ -502,6 +503,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
             $rows[] = sr_admin_menu_override_form_row(
                 'group',
                 $moduleKey,
+                $categoryKey,
                 (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey),
                 $groupOrder,
                 $groupOverride
@@ -519,6 +521,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
                 $rows[] = sr_admin_menu_override_form_row(
                     'item',
                     $targetKey,
+                    $moduleKey,
                     (string) ($group['label'] ?? $categoryKey) . ' / ' . (string) ($moduleGroup['label'] ?? $moduleKey) . ' / ' . (string) ($item['label'] ?? $path),
                     $itemOrder,
                     $itemOverride
@@ -530,13 +533,14 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
     return $rows;
 }
 
-function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $label, int $defaultOrder, array $override): array
+function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override): array
 {
     $sortOrder = array_key_exists('sort_order', $override) ? (int) $override['sort_order'] : $defaultOrder;
 
     return [
         'scope' => $scope,
         'target_key' => $targetKey,
+        'parent_key' => $parentKey,
         'form_key' => $scope . '|' . $targetKey,
         'label' => $label,
         'default_order' => $defaultOrder,

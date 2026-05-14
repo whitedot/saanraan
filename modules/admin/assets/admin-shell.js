@@ -29,6 +29,8 @@ window.AdminShell = {
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
         const toastStack = document.querySelector('.admin-toast-stack');
+        const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
+        const tabRoot = document.querySelector('[data-admin-tabs]');
         let hideScrollbarTimer = null;
 
         const isMobileViewport = () => mobileQuery.matches;
@@ -325,6 +327,74 @@ window.AdminShell = {
             Array.prototype.slice.call(toastStack.querySelectorAll('[data-admin-toast]')).forEach(toast => {
                 window.setTimeout(() => closeToast(toast), 6500);
             });
+        }
+
+        if (sortableRows.length > 0) {
+            let draggedRow = null;
+
+            const renumberRows = scope => {
+                const rows = Array.prototype.slice.call(document.querySelectorAll(`[data-admin-sortable-row][data-sort-scope="${scope}"]`));
+                rows.forEach((row, index) => {
+                    const input = row.querySelector('[data-admin-sort-order]');
+                    if (input) {
+                        input.value = String((index + 1) * 10);
+                    }
+                });
+            };
+
+            sortableRows.forEach(row => {
+                row.addEventListener('dragstart', event => {
+                    draggedRow = row;
+                    row.classList.add('is-dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', '');
+                });
+
+                row.addEventListener('dragend', () => {
+                    row.classList.remove('is-dragging');
+                    draggedRow = null;
+                    renumberRows(row.dataset.sortScope || '');
+                });
+
+                row.addEventListener('dragover', event => {
+                    if (!draggedRow || draggedRow === row) {
+                        return;
+                    }
+
+                    if (
+                        draggedRow.dataset.sortScope !== row.dataset.sortScope
+                        || draggedRow.dataset.sortParent !== row.dataset.sortParent
+                    ) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const rect = row.getBoundingClientRect();
+                    const after = event.clientY > rect.top + rect.height / 2;
+                    row.parentNode.insertBefore(draggedRow, after ? row.nextSibling : row);
+                });
+            });
+        }
+
+        if (tabRoot) {
+            const buttons = Array.prototype.slice.call(tabRoot.querySelectorAll('[data-admin-tab-target]'));
+            const panels = Array.prototype.slice.call(document.querySelectorAll('[data-admin-tab-panel]'));
+            const activateTab = tabName => {
+                buttons.forEach(button => {
+                    const active = button.dataset.adminTabTarget === tabName;
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-selected', active ? 'true' : 'false');
+                });
+                panels.forEach(panel => {
+                    panel.hidden = panel.dataset.adminTabPanel !== tabName;
+                });
+            };
+
+            buttons.forEach(button => {
+                button.setAttribute('role', 'tab');
+                button.addEventListener('click', () => activateTab(button.dataset.adminTabTarget || ''));
+            });
+            tabRoot.setAttribute('role', 'tablist');
         }
 
         syncDesktopSidebarState();

@@ -4,17 +4,7 @@ $adminPageTitle = '사이트 설정';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
     <?php echo sr_csrf_field(); ?>
@@ -31,13 +21,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <p>
-            <strong>공개 기준 URL</strong><br>
+            <strong>외부 공개 URL</strong><br>
             <?php if ($values['base_url'] !== '') { ?>
                 <code><?php echo sr_e($values['base_url']); ?></code>
             <?php } else { ?>
                 <span>설정되지 않음</span>
             <?php } ?>
-            <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 관리자 설정에서는 변경하지 않습니다.</span>
+            <span class="sr-install-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</span>
         </p>
         <div class="af-row">
             <div class="af-label"><span class="form-label">시간대</span></div>

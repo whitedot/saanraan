@@ -9,5 +9,10 @@ return [
             'path' => '/admin/site-menus',
             'order' => 10,
         ],
+        [
+            'label' => '항목 관리',
+            'path' => '/admin/site-menu-items',
+            'order' => 20,
+        ],
     ],
 ];

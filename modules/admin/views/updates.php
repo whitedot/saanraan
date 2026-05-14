@@ -4,17 +4,7 @@ $adminPageTitle = '업데이트';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($previousUpdateFailure !== null) { ?>
     <section>
@@ -78,7 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="sync_file_only_versions">
-                <p>SQL 적용 없이 설치 버전 기록만 코드 버전에 맞춥니다.</p>
+                <p>DB 변경이 없는 파일 업데이트입니다. SQL은 실행하지 않고, 설치 버전 기록만 현재 코드 버전에 맞춥니다.</p>
                 <div class="member-list-actions">
                     <button type="submit" class="btn btn-solid-primary">파일 전용 업데이트 반영</button>
                 </div>
