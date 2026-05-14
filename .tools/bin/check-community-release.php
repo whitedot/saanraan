@@ -774,7 +774,6 @@ sr_community_release_file_contains('modules/community/helpers/themes.php', [
     'function sr_community_skin_files(): array',
     'function sr_community_skin_options(): array',
     "'basic' => SR_ROOT . '/modules/community/skins/basic/skin.php'",
-    "'compact' => SR_ROOT . '/modules/community/skins/compact/skin.php'",
     'function sr_community_skin_definition_is_valid(string $skinKey, array $definition): bool',
     'function sr_community_required_skin_view_keys(): array',
     "return ['list', 'post', 'form'];",
