@@ -8,7 +8,7 @@ $errors = [];
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.05.002',
+        'version' => '2026.05.003',
         'label' => '회원',
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],

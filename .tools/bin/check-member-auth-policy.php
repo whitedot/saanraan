@@ -205,8 +205,10 @@ if ($settingsHelper !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_settings') !== false
-            && strpos($settingsHelper, "'nickname' => !empty(\$settings['profile_nickname_enabled'])") !== false,
-        'Member settings helper should expose normalized profile field flags.'
+            && strpos($settingsHelper, 'function sr_member_profile_field_policies') !== false
+            && strpos($settingsHelper, 'profile_nickname_required') !== false
+            && strpos($settingsHelper, 'profile_avatar_required') !== false,
+        'Member settings helper should expose normalized optional profile visibility and required policies.'
     );
 }
 
@@ -293,19 +295,17 @@ if ($accountAction !== '') {
         'Password change should reject overlong raw new-password inputs instead of truncating them.'
     );
     sr_member_auth_policy_assert(
-        strpos($accountAction, '$profileFields = sr_member_profile_field_settings($memberSettings)') !== false
-            && strpos($accountAction, 'if ($profileFields[\'nickname\'])') !== false
-            && strpos($accountAction, 'if ($profileFields[\'phone\'])') !== false
-            && strpos($accountAction, 'if ($profileFields[\'birth_date\'])') !== false
-            && strpos($accountAction, 'if ($profileFields[\'avatar_path\'])') !== false
-            && strpos($accountAction, 'if ($profileFields[\'profile_text\'])') !== false,
-        'Account action should only update enabled optional profile fields.'
+        strpos($accountAction, '$profilePolicies = sr_member_profile_field_policies($memberSettings)') !== false
+            && strpos($accountAction, 'sr_member_profile_values_from_post($profilePolicies, $profile)') !== false
+            && strpos($accountAction, "['validate_avatar' => false]") !== false
+            && strpos($accountAction, 'sr_member_profile_validation_errors($profile, $profilePolicies)') !== false,
+        'Account action should update and validate optional profile fields through normalized profile policies.'
     );
     sr_member_auth_policy_assert(
-        strpos($accountAction, '!sr_is_safe_relative_url($profile[\'avatar_path\'])') !== false
-            && strpos($accountAction, '!sr_is_public_http_url($profile[\'avatar_path\'])') !== false
-            && strpos($accountAction, '공개 http(s) URL') !== false,
-        'Account action should allow only safe relative or public http avatar URLs before saving.'
+        strpos($accountAction, 'sr_member_avatar_upload_was_provided($_FILES[\'avatar_file\'] ?? null)') !== false
+            && strpos($accountAction, 'sr_member_upload_avatar($_FILES[\'avatar_file\'])') !== false
+            && strpos($accountAction, 'sr_member_delete_avatar_reference($uploadedAvatarReference)') !== false,
+        'Account action should handle member avatar as a validated upload instead of a submitted URL.'
     );
     sr_member_auth_policy_assert(
         strpos($accountAction, 'sr_is_local_host((string) ($site[\'base_url\'] ?? \'\'))') !== false
@@ -628,9 +628,10 @@ if ($adminSettingsAction !== '') {
         'Member settings action should validate and save login_identifier.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminSettingsAction, 'sr_member_profile_field_setting_keys()') !== false
-            && strpos($adminSettingsAction, "'profile_fields' => sr_member_profile_field_settings(\$settings)") !== false,
-        'Member settings action should save optional profile field settings and audit them.'
+        strpos($adminSettingsAction, 'sr_member_profile_field_definitions()') !== false
+            && strpos($adminSettingsAction, "\$settings[\$requiredKey] = (\$_POST[\$requiredKey] ?? '') === '1';") !== false
+            && strpos($adminSettingsAction, "'profile_fields' => sr_member_profile_field_policies(\$settings)") !== false,
+        'Member settings action should save optional profile visibility/required settings and audit them.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_admin_post_int_in_range($key, (int) $limits[\'min\'], (int) $limits[\'max\'])') !== false
@@ -650,8 +651,10 @@ if ($adminSettingsView !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsView, '선택 프로필 항목') !== false
-            && strpos($adminSettingsView, 'sr_member_profile_field_setting_keys()') !== false,
-        'Member settings view should expose optional profile field settings.'
+            && strpos($adminSettingsView, 'sr_member_profile_field_definitions()') !== false
+            && strpos($adminSettingsView, '$enabledKey') !== false
+            && strpos($adminSettingsView, '$requiredKey') !== false,
+        'Member settings view should expose optional profile visibility and required field settings.'
     );
 }
 
@@ -659,12 +662,13 @@ $accountView = sr_member_auth_policy_read('modules/member/views/account.php');
 if ($accountView !== '') {
     sr_member_auth_policy_assert(
         strpos($accountView, 'if ($profileFieldsEnabled)') !== false
-            && strpos($accountView, "if (\$profileFields['nickname'])") !== false
-            && strpos($accountView, "if (\$profileFields['phone'])") !== false
-            && strpos($accountView, "if (\$profileFields['birth_date'])") !== false
-            && strpos($accountView, "if (\$profileFields['avatar_path'])") !== false
-            && strpos($accountView, "if (\$profileFields['profile_text'])") !== false,
-        'Account view should render only enabled optional profile fields.'
+            && strpos($accountView, "if (!empty(\$profilePolicies['nickname']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['birth_date']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['avatar_path']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['profile_text']['visible']))") !== false
+            && strpos($accountView, 'name="avatar_file"') !== false,
+        'Account view should render only visible optional profile fields and use file upload for avatar.'
     );
 }
 

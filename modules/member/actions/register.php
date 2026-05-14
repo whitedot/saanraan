@@ -16,6 +16,8 @@ $memberSettings = sr_member_settings($pdo);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $loginIdentifierMode = (string) $memberSettings['login_identifier'];
+$profilePolicies = sr_member_profile_field_policies($memberSettings);
+$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
 $errors = [];
 $marketingConsent = false;
 $values = [
@@ -23,6 +25,7 @@ $values = [
     'login_id' => '',
     'display_name' => '',
 ];
+$profileValues = sr_member_empty_profile();
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -55,6 +58,9 @@ if (sr_request_method() === 'POST') {
     $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
     $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
     $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
+    if ($profileFieldsEnabled) {
+        $profileValues = sr_member_profile_values_from_post($profilePolicies, sr_member_empty_profile());
+    }
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = '이메일 형식이 올바르지 않습니다.';
@@ -86,6 +92,19 @@ if (sr_request_method() === 'POST') {
         $errors[] = '필수 약관과 개인정보 처리방침에 동의하세요.';
     }
 
+    if ($profileFieldsEnabled) {
+        foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+            $errors[] = $profileError;
+        }
+        if (
+            !empty($profilePolicies['avatar_path']['visible'])
+            && !empty($profilePolicies['avatar_path']['required'])
+            && !sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)
+        ) {
+            $errors[] = '아바타를 업로드하세요.';
+        }
+    }
+
     if ($errors === []) {
         $throttle = sr_member_register_throttle_status($pdo);
         if (!empty($throttle['limited'])) {
@@ -104,9 +123,38 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $uploadedAvatarReference = '';
+
+        if (!empty($profilePolicies['avatar_path']['visible']) && sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)) {
+            try {
+                $uploadedAvatar = sr_member_upload_avatar($_FILES['avatar_file']);
+                if (is_array($uploadedAvatar)) {
+                    $uploadedAvatarReference = (string) $uploadedAvatar['reference'];
+                    $profileValues['avatar_path'] = $uploadedAvatarReference;
+                }
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'member_register_avatar_upload');
+                $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : '아바타 업로드를 처리할 수 없습니다.';
+            }
+        }
+
+        if ($errors === [] && $profileFieldsEnabled) {
+            foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies) as $profileError) {
+                $errors[] = $profileError;
+            }
+        }
+
+        if ($errors !== [] && $uploadedAvatarReference !== '') {
+            sr_member_delete_avatar_reference($uploadedAvatarReference);
+            $profileValues['avatar_path'] = '';
+        }
+    }
+
+    if ($errors === []) {
         $accountId = null;
         $verificationMailSent = null;
         $verificationUrl = '';
+        $uploadedAvatarReference = (string) ($profileValues['avatar_path'] ?? '');
 
         try {
             $pdo->beginTransaction();
@@ -128,6 +176,9 @@ if (sr_request_method() === 'POST') {
             sr_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
             sr_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
             sr_member_record_consent($pdo, $accountId, 'marketing', '2026.04.001', $marketingConsent);
+            if ($profileFieldsEnabled) {
+                sr_member_save_profile($pdo, $accountId, $profileValues);
+            }
 
             $pdo->commit();
         } catch (Throwable $exception) {
@@ -136,6 +187,10 @@ if (sr_request_method() === 'POST') {
             }
 
             sr_member_log_auth($pdo, null, 'register', 'failure');
+            if ($uploadedAvatarReference !== '') {
+                sr_member_delete_avatar_reference($uploadedAvatarReference);
+                $profileValues['avatar_path'] = '';
+            }
             $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';
         }
 

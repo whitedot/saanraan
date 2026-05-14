@@ -14,8 +14,8 @@ $submittedProfile = null;
 $submittedBasics = null;
 $memberSettings = sr_member_settings($pdo);
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
-$profileFields = sr_member_profile_field_settings($memberSettings);
-$profileFieldsEnabled = in_array(true, $profileFields, true);
+$profilePolicies = sr_member_profile_field_policies($memberSettings);
+$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
 
 if (
     $emailVerificationEnabled
@@ -78,42 +78,65 @@ if (sr_request_method() === 'POST') {
         }
 
         $profile = sr_member_profile($pdo, (int) $account['id']);
-        if ($profileFields['nickname']) {
-            $profile['nickname'] = sr_post_string('nickname', 80);
+        if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
+            $profile['avatar_path'] = '';
         }
-        if ($profileFields['phone']) {
-            $profile['phone'] = sr_post_string('phone', 40);
-        }
-        if ($profileFields['birth_date']) {
-            $profile['birth_date'] = sr_post_string('birth_date', 10);
-        }
-        if ($profileFields['avatar_path']) {
-            $profile['avatar_path'] = sr_post_string('avatar_path', 255);
-        }
-        if ($profileFields['profile_text']) {
-            $profile['profile_text'] = sr_post_string('profile_text', 1000);
-        }
+        $previousAvatarPath = (string) $profile['avatar_path'];
+        $profile = sr_member_profile_values_from_post($profilePolicies, $profile);
         $submittedProfile = $profile;
 
-        if ($profileFields['birth_date'] && $profile['birth_date'] !== '' && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $profile['birth_date']) !== 1) {
-            $errors[] = '생년월일은 YYYY-MM-DD 형식으로 입력하세요.';
-        } elseif ($profileFields['birth_date'] && $profile['birth_date'] !== '') {
-            $birthParts = explode('-', $profile['birth_date']);
-            if (!checkdate((int) $birthParts[1], (int) $birthParts[2], (int) $birthParts[0])) {
-                $errors[] = '생년월일이 올바르지 않습니다.';
-            }
+        foreach (sr_member_profile_validation_errors($profile, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+            $errors[] = $profileError;
         }
-        if (
-            $profileFields['avatar_path']
-            && $profile['avatar_path'] !== ''
-            && !sr_is_safe_relative_url($profile['avatar_path'])
-            && !sr_is_public_http_url($profile['avatar_path'])
-        ) {
-            $errors[] = '아바타 경로는 /로 시작하는 상대 URL 또는 공개 http(s) URL이어야 합니다.';
+
+        $uploadedAvatarReference = '';
+        $avatarReferenceToDelete = '';
+        if ($errors === [] && !empty($profilePolicies['avatar_path']['visible'])) {
+            $deleteAvatar = ($_POST['avatar_delete'] ?? '') === '1';
+            if ($deleteAvatar && empty($profilePolicies['avatar_path']['required'])) {
+                $profile['avatar_path'] = '';
+                $avatarReferenceToDelete = $previousAvatarPath;
+            }
+
+            if (sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)) {
+                try {
+                    $uploadedAvatar = sr_member_upload_avatar($_FILES['avatar_file']);
+                    if (is_array($uploadedAvatar)) {
+                        $uploadedAvatarReference = (string) $uploadedAvatar['reference'];
+                        $profile['avatar_path'] = $uploadedAvatarReference;
+                        $avatarReferenceToDelete = $previousAvatarPath;
+                    }
+                } catch (Throwable $exception) {
+                    sr_log_exception($exception, 'member_account_avatar_upload');
+                    $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : '아바타 업로드를 처리할 수 없습니다.';
+                }
+            }
         }
 
         if ($errors === []) {
-            sr_member_save_profile($pdo, (int) $account['id'], $profile);
+            foreach (sr_member_profile_validation_errors($profile, $profilePolicies) as $profileError) {
+                $errors[] = $profileError;
+            }
+        }
+
+        if ($errors !== [] && $uploadedAvatarReference !== '') {
+            sr_member_delete_avatar_reference($uploadedAvatarReference);
+            $profile['avatar_path'] = $previousAvatarPath;
+            $submittedProfile = $profile;
+        }
+
+        if ($errors === []) {
+            try {
+                sr_member_save_profile($pdo, (int) $account['id'], $profile);
+            } catch (Throwable $exception) {
+                if ($uploadedAvatarReference !== '') {
+                    sr_member_delete_avatar_reference($uploadedAvatarReference);
+                }
+                throw $exception;
+            }
+            if ($avatarReferenceToDelete !== '' && $avatarReferenceToDelete !== (string) $profile['avatar_path']) {
+                sr_member_delete_avatar_reference($avatarReferenceToDelete);
+            }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'member',
@@ -221,6 +244,9 @@ if (is_array($submittedBasics) && $errors !== []) {
     $account['locale'] = $submittedBasics['locale'];
 }
 $profile = sr_member_profile($pdo, (int) $account['id']);
+if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
+    $profile['avatar_path'] = '';
+}
 if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);
 }

@@ -21,7 +21,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } ?>
 
         <?php if ($registrationAllowed) { ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>">
+            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>"<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label>
@@ -43,6 +43,47 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <input type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
+                <?php if (!empty($profilePolicies['nickname']['visible'])) { ?>
+                    <p>
+                        <label>
+                    <span>닉네임</span>
+                            <input type="text" name="nickname" value="<?php echo sr_e((string) $profileValues['nickname']); ?>" maxlength="80"<?php echo !empty($profilePolicies['nickname']['required']) ? ' required' : ''; ?>>
+                        </label>
+                    </p>
+                <?php } ?>
+                <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
+                    <p>
+                        <label>
+                    <span>전화번호</span>
+                            <input type="text" name="phone" value="<?php echo sr_e((string) $profileValues['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
+                        </label>
+                    </p>
+                <?php } ?>
+                <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
+                    <p>
+                        <label>
+                    <span>생년월일</span>
+                            <input type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
+                        </label>
+                    </p>
+                <?php } ?>
+                <?php if (!empty($profilePolicies['avatar_path']['visible'])) { ?>
+                    <p>
+                        <label>
+                    <span>아바타</span>
+                            <input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' required' : ''; ?>>
+                        </label>
+                        <small>JPG, PNG, WebP / 최대 <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
+                    </p>
+                <?php } ?>
+                <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
+                    <p>
+                        <label>
+                    <span>소개</span>
+                            <textarea name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e((string) $profileValues['profile_text']); ?></textarea>
+                        </label>
+                    </p>
+                <?php } ?>
                 <p>
                     <label>
                     <span>비밀번호</span>

@@ -29,10 +29,15 @@ function sr_member_default_settings(): array
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
         'member_skin_key' => is_string($settings['member_skin_key'] ?? null) ? (string) $settings['member_skin_key'] : 'basic',
         'profile_nickname_enabled' => (bool) ($settings['profile_nickname_enabled'] ?? true),
+        'profile_nickname_required' => (bool) ($settings['profile_nickname_required'] ?? false),
         'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
+        'profile_phone_required' => (bool) ($settings['profile_phone_required'] ?? false),
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
+        'profile_birth_date_required' => (bool) ($settings['profile_birth_date_required'] ?? false),
         'profile_avatar_enabled' => (bool) ($settings['profile_avatar_enabled'] ?? true),
+        'profile_avatar_required' => (bool) ($settings['profile_avatar_required'] ?? false),
         'profile_text_enabled' => (bool) ($settings['profile_text_enabled'] ?? true),
+        'profile_text_required' => (bool) ($settings['profile_text_required'] ?? false),
     ];
 }
 
@@ -44,8 +49,11 @@ function sr_member_settings(PDO $pdo): array
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['login_identifier'] = (string) $settings['login_identifier'] === 'login_id' ? 'login_id' : 'email';
     $settings['member_skin_key'] = sr_member_skin_key($settings);
-    foreach (sr_member_profile_field_setting_keys() as $key => $label) {
-        $settings[$key] = (bool) ($settings[$key] ?? false);
+    foreach (sr_member_profile_field_definitions() as $definition) {
+        $enabledKey = (string) $definition['enabled_key'];
+        $requiredKey = (string) $definition['required_key'];
+        $settings[$enabledKey] = (bool) ($settings[$enabledKey] ?? false);
+        $settings[$requiredKey] = $settings[$enabledKey] && (bool) ($settings[$requiredKey] ?? false);
     }
 
     foreach (sr_member_integer_setting_keys() as $key => $limits) {
@@ -136,22 +144,99 @@ function sr_member_clamp_int(int $value, int $min, int $max): int
 
 function sr_member_profile_field_setting_keys(): array
 {
+    $keys = [];
+    foreach (sr_member_profile_field_definitions() as $definition) {
+        $keys[(string) $definition['enabled_key']] = (string) $definition['label'];
+    }
+
+    return $keys;
+}
+
+function sr_member_profile_field_required_setting_keys(): array
+{
+    $keys = [];
+    foreach (sr_member_profile_field_definitions() as $definition) {
+        $keys[(string) $definition['required_key']] = (string) $definition['label'];
+    }
+
+    return $keys;
+}
+
+function sr_member_profile_field_definitions(): array
+{
     return [
-        'profile_nickname_enabled' => '닉네임',
-        'profile_phone_enabled' => '전화번호',
-        'profile_birth_date_enabled' => '생년월일',
-        'profile_avatar_enabled' => '아바타 경로',
-        'profile_text_enabled' => '소개',
+        'nickname' => [
+            'label' => '닉네임',
+            'enabled_key' => 'profile_nickname_enabled',
+            'required_key' => 'profile_nickname_required',
+        ],
+        'phone' => [
+            'label' => '전화번호',
+            'enabled_key' => 'profile_phone_enabled',
+            'required_key' => 'profile_phone_required',
+        ],
+        'birth_date' => [
+            'label' => '생년월일',
+            'enabled_key' => 'profile_birth_date_enabled',
+            'required_key' => 'profile_birth_date_required',
+        ],
+        'avatar_path' => [
+            'label' => '아바타',
+            'enabled_key' => 'profile_avatar_enabled',
+            'required_key' => 'profile_avatar_required',
+        ],
+        'profile_text' => [
+            'label' => '소개',
+            'enabled_key' => 'profile_text_enabled',
+            'required_key' => 'profile_text_required',
+        ],
     ];
 }
 
 function sr_member_profile_field_settings(array $settings): array
 {
-    return [
-        'nickname' => !empty($settings['profile_nickname_enabled']),
-        'phone' => !empty($settings['profile_phone_enabled']),
-        'birth_date' => !empty($settings['profile_birth_date_enabled']),
-        'avatar_path' => !empty($settings['profile_avatar_enabled']),
-        'profile_text' => !empty($settings['profile_text_enabled']),
-    ];
+    $visible = [];
+    foreach (sr_member_profile_field_policies($settings) as $field => $policy) {
+        $visible[$field] = !empty($policy['visible']);
+    }
+
+    return $visible;
+}
+
+function sr_member_profile_field_required_settings(array $settings): array
+{
+    $required = [];
+    foreach (sr_member_profile_field_policies($settings) as $field => $policy) {
+        $required[$field] = !empty($policy['required']);
+    }
+
+    return $required;
+}
+
+function sr_member_profile_field_policies(array $settings): array
+{
+    $policies = [];
+    foreach (sr_member_profile_field_definitions() as $field => $definition) {
+        $enabledKey = (string) $definition['enabled_key'];
+        $requiredKey = (string) $definition['required_key'];
+        $visible = !empty($settings[$enabledKey]);
+        $policies[$field] = [
+            'label' => (string) $definition['label'],
+            'visible' => $visible,
+            'required' => $visible && !empty($settings[$requiredKey]),
+        ];
+    }
+
+    return $policies;
+}
+
+function sr_member_profile_has_visible_fields(array $policies): bool
+{
+    foreach ($policies as $policy) {
+        if (!empty($policy['visible'])) {
+            return true;
+        }
+    }
+
+    return false;
 }

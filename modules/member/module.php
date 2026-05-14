@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.05.002',
+    'version' => '2026.05.003',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
@@ -45,9 +45,14 @@ return [
         'register_throttle_ip_limit' => 10,
         'member_skin_key' => 'basic',
         'profile_nickname_enabled' => true,
+        'profile_nickname_required' => false,
         'profile_phone_enabled' => true,
+        'profile_phone_required' => false,
         'profile_birth_date_enabled' => true,
+        'profile_birth_date_required' => false,
         'profile_avatar_enabled' => true,
+        'profile_avatar_required' => false,
         'profile_text_enabled' => true,
+        'profile_text_required' => false,
     ],
 ];

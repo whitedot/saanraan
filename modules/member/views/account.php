@@ -100,46 +100,61 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php if ($profileFieldsEnabled) { ?>
             <section>
                 <h2>선택 프로필</h2>
-                <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>">
+                <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>"<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="profile">
-                    <?php if ($profileFields['nickname']) { ?>
+                    <?php if (!empty($profilePolicies['nickname']['visible'])) { ?>
                         <p>
                             <label>
                     <span>닉네임</span>
-                                <input type="text" name="nickname" value="<?php echo sr_e($profile['nickname']); ?>" maxlength="80">
+                                <input type="text" name="nickname" value="<?php echo sr_e($profile['nickname']); ?>" maxlength="80"<?php echo !empty($profilePolicies['nickname']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
                     <?php } ?>
-                    <?php if ($profileFields['phone']) { ?>
+                    <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                         <p>
                             <label>
                     <span>전화번호</span>
-                                <input type="text" name="phone" value="<?php echo sr_e($profile['phone']); ?>" maxlength="40">
+                                <input type="text" name="phone" value="<?php echo sr_e($profile['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
                     <?php } ?>
-                    <?php if ($profileFields['birth_date']) { ?>
+                    <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
                         <p>
                             <label>
                     <span>생년월일</span>
-                                <input type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>">
+                                <input type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
                     <?php } ?>
-                    <?php if ($profileFields['avatar_path']) { ?>
+                    <?php if (!empty($profilePolicies['avatar_path']['visible'])) { ?>
+                        <?php $avatarSrc = sr_member_avatar_src((string) $profile['avatar_path']); ?>
                         <p>
                             <label>
-                    <span>아바타 경로</span>
-                                <input type="text" name="avatar_path" value="<?php echo sr_e($profile['avatar_path']); ?>" maxlength="255">
+                    <span>아바타</span>
+                                <input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                             </label>
+                            <small>JPG, PNG, WebP / 최대 <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
                         </p>
+                        <?php if ($avatarSrc !== '') { ?>
+                            <p>
+                                <img src="<?php echo sr_e($avatarSrc); ?>" alt="아바타" width="96" height="96">
+                            </p>
+                            <?php if (empty($profilePolicies['avatar_path']['required'])) { ?>
+                                <p>
+                                    <label>
+                                        <input type="checkbox" name="avatar_delete" value="1" class="form-checkbox">
+                                        아바타 삭제
+                                    </label>
+                                </p>
+                            <?php } ?>
+                        <?php } ?>
                     <?php } ?>
-                    <?php if ($profileFields['profile_text']) { ?>
+                    <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
                         <p>
                             <label>
                     <span>소개</span>
-                                <textarea name="profile_text" maxlength="1000"><?php echo sr_e($profile['profile_text']); ?></textarea>
+                                <textarea name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e($profile['profile_text']); ?></textarea>
                             </label>
                         </p>
                     <?php } ?>

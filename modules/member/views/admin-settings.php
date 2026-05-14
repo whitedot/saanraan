@@ -77,13 +77,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>선택 프로필 항목</h2>
         <div class="af-grid">
-        <?php foreach (sr_member_profile_field_setting_keys() as $key => $label) { ?>
+        <?php foreach (sr_member_profile_field_definitions() as $definition) { ?>
+            <?php
+            $label = (string) $definition['label'];
+            $enabledKey = (string) $definition['enabled_key'];
+            $requiredKey = (string) $definition['required_key'];
+            ?>
             <div class="af-row">
                 <div class="af-label"><span class="form-label"><?php echo sr_e($label); ?></span></div>
                 <div class="af-field">
                     <label class="af-check form-label">
-                        <input type="checkbox" name="<?php echo sr_e($key); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$key]) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html((string) $label); ?>
+                        <input type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html((string) $label . ' 보이기'); ?>
+                    </label>
+                    <label class="af-check form-label">
+                        <input type="checkbox" name="<?php echo sr_e($requiredKey); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html((string) $label . ' 필수입력'); ?>
                     </label>
                 </div>
             </div>

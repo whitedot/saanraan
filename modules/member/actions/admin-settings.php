@@ -30,8 +30,14 @@ if (sr_request_method() === 'POST') {
     } else {
         $settings['login_identifier'] = $loginIdentifier;
     }
-    foreach (sr_member_profile_field_setting_keys() as $key => $label) {
-        $settings[$key] = ($_POST[$key] ?? '') === '1';
+    foreach (sr_member_profile_field_definitions() as $definition) {
+        $enabledKey = (string) $definition['enabled_key'];
+        $requiredKey = (string) $definition['required_key'];
+        $settings[$enabledKey] = ($_POST[$enabledKey] ?? '') === '1';
+        $settings[$requiredKey] = ($_POST[$requiredKey] ?? '') === '1';
+        if ($settings[$requiredKey] && !$settings[$enabledKey]) {
+            $errors[] = (string) $definition['label'] . ' 필수입력은 보이기와 함께 선택해야 합니다.';
+        }
     }
 
     foreach ($integerSettingKeys as $key => $limits) {
@@ -69,8 +75,11 @@ if (sr_request_method() === 'POST') {
             ['login_identifier', (string) $settings['login_identifier'], 'string'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
         ];
-        foreach (sr_member_profile_field_setting_keys() as $key => $label) {
-            $rows[] = [$key, !empty($settings[$key]) ? '1' : '0', 'bool'];
+        foreach (sr_member_profile_field_definitions() as $definition) {
+            $enabledKey = (string) $definition['enabled_key'];
+            $requiredKey = (string) $definition['required_key'];
+            $rows[] = [$enabledKey, !empty($settings[$enabledKey]) ? '1' : '0', 'bool'];
+            $rows[] = [$requiredKey, !empty($settings[$requiredKey]) ? '1' : '0', 'bool'];
         }
 
         foreach ($integerSettingKeys as $key => $limits) {
@@ -102,7 +111,7 @@ if (sr_request_method() === 'POST') {
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
                 'login_identifier' => (string) $settings['login_identifier'],
                 'member_skin_key' => (string) $settings['member_skin_key'],
-                'profile_fields' => sr_member_profile_field_settings($settings),
+                'profile_fields' => sr_member_profile_field_policies($settings),
             ],
         ]);
 
