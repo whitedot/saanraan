@@ -86,9 +86,10 @@
 @media (hover:hover){#tnb .tnb_mb_area a:hover{background-color:var(--color-default-100);color:var(--color-slate-900)}}
 #container{padding-inline:calc(var(--spacing) * 4);padding-top:calc(var(--spacing) * 6);padding-bottom:calc(var(--spacing) * 8)}
 @media (min-width:64rem){#container{padding-inline:calc(var(--spacing) * 8)}}
-#container_title{font-size:var(--text-3xl);line-height:var(--text-3xl--line-height);font-weight:var(--font-weight-semibold);letter-spacing:var(--tracking-tight);color:var(--color-slate-900)}
-#container_title:where([data-theme=dark],[data-theme=dark] *){color:var(--color-slate-100)}
-#container_subtitle{margin-top:calc(var(--spacing) * 2);margin-bottom:calc(var(--spacing) * 5);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-default-500)}
+#container_title{margin-bottom:calc(var(--spacing) * 5);border-bottom-style:solid;border-bottom-width:1px;border-color:var(--color-default-300);padding-bottom:calc(var(--spacing) * 3);font-size:1.625rem;line-height:1.35;font-weight:var(--font-weight-semibold);color:var(--color-default-900);position:relative}
+#container_title:before{content:"";left:calc(var(--spacing) * 0);bottom:-1px;width:calc(var(--spacing) * 12);height:2px;background-color:var(--color-primary);position:absolute}
+#container_title:where([data-theme=dark],[data-theme=dark] *){color:var(--color-default-950)}
+#container_subtitle{margin-top:calc(var(--spacing) * -3);margin-bottom:calc(var(--spacing) * 5);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-default-500)}
 .admin-flash-message{margin-bottom:calc(var(--spacing) * 5);border-radius:var(--radius);border-style:solid;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);border-width:1px}
 .admin-flash-message-success{border-color:#6fcd1f4d}
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-success{border-color:color-mix(in oklab, var(--color-success) 30%, transparent)}}
@@ -99,7 +100,7 @@
 .admin-flash-message-error{color:var(--color-danger-hover);background:#feecef}
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-error{background:color-mix(in oklab, var(--color-danger) 10%, white)}}
 #container.admin-page-config-form{padding-top:calc(var(--spacing) * 4)}
-#container.admin-page-config-form #container_title{margin-bottom:calc(var(--spacing) * 1);font-size:var(--text-2xl);line-height:var(--text-2xl--line-height)}
+#container.admin-page-config-form #container_title{margin-bottom:calc(var(--spacing) * 4);font-size:1.375rem;line-height:1.4}
 #container.admin-page-config-form #container_subtitle{margin-top:calc(var(--spacing) * 0);margin-bottom:calc(var(--spacing) * 3)}
 #container>section,#container>form>section,#container>.section-card{margin-bottom:calc(var(--spacing) * 5);border-radius:var(--radius);background-color:var(--color-card);overflow-wrap:break-word;height:fit-content;box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 1px 2px #393e5026;box-shadow:var(--shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
 #container>section>h2,#container>form>section>h2,#container>.section-card>h2{margin-bottom:calc(var(--spacing) * 0);justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom-style:dashed;border-style:dashed;border-bottom-width:1px;border-color:var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);font-size:var(--text-md);line-height:var(--leading-normal);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color);flex-wrap:wrap;display:flex}
