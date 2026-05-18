@@ -785,6 +785,8 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 `admin.icon`은 모듈 메뉴 그룹의 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼과 SVG sprite는 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.svg', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `svg`, `png`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다.
 
+허용 심볼 이름은 다음과 같다. `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`.
+
 운영자가 `/admin/menu`에서 저장한 표시 순서와 숨김 여부는 이 기본 선언 위에 마지막으로 적용된다. 이 오버라이드는 관리자 내비게이션 표시 정책일 뿐이며, 모듈 계약 파일이나 실제 route 소유권을 바꾸지 않는다.
 
 ```php

@@ -48,6 +48,8 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 
 관리자 메뉴 심볼 목록과 SVG sprite는 `modules/admin/helpers/icons.php`의 공통 계약이 소유한다. admin skin은 심볼을 직접 복사해 두지 않고 `sr_admin_menu_symbol_sprite_html()`을 호출해 같은 계약을 렌더링한다. 새 admin skin을 추가할 때도 이 helper를 호출해야 모듈의 `admin.icon` 선언과 실제 sprite가 어긋나지 않는다.
 
+모듈 메뉴에 허용되는 심볼 이름은 `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`이다. 툴바 전용 심볼은 같은 sprite에 있더라도 `module_menu`가 꺼져 있으면 모듈 선언에서 사용할 수 없다.
+
 아이콘은 메뉴 텍스트를 보조하는 장식 요소로 취급한다. 접근 가능한 이름은 메뉴 label이 맡고, 이미지 아이콘도 `alt=""`와 `aria-hidden="true"`로 출력한다.
 
 ## 페이지 타이틀

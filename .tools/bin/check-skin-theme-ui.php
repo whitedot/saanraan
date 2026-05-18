@@ -62,6 +62,60 @@ function sr_skin_theme_check_file_exists(string $path, string $label): void
     }
 }
 
+function sr_skin_theme_check_admin_skin_icon_sprites(): void
+{
+    global $errors;
+    $settingsContent = sr_skin_theme_check_read('modules/admin/helpers/settings.php');
+    if ($settingsContent === '') {
+        return;
+    }
+
+    preg_match_all("#'layout-header'\\s*=>\\s*SR_ROOT\\s*\\.\\s*'([^']+)'#", $settingsContent, $matches);
+    $layoutHeaders = $matches[1] ?? [];
+    if ($layoutHeaders === []) {
+        $errors[] = 'Admin skin options must declare layout-header view paths.';
+        return;
+    }
+
+    foreach ($layoutHeaders as $layoutHeader) {
+        $relativePath = ltrim((string) $layoutHeader, '/');
+        $content = sr_skin_theme_check_read($relativePath);
+        if ($content === '') {
+            continue;
+        }
+
+        if (!str_contains($content, 'sr_admin_menu_symbol_sprite_html();')) {
+            $errors[] = 'Admin skin layout-header must render common icon sprite: ' . $relativePath;
+        }
+
+        if (preg_match('/<symbol\s+id="admin-menu-icon-[^"]+"/', $content) === 1) {
+            $errors[] = 'Admin skin layout-header must not inline admin menu icon symbols: ' . $relativePath;
+        }
+    }
+}
+
+function sr_skin_theme_check_admin_icon_contract_docs(): void
+{
+    global $root, $errors;
+
+    require_once $root . '/modules/admin/helpers/icons.php';
+    $allowedIcons = array_keys(sr_admin_allowed_menu_symbol_icons());
+    sort($allowedIcons);
+
+    foreach (['docs/module-guide.md', 'docs/admin-ui-guide.md'] as $path) {
+        $content = sr_skin_theme_check_read($path);
+        if ($content === '') {
+            continue;
+        }
+
+        foreach ($allowedIcons as $iconName) {
+            if (!str_contains($content, '`' . $iconName . '`')) {
+                $errors[] = 'Admin icon contract docs must list allowed symbol `' . $iconName . '` in ' . $path;
+            }
+        }
+    }
+}
+
 $targets = [
     [
         'label' => 'Admin skin',
@@ -384,6 +438,9 @@ sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', 
     '<symbol id="admin-menu-icon-settings"',
     '<symbol id="admin-menu-icon-users"',
 ], 'Admin skin inline icon symbols');
+
+sr_skin_theme_check_admin_skin_icon_sprites();
+sr_skin_theme_check_admin_icon_contract_docs();
 
 sr_skin_theme_check_contains('assets/common/utilities.css', [
     '.form-checkbox::after',
