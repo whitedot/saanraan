@@ -8,14 +8,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<p>
-    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">게시판 관리</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>">게시판 그룹 관리</a>
-    |
-    <a href="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">레벨 정의</a>
-</p>
-
 <?php if ($enabledMemberGroups !== []) { ?>
     <section>
         <h2>사용 가능한 회원 그룹 key</h2>

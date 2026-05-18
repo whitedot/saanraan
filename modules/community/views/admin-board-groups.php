@@ -60,15 +60,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-surface-default-soft">커뮤니티 설정</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-surface-default-soft">게시판 그룹 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-surface-default-soft">게시판 그룹 생성</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft">게시판 관리</a>
-    </div>
-</div>
-
 <?php if ($communityBoardGroupsPage !== 'list' && $enabledMemberGroups !== []) { ?>
     <section>
         <h2>사용 가능한 회원 그룹 key</h2>

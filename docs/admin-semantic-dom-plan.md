@@ -10,6 +10,8 @@
 
 텍스트 색상과 크기는 기본 상속을 우선한다. `html`, `body`, `.admin-content`의 기본 글자색을 충분히 진하게 두고, 기본 글자 크기는 `16px`로 고정한다. view 또는 모듈 CSS는 일반 라벨, 표 셀, 제목에 옅은 회색이나 작은 글자 크기를 개별 지정하지 않는다. 도움말, 힌트, 빈 상태, 보조 메타처럼 우선순위가 낮은 텍스트만 muted 계열 class나 작은 크기 전용 선택자를 사용한다.
 
+화면 내 이동 링크는 사이드 메뉴와 중복하지 않는다. 사이드 메뉴에 등록된 관리자 화면 전환은 shell navigation이 맡고, view 본문은 현재 화면의 작업, 필터, 목록, 폼만 출력한다. `admin-local-nav`는 사이드 메뉴에 없는 하위 흐름이나 상태 필터에 한해 사용한다.
+
 ## 참고 기준
 
 - `assets/ui-kit/index.html`: Base/Admin/Public/Skin 맥락 구분
@@ -59,7 +61,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 권장 class:
 
-- `admin-page-actions`: 페이지 상단 이동 링크, 보조 액션 묶음
+- `admin-page-actions`: 현재 화면의 보조 액션 묶음. 사이드 메뉴와 같은 화면 이동 링크는 두지 않는다.
 - `admin-page-intro`: 화면 설명이 실제로 필요할 때만 사용
 - `admin-card card`: 관리자 카드. 기존 `member-table-card`의 대체 이름
 

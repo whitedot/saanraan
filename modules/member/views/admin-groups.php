@@ -19,16 +19,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-surface-default-soft">그룹 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-surface-default-soft">그룹 생성</a>
-        <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-surface-default-soft">자동 규칙</a>
-        <a href="<?php echo sr_e(sr_url('/admin/member-group-evaluations')); ?>" class="btn btn-surface-default-soft">재평가</a>
-        <a href="<?php echo sr_e(sr_url('/admin/member-group-assignments')); ?>" class="btn btn-surface-default-soft">수동 배정</a>
-    </div>
-</div>
-
 <?php if ($memberGroupsPage === 'group_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

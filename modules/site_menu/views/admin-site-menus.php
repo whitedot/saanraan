@@ -27,15 +27,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-surface-default-soft">메뉴 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-surface-default-soft">메뉴 추가</a>
-        <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-surface-default-soft">항목 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/new')); ?>" class="btn btn-surface-default-soft">항목 추가</a>
-    </div>
-</div>
-
 <?php if ($siteMenuPage === 'menu_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

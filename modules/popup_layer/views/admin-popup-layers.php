@@ -13,13 +13,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-surface-default-soft">팝업 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-surface-default-soft">팝업 추가</a>
-    </div>
-</div>
-
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

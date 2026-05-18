@@ -12,13 +12,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">배너 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-surface-default-soft">배너 추가</a>
-    </div>
-</div>
-
 <?php if ($bannerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
         <section class="admin-card card">
