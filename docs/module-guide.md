@@ -67,6 +67,7 @@ modules/{module_key}/
 - extension-points.php (optional)
 - privacy-export.php (optional)
 - sitemap.php (optional)
+- dashboard.php (optional)
 - actions/ (optional)
 - views/ (optional)
 - themes/ (optional)
