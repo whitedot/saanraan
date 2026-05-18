@@ -48,7 +48,7 @@
 
 JS는 두 종류로 나눈다.
 
-`assets/ui-kit/js/common.js`는 제거 대상이다. 이 파일은 UI-KIT 디자인 토큰 조회나 현재 공통 UI 원형 동작에 필요한 코드가 아니라, 예전 그누보드5 계열 전역 helper와 jQuery 의존 코드를 보존한 잔존 파일이다. `check_field`, `number_format`, `del`, cookie helper, `flash_movie`, `win_password_lost`, `g5_is_mobile`, sideview/selectbox 처리처럼 현재 UI-KIT 조회 목적과 맞지 않는 전역 함수가 포함되어 있으므로 공용 JS로 승격하지 않는다.
+`assets/ui-kit/js/common.js`는 제거했다. 이 파일은 UI-KIT 디자인 토큰 조회나 현재 공통 UI 원형 동작에 필요한 코드가 아니라, 예전 그누보드5 계열 전역 helper와 jQuery 의존 코드를 보존한 잔존 파일이었다. `check_field`, `number_format`, `del`, cookie helper, `flash_movie`, `win_password_lost`, `g5_is_mobile`, sideview/selectbox 처리처럼 현재 UI-KIT 조회 목적과 맞지 않는 전역 함수가 포함되어 있었으므로 공용 JS로 승격하지 않았다.
 
 ### 프로젝트 공용 상호작용 JS
 
@@ -76,7 +76,7 @@ assets/common-ui.js
 - DOMContentLoaded 후 안전하게 초기화한다.
 - 해당 요소가 없는 페이지에서는 아무 일도 하지 않는다.
 
-드롭다운은 `.hs-dropdown`, `.hs-dropdown-toggle`, `.hs-dropdown-menu` 마크업과 `assets/common-ui.js`로 동작한다. 옵션을 `[--placement:bottom-end]`, `[--auto-close:inside]`, `[--trigger:hover]`처럼 class 문자열에서 파싱하는 방식은 이전 UI 프레임워크 계열 잔재이므로 새 프로젝트 공용 규칙으로 유지하지 않는다.
+드롭다운은 `.hs-dropdown`, `.hs-dropdown-toggle`, `.hs-dropdown-menu` 마크업과 `assets/common-ui.js`로 동작한다. 옵션을 class 문자열이나 CSS custom property에서 파싱하는 방식은 이전 UI 프레임워크 계열 잔재이므로 새 프로젝트 공용 규칙으로 유지하지 않는다.
 
 드롭다운 공용화 시 옵션은 `data-*` 속성으로 정리한다. 기본 위치는 `.hs-dropdown` root이며, 테이블 액션처럼 기존 마크업 구조상 root 정리가 늦어지는 경우에는 전환 기간 동안 toggle의 `data-dropdown-*`도 읽는다.
 
@@ -101,7 +101,7 @@ assets/common-ui.js
 2. `data-dropdown-placement`
 3. `data-dropdown-auto-close`
 
-기존 class 기반 옵션은 UI-KIT 정리 과정에서 `data-*` 속성으로 바꿨다. 짧은 전환 기간 동안만 class 기반 옵션을 fallback으로 읽되, 새 마크업에는 사용하지 않는다.
+기존 class 기반 옵션은 UI-KIT 정리 과정에서 `data-*` 속성으로 바꿨다. 공용 JS도 class 기반 옵션 fallback을 제거하고 `data-dropdown-*`만 읽는다.
 
 ### UI-KIT 조회 화면 전용 JS
 
@@ -157,17 +157,17 @@ assets/ui-kit/js/token-inspector.js
 - 공용 자산으로 승격했을 때 이름, 경로, 옵션 규칙이 `saanraan` 프로젝트와 맞는가?
 - UI-KIT 조회 화면을 유지하기 위한 임시 보정일 뿐인가?
 
-드롭다운/오버레이/탭처럼 실제 화면에서도 필요한 상호작용은 공용 JS로 승격한다. 다만 기존 `hs-*` 마크업이나 `[--placement:*]` 같은 class 옵션은 그대로 보존하지 않고, 현재 프로젝트에서 읽기 쉬운 `data-*` 규칙으로 정리한다.
+드롭다운/오버레이/탭처럼 실제 화면에서도 필요한 상호작용은 공용 JS로 승격한다. 다만 기존 `hs-*` 마크업이나 class 기반 옵션은 그대로 보존하지 않고, 현재 프로젝트에서 읽기 쉬운 `data-*` 규칙으로 정리한다.
 
 `assets/ui-kit/js/common.js`처럼 그누보드5 전역 helper, jQuery 호환 shim, 오래된 브라우저/Flash helper, 현재 프로젝트에서 쓰지 않는 sideview/selectbox 처리를 담은 파일은 제거한다.
 
 `assets/ui-kit/css/preview-utilities.css`처럼 UI-KIT 미리보기만 성립시키는 대형 보조 CSS는 제거한다. 필요한 조회 shell 스타일은 `assets/ui-kit/css/ui-guide.css`에 명시적 `ui-*` 클래스로만 둔다.
 
-2026-05-18에 `preview-utilities.css` 호출과 파일을 제거했다. 이후 남은 HTML 배치 보정은 `ui-guide.css`의 명시적 `ui-*` class와 실제 프로젝트 원형 class 기준으로만 정리한다.
+2026-05-18에 `preview-utilities.css` 호출과 파일을 제거했다. 이후 남은 HTML 배치 보정도 `ui-guide.css`의 명시적 `ui-*` class와 실제 프로젝트 원형 class 기준으로 정리했다.
 
 ## HTML 정리 기준
 
-- `bg-gray-50`, `text-2xl`, `font-bold`, `mt-4`, `flex`, `gap-*` 같은 미리보기 유틸리티 클래스 의존을 단계적으로 제거한다.
+- `bg-gray-50`, `text-2xl`, `font-bold`, `mt-4`, `flex`, `gap-*` 같은 미리보기 유틸리티 클래스 의존을 제거하고, UI-KIT 조회용 보정은 `ui-*` class로 표현한다.
 - 조회 화면 배치가 필요한 경우 `ui-guide-*`, `ui-token-*`, `ui-sample-*` 같은 UI-KIT 전용 클래스를 사용한다.
 - 프로젝트 원형 샘플에는 실제 프로젝트 클래스를 그대로 사용한다.
 
@@ -199,7 +199,7 @@ assets/ui-kit/js/token-inspector.js
 1. 문서 기준을 “정적 변환 쇼케이스”에서 “디자인 토큰 조회 도구”로 고정한다.
 2. 모든 `assets/ui-kit/*.html`의 CSS 호출 순서를 통일하고 `saanraan.css`는 UI-KIT shell 전역 호출에서 제외한다.
 3. 모든 `assets/ui-kit/*.html`에서 `js/common.js` 호출을 제거하고 `assets/ui-kit/js/common.js` 파일을 삭제한다.
-4. 드롭다운 옵션 표기를 `[--placement:*]`, `[--auto-close:*]`, `[--trigger:*]` class에서 `data-dropdown-*` 속성으로 바꾼다.
+4. 드롭다운 옵션 표기를 class 기반 옵션에서 `data-dropdown-*` 속성으로 바꾼다.
 5. 드롭다운/오버레이/탭 JS를 `assets/common-ui.js` 공용 JS로 승격한다.
 6. 관리자/공개 런타임에서 `assets/common-ui.js`를 호출한다.
 7. UI-KIT HTML은 공용 JS와 UI-KIT shell 전용 JS를 구분해 호출한다.
@@ -209,7 +209,7 @@ assets/ui-kit/js/token-inspector.js
 11. 토큰 값 표시용 `token-inspector.js`를 추가해 CSS custom property의 현재 computed value를 표시한다.
 12. split 공통 CSS의 토큰 하나를 바꾸면 UI-KIT에서 값과 샘플이 바로 바뀌는지 확인한다.
 
-1-10번은 2026-05-18에 적용했다. 11-12번은 다음 단계로 진행한다.
+1-10번은 2026-05-18에 적용했다. 특히 8-10번의 잔여 미리보기 유틸리티 class 정리는 `ui-*` 조회용 class 치환까지 완료했다. 11-12번은 다음 단계로 진행한다.
 
 ## 검증 기준
 

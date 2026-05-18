@@ -32,40 +32,40 @@
     <!-- Iconify -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 </head>
-<body class="bg-gray-50">
+<body class="ui-bg-subtle">
     <div class="ui-layout-wrapper">
 <aside class="ui-sidebar" id="ui-sidebar">
     <div class="ui-sidebar-logo">
-        <span class="text-2xl font-bold ui-guide-title">UI-KIT</span>
+        <span class="ui-text-2xl ui-font-bold ui-guide-title">UI-KIT</span>
     </div>
     
-    <nav class="mt-4">
+    <nav class="ui-mt-4">
         <!-- GENERAL -->
         <div class="ui-nav-section-title">General</div>
-        <a href="index.html" class="ui-nav-link ">
+        <a href="index.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:smart-home"></i>
             Dashboard
         </a>
 
         <!-- UI COMPONENTS -->
         <div class="ui-nav-section-title">UI Components</div>
-        <a href="ui-buttons.html" class="ui-nav-link ">
+        <a href="ui-buttons.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:click"></i>
             Buttons
         </a>
-        <a href="ui-cards.html" class="ui-nav-link ">
+        <a href="ui-cards.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:id"></i>
             Cards
         </a>
-        <a href="ui-alerts.html" class="ui-nav-link ">
+        <a href="ui-alerts.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:alert-circle"></i>
             Alerts
         </a>
-        <a href="ui-badges.html" class="ui-nav-link ">
+        <a href="ui-badges.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:label"></i>
             Badges
         </a>
-        <a href="ui-modals.html" class="ui-nav-link ">
+        <a href="ui-modals.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:window-maximize"></i>
             Modals
         </a>
@@ -73,35 +73,35 @@
             <i class="iconify ui-nav-icon" data-icon="tabler:chevron-down"></i>
             Dropdowns
         </a>
-        <a href="ui-tabs.html" class="ui-nav-link ">
+        <a href="ui-tabs.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:layout-navbar"></i>
             Tabs
         </a>
         <!-- FORMS -->
         <div class="ui-nav-section-title">Forms</div>
-        <a href="form-elements.html" class="ui-nav-link ">
+        <a href="form-elements.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:forms"></i>
             Elements
         </a>
-        <a href="form-validation.html" class="ui-nav-link ">
+        <a href="form-validation.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:shield-check"></i>
             Validation
         </a>
 
         <!-- TABLES -->
         <div class="ui-nav-section-title">Tables</div>
-        <a href="tables-static.html" class="ui-nav-link ">
+        <a href="tables-static.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:table"></i>
             Static Tables
         </a>
 
         <!-- ICONS -->
         <div class="ui-nav-section-title">Icons</div>
-        <a href="icons-tabler.html" class="ui-nav-link ">
+        <a href="icons-tabler.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:sparkles"></i>
             Tabler Icons
         </a>
-        <a href="icons-lucide.html" class="ui-nav-link ">
+        <a href="icons-lucide.html" class="ui-nav-link">
             <i class="iconify ui-nav-icon" data-icon="tabler:bolt"></i>
             Lucide Icons
         </a>
@@ -111,7 +111,7 @@
 
 <main class="ui-main-content">
     <header class="ui-top-navbar">
-        <div class="flex items-center">
+        <div class="ui-flex ui-items-center">
             <button
                 id="ui-sidebar-toggle"
                 type="button"
@@ -119,19 +119,19 @@
                 aria-label="사이드바 열기"
                 aria-controls="ui-sidebar"
                 aria-expanded="false">
-                <i class="iconify text-xl" data-icon="tabler:menu-2"></i>
+                <i class="iconify ui-text-xl" data-icon="tabler:menu-2"></i>
             </button>
-            <h2 class="text-lg font-semibold ui-guide-title">UI Guide Dashboard</h2>
+            <h2 class="ui-text-lg ui-font-semibold ui-guide-title">UI Guide Dashboard</h2>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="ui-flex ui-items-center ui-gap-2">
             <button
                 id="theme-toggle"
                 type="button"
-                class="btn btn-sm btn-solid-light text-default-700 ui-theme-toggle"
+                class="btn btn-sm btn-solid-light ui-text-default-700 ui-theme-toggle"
                 aria-label="다크 모드로 전환"
                 title="다크 모드로 전환"
                 aria-pressed="false">
-                <i id="theme-toggle-icon" class="iconify text-base" data-icon="tabler:moon"></i>
+                <i id="theme-toggle-icon" class="iconify ui-text-base" data-icon="tabler:moon"></i>
                 <span id="theme-toggle-label">다크모드</span>
             </button>
         </div>
@@ -139,7 +139,7 @@
     <div class="ui-content-body">
 
 <div class="container-fluid">
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-base">
+                    <div class="ui-grid ui-grid-cols-1 ui-grid-cols-xl-2 ui-gap-base">
                         <!-- Single Button Dropdowns -->
                         <div class="card">
                             <div class="card-header">
@@ -147,10 +147,10 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">적절한 토글 클래스와 메뉴 구조를 사용하여 최소한의 마크업 변경으로 모든 버튼이나 링크를 드롭다운
+                                <p class="ui-text-default-400 ui-mb-4">적절한 토글 클래스와 메뉴 구조를 사용하여 최소한의 마크업 변경으로 모든 버튼이나 링크를 드롭다운
                                     토글로 전환할 수 있습니다.</p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown">
                                         <button type="button" class="dropdown-toggle hs-dropdown-toggle btn btn-surface"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
@@ -204,7 +204,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     <code>data-dropdown-placement="bottom-right"</code>
                                     속성을 사용하여 드롭다운 메뉴를 요소의 오른쪽에 배치하십시오.
                                 </p>
@@ -232,10 +232,10 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 버튼은 아이콘을 포함하거나 제외하도록 커스텀할 수 있어, 깔끔한 텍스트 전용 토글이나
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 버튼은 아이콘을 포함하거나 제외하도록 커스텀할 수 있어, 깔끔한 텍스트 전용 토글이나
                                     커스텀 아이콘으로 시각적으로 향상된 토글을 만들 수 있습니다.</p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-primary"
@@ -254,7 +254,7 @@
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-outline-primary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             커스텀 아이콘
-                                            <i data-icon="tabler:edit" class="iconify tabler--edit text-sm"></i>
+                                            <i data-icon="tabler:edit" class="iconify tabler--edit ui-text-sm"></i>
                                         </button>
 
                                         <div class="hs-dropdown-menu" role="menu" aria-orientation="vertical">
@@ -274,10 +274,10 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">일반 버튼과 별도의 토글을 결합하여 분할 버튼 드롭다운을 만드세요. 이 레이아웃은 메인 버튼에서
+                                <p class="ui-text-default-400 ui-mb-4">일반 버튼과 별도의 토글을 결합하여 분할 버튼 드롭다운을 만드세요. 이 레이아웃은 메인 버튼에서
                                     빠른 작업을 제공하고 드롭다운에서 추가 옵션을 제공합니다.</p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown-split">
                                         <button type="button"
                                             class="btn btn-solid-primary dropdown-split-main">기본(Primary)</button>
@@ -300,7 +300,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-subtle-light text-default-700 rounded-s-sm dropdown-split-main">보조(Secondary)</button>
+                                            class="btn btn-subtle-light ui-text-default-700 ui-rounded-s-sm dropdown-split-main">보조(Secondary)</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -320,7 +320,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-success rounded-s-sm dropdown-split-main">성공(Success)</button>
+                                            class="btn btn-soft-success ui-rounded-s-sm dropdown-split-main">성공(Success)</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -340,7 +340,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-solid-info rounded-s-sm dropdown-split-main">정보(Info)</button>
+                                            class="btn btn-solid-info ui-rounded-s-sm dropdown-split-main">정보(Info)</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -368,13 +368,13 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 메뉴는 모든 버튼 변형과 함께 사용할 수 있으므로 기본, 보조 또는 성공 버튼과 같은
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴는 모든 버튼 변형과 함께 사용할 수 있으므로 기본, 보조 또는 성공 버튼과 같은
                                     다양한 색상이나 스타일에 맞출 수 있습니다.</p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle hs-dropdown-toggle btn btn-solid-primary disabled:pointer-events-none disabled:opacity-50"
+                                            class="dropdown-toggle hs-dropdown-toggle btn btn-solid-primary ui-disabled-pointer-none ui-disabled-opacity"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             기본(Primary)
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -432,13 +432,13 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 메뉴는 유연한 디자인 옵션을 위해 크고 작은 버튼 또는 분할 버튼 변형을 포함한 모든
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴는 유연한 디자인 옵션을 위해 크고 작은 버튼 또는 분할 버튼 변형을 포함한 모든
                                     크기의 버튼과 결합할 수 있습니다.</p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle hs-dropdown-toggle btn btn-surface-default px-6 py-2 text-lg"
+                                            class="dropdown-toggle hs-dropdown-toggle btn btn-surface-default ui-px-6 ui-py-2 ui-text-lg"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             큰 버튼
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -455,12 +455,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="bg-light hover:text-primary text-default-700 relative rounded-s-sm px-6 py-2 text-lg">큰
+                                            class="ui-bg-light ui-hover-text-primary ui-text-default-700 ui-relative ui-rounded-s-sm ui-px-6 ui-py-2 ui-text-lg">큰
                                             버튼</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle hs-dropdown-toggle bg-light hover:text-primary relative flex items-center justify-center rounded-e-sm px-4 py-2">
+                                                class="dropdown-toggle hs-dropdown-toggle ui-bg-light ui-hover-text-primary ui-relative ui-flex ui-items-center ui-justify-center ui-rounded-e-sm ui-px-4 ui-py-2">
                                                 <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -493,12 +493,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-sm text-default-700 rounded-e-none btn-subtle-light">작은
+                                            class="btn btn-sm ui-text-default-700 ui-rounded-e-none btn-subtle-light">작은
                                             버튼</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle hs-dropdown-toggle btn btn-sm text-default-700 btn-subtle-light dropdown-split-toggle">
+                                                class="dropdown-toggle hs-dropdown-toggle btn btn-sm ui-text-default-700 btn-subtle-light dropdown-split-toggle">
                                                 <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -522,7 +522,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="top"</code>
                                     또는
@@ -530,7 +530,7 @@
                                     속성을 사용하여 토글 버튼 위에 드롭다운 메뉴를 표시하십시오.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="top">
                                         <button type="button" class="dropdown-toggle hs-dropdown-toggle btn btn-surface-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
@@ -549,7 +549,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn text-default-700 rounded-e-none btn-subtle-light">분할
+                                            class="btn ui-text-default-700 ui-rounded-e-none btn-subtle-light">분할
                                             드롭업</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="top-left">
@@ -578,13 +578,13 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="left-start"</code>
                                     속성을 사용하여 토글 버튼의 왼쪽에 드롭다운 메뉴를 배치하십시오.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="left-start">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-secondary"
@@ -605,7 +605,7 @@
                                     <div class="dropdown-split">
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="left-start">
                                             <button type="button"
-                                                class="dropdown-toggle hs-dropdown-toggle btn sky-700 btn-solid-secondary-muted rounded-e-none px-2">
+                                                class="dropdown-toggle hs-dropdown-toggle btn ui-text-sky-700 btn-solid-secondary-muted ui-rounded-e-none ui-px-2">
                                                 <i data-icon="tabler:chevron-left" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -619,7 +619,7 @@
                                         </div>
 
                                         <button type="button"
-                                            class="btn rounded-s-none btn-solid-secondary">분할
+                                            class="btn ui-rounded-s-none btn-solid-secondary">분할
                                             드롭스타트</button>
                                     </div>
                                 </div>
@@ -633,13 +633,13 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="right-end"</code>
                                     속성을 사용하여 토글 버튼의 오른쪽에 드롭다운 메뉴를 표시하십시오.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="right-end">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-primary"
@@ -659,12 +659,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="bg-primary hover:bg-primary-hover relative rounded-s-sm px-4 py-2 font-medium text-white">분할
+                                            class="ui-bg-primary ui-hover-bg-primary ui-relative ui-rounded-s-sm ui-px-4 ui-py-2 ui-font-medium ui-text-white">분할
                                             드롭스타트</button>
 
                                         <div class="dropdown hs-dropdown" data-dropdown-placement="right-end">
                                             <button type="button"
-                                                class="dropdown-toggle hs-dropdown-toggle bg-primary/90 hover:bg-primary-hover relative flex items-center justify-center rounded-e-sm px-2 py-2 text-white">
+                                                class="dropdown-toggle hs-dropdown-toggle ui-bg-primary-muted ui-hover-bg-primary ui-relative ui-flex ui-items-center ui-justify-center ui-rounded-e-sm ui-px-2 ui-py-2 ui-text-white">
                                                 <i data-icon="tabler:chevron-right" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -688,7 +688,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     드롭다운 항목에
                                     <code>.active</code>
                                     속성을 사용하여 현재 선택되었거나 활성화된 옵션으로 강조하십시오.
@@ -718,7 +718,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     드롭다운 항목에
                                     <code>.disabled</code>
                                     속성을 사용하여 메뉴 내에서 사용할 수 없거나 비활성화된 옵션을 나타내십시오.
@@ -748,10 +748,10 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 메뉴 내부에 헤더를 추가하여 관련 메뉴 항목을 명확하게 그룹화하거나 레이블을 지정하십시오.
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내부에 헤더를 추가하여 관련 메뉴 항목을 명확하게 그룹화하거나 레이블을 지정하십시오.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-end">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-secondary-contrast"
@@ -777,13 +777,13 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     메뉴 요소에
                                     <code>data-theme="dark"</code>
                                     를 추가하여 드롭다운 메뉴에 다크 테마를 적용하십시오. 이를 통해 개별 항목을 변경하지 않고도 어두운 내비게이션 바나 레이아웃에 맞출 수 있습니다.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-end">
                                         <button type="button" class="dropdown-toggle hs-dropdown-toggle btn btn-solid-dark"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
@@ -811,14 +811,14 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     <code>data-dropdown-placement="bottom"</code>
                                     또는
                                     <code>data-dropdown-placement="top"</code>
                                     속성을 사용하여 드롭다운 메뉴를 토글 버튼의 아래나 위 중앙에 배치하십시오.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown" data-dropdown-placement="bottom">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-secondary"
@@ -828,7 +828,7 @@
                                         </button>
 
                                         <div class="hs-dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <div class="space-y-0.5">
+                                            <div class="ui-stack-0-5">
                                                 <a class="dropdown-item" href="#">작업</a>
                                                 <a class="dropdown-item" href="#">작업 2</a>
                                                 <a class="dropdown-item" href="#">작업 3</a>
@@ -861,11 +861,11 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">
+                                <p class="ui-text-default-400 ui-mb-4">
                                     기본적으로 드롭다운 메뉴는 내부 또는 외부를 클릭할 때 닫힙니다. autoClose 옵션을 사용하여 드롭다운의 이 동작을 변경할 수 있습니다.
                                 </p>
 
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div class="dropdown hs-dropdown">
                                         <button type="button"
                                             class="dropdown-toggle hs-dropdown-toggle btn btn-solid-secondary"
@@ -936,7 +936,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 메뉴 내에 자유로운 형식의 텍스트를 배치하고 간격 유틸리티를 사용하세요. 메뉴 너비를
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내에 자유로운 형식의 텍스트를 배치하고 간격 유틸리티를 사용하세요. 메뉴 너비를
                                     제한하기 위해 추가적인 크기 조정 스타일이 필요할 수 있습니다.</p>
                                 <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-end">
                                     <button type="button"
@@ -946,9 +946,9 @@
                                         <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                     </button>
 
-                                    <div class="hs-dropdown-menu w-44 p-4" role="menu" aria-orientation="vertical">
-                                        <span class="text-default-400 mb-4">드롭다운 메뉴 내에서 자유롭게 흐르는 예시 텍스트입니다.</span>
-                                        <p class="text-default-400">그리고 이것은 추가 예시 텍스트입니다.</p>
+                                    <div class="hs-dropdown-menu ui-w-44 ui-p-4" role="menu" aria-orientation="vertical">
+                                        <span class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내에서 자유롭게 흐르는 예시 텍스트입니다.</span>
+                                        <p class="ui-text-default-400">그리고 이것은 추가 예시 텍스트입니다.</p>
                                     </div>
                                 </div>
                             </div>
@@ -961,9 +961,9 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="text-default-400 mb-4">드롭다운 메뉴 내에 폼을 넣거나 드롭다운 메뉴로 만들고, 마진 또는 패딩 유틸리티를 사용하여 필요한
+                                <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내에 폼을 넣거나 드롭다운 메뉴로 만들고, 마진 또는 패딩 유틸리티를 사용하여 필요한
                                     여백을 주십시오.</p>
-                                <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
                                     <div
                                         class="dropdown hs-dropdown" data-dropdown-placement="bottom-end" data-dropdown-auto-close="inside">
                                         <button type="button"
@@ -973,23 +973,23 @@
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                         </button>
 
-                                        <div class="hs-dropdown-menu min-w-44" role="menu"
+                                        <div class="hs-dropdown-menu ui-min-w-44" role="menu"
                                             aria-orientation="forms-dropdown-menu">
                                             <form class="dropdown-form">
-                                                <div class="mb-5">
+                                                <div class="ui-mb-5">
                                                     <label class="form-label">이메일 주소</label>
-                                                    <input class="form-input text-sm" type="email"
+                                                    <input class="form-input ui-text-sm" type="email"
                                                         placeholder="email@example.com" />
                                                 </div>
 
-                                                <div class="mb-5">
+                                                <div class="ui-mb-5">
                                                     <label class="form-label">비밀번호</label>
-                                                    <input class="form-input text-sm" type="password"
+                                                    <input class="form-input ui-text-sm" type="password"
                                                         placeholder="비밀번호" />
                                                 </div>
 
-                                                <div class="mb-4 flex items-center gap-2.5">
-                                                    <input type="checkbox" class="form-checkbox shrink-0"
+                                                <div class="ui-mb-4 ui-flex ui-items-center ui-gap-2-5">
+                                                    <input type="checkbox" class="form-checkbox ui-shrink-0"
                                                         id="dropdownCheck" />
                                                     <label for="dropdownCheck" class="dropdown-note">로그인
                                                         상태 유지</label>

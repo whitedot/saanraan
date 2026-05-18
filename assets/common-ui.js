@@ -48,24 +48,7 @@
       return String(dataValue).trim().toLowerCase() || fallback;
     }
 
-    var className = dropdown && dropdown.className ? String(dropdown.className) : '';
-    var match = className.match(new RegExp('\\[--' + name + ':([^\\]]+)\\]'));
-    var raw = match ? match[1] : '';
-
-    if (!raw && window.getComputedStyle) {
-      raw = window.getComputedStyle(dropdown).getPropertyValue('--' + name);
-    }
-
-    var value = String(raw || '').trim().toLowerCase();
-    if (!value) {
-      return fallback;
-    }
-
-    if ((value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') || (value.charAt(0) === "'" && value.charAt(value.length - 1) === "'")) {
-      value = value.slice(1, -1);
-    }
-
-    return value || fallback;
+    return fallback;
   }
 
   function getConfig(dropdown) {
