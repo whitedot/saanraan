@@ -24,7 +24,7 @@
 - footer의 PHP `filemtime()` 기반 query string은 제거하고 정적 JS 경로만 남긴다.
 - `docs/`는 배포 보호 기준상 직접 접근이 차단되므로, 브라우저 접근용 산출물은 `assets/ui-kit` 아래에 둔다.
 
-## 맥락 구분 규칙
+## 자산 구분 규칙
 
 UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 
@@ -33,14 +33,7 @@ UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 - `Tables`: Static Tables
 - `Icons`: Tabler Icons, Lucide Icons
 
-대신 각 페이지 본문에서 다음 맥락을 구분한다.
-
-- `Base`: `common/tokens.css`, `common/ui-kit.css`, `common/utilities.css`의 공통 토큰과 원형 컴포넌트
-- `Admin`: `admin-ui.css`의 관리자 운영 화면 조합
-- `Public`: `public-ui.css`의 사용자 화면 조합
-- `Skin`: 각 스킨이 자기 범위 안에서 최종 표현을 조정하는 예시
-
-처음부터 모든 컴포넌트를 완전히 분리 구현하지 않고, 페이지 상단에 맥락 안내를 두고 버튼, 폼, 테이블처럼 차이가 큰 항목부터 실제 비교 예시를 추가한다.
+정적 UI-KIT은 컴포넌트 원형 확인에 집중한다. Base/Admin/Public/Skin처럼 사용 맥락별 예시는 UI-KIT 본문에 두지 않고 실제 관리자/공개/스킨 화면이나 별도 가이드에서 확인한다.
 
 ## 포함 페이지
 
@@ -61,7 +54,7 @@ UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 ## 구현 상태
 
 2026-05-14 기준으로 루트 `/ui-kit`을 `assets/ui-kit` 아래 정적 파일로 변환했다.
-또한 `admin-ui.css`, `public-ui.css`를 추가하고 UI-KIT 페이지에서 Base/Admin/Public/Skin 맥락을 확인할 수 있게 했다.
+또한 `admin-ui.css`, `public-ui.css`를 추가해 정적 UI-KIT에서 레이어 자산을 함께 로드할 수 있게 했다.
 
 2026-05-18 기준으로 `assets/common.css`는 manifest로 유지하고, 실제 공통 레이어는 `assets/common/tokens.css`, `assets/common/ui-kit.css`, `assets/common/utilities.css`로 분리했다. 정적 UI-KIT 페이지는 기존처럼 `../common.css`를 호출해도 같은 순서로 split 파일을 로드한다.
 
@@ -72,7 +65,6 @@ UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 1. `/assets/ui-kit/index.html`을 브라우저에서 연다.
 2. 각 사이드바 링크가 `.html` 페이지로 이동하는지 확인한다.
 3. `../common.css`를 통해 `../common/tokens.css`, `../common/ui-kit.css`, `../common/utilities.css`가 순서대로 로드되고, `../admin-ui.css`, `../public-ui.css`, `css/ui-kit.css`, `css/ui-guide.css`가 함께 로드되는지 확인한다.
-4. 각 페이지 상단에서 Base/Admin/Public/Skin 맥락 안내가 보이는지 확인한다.
-5. Buttons, Forms, Tables에서 실제 맥락별 예시가 보이는지 확인한다.
-6. 드롭다운, 모달, 탭, 테마 토글, 모바일 사이드바 JS가 동작하는지 확인한다.
-7. `docs/` 직접 접근 차단은 그대로 유지한다.
+4. 각 페이지가 컴포넌트 예시 중심으로 표시되고 사용 맥락별 예시 블록이 보이지 않는지 확인한다.
+5. 드롭다운, 모달, 탭, 테마 토글, 모바일 사이드바 JS가 동작하는지 확인한다.
+6. `docs/` 직접 접근 차단은 그대로 유지한다.

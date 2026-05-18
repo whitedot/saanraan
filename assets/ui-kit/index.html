@@ -147,43 +147,10 @@
             <h4 class="card-title">Saanraan UI 모음</h4>
         </div>
         <div class="card-body" id="readme-content">
-            <p class="text-default-400 mb-4">
+            <p class="text-default-400 mb-0">
                 Saanraan 관리자 화면과 사용자 화면에서 사용하는 UI를 같은 컴포넌트 분류 안에서 확인하는 개발자 참고 화면입니다.
                 버튼, 카드, 알림, 배지, 모달, 드롭다운, 탭, 폼, 테이블, 아이콘 예시는 기존 UI-KIT 항목을 유지합니다.
-            </p>
-            <p class="text-default-400 mb-0">
-                각 항목 안에서는 <code>Base</code>, <code>Admin</code>, <code>Public</code>, <code>Skin</code> 맥락을 구분해 확인하고,
-                실제 화면에서는 <code>common.css</code>, <code>admin-ui.css</code>, <code>public-ui.css</code>, 스킨 CSS를 역할별로 분리해 사용합니다.
             </p>        </div>
-    </div>
-    <div class="card mt-base">
-        <div class="card-header">
-            <h4 class="card-title">레이어 기준</h4>
-        </div>
-        <div class="card-body">
-            <div class="ui-context-grid">
-                <div class="ui-context-card">
-                    <span class="ui-context-label ui-context-label-base">Base</span>
-                    <h5>공통 원형</h5>
-                    <p><code>common.css</code>의 토큰과 기본 컴포넌트 클래스를 기준으로 삼습니다.</p>
-                </div>
-                <div class="ui-context-card admin-ui-scope">
-                    <span class="ui-context-label ui-context-label-admin">Admin</span>
-                    <h5>관리자 UI</h5>
-                    <p><code>admin-ui.css</code>에서 운영 화면의 밀도와 반복 작업 패턴을 확장합니다.</p>
-                </div>
-                <div class="ui-context-card public-ui-scope">
-                    <span class="ui-context-label ui-context-label-public">Public</span>
-                    <h5>사용자 UI</h5>
-                    <p><code>public-ui.css</code>에서 공개 화면, 회원 화면, 콘텐츠 흐름을 확장합니다.</p>
-                </div>
-                <div class="ui-context-card ui-skin-basic">
-                    <span class="ui-context-label ui-context-label-skin">Skin</span>
-                    <h5>스킨</h5>
-                    <p>스킨은 자기 범위 안에서 최종 표현을 조정하고 Base/Admin/Public 원형을 직접 오염시키지 않습니다.</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
