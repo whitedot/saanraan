@@ -6,14 +6,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
-    <section class="card">
+    <section class="admin-card card">
         <h2>사이트 기본값</h2>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">사이트 이름</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">사이트 이름</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">사이트 이름</span>
                 <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" maxlength="120" required>
@@ -27,39 +27,39 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } else { ?>
                 <span>설정되지 않음</span>
             <?php } ?>
-            <span class="sr-install-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</span>
+            <span class="admin-form-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</span>
         </p>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">시간대</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">시간대</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">시간대</span>
                 <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" maxlength="80" required>
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">기본 locale</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">기본 locale</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">기본 locale</span>
                 <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" maxlength="20" required>
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">지원 locale 목록</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">지원 locale 목록</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">지원 locale 목록</span>
                 <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" maxlength="255" required>
                 </label>
-            <span class="sr-install-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+            <span class="admin-form-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">운영 상태</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">운영 상태</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">운영 상태</span>
                 <select name="status">
@@ -70,11 +70,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     </section>
-    <section class="card">
+    <section class="admin-card card">
         <h2>화면</h2>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">공통 레이아웃</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">공통 레이아웃</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">공통 레이아웃</span>
                 <select name="public_layout_key">
@@ -87,9 +87,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">UI 색상 모드</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">UI 색상 모드</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">UI 색상 모드</span>
                 <select name="ui_color_scheme">
@@ -108,14 +108,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-    <section class="card">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
+    <section class="admin-card card">
         <h2>관리자 화면</h2>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="admin_skin">
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">관리자 스킨</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">관리자 스킨</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">관리자 스킨</span>
                 <select name="admin_skin_key">
@@ -134,38 +134,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">추가 사이트 설정 항목</h2>
     </div>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedSettings) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="site_setting">
-            <section class="card">
+            <section class="admin-card card">
                 <h2>설정 항목 추가</h2>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">키</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">키</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">키</span>
                         <input type="text" name="setting_key" maxlength="120" required>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">값</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">값</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">값</span>
                         <textarea name="setting_value" maxlength="5000"></textarea>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">유형</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">유형</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">유형</span>
                         <select name="value_type">
@@ -176,14 +176,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">소유자 비밀번호</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">소유자 비밀번호</span>
                         <input type="password" name="owner_password" autocomplete="current-password">
                         </label>
-                    <span class="sr-install-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
+                    <span class="admin-form-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
                     </div>
                 </div>
             </section>
@@ -207,7 +207,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($siteSettings === []) { ?>
                 <tr>
-                    <td colspan="5" class="admin-dashboard-empty">설정 항목이 없습니다.</td>
+                    <td colspan="5" class="admin-empty-state">설정 항목이 없습니다.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($siteSettings as $setting) { ?>
@@ -216,9 +216,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo sr_e(sr_admin_site_setting_display_value($setting)); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td class="member-cell-manage">
+                    <td class="admin-table-actions-cell">
                         <?php if ($canManageAdvancedSettings) { ?>
-                            <div class="member-manage admin-setting-manage">
+                            <div class="admin-row-actions admin-setting-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="delete_site_setting">

@@ -6,7 +6,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="member-table-card admin-member-list-form">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="admin-card admin-list-card card admin-list-form">
     <?php echo sr_csrf_field(); ?>
     <div class="card-header">
         <h2 class="card-title">관리자 메뉴 표시 설정</h2>
@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         >
                     </td>
                     <td>
-                        <label class="af-check form-label">
+                        <label class="admin-form-check form-label">
                             <input
                                 type="checkbox"
                                 name="is_hidden[]"
@@ -58,7 +58,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
-    <div class="member-list-actions admin-form-sticky-actions">
+    <div class="admin-form-actions admin-form-sticky-actions">
         <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary">메뉴 표시 설정 저장</button>
         <button type="submit" name="intent" value="reset_menu_overrides" class="btn btn-outline-danger">기본값으로 초기화</button>
     </div>

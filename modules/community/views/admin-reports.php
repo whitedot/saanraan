@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">신고 목록</h2></div>
     <?php if ($reports === []) { ?>
         <p>접수된 신고가 없습니다.</p>
@@ -64,8 +64,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
-                        <td class="member-cell-manage">
-                            <div class="member-manage">
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">

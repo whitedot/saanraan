@@ -24,6 +24,7 @@
 | [배포 보호 기준](deployment-protection.md) | 운영 서버 직접 접근 차단 기준 |
 | [릴리스 절차](release-process.md) | 릴리스 준비와 배포 절차 |
 | [스모크 테스트 기준](smoke-test.md) | 배포 전후 최소 검증 |
+| [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |
 | [관리자 화면 레이아웃 점검 기록 - 2026-05-18](admin-layout-audit-2026-05-18.md) | 관리자 화면 브라우저 확인 결과 |
 
 ## 임시 보관 계획 문서
@@ -32,6 +33,7 @@
 
 현재 계획 문서:
 
+- [관리자 화면 시맨틱 DOM 전환 계획](admin-semantic-dom-plan.md)
 - [관리자 토스트 안내 계획](admin-toast-notice-plan.md)
 - [CKEditor 플러그인 계획](ckeditor-plugin-plan.md)
 - [본인확인 플러그인 계획](identity-verification-plugin-plan.md)

@@ -31,53 +31,53 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
-    <section class="card">
+    <section class="admin-card card">
         <h2>레벨</h2>
-        <div class="af-grid">
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">커뮤니티 레벨 사용</span></div>
-                <div class="af-field">
-                    <label class="af-check form-label">
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">커뮤니티 레벨 사용</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
                         <input type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('커뮤니티 레벨 사용'); ?>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">게시글/댓글 활동 후 레벨 자동 재계산</span></div>
-                <div class="af-field">
-                    <label class="af-check form-label">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">게시글/댓글 활동 후 레벨 자동 재계산</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
                         <input type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('게시글/댓글 활동 후 레벨 자동 재계산'); ?>
                     </label>
                 </div>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">게시글 점수</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">게시글 점수</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">게시글 점수</span>
                 <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>">
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">댓글 점수</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">댓글 점수</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">댓글 점수</span>
                 <input type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>">
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">그룹+레벨 판정</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">그룹+레벨 판정</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">그룹+레벨 판정</span>
                 <select name="access_condition_priority">
@@ -90,11 +90,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section class="admin-card card">
         <h2>쪽지</h2>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">발송 정책</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">발송 정책</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 정책</span>
                 <select name="message_write_policy">
@@ -105,18 +105,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">발송 그룹 key</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">발송 그룹 key</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 그룹 key</span>
                 <input type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" placeholder="regular_member, vip">
                 </label>
             </div>
         </div>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">발송 최소 레벨</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">발송 최소 레벨</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 최소 레벨</span>
                 <select name="message_write_min_level">
@@ -131,11 +131,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section class="admin-card card">
         <h2>화면</h2>
-        <div class="af-row">
-            <div class="af-label"><span class="form-label">커뮤니티 테마</span></div>
-            <div class="af-field">
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">커뮤니티 테마</span></div>
+            <div class="admin-form-field">
                 <label>
                     <span class="sr-only">커뮤니티 테마</span>
                 <select name="theme_key">
@@ -157,7 +157,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">레벨 정의</h2>
     </div>
@@ -165,7 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="table-wrapper">
         <table class="table">
             <tbody>
-                <tr><td class="admin-dashboard-empty">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
+                <tr><td class="admin-empty-state">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
             </tbody>
         </table>
         </div>
@@ -204,7 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
             </div>
-            <div class="member-list-actions">
+            <div class="admin-list-actions">
                 <button type="submit" class="btn btn-solid-primary">레벨 정의 저장</button>
             </div>
         </form>
@@ -213,7 +213,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
-        <div class="member-list-actions">
+        <div class="admin-list-actions">
             <button type="submit" class="btn btn-surface-default-soft">최근 회원 레벨 재계산</button>
         </div>
     </form>

@@ -27,8 +27,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<div class="member-summary">
-    <div class="member-summary-links">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-surface-default-soft">메뉴 목록</a>
         <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-surface-default-soft">메뉴 추가</a>
         <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-surface-default-soft">항목 목록</a>
@@ -37,32 +37,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($siteMenuPage === 'menu_form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-        <section class="card">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/save')); ?>" class="admin-form ui-form-theme">
+        <section class="admin-card card">
             <h2><?php echo $editingMenu ? '메뉴 수정' : '메뉴 추가'; ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : ''; ?>">
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">메뉴 key</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">메뉴 key</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">메뉴 key</span>
                     <input type="text" name="menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : 'header'; ?>" maxlength="60" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">메뉴 이름</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">메뉴 이름</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">메뉴 이름</span>
                     <input type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" maxlength="120" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">상태</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">상태</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
                     <select name="status">
@@ -83,7 +83,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } elseif ($siteMenuPage === 'menus') { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">메뉴 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 메뉴 추가</a>
@@ -109,8 +109,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $menu['label']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $menu['status'], 'content_status')); ?></td>
                             <td><?php echo sr_e((string) $menu['updated_at']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/site-menus/edit?id=' . rawurlencode((string) $menu['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
@@ -128,19 +128,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } elseif ($siteMenuPage === 'item_form') { ?>
     <?php if ($menus === []) { ?>
-        <section class="card">
+        <section class="admin-card card">
             <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
             <p>먼저 메뉴를 추가하세요.</p>
         </section>
     <?php } else { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-            <section class="card">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/save')); ?>" class="admin-form ui-form-theme">
+            <section class="admin-card card">
                 <h2><?php echo $editingItem ? '메뉴 항목 수정' : '메뉴 항목 추가'; ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="item_id" value="<?php echo $editingItem ? sr_e((string) $editItem['id']) : '0'; ?>">
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">메뉴</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">메뉴</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">메뉴</span>
                         <select name="menu_id">
@@ -154,27 +154,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">항목 이름</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">항목 이름</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">항목 이름</span>
                         <input type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" maxlength="120" required>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">URL</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">URL</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">URL</span>
                         <input type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" maxlength="255" required>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">링크 대상</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">링크 대상</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">링크 대상</span>
                             <select name="target">
@@ -188,9 +188,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">상태</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">상태</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">상태</span>
                         <select name="status">
@@ -204,9 +204,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">정렬</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">정렬</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">정렬</span>
                         <input type="number" name="sort_order" value="<?php echo $editingItem ? sr_e((string) $editItem['sort_order']) : '100'; ?>">
@@ -221,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     <?php } ?>
 <?php } elseif ($siteMenuPage === 'items') { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">메뉴 후보</h2>
         </div>
@@ -246,8 +246,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $suggestion['module_key']); ?></td>
                             <td><?php echo sr_e((string) $suggestion['label']); ?></td>
                             <td><?php echo sr_e((string) $suggestion['url']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                 <?php foreach ($menus as $menu) { ?>
                                     <?php
                                     $suggestionMenuId = (int) $menu['id'];
@@ -255,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     $alreadyAdded = isset($menuItemUrls[$suggestionMenuId][$suggestionUrl]);
                                     ?>
                                     <?php if ($alreadyAdded) { ?>
-                                        <span class="member-status is-normal"><?php echo sr_e((string) $menu['label']); ?> 추가됨</span>
+                                        <span class="admin-status is-normal"><?php echo sr_e((string) $menu['label']); ?> 추가됨</span>
                                     <?php } else { ?>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/save')); ?>">
                                             <?php echo sr_csrf_field(); ?>
@@ -280,7 +280,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">항목 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 항목 추가</a>
@@ -308,8 +308,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $item['url']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $item['status'], 'content_status')); ?></td>
                             <td><?php echo sr_e((string) $item['sort_order']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/edit?id=' . rawurlencode((string) $item['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>

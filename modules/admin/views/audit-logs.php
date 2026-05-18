@@ -4,12 +4,12 @@ $adminPageTitle = '관리자 작업 로그';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter-form admin-audit-filter-form ui-form-theme">
-    <div class="admin-filter-heading">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
+    <div class="admin-filter-header">
         <strong>로그 검색</strong>
         <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-surface-default-soft">초기화</a>
     </div>
-    <div class="admin-filter-fields">
+    <div class="admin-filter-grid">
         <label class="admin-filter-field">
             <span class="admin-filter-label">이벤트 유형</span>
             <input type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" maxlength="80" class="form-input">
@@ -44,7 +44,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<div class="member-table-card admin-member-list-form">
+<div class="admin-card admin-list-card card admin-list-form">
 <div class="table-wrapper">
 <table class="table admin-audit-log-table">
     <thead class="ui-table-head">
@@ -63,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($logs === []) { ?>
             <tr>
-                <td colspan="9" class="admin-dashboard-empty">감사 로그가 없습니다.</td>
+                <td colspan="9" class="admin-empty-state">감사 로그가 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($logs as $log) { ?>

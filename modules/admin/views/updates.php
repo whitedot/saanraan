@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($moduleVersionDrifts !== []) { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">모듈 버전 차이</h2>
         </div>
@@ -69,7 +69,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="sync_file_only_versions">
                 <p>DB 변경이 없는 파일 업데이트입니다. SQL은 실행하지 않고, 설치 버전 기록만 현재 코드 버전에 맞춥니다.</p>
-                <div class="member-list-actions">
+                <div class="admin-list-actions">
                     <button type="submit" class="btn btn-solid-primary">파일 전용 업데이트 반영</button>
                 </div>
             </form>
@@ -77,7 +77,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">대기 중인 업데이트</h2>
     </div>
@@ -85,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="table-wrapper">
         <table class="table">
             <tbody>
-                <tr><td class="admin-dashboard-empty">적용할 업데이트가 없습니다.</td></tr>
+                <tr><td class="admin-empty-state">적용할 업데이트가 없습니다.</td></tr>
             </tbody>
         </table>
         </div>
@@ -123,19 +123,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="apply_updates">
             <p>
-                <label class="af-check form-label">
+                <label class="admin-form-check form-label">
                     <input type="checkbox" name="backup_confirmed" value="1" class="form-checkbox" required>
                     <?php echo sr_admin_choice_label_html('DB와 파일 백업을 확인했습니다.'); ?>
                 </label>
             </p>
-            <div class="member-list-actions">
+            <div class="admin-list-actions">
                 <button type="submit" class="btn btn-solid-primary">업데이트 적용</button>
             </div>
         </form>
     <?php } ?>
 </section>
 
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">적용된 스키마 버전</h2>
     </div>
@@ -143,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="table-wrapper">
         <table class="table">
             <tbody>
-                <tr><td class="admin-dashboard-empty">기록된 스키마 버전이 없습니다.</td></tr>
+                <tr><td class="admin-empty-state">기록된 스키마 버전이 없습니다.</td></tr>
             </tbody>
         </table>
         </div>

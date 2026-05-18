@@ -6,9 +6,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-notice">
-    <span class="member-notice-icon" aria-hidden="true">i</span>
-    <div class="member-notice-copy">
+<div class="admin-notice">
+    <span class="admin-notice-icon" aria-hidden="true">i</span>
+    <div class="admin-notice-copy">
         <strong>모듈 상태 안내</strong>
         <p>설치 차단 상태는 메타데이터나 계약 오류가 있는 미설치 모듈을 뜻합니다.</p>
     </div>
@@ -21,7 +21,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <button type="button" class="tab-trigger-underline" data-admin-tab-target="settings">고급 설정</button>
 </nav>
 
-<section id="module-tab-installed" class="member-table-card admin-member-list-form" data-admin-tab-panel="installed">
+<section id="module-tab-installed" class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="installed">
 <div class="card-header">
     <h2 class="card-title">설치된 모듈</h2>
 </div>
@@ -110,12 +110,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo !empty($module['is_bundled']) ? '예' : '아니오'; ?></td>
                 <td><?php echo sr_e((string) ($module['installed_at'] ?? '')); ?></td>
                 <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
-                <td class="member-cell-manage">
-                    <div class="member-manage">
+                <td class="admin-table-actions-cell">
+                    <div class="admin-row-actions">
                     <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
-                        <details class="member-edit-details">
+                        <details class="admin-inline-edit-details">
                             <summary class="btn btn-sm btn-surface-default-soft">재설치</summary>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="install">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
@@ -133,9 +133,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </form>
                         </details>
                     <?php } else { ?>
-                        <details class="member-edit-details">
+                        <details class="admin-inline-edit-details">
                             <summary class="btn btn-sm btn-surface-default-soft"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="status">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
@@ -164,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div data-admin-tab-panel="upload" hidden>
 <?php if (!$canManageModuleSources || !$moduleSourcesEnabled || !$moduleUploadAvailable) { ?>
-    <section class="card">
+    <section class="admin-card card">
         <h2>모듈 zip 업로드</h2>
         <?php if (!$canManageModuleSources) { ?>
             <p>모듈 파일 업로드는 소유자 권한이 필요합니다.</p>
@@ -175,52 +175,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 <?php } else { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form-layout ui-form-theme ui-form-showcase">
-            <section class="card">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
+            <section class="admin-card card">
                 <h2>모듈 zip 업로드</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="upload_module_zip">
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">모듈 zip</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">모듈 zip</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 zip</span>
                     <input type="file" name="module_zip" accept=".zip,application/zip" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">모듈 key</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">모듈 key</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 key</span>
                     <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*">
                     </label>
                 </div>
             </div>
-            <div class="af-grid">
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
-                    <div class="af-field">
-                        <label class="af-check form-label">
+            <div class="admin-form-grid">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
+                    <div class="admin-form-field">
+                        <label class="admin-form-check form-label">
                             <input type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
                             <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
-                    <div class="af-field">
-                        <label class="af-check form-label">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
+                    <div class="admin-form-field">
+                        <label class="admin-form-check form-label">
                             <input type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
                             <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
                         </label>
                     </div>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">소유자 비밀번호</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">소유자 비밀번호</span>
                     <input type="password" name="owner_password" autocomplete="current-password" required>
@@ -236,7 +236,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 </div>
 
-<section class="member-table-card admin-member-list-form" data-admin-tab-panel="installable" hidden>
+<section class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="installable" hidden>
     <div class="card-header">
         <h2 class="card-title">설치 가능한 모듈</h2>
     </div>
@@ -287,14 +287,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
-                        <td class="member-cell-manage">
-                            <div class="member-manage">
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
                             <?php if ($moduleErrors !== []) { ?>
                                 설치 불가
                             <?php } else { ?>
-                                <details class="member-edit-details">
+                                <details class="admin-inline-edit-details">
                                     <summary class="btn btn-sm btn-surface-default-soft">설치</summary>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="member-edit-form">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="install">
                                         <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
@@ -322,20 +322,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<section class="member-table-card admin-member-list-form" data-admin-tab-panel="settings" hidden>
+<section class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="settings" hidden>
     <div class="card-header">
         <h2 class="card-title">모듈 설정 항목</h2>
     </div>
     <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
     <?php if ($canManageAdvancedModuleSettings) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="module_setting">
-            <section class="card">
+            <section class="admin-card card">
                 <h2>모듈 설정 추가</h2>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">모듈</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">모듈</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">모듈</span>
                         <select name="module_key">
@@ -348,27 +348,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">키</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">키</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">키</span>
                         <input type="text" name="setting_key" maxlength="120" required>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">값</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">값</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">값</span>
                         <textarea name="setting_value" maxlength="5000"></textarea>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">유형</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">유형</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">유형</span>
                         <select name="value_type">
@@ -379,9 +379,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">소유자 비밀번호</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">소유자 비밀번호</span>
                         <input type="password" name="owner_password" autocomplete="current-password">
@@ -410,7 +410,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($moduleSettings === []) { ?>
                 <tr>
-                    <td colspan="6" class="admin-dashboard-empty">설정 항목이 없습니다.</td>
+                    <td colspan="6" class="admin-empty-state">설정 항목이 없습니다.</td>
                 </tr>
             <?php } ?>
             <?php foreach ($moduleSettings as $setting) { ?>
@@ -420,8 +420,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo sr_e(sr_admin_module_setting_display_value($setting)); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
                     <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td class="member-cell-manage">
-                        <div class="member-manage">
+                    <td class="admin-table-actions-cell">
+                        <div class="admin-row-actions">
                         <?php if ($canManageAdvancedModuleSettings) { ?>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
                                 <?php echo sr_csrf_field(); ?>

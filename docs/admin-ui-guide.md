@@ -30,16 +30,17 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 등록, 수정, 설정처럼 화면의 주 작업이 폼인 페이지는 실제 view 마크업에서 다음 구조를 사용한다.
 
 ```php
-<form method="post" action="..." class="admin-form-layout ui-form-theme ui-form-showcase">
+<form method="post" action="..." class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="card">
+    <section class="admin-card card">
         <h2>기본 정보</h2>
-        <p>
-            <label>이름<br>
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">이름</span></div>
+            <div class="admin-form-field">
                 <input type="text" name="title" required>
-            </label>
-        </p>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
@@ -49,21 +50,21 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 </form>
 ```
 
-- 폼의 주 섹션은 `form > section.card`로 둔다.
+- 폼의 주 섹션은 `form > section.admin-card.card`로 둔다.
 - 섹션 제목은 `h2`를 사용한다. 카드 헤더가 별도로 필요하면 view에서 `card-header`, `card-title` 마크업을 직접 출력한다.
 - 체크박스와 라디오처럼 컨트롤 옆 문구가 실제 레이블인 항목은 좌측 설명 칸과 우측 조작 레이블을 view에 직접 둔다. 좌측에는 전체 문구를 그대로 표시하고, 우측의 시각적 레이블은 `허용`, `사용`, `확인했습니다.`처럼 필요한 부분만 보이게 줄인다. 우측에서 생략된 맥락은 `.sr-only` 텍스트로 남겨 보조기기가 전체 의미를 읽을 수 있게 한다.
 - 좌측 레이블이 필요 없는 안내 문장은 입력항목 행으로 만들지 말고 일반 텍스트 문단으로 둔다.
-- 저장, 생성, 변경 버튼은 `admin-form-sticky-actions` 안에 둔다.
+- 저장, 생성, 변경 버튼은 `admin-form-sticky-actions` 안에 두되 문서 흐름 안에서 출력한다.
 - 목록 화면의 검색 폼, 테이블 행의 상태 변경/삭제 폼, 툴바 폼은 페이지 폼 레이아웃을 적용하지 않는다.
 
 체크박스 행 예시는 다음처럼 작성한다.
 
 ```php
-<div class="af-grid">
-    <div class="af-row">
-        <div class="af-label"><span class="form-label">공개 회원가입 허용</span></div>
-        <div class="af-field">
-            <label class="af-check form-label">
+<div class="admin-form-grid">
+    <div class="admin-form-row">
+        <div class="admin-form-label"><span class="form-label">공개 회원가입 허용</span></div>
+        <div class="admin-form-field">
+            <label class="admin-form-check form-label">
                 <input type="checkbox" name="allow_registration" value="1" class="form-checkbox">
                 <?php echo sr_admin_choice_label_html('공개 회원가입 허용'); ?>
             </label>

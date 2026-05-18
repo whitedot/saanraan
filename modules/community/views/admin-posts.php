@@ -7,15 +7,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-summary">
-    <div class="member-summary-links">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="btn btn-surface-default-soft">게시글</a>
         <a href="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="btn btn-surface-default-soft">댓글</a>
     </div>
 </div>
 
 <?php if ($communityPostsPage !== 'comments') { ?>
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">게시글 목록</h2></div>
     <?php if ($posts === []) { ?>
         <p>게시글이 없습니다.</p>
@@ -57,8 +57,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                         <td><?php echo sr_e((string) $post['created_at']); ?></td>
-                        <td class="member-cell-manage">
-                            <div class="member-manage">
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
@@ -84,7 +84,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communityPostsPage === 'comments') { ?>
-<section class="member-table-card admin-member-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">댓글 목록</h2></div>
     <?php if ($comments === []) { ?>
         <p>댓글이 없습니다.</p>
@@ -118,8 +118,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $comment['status'], 'content_status')); ?></td>
                         <td><?php echo sr_e((string) $comment['created_at']); ?></td>
-                        <td class="member-cell-manage">
-                            <div class="member-manage">
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="comment_status">

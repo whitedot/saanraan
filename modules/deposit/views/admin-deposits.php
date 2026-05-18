@@ -22,8 +22,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<div class="member-summary">
-    <div class="member-summary-links">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/deposits/balances')); ?>" class="btn btn-surface-default-soft">잔액</a>
         <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust')); ?>" class="btn btn-surface-default-soft">조정</a>
         <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions')); ?>" class="btn btn-surface-default-soft">거래 내역</a>
@@ -32,8 +32,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section>
     <h2>회원 조회</h2>
-    <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter-form ui-form-theme">
-        <div class="admin-filter-fields community-search-fields-compact">
+    <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter ui-form-theme">
+        <div class="admin-filter-grid community-search-fields-compact">
             <label class="admin-filter-field">
                 <span class="admin-filter-label">회원 공개 해시</span>
                 <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80" class="form-input">
@@ -55,22 +55,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($depositAdminPage === 'adjust') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-        <section class="card">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="admin-form ui-form-theme">
+        <section class="admin-card card">
             <h2>예치금 조정</h2>
             <?php echo sr_csrf_field(); ?>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 공개 해시</span>
                     <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">거래 유형</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">거래 유형</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">거래 유형</span>
                     <select name="transaction_type">
@@ -81,9 +81,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">금액</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">금액</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">금액</span>
                     <input type="number" name="amount" step="1" required>
@@ -92,27 +92,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 예치/환불은 양수, 사용/출금은 음수, 조정은 양수 또는 음수로 입력합니다.
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">사유</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">사유</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">사유</span>
                     <input type="text" name="reason" maxlength="255" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">참조 유형</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">참조 유형</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">참조 유형</span>
                     <input type="text" name="reference_type" maxlength="60">
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">참조 ID</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">참조 ID</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">참조 ID</span>
                     <input type="text" name="reference_id" maxlength="120">
@@ -126,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } elseif ($depositAdminPage === 'transactions') { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title">최근 거래</h2></div>
         <?php if ($transactions === []) { ?>
             <p>예치금 거래가 없습니다.</p>
@@ -168,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 <?php } else { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title">최근 잔액</h2></div>
         <?php if ($balances === []) { ?>
             <p>예치금 잔액이 없습니다.</p>

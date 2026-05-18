@@ -12,8 +12,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-summary">
-    <div class="member-summary-links">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft">알림 목록</a>
         <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-surface-default-soft">알림 등록</a>
         <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-surface-default-soft">발송 대기열</a>
@@ -21,13 +21,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php if ($notificationAdminPage === 'new') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-        <section class="card">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="admin-form ui-form-theme">
+        <section class="admin-card card">
             <h2>알림 등록</h2>
             <?php echo sr_csrf_field(); ?>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">대상</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">대상</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">대상</span>
                     <select name="audience">
@@ -38,57 +38,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">회원 공개 해시</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">회원 공개 해시</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 공개 해시</span>
                     <input type="text" name="account_identifier" value="" maxlength="80">
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">제목</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">제목</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">제목</span>
                     <input type="text" name="title" value="" maxlength="160" required>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">내용</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">내용</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">내용</span>
                     <textarea name="body_text" maxlength="5000"></textarea>
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span>
                     <input type="text" name="link_url" value="" maxlength="255">
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">외부 수신자</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">외부 수신자</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">외부 수신자</span>
                     <input type="text" name="recipient" value="" maxlength="255">
                     </label>
                 </div>
             </div>
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">채널</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">채널</span></div>
+                <div class="admin-form-field">
                     <div class="admin-check-list">
                         <?php foreach ($allowedCreateChannels as $channel) { ?>
-                            <label class="af-check form-label">
+                            <label class="admin-form-check form-label">
                                 <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
                             </label>
@@ -104,16 +104,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } elseif ($notificationAdminPage === 'deliveries') { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">발송 대기열</h2>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>">
-            <div class="member-search-card">
-                <div class="member-search-fields community-search-fields-compact">
-                    <div class="member-field">
-                        <label for="delivery_channel" class="member-field-label">발송 채널</label>
-                        <select name="delivery_channel" id="delivery_channel" class="form-select member-field-input">
+            <div class="admin-filter-card">
+                <div class="admin-filter-grid admin-account-search-grid community-search-fields-compact">
+                    <div class="admin-filter-field">
+                        <label for="delivery_channel" class="admin-filter-label">발송 채널</label>
+                        <select name="delivery_channel" id="delivery_channel" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['delivery_channel'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedChannels as $channel) { ?>
                             <option value="<?php echo sr_e($channel); ?>"<?php echo $filters['delivery_channel'] === $channel ? ' selected' : ''; ?>>
@@ -122,9 +122,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                         </select>
                     </div>
-                    <div class="member-field">
-                        <label for="delivery_status" class="member-field-label">발송 상태</label>
-                        <select name="delivery_status" id="delivery_status" class="form-select member-field-input">
+                    <div class="admin-filter-field">
+                        <label for="delivery_status" class="admin-filter-label">발송 상태</label>
+                        <select name="delivery_status" id="delivery_status" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['delivery_status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $filters['delivery_status'] === $status ? ' selected' : ''; ?>>
@@ -133,7 +133,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-solid-primary member-search-submit">조회</button>
+                    <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
                 </div>
             </div>
         </form>
@@ -141,7 +141,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="table-wrapper">
             <table class="table">
                 <tbody>
-                    <tr><td class="admin-dashboard-empty">발송 대기열이 비어 있습니다.</td></tr>
+                    <tr><td class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
                 </tbody>
             </table>
             </div>
@@ -166,8 +166,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $delivery['status'], 'delivery_status')); ?></td>
                             <td><?php echo sr_e((string) $delivery['updated_at']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="delivery_id" value="<?php echo sr_e((string) $delivery['id']); ?>">
@@ -191,17 +191,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 <?php } else { ?>
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">알림 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 알림 등록</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>">
-            <div class="member-search-card">
-                <div class="member-search-fields">
-                    <div class="member-field">
-                        <label for="audience" class="member-field-label">대상</label>
-                        <select name="audience" id="audience" class="form-select member-field-input">
+            <div class="admin-filter-card">
+                <div class="admin-filter-grid admin-account-search-grid">
+                    <div class="admin-filter-field">
+                        <label for="audience" class="admin-filter-label">대상</label>
+                        <select name="audience" id="audience" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['audience'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo sr_e($audience); ?>"<?php echo $filters['audience'] === $audience ? ' selected' : ''; ?>>
@@ -210,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-solid-primary member-search-submit">조회</button>
+                    <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
                 </div>
             </div>
         </form>
@@ -218,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="table-wrapper">
             <table class="table">
                 <tbody>
-                    <tr><td class="admin-dashboard-empty">등록된 알림이 없습니다.</td></tr>
+                    <tr><td class="admin-empty-state">등록된 알림이 없습니다.</td></tr>
                 </tbody>
             </table>
             </div>
@@ -241,8 +241,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_code_label((string) $notification['audience'], 'notification_audience')); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $notification['status'], 'notification_status')); ?></td>
                             <td><?php echo sr_e((string) $notification['created_at']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/delete')); ?>" style="display:inline">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">

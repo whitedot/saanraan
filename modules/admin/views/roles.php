@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<div class="member-table-card admin-member-list-form">
+<div class="admin-card admin-list-card card admin-list-form">
 <div class="table-wrapper">
 <table class="table">
     <thead class="ui-table-head">
@@ -39,8 +39,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <td><?php echo sr_e(implode(', ', array_map(static function (string $roleKey): string {
                     return sr_admin_code_label($roleKey, 'role');
                 }, $adminAccount['roles']))); ?></td>
-                <td class="member-cell-manage">
-                    <div class="member-manage">
+                <td class="admin-table-actions-cell">
+                    <div class="admin-row-actions">
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/roles')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">

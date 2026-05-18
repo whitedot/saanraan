@@ -13,41 +13,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="member-summary">
-    <div class="member-summary-links">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-surface-default-soft">팝업 목록</a>
         <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-surface-default-soft">팝업 추가</a>
     </div>
 </div>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-        <section class="card">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme">
+        <section class="admin-card card">
             <h2><?php echo $editing ? '팝업 수정' : '팝업 추가'; ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">제목</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">제목</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">제목</span>
                         <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" maxlength="120" required>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">내용</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">내용</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">내용</span>
                         <textarea name="body_text" maxlength="5000"><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">상태</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">상태</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">상태</span>
                         <select name="status">
@@ -61,9 +61,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">팝업 스킨</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">팝업 스킨</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">팝업 스킨</span>
                         <select name="skin_key">
@@ -77,9 +77,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">노출 대상</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">노출 대상</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">노출 대상</span>
                         <select name="target_option">
@@ -98,9 +98,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small>공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">매칭 방식</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">매칭 방식</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">매칭 방식</span>
                         <select name="match_type">
@@ -114,18 +114,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">특정 subject ID</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">특정 subject ID</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">특정 subject ID</span>
                         <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" maxlength="80">
                         </label>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">시작 시각</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">시작 시각</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">시작 시각</span>
                         <input type="datetime-local" name="starts_at" id="popup_starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>">
@@ -138,9 +138,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">종료 시각</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">종료 시각</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">종료 시각</span>
                         <input type="datetime-local" name="ends_at" id="popup_ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>">
@@ -152,9 +152,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 </div>
-                <div class="af-row">
-                    <div class="af-label"><span class="form-label">닫기 유지일</span></div>
-                    <div class="af-field">
+                <div class="admin-form-row">
+                    <div class="admin-form-label"><span class="form-label">닫기 유지일</span></div>
+                    <div class="admin-form-field">
                         <label>
                             <span class="sr-only">닫기 유지일</span>
                         <input type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" min="0" max="365">
@@ -168,14 +168,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } else { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-form-layout ui-form-theme ui-form-showcase">
-        <section class="card">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-form ui-form-theme">
+        <section class="admin-card card">
             <h2>팝업레이어 설정</h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_settings">
-            <div class="af-row">
-                <div class="af-label"><span class="form-label">팝업레이어 스킨</span></div>
-                <div class="af-field">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">팝업레이어 스킨</span></div>
+                <div class="admin-form-field">
                     <label>
                         <span class="sr-only">팝업레이어 스킨</span>
                     <select name="popup_layer_skin_key">
@@ -194,7 +194,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="member-table-card admin-member-list-form">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">팝업 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 팝업 추가</a>
@@ -239,8 +239,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
                             <td><?php echo sr_e((string) $popup['updated_at']); ?></td>
-                            <td class="member-cell-manage">
-                                <div class="member-manage">
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
