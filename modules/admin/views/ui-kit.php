@@ -41,20 +41,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<div class="ui-content-body admin-ui-kit-samples">
+<div class="ui-content-body admin-ui-kit-samples ui-form-theme">
     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
-        <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="admin-card card ui-mt-base">
-            <div class="card-header">
-                <h2 class="card-title"><?php echo sr_e($sampleLabel); ?></h2>
-            </div>
-            <div class="card-body">
-                <?php
-                $sampleFile = SR_ROOT . '/modules/admin/views/ui-kit-samples/' . $sampleKey . '.php';
-                if (is_file($sampleFile)) {
-                    include $sampleFile;
-                }
-                ?>
-            </div>
+        <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section ui-mt-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
+            <h2 id="ui-kit-title-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section-title"><?php echo sr_e($sampleLabel); ?></h2>
+            <?php
+            $sampleFile = SR_ROOT . '/modules/admin/views/ui-kit-samples/' . $sampleKey . '.php';
+            if (is_file($sampleFile)) {
+                include $sampleFile;
+            }
+            ?>
         </section>
     <?php } ?>
 </div>

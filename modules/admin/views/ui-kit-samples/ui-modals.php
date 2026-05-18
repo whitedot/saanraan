@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-modals">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-gap-base">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">모달 (Modals)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">모달 (Modals)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">헤더, 본문 및 푸터의 작업 세트가 포함된 렌더링된 모달입니다.</p>
                                 <div class="ui-flex ui-flex-wrap ui-gap-2-5">
                                     <!-- Standard modal content -->
@@ -239,17 +239,17 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card-body-->
 
                     <!-- end card-->
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">모달 위치 (Modal Position)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header">
+                            <h4 class="ui-kit-example-title">모달 위치 (Modal Position)</h4>
                         </div>
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <p class="ui-text-default-400 ui-mb-4">모달의 위치를 지정합니다. 상단, 하단 또는 페이지 중앙에 모달을 표시할 수 있습니다.</p>
 
                             <div class="ui-flex ui-flex-wrap ui-gap-2-5">
@@ -388,15 +388,15 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </div>
+                    </section>
                     <!-- end card-->
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">다중 모달 (Multiple Modal)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header">
+                            <h4 class="ui-kit-example-title">다중 모달 (Multiple Modal)</h4>
                         </div>
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <p class="ui-text-default-400 ui-mb-4">사용자에게 여러 측면을 안내하거나 단계별 입력을 받기 위해 일련의 모달을 하나씩 표시합니다.</p>
                             <div class="ui-flex ui-flex-wrap ui-gap-2-5">
                                 <!-- Modal Heading -->
@@ -477,15 +477,15 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </div>
+                    </section>
                     <!-- end card-->
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">모달 간 전환 (Toggle Between Modals)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header">
+                            <h4 class="ui-kit-example-title">모달 간 전환 (Toggle Between Modals)</h4>
                         </div>
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <p class="ui-text-default-400 ui-mb-4"><code>data-hs-overlay</code> 속성을 스마트하게 배치하여 여러 모달 사이를
                                 전환합니다.</p>
                             <div class="ui-flex ui-flex-wrap ui-gap-2-5">
@@ -568,15 +568,15 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </div>
+                    </section>
                     <!-- end card-->
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">전체 화면 모달 (Fullscreen Modal)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header">
+                            <h4 class="ui-kit-example-title">전체 화면 모달 (Fullscreen Modal)</h4>
                         </div>
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <p class="ui-text-default-400 ui-mb-4">사용자의 뷰포트 전체를 덮는 모달을 띄우는 옵션입니다.</p>
                             <div class="ui-flex ui-flex-wrap ui-gap-2-5">
                                 <!-- Full Screen Modal -->
@@ -848,15 +848,15 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
                     <!-- end card-body-->
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">고정 배경 (Static Backdrop)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header">
+                            <h4 class="ui-kit-example-title">고정 배경 (Static Backdrop)</h4>
                         </div>
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <p class="ui-text-default-400 ui-mb-4">백드롭이 정적(static)으로 설정되면 모달 외부를 클릭해도 모달이 닫히지 않습니다. 아래 버튼을 눌러 확인해
                                 보세요.</p>
                             <div class="ui-flex ui-flex-wrap ui-gap-2-5">
@@ -903,7 +903,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
                     <!-- end card-body-->
                 </div>
                 <!-- end card-->
@@ -911,6 +911,3 @@
         </div>
         <!-- end card-->
         </div>
-    </div>
-</div>
-</div>

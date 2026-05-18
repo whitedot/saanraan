@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="form-elements">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-gap-base">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">관리자 모드 폼 기준 (Admin Form Baseline)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">관리자 모드 폼 기준 (Admin Form Baseline)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <form action="#" method="get" class="admin-form ui-form-theme">
                                     <section class="admin-card card">
                                         <h2>관리자 폼 기준</h2>
@@ -40,14 +40,14 @@
                                     </section>
                                 </form>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Simple Input -->
@@ -73,7 +73,7 @@
                                             <div class="ui-col-lg-2">
                                                 <div class="ui-relative">
                                                     <input type="text" id="floatingInput" placeholder=""
-                                                        class="ui-floating-control ui-border ui-border-default-500 ui-block ui-w-full ui-rounded ui-bg-default-100 ui-p-4 ui-text-sm" />
+                                                        class="ui-floating-control form-input" />
                                                     <label for="floatingInput"
                                                         class="ui-text-default-500 ui-floating-label ui-absolute ui-start-3 ui-top-2 ui-transition-all">이름</label>
                                                 </div>
@@ -326,14 +326,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">입력 유형 (Input Types)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">입력 유형 (Input Types)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Email Input -->
@@ -477,14 +477,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">입력 그룹 (Input Group)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">입력 그룹 (Input Group)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Basic Input Group -->
@@ -706,14 +706,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">플로팅 라벨 (Floating Labels)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">플로팅 라벨 (Floating Labels)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Floating Input -->
@@ -726,7 +726,7 @@
                                                 <!-- Floating Input -->
                                                 <div class="ui-relative">
                                                     <input type="email" id="hs-floating-input-email"
-                                                        class="ui-floating-control ui-border ui-border-default-500 ui-block ui-w-full ui-rounded ui-bg-default-100 ui-p-4 ui-text-sm"
+                                                        class="ui-floating-control form-input"
                                                         placeholder="you@email.com" />
                                                     <label for="hs-floating-input-email"
                                                         class="ui-floating-label ui-pointer-none ui-absolute ui-start-0 ui-top-0 ui-h-full ui-origin-top-left ui-truncate ui-border ui-border-transparent ui-p-4 ui-transition ui-duration-100 ui-ease-in-out ui-text-sm">이메일</label>
@@ -746,7 +746,7 @@
                                             <div class="ui-col-lg-2">
                                                 <div class="ui-relative">
                                                     <textarea id="floatingTextarea" rows="4" placeholder=""
-                                                        class="ui-floating-control ui-border ui-border-default-500 ui-block ui-w-full ui-rounded ui-bg-default-100 ui-p-4 ui-text-sm"></textarea>
+                                                        class="ui-floating-control form-textarea"></textarea>
                                                     <label for="floatingTextarea"
                                                         class="ui-floating-label ui-pointer-none ui-absolute ui-start-0 ui-top-0 ui-h-full ui-origin-top-left ui-truncate ui-border ui-border-transparent ui-p-4 ui-transition ui-duration-100 ui-ease-in-out ui-text-sm">의견</label>
                                                 </div>
@@ -764,7 +764,7 @@
                                             <div class="ui-col-lg-2">
                                                 <div class="ui-relative">
                                                     <input type="password" id="floatingPassword" placeholder=""
-                                                        class="ui-floating-control ui-border ui-border-default-500 ui-block ui-w-full ui-rounded ui-bg-default-100 ui-p-4 ui-text-sm" />
+                                                        class="ui-floating-control form-input" />
                                                     <label for="floatingPassword"
                                                         class="ui-floating-label ui-pointer-none ui-absolute ui-start-0 ui-top-0 ui-h-full ui-origin-top-left ui-truncate ui-border ui-border-transparent ui-p-4 ui-transition ui-duration-100 ui-ease-in-out ui-text-sm">비밀번호</label>
                                                 </div>
@@ -782,7 +782,7 @@
                                             <div class="ui-col-lg-2">
                                                 <div class="ui-relative">
                                                     <select id="floatingSelect" placeholder=""
-                                                        class="ui-floating-control ui-border ui-border-default-500 ui-block ui-w-full ui-rounded ui-bg-default-100 ui-p-4 ui-text-sm">
+                                                        class="ui-floating-control form-select">
                                                         <option value="" selected disabled>이 선택 메뉴를 여세요
                                                         </option>
                                                         <option value="1">하나</option>
@@ -798,14 +798,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">입력 크기 (Input Sizes)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">입력 크기 (Input Sizes)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Small Input -->
@@ -908,14 +908,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">체크박스, 라디오 및 스위치 (Checks, Radios and Switches)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">체크박스, 라디오 및 스위치 (Checks, Radios and Switches)</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-grid ui-grid-cols-1 ui-grid-cols-lg-2 ui-gap-base">
                                     <div>
                                         <!-- Default Checkboxes -->
@@ -1368,7 +1368,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
 </div>
 </div>

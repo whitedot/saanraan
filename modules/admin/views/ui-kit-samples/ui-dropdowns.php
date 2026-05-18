@@ -2,12 +2,12 @@
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-grid-cols-xl-2 ui-gap-base">
                         <!-- Single Button Dropdowns -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">단일 버튼 드롭다운</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">단일 버튼 드롭다운</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">적절한 토글 클래스와 메뉴 구조를 사용하여 최소한의 마크업 변경으로 모든 버튼이나 링크를 드롭다운
                                     토글로 전환할 수 있습니다.</p>
 
@@ -56,15 +56,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Menu Alignment -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">메뉴 정렬</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">메뉴 정렬</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     <code>data-dropdown-placement="bottom-right"</code>
                                     속성을 사용하여 드롭다운 메뉴를 요소의 오른쪽에 배치하십시오.
@@ -84,15 +84,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Custom Dropdown Arrow -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">커스텀 드롭다운 화살표</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">커스텀 드롭다운 화살표</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 버튼은 아이콘을 포함하거나 제외하도록 커스텀할 수 있어, 깔끔한 텍스트 전용 토글이나
                                     커스텀 아이콘으로 시각적으로 향상된 토글을 만들 수 있습니다.</p>
 
@@ -126,15 +126,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Split Button Dropdowns -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">분할 버튼 드롭다운</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">분할 버튼 드롭다운</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">일반 버튼과 별도의 토글을 결합하여 분할 버튼 드롭다운을 만드세요. 이 레이아웃은 메인 버튼에서
                                     빠른 작업을 제공하고 드롭다운에서 추가 옵션을 제공합니다.</p>
 
@@ -220,15 +220,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Variant -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">변형</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">변형</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴는 모든 버튼 변형과 함께 사용할 수 있으므로 기본, 보조 또는 성공 버튼과 같은
                                     다양한 색상이나 스타일에 맞출 수 있습니다.</p>
 
@@ -284,15 +284,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Sizing -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">크기 조절</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">크기 조절</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴는 유연한 디자인 옵션을 위해 크고 작은 버튼 또는 분할 버튼 변형을 포함한 모든
                                     크기의 버튼과 결합할 수 있습니다.</p>
 
@@ -374,15 +374,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- 드롭업 Variation -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">드롭업 변형</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">드롭업 변형</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="top"</code>
@@ -430,15 +430,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- 드롭스타트 Variation -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">드롭스타트 변형</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">드롭스타트 변형</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="left-start"</code>
@@ -485,15 +485,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Dropend Variation -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">드롭엔드 변형</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">드롭엔드 변형</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     부모 요소에
                                     <code>data-dropdown-placement="right-end"</code>
@@ -540,15 +540,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Active Item -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">활성 항목</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">활성 항목</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     드롭다운 항목에
                                     <code>.active</code>
@@ -570,15 +570,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- 비활성화됨 Item -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">비활성 항목</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">비활성 항목</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     드롭다운 항목에
                                     <code>.disabled</code>
@@ -600,15 +600,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- 헤더s -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">헤더</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">헤더</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내부에 헤더를 추가하여 관련 메뉴 항목을 명확하게 그룹화하거나 레이블을 지정하십시오.
                                 </p>
 
@@ -629,15 +629,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- 다크 드롭다운s -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">다크 드롭다운</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">다크 드롭다운</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     메뉴 요소에
                                     <code>data-theme="dark"</code>
@@ -663,15 +663,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Centered Dropdowns -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">중앙 정렬 드롭다운</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">중앙 정렬 드롭다운</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     <code>data-dropdown-placement="bottom"</code>
                                     또는
@@ -713,15 +713,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Auto Close Behavior -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">자동 닫기 동작</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">자동 닫기 동작</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">
                                     기본적으로 드롭다운 메뉴는 내부 또는 외부를 클릭할 때 닫힙니다. autoClose 옵션을 사용하여 드롭다운의 이 동작을 변경할 수 있습니다.
                                 </p>
@@ -788,15 +788,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Text -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">텍스트</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">텍스트</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내에 자유로운 형식의 텍스트를 배치하고 간격 유틸리티를 사용하세요. 메뉴 너비를
                                     제한하기 위해 추가적인 크기 조정 스타일이 필요할 수 있습니다.</p>
                                 <div class="dropdown hs-dropdown" data-dropdown-placement="bottom-end">
@@ -813,15 +813,15 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
                         <!-- Forms -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">폼</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">폼</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <p class="ui-text-default-400 ui-mb-4">드롭다운 메뉴 내에 폼을 넣거나 드롭다운 메뉴로 만들고, 마진 또는 패딩 유틸리티를 사용하여 필요한
                                     여백을 주십시오.</p>
                                 <div class="ui-flex ui-flex-wrap ui-items-center ui-gap-2-5">
@@ -866,7 +866,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
 </div>
 </div>

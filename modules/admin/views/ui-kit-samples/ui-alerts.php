@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-alerts">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-grid-cols-xl-2 ui-gap-base">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">기본 알림</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">기본 알림</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div class="ui-bg-primary-soft ui-text-primary ui-flex ui-items-center ui-rounded ui-px-4 ui-py-3"
                                         role="alert">이것은 프라이머리 알림입니다. 중요한 내용을 확인하세요!</div>
@@ -27,15 +27,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">단색 배경의 제거 가능한 알림</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">단색 배경의 제거 가능한 알림</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div class="ui-bg-primary ui-flex ui-items-center ui-rounded ui-px-4 ui-py-3 ui-text-white" role="alert">
                                         주의! 이것은 중요한 정보가 포함된 프라이머리 알림입니다.</div>
@@ -56,15 +56,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">링크 색상</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">링크 색상</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div class="ui-bg-primary-soft ui-text-primary ui-flex ui-items-center ui-gap-1 ui-rounded ui-px-4 ui-py-3"
                                         role="alert">
@@ -116,15 +116,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">추가 콘텐츠</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">추가 콘텐츠</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div class="ui-bg-success-soft ui-text-success ui-rounded ui-p-6" role="alert">
                                         <h4 class="ui-text-success ui-mb-2 ui-text-lg ui-font-semibold">잘 하셨습니다!</h4>
@@ -157,15 +157,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">커스텀 알림</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">커스텀 알림</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div id="dark-alert"
                                         class="ui-removing-shift ui-removing-fade ui-transition ui-duration-300 ui-border-b-2 ui-border-dark ui-bg-dark-soft ui-text-dark ui-flex ui-items-center ui-rounded ui-px-4 ui-py-3"
@@ -234,15 +234,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">알림 닫기</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">알림 닫기</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="ui-stack-4">
                                     <div id="dismiss-alert"
                                         class="ui-removing-shift ui-removing-fade ui-transition ui-duration-300 ui-border-primary ui-bg-primary-soft ui-text-primary ui-flex ui-items-center ui-rounded ui-border ui-px-4 ui-py-3"
@@ -256,7 +256,7 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </div>
+                        </section>
                         <!-- end card-->
                     </div>
 </div>

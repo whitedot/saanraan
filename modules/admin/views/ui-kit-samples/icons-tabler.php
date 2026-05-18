@@ -1,13 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="icons-tabler">
 <div class="container-fluid">
-                    <div class="card">
-                        <div class="card-header ui-block">
-                            <h4 class="card-title ui-mb-1-25">개요 (Overview)</h4>
+                    <section class="ui-kit-example">
+                        <div class="ui-kit-example-header ui-block">
+                            <h4 class="ui-kit-example-title ui-mb-1-25">개요 (Overview)</h4>
                             <p class="ui-text-default-400">웹사이트나 앱을 매력적이고 시각적으로 일관되며 아름답게 만들기 위해 디자인된 무료 오픈 소스 아이콘입니다.</p>
                         </div>
                         <!-- end card-header-->
 
-                        <div class="card-body">
+                        <div class="ui-kit-example-body">
                             <h4 class="ui-mb-2 ui-text-sm">사용법 (Usage)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -21,7 +21,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                        <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
+                        <div class="ui-kit-example-body ui-border-default-300 ui-border-t ui-border-dashed">
                             <h4 class="ui-mb-2 ui-text-sm">색상 (Colors)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -38,7 +38,7 @@
                             </div>
                         </div>
 
-                        <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
+                        <div class="ui-kit-example-body ui-border-default-300 ui-border-t ui-border-dashed">
                             <h4 class="ui-mb-2 ui-text-sm">크기 (Sizes)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -73,7 +73,7 @@
                         </div>
                         <!-- end card-body-->
 
-                        <div class="card-body ui-border-default-300 ui-border-t ui-border-dashed">
+                        <div class="ui-kit-example-body ui-border-default-300 ui-border-t ui-border-dashed">
                             <h4 class="ui-mt-0 ui-mb-3">아이콘 (Icons)</h4>
 
                             <div class="ui-items-center ui-flex ui-flex-wrap ui-gap-3 ui-text-center">
@@ -349,7 +349,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </div>
+                    </section>
                     <!-- end card-->
 </div>
 </div>

@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="tables-static">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-gap-base">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">기본 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">기본 테이블</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -111,12 +111,12 @@
                                 </div>
                             </div>
                             <!-- end card body-->
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">커스텀 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">커스텀 테이블</h4>
                             </div>
 
                             <div class="table-wrapper">
@@ -319,15 +319,15 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">테이블 변형</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">테이블 변형</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-border-default-300 ui-bg-default-100 ui-border-b ui-font-semibold ui-text-xs">
@@ -537,15 +537,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">줄무늬 행</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">줄무늬 행</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -678,15 +678,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">줄무늬 열</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">줄무늬 열</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -819,15 +819,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">마우스 오버 행</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">마우스 오버 행</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table table-hover">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -960,15 +960,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">활성 Tables</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">활성 Tables</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -1101,15 +1101,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">테두리가 있는 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">테두리가 있는 테이블</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-border-default-300 ui-border ui-font-semibold ui-text-xs">
@@ -1242,15 +1242,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">테두리 없는 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">테두리 없는 테이블</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -1383,15 +1383,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">작은 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">작은 테이블</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -1431,15 +1431,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">테이블 그룹 구분선</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">테이블 그룹 구분선</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-border-default-600 ui-border-b-2 ui-font-semibold ui-text-xs">
@@ -1572,15 +1572,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">중첩 테이블</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">중첩 테이블</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-font-semibold ui-text-xs">
@@ -1743,15 +1743,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">테이블 헤더</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">테이블 헤더</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-bg-dark">
@@ -1884,15 +1884,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">캡션</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">캡션</h4>
                             </div>
 
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <div class="table-wrapper">
                                     <table class="ui-w-full table table-hover">
                                         <caption class="ui-text-default-400 ui-caption-bottom ui-py-3 ui-text-start">
@@ -2028,7 +2028,7 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                         <!-- end card -->
                     </div>
 </div>

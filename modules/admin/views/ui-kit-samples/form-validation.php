@@ -1,11 +1,11 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="form-validation">
 <div class="container-fluid">
                     <div class="ui-grid ui-grid-cols-1 ui-gap-base">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">커스텀 스타일 유효성 검사 (Custom styles Validation)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">커스텀 스타일 유효성 검사 (Custom styles Validation)</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <form id="customValidationForm" class="ui-grid ui-grid-cols-md-12 ui-grid-cols-1 ui-gap-base"
                                     novalidate>
                                     <!-- First Name -->
@@ -132,13 +132,13 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">서버 측 (Server-side)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">서버 측 (Server-side)</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <form id="serverForm" class="ui-grid ui-grid-cols-1 ui-grid-cols-md-12 ui-gap-base" novalidate>
                                     <!-- First name -->
                                     <div class="ui-col-md-4">
@@ -249,13 +249,13 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">지원되는 요소 (Supported Elements)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">지원되는 요소 (Supported Elements)</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <form class="ui-stack-6" novalidate>
                                     <!-- Textarea -->
                                     <div>
@@ -317,13 +317,13 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">브라우저 기본값 (Browser Defaults)</h4>
+                        <section class="ui-kit-example">
+                            <div class="ui-kit-example-header">
+                                <h4 class="ui-kit-example-title">브라우저 기본값 (Browser Defaults)</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="ui-kit-example-body">
                                 <form action="">
                                     <div class="ui-grid ui-grid-cols-md-3 ui-grid-cols-1 ui-gap-base ui-mb-base">
                                         <div>
@@ -384,7 +384,7 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </section>
                     </div>
 </div>
 </div>
