@@ -74,6 +74,12 @@ $optionalModules = [
         'label' => '알림',
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
+    'page' => [
+        'name' => '페이지',
+        'version' => '2026.05.001',
+        'label' => '페이지',
+        'description' => '단일 페이지 작성과 공개 URL 관리 기능을 설치합니다.',
+    ],
     'community' => [
         'name' => '커뮤니티',
         'version' => '2026.05.008',

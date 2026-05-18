@@ -396,7 +396,7 @@ function sr_check_module_route_conflicts(): void
         foreach ($paths as $route => $actionRelativePath) {
             $route = (string) $route;
             $actionRelativePath = (string) $actionRelativePath;
-            if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
+            if (!sr_check_valid_module_route($route)) {
                 sr_check_add_error('Route key format is invalid: ' . $pathsFile . ' ' . $route);
                 continue;
             }
@@ -411,14 +411,69 @@ function sr_check_module_route_conflicts(): void
                 continue;
             }
 
-            if (isset($routeOwners[$route])) {
-                sr_check_add_error('Module route conflict: ' . $route . ' in ' . $routeOwners[$route] . ' and ' . $moduleDir);
-                continue;
+            foreach ($routeOwners as $ownedRoute => $ownedModuleDir) {
+                if (sr_check_module_routes_conflict((string) $ownedRoute, $route)) {
+                    sr_check_add_error('Module route conflict: ' . $route . ' in ' . $ownedModuleDir . ' and ' . $moduleDir);
+                    continue 2;
+                }
             }
 
             $routeOwners[$route] = $moduleDir;
         }
     }
+}
+
+function sr_check_valid_module_route(string $route): bool
+{
+    if (preg_match('/\A(GET|POST) (\/[^\x00-\x1F\x7F\\\\]*)\z/', $route, $matches) !== 1) {
+        return false;
+    }
+
+    $path = (string) $matches[2];
+    if ($path === '/' || str_starts_with($path, '//')) {
+        return false;
+    }
+
+    $asteriskCount = substr_count($path, '*');
+    if ($asteriskCount === 0) {
+        return true;
+    }
+
+    return $asteriskCount === 1 && str_ends_with($path, '/*') && strlen($path) > 2;
+}
+
+function sr_check_module_routes_conflict(string $leftRoute, string $rightRoute): bool
+{
+    if (!sr_check_valid_module_route($leftRoute) || !sr_check_valid_module_route($rightRoute)) {
+        return false;
+    }
+
+    [$leftMethod, $leftPath] = explode(' ', $leftRoute, 2);
+    [$rightMethod, $rightPath] = explode(' ', $rightRoute, 2);
+    if ($leftMethod !== $rightMethod) {
+        return false;
+    }
+
+    if ($leftPath === $rightPath) {
+        return true;
+    }
+
+    $leftWildcard = str_ends_with($leftPath, '/*');
+    $rightWildcard = str_ends_with($rightPath, '/*');
+    if (!$leftWildcard && !$rightWildcard) {
+        return false;
+    }
+
+    $leftPrefix = $leftWildcard ? substr($leftPath, 0, -1) : $leftPath;
+    $rightPrefix = $rightWildcard ? substr($rightPath, 0, -1) : $rightPath;
+
+    if ($leftWildcard && $rightWildcard) {
+        return str_starts_with($leftPrefix, $rightPrefix) || str_starts_with($rightPrefix, $leftPrefix);
+    }
+
+    return $leftWildcard
+        ? str_starts_with($rightPath, $leftPrefix)
+        : str_starts_with($leftPath, $rightPrefix);
 }
 
 function sr_check_php_lint(): void

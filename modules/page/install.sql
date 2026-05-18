@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS sr_pages (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(120) NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    summary TEXT NULL,
+    body_text MEDIUMTEXT NOT NULL,
+    body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
+    status VARCHAR(30) NOT NULL DEFAULT 'draft',
+    seo_title VARCHAR(160) NOT NULL DEFAULT '',
+    seo_description VARCHAR(255) NOT NULL DEFAULT '',
+    created_by BIGINT UNSIGNED NULL,
+    updated_by BIGINT UNSIGNED NULL,
+    published_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_pages_slug (slug),
+    KEY idx_sr_pages_status_slug (status, slug),
+    KEY idx_sr_pages_status_updated (status, updated_at),
+    KEY idx_sr_pages_created_by (created_by, id),
+    KEY idx_sr_pages_updated_by (updated_by, id)
+);
+
+CREATE TABLE IF NOT EXISTS sr_page_revisions (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    page_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    summary TEXT NULL,
+    body_text MEDIUMTEXT NOT NULL,
+    body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
+    status VARCHAR(30) NOT NULL DEFAULT 'draft',
+    created_by BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_page_revisions_page_id (page_id, id),
+    KEY idx_sr_page_revisions_created_by (created_by, id)
+);

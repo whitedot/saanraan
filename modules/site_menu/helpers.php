@@ -30,6 +30,10 @@ function sr_site_menu_link_suggestions(PDO $pdo): array
 
     foreach (sr_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
         $links = sr_load_module_contract_file($moduleKey, $file);
+        if (is_callable($links)) {
+            $links = $links($pdo);
+        }
+
         if (!is_array($links)) {
             continue;
         }

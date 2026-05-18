@@ -560,15 +560,17 @@ function sr_admin_module_route_conflict_errors(PDO $pdo, string $candidateModule
         foreach ($paths as $route => $actionRelativePath) {
             $route = (string) $route;
             $actionRelativePath = (string) $actionRelativePath;
-            if (!isset($candidateRouteMap[$route])) {
+            if (!sr_is_valid_module_route($route)) {
                 continue;
             }
 
-            if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
-                continue;
-            }
+            foreach (array_keys($candidateRouteMap) as $candidateRoute) {
+                if (!sr_module_routes_conflict((string) $candidateRoute, $route)) {
+                    continue;
+                }
 
-            $errors[] = $candidateModuleKey . ' 모듈 route가 ' . $moduleKey . ' 모듈과 충돌합니다: ' . $route;
+                $errors[] = $candidateModuleKey . ' 모듈 route가 ' . $moduleKey . ' 모듈과 충돌합니다: ' . (string) $candidateRoute . ' / ' . $route;
+            }
         }
     }
 
@@ -593,7 +595,7 @@ function sr_admin_module_route_map(string $moduleKey): array
     foreach ($paths as $route => $actionRelativePath) {
         $route = (string) $route;
         $actionRelativePath = (string) $actionRelativePath;
-        if (preg_match('/\A(GET|POST) \/.+\z/', $route) !== 1) {
+        if (!sr_is_valid_module_route($route)) {
             $errors[] = $moduleKey . ' 모듈 route 형식이 올바르지 않습니다: ' . $route;
             continue;
         }

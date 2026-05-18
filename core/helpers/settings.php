@@ -283,6 +283,79 @@ function sr_clear_module_settings_cache(?string $moduleKey = null): void
     }
 }
 
+function sr_is_valid_module_route(string $route): bool
+{
+    if (preg_match('/\A(GET|POST) (\/[^\x00-\x1F\x7F\\\\]*)\z/', $route, $matches) !== 1) {
+        return false;
+    }
+
+    $path = (string) $matches[2];
+    if ($path === '/' || str_starts_with($path, '//')) {
+        return false;
+    }
+
+    $asteriskCount = substr_count($path, '*');
+    if ($asteriskCount === 0) {
+        return true;
+    }
+
+    return $asteriskCount === 1 && str_ends_with($path, '/*') && strlen($path) > 2;
+}
+
+function sr_module_route_matches_request(string $route, string $routeKey): bool
+{
+    if (!sr_is_valid_module_route($route)) {
+        return false;
+    }
+
+    if ($route === $routeKey) {
+        return true;
+    }
+
+    [$routeMethod, $routePath] = explode(' ', $route, 2);
+    [$requestMethod, $requestPath] = explode(' ', $routeKey, 2);
+    if ($routeMethod !== $requestMethod || !str_ends_with($routePath, '/*')) {
+        return false;
+    }
+
+    $prefix = substr($routePath, 0, -1);
+    return str_starts_with($requestPath, $prefix) && strlen($requestPath) > strlen($prefix);
+}
+
+function sr_module_routes_conflict(string $leftRoute, string $rightRoute): bool
+{
+    if (!sr_is_valid_module_route($leftRoute) || !sr_is_valid_module_route($rightRoute)) {
+        return false;
+    }
+
+    [$leftMethod, $leftPath] = explode(' ', $leftRoute, 2);
+    [$rightMethod, $rightPath] = explode(' ', $rightRoute, 2);
+    if ($leftMethod !== $rightMethod) {
+        return false;
+    }
+
+    if ($leftPath === $rightPath) {
+        return true;
+    }
+
+    $leftWildcard = str_ends_with($leftPath, '/*');
+    $rightWildcard = str_ends_with($rightPath, '/*');
+    if (!$leftWildcard && !$rightWildcard) {
+        return false;
+    }
+
+    $leftPrefix = $leftWildcard ? substr($leftPath, 0, -1) : $leftPath;
+    $rightPrefix = $rightWildcard ? substr($rightPath, 0, -1) : $rightPath;
+
+    if ($leftWildcard && $rightWildcard) {
+        return str_starts_with($leftPrefix, $rightPrefix) || str_starts_with($rightPrefix, $leftPrefix);
+    }
+
+    return $leftWildcard
+        ? str_starts_with($rightPath, $leftPrefix)
+        : str_starts_with($leftPath, $rightPrefix);
+}
+
 function sr_module_metadata(string $moduleKey): array
 {
     static $cache = [];

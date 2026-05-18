@@ -92,11 +92,26 @@ foreach (sr_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $p
         continue;
     }
 
-    if (!isset($paths[$routeKey])) {
+    $matchedActionRelativePath = isset($paths[$routeKey]) ? (string) $paths[$routeKey] : null;
+    $matchedRoute = $matchedActionRelativePath === null ? '' : $routeKey;
+    if ($matchedActionRelativePath === null) {
+        foreach ($paths as $route => $actionRelativePath) {
+            $route = (string) $route;
+            if (!sr_module_route_matches_request($route, $routeKey)) {
+                continue;
+            }
+
+            $matchedActionRelativePath = (string) $actionRelativePath;
+            $matchedRoute = $route;
+            break;
+        }
+    }
+
+    if ($matchedActionRelativePath === null) {
         continue;
     }
 
-    $actionRelativePath = (string) $paths[$routeKey];
+    $actionRelativePath = $matchedActionRelativePath;
     if (!sr_is_safe_module_action($actionRelativePath)) {
         sr_render_error(500, '모듈 action 경로가 올바르지 않습니다.');
         exit;
@@ -113,6 +128,7 @@ foreach (sr_enabled_module_contract_files($pdo, 'paths.php') as $moduleKey => $p
 
     $routeMatches[] = [
         'module_key' => $moduleKey,
+        'route' => $matchedRoute,
         'action_file' => $realActionFile,
     ];
 }

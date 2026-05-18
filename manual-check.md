@@ -102,6 +102,21 @@
 
 ```
 
+## 페이지 화면
+
+- [ ] `/pages/{slug}` 공개 페이지
+- [ ] 공개 상태 페이지의 제목 / 요약 / 본문 표시
+- [ ] draft 페이지 공개 접근 차단
+- [ ] hidden 페이지 공개 접근 차단
+- [ ] 페이지가 사이트 메뉴 후보에 노출됨
+- [ ] 페이지가 sitemap 후보에 포함됨
+
+메모:
+
+```text
+
+```
+
 ## 관리자 기본 화면
 
 - [ ] `/admin` 대시보드
@@ -153,6 +168,22 @@
 - [ ] `/admin/community/board-groups/edit?id=...` 게시판 그룹 수정
 - [ ] `/admin/community/posts` 게시글 관리
 - [ ] `/admin/community/reports` 신고 관리
+
+메모:
+
+```text
+
+```
+
+## 페이지 관리자 화면
+
+- [ ] `/admin/pages` 페이지 목록
+- [ ] `/admin/pages/new` 페이지 생성
+- [ ] `/admin/pages/edit?id=...` 페이지 수정
+- [ ] slug 중복 차단
+- [ ] 예약어 slug 차단
+- [ ] 페이지 숨김 처리
+- [ ] 페이지 생성 / 수정 / 숨김 감사 로그
 
 메모:
 
