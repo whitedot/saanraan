@@ -23,5 +23,6 @@ $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutCo
     <?php if ($layoutPdo instanceof PDO) { ?>
         <?php echo sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'content']); ?>
     <?php } ?>
+    <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
 </body>
 </html>

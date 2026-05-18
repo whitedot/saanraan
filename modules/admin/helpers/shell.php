@@ -213,14 +213,17 @@ function sr_admin_stylesheet_tag(): string
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . PHP_EOL
         . '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
         . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common.css')) . '">' . PHP_EOL
+        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/tokens.css')) . '">' . PHP_EOL
+        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/primitives.css')) . '">' . PHP_EOL
+        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/utilities.css')) . '">' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">';
 }
 
 function sr_admin_shell_script_tag(): string
 {
-    return '<script src="' . sr_e(sr_url('/modules/admin/assets/admin-shell.js')) . '" defer></script>';
+    return '<script src="' . sr_e(sr_admin_asset_url('/assets/common-ui.js')) . '" defer></script>' . PHP_EOL
+        . '<script src="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin-shell.js')) . '" defer></script>';
 }
 
 function sr_admin_asset_url(string $path): string

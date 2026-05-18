@@ -2,11 +2,11 @@
 
 `assets/ui-kit`은 프로젝트 디자인 토큰과 공통 UI 원형을 개발자가 확인하는 정적 조회 도구다. UI-KIT은 프로젝트 화면에 영향을 주지 않고, 실제 프로젝트 CSS와 공용 상호작용 JS를 읽어서 현재 상태를 보여주는 역할만 한다.
 
-이 UI-KIT은 `g5codex.git` 프로젝트를 진행하면서 만들었던 UI-KIT 산출물을 현재 `saanraan` 프로젝트에 적용한 것이다. Git 히스토리를 가져온 것은 아니므로, 남아 있는 파일과 마크업은 현재 프로젝트 기준으로 다시 판정한다. 일부 파일에는 그누보드5, Tailwind/Preline 계열 관성이 남아 있을 수 있다. 정리 기준은 원형을 무조건 삭제하거나 보존하는 것이 아니라, 현재 프로젝트의 디자인 토큰 조회 목적에 맞게 흡수할 것은 공용 자산으로 승격하고 맞지 않는 잔재는 제거하는 것이다.
+이 UI-KIT은 `g5codex.git` 프로젝트를 진행하면서 만들었던 UI-KIT 산출물을 현재 `saanraan` 프로젝트에 적용한 것이다. Git 히스토리를 가져온 것은 아니므로, 남아 있는 파일과 마크업은 현재 프로젝트 기준으로 다시 판정한다. 일부 파일에는 그누보드5와 이전 UI 프레임워크 계열 관성이 남아 있을 수 있다. 정리 기준은 원형을 무조건 삭제하거나 보존하는 것이 아니라, 현재 프로젝트의 디자인 토큰 조회 목적에 맞게 흡수할 것은 공용 자산으로 승격하고 맞지 않는 잔재는 제거하는 것이다.
 
 ## 목표
 
-- 개발자가 `assets/common.css`의 현재 토큰, reset/base, 공통 UI 원형을 카테고리별 HTML에서 확인할 수 있게 한다.
+- 개발자가 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`의 현재 토큰, reset/base, 공통 UI 원형을 카테고리별 HTML에서 확인할 수 있게 한다.
 - `assets/admin-ui.css`, `assets/public-ui.css`, `assets/saanraan.css`처럼 실제 화면에서 쓰는 레이어 CSS를 조회 대상으로 포함한다.
 - UI-KIT 전용 CSS가 프로젝트 토큰이나 컴포넌트 원형을 덮어쓰지 않게 한다.
 - 드롭다운, 모달, 탭처럼 JS 동작이 있어야 원형을 확인할 수 있는 항목은 프로젝트에서도 같은 JS를 사용할 수 있게 공용 자산으로 관리한다.
@@ -19,7 +19,7 @@
 3. UI-KIT은 별도 디자인 시스템을 만들지 않는다. 실제 프로젝트 CSS와 공용 JS의 현재 결과만 보여준다.
 4. UI-KIT 전용 스타일은 조회 화면 shell, 사이드바, 토큰 표, 샘플 배치에만 사용한다.
 5. UI-KIT 전용 스타일은 `.btn`, `.card`, `.table`, `.form-*`, `.dropdown-*`, `.modal-*`, `.tab-*` 같은 프로젝트 원형 클래스를 재정의하지 않는다.
-6. `g5codex.git` 산출물 적용 과정에서 남은 그누보드5, Tailwind/Preline 계열 잔재는 현재 프로젝트 목적 기준으로 판정한다. 실제로 필요한 원형은 `saanraan`의 공용 CSS/JS 규칙으로 재정의하고, 단순 호환용 잔재는 제거한다.
+6. `g5codex.git` 산출물 적용 과정에서 남은 그누보드5와 이전 UI 프레임워크 계열 잔재는 현재 프로젝트 목적 기준으로 판정한다. 실제로 필요한 원형은 `saanraan`의 공용 CSS/JS 규칙으로 재정의하고, 단순 호환용 잔재는 제거한다.
 7. UI-KIT은 예쁜 데모 페이지가 아니라 현재 디자인 토큰과 공용 UI 동작을 검증하는 읽기 전용 개발자 도구다.
 
 ## CSS 호출 계획
@@ -29,18 +29,20 @@
 ```html
 <link rel="stylesheet" href="../common.css?v=...">
 <link rel="stylesheet" href="../admin-ui.css?v=...">
-<link rel="stylesheet" href="../saanraan.css?v=...">
 <link rel="stylesheet" href="../public-ui.css?v=...">
 <link rel="stylesheet" href="css/ui-guide.css?v=...">
 ```
 
-- `../common.css`: 공통 토큰, reset/base, 공통 UI 원형의 기준이다.
+- `../common.css`: split 공통 CSS를 불러오는 UI-KIT 조회용 manifest다.
 - `../admin-ui.css`: 관리자 레이어의 반복 UI 조합을 확인한다.
-- `../saanraan.css`: 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 확인한다.
 - `../public-ui.css`: 공개/회원 화면의 반복 UI 조합을 확인한다.
 - `css/ui-guide.css`: UI-KIT 조회 화면 자체의 shell과 토큰 표시 레이아웃만 담당한다.
 
-`assets/ui-kit/css/preview-utilities.css`는 정리 대상이다. 이 파일은 UI-KIT HTML을 유지하기 위한 Tailwind식 보조 번들이어서, 개발자가 실제 프로젝트 CSS와 미리보기 보조 CSS를 구분하기 어렵게 만든다. HTML의 유틸리티 클래스 의존을 제거한 뒤 삭제한다.
+`assets/saanraan.css`는 공개 화면 런타임 baseline이므로 UI-KIT shell에 전역으로 호출하지 않는다. 이 파일은 `header`, `main`, `nav`, `button`, `input`, `select`, `textarea` 같은 넓은 선택자를 포함하므로 UI-KIT 사이드바와 본문 레이아웃을 깨뜨릴 수 있다. 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일은 향후 iframe, 별도 public preview HTML, 또는 `token-inspector.js`의 CSS 변수 읽기 방식처럼 UI-KIT shell과 격리된 방식으로 확인한다.
+
+`assets/common.css`는 UI-KIT 조회용 manifest다. 실제 공통 레이어의 편집 기준은 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`이며, 관리자 런타임은 운영 안정성과 파일별 cache busting을 위해 split 파일을 직접 호출한다.
+
+`assets/ui-kit/css/preview-utilities.css`는 제거했다. 이 파일은 UI-KIT HTML을 유지하기 위한 보조 유틸리티 번들이어서, 개발자가 실제 프로젝트 CSS와 미리보기 보조 CSS를 구분하기 어렵게 만들었다. UI-KIT은 이제 `../common.css`와 `css/ui-guide.css` 기준으로 조회 화면을 구성한다.
 
 ## JS 호출 계획
 
@@ -52,27 +54,19 @@ JS는 두 종류로 나눈다.
 
 드롭다운, 오버레이/모달, 탭처럼 실제 프로젝트 화면에서도 필요한 동작은 UI-KIT 전용 경로가 아니라 공용 자산으로 둔다.
 
-후보 경로:
+공용 경로:
 
 ```text
 assets/common-ui.js
 ```
 
-또는 기능별 분리가 필요하면:
+저비용 호스팅과 단순 호출을 고려해 단일 파일로 시작한다. 기능별 분리가 필요해지면 `assets/common-js/dropdown.js`, `assets/common-js/overlay.js`, `assets/common-js/tablist.js`처럼 나누는 방식을 다시 검토한다.
 
-```text
-assets/common-js/dropdown.js
-assets/common-js/overlay.js
-assets/common-js/tablist.js
-```
+공용 승격 완료 대상:
 
-초기에는 저비용 호스팅과 단순 호출을 고려해 `assets/common-ui.js` 단일 파일을 우선 검토한다.
-
-공용 승격 대상:
-
-- `assets/ui-kit/js/ui-kit/ui-dropdown-menu.js`
-- `assets/ui-kit/js/ui-kit/ui-overlay.js`
-- `assets/ui-kit/js/ui-kit/ui-tablist.js`
+- 드롭다운
+- 오버레이/모달
+- 탭
 
 공용 JS의 규칙:
 
@@ -82,9 +76,9 @@ assets/common-js/tablist.js
 - DOMContentLoaded 후 안전하게 초기화한다.
 - 해당 요소가 없는 페이지에서는 아무 일도 하지 않는다.
 
-드롭다운은 현재 `ui-dropdowns.html`에서 `.hs-dropdown`, `.hs-dropdown-toggle`, `.hs-dropdown-menu` 마크업과 `assets/ui-kit/js/ui-kit/ui-dropdown-menu.js`로 동작한다. JS 자체는 vanilla JS 기반이라 공용 승격 후보지만, 옵션을 `[--placement:bottom-end]`, `[--auto-close:inside]`, `[--trigger:hover]`처럼 class 문자열에서 파싱하는 방식은 Tailwind/Preline 계열 잔재이므로 프로젝트 공용 규칙으로 유지하지 않는다.
+드롭다운은 `.hs-dropdown`, `.hs-dropdown-toggle`, `.hs-dropdown-menu` 마크업과 `assets/common-ui.js`로 동작한다. 옵션을 `[--placement:bottom-end]`, `[--auto-close:inside]`, `[--trigger:hover]`처럼 class 문자열에서 파싱하는 방식은 이전 UI 프레임워크 계열 잔재이므로 새 프로젝트 공용 규칙으로 유지하지 않는다.
 
-드롭다운 공용화 시 옵션은 `data-*` 속성으로 정리한다.
+드롭다운 공용화 시 옵션은 `data-*` 속성으로 정리한다. 기본 위치는 `.hs-dropdown` root이며, 테이블 액션처럼 기존 마크업 구조상 root 정리가 늦어지는 경우에는 전환 기간 동안 toggle의 `data-dropdown-*`도 읽는다.
 
 ```html
 <div
@@ -107,7 +101,7 @@ assets/common-js/tablist.js
 2. `data-dropdown-placement`
 3. `data-dropdown-auto-close`
 
-기존 class 기반 옵션은 UI-KIT 정리 과정에서 `data-*` 속성으로 바꾼다. 필요하면 짧은 전환 기간 동안만 class 기반 옵션을 fallback으로 읽되, 새 마크업에는 사용하지 않는다.
+기존 class 기반 옵션은 UI-KIT 정리 과정에서 `data-*` 속성으로 바꿨다. 짧은 전환 기간 동안만 class 기반 옵션을 fallback으로 읽되, 새 마크업에는 사용하지 않는다.
 
 ### UI-KIT 조회 화면 전용 JS
 
@@ -169,6 +163,8 @@ assets/ui-kit/js/token-inspector.js
 
 `assets/ui-kit/css/preview-utilities.css`처럼 UI-KIT 미리보기만 성립시키는 대형 보조 CSS는 제거한다. 필요한 조회 shell 스타일은 `assets/ui-kit/css/ui-guide.css`에 명시적 `ui-*` 클래스로만 둔다.
 
+2026-05-18에 `preview-utilities.css` 호출과 파일을 제거했다. 이후 남은 HTML 배치 보정은 `ui-guide.css`의 명시적 `ui-*` class와 실제 프로젝트 원형 class 기준으로만 정리한다.
+
 ## HTML 정리 기준
 
 - `bg-gray-50`, `text-2xl`, `font-bold`, `mt-4`, `flex`, `gap-*` 같은 미리보기 유틸리티 클래스 의존을 단계적으로 제거한다.
@@ -185,12 +181,12 @@ assets/ui-kit/js/token-inspector.js
 
 ## 프로젝트 영향 방지
 
-- `assets/common.css`, `assets/admin-ui.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
+- `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`, `assets/admin-ui.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
 - `assets/ui-kit/css/ui-guide.css`는 프로젝트 런타임에서 호출하지 않는다.
 - `assets/ui-kit/js/*` 중 shell 전용 JS는 프로젝트 런타임에서 호출하지 않는다.
-- `assets/ui-kit/js/common.js`는 프로젝트 공용 JS로 승격하지 않고 UI-KIT HTML 호출에서도 제거한다.
-- 공용으로 승격한 JS만 프로젝트 런타임에서 호출할 수 있다.
-- 공용 JS로 승격한 파일은 더 이상 UI-KIT 전용 이름이나 경로에 두지 않는다.
+- `assets/ui-kit/js/common.js`는 프로젝트 공용 JS로 승격하지 않고 제거한다.
+- 공용으로 승격한 `assets/common-ui.js`만 프로젝트 런타임에서 호출할 수 있다.
+- 공용 JS로 승격한 드롭다운/오버레이/탭 동작은 더 이상 UI-KIT 전용 이름이나 경로에 두지 않는다.
 
 ## 캐시 갱신
 
@@ -201,25 +197,27 @@ assets/ui-kit/js/token-inspector.js
 ## 단계별 작업 계획
 
 1. 문서 기준을 “정적 변환 쇼케이스”에서 “디자인 토큰 조회 도구”로 고정한다.
-2. 모든 `assets/ui-kit/*.html`의 CSS 호출 순서를 통일한다.
-3. `preview-utilities.css`에 의존하는 HTML class를 조사한다.
-4. 필요한 조회 화면 배치를 `ui-guide.css`의 `ui-*` 클래스로 옮긴다.
-5. `preview-utilities.css` 호출을 제거하고 파일을 삭제한다.
-6. 모든 `assets/ui-kit/*.html`에서 `js/common.js` 호출을 제거하고 `assets/ui-kit/js/common.js` 파일을 삭제한다.
-7. 드롭다운 옵션 표기를 `[--placement:*]`, `[--auto-close:*]`, `[--trigger:*]` class에서 `data-dropdown-*` 속성으로 바꾼다.
-8. 드롭다운/오버레이/탭 JS를 공용 JS로 승격한다.
-9. 관리자/공개 런타임에서 공용 JS를 필요 페이지 또는 공통 shell에서 호출하는 방식을 정한다.
-10. UI-KIT HTML은 공용 JS와 UI-KIT shell 전용 JS를 구분해 호출한다.
+2. 모든 `assets/ui-kit/*.html`의 CSS 호출 순서를 통일하고 `saanraan.css`는 UI-KIT shell 전역 호출에서 제외한다.
+3. 모든 `assets/ui-kit/*.html`에서 `js/common.js` 호출을 제거하고 `assets/ui-kit/js/common.js` 파일을 삭제한다.
+4. 드롭다운 옵션 표기를 `[--placement:*]`, `[--auto-close:*]`, `[--trigger:*]` class에서 `data-dropdown-*` 속성으로 바꾼다.
+5. 드롭다운/오버레이/탭 JS를 `assets/common-ui.js` 공용 JS로 승격한다.
+6. 관리자/공개 런타임에서 `assets/common-ui.js`를 호출한다.
+7. UI-KIT HTML은 공용 JS와 UI-KIT shell 전용 JS를 구분해 호출한다.
+8. `preview-utilities.css`에 의존하는 HTML class를 조사한다.
+9. 필요한 조회 화면 배치를 `ui-guide.css`의 `ui-*` 클래스로 옮긴다.
+10. `preview-utilities.css` 호출을 제거하고 파일을 삭제한다.
 11. 토큰 값 표시용 `token-inspector.js`를 추가해 CSS custom property의 현재 computed value를 표시한다.
-12. `common.css`의 토큰 하나를 바꾸면 UI-KIT에서 값과 샘플이 바로 바뀌는지 확인한다.
+12. split 공통 CSS의 토큰 하나를 바꾸면 UI-KIT에서 값과 샘플이 바로 바뀌는지 확인한다.
+
+1-10번은 2026-05-18에 적용했다. 11-12번은 다음 단계로 진행한다.
 
 ## 검증 기준
 
-- UI-KIT HTML이 `preview-utilities.css` 없이 열린다.
 - UI-KIT HTML이 `assets/ui-kit/js/common.js` 없이 열린다.
 - UI-KIT 전용 CSS가 프로젝트 원형 클래스를 재정의하지 않는다.
-- `assets/common.css` 수정 결과가 UI-KIT 샘플에 바로 반영된다.
+- `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css` 수정 결과가 UI-KIT 샘플에 바로 반영된다.
 - 드롭다운 옵션은 새 마크업에서 `data-dropdown-*` 속성으로 표현된다.
 - 드롭다운, 모달, 탭은 UI-KIT과 프로젝트 화면에서 같은 공용 JS로 동작한다.
 - 프로젝트 런타임은 UI-KIT shell CSS/JS를 호출하지 않는다.
+- UI-KIT HTML이 `preview-utilities.css` 없이 열린다.
 - `git diff --check`가 통과한다.

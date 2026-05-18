@@ -1,14 +1,19 @@
 # 관리자 UI 작성 기준
 
-관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 공통 CSS는 단일 파일로 유지하고 호출 순서와 책임을 고정한다.
+관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 공통 CSS는 책임별 파일을 유지하고 호출 순서와 책임을 고정한다.
 
-- `assets/common.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰과 reset/base, `btn`, `card`, `table`, `form-*`, `tab-*`, `.sr-only`, `ui-form-theme` 같은 공통 UI kit 원형과 유틸리티를 둔다. 관리자, 공개 화면, 모듈 고유 레이아웃은 넣지 않는다. 관리자 런타임과 정적 UI-KIT은 이 파일을 같은 공통 CSS 계약으로 호출한다.
+- `assets/common/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
+- `assets/common/primitives.css`: reset/base와 `btn`, `card`, `table`, `form-*`, `tab-*` 같은 공통 UI 원형을 둔다.
+- `assets/common/utilities.css`: `.sr-only`, `ui-form-theme` 같은 재사용 유틸리티와 공통 보강을 둔다.
+- `assets/common.css`: 정적 UI-KIT 조회용 단일 manifest로 유지한다. 관리자 런타임은 파일별 cache busting과 운영 안정성을 위해 split 파일을 직접 호출한다.
 - `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합을 둔다.
 - `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
 
-공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 `assets/common.css`의 reset/UI kit 원형을 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. `assets/public-ui.css`는 공통 토큰이 함께 로드된 정적 UI-KIT에서도 동작하도록 `--color-*` fallback을 둘 수 있지만, 관리자용 공통 reset을 공개 런타임에 무심코 추가하지 않는다.
+공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 `assets/common.css`의 reset/공통 원형을 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. `assets/public-ui.css`는 공통 토큰이 함께 로드된 정적 UI-KIT에서도 동작하도록 `--color-*` fallback을 둘 수 있지만, 관리자용 공통 reset을 공개 런타임에 무심코 추가하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다. 정적 UI-KIT HTML은 PHP helper를 거치지 않으므로 CSS 파일을 수정하거나 재생성하면 해당 HTML의 CSS 링크 `?v=` 값도 함께 갱신한다.
+
+드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. UI-KIT 조회 화면도 이 파일을 호출해 같은 동작 원형을 확인한다. UI-KIT shell 전용 JS는 프로젝트 런타임에서 호출하지 않는다.
 
 관리자 디자인 책임은 admin 모듈에 둔다. 각 모듈의 관리자 view는 본문 마크업과 도메인 출력만 맡고, 관리자 shell, 사이드바, 상단바, 공통 관리자 asset, 관리자 콘텐츠 컨테이너는 admin skin이 맡는다. 현재 관리자 skin은 `admin_skin_key`로 선택하며, 등록된 key가 없거나 파일이 없으면 `basic`으로 fallback한다.
 
@@ -18,12 +23,12 @@
 
 CSS class는 범위를 드러내는 접두어를 사용한다.
 
-- 반복 가능한 공통 UI는 `ui-*`, `btn`, `card`, `table`처럼 `assets/common.css`에 둔다.
+- 반복 가능한 공통 UI는 `ui-*`, `btn`, `card`, `table`처럼 `assets/common/primitives.css` 또는 `assets/common/utilities.css`에 둔다.
 - 관리자 shell과 관리자 전용 배치는 `admin-*` 접두어를 사용하고 `modules/admin/assets/admin.css`에 둔다.
 - 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
 - 탭처럼 공통 CSS에 이미 정의된 반복 UI는 `tab-nav-*`, `tab-trigger-*` 같은 기존 시맨틱 클래스를 먼저 사용한다. 토스트는 기존 관리자 메시지 클래스인 `admin-flash-message-*`에 `data-admin-toast` 동작 속성만 더해 사용하고, 위치와 닫기 버튼 배치는 `data-admin-toast-*` 속성 선택자로 처리한다.
-- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/assets/ui-kit/index.html` 개발자 참고 화면에서 같은 `assets/common.css` 기준으로 UI-KIT 항목을 먼저 확인한다.
+- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/assets/ui-kit/index.html` 개발자 참고 화면에서 같은 공통 CSS 기준으로 UI-KIT 항목을 먼저 확인한다.
 
 ## 화면 내 이동 링크
 

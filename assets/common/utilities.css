@@ -1,0 +1,163 @@
+/*
+ * Local common utilities and form-theme patches layered after the compiled UI kit.
+ * Keep only broadly reusable helpers here; scoped workflows belong in admin-ui.css, public-ui.css, or module assets.
+ */
+.sr-only{clip-path:inset(50%);white-space:nowrap;border-width:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}
+.relative{position:relative}
+.hidden{display:none!important}
+
+html,
+body {
+  color: var(--color-body-color);
+  font-size: var(--text-body);
+}
+
+.hint-text,
+.muted-text {
+  color: var(--color-default-600);
+}
+
+/* UI form theme */
+.ui-form-theme .form-input,
+.ui-form-theme .form-select,
+.ui-form-theme .form-textarea {
+  width: 100%;
+  color: var(--color-body-color);
+  background-color: var(--color-card);
+  border: 1px solid var(--color-default-300);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.ui-form-theme .form-input,
+.ui-form-theme .form-select {
+  min-height: calc(var(--spacing) * 9.25);
+  padding-inline: calc(var(--spacing) * 3);
+  padding-block: 0;
+}
+
+.ui-form-theme .form-textarea {
+  min-height: calc(var(--spacing) * 28);
+  padding-inline: calc(var(--spacing) * 3);
+  padding-block: calc(var(--spacing) * 2);
+  resize: vertical;
+}
+
+.ui-form-theme .form-input:focus,
+.ui-form-theme .form-select:focus,
+.ui-form-theme .form-textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.ui-form-theme .form-input:disabled,
+.ui-form-theme .form-select:disabled,
+.ui-form-theme .form-textarea:disabled,
+.ui-form-theme .form-input[readonly],
+.ui-form-theme .form-select[readonly],
+.ui-form-theme .form-textarea[readonly] {
+  color: var(--color-default-600);
+  background-color: var(--color-default-100);
+  border-color: var(--color-default-300);
+}
+
+.ui-form-theme .form-input::placeholder,
+.ui-form-theme .form-select::placeholder,
+.ui-form-theme .form-textarea::placeholder {
+  color: var(--color-default-400);
+}
+
+.ui-form-theme input[type=file].form-input {
+  padding: 0;
+}
+
+.ui-form-theme input[type=file].form-input::file-selector-button {
+  height: 100%;
+  margin-inline-end: calc(var(--spacing) * 3);
+  padding-inline: calc(var(--spacing) * 3);
+  color: var(--color-default-700);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-default-100);
+  border: 0;
+  border-inline-end: 1px solid var(--color-default-300);
+}
+
+.ui-form-theme .form-radio,
+.ui-form-theme .form-checkbox {
+  background-color: var(--color-card);
+  border-color: var(--color-default-400);
+}
+
+[data-theme=dark] .ui-form-theme .form-input,
+[data-theme=dark] .ui-form-theme .form-select,
+[data-theme=dark] .ui-form-theme .form-textarea {
+  color: var(--color-default-900);
+  background-color: var(--color-card);
+  border-color: var(--color-default-300);
+}
+
+[data-theme=dark] .ui-form-theme .form-input:disabled,
+[data-theme=dark] .ui-form-theme .form-select:disabled,
+[data-theme=dark] .ui-form-theme .form-textarea:disabled,
+[data-theme=dark] .ui-form-theme .form-input[readonly],
+[data-theme=dark] .ui-form-theme .form-select[readonly],
+[data-theme=dark] .ui-form-theme .form-textarea[readonly] {
+  color: var(--color-default-500);
+  background-color: var(--color-default-100);
+  border-color: var(--color-default-300);
+}
+
+[data-theme=dark] .ui-form-theme input[type=file].form-input::file-selector-button {
+  color: var(--color-default-800);
+  background-color: var(--color-default-100);
+  border-color: var(--color-default-300);
+}
+
+@media (max-width: 767px) {
+  .ui-form-row,
+  .af-row,
+  .ui-form-row-double,
+  .af-row-double {
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: 1fr;
+  }
+
+  .ui-form-field,
+  .af-field {
+    grid-column: auto;
+  }
+
+  .ui-form-inline,
+  .af-inline {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+  }
+
+  .ui-form-inline .form-input,
+  .ui-form-inline .form-select,
+  .ui-form-inline select,
+  .af-inline .form-input,
+  .af-inline .form-select,
+  .af-inline select {
+    width: 100%;
+  }
+}
+
+.form-checkbox {
+  background-image: none;
+}
+
+.form-checkbox::after {
+  content: none;
+}
+
+.form-checkbox:checked {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: .75rem .75rem;
+}
