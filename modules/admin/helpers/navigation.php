@@ -63,6 +63,7 @@ function sr_admin_navigation_source_groups(PDO $pdo): array
                 'module_key' => (string) ($group['module_key'] ?? ''),
                 'label' => $moduleLabel,
                 'order' => (int) ($group['order'] ?? 1000),
+                'admin_icon' => isset($group['admin_icon']) && is_array($group['admin_icon']) ? $group['admin_icon'] : [],
                 'items' => [],
             ];
         } else {
@@ -130,6 +131,7 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
             'admin_category' => 'system',
             'admin_category_label' => '시스템',
             'admin_category_order' => 0,
+            'admin_icon' => ['type' => 'symbol', 'name' => 'settings'],
             'order' => 0,
             'items' => [
                 ['label' => '대시보드', 'path' => '/admin', 'order' => 10],
@@ -209,13 +211,15 @@ function sr_admin_module_menu_groups(PDO $pdo): array
             return [$left['order'], $left['label'], $left['path']] <=> [$right['order'], $right['label'], $right['path']];
         });
 
+        $categoryKey = sr_admin_module_menu_category_key($moduleKey);
         $groups[] = [
             'module_key' => $moduleKey,
             'label' => sr_admin_module_menu_group_label($moduleKey, $menu),
             'order' => sr_admin_module_menu_group_order($moduleKey, $items, $menu),
-            'admin_category' => sr_admin_module_menu_category_key($moduleKey),
+            'admin_category' => $categoryKey,
             'admin_category_label' => sr_admin_module_menu_category_label($moduleKey),
             'admin_category_order' => sr_admin_module_menu_category_order($moduleKey),
+            'admin_icon' => sr_admin_module_menu_icon($moduleKey, $categoryKey),
             'items' => $items,
         ];
     }
@@ -290,6 +294,113 @@ function sr_admin_module_menu_category_order(string $moduleKey): int
     $admin = sr_admin_module_admin_metadata($moduleKey);
 
     return isset($admin['category_order']) ? (int) $admin['category_order'] : sr_admin_default_menu_category_order(sr_admin_module_menu_category_key($moduleKey));
+}
+
+function sr_admin_module_menu_icon(string $moduleKey, string $category): array
+{
+    $admin = sr_admin_module_admin_metadata($moduleKey);
+    $icon = $admin['icon'] ?? null;
+
+    if (is_string($icon)) {
+        return sr_admin_menu_symbol_icon($icon) ?: sr_admin_default_menu_icon($category);
+    }
+
+    if (!is_array($icon)) {
+        return sr_admin_default_menu_icon($category);
+    }
+
+    $type = trim((string) ($icon['type'] ?? 'symbol'));
+    if ($type === 'asset') {
+        $assetIcon = sr_admin_module_menu_asset_icon($moduleKey, $icon);
+        return $assetIcon !== [] ? $assetIcon : sr_admin_default_menu_icon($category);
+    }
+
+    $name = trim((string) ($icon['name'] ?? $icon['symbol'] ?? ''));
+    return sr_admin_menu_symbol_icon($name) ?: sr_admin_default_menu_icon($category);
+}
+
+function sr_admin_menu_symbol_icon(string $name): array
+{
+    $name = trim($name);
+    $allowed = sr_admin_allowed_menu_symbol_icons();
+
+    return isset($allowed[$name]) ? ['type' => 'symbol', 'name' => $name] : [];
+}
+
+function sr_admin_default_menu_icon(string $category): array
+{
+    $icons = [
+        'system' => 'settings',
+        'member' => 'users',
+        'site' => 'content',
+        'system_asset' => 'content',
+        'content' => 'content',
+        'community' => 'message-circle',
+        'operation' => 'stats',
+        'other' => 'folder',
+    ];
+
+    return ['type' => 'symbol', 'name' => (string) ($icons[$category] ?? 'folder')];
+}
+
+function sr_admin_allowed_menu_symbol_icons(): array
+{
+    return [
+        'admin-mode' => true,
+        'bell' => true,
+        'coins' => true,
+        'content' => true,
+        'folder' => true,
+        'gift' => true,
+        'home' => true,
+        'image' => true,
+        'layers' => true,
+        'menu-list' => true,
+        'message-circle' => true,
+        'search' => true,
+        'settings' => true,
+        'shield' => true,
+        'stats' => true,
+        'user' => true,
+        'users' => true,
+        'wallet' => true,
+    ];
+}
+
+function sr_admin_module_menu_asset_icon(string $moduleKey, array $icon): array
+{
+    if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {
+        return [];
+    }
+
+    $path = str_replace('\\', '/', trim((string) ($icon['path'] ?? '')));
+    if (preg_match('/\Aassets\/[a-zA-Z0-9_\/.-]+\.(svg|png|webp)\z/i', $path) !== 1 || strpos($path, '..') !== false) {
+        return [];
+    }
+
+    $assetDir = realpath(SR_ROOT . '/modules/' . $moduleKey . '/assets');
+    $file = realpath(SR_ROOT . '/modules/' . $moduleKey . '/' . $path);
+    if ($assetDir === false || $file === false || !is_file($file)) {
+        return [];
+    }
+
+    $assetPrefix = rtrim($assetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (!str_starts_with($file, $assetPrefix)) {
+        return [];
+    }
+
+    $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    if (!in_array($extension, ['svg', 'png', 'webp'], true)) {
+        return [];
+    }
+
+    $url = sr_url('/modules/' . $moduleKey . '/' . $path);
+    return [
+        'type' => 'asset',
+        'path' => $path,
+        'url' => $url . '?v=' . rawurlencode((string) filemtime($file)),
+        'alt' => trim((string) ($icon['alt'] ?? '')),
+    ];
 }
 
 function sr_admin_menu_category_key(array $group): string

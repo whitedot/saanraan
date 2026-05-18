@@ -41,7 +41,9 @@
 #gnb .admin-nav-icon-sprite{width:0;height:0;position:absolute;overflow:hidden}
 :where(#gnb .admin-nav-list>:not(:last-child)){margin-block-start:calc(calc(var(--spacing) * 1.5) * 0);margin-block-end:calc(calc(var(--spacing) * 1.5) * calc(1 - 0))}
 #gnb .admin-nav-trigger-main{min-width:calc(var(--spacing) * 0);align-items:center;gap:calc(var(--spacing) * 2.5);display:flex}
-#gnb .admin-nav-icon{width:1rem;height:1rem;color:var(--color-default-500);fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:color .14s}
+#gnb .admin-nav-icon{width:1rem;height:1rem;color:var(--color-default-500);flex-shrink:0;transition:color .14s}
+#gnb .admin-nav-icon-symbol{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round}
+#gnb .admin-nav-icon-image{display:block;object-fit:contain;border-radius:var(--radius-sm)}
 #gnb .admin-nav-item>.admin-nav-trigger{border-radius:var(--radius-lg);width:100%;padding-inline:calc(var(--spacing) * 2.5);padding-block:calc(var(--spacing) * 2);text-align:left;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);color:var(--color-default-700);transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);justify-content:space-between;align-items:center;display:flex}
 @media (hover:hover){#gnb .admin-nav-item>.admin-nav-trigger:hover{color:var(--color-slate-900)}#gnb .admin-nav-item>.admin-nav-trigger:where([data-theme=dark],[data-theme=dark] *):hover{color:var(--color-default-900)}}
 #gnb .admin-nav-item>.admin-nav-trigger:hover .admin-nav-icon{color:var(--color-default-700)}

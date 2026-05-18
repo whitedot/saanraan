@@ -10,6 +10,7 @@ return [
         'category_label' => '시스템 자산',
         'category_order' => 30,
         'menu_order' => 40,
+        'icon' => ['type' => 'symbol', 'name' => 'search'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

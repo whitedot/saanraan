@@ -13,6 +13,7 @@ return [
         'category_label' => '운영',
         'category_order' => 40,
         'menu_order' => 20,
+        'icon' => ['type' => 'symbol', 'name' => 'shield'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

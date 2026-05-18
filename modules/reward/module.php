@@ -10,6 +10,7 @@ return [
         'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 40,
+        'icon' => ['type' => 'symbol', 'name' => 'gift'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

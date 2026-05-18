@@ -57,6 +57,7 @@ function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath): array
 
         $sections[] = [
             'title' => $title,
+            'icon' => sr_admin_shell_menu_icon($group['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
             'section_class' => $active ? ' is-active' : '',
@@ -139,6 +140,7 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
 
         $navGroups[] = [
             'title' => $moduleLabel !== '' ? $moduleLabel : '메뉴',
+            'icon' => sr_admin_shell_menu_icon($moduleGroup['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
             'item_class' => $active ? ' is-open is-active' : '',
@@ -171,12 +173,38 @@ function sr_admin_shell_icon_id(string $category): string
         'system' => 'settings',
         'member' => 'users',
         'site' => 'content',
+        'system_asset' => 'content',
         'content' => 'content',
+        'community' => 'message-circle',
         'operation' => 'stats',
         'other' => 'folder',
     ];
 
     return (string) ($icons[$category] ?? 'folder');
+}
+
+function sr_admin_shell_menu_icon(mixed $icon, string $category): array
+{
+    if (is_array($icon)) {
+        $type = trim((string) ($icon['type'] ?? 'symbol'));
+        if ($type === 'asset') {
+            $url = trim((string) ($icon['url'] ?? ''));
+            if ($url !== '' && sr_is_safe_relative_url($url)) {
+                return [
+                    'type' => 'asset',
+                    'url' => $url,
+                    'alt' => trim((string) ($icon['alt'] ?? '')),
+                ];
+            }
+        }
+
+        $name = trim((string) ($icon['name'] ?? ''));
+        if (preg_match('/\A[a-z0-9_-]+\z/', $name) === 1) {
+            return ['type' => 'symbol', 'name' => $name];
+        }
+    }
+
+    return ['type' => 'symbol', 'name' => sr_admin_shell_icon_id($category)];
 }
 
 function sr_admin_shell_class_attr(string $class): string

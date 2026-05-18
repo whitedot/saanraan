@@ -90,6 +90,60 @@ if (isset($pdo) && $pdo instanceof PDO) {
                 <symbol id="admin-menu-icon-folder" viewBox="0 0 24 24">
                     <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"></path>
                 </symbol>
+                <symbol id="admin-menu-icon-image" viewBox="0 0 24 24">
+                    <path d="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2"></path>
+                    <path d="M8 11a2 2 0 1 0 0 -4a2 2 0 0 0 0 4"></path>
+                    <path d="M21 15l-5 -5l-11 9"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-layers" viewBox="0 0 24 24">
+                    <path d="M12 3l9 5l-9 5l-9 -5l9 -5"></path>
+                    <path d="M3 13l9 5l9 -5"></path>
+                    <path d="M3 18l9 5l9 -5"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-search" viewBox="0 0 24 24">
+                    <path d="M10 18a8 8 0 1 0 0 -16a8 8 0 0 0 0 16"></path>
+                    <path d="M21 21l-5.35 -5.35"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-menu-list" viewBox="0 0 24 24">
+                    <path d="M9 6h11"></path>
+                    <path d="M9 12h11"></path>
+                    <path d="M9 18h11"></path>
+                    <path d="M4 6h.01"></path>
+                    <path d="M4 12h.01"></path>
+                    <path d="M4 18h.01"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-bell" viewBox="0 0 24 24">
+                    <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3l2 3h-16l2 -3v-3a7 7 0 0 1 4 -6"></path>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-shield" viewBox="0 0 24 24">
+                    <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"></path>
+                    <path d="M9 12l2 2l4 -4"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-coins" viewBox="0 0 24 24">
+                    <path d="M9 8c0 2.2 3.13 4 7 4s7 -1.8 7 -4s-3.13 -4 -7 -4s-7 1.8 -7 4"></path>
+                    <path d="M9 8v4c0 2.2 3.13 4 7 4s7 -1.8 7 -4v-4"></path>
+                    <path d="M3 12c0 2.2 3.13 4 7 4"></path>
+                    <path d="M3 12v4c0 2.2 3.13 4 7 4c2.1 0 3.98 -.53 5.26 -1.36"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-wallet" viewBox="0 0 24 24">
+                    <path d="M4 7h14a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2"></path>
+                    <path d="M16 12h4v4h-4a2 2 0 0 1 0 -4"></path>
+                    <path d="M6 7a3 3 0 0 1 3 -3h8"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-gift" viewBox="0 0 24 24">
+                    <path d="M3 8h18v4h-18z"></path>
+                    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path>
+                    <path d="M12 8v13"></path>
+                    <path d="M12 8h-3.5a2.5 2.5 0 1 1 2.5 -2.5v2.5"></path>
+                    <path d="M12 8h3.5a2.5 2.5 0 1 0 -2.5 -2.5v2.5"></path>
+                </symbol>
+                <symbol id="admin-menu-icon-message-circle" viewBox="0 0 24 24">
+                    <path d="M3 20l1.3 -3.9a8.5 8.5 0 1 1 3.6 3.6l-4.9 1.3"></path>
+                    <path d="M8 12h.01"></path>
+                    <path d="M12 12h.01"></path>
+                    <path d="M16 12h.01"></path>
+                </symbol>
                 <symbol id="admin-menu-icon-sidebar-toggle" viewBox="0 0 24 24">
                     <path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12"></path>
                     <path d="M9 4v16"></path>
@@ -143,9 +197,18 @@ if (isset($pdo) && $pdo instanceof PDO) {
                                 <li class="admin-nav-item<?php echo sr_e((string) $navItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $navItem['menu_code']); ?>">
                                     <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
                                         <span class="admin-nav-trigger-main">
-                                            <svg class="admin-nav-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                <use href="#admin-menu-icon-<?php echo sr_e((string) $navItem['icon_id']); ?>"></use>
-                                            </svg>
+                                            <?php
+                                            $navIcon = isset($navItem['icon']) && is_array($navItem['icon'])
+                                                ? $navItem['icon']
+                                                : ['type' => 'symbol', 'name' => (string) ($navItem['icon_id'] ?? 'folder')];
+                                            ?>
+                                            <?php if (($navIcon['type'] ?? '') === 'asset') { ?>
+                                                <img class="admin-nav-icon admin-nav-icon-image" src="<?php echo sr_e((string) ($navIcon['url'] ?? '')); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async">
+                                            <?php } else { ?>
+                                                <svg class="admin-nav-icon admin-nav-icon-symbol" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                                    <use href="#admin-menu-icon-<?php echo sr_e((string) ($navIcon['name'] ?? $navItem['icon_id'] ?? 'folder')); ?>"></use>
+                                                </svg>
+                                            <?php } ?>
                                             <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
                                         </span>
                                         <span class="admin-nav-caret" aria-hidden="true">

@@ -10,6 +10,7 @@ return [
         'category_label' => '운영',
         'category_order' => 40,
         'menu_order' => 10,
+        'icon' => ['type' => 'symbol', 'name' => 'bell'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

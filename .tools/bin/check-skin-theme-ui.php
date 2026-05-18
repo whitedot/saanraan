@@ -364,7 +364,7 @@ sr_skin_theme_check_not_contains('modules/admin/helpers/shell.php', [
     'ob_get_clean',
 ], 'Admin shell post-render DOM normalization');
 
-sr_skin_theme_check_contains('assets/common.css', [
+sr_skin_theme_check_contains('assets/common/utilities.css', [
     '.form-checkbox::after',
     '.form-checkbox:checked',
     'background-image: url("data:image/svg+xml',
