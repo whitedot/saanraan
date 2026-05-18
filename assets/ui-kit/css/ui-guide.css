@@ -1,35 +1,20 @@
 /* UI 가이드 전용 스타일시트 */
 
 :root {
-    --ui-side-nav-width: 260px;
-    --ui-side-nav-bg: #f8f9fa;
-    --ui-side-nav-active-bg: #ffffff;
-    --ui-side-nav-active-color: #4f46e5;
     --ui-border-color: #e5e7eb;
     --ui-body-bg: #ffffff;
     --ui-body-color: #1a1a1a;
     --ui-content-bg: #f9fafb;
     --ui-top-nav-bg: #ffffff;
-    --ui-nav-title-color: #6b7280;
-    --ui-nav-link-color: #4b5563;
-    --ui-nav-link-hover-bg: #f3f4f6;
-    --ui-nav-link-hover-color: #111827;
     --ui-top-nav-height: 64px;
 }
 
 [data-theme='dark'] {
-    --ui-side-nav-bg: #1b1e27;
-    --ui-side-nav-active-bg: #242938;
-    --ui-side-nav-active-color: #8ea1ff;
     --ui-border-color: #2f3645;
     --ui-body-bg: #17181e;
     --ui-body-color: #d5d9e4;
     --ui-content-bg: #111827;
     --ui-top-nav-bg: #1b1e27;
-    --ui-nav-title-color: #8b97a8;
-    --ui-nav-link-color: #c4ccda;
-    --ui-nav-link-hover-bg: #232734;
-    --ui-nav-link-hover-color: #f3f6fc;
 }
 
 body {
@@ -42,65 +27,8 @@ body {
     min-height: 100vh;
 }
 
-/* 사이드바 스타일 */
-.ui-sidebar {
-    width: var(--ui-side-nav-width);
-    background-color: var(--ui-side-nav-bg);
-    border-right: 1px solid var(--ui-border-color);
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow-y: auto;
-    z-index: 100;
-}
-
-.ui-sidebar-logo {
-    height: var(--ui-top-nav-height);
-    display: flex;
-    align-items: center;
-    padding: 0 1.5rem;
-    border-bottom: 1px solid var(--ui-border-color);
-}
-
-.ui-nav-section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--ui-nav-title-color);
-    padding: 1.5rem 1.5rem 0.5rem;
-}
-
-.ui-nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: var(--ui-nav-link-color);
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.ui-nav-link:hover {
-    background-color: var(--ui-nav-link-hover-bg);
-    color: var(--ui-nav-link-hover-color);
-}
-
-.ui-nav-link.active {
-    background-color: var(--ui-side-nav-active-bg);
-    color: var(--ui-side-nav-active-color);
-    border-left-color: var(--ui-side-nav-active-color);
-}
-
-.ui-nav-icon {
-    font-size: 1.25rem;
-    margin-right: 0.75rem;
-}
-
 /* 메인 콘텐츠 영역 */
 .ui-main-content {
-    margin-left: var(--ui-side-nav-width);
     flex: 1;
     min-height: 100vh;
     display: flex;
@@ -136,22 +64,6 @@ body {
 
 .ui-theme-toggle {
     min-width: 110px;
-}
-
-.ui-sidebar-toggle {
-    display: none;
-    margin-right: 0.75rem;
-    color: var(--ui-body-color);
-}
-
-.ui-sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    z-index: 95;
 }
 
 /* Tabs active visibility */
@@ -427,40 +339,12 @@ body {
 }
 
 @media (max-width: 1024px) {
-    .ui-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.25s ease;
-    }
-
-    .ui-sidebar.is-open {
-        transform: translateX(0);
-    }
-
-    .ui-sidebar-backdrop.is-open {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .ui-main-content {
-        margin-left: 0;
-    }
-
     .ui-top-navbar {
         padding: 0 1rem;
     }
 
     .ui-content-body {
         padding: 1rem;
-    }
-
-    .ui-sidebar-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    body.ui-sidebar-open {
-        overflow: hidden;
     }
 }
 
