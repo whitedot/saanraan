@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Form Elements Preview</title>
+    <script>
+        (function () {
+            var storageKey = 'g5aif-ui-theme';
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem(storageKey);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var isDark =
+                savedTheme === 'dark' ||
+                (!savedTheme &&
+                    window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        })();
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>
+    <link rel="stylesheet" href="../../common/tokens.css?v=1779112889">
+    <link rel="stylesheet" href="../../common/primitives.css?v=1779112889">
+    <link rel="stylesheet" href="../../common/utilities.css?v=1779112889">
+    <link rel="stylesheet" href="../../admin-ui.css?v=1779110524">
+    <link rel="stylesheet" href="../../../modules/admin/assets/admin.css?v=1779110524">
+</head>
+<body>
+    <main class="admin-content">
+        <div id="container">
+            <form action="#" method="get" class="admin-form ui-form-theme">
+                <section class="admin-card card">
+                    <h2>관리자 폼 기준</h2>
+
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label">사이트 이름</span></div>
+                        <div class="admin-form-field">
+                            <label>
+                                <span class="sr-only">사이트 이름</span>
+                                <input type="text" name="site_name" value="saanraan">
+                            </label>
+                            <span class="admin-form-help">관리자 화면에서 class 없는 기본 input이 받는 스타일입니다.</span>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label">운영 상태</span></div>
+                        <div class="admin-form-field">
+                            <label>
+                                <span class="sr-only">운영 상태</span>
+                                <select name="site_status">
+                                    <option selected>운영</option>
+                                    <option>점검</option>
+                                    <option>비공개</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label">지원 locale 목록</span></div>
+                        <div class="admin-form-field">
+                            <label>
+                                <span class="sr-only">지원 locale 목록</span>
+                                <input type="text" name="locales" value="ko,en,ja">
+                            </label>
+                            <span class="admin-form-help">쉼표 또는 공백으로 구분합니다.</span>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label">관리 메모</span></div>
+                        <div class="admin-form-field">
+                            <label>
+                                <span class="sr-only">관리 메모</span>
+                                <textarea name="memo" rows="4">현재 관리자 화면과 같은 폼 컨텍스트에서 표시됩니다.</textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label">공통 레이아웃</span></div>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label">
+                                <input type="checkbox" name="layout_enabled" checked>
+                                <span>공통 레이아웃을 사용합니다</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+                        <button type="button" class="btn btn-primary">저장</button>
+                        <button type="button" class="btn btn-light">취소</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

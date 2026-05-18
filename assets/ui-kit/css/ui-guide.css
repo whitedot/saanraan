@@ -134,6 +134,16 @@ body {
     background-color: var(--ui-content-bg);
 }
 
+.ui-preview-frame {
+    border: 0;
+    display: block;
+    width: 100%;
+}
+
+.ui-preview-frame-admin-form {
+    min-height: 50rem;
+}
+
 /* UI-KIT sample layout helpers */
 .ui-grid { display: grid; }
 .ui-grid-cols-1 { grid-template-columns: minmax(0, 1fr); }

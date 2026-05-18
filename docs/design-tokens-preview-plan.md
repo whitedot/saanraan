@@ -1,6 +1,6 @@
 # UI-KIT 디자인 토큰 조회 계획
 
-`assets/ui-kit`은 프로젝트 디자인 토큰과 공통 UI 원형을 개발자가 확인하는 정적 조회 도구다. UI-KIT은 프로젝트 화면에 영향을 주지 않고, 실제 프로젝트 CSS와 공용 상호작용 JS를 읽어서 현재 상태를 보여주는 역할만 한다.
+`assets/ui-kit`은 프로젝트 디자인 토큰과 공통 UI 원형을 개발자가 확인하는 조회 도구다. UI-KIT은 프로젝트 화면에 영향을 주지 않고, 실제 프로젝트 CSS와 공용 상호작용 JS를 읽어서 현재 상태를 보여주는 역할만 한다.
 
 이 UI-KIT은 `g5codex.git` 프로젝트를 진행하면서 만들었던 UI-KIT 산출물을 현재 `saanraan` 프로젝트에 적용한 것이다. Git 히스토리를 가져온 것은 아니므로, 남아 있는 파일과 마크업은 현재 프로젝트 기준으로 다시 판정한다. 일부 파일에는 그누보드5와 이전 UI 프레임워크 계열 관성이 남아 있을 수 있다. 정리 기준은 원형을 무조건 삭제하거나 보존하는 것이 아니라, 현재 프로젝트의 디자인 토큰 조회 목적에 맞게 흡수할 것은 공용 자산으로 승격하고 맞지 않는 잔재는 제거하는 것이다.
 
@@ -21,6 +21,20 @@
 5. UI-KIT 전용 스타일은 `.btn`, `.card`, `.table`, `.form-*`, `.dropdown-*`, `.modal-*`, `.tab-*` 같은 프로젝트 원형 클래스를 재정의하지 않는다.
 6. `g5codex.git` 산출물 적용 과정에서 남은 그누보드5와 이전 UI 프레임워크 계열 잔재는 현재 프로젝트 목적 기준으로 판정한다. 실제로 필요한 원형은 `saanraan`의 공용 CSS/JS 규칙으로 재정의하고, 단순 호환용 잔재는 제거한다.
 7. UI-KIT은 예쁜 데모 페이지가 아니라 현재 디자인 토큰과 공용 UI 동작을 검증하는 읽기 전용 개발자 도구다.
+8. 관리자/공개 화면처럼 런타임 컨텍스트가 중요한 샘플은 UI-KIT shell에 CSS를 직접 섞지 않고 격리된 preview 문서나 iframe에서 실제 호출 순서와 DOM 구조를 재현한다.
+
+## 구조 한계와 보정 방향
+
+정적 `assets/ui-kit/*.html`만으로는 관리자 모드나 공개 화면의 실제 스타일을 완전히 보여주기 어렵다. 관리자 화면은 `modules/admin/helpers/shell.php`가 만든 CSS 호출 순서, `.admin-content`, `#container`, `.admin-form.ui-form-theme`, 모듈 소유 CSS인 `modules/admin/assets/admin.css`가 함께 있을 때 최종 형태가 결정된다. 이를 UI-KIT shell HTML에 직접 섞으면 사이드바와 조회 레이아웃이 관리자 CSS의 넓은 선택자에 영향을 받을 수 있고, `admin.css`를 공용 레이어로 승격하면 모듈 경계 정책을 흐릴 수 있다.
+
+따라서 UI-KIT은 두 층으로 나눈다.
+
+- `assets/ui-kit/*.html`: 카테고리별 조회 shell과 원형 목록을 유지한다.
+- `assets/ui-kit/previews/*.html`: 특정 런타임 컨텍스트가 필요한 샘플을 격리된 문서로 둔다.
+
+예를 들어 관리자 폼 기준은 `assets/ui-kit/previews/admin-form-elements.html`에서 실제 관리자 CSS 호출 순서와 `.admin-content > #container > form.admin-form.ui-form-theme` 구조를 재현하고, `form-elements.html`은 이를 iframe으로 보여준다. 이렇게 하면 UI-KIT shell은 프로젝트에 영향을 주지 않고, 관리자 폼은 현재 관리자 모드 기준으로 확인할 수 있다.
+
+`modules/admin/assets/admin.css`는 모듈 소유 CSS로 유지한다. 공용 승격 대상은 여러 런타임에서 실제로 공유하는 토큰, primitive, utility, 공용 JS 동작에 한정한다.
 
 ## CSS 호출 계획
 
@@ -43,6 +57,8 @@
 `assets/common.css`는 UI-KIT 조회용 manifest다. 실제 공통 레이어의 편집 기준은 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`이며, 관리자 런타임은 운영 안정성과 파일별 cache busting을 위해 split 파일을 직접 호출한다.
 
 `assets/ui-kit/css/preview-utilities.css`는 제거했다. 이 파일은 UI-KIT HTML을 유지하기 위한 보조 유틸리티 번들이어서, 개발자가 실제 프로젝트 CSS와 미리보기 보조 CSS를 구분하기 어렵게 만들었다. UI-KIT은 이제 `../common.css`와 `css/ui-guide.css` 기준으로 조회 화면을 구성한다.
+
+격리 preview 문서는 shell용 manifest 대신 해당 런타임과 같은 호출 순서를 쓴다. 예를 들어 관리자 폼 preview는 `tokens.css`, `primitives.css`, `utilities.css`, `admin-ui.css`, `modules/admin/assets/admin.css` 순서로 호출한다. 이 호출은 UI-KIT 내부 preview에만 존재하며 프로젝트 런타임 호출 방식은 바꾸지 않는다.
 
 ## JS 호출 계획
 
@@ -208,8 +224,10 @@ assets/ui-kit/js/token-inspector.js
 10. `preview-utilities.css` 호출을 제거하고 파일을 삭제한다.
 11. 토큰 값 표시용 `token-inspector.js`를 추가해 CSS custom property의 현재 computed value를 표시한다.
 12. split 공통 CSS의 토큰 하나를 바꾸면 UI-KIT에서 값과 샘플이 바로 바뀌는지 확인한다.
+13. 관리자/공개 화면처럼 컨텍스트가 필요한 샘플은 `assets/ui-kit/previews/*.html` 격리 문서로 분리한다.
+14. `form-elements.html`의 관리자 기준 샘플은 `previews/admin-form-elements.html`을 iframe으로 표시하고, 부모 shell에는 `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 
-1-10번은 2026-05-18에 적용했다. 특히 8-10번의 잔여 미리보기 유틸리티 class 정리는 `ui-*` 조회용 class 치환까지 완료했다. 11-12번은 다음 단계로 진행한다.
+1-10번은 2026-05-18에 적용했다. 특히 8-10번의 잔여 미리보기 유틸리티 class 정리는 `ui-*` 조회용 class 치환까지 완료했다. 13-14번은 관리자 폼 기준 preview부터 적용한다. 11-12번은 다음 단계로 진행한다.
 
 ## 검증 기준
 
@@ -220,4 +238,5 @@ assets/ui-kit/js/token-inspector.js
 - 드롭다운, 모달, 탭은 UI-KIT과 프로젝트 화면에서 같은 공용 JS로 동작한다.
 - 프로젝트 런타임은 UI-KIT shell CSS/JS를 호출하지 않는다.
 - UI-KIT HTML이 `preview-utilities.css` 없이 열린다.
+- 관리자 폼 기준 preview는 부모 UI-KIT shell에 `admin.css`를 직접 섞지 않고 iframe 안에서만 실제 관리자 CSS 호출 순서로 열린다.
 - `git diff --check`가 통과한다.
