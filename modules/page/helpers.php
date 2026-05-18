@@ -155,9 +155,29 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
     return $stmt->fetchAll();
 }
 
-function sr_page_input_values(): array
+function sr_page_public_banner_setting_labels(): array
 {
     return [
+        'banner_before_content_id' => '본문 상단 배너',
+        'banner_after_content_id' => '본문 하단 배너',
+    ];
+}
+
+function sr_page_public_popup_layer_setting_labels(): array
+{
+    return [
+        'popup_layer_id' => '페이지 팝업레이어',
+    ];
+}
+
+function sr_page_public_display_setting_labels(): array
+{
+    return sr_page_public_banner_setting_labels() + sr_page_public_popup_layer_setting_labels();
+}
+
+function sr_page_input_values(): array
+{
+    $values = [
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -167,9 +187,16 @@ function sr_page_input_values(): array
         'seo_title' => sr_page_clean_single_line(sr_post_string('seo_title', 160), 160),
         'seo_description' => sr_page_clean_single_line(sr_post_string('seo_description', 255), 255),
     ];
+
+    foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
+        $rawValue = sr_post_string($settingKey, 20);
+        $values[$settingKey] = preg_match('/\A[0-9]{1,9}\z/', $rawValue) === 1 ? (int) $rawValue : -1;
+    }
+
+    return $values;
 }
 
-function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0): array
+function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array $publicBannerIds = [], array $publicPopupLayerIds = []): array
 {
     $errors = [];
     if ((string) ($values['title'] ?? '') === '') {
@@ -191,6 +218,22 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0): array
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
 
+    foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
+        $displayId = (int) ($values[$settingKey] ?? 0);
+        if ($displayId < 0) {
+            $errors[] = $settingLabel . ' 값이 올바르지 않습니다.';
+            continue;
+        }
+
+        if (isset(sr_page_public_banner_setting_labels()[$settingKey]) && $displayId > 0 && !isset($publicBannerIds[$displayId])) {
+            $errors[] = $settingLabel . '는 공용 배너 중에서 선택하세요.';
+        }
+
+        if (isset(sr_page_public_popup_layer_setting_labels()[$settingKey]) && $displayId > 0 && !isset($publicPopupLayerIds[$displayId])) {
+            $errors[] = $settingLabel . '는 공용 팝업레이어 중에서 선택하세요.';
+        }
+    }
+
     return $errors;
 }
 
@@ -210,7 +253,11 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
             $stmt = $pdo->prepare(
                 'UPDATE sr_pages
                  SET slug = :slug, title = :title, summary = :summary, body_text = :body_text,
-                     body_format = :body_format, status = :status, seo_title = :seo_title,
+                     body_format = :body_format, status = :status,
+                     banner_before_content_id = :banner_before_content_id,
+                     banner_after_content_id = :banner_after_content_id,
+                     popup_layer_id = :popup_layer_id,
+                     seo_title = :seo_title,
                      seo_description = :seo_description, updated_by = :updated_by,
                      published_at = :published_at, updated_at = :updated_at
                  WHERE id = :id'
@@ -222,6 +269,9 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'body_text' => (string) $values['body_text'],
                 'body_format' => 'plain',
                 'status' => (string) $values['status'],
+                'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
+                'banner_after_content_id' => (int) ($values['banner_after_content_id'] ?? 0),
+                'popup_layer_id' => (int) ($values['popup_layer_id'] ?? 0),
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
                 'updated_by' => $accountId,
@@ -232,9 +282,9 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_pages
-                    (slug, title, summary, body_text, body_format, status, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (slug, title, summary, body_text, body_format, status, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:slug, :title, :summary, :body_text, :body_format, :status, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:slug, :title, :summary, :body_text, :body_format, :status, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'slug' => (string) $values['slug'],
@@ -243,6 +293,9 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'body_text' => (string) $values['body_text'],
                 'body_format' => 'plain',
                 'status' => (string) $values['status'],
+                'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
+                'banner_after_content_id' => (int) ($values['banner_after_content_id'] ?? 0),
+                'popup_layer_id' => (int) ($values['popup_layer_id'] ?? 0),
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
                 'created_by' => $accountId,
@@ -271,9 +324,9 @@ function sr_page_record_revision(PDO $pdo, int $pageId, array $values, int $acco
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_page_revisions
-            (page_id, title, summary, body_text, body_format, status, created_by, created_at)
+            (page_id, title, summary, body_text, body_format, status, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:page_id, :title, :summary, :body_text, :body_format, :status, :created_by, :created_at)'
+            (:page_id, :title, :summary, :body_text, :body_format, :status, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'page_id' => $pageId,
@@ -282,6 +335,9 @@ function sr_page_record_revision(PDO $pdo, int $pageId, array $values, int $acco
         'body_text' => (string) $values['body_text'],
         'body_format' => 'plain',
         'status' => (string) $values['status'],
+        'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
+        'banner_after_content_id' => (int) ($values['banner_after_content_id'] ?? 0),
+        'popup_layer_id' => (int) ($values['popup_layer_id'] ?? 0),
         'created_by' => $accountId,
         'created_at' => $now,
     ]);

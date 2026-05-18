@@ -17,6 +17,9 @@ if ($values === []) {
         'summary' => '',
         'body_text' => '',
         'status' => 'draft',
+        'banner_before_content_id' => 0,
+        'banner_after_content_id' => 0,
+        'popup_layer_id' => 0,
         'seo_title' => '',
         'seo_description' => '',
     ];
@@ -87,6 +90,58 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                     </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">본문 상단 배너</span></div>
+                <div class="admin-form-field">
+                    <label>
+                        <span class="sr-only">본문 상단 배너</span>
+                        <select name="banner_before_content_id">
+                            <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicBanners as $banner) { ?>
+                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $banner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">본문 하단 배너</span></div>
+                <div class="admin-form-field">
+                    <label>
+                        <span class="sr-only">본문 하단 배너</span>
+                        <select name="banner_after_content_id">
+                            <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicBanners as $banner) { ?>
+                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $banner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                    <br>
+                    <small>공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">팝업레이어</span></div>
+                <div class="admin-form-field">
+                    <label>
+                        <span class="sr-only">팝업레이어</span>
+                        <select name="popup_layer_id">
+                            <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicPopupLayers as $popupLayer) { ?>
+                                <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $popupLayer['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                    <br>
+                    <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">

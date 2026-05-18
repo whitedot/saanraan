@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/page/helpers.php';
+if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+    require_once SR_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+}
 
 $slug = sr_page_slug_from_request_path();
 $page = $slug !== '' ? sr_page_published_by_slug($pdo, $slug) : null;

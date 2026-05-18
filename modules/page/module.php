@@ -2,7 +2,7 @@
 
 return [
     'name' => '페이지',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => '단일 페이지 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -24,6 +24,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'extension-points.php',
             'menu-links.php',
             'sitemap.php',
         ],

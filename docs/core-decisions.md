@@ -511,6 +511,7 @@ SEO 관리자 설정
 
 ```text
 popup_layer 모듈 -> 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽어 노출 대상 목록 구성
+page 모듈 -> page.view의 before_content/after_content slot에서 sr_render_output_slot() 호출
 member 모듈 -> 로그인/회원가입 화면에서 sr_render_output_slot()를 명시 호출
 ```
 
@@ -525,6 +526,8 @@ module -> point -> slot -> subject
 ```
 
 팝업레이어도 배너와 같이 선언된 `content` slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. 화면 소유 모듈은 실제 출력 위치에서 `slot_key`를 포함해 `sr_render_output_slot()`을 명시 호출하고, 팝업레이어 모듈은 저장된 대상 규칙에 맞는 HTML을 해당 content slot으로 반환합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
+
+페이지 모듈은 `page.view` point를 제공하고, 페이지 관리 화면에서 공용 배너/팝업레이어를 직접 선택하는 좁은 편의 경로도 둡니다. 직접 선택은 공용 항목만 허용하며, 세부 노출 규칙이 필요하면 배너/팝업레이어 모듈의 target 규칙을 사용합니다.
 
 모듈과 플러그인은 같은 설치/활성화 테이블을 사용할 수 있지만, 개념은 구분합니다.
 

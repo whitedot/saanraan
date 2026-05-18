@@ -932,7 +932,7 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `page` | `paths.php`, `admin-menu.php`, `menu-links.php`, `sitemap.php` | 없음 |
+| `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `sitemap.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
@@ -1090,6 +1090,8 @@ return [
 - 팝업레이어는 배너와 같이 `kind=content`인 slot을 대상으로 한다.
 - 화면 소유 모듈은 팝업 전용 호출을 따로 두지 않고 필요한 content slot에서 `sr_render_output_slot()`을 호출한다.
 - 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
+
+번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다.
 
 ## 18. 사이트 메뉴 후보
 

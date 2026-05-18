@@ -5,6 +5,12 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/page/helpers.php';
+if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+    require_once SR_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
@@ -12,7 +18,21 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('page_id', 20);
 $values = sr_page_input_values();
-$errors = sr_page_validate_input($pdo, $values, $pageId);
+$publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
+    ? sr_banner_public_banners($pdo)
+    : [];
+$publicBannerIds = [];
+foreach ($publicBanners as $publicBanner) {
+    $publicBannerIds[(int) $publicBanner['id']] = true;
+}
+$publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
+    ? sr_popup_layer_public_layers($pdo)
+    : [];
+$publicPopupLayerIds = [];
+foreach ($publicPopupLayers as $publicPopupLayer) {
+    $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
+}
+$errors = sr_page_validate_input($pdo, $values, $pageId, $publicBannerIds, $publicPopupLayerIds);
 if ($pageId > 0 && !is_array(sr_page_by_id($pdo, $pageId))) {
     $errors[] = '수정할 페이지를 찾을 수 없습니다.';
 }
