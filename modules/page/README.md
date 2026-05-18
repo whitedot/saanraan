@@ -4,14 +4,29 @@
 
 ## 범위
 
+GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
+
 - 관리자 페이지 목록, 생성, 수정, 숨김 처리
 - `draft`, `published`, `hidden` 상태
+- `/pages/{slug}` 기반 공개 URL
+- 제목, 요약, plain text 본문, SEO 제목/설명
 - plain text 본문 저장과 escape 출력
 - `menu-links.php` 기반 사이트 메뉴 후보
 - `sitemap.php` 기반 sitemap 후보
 - `extension-points.php` 기반 배너/팝업레이어 출력 위치
 - 페이지별 공용 배너와 공용 팝업레이어 직접 선택
 - 페이지 변경 감사 로그
+
+## 검증 기준
+
+- slug 중복과 예약어 차단
+- `draft`, `hidden` 공개 접근 차단
+- `published` 공개 접근과 SEO title/description 출력
+- 사이트 메뉴 후보와 sitemap 후보 포함
+- 관리자 POST action의 로그인, 권한, CSRF 검증
+- 페이지 생성, 수정, 숨김 감사 로그
+- 공용 배너/팝업레이어 직접 선택 출력
+- `page.view` 출력 위치 기반 배너/팝업레이어 규칙 출력
 
 ## 보류
 

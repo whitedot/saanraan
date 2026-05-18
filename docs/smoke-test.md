@@ -61,6 +61,8 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /admin/updates 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /pages/example 응답이 500 없이 열리지 않고, 미설치/비활성/없는 slug 상태에서는 404 등 허용된 응답으로 막히는지 확인
 /admin/pages 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
+페이지 모듈 설치 환경에서는 published 페이지가 200으로 열리고 draft/hidden 페이지는 공개 접근이 차단되는지 확인
+페이지 모듈 설치 환경에서는 공용 배너/팝업레이어 직접 선택과 `page.view` 출력 위치 규칙이 공개 페이지에 반영되는지 확인
 /community 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
 /community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
 /community/message/write 비로그인 접근이 로그인 흐름으로 막히는지 확인
