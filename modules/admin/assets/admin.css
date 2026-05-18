@@ -147,6 +147,19 @@
 .admin-form-layout>section.card>.af-grid + p{margin-top:calc(var(--spacing) * -2)}
 .admin-form-layout>section.card>.af-row{margin-inline:calc(var(--spacing) * 5);margin-block:calc(var(--spacing) * 3)}
 .admin-form-layout>section.card>.af-check{margin-inline:calc(var(--spacing) * 5);margin-block:calc(var(--spacing) * 2)}
+.admin-form-layout>section.card>.af-row{
+    align-items:start;
+    border-bottom:1px dashed var(--color-default-200);
+    column-gap:calc(var(--spacing) * 8);
+    display:grid;
+    grid-template-columns:minmax(8rem,14rem) minmax(0,44rem);
+    padding-bottom:calc(var(--spacing) * 4);
+}
+.admin-form-layout>section.card>.af-row:last-of-type{border-bottom-width:0}
+.admin-form-layout .af-label{color:var(--color-default-700);font-weight:var(--font-weight-semibold);padding-top:.55rem}
+.admin-form-layout .af-field{grid-column:auto;min-width:0}
+.admin-form-layout .af-field label{margin:0}
+.admin-form-layout .af-field .sr-install-help{margin-top:calc(var(--spacing) * 2);display:block}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input),.admin-content .ui-form-theme select:not(.form-select),.admin-content .ui-form-theme textarea:not(.form-textarea){width:100%;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);box-shadow:none}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input),.admin-content .ui-form-theme select:not(.form-select){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
 .admin-content .ui-form-theme textarea:not(.form-textarea){min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}
@@ -361,6 +374,15 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         justify-content:center;
         min-width:0;
         width:100%;
+    }
+
+    .admin-form-layout>section.card>.af-row{
+        gap:calc(var(--spacing) * 2);
+        grid-template-columns:1fr;
+    }
+
+    .admin-form-layout .af-label{
+        padding-top:0;
     }
 }
 
