@@ -70,9 +70,9 @@ UI-KIT의 자산 구분과 항목은 원본 구조를 유지한다.
 ## 검증 계획
 
 1. `/assets/ui-kit/index.html`을 브라우저에서 연다.
-2. 필요한 개별 `.html` 페이지를 직접 열어 각 컴포넌트 예시를 확인한다.
+2. 각 사이드바 링크가 `.html` 페이지로 이동하는지 확인한다.
 3. `../common.css`를 통해 `../common/tokens.css`, `../common/ui-kit.css`, `../common/utilities.css`가 순서대로 로드되고, `../admin-ui.css`, `../public-ui.css`, `css/ui-kit.css`, `css/ui-guide.css`가 함께 로드되는지 확인한다.
 4. 각 페이지 상단에서 Base/Admin/Public/Skin 맥락 안내가 보이는지 확인한다.
 5. Buttons, Forms, Tables에서 실제 맥락별 예시가 보이는지 확인한다.
-6. 드롭다운, 모달, 탭, 테마 토글 JS가 동작하는지 확인한다.
+6. 드롭다운, 모달, 탭, 테마 토글, 모바일 사이드바 JS가 동작하는지 확인한다.
 7. `docs/` 직접 접근 차단은 그대로 유지한다.
