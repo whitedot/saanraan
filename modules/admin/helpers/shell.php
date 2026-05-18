@@ -169,18 +169,7 @@ function sr_admin_shell_path_matches(string $currentPath, string $itemPath): boo
 
 function sr_admin_shell_icon_id(string $category): string
 {
-    $icons = [
-        'system' => 'settings',
-        'member' => 'users',
-        'site' => 'content',
-        'system_asset' => 'content',
-        'content' => 'content',
-        'community' => 'message-circle',
-        'operation' => 'stats',
-        'other' => 'folder',
-    ];
-
-    return (string) ($icons[$category] ?? 'folder');
+    return sr_admin_default_menu_icon_id($category);
 }
 
 function sr_admin_shell_menu_icon(mixed $icon, string $category): array
@@ -198,9 +187,9 @@ function sr_admin_shell_menu_icon(mixed $icon, string $category): array
             }
         }
 
-        $name = trim((string) ($icon['name'] ?? ''));
-        if (preg_match('/\A[a-z0-9_-]+\z/', $name) === 1) {
-            return ['type' => 'symbol', 'name' => $name];
+        $symbolIcon = sr_admin_menu_symbol_icon((string) ($icon['name'] ?? ''));
+        if ($symbolIcon !== []) {
+            return $symbolIcon;
         }
     }
 

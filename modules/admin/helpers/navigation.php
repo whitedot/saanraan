@@ -319,54 +319,6 @@ function sr_admin_module_menu_icon(string $moduleKey, string $category): array
     return sr_admin_menu_symbol_icon($name) ?: sr_admin_default_menu_icon($category);
 }
 
-function sr_admin_menu_symbol_icon(string $name): array
-{
-    $name = trim($name);
-    $allowed = sr_admin_allowed_menu_symbol_icons();
-
-    return isset($allowed[$name]) ? ['type' => 'symbol', 'name' => $name] : [];
-}
-
-function sr_admin_default_menu_icon(string $category): array
-{
-    $icons = [
-        'system' => 'settings',
-        'member' => 'users',
-        'site' => 'content',
-        'system_asset' => 'content',
-        'content' => 'content',
-        'community' => 'message-circle',
-        'operation' => 'stats',
-        'other' => 'folder',
-    ];
-
-    return ['type' => 'symbol', 'name' => (string) ($icons[$category] ?? 'folder')];
-}
-
-function sr_admin_allowed_menu_symbol_icons(): array
-{
-    return [
-        'admin-mode' => true,
-        'bell' => true,
-        'coins' => true,
-        'content' => true,
-        'folder' => true,
-        'gift' => true,
-        'home' => true,
-        'image' => true,
-        'layers' => true,
-        'menu-list' => true,
-        'message-circle' => true,
-        'search' => true,
-        'settings' => true,
-        'shield' => true,
-        'stats' => true,
-        'user' => true,
-        'users' => true,
-        'wallet' => true,
-    ];
-}
-
 function sr_admin_module_menu_asset_icon(string $moduleKey, array $icon): array
 {
     if (preg_match('/\A[a-z0-9_]+\z/', $moduleKey) !== 1) {

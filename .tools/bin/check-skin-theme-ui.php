@@ -364,6 +364,27 @@ sr_skin_theme_check_not_contains('modules/admin/helpers/shell.php', [
     'ob_get_clean',
 ], 'Admin shell post-render DOM normalization');
 
+sr_skin_theme_check_contains('modules/admin/helpers.php', [
+    "require_once SR_ROOT . '/modules/admin/helpers/icons.php';",
+], 'Admin icon contract loading');
+
+sr_skin_theme_check_contains('modules/admin/helpers/icons.php', [
+    'function sr_admin_icon_symbols(): array',
+    'function sr_admin_menu_symbol_allowed(string $name): bool',
+    'function sr_admin_menu_symbol_sprite_html(): string',
+    "'module_menu' => true",
+    "'module_menu' => false",
+], 'Admin icon common contract');
+
+sr_skin_theme_check_contains('modules/admin/skins/basic/layout-header.php', [
+    'sr_admin_menu_symbol_sprite_html();',
+], 'Admin skin icon sprite rendering');
+
+sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', [
+    '<symbol id="admin-menu-icon-settings"',
+    '<symbol id="admin-menu-icon-users"',
+], 'Admin skin inline icon symbols');
+
 sr_skin_theme_check_contains('assets/common/utilities.css', [
     '.form-checkbox::after',
     '.form-checkbox:checked',

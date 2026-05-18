@@ -12,5 +12,6 @@ require_once SR_ROOT . '/modules/admin/helpers/retention.php';
 require_once SR_ROOT . '/modules/admin/helpers/dashboard.php';
 require_once SR_ROOT . '/modules/admin/helpers/settings.php';
 require_once SR_ROOT . '/modules/admin/helpers/audit-logs.php';
+require_once SR_ROOT . '/modules/admin/helpers/icons.php';
 require_once SR_ROOT . '/modules/admin/helpers/navigation.php';
 require_once SR_ROOT . '/modules/admin/helpers/shell.php';
