@@ -209,11 +209,10 @@
 .admin-account-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
 .admin-filter-field{min-width:calc(var(--spacing) * 0);gap:.45rem;display:grid}
 .admin-filter-field label{margin:calc(var(--spacing) * 0);font-size:.8125rem;font-weight:var(--font-weight-semibold);color:var(--color-default-700)}
-.admin-filter-field select,.admin-filter-field input[type=text],.admin-filter-field input[type=number]{border:1px solid var(--color-default-300);background:var(--color-card);width:100%;min-height:2.75rem;color:var(--color-default-900);border-radius:0;padding:.65rem .8rem}
-.admin-filter-field select:focus,.admin-filter-field input[type=text]:focus,.admin-filter-field input[type=number]:focus{border-color:#97c2fb}
-@supports (color:color-mix(in lab, red, red)){.admin-filter-field select:focus,.admin-filter-field input[type=text]:focus,.admin-filter-field input[type=number]:focus{border-color:color-mix(in oklab, var(--color-primary) 38%, var(--color-default-300))}}
-.admin-filter-field select:focus,.admin-filter-field input[type=text]:focus,.admin-filter-field input[type=number]:focus{outline:none;box-shadow:0 0 0 4px #0a74ff1f}
-@supports (color:color-mix(in lab, red, red)){.admin-filter-field select:focus,.admin-filter-field input[type=text]:focus,.admin-filter-field input[type=number]:focus{box-shadow:0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent)}}
+.admin-filter-field :is(select,textarea,input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])){width:100%;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);box-shadow:none}
+.admin-filter-field :is(select,input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
+.admin-filter-field textarea{min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}
+.admin-filter-field :is(select,textarea,input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])):focus{border-color:var(--color-primary);outline:none;box-shadow:0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent)}
 .admin-notice{background:var(--color-default-50);border:1px solid var(--color-default-300);grid-template-columns:auto minmax(0,1fr);align-items:flex-start;gap:.875rem;padding:.875rem 1rem;display:grid}
 .admin-notice-copy{gap:.3rem;display:grid}
 .admin-notice-copy strong,.admin-notice-copy p{margin:calc(var(--spacing) * 0)}
