@@ -1,6 +1,15 @@
 # 관리자 UI 작성 기준
 
-관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. `assets/common.css`는 버튼, 카드, 테이블, 폼 컨트롤 같은 디자인 시스템과 ui-kit 역할을 맡고, `modules/admin/assets/admin.css`는 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 관리자 전용 레이아웃만 정의한다.
+관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 공통 CSS는 역할별 파일로 나누되 호출 순서와 책임을 고정한다.
+
+- `assets/common/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰만 둔다. 컴포넌트 선택자와 화면 배치는 넣지 않는다.
+- `assets/common/ui-kit.css`: reset/base와 `btn`, `card`, `table`, `form-*`, `tab-*` 같은 공통 UI kit 원형을 둔다. 관리자, 공개 화면, 모듈 고유 레이아웃은 넣지 않는다.
+- `assets/common/utilities.css`: `.sr-only`, 공통 표시 유틸리티, `ui-form-theme`처럼 여러 맥락에서 재사용되는 보강만 둔다.
+- `assets/common.css`: 위 세 파일을 불러오는 정적 미리보기/호환용 manifest다. 관리자 런타임은 캐시 무효화가 파일별로 적용되도록 split 파일을 직접 호출한다.
+- `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합을 둔다.
+- `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
+
+공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. `assets/public-ui.css`는 공통 토큰이 함께 로드된 정적 UI-KIT에서도 동작하도록 `--color-*` fallback을 둘 수 있지만, 관리자용 공통 reset을 공개 런타임에 무심코 추가하지 않는다.
 
 관리자 디자인 책임은 admin 모듈에 둔다. 각 모듈의 관리자 view는 본문 마크업과 도메인 출력만 맡고, 관리자 shell, 사이드바, 상단바, 공통 관리자 asset, 관리자 콘텐츠 컨테이너는 admin skin이 맡는다. 현재 관리자 skin은 `admin_skin_key`로 선택하며, 등록된 key가 없거나 파일이 없으면 `basic`으로 fallback한다.
 
@@ -10,7 +19,7 @@
 
 CSS class는 범위를 드러내는 접두어를 사용한다.
 
-- 반복 가능한 공통 UI는 `ui-*`, `btn`, `card`, `table`처럼 `assets/common.css`에 둔다.
+- 반복 가능한 공통 UI는 `ui-*`, `btn`, `card`, `table`처럼 `assets/common/ui-kit.css` 또는 `assets/common/utilities.css`에 둔다.
 - 관리자 shell과 관리자 전용 배치는 `admin-*` 접두어를 사용하고 `modules/admin/assets/admin.css`에 둔다.
 - 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
@@ -77,13 +86,14 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 
 ## 목록 화면
 
-목록형 화면은 회원 목록 화면을 기준으로 맞춘다.
+목록형 화면은 공통 관리자 목록 원형을 기준으로 맞춘다.
 
-- 상단 요약/탭 성격의 이동 링크는 `member-summary`와 `member-summary-links`를 사용한다.
-- 목록 테이블은 `member-table-card admin-member-list-form` 섹션 안에서 `table-wrapper`와 `table`을 사용한다.
-- 행 단위 관리 버튼은 `member-cell-manage`와 `member-manage` 안에 둔다.
+- 상단 요약/탭 성격의 이동 링크는 `admin-summary`와 `admin-summary-links`를 사용한다.
+- 목록 테이블은 `admin-card card` 또는 `admin-list-card admin-card card` 섹션 안에서 `table-wrapper`와 `table`을 사용한다.
+- 테이블 전체를 감싸는 일괄 작업 폼은 `admin-list-form`을 사용한다.
+- 행 단위 관리 버튼은 `admin-cell-actions`와 `admin-row-actions` 안에 둔다.
 
-목록 위 필터는 테이블 카드 안에서 임의의 문단으로 붙이지 않고 `admin-filter-form`, `admin-filter-fields`, `admin-filter-field`, `admin-filter-label` 구조를 사용한다. 필터가 목록 범위를 바꾸는 조건일 때는 목록 위에 두고, 화면 전체 범위를 바꾸는 조건일 때는 목록 섹션 바깥에 둔다.
+목록 위 필터는 테이블 카드 안에서 임의의 문단으로 붙이지 않고 `admin-filter`, `admin-filter-fields`, `admin-filter-field`, `admin-filter-label` 구조를 사용한다. 필터가 목록 범위를 바꾸는 조건일 때는 목록 위에 두고, 화면 전체 범위를 바꾸는 조건일 때는 목록 섹션 바깥에 둔다.
 
 저장, 삭제, 적용 같은 짧은 결과 안내는 `sr_admin_feedback_toasts($notice, $errors)`를 사용해 토스트로 출력한다. 화면 본문에 영구적으로 남아야 하는 설명과 작업 결과 피드백을 섞지 않는다.
 

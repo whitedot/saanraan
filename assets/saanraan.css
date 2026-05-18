@@ -1,3 +1,10 @@
+/*
+ * Saanraan public baseline and public skin tokens.
+ * Loaded by public layouts before assets/public-ui.css.
+ * Owns --sr-* public tokens, basic document defaults, install/public shell, and shared public helpers.
+ * Do not add admin UI or common UI kit primitives here.
+ */
+
 * {
     box-sizing: border-box;
 }

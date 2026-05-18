@@ -1,5 +1,9 @@
-/* Saanraan admin UI layer.
-   This file is intentionally separate from public UI so admin workflow density can evolve independently. */
+/*
+ * Saanraan admin UI layer.
+ * Loaded after assets/common/*.css and before modules/admin/assets/admin.css.
+ * Owns reusable admin workflow combinations inside .admin-ui-scope.
+ * Do not style admin shell chrome or module-specific admin screens here.
+ */
 
 .admin-ui-scope {
     --admin-ui-surface: var(--color-card);

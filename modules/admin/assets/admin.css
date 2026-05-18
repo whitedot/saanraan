@@ -1,3 +1,10 @@
+/*
+ * Saanraan admin module layer.
+ * Loaded after assets/common/*.css and assets/admin-ui.css by the admin shell.
+ * Owns admin shell chrome, admin content layout, and concrete admin module screen structures.
+ * Do not define site-wide tokens or reusable UI kit primitives here.
+ */
+
 :root{--admin-shell-bar-height:4.25rem;--admin-sidebar-width:17rem;--admin-sidebar-collapsed-width:5.5rem}
 #to_content a{width:1px;height:1px;position:absolute;top:auto;left:-9999px;overflow:hidden}
 #to_content a:focus{top:calc(var(--spacing) * 4);left:calc(var(--spacing) * 4);z-index:50;border-radius:var(--radius-lg);background-color:var(--color-slate-900);width:auto;height:auto;padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-white);position:fixed}
