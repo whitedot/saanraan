@@ -6,6 +6,16 @@
 .relative{position:relative}
 .hidden{display:none!important}
 
+html,
+body {
+  color: var(--color-body-color);
+}
+
+.hint-text,
+.muted-text {
+  color: var(--color-default-600);
+}
+
 /* UI form theme */
 .ui-form-theme .form-input,
 .ui-form-theme .form-select,
