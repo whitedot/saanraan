@@ -312,6 +312,54 @@ input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in
 .form-choice-dark { --form-choice-color: var(--color-dark); }
 .form-choice-muted { background-color: var(--color-default-200); }
 .form-choice-invalid { border-color: var(--color-danger) !important; --form-choice-color: var(--color-danger); }
+.form-range {
+    appearance: none;
+    width: 100%;
+    height: calc(var(--spacing) * 9.25);
+    padding: 0;
+    background: transparent;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+.form-range:focus { outline: none; }
+.form-range:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+.form-range::-webkit-slider-runnable-track {
+    height: .375rem;
+    background-color: var(--color-default-100);
+    border-radius: 999px;
+}
+.form-range::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: -.375rem;
+    border: 0;
+    border-radius: 999px;
+    background-color: var(--color-primary);
+    box-shadow: none;
+}
+.form-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+.form-range::-moz-range-track {
+    height: .375rem;
+    background-color: var(--color-default-100);
+    border-radius: 999px;
+}
+.form-range::-moz-range-thumb {
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 0;
+    border-radius: 999px;
+    background-color: var(--color-primary);
+    box-shadow: none;
+}
+.form-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
 .input-group {
     width: 100%;
     display: flex;

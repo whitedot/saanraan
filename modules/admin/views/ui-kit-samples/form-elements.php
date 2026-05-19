@@ -3,47 +3,6 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <section class="ui-kit-example">
                             <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">관리자 모드 폼 기준 (Admin Form Baseline)</h4>
-                            </div>
-
-                            <div class="ui-kit-example-body">
-                                <form action="#" method="get" class="admin-form ui-form-theme">
-                                    <section class="admin-card card">
-                                        <h2>관리자 폼 기준</h2>
-                                        <div class="admin-form-row">
-                                            <div class="admin-form-label"><span class="form-label">사이트 이름</span></div>
-                                            <div class="admin-form-field">
-                                                <input type="text" name="site_name" value="saanraan" class="form-input">
-                                                <span class="admin-form-help">관리자 화면에서 form-input이 받는 기본 스타일입니다.</span>
-                                            </div>
-                                        </div>
-                                        <div class="admin-form-row">
-                                            <div class="admin-form-label"><span class="form-label">운영 상태</span></div>
-                                            <div class="admin-form-field">
-                                                <select name="site_status" class="form-select">
-                                                    <option selected>운영</option>
-                                                    <option>점검</option>
-                                                    <option>비공개</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="admin-form-row">
-                                            <div class="admin-form-label"><span class="form-label">관리 메모</span></div>
-                                            <div class="admin-form-field">
-                                                <textarea name="memo" rows="4" class="form-textarea">현재 관리자 화면과 같은 폼 컨텍스트에서 표시됩니다.</textarea>
-                                            </div>
-                                        </div>
-                                        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-                                            <button type="button" class="btn btn-primary">저장</button>
-                                            <button type="button" class="btn btn-light">취소</button>
-                                        </div>
-                                    </section>
-                                </form>
-                            </div>
-                        </section>
-
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
                                 <h4 class="ui-kit-example-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
                             </div>
 
