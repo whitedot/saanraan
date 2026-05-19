@@ -1,13 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="icons-tabler">
 <div class="container-fluid">
-                    <section class="ui-kit-example">
-                        <div class="ui-kit-example-header ui-kit-block-flow">
-                            <h4 class="ui-kit-example-title ui-kit-space-after-1-25">개요 (Overview)</h4>
+                    <div class="card">
+                        <div class="card-header ui-kit-block-flow">
+                            <h4 class="card-title ui-kit-space-after-1-25">개요 (Overview)</h4>
                             <p class="ui-kit-ink-default-400">웹사이트나 앱을 매력적이고 시각적으로 일관되며 아름답게 만들기 위해 디자인된 무료 오픈 소스 아이콘입니다.</p>
                         </div>
                         <!-- end card-header-->
 
-                        <div class="ui-kit-example-body">
+                        <div class="card-body">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">사용법 (Usage)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -21,7 +21,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">색상 (Colors)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -38,7 +38,7 @@
                             </div>
                         </div>
 
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">크기 (Sizes)</h4>
                             <code>&lt;i class=&quot;iconify tabler--xxxx text-xxxx&quot;&gt;&lt;/i&gt;</code>
 
@@ -73,7 +73,7 @@
                         </div>
                         <!-- end card-body-->
 
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-before-0 ui-kit-space-after-3">아이콘 (Icons)</h4>
 
                             <div class="ui-kit-align-items-center ui-kit-cluster ui-kit-wrap ui-kit-gap-3 ui-kit-text-center">
@@ -349,7 +349,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </section>
+                    </div>
                     <!-- end card-->
 </div>
 </div>

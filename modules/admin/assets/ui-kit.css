@@ -18,55 +18,12 @@
     font-weight: var(--font-weight-bold);
 }
 
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="ui-cards"] > .container-fluid {
-    display: grid;
-    gap: var(--spacing-base, 20px);
-}
-
-.admin-ui-kit-samples .ui-kit-example {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    height: fit-content;
-    overflow-wrap: break-word;
-    background-color: var(--color-card);
-    background-clip: border-box;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-}
-
-.admin-ui-kit-samples .ui-kit-example-header {
+.admin-ui-kit-samples .card-header.ui-kit-block-flow {
     display: block;
-    padding-inline: calc(var(--spacing) * 5);
-    padding-block: calc(var(--spacing) * 3.75);
-    border-bottom: 1px dashed var(--color-default-300);
 }
 
-.admin-ui-kit-samples .ui-kit-example-header:not(.ui-kit-block-flow) {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: calc(var(--spacing) * 3);
-}
-
-.admin-ui-kit-samples .ui-kit-example-title {
-    margin: 0;
-    color: var(--color-body-color);
-    font-size: var(--text-md);
-    line-height: var(--leading-normal);
-    font-weight: var(--font-weight-medium);
-}
-
-.admin-ui-kit-samples .ui-kit-example-header.ui-kit-block-flow .ui-kit-example-title {
+.admin-ui-kit-samples .card-header.ui-kit-block-flow .card-title {
     margin-bottom: calc(var(--spacing) * 1.25);
-}
-
-.admin-ui-kit-samples .ui-kit-example-body {
-    padding: calc(var(--spacing) * 5);
-    transition-property: all;
-    transition-timing-function: var(--default-transition-timing-function);
-    transition-duration: var(--default-transition-duration);
 }
 
 .ui-kit-preview-frame {

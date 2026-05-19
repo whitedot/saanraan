@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="tables-static">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">기본 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 테이블</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -111,16 +111,17 @@
                                 </div>
                             </div>
                             <!-- end card body-->
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">커스텀 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">커스텀 테이블</h4>
                             </div>
 
-                            <div class="table-wrapper">
-                                <table class="table">
+                            <div class="card-body">
+                                <div class="table-wrapper">
+                                    <table class="table">
                                     <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
                                         <tr>
                                             <th>상품명</th>
@@ -317,17 +318,18 @@
                                             </td>
                                         </tr>
                                     </tbody>
-                                </table>
+                                    </table>
+                                </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테이블 변형</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 변형</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
@@ -537,15 +539,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">줄무늬 행</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">줄무늬 행</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -678,15 +680,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">줄무늬 열</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">줄무늬 열</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -819,15 +821,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">마우스 오버 행</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">마우스 오버 행</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table table-hover">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -960,15 +962,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">활성 Tables</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">활성 Tables</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -1101,15 +1103,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테두리가 있는 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리가 있는 테이블</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-line-default-300 ui-kit-frame ui-kit-weight-semibold ui-kit-type-xs">
@@ -1242,15 +1244,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테두리 없는 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리 없는 테이블</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -1383,15 +1385,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">작은 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">작은 테이블</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -1431,15 +1433,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테이블 그룹 구분선</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 그룹 구분선</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-line-default-600 ui-kit-divider-bottom-strong ui-kit-weight-semibold ui-kit-type-xs">
@@ -1572,15 +1574,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">중첩 테이블</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">중첩 테이블</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
@@ -1743,15 +1745,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테이블 헤더</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테이블 헤더</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead class="ui-kit-surface-dark">
@@ -1884,15 +1886,15 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">캡션</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">캡션</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="ui-kit-fill-width table table-hover">
                                         <caption class="ui-kit-ink-default-400 ui-kit-caption-below ui-kit-block-pad-3 ui-kit-text-start">
@@ -2028,7 +2030,7 @@
                                     </table>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card -->
                     </div>
 </div>

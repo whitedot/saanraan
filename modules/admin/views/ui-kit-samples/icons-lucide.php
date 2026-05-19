@@ -1,14 +1,14 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="icons-lucide">
 <div class="container-fluid">
-                    <section class="ui-kit-example">
-                        <div class="ui-kit-example-header ui-kit-block-flow">
-                            <h4 class="ui-kit-example-title ui-kit-space-after-1-25">개요 (Overview)</h4>
+                    <div class="card">
+                        <div class="card-header ui-kit-block-flow">
+                            <h4 class="card-title ui-kit-space-after-1-25">개요 (Overview)</h4>
                             <p class="ui-kit-ink-default-400">Lucide는 웹 및 앱 개발을 위한 깨끗하고 확장 가능한 SVG 아이콘의 오픈 소스 라이브러리로, 쉬운 통합과
                                 맞춤 설정을 제공합니다.</p>
                         </div>
                         <!-- end card-header-->
 
-                        <div class="ui-kit-example-body">
+                        <div class="card-body">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">사용법 (Usage)</h4>
                             <code>&lt;i class="iconify lucide--xxx"&gt;&lt;/i&gt;</code>
 
@@ -23,7 +23,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">색상 (Colors)</h4>
                             <code>&lt;i class="iconify lucide--xxx ui-kit-type-xx"&gt;&lt;/i&gt;</code>
 
@@ -40,7 +40,7 @@
                             </div>
                         </div>
 
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">채우기 색상 (Fill Colors)</h4>
                             <code>&lt;i data-lucide="xxx" class="ui-kit-type-xx ui-kit-fill-xx"&gt;&lt;/i&gt;</code>
                             <div class="ui-kit-space-before-3 ui-kit-cluster ui-kit-align-items-center ui-kit-gap-3">
@@ -56,7 +56,7 @@
                             </div>
                         </div>
 
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-after-2 ui-kit-type-sm">크기 (Sizes)</h4>
                             <code>&lt;i class="iconify lucide--xxxx ui-kit-type-xx"&gt;&lt;/i&gt;</code>
 
@@ -84,7 +84,7 @@
                         </div>
                         <!-- end card-body-->
 
-                        <div class="ui-kit-example-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
+                        <div class="card-body ui-kit-line-default-300 ui-kit-divider-top ui-kit-line-dashed">
                             <h4 class="ui-kit-space-before-0 ui-kit-space-after-3">아이콘 (Icons)</h4>
 
                             <div class="ui-kit-align-items-center ui-kit-cluster ui-kit-wrap ui-kit-gap-3 ui-kit-text-center">
@@ -360,7 +360,7 @@
                             </div>
                         </div>
                         <!-- end card-body-->
-                    </section>
+                    </div>
                     <!-- end card-->
 </div>
 </div>

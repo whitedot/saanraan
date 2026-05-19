@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-badges">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">기본 배지 (Default Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 배지 (Default Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.badge</code> 및 <code>.bg-*</code> 클래스를 사용하여 배지를 만듭니다.
                                 </p>
@@ -24,15 +24,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">알약 형태 배지 (Pill Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">알약 형태 배지 (Pill Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.rounded-full</code> 클래스를 사용하여 배지를 더 둥글게 만듭니다.
                                 </p>
@@ -50,15 +50,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">아웃라인 배지 (Outline Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">아웃라인 배지 (Outline Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.border-*</code> 를 사용하여 테두리가 있는 배지를 빠르게 생성합니다.
                                 </p>
@@ -74,15 +74,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">아웃라인 알약 형태 배지 (Outline Pill Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">아웃라인 알약 형태 배지 (Outline Pill Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     배제를 더 둥글게 만들려면 <code>.rounded-full</code> 수정자 클래스를 사용하세요.
                                 </p>
@@ -98,15 +98,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">밝은 색상 배지 (Light Color Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">밝은 색상 배지 (Light Color Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     배경 투명도 <code>.bg-*/15</code> 클래스를 사용하여 밝은 색상의 배지를 만듭니다.
                                 </p>
@@ -122,15 +122,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">밝은 색상 알약 형태 배지 (Light Color Pill Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">밝은 색상 알약 형태 배지 (Light Color Pill Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     배지를 밝게 만들려면 배경 투명도 <code>.bg-*/15</code> 수정자 클래스를 사용하세요.
                                 </p>
@@ -146,15 +146,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">라벨 배지 (Label Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">라벨 배지 (Label Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.badge-label</code> 을 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
                                 </p>
@@ -172,15 +172,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">사각형 배지 (Square Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">사각형 배지 (Square Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.size-*</code> 를 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
                                 </p>
@@ -198,15 +198,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">원형 배지 (Rounded Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">원형 배지 (Rounded Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>.rounded-full</code> 을 사용하여 원형 기반의 배지를 빠르게 생성합니다.
                                 </p>
@@ -226,15 +226,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">위치 지정 배지 (Position Badges)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">위치 지정 배지 (Position Badges)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-space-after-4">
                                     유틸리티를 사용하여 <code>.badge</code> 를 수정하고 링크나 버튼의 모서리에 배치합니다.
                                 </p>
@@ -261,7 +261,7 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
                     </div>
 </div>

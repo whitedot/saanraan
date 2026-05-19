@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-tabs">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">기본 탭 (Default Tabs)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 탭 (Default Tabs)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">로컬 콘텐츠를 위한 간단한 탭 인터페이스 위젯입니다.</p>
                                 <div>
                                     <nav class="tab-nav" aria-label="Tabs" role="tablist"
@@ -61,15 +61,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">균등 분할 탭 (Tabs Justified)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">균등 분할 탭 (Tabs Justified)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">균등 분할된 탐색 항목은 사용 가능한 전체 너비를 채우도록 늘어나며 모든 탭이 컨테이너 전체에
                                     고르게 배치되도록 합니다.</p>
 
@@ -138,15 +138,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">세로형 탭 (왼쪽)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">세로형 탭 (왼쪽)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 항목을 세로로 쌓으려면 flex 방향을 column으로 변경하여 항목들이 위아래로 표시되도록
                                     할 수 있습니다.</p>
 
@@ -251,15 +251,15 @@
                                 </div>
                                 <!-- end card-body-->
                             </div>
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">색상이 있는 탭 (Pills)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">색상이 있는 탭 (Pills)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">필(Pill) 스타일 탐색은 탐색 항목에 둥근 색상 기반 스타일을 적용하여 활성 상태를 시각적으로
                                     더 뚜렷하게 만듭니다.</p>
 
@@ -363,15 +363,15 @@
                                     </nav>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">테두리가 있는 탭 (Tabs Bordered)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리가 있는 탭 (Tabs Bordered)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 항목에 간단한 하단 테두리 스타일을 적용하여 디자인을 미니멀하게 유지하면서 활성 상태를 강조할
                                     수도 있습니다.</p>
 
@@ -432,15 +432,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">색상 테두리가 있는 탭 (Tabs with Colored Border)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">색상 테두리가 있는 탭 (Tabs with Colored Border)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 바는 미니멀한 레이아웃을 유지하면서 활성 또는 선택된 항목을 시각적으로 강조하기 위해 유색
                                     테두리 스타일을 사용할 수 있습니다.</p>
 
@@ -505,15 +505,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">아이콘 탭 (Icons Tabs)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">아이콘 탭 (Icons Tabs)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">레이아웃을 깔끔하고 미니멀하게 유지하면서 활성 상태를 나타내기 위해 간단한 하단 테두리 스타일을
                                     사용할 수도 있습니다.</p>
 
@@ -574,12 +574,12 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header ui-kit-line-dashed">
-                                <h4 class="ui-kit-example-title">탭이 있는 카드 (Card with Tabs)</h4>
+                        <div class="card">
+                            <div class="card-header ui-kit-line-dashed">
+                                <h4 class="card-title">탭이 있는 카드 (Card with Tabs)</h4>
 
                                 <nav class="nav-tabs" aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
                                     <button type="button"
@@ -608,7 +608,7 @@
                                 </nav>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div>
                                     <div id="home-ct" role="tabpanel" aria-labelledby="summary">
                                         <p>재무 대시보드에 오신 것을 환영합니다. 여기에서 소득, 지출, 저축 및 투자에 대한 실시간 업데이트를 모니터링할 수 있습니다. 저희 도구는
@@ -627,7 +627,7 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
                     </div>
 </div>

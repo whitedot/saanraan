@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="form-elements">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Simple Input -->
@@ -285,14 +285,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">입력 유형 (Input Types)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">입력 유형 (Input Types)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Email Input -->
@@ -436,14 +436,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">입력 그룹 (Input Group)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">입력 그룹 (Input Group)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Basic Input Group -->
@@ -665,14 +665,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">플로팅 라벨 (Floating Labels)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">플로팅 라벨 (Floating Labels)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Floating Input -->
@@ -733,14 +733,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">입력 크기 (Input Sizes)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">입력 크기 (Input Sizes)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Small Input -->
@@ -843,14 +843,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">체크박스, 라디오 및 스위치 (Checks, Radios and Switches)</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">체크박스, 라디오 및 스위치 (Checks, Radios and Switches)</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                                     <div>
                                         <!-- Default Checkboxes -->
@@ -1299,7 +1299,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        </div>
                     </div>
 </div>
 </div>

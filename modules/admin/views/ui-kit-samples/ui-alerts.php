@@ -1,12 +1,12 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-alerts">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">기본 알림</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 알림</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">이것은 프라이머리 알림입니다. 중요한 내용을 확인하세요!</div>
@@ -27,15 +27,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">단색 배경의 제거 가능한 알림</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">단색 배경의 제거 가능한 알림</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
                                         주의! 이것은 중요한 정보가 포함된 프라이머리 알림입니다.</div>
@@ -56,15 +56,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">링크 색상</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">링크 색상</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
@@ -116,15 +116,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">추가 콘텐츠</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">추가 콘텐츠</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-radius-base ui-kit-pad-6" role="alert">
                                         <h4 class="ui-kit-ink-success ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">잘 하셨습니다!</h4>
@@ -157,15 +157,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">커스텀 알림</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">커스텀 알림</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div id="dark-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-divider-bottom-strong ui-kit-line-dark ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
@@ -234,15 +234,15 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
 
-                        <section class="ui-kit-example">
-                            <div class="ui-kit-example-header">
-                                <h4 class="ui-kit-example-title">알림 닫기</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">알림 닫기</h4>
                             </div>
 
-                            <div class="ui-kit-example-body">
+                            <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div id="dismiss-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-line-primary ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-frame ui-kit-inline-pad-4 ui-kit-block-pad-3"
@@ -256,7 +256,7 @@
                                 </div>
                             </div>
                             <!-- end card-body-->
-                        </section>
+                        </div>
                         <!-- end card-->
                     </div>
 </div>
