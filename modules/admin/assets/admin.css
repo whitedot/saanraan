@@ -92,7 +92,7 @@ input:focus-visible + .btn-choice-secondary{box-shadow:0 0 0 3px color-mix(in ok
 :is(.table th,.table td):first-child{padding-inline-start:calc(var(--spacing) * 4.5)}
 :is(.table th,.table td):last-child{padding-inline-end:calc(var(--spacing) * 4.5)}
 .table-bordered{border:1px solid var(--color-light)}
-.table-bordered td,.table-bordered th{border-inline-end:1px solid var(--color-light)}
+.table-bordered td,.table-bordered th{border:1px solid var(--color-light)}
 .table-striped tbody tr:nth-child(odd),.table-hover tbody tr:hover{background-color:color-mix(in oklab,var(--color-light) 45%,transparent)!important}
 .table-sm thead th,.table-sm tbody td{padding:calc(var(--spacing) * 2)}
 .tab-nav,.tab-nav-justified{flex-wrap:wrap;display:flex}
@@ -376,10 +376,10 @@ input[type=file].form-input::file-selector-button{height:100%;margin-inline-end:
 .admin-form .admin-form-field label{margin:0}
 .admin-form .admin-form-field .admin-form-help,
 .admin-form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
-.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input),.admin-content .ui-form-theme select:not(.form-select),.admin-content .ui-form-theme textarea:not(.form-textarea){width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
-.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input),.admin-content .ui-form-theme select:not(.form-select){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
+.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select),.admin-content .ui-form-theme textarea:not(.form-textarea){width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
+.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
 .admin-content .ui-form-theme textarea:not(.form-textarea){min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}
-.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):focus,.admin-content .ui-form-theme select:not(.form-select):focus,.admin-content .ui-form-theme textarea:not(.form-textarea):focus{border-color:var(--color-primary)!important;outline:none;box-shadow:0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent)}
+.admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range):focus,.admin-content .ui-form-theme select:not(.form-select):focus,.admin-content .ui-form-theme textarea:not(.form-textarea):focus{border-color:var(--color-primary)!important;outline:none;box-shadow:0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent)}
 .admin-content .ui-form-theme input[type=checkbox]:not(.form-checkbox),.admin-content .ui-form-theme input[type=radio]:not(.form-radio){appearance:none;background-color:var(--color-card);border:1px solid var(--color-default-400);width:1rem;height:1rem;flex:0 0 auto;vertical-align:middle}
 .admin-content .ui-form-theme input[type=checkbox]:not(.form-checkbox){border-radius:var(--radius-sm)}
 .admin-content .ui-form-theme input[type=radio]:not(.form-radio){border-radius:999px}

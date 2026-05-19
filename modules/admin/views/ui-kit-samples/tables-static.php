@@ -1113,9 +1113,9 @@
 
                             <div class="card-body">
                                 <div class="table-wrapper">
-                                    <table class="table">
-                                        <thead class="ui-kit-line-default-300 ui-kit-frame ui-kit-weight-semibold ui-kit-type-xs">
-                                            <tr class="ui-kit-separate-default-300 ui-kit-separate-x">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
                                                 <th>상품명</th>
                                                 <th>카테고리</th>
                                                 <th>가격</th>
@@ -1126,7 +1126,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="ui-kit-line-default-300 ui-kit-separate-default-300 ui-kit-separate-x ui-kit-frame">
+                                            <tr>
                                                 <td class="ui-kit-weight-medium">블루투스 스피커</td>
                                                 <td>오디오</td>
                                                 <td>$49.00</td>
@@ -1164,7 +1164,7 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="ui-kit-line-default-300 ui-kit-separate-default-300 ui-kit-separate-x ui-kit-frame">
+                                            <tr>
                                                 <td class="ui-kit-weight-medium">가죽 지갑</td>
                                                 <td>액세서리</td>
                                                 <td>$29.99</td>
@@ -1202,7 +1202,7 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="ui-kit-line-default-300 ui-kit-separate-default-300 ui-kit-separate-x ui-kit-frame">
+                                            <tr>
                                                 <td class="ui-kit-weight-medium">피트니스 트래커</td>
                                                 <td>웨어러블</td>
                                                 <td>$89.00</td>
