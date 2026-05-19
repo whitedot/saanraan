@@ -145,9 +145,24 @@ input[type=file].form-input::file-selector-button{height:100%;margin-inline-end:
 .form-checkbox,.form-radio{appearance:none;background-color:var(--color-card);background-position:center;background-repeat:no-repeat;border:1px solid var(--color-default-400);width:1rem;height:1rem;flex:0 0 auto;vertical-align:middle}
 .form-checkbox{border-radius:var(--radius-sm)}
 .form-radio{border-radius:999px}
-.form-checkbox:focus-visible,.form-radio:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 12%,transparent)}
-.form-checkbox:checked{border-color:var(--color-primary);background-color:var(--color-primary);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E");background-size:.75rem .75rem}
-.form-radio:checked{border-color:var(--color-primary);box-shadow:inset 0 0 0 3px var(--color-card);background-color:var(--color-primary)}
+.form-checkbox:focus-visible,.form-radio:focus-visible,.form-switch:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--form-choice-color,var(--color-primary)) 12%,transparent)}
+.form-checkbox:checked{border-color:var(--form-choice-color,var(--color-primary));background-color:var(--form-choice-color,var(--color-primary));background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E");background-size:.75rem .75rem}
+.form-radio:checked{border-color:var(--form-choice-color,var(--color-primary));box-shadow:inset 0 0 0 3px var(--color-card);background-color:var(--form-choice-color,var(--color-primary))}
+.form-switch{--form-switch-width:2.75rem;--form-switch-height:1.5rem;--form-switch-thumb:1rem;--form-switch-pad:.1875rem;appearance:none;width:var(--form-switch-width);height:var(--form-switch-height);flex:0 0 auto;vertical-align:middle;border:1px solid var(--color-default-400);border-radius:999px;background-color:var(--color-default-300);background-image:radial-gradient(circle,var(--color-white) 0 calc(var(--form-switch-thumb) / 2),transparent calc(var(--form-switch-thumb) / 2 + 1px));background-position:left var(--form-switch-pad) center;background-repeat:no-repeat;background-size:var(--form-switch-thumb) var(--form-switch-thumb);transition:background-color .15s,background-position .15s,border-color .15s}
+.form-switch:checked{border-color:var(--form-choice-color,var(--color-primary));background-color:var(--form-choice-color,var(--color-primary));background-position:right var(--form-switch-pad) center}
+.form-switch:disabled{cursor:not-allowed;opacity:.5}
+.form-switch-lg{--form-switch-width:3.25rem;--form-switch-height:1.75rem;--form-switch-thumb:1.25rem;--form-switch-pad:.1875rem}
+.form-choice-md{width:1.25rem;height:1.25rem}
+.form-choice-lg{width:1.5625rem;height:1.5625rem}
+.form-choice-primary{--form-choice-color:var(--color-primary)}
+.form-choice-secondary{--form-choice-color:var(--color-secondary)}
+.form-choice-success{--form-choice-color:var(--color-success)}
+.form-choice-info{--form-choice-color:var(--color-info)}
+.form-choice-warning{--form-choice-color:var(--color-warning)}
+.form-choice-danger{--form-choice-color:var(--color-danger)}
+.form-choice-dark{--form-choice-color:var(--color-dark)}
+.form-choice-muted{background-color:var(--color-default-200)}
+.form-choice-invalid{border-color:var(--color-danger)!important;--form-choice-color:var(--color-danger)}
 .input-icon-group{width:100%;position:relative}
 .input-icon-group>.input-icon:first-child,.input-icon-group>.input-icon.is-start{pointer-events:none;z-index:2;width:1em;height:1em;color:var(--color-default-500);justify-content:center;align-items:center;margin-block:auto;line-height:1;display:inline-flex;position:absolute;top:0;bottom:0;left:.8rem}
 .input-icon-group>.input-icon:last-child,.input-icon-group>.input-icon.is-end{pointer-events:none;z-index:2;width:1em;height:1em;color:var(--color-default-500);justify-content:center;align-items:center;margin-block:auto;line-height:1;display:inline-flex;position:absolute;inset:0 .8rem 0 auto}

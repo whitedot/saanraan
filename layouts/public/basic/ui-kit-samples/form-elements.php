@@ -924,7 +924,7 @@
                                                 <!-- Light Checkbox -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkLight"
-                                                        class="form-checkbox ui-kit-surface-default-200 ui-kit-choice-primary" />
+                                                        class="form-checkbox form-choice-muted form-choice-primary" />
                                                     <label for="checkLight">연한 체크박스</label>
                                                 </div>
 
@@ -959,14 +959,14 @@
                                                 <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold">크기</h5>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                    <input type="checkbox" id="checkSize1" class="form-checkbox ui-kit-icon-size-5"
+                                                    <input type="checkbox" id="checkSize1" class="form-checkbox form-choice-md"
                                                         checked />
                                                     <label for="checkSize1">16px 체크박스</label>
                                                 </div>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkSize2"
-                                                        class="form-checkbox ui-kit-choice-secondary ui-kit-icon-size-6-25"
+                                                        class="form-checkbox form-choice-secondary form-choice-lg"
                                                         checked />
                                                     <label for="checkSize2">20px 체크박스</label>
                                                 </div>
@@ -1007,7 +1007,7 @@
                                                 <!-- 20px Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkboxSize20"
-                                                        class="form-switch form-switch-lg ui-kit-choice-secondary"
+                                                        class="form-switch form-switch-lg form-choice-secondary"
                                                         checked />
                                                     <label for="checkboxSize20">20px 스위치</label>
                                                 </div>
@@ -1026,22 +1026,22 @@
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkPrimary"
-                                                            class="form-checkbox ui-kit-choice-primary" checked />
+                                                            class="form-checkbox form-choice-primary" checked />
                                                         <label for="checkPrimary">Primary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkSecondary"
-                                                            class="form-checkbox ui-kit-choice-secondary" checked />
+                                                            class="form-checkbox form-choice-secondary" checked />
                                                         <label for="checkSecondary">Secondary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkSuccess"
-                                                            class="form-checkbox ui-kit-choice-success" checked />
+                                                            class="form-checkbox form-choice-success" checked />
                                                         <label for="checkSuccess">Success</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkInfo"
-                                                            class="form-checkbox ui-kit-choice-info" checked />
+                                                            class="form-checkbox form-choice-info" checked />
                                                         <label for="checkInfo">Info</label>
                                                     </div>
                                                 </div>
@@ -1049,17 +1049,17 @@
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkWarning"
-                                                            class="form-checkbox ui-kit-choice-warning" checked />
+                                                            class="form-checkbox form-choice-warning" checked />
                                                         <label for="checkWarning">Warning</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkDanger"
-                                                            class="form-checkbox ui-kit-choice-danger" checked />
+                                                            class="form-checkbox form-choice-danger" checked />
                                                         <label for="checkDanger">Danger</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkDark"
-                                                            class="form-checkbox ui-kit-choice-dark" checked />
+                                                            class="form-checkbox form-choice-dark" checked />
                                                         <label for="checkDark">Dark</label>
                                                     </div>
                                                 </div>
@@ -1077,42 +1077,42 @@
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkPrimary"
-                                                            class="form-switch ui-kit-choice-primary" checked />
-                                                        <label for="checkPrimary">Primary</label>
+                                                        <input type="checkbox" id="switchPrimary"
+                                                            class="form-switch form-choice-primary" checked />
+                                                        <label for="switchPrimary">Primary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkSecondary"
-                                                            class="form-switch ui-kit-choice-secondary" checked />
-                                                        <label for="checkSecondary">Secondary</label>
+                                                        <input type="checkbox" id="switchSecondary"
+                                                            class="form-switch form-choice-secondary" checked />
+                                                        <label for="switchSecondary">Secondary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkSuccess"
-                                                            class="form-switch ui-kit-choice-success" checked />
-                                                        <label for="checkSuccess">Success</label>
+                                                        <input type="checkbox" id="switchSuccess"
+                                                            class="form-switch form-choice-success" checked />
+                                                        <label for="switchSuccess">Success</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkInfo"
-                                                            class="form-switch ui-kit-choice-info" checked />
-                                                        <label for="checkInfo">Info</label>
+                                                        <input type="checkbox" id="switchInfo"
+                                                            class="form-switch form-choice-info" checked />
+                                                        <label for="switchInfo">Info</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkWarning"
-                                                            class="form-switch ui-kit-choice-warning" checked />
-                                                        <label for="checkWarning">Warning</label>
+                                                        <input type="checkbox" id="switchWarning"
+                                                            class="form-switch form-choice-warning" checked />
+                                                        <label for="switchWarning">Warning</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkDanger"
-                                                            class="form-switch ui-kit-choice-danger" checked />
-                                                        <label for="checkDanger">Danger</label>
+                                                        <input type="checkbox" id="switchDanger"
+                                                            class="form-switch form-choice-danger" checked />
+                                                        <label for="switchDanger">Danger</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkDark"
-                                                            class="form-switch ui-kit-choice-dark" checked />
-                                                        <label for="checkDark">Dark</label>
+                                                        <input type="checkbox" id="switchDark"
+                                                            class="form-switch form-choice-dark" checked />
+                                                        <label for="switchDark">Dark</label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1169,13 +1169,13 @@
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-4">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="paymentMethod" id="radioCash"
-                                                            value="cash" class="form-radio ui-kit-icon-size-5"
+                                                            value="cash" class="form-radio form-choice-md"
                                                             checked />
                                                         <label for="radioCash">현금</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="paymentMethod" id="radioCard"
-                                                            value="card" class="form-radio ui-kit-icon-size-5" />
+                                                            value="card" class="form-radio form-choice-md" />
                                                         <label for="radioCard">카드</label>
                                                     </div>
                                                 </div>
@@ -1184,13 +1184,13 @@
                                                 <div class="ui-kit-space-before-2 ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-4">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="deliveryOption" id="radioPickup"
-                                                            value="pickup" class="form-radio ui-kit-icon-size-6"
+                                                            value="pickup" class="form-radio form-choice-lg"
                                                             checked />
                                                         <label for="radioPickup">픽업</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="deliveryOption" id="radioHome"
-                                                            value="home" class="form-radio ui-kit-icon-size-6" />
+                                                            value="home" class="form-radio form-choice-lg" />
                                                         <label for="radioHome">택배 배송</label>
                                                     </div>
                                                 </div>
@@ -1240,47 +1240,43 @@
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkPrimary"
-                                                            class="form-radio ui-kit-choice-primary"
+                                                        <input type="radio" name="coloredRadio" id="radioPrimary"
+                                                            class="form-radio form-choice-primary"
                                                             checked />
-                                                        <label for="checkPrimary">Primary</label>
+                                                        <label for="radioPrimary">Primary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkSecondary"
-                                                            class="form-radio ui-kit-choice-secondary"
-                                                            checked />
-                                                        <label for="checkSecondary">Secondary</label>
+                                                        <input type="radio" name="coloredRadio" id="radioSecondary"
+                                                            class="form-radio form-choice-secondary" />
+                                                        <label for="radioSecondary">Secondary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkSuccess"
-                                                            class="form-radio ui-kit-choice-success"
-                                                            checked />
-                                                        <label for="checkSuccess">Success</label>
+                                                        <input type="radio" name="coloredRadio" id="radioSuccess"
+                                                            class="form-radio form-choice-success" />
+                                                        <label for="radioSuccess">Success</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkInfo"
-                                                            class="form-radio ui-kit-choice-info" checked />
-                                                        <label for="checkInfo">Info</label>
+                                                        <input type="radio" name="coloredRadio" id="radioInfo"
+                                                            class="form-radio form-choice-info" />
+                                                        <label for="radioInfo">Info</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkWarning"
-                                                            class="form-radio ui-kit-choice-warning"
-                                                            checked />
-                                                        <label for="checkWarning">Warning</label>
+                                                        <input type="radio" name="coloredRadio" id="radioWarning"
+                                                            class="form-radio form-choice-warning" />
+                                                        <label for="radioWarning">Warning</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkDanger"
-                                                            class="form-radio ui-kit-choice-danger"
-                                                            checked />
-                                                        <label for="checkDanger">Danger</label>
+                                                        <input type="radio" name="coloredRadio" id="radioDanger"
+                                                            class="form-radio form-choice-danger" />
+                                                        <label for="radioDanger">Danger</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkDark"
-                                                            class="form-radio ui-kit-choice-dark" checked />
-                                                        <label for="checkDark">Dark</label>
+                                                        <input type="radio" name="coloredRadio" id="radioDark"
+                                                            class="form-radio form-choice-dark" />
+                                                        <label for="radioDark">Dark</label>
                                                     </div>
                                                 </div>
                                             </div>

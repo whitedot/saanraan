@@ -326,13 +326,6 @@
     .ui-kit-hover-ink-primary:hover { color: var(--color-primary); }
     .ui-kit-hover-ink-default-700:hover { color: var(--color-default-700); }
 }
-.ui-kit-choice-primary:checked { background-color: var(--color-primary) !important; }
-.ui-kit-choice-secondary:checked { background-color: var(--color-secondary) !important; }
-.ui-kit-choice-success:checked { background-color: var(--color-success) !important; }
-.ui-kit-choice-info:checked { background-color: var(--color-info) !important; }
-.ui-kit-choice-warning:checked { background-color: var(--color-warning) !important; }
-.ui-kit-choice-danger:checked { background-color: var(--color-danger) !important; }
-.ui-kit-choice-dark:checked { background-color: var(--color-dark) !important; }
 .ui-kit-row-odd-default:nth-child(odd) { background-color: var(--color-default-100); }
 .ui-kit-disabled-pointer-lock:disabled { pointer-events: none; }
 .ui-kit-disabled-dim:disabled { opacity: .5; }

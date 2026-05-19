@@ -235,7 +235,7 @@
                                     <div class="ui-kit-column-md-12">
                                         <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2">
                                             <input type="checkbox" id="terms" required
-                                                class="form-checkbox ui-kit-choice-danger" />
+                                                class="form-checkbox form-choice-danger" />
                                             <span class="ui-kit-ink-danger">이용 약관에 동의합니다</span>
                                         </label>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">제출하기 전에 동의해야 합니다.</p>
@@ -268,7 +268,7 @@
                                     <!-- Checkbox -->
                                     <div class="ui-kit-cluster ui-kit-align-items-start ui-kit-gap-2">
                                         <input id="validationFormCheck1" type="checkbox" required
-                                            class="form-checkbox ui-kit-choice-danger ui-kit-line-danger ui-kit-space-before-0-5" />
+                                            class="form-checkbox form-choice-danger form-choice-invalid ui-kit-space-before-0-5" />
                                         <div>
                                             <label for="validationFormCheck1" class="ui-kit-ink-danger">이 체크박스를 체크하세요</label>
                                             <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">잘못된 피드백 텍스트 예시</p>
@@ -279,14 +279,14 @@
                                     <div class="ui-kit-stack-2">
                                         <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck2" type="radio" name="radio-stacked" required
-                                                class="form-radio ui-kit-choice-danger ui-kit-line-danger" />
+                                                class="form-radio form-choice-danger form-choice-invalid" />
                                             <label for="validationFormCheck2" class="ui-kit-ink-danger">이 라디오 버튼을
                                                 토글하세요</label>
                                         </div>
 
                                         <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck3" type="radio" name="radio-stacked" required
-                                                class="form-radio ui-kit-choice-danger ui-kit-line-danger" />
+                                                class="form-radio form-choice-danger form-choice-invalid" />
                                             <label for="validationFormCheck3" class="ui-kit-ink-danger">또는 다른 라디오 버튼을
                                                 토글하세요</label>
                                             <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">추가적인 잘못된 피드백 텍스트 예시</p>

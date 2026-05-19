@@ -282,13 +282,26 @@
     .ui-kit-hover-ink-primary:hover { color: var(--color-primary); }
     .ui-kit-hover-ink-default-700:hover { color: var(--color-default-700); }
 }
-.ui-kit-choice-primary:checked { background-color: var(--color-primary) !important; }
-.ui-kit-choice-secondary:checked { background-color: var(--color-secondary) !important; }
-.ui-kit-choice-success:checked { background-color: var(--color-success) !important; }
-.ui-kit-choice-info:checked { background-color: var(--color-info) !important; }
-.ui-kit-choice-warning:checked { background-color: var(--color-warning) !important; }
-.ui-kit-choice-danger:checked { background-color: var(--color-danger) !important; }
-.ui-kit-choice-dark:checked { background-color: var(--color-dark) !important; }
+.form-checkbox:focus-visible,
+.form-radio:focus-visible,
+.form-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--form-choice-color, var(--color-primary)) 12%, transparent); }
+.form-checkbox:checked { border-color: var(--form-choice-color, var(--color-primary)); background-color: var(--form-choice-color, var(--color-primary)); }
+.form-radio:checked { border-color: var(--form-choice-color, var(--color-primary)); background-color: var(--form-choice-color, var(--color-primary)); }
+.form-switch { --form-switch-width: 2.75rem; --form-switch-height: 1.5rem; --form-switch-thumb: 1rem; --form-switch-pad: .1875rem; appearance: none; width: var(--form-switch-width); height: var(--form-switch-height); flex: 0 0 auto; vertical-align: middle; border: 1px solid var(--color-default-400); border-radius: 999px; background-color: var(--color-default-300); background-image: radial-gradient(circle, var(--color-white) 0 calc(var(--form-switch-thumb) / 2), transparent calc(var(--form-switch-thumb) / 2 + 1px)); background-position: left var(--form-switch-pad) center; background-repeat: no-repeat; background-size: var(--form-switch-thumb) var(--form-switch-thumb); transition: background-color .15s, background-position .15s, border-color .15s; }
+.form-switch:checked { border-color: var(--form-choice-color, var(--color-primary)); background-color: var(--form-choice-color, var(--color-primary)); background-position: right var(--form-switch-pad) center; }
+.form-switch:disabled { cursor: not-allowed; opacity: .5; }
+.form-switch-lg { --form-switch-width: 3.25rem; --form-switch-height: 1.75rem; --form-switch-thumb: 1.25rem; --form-switch-pad: .1875rem; }
+.form-choice-md { width: 1.25rem; height: 1.25rem; }
+.form-choice-lg { width: 1.5625rem; height: 1.5625rem; }
+.form-choice-primary { --form-choice-color: var(--color-primary); }
+.form-choice-secondary { --form-choice-color: var(--color-secondary); }
+.form-choice-success { --form-choice-color: var(--color-success); }
+.form-choice-info { --form-choice-color: var(--color-info); }
+.form-choice-warning { --form-choice-color: var(--color-warning); }
+.form-choice-danger { --form-choice-color: var(--color-danger); }
+.form-choice-dark { --form-choice-color: var(--color-dark); }
+.form-choice-muted { background-color: var(--color-default-200); }
+.form-choice-invalid { border-color: var(--color-danger) !important; --form-choice-color: var(--color-danger); }
 .ui-kit-row-odd-default:nth-child(odd) { background-color: var(--color-default-100); }
 .ui-kit-disabled-pointer-lock:disabled { pointer-events: none; }
 .ui-kit-disabled-dim:disabled { opacity: .5; }
