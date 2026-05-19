@@ -75,7 +75,7 @@
                                                     <input type="text" id="floatingInput" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingInput"
-                                                        class="ui-kit-ink-default-500 form-floating-label ui-kit-position-absolute ui-kit-position-start-3 ui-kit-position-top-2 ui-kit-transition-all">이름</label>
+                                                        class="form-floating-label">이름</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -729,7 +729,7 @@
                                                         class="form-floating-control form-input"
                                                         placeholder="you@email.com" />
                                                     <label for="hs-floating-input-email"
-                                                        class="form-floating-label ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-start-0 ui-kit-position-top-0 ui-kit-fill-height ui-kit-origin-start-top ui-kit-truncate ui-kit-frame ui-kit-line-transparent ui-kit-pad-4 ui-kit-transition ui-kit-duration-100 ui-kit-easing-in-out ui-kit-type-sm">이메일</label>
+                                                        class="form-floating-label">이메일</label>
                                                 </div>
                                                 <!-- End Floating Input -->
                                             </div>
@@ -748,7 +748,7 @@
                                                     <textarea id="floatingTextarea" rows="4" placeholder=""
                                                         class="form-floating-control form-textarea"></textarea>
                                                     <label for="floatingTextarea"
-                                                        class="form-floating-label ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-start-0 ui-kit-position-top-0 ui-kit-fill-height ui-kit-origin-start-top ui-kit-truncate ui-kit-frame ui-kit-line-transparent ui-kit-pad-4 ui-kit-transition ui-kit-duration-100 ui-kit-easing-in-out ui-kit-type-sm">의견</label>
+                                                        class="form-floating-label">의견</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -766,35 +766,11 @@
                                                     <input type="password" id="floatingPassword" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingPassword"
-                                                        class="form-floating-label ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-start-0 ui-kit-position-top-0 ui-kit-fill-height ui-kit-origin-start-top ui-kit-truncate ui-kit-frame ui-kit-line-transparent ui-kit-pad-4 ui-kit-transition ui-kit-duration-100 ui-kit-easing-in-out ui-kit-type-sm">비밀번호</label>
+                                                        class="form-floating-label">비밀번호</label>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
-
-                                        <!-- Floating Select -->
-                                        <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
-                                            <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">선택 메뉴</label>
-                                            </div>
-
-                                            <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context">
-                                                    <select id="floatingSelect" placeholder=""
-                                                        class="form-floating-control form-select">
-                                                        <option value="" selected disabled>이 선택 메뉴를 여세요
-                                                        </option>
-                                                        <option value="1">하나</option>
-                                                        <option value="2">둘</option>
-                                                        <option value="3">셋</option>
-                                                    </select>
-                                                    <label for="floatingSelect"
-                                                        class="form-floating-label ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-start-0 ui-kit-position-top-0 ui-kit-fill-height ui-kit-origin-start-top ui-kit-truncate ui-kit-frame ui-kit-line-transparent ui-kit-pad-4 ui-kit-transition ui-kit-duration-100 ui-kit-easing-in-out ui-kit-type-sm">선택
-                                                        가능</label>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1303,7 +1279,7 @@
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <!-- Single Toggle -->
                                                 <div>
-                                                    <input type="checkbox" id="toggleSingle" class="form-floating-control ui-kit-state-hidden" />
+                                                    <input type="checkbox" id="toggleSingle" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="toggleSingle"
                                                         class="btn btn-choice-primary">단일
                                                         토글</label>
@@ -1312,17 +1288,17 @@
                                                 <!-- Group Toggle -->
                                                 <div class="ui-kit-cluster">
                                                     <div>
-                                                        <input type="checkbox" id="toggle1" class="form-floating-control ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle1" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle1"
                                                             class="btn btn-choice-primary ui-kit-radius-e-none">하나</label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle2" class="form-floating-control ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle2" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle2"
                                                             class="btn btn-choice-primary ui-kit-radius-none ui-kit-divider-inline-none">둘</label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle3" class="form-floating-control ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle3" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle3"
                                                             class="btn btn-choice-primary ui-kit-radius-s-none">셋</label>
                                                     </div>
@@ -1341,21 +1317,21 @@
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-column-lg-2">
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioLeft"
-                                                        class="form-floating-control ui-kit-state-hidden" checked />
+                                                        class="form-choice-toggle-input ui-kit-state-hidden" checked />
                                                     <label for="radioLeft"
                                                         class="btn btn-choice-secondary ui-kit-radius-e-none">왼쪽</label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioMiddle"
-                                                        class="form-floating-control ui-kit-state-hidden" />
+                                                        class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioMiddle"
                                                         class="btn btn-choice-secondary ui-kit-radius-none ui-kit-divider-inline-none">가운데</label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioRight"
-                                                        class="form-floating-control ui-kit-state-hidden" />
+                                                        class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioRight"
                                                         class="btn btn-choice-secondary ui-kit-radius-s-none">오른쪽</label>
                                                 </div>

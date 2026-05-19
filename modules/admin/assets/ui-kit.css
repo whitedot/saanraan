@@ -347,41 +347,6 @@
 .hs-password-active .password-active-show { display: block; }
 .ui-kit-removing-shift.hs-removing { transform: translateX(calc(var(--spacing) * 5)); }
 .ui-kit-removing-fade.hs-removing { opacity: 0; }
-.form-floating-control {
-    display: block;
-    width: 100%;
-    padding: calc(var(--spacing) * 4);
-    color: var(--color-body-color);
-    background-color: var(--color-default-100);
-    border: 1px solid var(--color-default-500);
-    border-radius: var(--radius);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
-}
-.form-floating-control::placeholder { color: transparent; }
-.form-floating-control:focus,
-.form-floating-control:not(:placeholder-shown) {
-    padding-top: calc(var(--spacing) * 6);
-    padding-bottom: calc(var(--spacing) * 2);
-    border-color: var(--color-default-500);
-    outline: none;
-}
-.form-floating-label {
-    pointer-events: none;
-    position: absolute;
-    inset-inline-start: calc(var(--spacing) * 3);
-    top: calc(var(--spacing) * 3.5);
-    color: var(--color-default-400);
-    transition: all .1s ease-in-out;
-    transform-origin: top left;
-}
-.form-floating-control:focus + .form-floating-label,
-.form-floating-control:not(:placeholder-shown) + .form-floating-label {
-    top: calc(var(--spacing) * 1.5);
-    color: var(--color-default-500);
-    font-size: var(--text-xs);
-}
-
 .admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .ui-kit-grid.ui-kit-grid-1.ui-kit-gap-1-5.ui-kit-grid-lg-3.ui-kit-gap-lg-9 {
     align-items: start;
     column-gap: calc(var(--spacing) * 8);
@@ -397,44 +362,6 @@
 .admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .ui-kit-grid.ui-kit-grid-1.ui-kit-gap-1-5.ui-kit-grid-lg-3.ui-kit-gap-lg-9 .form-label.ui-kit-block-pad-2 {
     padding-block: 0;
     padding-top: .55rem;
-}
-
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] :is(
-    input.form-floating-control:not([type="checkbox"]),
-    textarea.form-floating-control,
-    select.form-floating-control
-) {
-    width: 100%;
-    min-height: calc(var(--spacing) * 9.25);
-    padding-inline: calc(var(--spacing) * 3) !important;
-    padding-block: calc(var(--spacing) * 3) calc(var(--spacing) * 1) !important;
-    color: var(--color-body-color);
-    background-color: var(--color-card) !important;
-    border: 1px solid var(--color-default-300) !important;
-    border-radius: var(--radius);
-    box-shadow: none;
-}
-
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] :is(
-    input.form-floating-control:not([type="checkbox"]),
-    textarea.form-floating-control,
-    select.form-floating-control
-):focus {
-    border-color: var(--color-primary) !important;
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent);
-}
-
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .form-floating-control + .form-floating-label {
-    inset-inline-start: calc(var(--spacing) * 3);
-    top: calc(var(--spacing) * 2.25);
-    color: var(--color-default-400);
-}
-
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .form-floating-control:focus + .form-floating-label,
-.admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .form-floating-control:not(:placeholder-shown) + .form-floating-label {
-    top: calc(var(--spacing) * .75);
-    color: var(--color-default-600);
 }
 
 .ui-kit-column-1 { grid-column: span 1 / span 1; }
