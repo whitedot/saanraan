@@ -68,6 +68,12 @@ svg.lucide{width:1em;height:1em}
 .btn-soft-warning{background-color:color-mix(in oklab,var(--color-warning) 15%,transparent)}
 .btn-soft-info{background-color:color-mix(in oklab,var(--color-info) 15%,transparent)}
 .btn-pill{border-radius:9999px}
+.btn-choice-primary{border-color:var(--color-primary);color:var(--color-primary);background-color:transparent}
+.btn-choice-secondary{border-color:var(--color-secondary);color:var(--color-secondary);background-color:transparent}
+input:checked + .btn-choice-primary,.btn-choice-primary.is-active,.btn-choice-primary[aria-pressed=true]{background-color:var(--color-primary);border-color:var(--color-primary);color:var(--color-white)}
+input:checked + .btn-choice-secondary,.btn-choice-secondary.is-active,.btn-choice-secondary[aria-pressed=true]{background-color:var(--color-secondary);border-color:var(--color-secondary);color:var(--color-white)}
+input:focus-visible + .btn-choice-primary{box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 14%,transparent)}
+input:focus-visible + .btn-choice-secondary{box-shadow:0 0 0 3px color-mix(in oklab,var(--color-secondary) 14%,transparent)}
 .card{border-radius:var(--radius);background-color:var(--color-card);overflow-wrap:break-word;height:fit-content;box-shadow:var(--shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
 .card .card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .card .card-body{padding:calc(var(--spacing) * 5);flex:auto}

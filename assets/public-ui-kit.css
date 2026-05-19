@@ -282,6 +282,16 @@
     .ui-kit-hover-ink-primary:hover { color: var(--color-primary); }
     .ui-kit-hover-ink-default-700:hover { color: var(--color-default-700); }
 }
+.btn-choice-primary { border-color: var(--color-primary); color: var(--color-primary); background-color: transparent; }
+.btn-choice-secondary { border-color: var(--color-secondary); color: var(--color-secondary); background-color: transparent; }
+input:checked + .btn-choice-primary,
+.btn-choice-primary.is-active,
+.btn-choice-primary[aria-pressed=true] { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
+input:checked + .btn-choice-secondary,
+.btn-choice-secondary.is-active,
+.btn-choice-secondary[aria-pressed=true] { background-color: var(--color-secondary); border-color: var(--color-secondary); color: var(--color-white); }
+input:focus-visible + .btn-choice-primary { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent); }
+input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 14%, transparent); }
 .form-checkbox:focus-visible,
 .form-radio:focus-visible,
 .form-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--form-choice-color, var(--color-primary)) 12%, transparent); }
