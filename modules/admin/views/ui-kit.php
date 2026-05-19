@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <div class="card-body">
         <p class="muted-text">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>
-        <nav class="ui-flex ui-flex-wrap ui-gap-2" aria-label="관리자 UI-KIT 섹션">
+        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="관리자 UI-KIT 섹션">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                 <a class="btn btn-sm btn-light" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
             <?php } ?>
@@ -41,9 +41,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<div class="ui-content-body admin-ui-kit-samples ui-form-theme">
+<div class="ui-kit-sample-body admin-ui-kit-samples ui-form-theme">
     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
-        <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section ui-mt-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
+        <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
             <h2 id="ui-kit-title-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section-title"><?php echo sr_e($sampleLabel); ?></h2>
             <?php
             $sampleFile = SR_ROOT . '/modules/admin/views/ui-kit-samples/' . $sampleKey . '.php';

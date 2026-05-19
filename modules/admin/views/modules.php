@@ -121,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
                                 <label>
                                     <span>설치 후 상태</span>
-                                    <select name="status">
+                                    <select name="status" class="form-select">
                                         <?php foreach ($allowedInstallStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
                                                 <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -141,7 +141,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
                                 <label>
                                     <span>상태</span>
-                                    <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?>>
+                                    <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?> class="form-select">
                                         <?php foreach ($allowedStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $module['status'] === $status ? ' selected' : ''; ?>>
                                                 <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -185,7 +185,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 zip</span>
-                    <input type="file" name="module_zip" accept=".zip,application/zip" required>
+                    <input type="file" name="module_zip" accept=".zip,application/zip" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -194,7 +194,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 key</span>
-                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*">
+                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" class="form-input">
                     </label>
                 </div>
             </div>
@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">소유자 비밀번호</span>
-                    <input type="password" name="owner_password" autocomplete="current-password" required>
+                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -300,7 +300,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
                                         <label>
                                             <span>설치 후 상태</span>
-                                            <select name="status">
+                                            <select name="status" class="form-select">
                                                 <?php foreach ($allowedInstallStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -338,7 +338,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">모듈</span>
-                        <select name="module_key">
+                        <select name="module_key" class="form-select">
                             <?php foreach ($modules as $module) { ?>
                                 <option value="<?php echo sr_e((string) $module['module_key']); ?>">
                                     <?php echo sr_e((string) $module['module_key']); ?>
@@ -353,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">키</span>
-                        <input type="text" name="setting_key" maxlength="120" required>
+                        <input type="text" name="setting_key" maxlength="120" required class="form-input">
                         </label>
                     </div>
                 </div>
@@ -362,7 +362,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">값</span>
-                        <textarea name="setting_value" maxlength="5000"></textarea>
+                        <textarea name="setting_value" maxlength="5000" class="form-textarea"></textarea>
                         </label>
                     </div>
                 </div>
@@ -371,7 +371,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">유형</span>
-                        <select name="value_type">
+                        <select name="value_type" class="form-select">
                             <?php foreach ($allowedSettingTypes as $type) { ?>
                                 <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
                             <?php } ?>
@@ -384,7 +384,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">소유자 비밀번호</span>
-                        <input type="password" name="owner_password" autocomplete="current-password">
+                        <input type="password" name="owner_password" autocomplete="current-password" class="form-input">
                         </label>
                     </div>
                 </div>
@@ -429,7 +429,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="module_key" value="<?php echo sr_e((string) $setting['module_key']); ?>">
                                 <input type="hidden" name="setting_key" value="<?php echo sr_e((string) $setting['setting_key']); ?>">
                                 <?php if (sr_admin_setting_value_is_secret((string) $setting['setting_key'])) { ?>
-                                    <input type="password" name="owner_password" autocomplete="current-password" required>
+                                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                                 <?php } ?>
                                 <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                             </form>

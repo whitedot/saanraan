@@ -21,14 +21,15 @@
 - `modules/admin/views/ui-kit-samples/tables-static.php`: `table-wrapper`, `table`, `thead`, `tbody`
 - `modules/admin/views/ui-kit-samples/ui-tabs.php`: `tab-nav`, `tab-nav-bordered`, `tab-trigger-underline`
 - `docs/admin-ui-guide.md`: 관리자 UI 작성 기준
-- `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`: 사이트 공통 디자인 토큰, 공통 UI 원형, 재사용 유틸리티
+- `assets/common/tokens.css`: 사이트 공통 디자인 토큰
+- `modules/admin/assets/admin.css`: 관리자 reset/base 및 실제 관리자 의미 클래스
 
 ## 명명 원칙
 
 | 계층 | 사용 class | 책임 |
 | --- | --- | --- |
-| 공통 UI | `card`, `btn`, `table`, `table-wrapper`, `form-*`, `tab-*` | 공통 원형 |
-| 관리자 UI | `admin-*`, `admin-ui-*` | 관리자 shell, 운영 화면 밀도, 관리자 전용 조합 |
+| 공통 UI | `card`, `btn`, `table`, `table-wrapper`, `tab-*` | 공통 원형 |
+| 관리자 UI | `admin-*`, `admin-ui-*`, `form-*` | 관리자 shell, 운영 화면 밀도, 관리자 전용 조합과 입력 원형 |
 | 도메인 관리자 | `{module_key}-admin-*` | 특정 모듈 화면에서만 필요한 도메인 표현 |
 | 도메인 잔여 | `member-*`, `community-*` | 실제 회원·커뮤니티 도메인 표현에만 제한 |
 
@@ -273,14 +274,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 - `assets/admin-ui.css`
 - `assets/common/tokens.css`
-- `assets/common/primitives.css`
-- `assets/common/utilities.css`
 - `modules/admin/assets/admin.css`
 
 작업:
 
-- 공통 토큰은 `assets/common/tokens.css`, 공통 원형은 `assets/common/primitives.css`, 공통 유틸은 `assets/common/utilities.css`에 둔다.
-- 관리자 런타임은 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 순서로 호출한다.
+- 공통 토큰은 `assets/common/tokens.css`에 둔다. 관리자 reset/base, 반복 UI 원형, 관리자 입력 필드의 `form-*` 기본 스타일은 `modules/admin/assets/admin.css`가 소유한다.
+- 관리자 런타임은 `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 순서로 호출한다.
 - `admin-card`, `admin-list-card`, `admin-table`, `admin-row-actions`, `admin-form`, `admin-form-row`, `admin-filter` 계열 class를 추가한다.
 - `admin-*` 원형 class가 직접 스타일을 받도록 CSS를 둔다.
 - 이 단계에서는 view 변경을 최소화하고 시각 회귀를 막는다.

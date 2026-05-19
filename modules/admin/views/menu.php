@@ -38,8 +38,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             data-admin-sort-order
                             min="-999999"
                             max="999999"
-                            required
-                        >
+                            required class="form-input">
                     </td>
                     <td>
                         <label class="admin-form-check form-label">

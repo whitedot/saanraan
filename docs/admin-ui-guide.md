@@ -1,12 +1,12 @@
 # 관리자 UI 작성 기준
 
-관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 공통 CSS는 책임별 파일을 유지하고 호출 순서와 책임을 고정한다.
+관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. 관리자 런타임의 원스타일 출처는 `modules/admin/assets/admin.css`로 둔다.
 
 - `assets/common/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
-- `assets/common/primitives.css`: reset/base와 `btn`, `card`, `table`, `form-*`, `tab-*` 같은 공통 UI 원형을 둔다.
-- `assets/common/utilities.css`: `.sr-only`, `ui-form-theme` 같은 재사용 유틸리티와 공통 보강을 둔다.
-- `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합을 둔다.
-- `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
+- `assets/common/primitives.css`: 관리자 런타임에서 호출하지 않는다. 과거 중앙 UI-KIT/공용 미리보기 산출물이며, 관리자 컴포넌트의 스타일 출처로 쓰지 않는다.
+- `assets/common/utilities.css`: 관리자 런타임에서 호출하지 않는다. 공용 보조 스타일이 필요하더라도 관리자 화면의 실제 클래스는 `admin.css`에 둔다.
+- `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합만 둔다.
+- `modules/admin/assets/admin.css`: 관리자 runtime reset/base, `btn`, `card`, `table`, `badge`, `form-*` 같은 의미 클래스, shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
 
 공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. Public UI-KIT 조회 화면은 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/public-ui-kit.css`에서 관리자 공통 원형의 출발점을 복사해 사용한다.
 
@@ -22,11 +22,12 @@
 
 CSS class는 범위를 드러내는 접두어를 사용한다.
 
-- 반복 가능한 공통 UI는 `ui-*`, `btn`, `card`, `table`처럼 `assets/common/primitives.css` 또는 `assets/common/utilities.css`에 둔다.
+- 반복 가능한 관리자 UI는 `btn`, `card`, `table`, `badge`, `form-*`처럼 `modules/admin/assets/admin.css`에 직접 둔다.
 - 관리자 shell과 관리자 전용 배치는 `admin-*` 접두어를 사용하고 `modules/admin/assets/admin.css`에 둔다.
 - 모듈별 관리자 본문에서 도메인 고유 스타일이 필요하면 `{module_key}-admin-*` 또는 `sr-{module_key}-admin-*` 형식을 사용한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
 - 탭처럼 공통 CSS에 이미 정의된 반복 UI는 `tab-nav-*`, `tab-trigger-*` 같은 기존 시맨틱 클래스를 먼저 사용한다. 토스트는 기존 관리자 메시지 클래스인 `admin-flash-message-*`에 `data-admin-toast` 동작 속성만 더해 사용하고, 위치와 닫기 버튼 배치는 `data-admin-toast-*` 속성 선택자로 처리한다.
+- UI-KIT 조회 화면의 배치와 예시 상태 표시처럼 실제 컴포넌트 원형이 아닌 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*` 같은 Tailwind식 범용 utility 표현은 관리자/공개 UI-KIT 샘플에 사용하지 않는다.
 - 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/admin/ui-kit-public` public 조회 화면에서 런타임별 결과를 확인한다.
 
 ## 화면 내 이동 링크
@@ -42,6 +43,8 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 옅은 색상은 의미가 분명한 보조 텍스트에만 사용한다. 예를 들어 `hint-text`, `muted-text`, `admin-form-help`, `admin-card-subtitle`, 빈 상태 안내, 보조 메타 정보처럼 본문보다 우선순위가 낮은 텍스트가 여기에 해당한다. 성공, 경고, 위험, 링크, 활성 탭처럼 상태나 상호작용을 나타내는 색상은 예외로 유지한다.
 
 `var(--text-xs)`, `var(--text-sm)`, `.8125rem`처럼 기본보다 작은 크기는 화면 밀도나 정보 계층이 분명한 경우에만 사용한다. 도움말, 힌트, 보조 메타, 상태 배지, 사이드바 보조 메뉴, 테이블 안의 부가 정보가 여기에 해당한다. 새 관리자 화면의 본문과 입력 라벨은 먼저 16px 상속을 기준으로 확인한다.
+
+관리자 런타임의 기본 입력 필드는 class 없는 `input`, `select`, `textarea`가 아니라 `.form-input`, `.form-select`, `.form-textarea`, `.form-checkbox`, `.form-radio` 시맨틱 클래스를 사용한다. 이 클래스들은 다른 요소의 자식 선택자가 아니라 `admin.css`의 직접 선택자로 스타일을 소유한다. class 없는 필드 선택자는 기존 화면 호환을 위한 fallback으로만 남긴다.
 
 ## 사이드바
 

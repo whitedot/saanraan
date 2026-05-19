@@ -6,7 +6,7 @@
 
 ## 목표
 
-- 개발자가 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`의 현재 토큰, reset/base, 공통 UI 원형을 실제 public/admin 화면 컨텍스트에서 확인할 수 있게 한다.
+- 개발자가 `assets/common/tokens.css`의 현재 토큰과 런타임별 CSS의 reset/base, UI 원형을 실제 public/admin 화면 컨텍스트에서 확인할 수 있게 한다.
 - `assets/admin-ui.css`, `assets/public-ui.css`, `assets/saanraan.css`, `modules/admin/assets/admin.css`처럼 실제 화면에서 쓰는 레이어 CSS를 해당 런타임의 원래 호출 방식으로 확인한다. 단, public 컴포넌트 스타일은 아직 충분히 분리되어 있지 않으므로 초기 public UI-KIT은 관리자에서 사용하는 공통 원형과 스타일을 복사해 출발점으로 삼는다.
 - UI-KIT 전용 CSS가 프로젝트 토큰이나 컴포넌트 원형을 덮어쓰지 않게 하기 위해 중앙 shell CSS를 제거한다.
 - 드롭다운, 모달, 탭처럼 JS 동작이 있어야 원형을 확인할 수 있는 항목은 프로젝트에서도 같은 JS를 사용할 수 있게 공용 자산으로 관리한다.
@@ -19,9 +19,10 @@
 3. UI-KIT은 별도 디자인 시스템을 만들지 않는다. 실제 프로젝트 CSS와 공용 JS의 현재 결과만 보여준다.
 4. 조회 화면의 부가 스타일은 해당 런타임 내부에서 최소화한다. `.btn`, `.card`, `.table`, `.form-*`, `.dropdown-*`, `.modal-*`, `.tab-*` 같은 프로젝트 원형 클래스를 재정의하지 않는다.
 5. 중앙 UI-KIT shell, 사이드바, 별도 미리보기 유틸리티 CSS는 제거한다.
-6. `g5codex.git` 산출물 적용 과정에서 남은 그누보드5와 이전 UI 프레임워크 계열 잔재는 현재 프로젝트 목적 기준으로 판정한다. 실제로 필요한 원형은 `saanraan`의 공용 CSS/JS 규칙으로 재정의하고, 단순 호환용 잔재는 제거한다.
-7. UI-KIT은 예쁜 데모 페이지가 아니라 현재 디자인 토큰과 공용 UI 동작을 검증하는 읽기 전용 개발자 도구다.
-8. 관리자/공개 화면처럼 런타임 컨텍스트가 중요한 샘플은 별도 중앙 shell이 아니라 해당 런타임 안에서 직접 렌더링한다.
+6. UI-KIT 조회 화면에서만 필요한 배치, 간격, 색상 보조 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*`, `ui-mt-*`, `ui-p-*` 같은 Tailwind식 범용 utility 표현은 사용하지 않는다.
+7. `g5codex.git` 산출물 적용 과정에서 남은 그누보드5와 이전 UI 프레임워크 계열 잔재는 현재 프로젝트 목적 기준으로 판정한다. 실제로 필요한 원형은 `saanraan`의 공용 CSS/JS 규칙으로 재정의하고, 단순 호환용 잔재는 제거한다.
+8. UI-KIT은 예쁜 데모 페이지가 아니라 현재 디자인 토큰과 공용 UI 동작을 검증하는 읽기 전용 개발자 도구다.
+9. 관리자/공개 화면처럼 런타임 컨텍스트가 중요한 샘플은 별도 중앙 shell이 아니라 해당 런타임 안에서 직접 렌더링한다.
 
 ## 구조 한계와 보정 방향
 
@@ -43,7 +44,8 @@
 Admin 조회 화면:
 
 - `modules/admin/views/layout-header.php`와 `layout-footer.php`를 통과한다.
-- `sr_admin_stylesheet_tag()`가 출력하는 `tokens.css`, `primitives.css`, `utilities.css`, `admin-ui.css`, `modules/admin/assets/admin.css`를 그대로 사용한다.
+- `sr_admin_stylesheet_tag()`가 출력하는 `tokens.css`, `admin-ui.css`, `modules/admin/assets/admin.css`를 그대로 사용한다.
+- 관리자 런타임의 reset/base와 `btn`, `card`, `table`, `badge`, `form-*` 의미 클래스는 `modules/admin/assets/admin.css`가 직접 소유한다. `assets/common/primitives.css`와 `assets/common/utilities.css`는 관리자 UI-KIT의 스타일 출처로 쓰지 않는다.
 - 관리자 조회 페이지는 `modules/admin/views/ui-kit.php` 또는 `modules/admin/views/dev-ui-kit.php`로 둔다.
 
 Public 조회 화면:
@@ -56,9 +58,9 @@ Public 조회 화면:
 - 복사한 스타일은 `modules/admin/assets/admin.css`를 public에서 직접 호출하지 않고, public이 소유하는 stylesheet로 둔다. 후보 위치는 `assets/public-ui.css` 또는 public layout 전용 stylesheet다.
 - public에 복사한 뒤에는 public 런타임에서 실제로 쓰는 class와 토큰 기준으로 이름과 범위를 정리한다. 관리자 모듈 전용 selector나 admin domain 구조는 public으로 가져오지 않는다.
 
-`assets/common.css`는 중앙 UI-KIT manifest 용도만 남아 있었으므로 중앙 UI-KIT 제거와 함께 삭제한다. 실제 편집 기준은 계속 `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`다.
+`assets/common.css`는 중앙 UI-KIT manifest 용도만 남아 있었으므로 중앙 UI-KIT 제거와 함께 삭제한다. 관리자 화면의 실제 편집 기준은 `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`다.
 
-`assets/ui-kit/css/preview-utilities.css`와 `assets/ui-kit/css/ui-guide.css`는 중앙 shell 전용 파일이므로 제거한다. 샘플 배치에 필요한 최소 helper는 런타임별 조회용 CSS인 `modules/admin/assets/ui-kit.css`와 `assets/public-ui-kit.css`로 이관한다.
+`assets/ui-kit/css/preview-utilities.css`와 `assets/ui-kit/css/ui-guide.css`는 중앙 shell 전용 파일이므로 제거한다. 샘플 배치에 필요한 최소 표현 class는 런타임별 조회용 CSS인 `modules/admin/assets/ui-kit.css`와 `assets/public-ui-kit.css`에 `ui-kit-*` 접두어로만 둔다. 이 class는 UI-KIT 샘플의 배치와 예시 상태 표시를 위한 것이며, 실제 프로젝트 컴포넌트 원형으로 승격하지 않는다.
 
 ## JS 호출 계획
 
@@ -176,9 +178,11 @@ assets/common-ui.js
 
 2026-05-18에 `preview-utilities.css` 호출과 파일을 제거했다. 이후 남은 HTML 배치 보정도 `ui-guide.css`의 명시적 `ui-*` class와 실제 프로젝트 원형 class 기준으로 정리했다. 그러나 중앙 `assets/ui-kit` 방식 자체가 런타임별 CSS 결과를 혼동시킨다는 결론에 따라, 이 정리는 최종 구조가 아니라 이관 전 중간 단계로 취급한다.
 
+2026-05-19에 `/admin/ui-kit`과 `/admin/ui-kit-public` 샘플에 남아 있던 Tailwind식 `ui-*` 표현을 제거했다. 샘플 파일과 런타임별 UI-KIT CSS에는 `ui-bg-*`, `ui-text-*`, `ui-border-*`, `ui-rounded-*`, `ui-gap-*`, `ui-grid`, `ui-flex` 같은 범용 utility class를 두지 않고, UI-KIT 조회 화면 전용 표현은 `ui-kit-*` 접두어로만 구분한다. `ui-form-theme`처럼 실제 공통 폼 컨텍스트를 나타내는 프로젝트 의미 class는 예외로 유지한다.
+
 ## HTML 이관 기준
 
-- `bg-gray-50`, `text-2xl`, `font-bold`, `mt-4`, `flex`, `gap-*` 같은 미리보기 유틸리티 클래스 의존은 런타임별 조회 화면으로 옮길 때 제거한다.
+- `bg-gray-50`, `text-2xl`, `font-bold`, `mt-4`, `flex`, `gap-*`, `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex` 같은 미리보기 유틸리티 클래스 의존은 런타임별 조회 화면으로 옮길 때 제거한다.
 - 조회 화면 배치가 필요한 경우 public/admin 런타임의 기존 layout/card/form/table 구조를 우선 사용한다.
 - 프로젝트 원형 샘플에는 실제 프로젝트 클래스를 그대로 사용한다.
 - 기존 중앙 UI-KIT의 예시는 삭제하거나 요약하지 않고 모두 옮긴다. 단, 같은 예시가 public/admin 양쪽에 필요한 경우에는 복제해서 각각의 실제 CSS 결과를 확인한다.
@@ -193,7 +197,7 @@ assets/common-ui.js
 
 ## 프로젝트 영향 방지
 
-- `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css`, `assets/admin-ui.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
+- `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, `assets/saanraan.css`, `assets/public-ui.css`에는 UI-KIT 조회 화면 전용 스타일을 넣지 않는다.
 - 중앙 `assets/ui-kit/css/ui-guide.css`는 최종 제거한다.
 - 중앙 `assets/ui-kit/js/*` 중 shell 전용 JS는 최종 제거한다.
 - `assets/ui-kit/js/common.js`는 프로젝트 공용 JS로 승격하지 않고 제거한다.
@@ -236,9 +240,10 @@ assets/common-ui.js
 - 기존 중앙 UI-KIT의 모든 카테고리와 예시가 public/admin 조회 화면 중 하나 이상으로 이관되어 있다.
 - 중앙 `assets/ui-kit` 디렉터리가 제거되어 있다.
 - UI-KIT 전용 CSS가 프로젝트 원형 클래스를 재정의하지 않는다.
-- `assets/common/tokens.css`, `assets/common/primitives.css`, `assets/common/utilities.css` 수정 결과가 UI-KIT 샘플에 바로 반영된다.
+- `assets/common/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 수정 결과가 관리자 UI-KIT 샘플에 바로 반영된다.
 - 드롭다운 옵션은 새 마크업에서 `data-dropdown-*` 속성으로 표현된다.
 - 드롭다운, 모달, 탭은 public/admin 조회 화면과 실제 프로젝트 화면에서 같은 공용 JS로 동작한다.
 - 프로젝트 런타임은 중앙 UI-KIT shell CSS/JS를 호출하지 않는다.
 - `preview-utilities.css`, `ui-guide.css`, 중앙 UI-KIT shell JS의 잔여 참조가 없다.
+- UI-KIT 샘플과 조회 전용 CSS에는 Tailwind식 `ui-*` utility class가 남아 있지 않고, 조회 화면 전용 표현은 `ui-kit-*`로만 식별된다.
 - `git diff --check`가 통과한다.

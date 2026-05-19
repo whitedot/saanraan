@@ -44,12 +44,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/roles')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
-                        <select name="role_key">
+                        <select name="role_key" class="form-select">
                             <?php foreach ($allowedRoles as $roleKey) { ?>
                                 <option value="<?php echo sr_e($roleKey); ?>"><?php echo sr_e(sr_admin_code_label($roleKey, 'role')); ?></option>
                             <?php } ?>
                         </select>
-                        <select name="role_action">
+                        <select name="role_action" class="form-select">
                             <option value="grant">부여</option>
                             <option value="revoke">회수</option>
                         </select>

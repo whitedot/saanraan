@@ -214,8 +214,6 @@ function sr_admin_stylesheet_tag(): string
         . '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
         . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/tokens.css')) . '">' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/primitives.css')) . '">' . PHP_EOL
-        . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/common/utilities.css')) . '">' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">' . PHP_EOL
         . '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">';
 }

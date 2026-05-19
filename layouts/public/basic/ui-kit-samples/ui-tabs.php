@@ -1,13 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-tabs">
 <div class="container-fluid">
-                    <div class="ui-grid ui-grid-cols-1 ui-grid-cols-xl-2 ui-gap-base">
+                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">기본 탭 (Default Tabs)</h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">로컬 콘텐츠를 위한 간단한 탭 인터페이스 위젯입니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">로컬 콘텐츠를 위한 간단한 탭 인터페이스 위젯입니다.</p>
                                 <div>
                                     <nav class="tab-nav" aria-label="Tabs" role="tablist"
                                         data-hs-tab-select="#tab-select">
@@ -48,12 +48,12 @@
                                             전반적인 사용자 참여를 쉽게 모니터링할 수 있습니다.</p>
                                     </div>
 
-                                    <div id="default-activity" class="ui-hidden" role="tabpanel" aria-labelledby="activity">
+                                    <div id="default-activity" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="activity">
                                         <p>플랫폼 전체에서 수행된 최신 상호 작용 및 작업을 확인하세요. 최근 파일 업로드, 댓글, 상태 업데이트 및 알림 기록이 포함되어 진행 중인
                                             변경 사항을 최신 상태로 유지할 수 있습니다.</p>
                                     </div>
 
-                                    <div id="default-settings" class="ui-hidden" role="tabpanel"
+                                    <div id="default-settings" class="ui-kit-state-hidden" role="tabpanel"
                                         aria-labelledby="settings">
                                         <p>테마 옵션, 알림 설정 및 개인 정보 보호 제어를 포함하여 계정 기본 설정을 사용자 정의하세요. 워크플로우에 맞게 레이아웃 구성을 조정하고
                                             타사 서비스와의 통합을 관리하세요.</p>
@@ -70,7 +70,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">균등 분할된 탐색 항목은 사용 가능한 전체 너비를 채우도록 늘어나며 모든 탭이 컨테이너 전체에
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">균등 분할된 탐색 항목은 사용 가능한 전체 너비를 채우도록 늘어나며 모든 탭이 컨테이너 전체에
                                     고르게 배치되도록 합니다.</p>
 
                                 <div>
@@ -119,20 +119,20 @@
                                             의사 결정을 내릴 수 있습니다.</p>
                                     </div>
 
-                                    <div id="profile1" class="ui-hidden" role="tabpanel" aria-labelledby="profile-1">
+                                    <div id="profile1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-1">
                                         <p>프로필을 맞춤 설정하고 개인 정보를 업데이트하며 비밀번호 및 2FA와 같은 보안 설정을 관리하세요. 최신 정보를 바탕으로 계정을 안전하게
                                             유지하세요.</p>
                                     </div>
 
-                                    <div id="settings1" class="ui-hidden" role="tabpanel" aria-labelledby="settings-1">
+                                    <div id="settings1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="settings-1">
                                         <p>시스템 기본 설정, 테마 옵션 및 알림 설정을 구성하세요. 워크플로우와 선호도에 맞게 플랫폼을 쉽게 조정할 수 있습니다.</p>
                                     </div>
 
-                                    <div id="projects1" class="ui-hidden" role="tabpanel" aria-labelledby="projects-1">
+                                    <div id="projects1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="projects-1">
                                         <p>진행 중인 모든 프로젝트, 작업 및 이정표를 보고 관리하세요. 팀과 협업하고 진행 상황을 실시간으로 추적하세요.</p>
                                     </div>
 
-                                    <div id="Support1" class="ui-hidden" role="tabpanel" aria-labelledby="Support-1">
+                                    <div id="Support1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="Support-1">
                                         <p>도움이 필요하신가요? 지원 팀에 문의하거나 도움말 센터에서 일반적인 질문, 가이드 및 문서를 찾아보세요.</p>
                                     </div>
                                 </div>
@@ -147,10 +147,10 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">탐색 항목을 세로로 쌓으려면 flex 방향을 column으로 변경하여 항목들이 위아래로 표시되도록
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 항목을 세로로 쌓으려면 flex 방향을 column으로 변경하여 항목들이 위아래로 표시되도록
                                     할 수 있습니다.</p>
 
-                                <div class="ui-grid ui-grid-cols-1 ui-grid-cols-md-4 ui-gap-base">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-4 ui-kit-gap-base">
                                     <nav aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-pill-primary active"
@@ -192,11 +192,11 @@
                                         </button>
                                     </nav>
 
-                                    <div class="ui-col-md-3">
+                                    <div class="ui-kit-column-md-3">
                                         <div id="v-pills-home-tab" role="tabpanel" aria-labelledby="vertical-overview">
-                                            <p class="ui-mb-2">대시보드에 오신 것을 환영합니다. 최근 활동, 주요 통계 및 생산성을 높이고 궤도를 유지하기 위한 맞춤형
+                                            <p class="ui-kit-space-after-2">대시보드에 오신 것을 환영합니다. 최근 활동, 주요 통계 및 생산성을 높이고 궤도를 유지하기 위한 맞춤형
                                                 제안을 한눈에 확인하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>전체 프로젝트 상태 확인</li>
                                                 <li>최근 파일에 대한 빠른 링크</li>
                                                 <li>주간 성과 차트</li>
@@ -204,10 +204,10 @@
                                             <p>대시보드는 귀하의 활동과 역할에 맞춰져 있습니다. 정보를 계속 파악하여 항상 한발 앞서 나가세요.</p>
                                         </div>
 
-                                        <div id="v-pills-profile-tab" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-profile-tab" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="vertical-activity">
-                                            <p class="ui-mb-2">개인 정보를 관리하고, 프로필 사진을 변경하고, 연락처 정보를 업데이트하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">개인 정보를 관리하고, 프로필 사진을 변경하고, 연락처 정보를 업데이트하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>이름, 이메일, 전화번호</li>
                                                 <li>비밀번호 변경</li>
                                                 <li>활동 로그 및 선호도</li>
@@ -215,10 +215,10 @@
                                             <p>프로필을 최신 상태로 유지하면 더 나은, 더 안전한 경험을 보장할 수 있습니다.</p>
                                         </div>
 
-                                        <div id="v-pills-settings-tab" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-settings-tab" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="vertical-settings">
-                                            <p class="ui-mb-2">선호도, 알림 옵션 및 개인 정보 보호 설정을 사용자 정의하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">선호도, 알림 옵션 및 개인 정보 보호 설정을 사용자 정의하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>테마 선택: 라이트 / 다크 모드</li>
                                                 <li>이메일 및 푸시 알림 토글</li>
                                                 <li>연결된 계정 및 통합</li>
@@ -226,10 +226,10 @@
                                             <p>설정은 인터페이스를 개인화하고 워크플로우 효율성을 높이는 데 도움이 됩니다.</p>
                                         </div>
 
-                                        <div id="v-pills-projects-tab" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-projects-tab" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="vertical-disabled">
-                                            <p class="ui-mb-2">활성, 완료된 프로젝트 및 예정된 프로젝트를 모두 한 곳에서 추적하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">활성, 완료된 프로젝트 및 예정된 프로젝트를 모두 한 곳에서 추적하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>칸반 보드 및 간트 차트</li>
                                                 <li>작업 할당 및 마감일</li>
                                                 <li>진행 표시기 및 타임라인</li>
@@ -237,10 +237,10 @@
                                             <p>협업 도구를 사용하고 문서를 업로드하며 여기에서 결과물을 직접 관리하세요.</p>
                                         </div>
 
-                                        <div id="v-pills-support-tab" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-support-tab" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="vertical-support">
-                                            <p class="ui-mb-2">도움이 필요하신가요? 도움말 센터에 접속하거나 지원 팀에 직접 문의하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">도움이 필요하신가요? 도움말 센터에 접속하거나 지원 팀에 직접 문의하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>도움말 및 튜토리얼 찾아보기</li>
                                                 <li>지원 티켓 제출</li>
                                                 <li>지원 상담원과 실시간 채팅</li>
@@ -260,15 +260,15 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">필(Pill) 스타일 탐색은 탐색 항목에 둥근 색상 기반 스타일을 적용하여 활성 상태를 시각적으로
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">필(Pill) 스타일 탐색은 탐색 항목에 둥근 색상 기반 스타일을 적용하여 활성 상태를 시각적으로
                                     더 뚜렷하게 만듭니다.</p>
 
-                                <div class="ui-grid ui-grid-cols-1 ui-grid-cols-md-4 ui-gap-base">
-                                    <div class="ui-col-md-3">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-4 ui-kit-gap-base">
+                                    <div class="ui-kit-column-md-3">
                                         <div id="v-pills-home-right" role="tabpanel" aria-labelledby="right-overview">
-                                            <p class="ui-mb-2">대시보드에 오신 것을 환영합니다. 최근 활동, 주요 통계 및 생산성을 높이고 궤도를 유지하기 위한 맞춤형
+                                            <p class="ui-kit-space-after-2">대시보드에 오신 것을 환영합니다. 최근 활동, 주요 통계 및 생산성을 높이고 궤도를 유지하기 위한 맞춤형
                                                 제안을 한눈에 확인하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>전체 프로젝트 상태 확인</li>
                                                 <li>최근 파일에 대한 빠른 링크</li>
                                                 <li>주간 성과 차트</li>
@@ -276,10 +276,10 @@
                                             <p>대시보드는 귀하의 활동과 역할에 맞춰져 있습니다. 정보를 계속 파악하여 항상 한발 앞서 나가세요.</p>
                                         </div>
 
-                                        <div id="v-pills-profile-right" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-profile-right" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="right-activity">
-                                            <p class="ui-mb-2">개인 정보를 관리하고, 프로필 사진을 변경하고, 연락처 정보를 업데이트하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">개인 정보를 관리하고, 프로필 사진을 변경하고, 연락처 정보를 업데이트하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>이름, 이메일, 전화번호</li>
                                                 <li>비밀번호 변경</li>
                                                 <li>활동 로그 및 선호도</li>
@@ -287,10 +287,10 @@
                                             <p>프로필을 최신 상태로 유지하면 더 나은, 더 안전한 경험을 보장할 수 있습니다.</p>
                                         </div>
 
-                                        <div id="v-pills-settings-right" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-settings-right" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="right-settings">
-                                            <p class="ui-mb-2">선호도, 알림 옵션 및 개인 정보 보호 설정을 사용자 정의하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">선호도, 알림 옵션 및 개인 정보 보호 설정을 사용자 정의하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>테마 선택: 라이트 / 다크 모드</li>
                                                 <li>이메일 및 푸시 알림 토글</li>
                                                 <li>연결된 계정 및 통합</li>
@@ -298,10 +298,10 @@
                                             <p>설정은 인터페이스를 개인화하고 워크플로우 효율성을 높이는 데 도움이 됩니다.</p>
                                         </div>
 
-                                        <div id="v-pills-projects-right" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-projects-right" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="right-disabled">
-                                            <p class="ui-mb-2">활성, 완료된 프로젝트 및 예정된 프로젝트를 모두 한 곳에서 추적하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">활성, 완료된 프로젝트 및 예정된 프로젝트를 모두 한 곳에서 추적하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>칸반 보드 및 간트 차트</li>
                                                 <li>작업 할당 및 마감일</li>
                                                 <li>진행 표시기 및 타임라인</li>
@@ -309,10 +309,10 @@
                                             <p>협업 도구를 사용하고 문서를 업로드하며 여기에서 결과물을 직접 관리하세요.</p>
                                         </div>
 
-                                        <div id="v-pills-support-right" class="ui-hidden" role="tabpanel"
+                                        <div id="v-pills-support-right" class="ui-kit-state-hidden" role="tabpanel"
                                             aria-labelledby="right-support">
-                                            <p class="ui-mb-2">도움이 필요하신가요? 도움말 센터에 접속하거나 지원 팀에 직접 문의하세요.</p>
-                                            <ul class="ui-mb-4 ui-list-disc ui-stack-1 ui-ps-8">
+                                            <p class="ui-kit-space-after-2">도움이 필요하신가요? 도움말 센터에 접속하거나 지원 팀에 직접 문의하세요.</p>
+                                            <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
                                                 <li>도움말 및 튜토리얼 찾아보기</li>
                                                 <li>지원 티켓 제출</li>
                                                 <li>지원 상담원과 실시간 채팅</li>
@@ -372,7 +372,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">탐색 항목에 간단한 하단 테두리 스타일을 적용하여 디자인을 미니멀하게 유지하면서 활성 상태를 강조할
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 항목에 간단한 하단 테두리 스타일을 적용하여 디자인을 미니멀하게 유지하면서 활성 상태를 강조할
                                     수도 있습니다.</p>
 
                                 <div>
@@ -414,18 +414,18 @@
                                             단장하든 최신 트렌드에 대한 전문가 조언을 찾고 있든, 저희가 도와드리겠습니다.</p>
                                     </div>
 
-                                    <div id="profile-b1" class="ui-hidden" role="tabpanel" aria-labelledby="profile-border">
+                                    <div id="profile-b1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-border">
                                         <p>안녕하세요! 저는 끊임없이 새로운 모험과 통찰력을 추구하는 열정적인 탐험가입니다. 저의 관심사에는 기술, 문학, 여행, 피트니스 및 자기
                                             계발이 포함됩니다. 새로운 기술을 배우고 다른 사람들과 지식을 공유하여 개인적인 성장을 촉진하는 것을 즐깁니다.</p>
                                     </div>
 
-                                    <div id="settings-b1" class="ui-hidden" role="tabpanel"
+                                    <div id="settings-b1" class="ui-kit-state-hidden" role="tabpanel"
                                         aria-labelledby="settings-border">
                                         <p>도시의 심장부에 위치한 매력적인 카페는 도시의 번잡함에서 벗어나 평화로운 휴식을 제공합니다. 아늑한 장식과 따뜻한 조명이 어우러진 초대하는
                                             분위기는 휴식이나 생산적인 회의를 위한 완벽한 환경을 제공합니다.</p>
                                     </div>
 
-                                    <div id="about-b1" class="ui-hidden" role="tabpanel" aria-labelledby="about-border">
+                                    <div id="about-b1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-border">
                                         <p>저희 회사는 귀하의 삶을 풍요롭게 하도록 설계된 고품질 서비스와 제품을 제공하는 데 전념하고 있습니다. 지속 가능성과 혁신에 중점을 두어
                                             고객을 위한 지속적인 가치를 창출하는 것을 목표로 합니다. 매일의 삶을 더 낫게 만들기 위한 여정에 함께하세요!</p>
                                     </div>
@@ -441,7 +441,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">탐색 바는 미니멀한 레이아웃을 유지하면서 활성 또는 선택된 항목을 시각적으로 강조하기 위해 유색
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">탐색 바는 미니멀한 레이아웃을 유지하면서 활성 또는 선택된 항목을 시각적으로 강조하기 위해 유색
                                     테두리 스타일을 사용할 수 있습니다.</p>
 
                                 <div>
@@ -451,32 +451,32 @@
                                             class="tab-trigger-line-danger active"
                                             id="home-icon" aria-selected="true" data-hs-tab="#home-ib1"
                                             aria-controls="home-ib1" role="tab">
-                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-text-base"></i>
-                                            <div class="ui-hidden ui-show-md">홈</div>
+                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-type-base"></i>
+                                            <div class="ui-kit-state-hidden ui-kit-show-md">홈</div>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
                                             id="profile-icon" aria-selected="false" data-hs-tab="#profile-ib1"
                                             aria-controls="profile-ib1" role="tab">
-                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-text-base"></i>
-                                            <div class="ui-hidden ui-show-md">프로필</div>
+                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-type-base"></i>
+                                            <div class="ui-kit-state-hidden ui-kit-show-md">프로필</div>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
                                             id="settings-icon" aria-selected="false" data-hs-tab="#settings-ib1"
                                             aria-controls="settings-ib1" role="tab">
-                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-text-base"></i>
-                                            <div class="ui-hidden ui-show-md">설정</div>
+                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-base"></i>
+                                            <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
                                             id="about-icon" aria-selected="false" data-hs-tab="#about-ib1"
                                             aria-controls="about-ib1" role="tab">
-                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-text-base"></i>
-                                            <div class="ui-hidden ui-show-md">정보</div>
+                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-base"></i>
+                                            <div class="ui-kit-state-hidden ui-kit-show-md">정보</div>
                                         </button>
                                     </nav>
                                 </div>
@@ -487,18 +487,18 @@
                                             기술부터 홈 데코 솔루션까지, 모든 제품이 귀하의 라이프스타일을 개선하고 삶을 더 쉽게 만들 수 있도록 보장합니다.</p>
                                     </div>
 
-                                    <div id="profile-ib1" class="ui-hidden" role="tabpanel" aria-labelledby="profile-icon">
+                                    <div id="profile-ib1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-icon">
                                         <p>안녕하세요! 저는 기술, 피트니스 및 지속적인 학습에 열정을 가진 탐험가입니다. 비슷한 생각을 가진 사람들을 만나는 것을 즐기며 최신
                                             가젯부터 자기 계발에 이르기까지 다양한 주제에 대한 지식을 넓히는 것을 믿습니다.</p>
                                     </div>
 
-                                    <div id="settings-ib1" class="ui-hidden" role="tabpanel"
+                                    <div id="settings-ib1" class="ui-kit-state-hidden" role="tabpanel"
                                         aria-labelledby="settings-icon">
                                         <p>도시의 중심에는 평화로운 휴식을 제공하는 조용하고 매력적인 서점이 있습니다. 활기찬 거리로 둘러싸인 이곳은 독자들이 아늑한 구석에서 커피
                                             한 잔을 즐기며 책에 몰입할 수 있는 차분하고 초대하는 분위기를 제공합니다.</p>
                                     </div>
 
-                                    <div id="about-ib1" class="ui-hidden" role="tabpanel" aria-labelledby="about-icon">
+                                    <div id="about-ib1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-icon">
                                         <p>저희는 고객에게 권한을 부여하는 혁신적인 솔루션을 만드는 데 중점을 둔 미래지향적인 회사입니다. 저희 팀은 창의성과 다양한 요구를 충족하는
                                             고품질 제품과 서비스를 통해 탁월한 경험을 제공하려는 열정에 의해 움직입니다.</p>
                                     </div>
@@ -514,7 +514,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-text-default-400 ui-mb-4">레이아웃을 깔끔하고 미니멀하게 유지하면서 활성 상태를 나타내기 위해 간단한 하단 테두리 스타일을
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">레이아웃을 깔끔하고 미니멀하게 유지하면서 활성 상태를 나타내기 위해 간단한 하단 테두리 스타일을
                                     사용할 수도 있습니다.</p>
 
                                 <div>
@@ -524,28 +524,28 @@
                                             class="tab-trigger-line-success active"
                                             id="home-icon-2" aria-selected="true" data-hs-tab="#home-i1"
                                             aria-controls="home-i1" role="tab">
-                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-size-5-5"></i>
+                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="profile-icon-2" aria-selected="false" data-hs-tab="#profile-i1"
                                             aria-controls="profile-i1" role="tab">
-                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-size-5-5"></i>
+                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="settings-icon-2" aria-selected="false" data-hs-tab="#settings-i1"
                                             aria-controls="settings-i1" role="tab">
-                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-size-5-5"></i>
+                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="about-icon-2" aria-selected="false" data-hs-tab="#about-i1"
                                             aria-controls="about-i1" role="tab">
-                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-size-5-5"></i>
+                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-icon-size-5-5"></i>
                                         </button>
                                     </nav>
                                 </div>
@@ -556,18 +556,18 @@
                                             스타일을 위해 맞춤 제작되었습니다.</p>
                                     </div>
 
-                                    <div id="profile-i1" class="ui-hidden" role="tabpanel" aria-labelledby="profile-icon-2">
+                                    <div id="profile-i1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-icon-2">
                                         <p>안녕하세요! 저는 혁신과 의미 있는 연결을 통해 성장하는 창의적인 사고가입니다. 기술 트렌드를 탐구하고 인사이트 있는 책을 읽으며 새로운
                                             문화와 요리를 경험하기 위해 여행하는 것을 즐깁니다.</p>
                                     </div>
 
-                                    <div id="settings-i1" class="ui-hidden" role="tabpanel"
+                                    <div id="settings-i1" class="ui-kit-state-hidden" role="tabpanel"
                                         aria-labelledby="settings-icon-2">
                                         <p>평화로운 작업 공간은 모든 것을 바꿀 수 있습니다. 그렇기 때문에 매일 집중하고 영감을 얻을 수 있도록 맞춤형 구성, 방음 팁 및 생산성
                                             도구를 제공합니다.</p>
                                     </div>
 
-                                    <div id="about-i1" class="ui-hidden" role="tabpanel" aria-labelledby="about-icon-2">
+                                    <div id="about-i1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-icon-2">
                                         <p>저희는 원활한 경험을 만드는 데 열정을 가진 혁신가 팀입니다. 저희의 사명은 수행하는 모든 프로젝트에서 디자인, 기능 및 목적을 결합한
                                             솔루션을 제공하는 것입니다.</p>
                                     </div>
@@ -578,7 +578,7 @@
                         <!-- end card-->
 
                         <div class="card">
-                            <div class="card-header ui-border-dashed">
+                            <div class="card-header ui-kit-line-dashed">
                                 <h4 class="card-title">탭이 있는 카드 (Card with Tabs)</h4>
 
                                 <nav class="nav-tabs" aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
@@ -586,24 +586,24 @@
                                         class="nav-link nav-link-line-primary active"
                                         id="summary" aria-selected="true" data-hs-tab="#home-ct" aria-controls="home-ct"
                                         role="tab">
-                                        <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-block ui-hide-md"></i>
-                                        <div class="ui-hidden ui-show-md">요약</div>
+                                        <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <div class="ui-kit-state-hidden ui-kit-show-md">요약</div>
                                     </button>
 
                                     <button type="button"
                                         class="nav-link nav-link-line-primary"
                                         id="accounts" aria-selected="false" data-hs-tab="#profile-ct"
                                         aria-controls="profile-ct" role="tab">
-                                        <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-block ui-hide-md"></i>
-                                        <div class="ui-hidden ui-show-md">계정</div>
+                                        <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <div class="ui-kit-state-hidden ui-kit-show-md">계정</div>
                                     </button>
 
                                     <button type="button"
                                         class="nav-link nav-link-line-primary"
                                         id="setting" aria-selected="false" data-hs-tab="#settings-ct"
                                         aria-controls="settings-ct" role="tab">
-                                        <i data-icon="tabler:settings" class="iconify tabler--settings ui-block ui-hide-md"></i>
-                                        <div class="ui-hidden ui-show-md">설정</div>
+                                        <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>
                                     </button>
                                 </nav>
                             </div>
@@ -615,12 +615,12 @@
                                             정보를 바탕으로 의사 결정을 내리고 재무 목표를 더 빨리 달성할 수 있도록 설계되었습니다.</p>
                                     </div>
 
-                                    <div id="profile-ct" class="ui-hidden" role="tabpanel" aria-labelledby="accounts">
+                                    <div id="profile-ct" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="accounts">
                                         <p>모든 은행 계좌, 신용 카드 및 대출 상세 정보를 한 곳에서 확인하고 관리하세요. 금융 기관을 안전하게 연결하고 잔액, 거래 및 지불
                                             일정을 쉽게 추적하세요.</p>
                                     </div>
 
-                                    <div id="settings-ct" class="ui-hidden" role="tabpanel" aria-labelledby="setting">
+                                    <div id="settings-ct" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="setting">
                                         <p>예산 알림, 통화 형식, 보고 빈도 및 보안 설정을 포함하여 선호도를 사용자 정의하세요. 다단계 인증을 활성화하고 계정 활동 알림을 받는
                                             방법을 선택하세요.</p>
                                     </div>

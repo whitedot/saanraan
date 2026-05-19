@@ -1,86 +1,86 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="form-validation">
 <div class="container-fluid">
-                    <div class="ui-grid ui-grid-cols-1 ui-gap-base">
+                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">커스텀 스타일 유효성 검사 (Custom styles Validation)</h4>
                             </div>
                             <div class="card-body">
-                                <form id="customValidationForm" class="ui-grid ui-grid-cols-md-12 ui-grid-cols-1 ui-gap-base"
+                                <form id="customValidationForm" class="ui-kit-grid ui-kit-grid-md-12 ui-kit-grid-1 ui-kit-gap-base"
                                     novalidate>
                                     <!-- First Name -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label class="form-label">이름 (First Name)</label>
 
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="firstName" value="John" required
                                                 class="input-field form-input" />
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="valid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-success">좋습니다!</p>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">이름을 입력해 주세요.</p>
+                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success">좋습니다!</p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">이름을 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Last Name -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label class="form-label">성 (Last Name)</label>
 
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="lastName" value="Doe" required
                                                 class="input-field form-input" />
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="valid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-success">좋습니다!</p>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">성을 입력해 주세요.</p>
+                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success">좋습니다!</p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">성을 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Username -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label class="form-label">사용자 이름 (Username)</label>
 
-                                        <div class="ui-relative input-group">
+                                        <div class="ui-kit-position-context input-group">
                                             <span class="input-group-text">@</span>
                                             <input type="text" id="username" placeholder="johndoe123" required
                                                 class="input-field form-input" />
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">유효한 사용자 이름을 선택해 주세요.</p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 사용자 이름을 선택해 주세요.</p>
                                     </div>
 
                                     <!-- City -->
-                                    <div class="ui-col-md-6">
+                                    <div class="ui-kit-column-md-6">
                                         <label class="form-label">도시 (City)</label>
 
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="city" placeholder="San Francisco" required
                                                 class="input-field form-input" />
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">유효한 도시 이름을 입력해 주세요.</p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 도시 이름을 입력해 주세요.</p>
                                     </div>
 
                                     <!-- State -->
-                                    <div class="ui-col-md-3">
+                                    <div class="ui-kit-column-md-3">
                                         <label class="form-label">주 (State)</label>
 
-                                        <div class="ui-relative">
-                                            <select id="state" required class="input-field form-input">
+                                        <div class="ui-kit-position-context">
+                                            <select id="state" required class="input-field form-select">
                                                 <option value="">선택...</option>
                                                 <option>California</option>
                                                 <option>Texas</option>
@@ -89,43 +89,43 @@
                                             </select>
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-9 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-9 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">주를 선택해 주세요.
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">주를 선택해 주세요.
                                         </p>
                                     </div>
 
                                     <!-- Zip -->
-                                    <div class="ui-col-md-3">
+                                    <div class="ui-kit-column-md-3">
                                         <label class="form-label">우편번호 (Zip Code)</label>
 
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="zip" placeholder="94107" required
                                                 class="input-field form-input" />
 
                                             <i
-                                                class="iconify tabler--check valid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-success"></i>
+                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></i>
                                             <i
-                                                class="iconify tabler--alert-circle invalid-icon ui-absolute ui-top-half ui-right-3 ui-hidden ui-translate-y-center ui-text-danger"></i>
+                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></i>
                                         </div>
-                                        <p class="invalid-msg ui-mt-1 ui-hidden ui-text-sm ui-text-danger">유효한 우편번호를 입력해 주세요.</p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 우편번호를 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Terms -->
-                                    <div class="ui-col-md-12">
-                                        <div class="ui-flex ui-flex-wrap ui-items-center">
+                                    <div class="ui-kit-column-md-12">
+                                        <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center">
                                             <input id="terms" type="checkbox" required class="form-checkbox" />
-                                            <label for="terms" class="ui-ms-2 ui-text-sm ui-text-default-700">이용 약관에
+                                            <label for="terms" class="ui-kit-start-margin-2 ui-kit-type-sm ui-kit-ink-default-700">이용 약관에
                                                 동의합니다</label>
-                                            <p class="invalid-msg ui-mt-2 ui-hidden ui-w-full ui-text-sm ui-text-danger">제출하기 전에 동의해야
+                                            <p class="invalid-msg ui-kit-space-before-2 ui-kit-state-hidden ui-kit-fill-width ui-kit-type-sm ui-kit-ink-danger">제출하기 전에 동의해야
                                                 합니다.</p>
                                         </div>
                                     </div>
 
                                     <!-- Submit -->
-                                    <div class="ui-col-md-12">
+                                    <div class="ui-kit-column-md-12">
                                         <button type="submit"
                                             class="btn btn-solid-primary">양식 제출 (Submit
                                             Form)</button>
@@ -139,110 +139,110 @@
                                 <h4 class="card-title">서버 측 (Server-side)</h4>
                             </div>
                             <div class="card-body">
-                                <form id="serverForm" class="ui-grid ui-grid-cols-1 ui-grid-cols-md-12 ui-gap-base" novalidate>
+                                <form id="serverForm" class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-12 ui-kit-gap-base" novalidate>
                                     <!-- First name -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label for="firstName" class="form-label">이름 (First name)</label>
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="firstName" value="Mark" required
-                                                class="form-input ui-border-success" />
+                                                class="form-input ui-kit-line-success" />
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-0 ui-flex ui-items-center ui-pe-3">
-                                                <i data-icon="tabler:check" class="iconify tabler--check ui-text-success ui-text-base"></i>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <i data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></i>
                                             </div>
                                         </div>
-                                        <p class="ui-text-success ui-mt-1 ui-text-2xs">좋습니다!</p>
+                                        <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs">좋습니다!</p>
                                     </div>
 
                                     <!-- Last name -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label for="lastName" class="form-label">성 (Last name)</label>
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="lastName" value="Otto" required
-                                                class="form-input ui-border-success" />
+                                                class="form-input ui-kit-line-success" />
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-0 ui-flex ui-items-center ui-pe-3">
-                                                <i data-icon="tabler:check" class="iconify tabler--check ui-text-success ui-text-base"></i>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <i data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></i>
                                             </div>
                                         </div>
-                                        <p class="ui-text-success ui-mt-1 ui-text-2xs">좋습니다!</p>
+                                        <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs">좋습니다!</p>
                                     </div>
 
                                     <!-- Username -->
-                                    <div class="ui-col-md-4">
+                                    <div class="ui-kit-column-md-4">
                                         <label for="username" class="form-label">사용자 이름 (Username)</label>
-                                        <div class="ui-relative ui-flex ui-rounded-md">
+                                        <div class="ui-kit-position-context ui-kit-cluster ui-kit-radius-md">
                                             <span
-                                                class="ui-border-default-300 ui-bg-default-100 ui-text-default-600 ui-inline-flex ui-items-center ui-rounded-s-md ui-border ui-px-3 ui-text-sm">@</span>
+                                                class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-ink-default-600 ui-kit-inline-cluster ui-kit-align-items-center ui-kit-radius-s-md ui-kit-frame ui-kit-inline-pad-3 ui-kit-type-sm">@</span>
                                             <input type="text" id="username" name="username"
-                                                class="form-input ui-border-danger ui-rounded-s-none"
+                                                class="form-input ui-kit-line-danger ui-kit-radius-s-none"
                                                 placeholder="johndoe123" required />
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-0 ui-flex ui-items-center ui-pe-3">
-                                                <span data-icon="info" class="ui-text-danger ui-text-base"></span>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
                                             </div>
                                         </div>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">사용자 이름을 선택해 주세요.</p>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">사용자 이름을 선택해 주세요.</p>
                                     </div>
 
                                     <!-- City -->
-                                    <div class="ui-col-md-6">
+                                    <div class="ui-kit-column-md-6">
                                         <label for="city" class="form-label">도시 (City)</label>
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="city" required placeholder="도시 입력"
-                                                class="form-input ui-border-danger" />
+                                                class="form-input ui-kit-line-danger" />
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-0 ui-flex ui-items-center ui-pe-3">
-                                                <span data-icon="info" class="ui-text-danger ui-text-base"></span>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
                                             </div>
                                         </div>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">유효한 도시를 입력해 주세요.</p>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 도시를 입력해 주세요.</p>
                                     </div>
 
                                     <!-- State -->
-                                    <div class="ui-col-md-3">
+                                    <div class="ui-kit-column-md-3">
                                         <label for="state" class="form-label">주 (State)</label>
-                                        <div class="ui-relative">
-                                            <select id="state" required class="form-input ui-border-danger">
+                                        <div class="ui-kit-position-context">
+                                            <select id="state" required class="form-select ui-kit-line-danger">
                                                 <option value="">선택...</option>
                                                 <option>California</option>
                                                 <option>Texas</option>
                                                 <option>Florida</option>
                                             </select>
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-6 ui-flex ui-items-center ui-pe-3">
-                                                <span data-icon="info" class="ui-text-danger ui-text-base"></span>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-6 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
                                             </div>
                                         </div>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">유효한 주를 선택해 주세요.</p>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 주를 선택해 주세요.</p>
                                     </div>
 
                                     <!-- Zip -->
-                                    <div class="ui-col-md-3">
+                                    <div class="ui-kit-column-md-3">
                                         <label for="zip" class="form-label">우편번호 (Zip)</label>
-                                        <div class="ui-relative">
+                                        <div class="ui-kit-position-context">
                                             <input type="text" id="zip" required placeholder="우편번호"
-                                                class="form-input ui-border-danger" />
+                                                class="form-input ui-kit-line-danger" />
                                             <div
-                                                class="ui-pointer-none ui-absolute ui-inset-y-0 ui-end-0 ui-flex ui-items-center ui-pe-3">
-                                                <span data-icon="info" class="ui-text-danger ui-text-base"></span>
+                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
+                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
                                             </div>
                                         </div>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">유효한 우편번호를 입력해 주세요.</p>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 우편번호를 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Checkbox -->
-                                    <div class="ui-col-md-12">
-                                        <label class="ui-flex ui-items-center ui-space-x-2">
+                                    <div class="ui-kit-column-md-12">
+                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2">
                                             <input type="checkbox" id="terms" required
-                                                class="form-checkbox ui-checked-bg-danger" />
-                                            <span class="ui-text-danger">이용 약관에 동의합니다</span>
+                                                class="form-checkbox ui-kit-choice-danger" />
+                                            <span class="ui-kit-ink-danger">이용 약관에 동의합니다</span>
                                         </label>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">제출하기 전에 동의해야 합니다.</p>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">제출하기 전에 동의해야 합니다.</p>
                                     </div>
 
                                     <!-- Submit Button -->
-                                    <div class="ui-col-md-12">
+                                    <div class="ui-kit-column-md-12">
                                         <button type="submit"
                                             class="btn btn-solid-primary">양식 제출 (Submit
                                             form)</button>
@@ -256,46 +256,46 @@
                                 <h4 class="card-title">지원되는 요소 (Supported Elements)</h4>
                             </div>
                             <div class="card-body">
-                                <form class="ui-stack-6" novalidate>
+                                <form class="ui-kit-stack-6" novalidate>
                                     <!-- Textarea -->
                                     <div>
                                         <label for="validationTextarea" class="form-label">텍스트 영역 (Textarea)</label>
                                         <textarea id="validationTextarea" placeholder="필수 입력 텍스트 영역 예시" required
-                                            class="form-textarea ui-border-danger"></textarea>
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">텍스트 영역에 메시지를 입력해 주세요.</p>
+                                            class="form-textarea ui-kit-line-danger"></textarea>
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">텍스트 영역에 메시지를 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Checkbox -->
-                                    <div class="ui-flex ui-items-start ui-gap-2">
+                                    <div class="ui-kit-cluster ui-kit-align-items-start ui-kit-gap-2">
                                         <input id="validationFormCheck1" type="checkbox" required
-                                            class="form-checkbox ui-checked-bg-danger ui-border-danger ui-mt-0-5" />
+                                            class="form-checkbox ui-kit-choice-danger ui-kit-line-danger ui-kit-space-before-0-5" />
                                         <div>
-                                            <label for="validationFormCheck1" class="ui-text-danger">이 체크박스를 체크하세요</label>
-                                            <p class="ui-text-danger ui-mt-1 ui-text-2xs">잘못된 피드백 텍스트 예시</p>
+                                            <label for="validationFormCheck1" class="ui-kit-ink-danger">이 체크박스를 체크하세요</label>
+                                            <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">잘못된 피드백 텍스트 예시</p>
                                         </div>
                                     </div>
 
                                     <!-- Radios -->
-                                    <div class="ui-stack-2">
-                                        <div class="ui-flex ui-items-center ui-gap-2">
+                                    <div class="ui-kit-stack-2">
+                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck2" type="radio" name="radio-stacked" required
-                                                class="form-radio ui-checked-bg-danger ui-border-danger" />
-                                            <label for="validationFormCheck2" class="ui-text-danger">이 라디오 버튼을
+                                                class="form-radio ui-kit-choice-danger ui-kit-line-danger" />
+                                            <label for="validationFormCheck2" class="ui-kit-ink-danger">이 라디오 버튼을
                                                 토글하세요</label>
                                         </div>
 
-                                        <div class="ui-flex ui-items-center ui-gap-2">
+                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck3" type="radio" name="radio-stacked" required
-                                                class="form-radio ui-checked-bg-danger ui-border-danger" />
-                                            <label for="validationFormCheck3" class="ui-text-danger">또는 다른 라디오 버튼을
+                                                class="form-radio ui-kit-choice-danger ui-kit-line-danger" />
+                                            <label for="validationFormCheck3" class="ui-kit-ink-danger">또는 다른 라디오 버튼을
                                                 토글하세요</label>
-                                            <p class="ui-text-danger ui-mt-1 ui-text-2xs">추가적인 잘못된 피드백 텍스트 예시</p>
+                                            <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">추가적인 잘못된 피드백 텍스트 예시</p>
                                         </div>
                                     </div>
 
                                     <!-- Select -->
                                     <div>
-                                        <select required class="form-input ui-border-success">
+                                        <select required class="form-select ui-kit-line-success">
                                             <option value="">이 선택 메뉴를 여세요</option>
                                             <option value="1">하나</option>
                                             <option value="2">둘</option>
@@ -305,14 +305,14 @@
 
                                     <!-- File Input -->
                                     <div>
-                                        <input type="file" required class="form-input ui-block ui-w-full ui-text-sm" />
-                                        <p class="ui-text-danger ui-mt-1 ui-text-2xs">잘못된 양식 파일 피드백 예시</p>
+                                        <input type="file" required class="form-input ui-kit-block-flow ui-kit-fill-width ui-kit-type-sm" />
+                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">잘못된 양식 파일 피드백 예시</p>
                                     </div>
 
                                     <!-- Submit -->
                                     <div>
                                         <button type="submit" disabled
-                                            class="btn ui-cursor-not-allowed btn-solid-primary">양식
+                                            class="btn ui-kit-disabled-cursor btn-solid-primary">양식
                                             제출 (Submit form)</button>
                                     </div>
                                 </form>
@@ -325,7 +325,7 @@
                             </div>
                             <div class="card-body">
                                 <form action="">
-                                    <div class="ui-grid ui-grid-cols-md-3 ui-grid-cols-1 ui-gap-base ui-mb-base">
+                                    <div class="ui-kit-grid ui-kit-grid-md-3 ui-kit-grid-1 ui-kit-gap-base ui-kit-space-after-base">
                                         <div>
                                             <label for="validationDefault01" class="form-label">이름 (First name)</label>
                                             <input type="text" class="form-input" id="validationDefault01" value="Mark"
@@ -349,8 +349,8 @@
                                         </div>
                                     </div>
 
-                                    <div class="ui-grid ui-grid-cols-md-4 ui-grid-cols-1 ui-gap-base ui-mb-base">
-                                        <div class="ui-col-md-2 ui-col-1">
+                                    <div class="ui-kit-grid ui-kit-grid-md-4 ui-kit-grid-1 ui-kit-gap-base ui-kit-space-after-base">
+                                        <div class="ui-kit-column-md-2 ui-kit-column-1">
                                             <label for="validationDefault03" class="form-label">도시 (City)</label>
                                             <input type="text" class="form-input" id="validationDefault03"
                                                 required="" />
@@ -358,7 +358,7 @@
 
                                         <div>
                                             <label for="validationDefault04" class="form-label">주 (State)</label>
-                                            <select class="form-input" id="validationDefault04" required="">
+                                            <select class="form-select" id="validationDefault04" required="">
                                                 <option selected="" disabled="" value="">선택...</option>
                                                 <option>...</option>
                                             </select>
@@ -372,13 +372,13 @@
                                     </div>
 
                                     <div>
-                                        <label class="ui-flex ui-items-center ui-space-x-2">
+                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2">
                                             <input type="checkbox" id="invalidCheck2" required class="form-checkbox" />
-                                            <span class="ui-text-default-700">이용 약관에 동의합니다</span>
+                                            <span class="ui-kit-ink-default-700">이용 약관에 동의합니다</span>
                                         </label>
                                     </div>
 
-                                    <div class="ui-mt-base">
+                                    <div class="ui-kit-space-before-base">
                                         <button class="btn btn-solid-primary"
                                             type="submit">양식 제출 (Submit form)</button>
                                     </div>

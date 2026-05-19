@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">그룹 key</span>
-                        <input type="text" name="group_key" maxlength="60" required>
+                        <input type="text" name="group_key" maxlength="60" required class="form-input">
                         </label>
                     </div>
                 </div>
@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">이름</span>
-                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" required>
+                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -54,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">설명</span>
-                    <textarea name="description" rows="3" cols="60"><?php echo sr_e(is_array($editGroup) ? (string) ($editGroup['description'] ?? '') : ''); ?></textarea>
+                    <textarea name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e(is_array($editGroup) ? (string) ($editGroup['description'] ?? '') : ''); ?></textarea>
                     </label>
                 </div>
             </div>
@@ -63,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
@@ -79,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">정렬 순서</span>
-                    <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>">
+                    <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>" class="form-input">
                     </label>
                 </div>
             </div>
@@ -241,7 +241,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">대상 그룹</span>
-                    <select name="group_id" required>
+                    <select name="group_id" required class="form-select">
                         <?php foreach ($groups as $group) { ?>
                             <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($editRule) && (int) $editRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
@@ -256,7 +256,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">조건 후보</span>
-                    <select name="definition_key" required data-member-rule-definition>
+                    <select name="definition_key" required data-member-rule-definition class="form-select">
                         <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
                         <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
                             <option value="<?php echo sr_e((string) $definitionKey); ?>"<?php echo $currentDefinitionKey === (string) $definitionKey ? ' selected' : ''; ?>>
@@ -296,14 +296,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <label class="admin-filter-field">
                                         <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
                                         <?php if ($paramType === 'bool') { ?>
-                                            <select name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?>>
+                                            <select name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
                                                 <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>>예</option>
                                                 <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>>아니오</option>
                                             </select>
                                         <?php } elseif ($paramType === 'int' || $paramType === 'subject') { ?>
-                                            <input type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?>>
+                                            <input type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
                                         <?php } else { ?>
-                                            <input type="text" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo $panelActive ? '' : ' disabled'; ?>>
+                                            <input type="text" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
                                         <?php } ?>
                                     </label>
                                 <?php } ?>
@@ -312,7 +312,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <details class="admin-advanced-details">
                         <summary>JSON 직접 입력</summary>
-                        <textarea name="rule_params_json" rows="4" cols="70"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
+                        <textarea name="rule_params_json" rows="4" cols="70" class="form-textarea"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
                     </details>
                 </div>
             </div>
@@ -321,7 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">평가 정책</span>
-                    <select name="evaluation_policy">
+                    <select name="evaluation_policy" class="form-select">
                         <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo is_array($editRule) && (string) $editRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?></option>
                         <?php } ?>
@@ -334,7 +334,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <?php foreach ($allowedRuleStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo is_array($editRule) && (string) $editRule['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
@@ -358,7 +358,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 조회 조건</span>
-                    <select name="account_identifier_field">
+                    <select name="account_identifier_field" class="form-select">
                         <option value="hash">해시 아이디</option>
                         <option value="email">이메일</option>
                         <option value="name">이름</option>
@@ -366,7 +366,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                     <label>
                         <span class="sr-only">회원 조회어</span>
-                    <input type="text" name="account_identifier" maxlength="120" required>
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -375,7 +375,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 key</span>
-                    <input type="text" name="source_module_key" maxlength="60">
+                    <input type="text" name="source_module_key" maxlength="60" class="form-input">
                     </label>
                 </div>
             </div>
@@ -394,7 +394,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">모듈 key</span>
-                    <input type="text" name="source_module_key" maxlength="60">
+                    <input type="text" name="source_module_key" maxlength="60" class="form-input">
                     </label>
                 </div>
             </div>
@@ -403,7 +403,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">최대 회원 수</span>
-                    <input type="number" name="limit" min="1" max="200" value="50">
+                    <input type="number" name="limit" min="1" max="200" value="50" class="form-input">
                     </label>
                 </div>
             </div>
@@ -422,7 +422,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 조회 조건</span>
-                    <select name="account_identifier_field">
+                    <select name="account_identifier_field" class="form-select">
                         <option value="hash">해시 아이디</option>
                         <option value="email">이메일</option>
                         <option value="name">이름</option>
@@ -430,7 +430,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                     <label>
                         <span class="sr-only">회원 조회어</span>
-                    <input type="text" name="account_identifier" maxlength="120" required>
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -439,7 +439,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">그룹</span>
-                    <select name="group_id" required>
+                    <select name="group_id" required class="form-select">
                         <?php foreach ($groups as $group) { ?>
                             <option value="<?php echo sr_e((string) $group['id']); ?>">
                                 <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)

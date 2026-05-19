@@ -106,15 +106,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                                         <label>
                                             <span>이메일</span>
-                                            <input type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" required>
+                                            <input type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" required class="form-input">
                                         </label>
                                         <label>
                                             <span>이름</span>
-                                            <input type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" maxlength="120" required>
+                                            <input type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" maxlength="120" required class="form-input">
                                         </label>
                                         <label>
                                             <span>Locale</span>
-                                            <input type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" maxlength="20" required>
+                                            <input type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" maxlength="20" required class="form-input">
                                         </label>
                                         <label>
                                             <span>상태</span>

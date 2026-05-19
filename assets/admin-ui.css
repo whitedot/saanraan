@@ -1,7 +1,6 @@
 /*
  * Saanraan admin UI layer.
- * Loaded after assets/common/tokens.css, primitives.css, utilities.css
- * and before modules/admin/assets/admin.css.
+ * Loaded after assets/common/tokens.css and before modules/admin/assets/admin.css.
  * Owns reusable admin workflow combinations inside .admin-ui-scope.
  * Do not style admin shell chrome or module-specific admin screens here.
  */

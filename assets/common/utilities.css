@@ -43,6 +43,10 @@ body {
   resize: vertical;
 }
 
+.ui-form-theme .form-input-rounded {
+  border-radius: 9999px;
+}
+
 .ui-form-theme .form-input:focus,
 .ui-form-theme .form-select:focus,
 .ui-form-theme .form-textarea:focus {
@@ -85,8 +89,44 @@ body {
 
 .ui-form-theme .form-radio,
 .ui-form-theme .form-checkbox {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  vertical-align: middle;
   background-color: var(--color-card);
+  background-position: center;
+  background-repeat: no-repeat;
   border-color: var(--color-default-400);
+  border-style: solid;
+  border-width: 1px;
+}
+
+.ui-form-theme .form-checkbox {
+  border-radius: var(--radius-sm);
+}
+
+.ui-form-theme .form-radio {
+  border-radius: 999px;
+}
+
+.ui-form-theme .form-checkbox:checked {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E");
+  background-size: .75rem .75rem;
+}
+
+.ui-form-theme .form-radio:checked {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  box-shadow: inset 0 0 0 3px var(--color-card);
+}
+
+.ui-form-theme .form-radio:focus-visible,
+.ui-form-theme .form-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 
 [data-theme=dark] .ui-form-theme .form-input,
