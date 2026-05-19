@@ -15,7 +15,7 @@
 ## 참고 기준
 
 - `/admin/ui-kit`: 관리자 런타임 기준 UI-KIT 조회 화면
-- `/admin/ui-kit-public`: public layout 기준 UI-KIT 조회 화면
+- `/admin/ui-kit-public`: 관리자 권한 안에서 public layout 기준 UI-KIT를 확인하는 런타임 미리보기
 - `modules/admin/views/ui-kit-samples/ui-cards.php`: `card`, `card-header`, `card-title`, `card-body`
 - `modules/admin/views/ui-kit-samples/form-elements.php`: `ui-form-theme`, `form-label`, `form-input`, `form-select`, `form-textarea`, `form-checkbox`
 - `modules/admin/views/ui-kit-samples/tables-static.php`: `table-wrapper`, `table`, `thead`, `tbody`

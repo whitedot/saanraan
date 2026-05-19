@@ -1,5 +1,5 @@
 /*
- * Public UI-KIT development preview layer.
+ * Admin-only public runtime preview layer.
  * Uses assets/tokens.css and the admin component layer loaded by the preview route.
  * Keeps only migrated sample layout helpers local to this preview stylesheet.
  */

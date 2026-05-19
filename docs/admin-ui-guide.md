@@ -7,11 +7,11 @@
 - `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합만 둔다.
 - `modules/admin/assets/admin.css`: 관리자 runtime reset/base, `btn`, `card`, `table`, `badge`, `form-*` 같은 의미 클래스, shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다.
 
-공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. Public UI-KIT 조회 화면은 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/tokens.css`, `modules/admin/assets/admin.css`, `assets/public-ui-kit.css`를 명시적으로 호출한다. 이는 조회 화면 전용이며 일반 공개 런타임은 관리자 CSS를 호출하지 않는다.
+공개 화면 런타임은 `assets/saanraan.css`와 `assets/public-ui.css`를 호출한다. 현재 공개 화면은 저비용 호스팅과 기본 스킨 호환성을 위해 관리자 공통 reset/원형 전체를 전역으로 호출하지 않는다. `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡고, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. `/admin/ui-kit-public`은 관리자 권한 안에서 public layout 결과를 확인하는 런타임 미리보기이며, 아직 public 컴포넌트 원형이 부족한 항목을 확인하기 위해 `assets/tokens.css`, `modules/admin/assets/admin.css`, `assets/public-ui-kit.css`를 명시적으로 호출한다. 이는 미리보기 전용이며 일반 공개 런타임은 관리자 CSS를 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
 
-드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. Admin/Public UI-KIT 조회 화면도 이 파일을 호출해 같은 동작 원형을 확인한다.
+드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. 관리자 UI-KIT과 public 런타임 미리보기도 이 파일을 호출해 같은 동작 원형을 확인한다.
 
 관리자 디자인 책임은 admin 모듈에 둔다. 각 모듈의 관리자 view는 본문 마크업과 도메인 출력만 맡고, 관리자 shell, 사이드바, 상단바, 공통 관리자 asset, 관리자 콘텐츠 컨테이너는 admin skin이 맡는다. 현재 관리자 skin은 `admin_skin_key`로 선택하며, 등록된 key가 없거나 파일이 없으면 `basic`으로 fallback한다.
 
@@ -27,7 +27,7 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 - 관리자 view는 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않는다.
 - 탭처럼 공통 CSS에 이미 정의된 반복 UI는 `tab-nav-*`, `tab-trigger-*` 같은 기존 시맨틱 클래스를 먼저 사용한다. 토스트는 기존 관리자 메시지 클래스인 `admin-flash-message-*`에 `data-admin-toast` 동작 속성만 더해 사용하고, 위치와 닫기 버튼 배치는 `data-admin-toast-*` 속성 선택자로 처리한다.
 - UI-KIT 조회 화면의 배치와 예시 상태 표시처럼 실제 컴포넌트 원형이 아닌 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*` 같은 Tailwind식 범용 utility 표현은 관리자/공개 UI-KIT 샘플에 사용하지 않는다.
-- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/admin/ui-kit-public` public 조회 화면에서 런타임별 결과를 확인한다.
+- 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/admin/ui-kit-public` public 런타임 미리보기에서 런타임별 결과를 확인한다.
 
 ## 화면 내 이동 링크
 

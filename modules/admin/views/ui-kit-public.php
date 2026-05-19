@@ -17,7 +17,7 @@ $uiKitSamples = [
 ];
 
 $seo = [
-    'title' => 'Public UI-KIT',
+    'title' => 'Public Runtime Preview',
     'robots' => 'noindex, nofollow',
 ];
 
@@ -32,10 +32,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
     <main class="public-ui-scope public-ui-kit">
         <section class="public-ui-card">
-            <h1 class="public-ui-title">Public UI-KIT</h1>
-            <p class="public-ui-copy">기존 중앙 UI-KIT의 모든 카테고리 예시를 public layout 런타임 안으로 옮긴 조회 화면입니다.</p>
+            <h1 class="public-ui-title">Public Runtime Preview</h1>
+            <p class="public-ui-copy">관리자 권한 안에서 public layout 런타임과 UI-KIT 예시를 확인하는 미리보기 화면입니다.</p>
             <p class="public-ui-copy"><a href="<?php echo sr_e(sr_url('/admin/ui-kit')); ?>">관리자 UI-KIT 보기</a></p>
-            <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="Public UI-KIT 섹션">
+            <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="Public 런타임 미리보기 섹션">
                 <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                     <a class="public-ui-button" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
                 <?php } ?>

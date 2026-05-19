@@ -48,14 +48,14 @@ Admin 조회 화면:
 - 관리자 런타임의 reset/base와 `btn`, `card`, `table`, `badge`, `form-*` 의미 클래스는 `modules/admin/assets/admin.css`가 직접 소유한다. 삭제한 common primitive/utility 산출물은 관리자 UI-KIT의 스타일 출처가 아니다.
 - 관리자 조회 페이지는 `modules/admin/views/ui-kit.php` 또는 `modules/admin/views/dev-ui-kit.php`로 둔다.
 
-Public 조회 화면:
+Public 런타임 미리보기:
 
 - `sr_public_layout_begin()`과 `sr_public_layout_end()`를 통과한다.
 - `sr_stylesheet_tag()`가 출력하는 `assets/saanraan.css`, `assets/public-ui.css`와 필요한 layout context stylesheet를 그대로 사용한다.
-- public 조회 페이지는 public layout이나 개발자용 public view 안에 둔다.
+- public 런타임 미리보기는 현재 `/admin/ui-kit-public`에 둔 관리자 보호 개발 도구이며, public layout이나 개발자용 public view로 옮기는 것은 실제 공개 조회 페이지가 필요할 때만 진행한다.
 - 현재 public 전용 컴포넌트 스타일시트가 충분하지 않으므로, public UI-KIT 구축 시 관리자 조회 화면의 공통 원형 마크업과 필요한 스타일 규칙을 public 레이어로 복사해 시작한다.
 - 복사 대상은 버튼, 카드, 폼, validation, 테이블, 알림, 배지, 드롭다운, 모달, 탭처럼 public에서도 필요한 공통 원형이다.
-- 일반 public 런타임은 `modules/admin/assets/admin.css`를 직접 호출하지 않는다. 단, `/admin/ui-kit-public` 조회 화면은 public 원형 이관 전 확인용으로 관리자 컴포넌트 레이어를 명시적으로 호출할 수 있다.
+- 일반 public 런타임은 `modules/admin/assets/admin.css`를 직접 호출하지 않는다. 단, `/admin/ui-kit-public` 미리보기는 public 원형 이관 전 확인용 관리자 도구이므로 관리자 컴포넌트 레이어를 명시적으로 호출할 수 있다.
 - public에 복사한 뒤에는 public 런타임에서 실제로 쓰는 class와 토큰 기준으로 이름과 범위를 정리한다. 관리자 모듈 전용 selector나 admin domain 구조는 public으로 가져오지 않는다.
 
 `assets/common.css`는 중앙 UI-KIT manifest 용도만 남아 있었으므로 중앙 UI-KIT 제거와 함께 삭제한다. 관리자 화면의 실제 편집 기준은 `assets/tokens.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`다.
@@ -218,7 +218,7 @@ assets/common-ui.js
 3. 각 섹션을 public 조회 화면과 admin 조회 화면 양쪽으로 매핑한다.
 4. 기존 중앙 UI-KIT의 모든 예시를 public/admin 런타임별 조회 화면으로 전량 이관한다. 일부만 선별하거나 삭제하지 않는다.
 5. Admin 조회 화면을 `modules/admin/views/ui-kit.php`로 추가하고 실제 관리자 layout header/footer를 사용한다.
-6. Public 조회 화면을 `modules/admin/views/ui-kit-public.php`로 추가하고 `sr_public_layout_begin()` / `sr_public_layout_end()`를 사용한다.
+6. Public 런타임 미리보기를 `modules/admin/views/ui-kit-public.php`로 추가하고 `sr_public_layout_begin()` / `sr_public_layout_end()`를 사용한다.
 7. Public 쪽에 대응 스타일이 없는 공통 원형은 admin 조회 화면/관리자 스타일을 기준으로 확인하고, public 런타임에 정식 반영할 때 public 소유 stylesheet로 이관한다.
 8. 일반 public 런타임은 `modules/admin/assets/admin.css`를 직접 호출하지 않게 하고, admin domain selector는 public 범위에 맞게 정리한다. `/admin/ui-kit-public`은 이관 전 조회용 예외로 둔다.
 9. 드롭다운/오버레이/탭처럼 상호작용이 필요한 예시는 양쪽 조회 화면에서 `assets/common-ui.js` 동작을 검증한다.
@@ -234,8 +234,8 @@ assets/common-ui.js
 ## 검증 기준
 
 - Admin 조회 화면이 실제 관리자 layout과 CSS 호출 순서로 열린다.
-- Public 조회 화면이 실제 public layout과 CSS 호출 순서로 열린다.
-- Public 조회 화면의 공통 원형은 대응 public 스타일이 없을 때 admin 기준을 복사한 public 소유 stylesheet로 표시된다.
+- Public 런타임 미리보기가 실제 public layout과 CSS 호출 순서로 열린다.
+- Public 런타임 미리보기의 공통 원형은 대응 public 스타일이 없을 때 admin 기준을 복사한 public 소유 stylesheet로 표시된다.
 - Public 런타임이 `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 - 기존 중앙 UI-KIT의 모든 카테고리와 예시가 public/admin 조회 화면 중 하나 이상으로 이관되어 있다.
 - 중앙 `assets/ui-kit` 디렉터리가 제거되어 있다.

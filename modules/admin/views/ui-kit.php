@@ -29,7 +29,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">조회 범위</h2>
-        <a href="<?php echo sr_e(sr_url('/admin/ui-kit-public')); ?>" class="btn btn-sm btn-primary">Public UI-KIT 보기</a>
+        <a href="<?php echo sr_e(sr_url('/admin/ui-kit-public')); ?>" class="btn btn-sm btn-primary">Public 런타임 미리보기</a>
     </div>
     <div class="card-body">
         <p class="muted-text">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>
