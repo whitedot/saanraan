@@ -29,7 +29,6 @@ svg.lucide{width:1em;height:1em}
 [hidden]:where(:not([hidden=until-found])),.hidden{display:none!important}
 .sr-only{clip-path:inset(50%);white-space:nowrap;border-width:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}
 .relative{position:relative}
-.hint-text,.muted-text{color:var(--color-default-600)}
 .btn{z-index:10;cursor:pointer;justify-content:center;align-items:center;column-gap:calc(var(--spacing) * 2);border-radius:var(--radius);border-style:solid;border-width:1px;border-color:#0000;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 1.75);text-align:center;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);transition-property:background-color,border-color,color,box-shadow,opacity;transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);display:inline-flex;position:relative}
 .btn-sm{padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.25);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .btn-lg{padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 2.25);font-size:var(--text-lg);line-height:var(--text-lg--line-height)}
@@ -60,6 +59,7 @@ svg.lucide{width:1em;height:1em}
 .btn-outline-info{border-color:var(--color-info);color:var(--color-info)}
 .btn-outline-dark{border-color:var(--color-dark);color:var(--color-dark)}
 @media (hover:hover){.btn-outline-primary:hover{background-color:var(--color-primary);color:var(--color-white)}.btn-outline-secondary:hover{background-color:var(--color-secondary);color:var(--color-white)}.btn-outline-success:hover{background-color:var(--color-success);color:var(--color-white)}.btn-outline-danger:hover{background-color:var(--color-danger);color:var(--color-white)}.btn-outline-warning:hover{background-color:var(--color-warning);color:var(--color-white)}.btn-outline-info:hover{background-color:var(--color-info);color:var(--color-white)}.btn-outline-dark:hover{background-color:var(--color-dark);color:var(--color-white)}}
+.btn-soft-default,.btn-ghost-default{color:var(--color-default-700)}
 .btn-soft-primary,.btn-ghost-primary{color:var(--color-primary)}
 .btn-soft-secondary,.btn-ghost-secondary{color:var(--color-secondary)}
 .btn-soft-success,.btn-ghost-success{color:var(--color-success)}
@@ -67,12 +67,15 @@ svg.lucide{width:1em;height:1em}
 .btn-soft-warning,.btn-ghost-warning{color:var(--color-warning)}
 .btn-soft-info,.btn-ghost-info{color:var(--color-info)}
 .btn-soft-dark,.btn-ghost-dark{color:var(--color-dark)}
+.btn-soft-default{background-color:var(--color-light)}
 .btn-soft-primary{background-color:color-mix(in oklab,var(--color-primary) 15%,transparent)}
 .btn-soft-secondary{background-color:color-mix(in oklab,var(--color-secondary) 15%,transparent)}
 .btn-soft-success{background-color:color-mix(in oklab,var(--color-success) 15%,transparent)}
 .btn-soft-danger{background-color:color-mix(in oklab,var(--color-danger) 15%,transparent)}
 .btn-soft-warning{background-color:color-mix(in oklab,var(--color-warning) 15%,transparent)}
 .btn-soft-info{background-color:color-mix(in oklab,var(--color-info) 15%,transparent)}
+.btn-soft-dark{background-color:color-mix(in oklab,var(--color-dark) 10%,transparent)}
+@media (hover:hover){.btn-soft-default:hover{color:var(--color-primary)}}
 .btn-pill{border-radius:9999px}
 .btn-choice-primary{border-color:var(--color-primary);color:var(--color-primary);background-color:transparent}
 .btn-choice-secondary{border-color:var(--color-secondary);color:var(--color-secondary);background-color:transparent}
@@ -1049,8 +1052,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 .admin-content :is(
-    .hint-text,
-    .muted-text,
     #container_subtitle,
     .admin-form>section.card>p,
     .admin-form-help,

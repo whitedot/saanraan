@@ -78,7 +78,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">게시판 그룹 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 게시판 그룹 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-soft-default">새 게시판 그룹 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -105,13 +105,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $boardGroup['title']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $boardGroup['status'], 'content_status')); ?></td>
                         <td>
-                            <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">
+                            <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-soft-default">
                                 <?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?>개 보기
                             </a>
                         </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">그룹 key</span>
-                        <input type="text" name="group_key" maxlength="60" value="<?php echo sr_e($groupField($formBoardGroup, 'group_key')); ?>" required>
+                        <input type="text" name="group_key" maxlength="60" value="<?php echo sr_e($groupField($formBoardGroup, 'group_key')); ?>" class="form-input" required>
                         </label>
                     </div>
                 </div>
@@ -144,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">이름</span>
-                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" required>
+                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input" required>
                     </label>
                 </div>
             </div>
@@ -153,7 +153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">설명</span>
-                    <textarea name="description" rows="3" cols="60"><?php echo sr_e($groupField($formBoardGroup, 'description')); ?></textarea>
+                    <textarea name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($groupField($formBoardGroup, 'description')); ?></textarea>
                     </label>
                 </div>
             </div>
@@ -162,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === $groupField($formBoardGroup, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
@@ -175,7 +175,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">정렬 순서</span>
-                    <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>">
+                    <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" class="form-input">
                     </label>
                 </div>
             </div>
@@ -188,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">읽기 정책</span>
-                        <select name="group_read_policy">
+                        <select name="group_read_policy" class="form-select">
                             <?php foreach ($allowedReadPolicies as $policy) { ?>
                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'read_policy', 'public') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
@@ -201,7 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">읽기 그룹 key</span>
-                        <input type="text" name="group_read_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'read_group_keys')); ?>" placeholder="regular_member, vip">
+                        <input type="text" name="group_read_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'read_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
                         </label>
                     </div>
                 </div>
@@ -210,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">읽기 최소 레벨</span>
-                        <input type="number" name="group_read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'read_min_level', '0')); ?>">
+                        <input type="number" name="group_read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'read_min_level', '0')); ?>">
                         </label>
                     </div>
                 </div>
@@ -219,7 +219,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">쓰기 정책</span>
-                        <select name="group_write_policy">
+                        <select name="group_write_policy" class="form-select">
                             <?php foreach ($allowedWritePolicies as $policy) { ?>
                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'write_policy', 'member') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
@@ -232,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">쓰기 그룹 key</span>
-                        <input type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" placeholder="regular_member, vip">
+                        <input type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
                         </label>
                     </div>
                 </div>
@@ -241,7 +241,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">쓰기 최소 레벨</span>
-                        <input type="number" name="group_write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'write_min_level', '0')); ?>">
+                        <input type="number" name="group_write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'write_min_level', '0')); ?>">
                         </label>
                     </div>
                 </div>
@@ -250,7 +250,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">댓글 정책</span>
-                        <select name="group_comment_policy">
+                        <select name="group_comment_policy" class="form-select">
                             <?php foreach ($allowedCommentPolicies as $policy) { ?>
                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $groupSettingValue($formGroupSettings, 'comment_policy', 'member') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                             <?php } ?>
@@ -263,7 +263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">댓글 그룹 key</span>
-                        <input type="text" name="group_comment_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'comment_group_keys')); ?>" placeholder="regular_member, vip">
+                        <input type="text" name="group_comment_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'comment_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
                         </label>
                     </div>
                 </div>
@@ -272,7 +272,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">댓글 최소 레벨</span>
-                        <input type="number" name="group_comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>">
+                        <input type="number" name="group_comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>">
                         </label>
                     </div>
                 </div>
@@ -290,7 +290,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">이미지 최대 용량(bytes)</span>
-                        <input type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>">
+                        <input type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
                         </label>
                     </div>
                 </div>
@@ -299,7 +299,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">이미지 최대 개수</span>
-                        <input type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>">
+                        <input type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>" class="form-input">
                         </label>
                     </div>
                 </div>
@@ -317,7 +317,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">파일 최대 용량(bytes)</span>
-                        <input type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>">
+                        <input type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
                         </label>
                     </div>
                 </div>
@@ -326,7 +326,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">파일 최대 개수</span>
-                        <input type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>">
+                        <input type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>" class="form-input">
                         </label>
                     </div>
                 </div>
@@ -335,7 +335,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <label>
                             <span class="sr-only">파일 허용 확장자</span>
-                        <input type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" placeholder="pdf, txt, zip">
+                        <input type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input" placeholder="pdf, txt, zip">
                         </label>
                     </div>
                 </div>
@@ -353,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </section>
             <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? '그룹 변경' : '그룹 생성'; ?></button>
         </div>
     </form>

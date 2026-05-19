@@ -63,10 +63,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="id" value="<?php echo sr_e((string) $request['id']); ?>">
                                 <label class="sr-only" for="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>">관리자 비밀번호</label>
                                 <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>" class="form-input" autocomplete="current-password" required placeholder="관리자 비밀번호">
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">처리 자료 내려받기</button>
+                                <button type="submit" class="btn btn-sm btn-soft-default">처리 자료 내려받기</button>
                             </form>
                             <details class="admin-inline-edit-details privacy-request-details">
-                                <summary class="btn btn-sm btn-surface-default-soft">상태 변경</summary>
+                                <summary class="btn btn-sm btn-soft-default">상태 변경</summary>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-inline-edit-form privacy-request-edit-form">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">

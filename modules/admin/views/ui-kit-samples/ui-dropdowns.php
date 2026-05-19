@@ -13,7 +13,7 @@
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
-                                        <button type="button" class="dropdown-toggle btn btn-surface"
+                                        <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             옵션 선택
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -42,7 +42,7 @@
                                     </div>
 
                                     <div class="dropdown" data-dropdown-trigger="hover">
-                                        <button type="button" class="dropdown-toggle btn btn-surface"
+                                        <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             마우스 올리기
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-caret"></i>
@@ -71,7 +71,7 @@
                                 </p>
 
                                 <div class="dropdown" data-dropdown-placement="bottom-right">
-                                    <button type="button" class="dropdown-toggle btn btn-surface"
+                                    <button type="button" class="dropdown-toggle btn btn-soft-default"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                         오른쪽 정렬 메뉴
                                         <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -161,11 +161,11 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-subtle-light ui-kit-ink-default-700 ui-kit-radius-s-sm dropdown-split-main">보조(Secondary)</button>
+                                            class="btn btn-soft-default ui-kit-ink-default-700 ui-kit-radius-s-sm dropdown-split-main">보조(Secondary)</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle btn btn-subtle-light dropdown-split-toggle">
+                                                class="dropdown-toggle btn btn-soft-default dropdown-split-toggle">
                                                 <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -251,7 +251,7 @@
                                     </div>
 
                                     <div class="dropdown">
-                                        <button type="button" class="dropdown-toggle btn btn-surface-default"
+                                        <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             보조(Secondary)
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -299,7 +299,7 @@
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle btn btn-surface-default ui-kit-inline-pad-6 ui-kit-block-pad-2 ui-kit-type-lg"
+                                            class="dropdown-toggle btn btn-soft-default ui-kit-inline-pad-6 ui-kit-block-pad-2 ui-kit-type-lg"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             큰 버튼
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -337,7 +337,7 @@
 
                                     <div class="dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle btn btn-sm btn-surface-default"
+                                            class="dropdown-toggle btn btn-sm btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             작은 버튼
                                             <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
@@ -354,12 +354,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-sm ui-kit-ink-default-700 ui-kit-radius-e-none btn-subtle-light">작은
+                                            class="btn btn-sm ui-kit-ink-default-700 ui-kit-radius-e-none btn-soft-default">작은
                                             버튼</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle btn btn-sm ui-kit-ink-default-700 btn-subtle-light dropdown-split-toggle">
+                                                class="dropdown-toggle btn btn-sm ui-kit-ink-default-700 btn-soft-default dropdown-split-toggle">
                                                 <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                             </button>
 
@@ -393,7 +393,7 @@
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown" data-dropdown-placement="top">
-                                        <button type="button" class="dropdown-toggle btn btn-surface-default"
+                                        <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭업
                                             <i data-icon="tabler:chevron-up" class="iconify dropdown-icon"></i>
@@ -410,12 +410,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn ui-kit-ink-default-700 ui-kit-radius-e-none btn-subtle-light">분할
+                                            class="btn ui-kit-ink-default-700 ui-kit-radius-e-none btn-soft-default">분할
                                             드롭업</button>
 
                                         <div class="dropdown" data-dropdown-placement="top-left">
                                             <button type="button"
-                                                class="dropdown-toggle btn btn-surface-default-soft dropdown-split-toggle">
+                                                class="dropdown-toggle btn btn-soft-default dropdown-split-toggle">
                                                 <i data-icon="tabler:chevron-down" class="iconify dropdown-icon"></i>
                                             </button>
 

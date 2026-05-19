@@ -14,9 +14,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft">알림 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-surface-default-soft">알림 등록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-surface-default-soft">발송 대기열</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-soft-default">알림 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-soft-default">알림 등록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-soft-default">발송 대기열</a>
     </div>
 </div>
 
@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">대상</span>
-                    <select name="audience">
+                    <select name="audience" class="form-select">
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo sr_e($audience); ?>"><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
                         <?php } ?>
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" value="" maxlength="80">
+                    <input type="text" name="account_identifier" value="" maxlength="80" class="form-input">
                     </label>
                 </div>
             </div>
@@ -52,7 +52,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">제목</span>
-                    <input type="text" name="title" value="" maxlength="160" required>
+                    <input type="text" name="title" value="" maxlength="160" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -61,7 +61,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">내용</span>
-                    <textarea name="body_text" maxlength="5000"></textarea>
+                    <textarea name="body_text" maxlength="5000" class="form-textarea"></textarea>
                     </label>
                 </div>
             </div>
@@ -70,7 +70,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span>
-                    <input type="text" name="link_url" value="" maxlength="255">
+                    <input type="text" name="link_url" value="" maxlength="255" class="form-input">
                     </label>
                 </div>
             </div>
@@ -79,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">외부 수신자</span>
-                    <input type="text" name="recipient" value="" maxlength="255">
+                    <input type="text" name="recipient" value="" maxlength="255" class="form-input">
                     </label>
                 </div>
             </div>
@@ -99,7 +99,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">알림 등록</button>
         </div>
     </form>
@@ -179,7 +179,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
+                                    <button type="submit" class="btn btn-sm btn-soft-default">저장</button>
                                 </form>
                                 </div>
                             </td>
@@ -194,7 +194,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">알림 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 알림 등록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-soft-default">새 알림 등록</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>">
             <div class="admin-filter-card">

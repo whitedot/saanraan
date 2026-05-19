@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">사이트 이름</span>
-                <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" maxlength="120" required class="form-input">
+                <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
                 </label>
             </div>
         </div>
@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">시간대</span>
-                <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" maxlength="80" required class="form-input">
+                <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" class="form-input" maxlength="80" required>
                 </label>
             </div>
         </div>
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">기본 locale</span>
-                <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" maxlength="20" required class="form-input">
+                <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" class="form-input" maxlength="20" required>
                 </label>
             </div>
         </div>
@@ -52,7 +52,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">지원 locale 목록</span>
-                <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" maxlength="255" required class="form-input">
+                <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" class="form-input" maxlength="255" required>
                 </label>
             <span class="admin-form-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
             </div>

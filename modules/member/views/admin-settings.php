@@ -87,11 +87,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-label"><span class="form-label"><?php echo sr_e($label); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label">
-                        <input type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?>>
+                        <input type="checkbox" name="<?php echo sr_e($enabledKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html((string) $label . ' 보이기'); ?>
                     </label>
                     <label class="admin-form-check form-label">
-                        <input type="checkbox" name="<?php echo sr_e($requiredKey); ?>" value="1" class="form-checkbox"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?>>
+                        <input type="checkbox" name="<?php echo sr_e($requiredKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html((string) $label . ' 필수입력'); ?>
                     </label>
                 </div>
@@ -107,7 +107,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">제한 시간(초)</span>
-                <input type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" min="0" max="86400" class="form-input">
+                <input type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
                 </label>
             </div>
         </div>
@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">계정 기준 제한 횟수</span>
-                <input type="number" name="login_throttle_account_limit" value="<?php echo sr_e((string) $settings['login_throttle_account_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="login_throttle_account_limit" value="<?php echo sr_e((string) $settings['login_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -125,7 +125,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">IP 기준 제한 횟수</span>
-                <input type="number" name="login_throttle_ip_limit" value="<?php echo sr_e((string) $settings['login_throttle_ip_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="login_throttle_ip_limit" value="<?php echo sr_e((string) $settings['login_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -138,7 +138,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">제한 시간(초)</span>
-                <input type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" min="0" max="86400" class="form-input">
+                <input type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
                 </label>
             </div>
         </div>
@@ -147,7 +147,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">IP 기준 제한 횟수</span>
-                <input type="number" name="register_throttle_ip_limit" value="<?php echo sr_e((string) $settings['register_throttle_ip_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="register_throttle_ip_limit" value="<?php echo sr_e((string) $settings['register_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">제한 시간(초)</span>
-                <input type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" min="0" max="86400" class="form-input">
+                <input type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
                 </label>
             </div>
         </div>
@@ -169,7 +169,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">계정 기준 제한 횟수</span>
-                <input type="number" name="password_reset_throttle_account_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_account_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="password_reset_throttle_account_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -178,7 +178,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">IP 기준 제한 횟수</span>
-                <input type="number" name="password_reset_throttle_ip_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_ip_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="password_reset_throttle_ip_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -191,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">제한 시간(초)</span>
-                <input type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" min="0" max="86400" class="form-input">
+                <input type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
                 </label>
             </div>
         </div>
@@ -200,7 +200,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">계정 기준 제한 횟수</span>
-                <input type="number" name="email_verification_throttle_account_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_account_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="email_verification_throttle_account_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>
@@ -209,7 +209,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">IP 기준 제한 횟수</span>
-                <input type="number" name="email_verification_throttle_ip_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_ip_limit']); ?>" min="0" max="1000" class="form-input">
+                <input type="number" name="email_verification_throttle_ip_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
                 </label>
             </div>
         </div>

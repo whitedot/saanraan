@@ -53,7 +53,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="grant">부여</option>
                             <option value="revoke">회수</option>
                         </select>
-                        <button type="submit" class="btn btn-sm btn-surface-default-soft">저장</button>
+                        <button type="submit" class="btn btn-sm btn-soft-default">저장</button>
                     </form>
                     </div>
                 </td>

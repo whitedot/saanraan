@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">이름</span>
-                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" required class="form-input">
+                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input" required>
                     </label>
                 </div>
             </div>
@@ -85,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">그룹 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 그룹 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-soft-default">새 그룹 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -124,7 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -187,7 +187,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">저장된 자동 규칙</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 자동 규칙 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-soft-default">새 자동 규칙 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -221,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) ($rule['last_evaluated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -344,7 +344,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">자동 규칙 저장</button>
         </div>
     </form>

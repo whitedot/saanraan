@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">제목</span>
-                        <input type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" maxlength="160" required>
+                        <input type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input" maxlength="160" required>
                     </label>
                 </div>
             </div>
@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">Slug</span>
-                        <input type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" maxlength="120" required>
+                        <input type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input" maxlength="120" required>
                     </label>
                     <br>
                     <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
@@ -62,7 +62,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">요약</span>
-                        <textarea name="summary" maxlength="1000"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
+                        <textarea name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
                     </label>
                 </div>
             </div>
@@ -71,7 +71,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">본문</span>
-                        <textarea name="body_text" rows="14"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
+                        <textarea name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     </label>
                     <br>
                     <small>1차 페이지 본문은 plain text로 저장하고 출력 시 escape합니다.</small>
@@ -82,7 +82,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
-                        <select name="status">
+                        <select name="status" class="form-select">
                             <?php foreach (sr_page_allowed_statuses() as $status) { ?>
                                 <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'draft') === $status ? ' selected' : ''; ?>>
                                     <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -97,7 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">본문 상단 배너</span>
-                        <select name="banner_before_content_id">
+                        <select name="banner_before_content_id" class="form-select">
                             <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                             <?php foreach ($publicBanners as $banner) { ?>
                                 <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
@@ -113,7 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">본문 하단 배너</span>
-                        <select name="banner_after_content_id">
+                        <select name="banner_after_content_id" class="form-select">
                             <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                             <?php foreach ($publicBanners as $banner) { ?>
                                 <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
@@ -131,7 +131,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">팝업레이어</span>
-                        <select name="popup_layer_id">
+                        <select name="popup_layer_id" class="form-select">
                             <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                             <?php foreach ($publicPopupLayers as $popupLayer) { ?>
                                 <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
@@ -149,7 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">SEO 제목</span>
-                        <input type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" maxlength="160">
+                        <input type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input" maxlength="160">
                     </label>
                 </div>
             </div>
@@ -158,7 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">SEO 설명</span>
-                        <input type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" maxlength="255">
+                        <input type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input" maxlength="255">
                     </label>
                 </div>
             </div>
@@ -167,7 +167,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -178,13 +178,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title">페이지 목록</h2>
                 <p class="admin-dashboard-meta">공개 상태인 페이지는 /pages/slug URL로 노출됩니다.</p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 페이지 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-soft-default">새 페이지 추가</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-filter-grid-compact">
                 <label class="admin-filter-field">
                     <span class="admin-filter-label">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach (sr_page_allowed_statuses() as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
@@ -195,7 +195,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
                 <label class="admin-filter-field">
                     <span class="admin-filter-label">검색</span>
-                    <input type="search" name="q" value="<?php echo sr_e((string) $filters['q']); ?>" maxlength="120">
+                    <input type="search" name="q" value="<?php echo sr_e((string) $filters['q']); ?>" class="form-input" maxlength="120">
                 </label>
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
@@ -228,14 +228,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td>
                                     <div class="admin-actions">
                                         <?php if ((string) $page['status'] === 'published') { ?>
-                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-surface-default-soft" target="_blank" rel="noopener noreferrer">보기</a>
+                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-soft-default" target="_blank" rel="noopener noreferrer">보기</a>
                                         <?php } ?>
-                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/pages/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="page_id" value="<?php echo sr_e((string) $page['id']); ?>">
-                                                <button type="submit" class="btn btn-sm btn-surface-danger-soft">숨김</button>
+                                                <button type="submit" class="btn btn-sm btn-soft-danger">숨김</button>
                                             </form>
                                         <?php } ?>
                                     </div>

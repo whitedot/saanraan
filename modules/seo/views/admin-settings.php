@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">제목 접미사</span>
-                <input type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" maxlength="80" class="form-input">
+                <input type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" class="form-input" maxlength="80">
                 </label>
             </div>
         </div>
@@ -25,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">기본 설명</span>
-                <input type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" maxlength="255" class="form-input">
+                <input type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input" maxlength="255">
                 </label>
             </div>
         </div>
@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">기본 OG 이미지 URL</span>
-                <input type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" maxlength="255" class="form-input">
+                <input type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input" maxlength="255">
                 </label>
             </div>
         </div>

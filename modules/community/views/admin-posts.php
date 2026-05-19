@@ -57,13 +57,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                                 <label>상태
-                                    <select name="status">
+                                    <select name="status" class="form-select">
                                         <?php foreach ($allowedPostStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
+                                <button type="submit" class="btn btn-sm btn-soft-default">변경</button>
                             </form>
                             </div>
                         </td>
@@ -118,13 +118,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="comment_status">
                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                 <label>상태
-                                    <select name="status">
+                                    <select name="status" class="form-select">
                                         <?php foreach ($allowedCommentStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
+                                <button type="submit" class="btn btn-sm btn-soft-default">변경</button>
                             </form>
                             </div>
                         </td>

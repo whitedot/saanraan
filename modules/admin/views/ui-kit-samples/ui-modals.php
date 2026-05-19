@@ -49,7 +49,7 @@
                                                     <div
                                                         class="modal-footer">
                                                         <button type="button"
-                                                            class="btn btn-subtle-light modal-action"
+                                                            class="btn btn-soft-default modal-action"
                                                             data-overlay="#standard-modal">닫기</button>
 
                                                         <button type="button"
@@ -161,7 +161,7 @@
                                                     <div
                                                         class="modal-footer">
                                                         <button type="button"
-                                                            class="btn btn-subtle-light modal-action"
+                                                            class="btn btn-soft-default modal-action"
                                                             data-overlay="#full-width-modal">닫기</button>
 
                                                         <button type="button"
@@ -284,7 +284,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#top-modal">닫기</button>
 
                                                     <button type="button"
@@ -329,7 +329,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#bottom-modal">닫기</button>
 
                                                     <button type="button"
@@ -374,7 +374,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#centermodal">닫기</button>
 
                                                     <button type="button"
@@ -610,7 +610,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#fullscreeexampleModal">닫기</button>
 
                                                     <button type="button"
@@ -655,7 +655,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenSm">닫기</button>
 
                                                     <button type="button"
@@ -700,7 +700,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenMd">닫기</button>
 
                                                     <button type="button"
@@ -745,7 +745,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenLg">닫기</button>
 
                                                     <button type="button"
@@ -790,7 +790,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenXl">닫기</button>
 
                                                     <button type="button"
@@ -835,7 +835,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenXxl">닫기</button>
 
                                                     <button type="button"

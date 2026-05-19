@@ -54,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">게시글 점수</span>
-                <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>">
+                <input type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
                 </label>
             </div>
         </div>
@@ -63,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">댓글 점수</span>
-                <input type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>">
+                <input type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
                 </label>
             </div>
         </div>
@@ -72,7 +72,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">그룹+레벨 판정</span>
-                <select name="access_condition_priority">
+                <select name="access_condition_priority" class="form-select">
                     <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
                         <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e($priority); ?></option>
                     <?php } ?>
@@ -89,7 +89,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 정책</span>
-                <select name="message_write_policy">
+                <select name="message_write_policy" class="form-select">
                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
                         <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e($policy); ?></option>
                     <?php } ?>
@@ -102,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 그룹 key</span>
-                <input type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" placeholder="regular_member, vip">
+                <input type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" class="form-input" placeholder="regular_member, vip">
                 </label>
             </div>
         </div>
@@ -111,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">발송 최소 레벨</span>
-                <select name="message_write_min_level">
+                <select name="message_write_min_level" class="form-select">
                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
                         <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
                             <?php echo sr_e('레벨 ' . (string) $levelValue); ?>
@@ -130,7 +130,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">커뮤니티 테마</span>
-                <select name="theme_key">
+                <select name="theme_key" class="form-select">
                     <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
                         <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) $settings['theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
@@ -206,7 +206,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
         <div class="admin-list-actions">
-            <button type="submit" class="btn btn-surface-default-soft">최근 회원 레벨 재계산</button>
+            <button type="submit" class="btn btn-soft-default">최근 회원 레벨 재계산</button>
         </div>
     </form>
 </section>

@@ -74,7 +74,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <span class="sr-only">소유자 비밀번호</span>
                                     <input type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">파일 업데이트 반영</button>
+                                <button type="submit" class="btn btn-sm btn-soft-default">파일 업데이트 반영</button>
                             </form>
                         <?php } elseif ($canManageModuleSources) { ?>
                             소스 반영 비활성화
@@ -114,7 +114,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-row-actions">
                     <?php if (in_array((string) $module['status'], ['failed', 'installing'], true)) { ?>
                         <details class="admin-inline-edit-details">
-                            <summary class="btn btn-sm btn-surface-default-soft">재설치</summary>
+                            <summary class="btn btn-sm btn-soft-default">재설치</summary>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="install">
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </details>
                     <?php } else { ?>
                         <details class="admin-inline-edit-details">
-                            <summary class="btn btn-sm btn-surface-default-soft"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
+                            <summary class="btn btn-sm btn-soft-default"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="status">
@@ -293,7 +293,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 설치 불가
                             <?php } else { ?>
                                 <details class="admin-inline-edit-details">
-                                    <summary class="btn btn-sm btn-surface-default-soft">설치</summary>
+                                    <summary class="btn btn-sm btn-soft-default">설치</summary>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="install">

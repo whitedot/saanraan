@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">인증 로그 보관일</span>
-                <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" min="1" max="3650" required class="form-input">
+                <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
                 </label>
             </div>
         </div>
@@ -24,7 +24,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">감사 로그 보관일</span>
-                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" min="1" max="3650" required class="form-input">
+                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" class="form-input" min="1" max="3650" required>
                 </label>
             </div>
         </div>
@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">사용 완료 토큰 보관일</span>
-                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" min="1" max="3650" required class="form-input">
+                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" class="form-input" min="1" max="3650" required>
                 </label>
             </div>
         </div>
@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">만료/폐기 세션 보관일</span>
-                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" min="1" max="3650" required class="form-input">
+                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
                 </label>
             </div>
         </div>
@@ -52,7 +52,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">알림 보관일</span>
-                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" min="1" max="3650" required class="form-input">
+                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" class="form-input" min="1" max="3650" required>
                     </label>
                 </div>
             </div>
@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">모듈 백업 보관일</span>
-                <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" min="1" max="3650" required class="form-input">
+                <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
                 </label>
             </div>
         </div>

@@ -23,7 +23,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">제목</span>
-                    <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" maxlength="120" required>
+                    <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input" maxlength="120" required>
                     </label>
                 </div>
             </div>
@@ -32,7 +32,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">내용</span>
-                    <textarea name="body_text" maxlength="3000"><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
+                    <textarea name="body_text" maxlength="3000" class="form-textarea"><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
                     </label>
                 </div>
             </div>
@@ -41,7 +41,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">링크 URL (외부 http/https 링크는 새 창으로 열림)</span>
-                    <input type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" maxlength="255">
+                    <input type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input" maxlength="255">
                     </label>
                 </div>
             </div>
@@ -50,7 +50,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">이미지 URL (/ 내부 경로 또는 http/https URL)</span>
-                    <input type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" maxlength="255">
+                    <input type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input" maxlength="255">
                     </label>
                 </div>
             </div>
@@ -59,7 +59,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">이미지 업로드</span>
-                    <input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp">
+                    <input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
                     </label>
                 <br>
                 <small>JPEG, PNG, WebP / 최대 <?php echo sr_e(sr_banner_format_bytes(sr_banner_image_upload_max_bytes())); ?>. 업로드하면 이미지 URL보다 우선 적용됩니다.</small>
@@ -70,7 +70,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">출력 위치</span>
-                    <select name="target_option">
+                    <select name="target_option" class="form-select">
                         <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
                             공용 배너
                         </option>
@@ -91,7 +91,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">매칭 방식</span>
-                    <select name="match_type">
+                    <select name="match_type" class="form-select">
                         <?php foreach ($allowedMatchTypes as $matchType) { ?>
                             <?php $currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all'; ?>
                             <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
@@ -107,7 +107,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">특정 subject ID</span>
-                    <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" maxlength="80">
+                    <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80">
                     </label>
                 </div>
             </div>
@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <?php $currentStatus = $editing ? (string) $editBanner['status'] : 'draft'; ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">배너 스킨</span>
-                    <select name="skin_key">
+                    <select name="skin_key" class="form-select">
                         <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                             <?php $currentSkinKey = $editing ? (string) ($editBanner['skin_key'] ?? $bannerSkinKey) : $bannerSkinKey; ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -153,7 +153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">시작 시각</span>
-                    <input type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['starts_at'] ?? null)) : ''; ?>">
+                    <input type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['starts_at'] ?? null)) : ''; ?>" class="form-input">
                     </label>
                 </div>
             </div>
@@ -162,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">종료 시각</span>
-                    <input type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['ends_at'] ?? null)) : ''; ?>">
+                    <input type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['ends_at'] ?? null)) : ''; ?>" class="form-input">
                     </label>
                 </div>
             </div>
@@ -171,14 +171,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">정렬</span>
-                    <input type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>">
+                    <input type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>" class="form-input">
                     </label>
                 </div>
             </div>
             <p>배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -193,7 +193,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">배너 스킨</span>
-                    <select name="banner_skin_key">
+                    <select name="banner_skin_key" class="form-select">
                         <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
@@ -217,13 +217,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title">배너 목록</h2>
                 <p class="admin-dashboard-meta">사용 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-surface-default-soft">새 배너 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-soft-default">새 배너 추가</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-filter-grid-compact">
                 <label class="admin-filter-field">
                     <span class="admin-filter-label">상태</span>
-                    <select name="status">
+                    <select name="status" class="form-select">
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
@@ -234,7 +234,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
                 <label class="admin-filter-field">
                     <span class="admin-filter-label">출력 위치</span>
-                    <select name="target">
+                    <select name="target" class="form-select">
                         <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
                         <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $filters['target'] === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
                         <?php foreach ($availableTargets as $target) { ?>
@@ -298,7 +298,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $banner['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-surface-default-soft">수정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">

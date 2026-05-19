@@ -7,20 +7,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
     <div class="admin-filter-header">
         <strong>로그 검색</strong>
-        <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-surface-default-soft">초기화</a>
+        <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-soft-default">초기화</a>
     </div>
     <div class="admin-filter-grid">
         <label class="admin-filter-field">
             <span class="admin-filter-label">이벤트 유형</span>
-            <input type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" maxlength="80" class="form-input">
+            <input type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" class="form-input" maxlength="80">
         </label>
         <label class="admin-filter-field">
             <span class="admin-filter-label">대상 유형</span>
-            <input type="text" name="target_type" value="<?php echo sr_e($filters['target_type']); ?>" maxlength="60" class="form-input">
+            <input type="text" name="target_type" value="<?php echo sr_e($filters['target_type']); ?>" class="form-input" maxlength="60">
         </label>
         <label class="admin-filter-field">
             <span class="admin-filter-label">처리자 계정 ID</span>
-            <input type="text" name="actor_account_id" value="<?php echo sr_e($filters['actor_account_id']); ?>" maxlength="20" inputmode="numeric" pattern="[0-9]*" class="form-input">
+            <input type="text" name="actor_account_id" value="<?php echo sr_e($filters['actor_account_id']); ?>" class="form-input" maxlength="20" inputmode="numeric" pattern="[0-9]*">
         </label>
         <label class="admin-filter-field">
             <span class="admin-filter-label">결과</span>

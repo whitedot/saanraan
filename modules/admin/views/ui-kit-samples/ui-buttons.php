@@ -447,7 +447,7 @@
                                     <i data-icon="tabler:microphone" class="iconify tabler--microphone ui-kit-type-lg"></i>
                                 </button>
 
-                                <button type="button" class="btn btn-subtle-light-muted">
+                                <button type="button" class="btn btn-soft-default">
                                     <i data-icon="tabler:hand-stop" class="iconify tabler--hand-stop ui-kit-type-lg"></i>
                                     중지
                                 </button>
@@ -553,51 +553,51 @@
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-e-none">왼쪽</button>
+                                        class="btn btn-soft-default ui-kit-radius-e-none">왼쪽</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-none">중간</button>
+                                        class="btn btn-soft-default ui-kit-radius-none">중간</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-s-none">오른쪽</button>
+                                        class="btn btn-soft-default ui-kit-radius-s-none">오른쪽</button>
                                 </div>
 
                                 <br />
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-e-none">1</button>
+                                        class="btn btn-soft-default ui-kit-radius-e-none">1</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-none">2</button>
+                                        class="btn btn-soft-default ui-kit-radius-none">2</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-none">3</button>
+                                        class="btn btn-soft-default ui-kit-radius-none">3</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-s-none">4</button>
+                                        class="btn btn-soft-default ui-kit-radius-s-none">4</button>
                                 </div>
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-e-none">5</button>
+                                        class="btn btn-soft-default ui-kit-radius-e-none">5</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-none">6</button>
+                                        class="btn btn-soft-default ui-kit-radius-none">6</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-s-none">7</button>
+                                        class="btn btn-soft-default ui-kit-radius-s-none">7</button>
                                 </div>
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
-                                    <button type="button" class="btn btn-subtle-light">8</button>
+                                    <button type="button" class="btn btn-soft-default">8</button>
                                 </div>
 
                                 <br />
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-e-none">1</button>
+                                        class="btn btn-soft-default ui-kit-radius-e-none">1</button>
                                     <button type="button"
                                         class="btn ui-kit-radius-none btn-solid-primary">2</button>
                                     <button type="button"
-                                        class="btn btn-subtle-light ui-kit-radius-none">3</button>
+                                        class="btn btn-soft-default ui-kit-radius-none">3</button>
 
                                     <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
-                                        <button type="button" class="btn btn-subtle-light ui-kit-radius-s-none"
+                                        <button type="button" class="btn btn-soft-default ui-kit-radius-s-none"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
                                             <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>
@@ -616,23 +616,23 @@
                                     <div>
                                         <div class="ui-kit-inline-cluster ui-kit-stack-layout">
                                             <button type="button"
-                                                class="btn btn-subtle-light ui-kit-radius-b-none">상단</button>
+                                                class="btn btn-soft-default ui-kit-radius-b-none">상단</button>
                                             <button type="button"
-                                                class="btn btn-subtle-light ui-kit-radius-none">중간</button>
+                                                class="btn btn-soft-default ui-kit-radius-none">중간</button>
                                             <button type="button"
-                                                class="btn btn-subtle-light ui-kit-radius-t-none">하단</button>
+                                                class="btn btn-soft-default ui-kit-radius-t-none">하단</button>
                                         </div>
                                     </div>
 
                                     <div>
                                         <div class="ui-kit-inline-cluster ui-kit-stack-layout">
                                             <button type="button"
-                                                class="btn btn-subtle-light ui-kit-radius-b-none">버튼 1</button>
+                                                class="btn btn-soft-default ui-kit-radius-b-none">버튼 1</button>
                                             <button type="button"
-                                                class="btn btn-subtle-light ui-kit-radius-none">버튼 2</button>
+                                                class="btn btn-soft-default ui-kit-radius-none">버튼 2</button>
                                             <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                 <button type="button"
-                                                    class="btn btn-subtle-light ui-kit-radius-t-none"
+                                                    class="btn btn-soft-default ui-kit-radius-t-none"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
                                                     <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>

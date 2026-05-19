@@ -24,9 +24,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/rewards/balances')); ?>" class="btn btn-surface-default-soft">잔액</a>
-        <a href="<?php echo sr_e(sr_url('/admin/rewards/adjust')); ?>" class="btn btn-surface-default-soft">조정</a>
-        <a href="<?php echo sr_e(sr_url('/admin/rewards/transactions')); ?>" class="btn btn-surface-default-soft">거래 내역</a>
+        <a href="<?php echo sr_e(sr_url('/admin/rewards/balances')); ?>" class="btn btn-soft-default">잔액</a>
+        <a href="<?php echo sr_e(sr_url('/admin/rewards/adjust')); ?>" class="btn btn-soft-default">조정</a>
+        <a href="<?php echo sr_e(sr_url('/admin/rewards/transactions')); ?>" class="btn btn-soft-default">거래 내역</a>
     </div>
 </div>
 
@@ -36,7 +36,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-filter-grid community-search-fields-compact">
             <label class="admin-filter-field">
                 <span class="admin-filter-label">회원 공개 해시</span>
-                <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80" class="form-input">
+                <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80">
             </label>
             <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
         </div>
@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" maxlength="80" required>
+                    <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required>
                     </label>
                 </div>
             </div>
@@ -73,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">거래 유형</span>
-                    <select name="transaction_type">
+                    <select name="transaction_type" class="form-select">
                         <?php foreach ($allowedTransactionTypes as $type) { ?>
                             <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
                         <?php } ?>
@@ -86,7 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">금액</span>
-                    <input type="number" name="amount" step="1" required>
+                    <input type="number" name="amount" step="1" required class="form-input">
                     </label>
                 <br>
                 지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.
@@ -97,7 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">사유</span>
-                    <input type="text" name="reason" maxlength="255" required>
+                    <input type="text" name="reason" maxlength="255" required class="form-input">
                     </label>
                 </div>
             </div>
@@ -106,7 +106,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">참조 유형</span>
-                    <input type="text" name="reference_type" maxlength="60">
+                    <input type="text" name="reference_type" maxlength="60" class="form-input">
                     </label>
                 </div>
             </div>
@@ -115,13 +115,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <label>
                         <span class="sr-only">참조 ID</span>
-                    <input type="text" name="reference_id" maxlength="120">
+                    <input type="text" name="reference_id" maxlength="120" class="form-input">
                     </label>
                 </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/rewards/balances')); ?>" class="btn btn-surface-default-soft">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/rewards/balances')); ?>" class="btn btn-soft-default">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>

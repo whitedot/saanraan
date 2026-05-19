@@ -81,7 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <span class="sr-only">처리 메모</span>
                                     <textarea name="review_note" rows="3" cols="30" class="form-textarea" placeholder="처리 메모"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-surface-default-soft">변경</button>
+                                <button type="submit" class="btn btn-sm btn-soft-default">변경</button>
                             </form>
                             </div>
                         </td>

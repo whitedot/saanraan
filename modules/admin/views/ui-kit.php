@@ -29,13 +29,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">조회 범위</h2>
-        <a href="<?php echo sr_e(sr_url('/admin/ui-kit-public')); ?>" class="btn btn-sm btn-primary">Public 런타임 미리보기</a>
+        <a href="<?php echo sr_e(sr_url('/admin/ui-kit-public')); ?>" class="btn btn-sm btn-solid-primary">Public 런타임 미리보기</a>
     </div>
     <div class="card-body">
-        <p class="muted-text">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>
+        <p class="admin-card-subtitle">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>
         <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="관리자 UI-KIT 섹션">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
-                <a class="btn btn-sm btn-light" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
+                <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
             <?php } ?>
         </nav>
     </div>
