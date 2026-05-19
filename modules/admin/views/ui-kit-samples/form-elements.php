@@ -50,9 +50,9 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context">
-                                                    <input type="text" id="validInput" name="hs-validation-name-success"
+                                                    <input type="text" id="validInput" name="validation-name-success"
                                                         class="form-input ui-kit-line-success" required=""
-                                                        aria-describedby="hs-validation-name-success-helper" />
+                                                        aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
                                                         <i data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></i>
@@ -191,9 +191,9 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
                                                     <input type="text" id="inValidationInput"
-                                                        name="hs-validation-name-success"
+                                                        name="validation-name-success"
                                                         class="form-input ui-kit-line-danger" required=""
-                                                        aria-describedby="hs-validation-name-success-helper" />
+                                                        aria-describedby="validation-name-success-helper" />
                                                     <i
                                                         class="iconify tabler--info-circle ui-kit-ink-danger input-icon ui-kit-type-base"></i>
                                                 </div>
@@ -322,7 +322,7 @@
                                                     <input id="password" type="password" class="form-input ui-kit-fill-width ui-kit-end-pad-10"
                                                         placeholder="비밀번호 입력" />
                                                     <button type="button"
-                                                        data-hs-toggle-password='{"target":"#password"}'
+                                                        data-toggle-password='{"target":"#password"}'
                                                         class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
                                                         <i data-icon="tabler:eye"
                                                             class="iconify tabler--eye password-active-hide ui-kit-block-flow ui-kit-type-sm"></i>
@@ -602,16 +602,16 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
+                                                            class="dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
                                                             드롭다운 <i
                                                                 class="iconify tabler--chevron-down ui-kit-type-base ui-kit-ink-inverse"></i>
                                                         </button>
 
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div class="ui-kit-stack-0-5">
                                                                 <a class="dropdown-item" href="#!">작업</a>
@@ -684,10 +684,10 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <!-- Floating Input -->
                                                 <div class="ui-kit-position-context">
-                                                    <input type="email" id="hs-floating-input-email"
+                                                    <input type="email" id="floating-input-email"
                                                         class="form-floating-control form-input"
                                                         placeholder="you@email.com" />
-                                                    <label for="hs-floating-input-email"
+                                                    <label for="floating-input-email"
                                                         class="form-floating-label">이메일</label>
                                                 </div>
                                                 <!-- End Floating Input -->

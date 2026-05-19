@@ -10,31 +10,31 @@
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">로컬 콘텐츠를 위한 간단한 탭 인터페이스 위젯입니다.</p>
                                 <div>
                                     <nav class="tab-nav" aria-label="Tabs" role="tablist"
-                                        data-hs-tab-select="#tab-select">
+                                        data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-underline active"
-                                            id="overview" aria-selected="true" data-hs-tab="#default-overview"
+                                            id="overview" aria-selected="true" data-tab="#default-overview"
                                             aria-controls="default-overview" role="tab">
                                             개요
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline"
-                                            id="activity" aria-selected="false" data-hs-tab="#default-activity"
+                                            id="activity" aria-selected="false" data-tab="#default-activity"
                                             aria-controls="default-activity" role="tab">
                                             활동
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline"
-                                            id="settings" aria-selected="false" data-hs-tab="#default-settings"
+                                            id="settings" aria-selected="false" data-tab="#default-settings"
                                             aria-controls="default-settings" role="tab">
                                             설정
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline"
-                                            id="disabled" aria-selected="false" data-hs-tab="#default-Disabled"
+                                            id="disabled" aria-selected="false" data-tab="#default-Disabled"
                                             aria-controls="default-Disabled" role="tab" disabled>
                                             비활성화
                                         </button>
@@ -75,38 +75,38 @@
 
                                 <div>
                                     <nav class="tab-nav-justified" aria-label="Tabs" role="tablist"
-                                        data-hs-tab-select="#tab-select">
+                                        data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-underline-justified active"
-                                            id="overview-1" aria-selected="true" data-hs-tab="#overview1"
+                                            id="overview-1" aria-selected="true" data-tab="#overview1"
                                             aria-controls="overview1" role="tab">
                                             개요
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline-justified"
-                                            id="profile-1" aria-selected="false" data-hs-tab="#profile1"
+                                            id="profile-1" aria-selected="false" data-tab="#profile1"
                                             aria-controls="profile1" role="tab">
                                             프로필
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline-justified"
-                                            id="settings-1" aria-selected="false" data-hs-tab="#settings1"
+                                            id="settings-1" aria-selected="false" data-tab="#settings1"
                                             aria-controls="settings1" role="tab">
                                             설정
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline-justified"
-                                            id="projects-1" aria-selected="false" data-hs-tab="#projects1"
+                                            id="projects-1" aria-selected="false" data-tab="#projects1"
                                             aria-controls="projects1" role="tab">
                                             프로젝트
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-underline-justified"
-                                            id="Support-1" aria-selected="false" data-hs-tab="#Support1"
+                                            id="Support-1" aria-selected="false" data-tab="#Support1"
                                             aria-controls="Support1" role="tab">
                                             지원
                                         </button>
@@ -151,10 +151,10 @@
                                     할 수 있습니다.</p>
 
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-4 ui-kit-gap-base">
-                                    <nav aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
+                                    <nav aria-label="Tabs" role="tablist" data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-pill-primary active"
-                                            id="vertical-overview" aria-selected="true" data-hs-tab="#v-pills-home-tab"
+                                            id="vertical-overview" aria-selected="true" data-tab="#v-pills-home-tab"
                                             aria-controls="v-pills-home-tab" role="tab">
                                             개요
                                         </button>
@@ -162,7 +162,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-primary"
                                             id="vertical-activity" aria-selected="false"
-                                            data-hs-tab="#v-pills-profile-tab" aria-controls="v-pills-profile-tab"
+                                            data-tab="#v-pills-profile-tab" aria-controls="v-pills-profile-tab"
                                             role="tab">
                                             활동
                                         </button>
@@ -170,7 +170,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-primary"
                                             id="vertical-settings" aria-selected="false"
-                                            data-hs-tab="#v-pills-settings-tab" aria-controls="v-pills-settings-tab"
+                                            data-tab="#v-pills-settings-tab" aria-controls="v-pills-settings-tab"
                                             role="tab">
                                             설정
                                         </button>
@@ -178,7 +178,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-primary"
                                             id="vertical-disabled" aria-selected="false"
-                                            data-hs-tab="#v-pills-projects-tab" aria-controls="v-pills-projects-tab"
+                                            data-tab="#v-pills-projects-tab" aria-controls="v-pills-projects-tab"
                                             role="tab">
                                             프로젝트
                                         </button>
@@ -186,7 +186,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-primary"
                                             id="vertical-support" aria-selected="false"
-                                            data-hs-tab="#v-pills-support-tab" aria-controls="v-pills-support-tab"
+                                            data-tab="#v-pills-support-tab" aria-controls="v-pills-support-tab"
                                             role="tab">
                                             지원
                                         </button>
@@ -321,10 +321,10 @@
                                         </div>
                                     </div>
 
-                                    <nav aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
+                                    <nav aria-label="Tabs" role="tablist" data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-pill-secondary active"
-                                            id="right-overview" aria-selected="true" data-hs-tab="#v-pills-home-right"
+                                            id="right-overview" aria-selected="true" data-tab="#v-pills-home-right"
                                             aria-controls="v-pills-home-right" role="tab">
                                             개요
                                         </button>
@@ -332,7 +332,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-secondary"
                                             id="right-activity" aria-selected="false"
-                                            data-hs-tab="#v-pills-profile-right" aria-controls="v-pills-profile-right"
+                                            data-tab="#v-pills-profile-right" aria-controls="v-pills-profile-right"
                                             role="tab">
                                             활동
                                         </button>
@@ -340,7 +340,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-secondary"
                                             id="right-settings" aria-selected="false"
-                                            data-hs-tab="#v-pills-settings-right" aria-controls="v-pills-settings-right"
+                                            data-tab="#v-pills-settings-right" aria-controls="v-pills-settings-right"
                                             role="tab">
                                             설정
                                         </button>
@@ -348,7 +348,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-secondary"
                                             id="right-disabled" aria-selected="false"
-                                            data-hs-tab="#v-pills-projects-right" aria-controls="v-pills-projects-right"
+                                            data-tab="#v-pills-projects-right" aria-controls="v-pills-projects-right"
                                             role="tab">
                                             프로젝트
                                         </button>
@@ -356,7 +356,7 @@
                                         <button type="button"
                                             class="tab-trigger-pill-secondary"
                                             id="right-support" aria-selected="false"
-                                            data-hs-tab="#v-pills-support-right" aria-controls="v-pills-support-right"
+                                            data-tab="#v-pills-support-right" aria-controls="v-pills-support-right"
                                             role="tab">
                                             지원
                                         </button>
@@ -377,31 +377,31 @@
 
                                 <div>
                                     <nav class="tab-nav-bordered" aria-label="Tabs"
-                                        role="tablist" data-hs-tab-select="#tab-select">
+                                        role="tablist" data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-line-primary active"
-                                            id="home-border" aria-selected="true" data-hs-tab="#home-b1"
+                                            id="home-border" aria-selected="true" data-tab="#home-b1"
                                             aria-controls="home-b1" role="tab">
                                             홈
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-primary"
-                                            id="profile-border" aria-selected="false" data-hs-tab="#profile-b1"
+                                            id="profile-border" aria-selected="false" data-tab="#profile-b1"
                                             aria-controls="profile-b1" role="tab">
                                             프로필
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-primary"
-                                            id="settings-border" aria-selected="false" data-hs-tab="#settings-b1"
+                                            id="settings-border" aria-selected="false" data-tab="#settings-b1"
                                             aria-controls="settings-b1" role="tab">
                                             설정
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-primary"
-                                            id="about-border" aria-selected="false" data-hs-tab="#about-b1"
+                                            id="about-border" aria-selected="false" data-tab="#about-b1"
                                             aria-controls="about-b1" role="tab">
                                             정보
                                         </button>
@@ -446,10 +446,10 @@
 
                                 <div>
                                     <nav class="tab-nav-bordered-tight" aria-label="Tabs" role="tablist"
-                                        data-hs-tab-select="#tab-select">
+                                        data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-line-danger active"
-                                            id="home-icon" aria-selected="true" data-hs-tab="#home-ib1"
+                                            id="home-icon" aria-selected="true" data-tab="#home-ib1"
                                             aria-controls="home-ib1" role="tab">
                                             <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-type-base"></i>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">홈</div>
@@ -457,7 +457,7 @@
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
-                                            id="profile-icon" aria-selected="false" data-hs-tab="#profile-ib1"
+                                            id="profile-icon" aria-selected="false" data-tab="#profile-ib1"
                                             aria-controls="profile-ib1" role="tab">
                                             <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-type-base"></i>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">프로필</div>
@@ -465,7 +465,7 @@
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
-                                            id="settings-icon" aria-selected="false" data-hs-tab="#settings-ib1"
+                                            id="settings-icon" aria-selected="false" data-tab="#settings-ib1"
                                             aria-controls="settings-ib1" role="tab">
                                             <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-base"></i>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>
@@ -473,7 +473,7 @@
 
                                         <button type="button"
                                             class="tab-trigger-line-danger"
-                                            id="about-icon" aria-selected="false" data-hs-tab="#about-ib1"
+                                            id="about-icon" aria-selected="false" data-tab="#about-ib1"
                                             aria-controls="about-ib1" role="tab">
                                             <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-base"></i>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">정보</div>
@@ -519,31 +519,31 @@
 
                                 <div>
                                     <nav class="tab-nav-bordered" aria-label="Tabs"
-                                        role="tablist" data-hs-tab-select="#tab-select">
+                                        role="tablist" data-tab-select="#tab-select">
                                         <button type="button"
                                             class="tab-trigger-line-success active"
-                                            id="home-icon-2" aria-selected="true" data-hs-tab="#home-i1"
+                                            id="home-icon-2" aria-selected="true" data-tab="#home-i1"
                                             aria-controls="home-i1" role="tab">
                                             <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
-                                            id="profile-icon-2" aria-selected="false" data-hs-tab="#profile-i1"
+                                            id="profile-icon-2" aria-selected="false" data-tab="#profile-i1"
                                             aria-controls="profile-i1" role="tab">
                                             <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
-                                            id="settings-icon-2" aria-selected="false" data-hs-tab="#settings-i1"
+                                            id="settings-icon-2" aria-selected="false" data-tab="#settings-i1"
                                             aria-controls="settings-i1" role="tab">
                                             <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-icon-size-5-5"></i>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
-                                            id="about-icon-2" aria-selected="false" data-hs-tab="#about-i1"
+                                            id="about-icon-2" aria-selected="false" data-tab="#about-i1"
                                             aria-controls="about-i1" role="tab">
                                             <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-icon-size-5-5"></i>
                                         </button>
@@ -581,10 +581,10 @@
                             <div class="card-header ui-kit-line-dashed">
                                 <h4 class="card-title">탭이 있는 카드 (Card with Tabs)</h4>
 
-                                <nav class="nav-tabs" aria-label="Tabs" role="tablist" data-hs-tab-select="#tab-select">
+                                <nav class="nav-tabs" aria-label="Tabs" role="tablist" data-tab-select="#tab-select">
                                     <button type="button"
                                         class="nav-link nav-link-line-primary active"
-                                        id="summary" aria-selected="true" data-hs-tab="#home-ct" aria-controls="home-ct"
+                                        id="summary" aria-selected="true" data-tab="#home-ct" aria-controls="home-ct"
                                         role="tab">
                                         <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-block-flow ui-kit-hide-md"></i>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">요약</div>
@@ -592,7 +592,7 @@
 
                                     <button type="button"
                                         class="nav-link nav-link-line-primary"
-                                        id="accounts" aria-selected="false" data-hs-tab="#profile-ct"
+                                        id="accounts" aria-selected="false" data-tab="#profile-ct"
                                         aria-controls="profile-ct" role="tab">
                                         <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-block-flow ui-kit-hide-md"></i>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">계정</div>
@@ -600,7 +600,7 @@
 
                                     <button type="button"
                                         class="nav-link nav-link-line-primary"
-                                        id="setting" aria-selected="false" data-hs-tab="#settings-ct"
+                                        id="setting" aria-selected="false" data-tab="#settings-ct"
                                         aria-controls="settings-ct" role="tab">
                                         <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-block-flow ui-kit-hide-md"></i>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>

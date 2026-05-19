@@ -94,20 +94,20 @@ assets/common-ui.js
 - DOMContentLoaded 후 안전하게 초기화한다.
 - 해당 요소가 없는 페이지에서는 아무 일도 하지 않는다.
 
-드롭다운은 `.hs-dropdown`, `.hs-dropdown-toggle`, `.hs-dropdown-menu` 마크업과 `assets/common-ui.js`로 동작한다. 옵션을 class 문자열이나 CSS custom property에서 파싱하는 방식은 이전 UI 프레임워크 계열 잔재이므로 새 프로젝트 공용 규칙으로 유지하지 않는다.
+드롭다운은 `.dropdown`, `.dropdown-toggle`, `.dropdown-menu` 마크업과 `assets/common-ui.js`로 동작한다. 옵션을 class 문자열이나 CSS custom property에서 파싱하는 방식은 이전 UI 프레임워크 계열 잔재이므로 새 프로젝트 공용 규칙으로 유지하지 않는다.
 
-드롭다운 공용화 시 옵션은 `data-*` 속성으로 정리한다. 기본 위치는 `.hs-dropdown` root이며, 테이블 액션처럼 기존 마크업 구조상 root 정리가 늦어지는 경우에는 전환 기간 동안 toggle의 `data-dropdown-*`도 읽는다.
+드롭다운 공용화 시 옵션은 `data-*` 속성으로 정리한다. 기본 위치는 `.dropdown` root이며, 테이블 액션처럼 기존 마크업 구조상 root 정리가 늦어지는 경우에는 전환 기간 동안 toggle의 `data-dropdown-*`도 읽는다.
 
 ```html
 <div
-    class="dropdown hs-dropdown"
+    class="dropdown"
     data-dropdown-placement="bottom-end"
     data-dropdown-auto-close="inside"
 >
-    <button type="button" class="dropdown-toggle hs-dropdown-toggle" aria-expanded="false">
+    <button type="button" class="dropdown-toggle" aria-expanded="false">
         메뉴
     </button>
-    <div class="hs-dropdown-menu" role="menu" aria-hidden="true">
+    <div class="dropdown-menu" role="menu" aria-hidden="true">
         ...
     </div>
 </div>
@@ -170,7 +170,7 @@ assets/common-ui.js
 - 공용 자산으로 승격했을 때 이름, 경로, 옵션 규칙이 `saanraan` 프로젝트와 맞는가?
 - UI-KIT 조회 화면을 유지하기 위한 임시 보정일 뿐인가?
 
-드롭다운/오버레이/탭처럼 실제 화면에서도 필요한 상호작용은 공용 JS로 승격한다. 다만 기존 `hs-*` 마크업이나 class 기반 옵션은 그대로 보존하지 않고, 현재 프로젝트에서 읽기 쉬운 `data-*` 규칙으로 정리한다.
+드롭다운/오버레이/탭처럼 실제 화면에서도 필요한 상호작용은 공용 JS로 승격한다. 다만 이전 UI 프레임워크 마크업이나 class 기반 옵션은 그대로 보존하지 않고, 현재 프로젝트에서 읽기 쉬운 `data-*` 규칙으로 정리한다.
 
 `assets/ui-kit/js/common.js`처럼 그누보드5 전역 helper, jQuery 호환 shim, 오래된 브라우저/Flash helper, 현재 프로젝트에서 쓰지 않는 sideview/selectbox 처리를 담은 파일은 제거한다.
 

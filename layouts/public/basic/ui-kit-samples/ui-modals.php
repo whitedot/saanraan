@@ -14,10 +14,10 @@
                                         <button type="button"
                                             class="btn btn-solid-primary"
                                             aria-haspopup="dialog" aria-expanded="false" aria-controls="standard-modal"
-                                            data-hs-overlay="#standard-modal">표준 모달</button>
+                                            data-overlay="#standard-modal">표준 모달</button>
 
                                         <div id="standard-modal"
-                                            class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                             role="dialog" tabindex="-1" aria-labelledby="standard-modal-label">
                                             <div
                                                 class="modal-dialog">
@@ -28,7 +28,7 @@
                                                         <h3 id="standard-modal-label" class="modal-title">
                                                             모달 제목</h3>
                                                         <button type="button" class="modal-close" aria-label="Close"
-                                                            data-hs-overlay="#standard-modal">
+                                                            data-overlay="#standard-modal">
                                                             <span class="sr-only">닫기</span>
                                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                         </button>
@@ -50,7 +50,7 @@
                                                         class="modal-footer">
                                                         <button type="button"
                                                             class="btn btn-subtle-light modal-action"
-                                                            data-hs-overlay="#standard-modal">닫기</button>
+                                                            data-overlay="#standard-modal">닫기</button>
 
                                                         <button type="button"
                                                             class="btn btn-solid-primary modal-action">변경사항
@@ -66,10 +66,10 @@
                                         <button type="button" class="btn btn-solid-info-strong"
                                             aria-haspopup="dialog" aria-expanded="false"
                                             aria-controls="bs-example-modal-lg"
-                                            data-hs-overlay="#bs-example-modal-lg">대형 모달</button>
+                                            data-overlay="#bs-example-modal-lg">대형 모달</button>
 
                                         <div id="bs-example-modal-lg"
-                                            class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                             role="dialog" tabindex="-1" aria-labelledby="bs-example-modal-lg-label">
                                             <div
                                                 class="modal-dialog modal-dialog-lg">
@@ -80,7 +80,7 @@
                                                         <h3 id="bs-example-modal-lg-label"
                                                             class="modal-title">대형 모달</h3>
                                                         <button type="button" class="modal-close" aria-label="Close"
-                                                            data-hs-overlay="#bs-example-modal-lg">
+                                                            data-overlay="#bs-example-modal-lg">
                                                             <span class="sr-only">닫기</span>
                                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                         </button>
@@ -97,10 +97,10 @@
                                             class="btn btn-solid-success-strong"
                                             aria-haspopup="dialog" aria-expanded="false"
                                             aria-controls="bs-example-modal-sm"
-                                            data-hs-overlay="#bs-example-modal-sm">소형 모달</button>
+                                            data-overlay="#bs-example-modal-sm">소형 모달</button>
 
                                         <div id="bs-example-modal-sm"
-                                            class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                             role="dialog" tabindex="-1" aria-labelledby="bs-example-modal-sm-label">
                                             <div class="modal-dialog-sm">
                                                 <div
@@ -110,7 +110,7 @@
                                                         <h3 id="bs-example-modal-sm-label"
                                                             class="modal-title">소형 모달</h3>
                                                         <button type="button" class="modal-close" aria-label="Close"
-                                                            data-hs-overlay="#bs-example-modal-sm">
+                                                            data-overlay="#bs-example-modal-sm">
                                                             <span class="sr-only">닫기</span>
                                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                         </button>
@@ -127,11 +127,11 @@
                                         <button type="button"
                                             class="btn btn-solid-primary"
                                             aria-haspopup="dialog" aria-expanded="false"
-                                            aria-controls="full-width-modal" data-hs-overlay="#full-width-modal">전체 너비
+                                            aria-controls="full-width-modal" data-overlay="#full-width-modal">전체 너비
                                             모달</button>
 
                                         <div id="full-width-modal"
-                                            class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                             role="dialog" tabindex="-1" aria-labelledby="full-width-modal-label">
                                             <div
                                                 class="modal-dialog modal-dialog-full">
@@ -142,7 +142,7 @@
                                                         <h3 id="full-width-modal-label" class="modal-title">
                                                             모달 제목</h3>
                                                         <button type="button" class="modal-close" aria-label="Close"
-                                                            data-hs-overlay="#full-width-modal">
+                                                            data-overlay="#full-width-modal">
                                                             <span class="sr-only">닫기</span>
                                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                         </button>
@@ -162,7 +162,7 @@
                                                         class="modal-footer">
                                                         <button type="button"
                                                             class="btn btn-subtle-light modal-action"
-                                                            data-hs-overlay="#full-width-modal">닫기</button>
+                                                            data-overlay="#full-width-modal">닫기</button>
 
                                                         <button type="button"
                                                             class="btn btn-solid-primary modal-action">변경사항
@@ -178,11 +178,11 @@
                                         <button type="button"
                                             class="btn btn-solid-secondary"
                                             aria-haspopup="dialog" aria-expanded="false"
-                                            aria-controls="scrollable-modal" data-hs-overlay="#scrollable-modal">스크롤 가능
+                                            aria-controls="scrollable-modal" data-overlay="#scrollable-modal">스크롤 가능
                                             모달</button>
 
                                         <div id="scrollable-modal"
-                                            class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                             role="dialog" tabindex="-1" aria-labelledby="scrollable-modal-label">
                                             <div
                                                 class="modal-dialog">
@@ -193,7 +193,7 @@
                                                         <h3 id="scrollable-modal-label" class="modal-title">
                                                             모달 제목</h3>
                                                         <button type="button" class="modal-close" aria-label="Close"
-                                                            data-hs-overlay="#scrollable-modal">
+                                                            data-overlay="#scrollable-modal">
                                                             <span class="sr-only">닫기</span>
                                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                         </button>
@@ -227,7 +227,7 @@
                                                         class="modal-footer">
                                                         <button type="button"
                                                             class="btn btn-solid-secondary modal-action"
-                                                            data-hs-overlay="#scrollable-modal">닫기</button>
+                                                            data-overlay="#scrollable-modal">닫기</button>
 
                                                         <button type="button"
                                                             class="btn btn-solid-primary modal-action">변경사항
@@ -258,10 +258,10 @@
                                     <button type="button"
                                         class="btn btn-solid-secondary"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="top-modal"
-                                        data-hs-overlay="#top-modal">상단 모달</button>
+                                        data-overlay="#top-modal">상단 모달</button>
 
                                     <div id="top-modal"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="top-modal-label">
                                         <div class="modal-dialog">
                                             <div
@@ -271,7 +271,7 @@
                                                     <h3 id="top-modal-label" class="modal-title">모달 제목</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#top-modal">
+                                                        data-overlay="#top-modal">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -285,7 +285,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#top-modal">닫기</button>
+                                                        data-overlay="#top-modal">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -301,10 +301,10 @@
                                     <button type="button"
                                         class="btn btn-solid-secondary"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="bottom-modal"
-                                        data-hs-overlay="#bottom-modal">하단 모달</button>
+                                        data-overlay="#bottom-modal">하단 모달</button>
 
                                     <div id="bottom-modal"
-                                        class="modal-overlay-bottom hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay-bottom overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="bottom-modal-label">
                                         <div
                                             class="modal-dialog-bottom">
@@ -316,7 +316,7 @@
                                                         모달 제목</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#bottom-modal">
+                                                        data-overlay="#bottom-modal">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -330,7 +330,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#bottom-modal">닫기</button>
+                                                        data-overlay="#bottom-modal">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -346,10 +346,10 @@
                                     <button type="button"
                                         class="btn btn-solid-secondary"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="centermodal"
-                                        data-hs-overlay="#centermodal">중앙 모달</button>
+                                        data-overlay="#centermodal">중앙 모달</button>
 
                                     <div id="centermodal"
-                                        class="modal-overlay-bottom hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay-bottom overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="centermodal-label">
                                         <div
                                             class="modal-dialog-center">
@@ -361,7 +361,7 @@
                                                     </h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#centermodal">
+                                                        data-overlay="#centermodal">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -375,7 +375,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#centermodal">닫기</button>
+                                                        data-overlay="#centermodal">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -404,10 +404,10 @@
                                     <button type="button"
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="multiple-one"
-                                        data-hs-overlay="#multiple-one">다중 모달 시작</button>
+                                        data-overlay="#multiple-one">다중 모달 시작</button>
 
                                     <div id="multiple-one"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="multiple-one-label">
                                         <div class="modal-dialog">
                                             <div
@@ -418,7 +418,7 @@
                                                         첫 번째 모달 제목</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#multiple-one">
+                                                        data-overlay="#multiple-one">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -434,7 +434,7 @@
                                                     <button type="button"
                                                         class="btn btn-solid-primary"
                                                         aria-haspopup="dialog" aria-expanded="false"
-                                                        aria-controls="multiple-two" data-hs-overlay="#multiple-two">다음
+                                                        aria-controls="multiple-two" data-overlay="#multiple-two">다음
                                                         단계</button>
                                                 </div>
                                             </div>
@@ -442,7 +442,7 @@
                                     </div>
 
                                     <div id="multiple-two"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="multiple-two-label">
                                         <div class="ui-kit-outer-space-3 ui-kit-inline-margin-sm-auto ui-kit-fill-width-sm ui-kit-max-width-sm-lg">
                                             <div
@@ -453,7 +453,7 @@
                                                         두 번째 모달 제목</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#multiple-two">
+                                                        data-overlay="#multiple-two">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -468,7 +468,7 @@
                                                     class="modal-footer">
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action"
-                                                        data-hs-overlay="#multiple-two">닫기</button>
+                                                        data-overlay="#multiple-two">닫기</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -486,17 +486,17 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><code>data-hs-overlay</code> 속성을 스마트하게 배치하여 여러 모달 사이를
+                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><code>data-overlay</code> 속성을 스마트하게 배치하여 여러 모달 사이를
                                 전환합니다.</p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <div>
                                     <button type="button"
                                         class="btn btn-solid-secondary"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="exampleModalToggle1"
-                                        data-hs-overlay="#exampleModalToggle1">첫 번째 모달 열기</button>
+                                        data-overlay="#exampleModalToggle1">첫 번째 모달 열기</button>
 
                                     <div id="exampleModalToggle1"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalToggle1-label">
                                         <div
                                             class="modal-dialog-center">
@@ -508,7 +508,7 @@
                                                         모달 1</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalToggle1">
+                                                        data-overlay="#exampleModalToggle1">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -524,7 +524,7 @@
                                                         class="btn btn-solid-primary"
                                                         aria-haspopup="dialog" aria-expanded="false"
                                                         aria-controls="exampleModalToggle2"
-                                                        data-hs-overlay="#exampleModalToggle2">
+                                                        data-overlay="#exampleModalToggle2">
                                                         두 번째 모달 열기
                                                     </button>
                                                 </div>
@@ -533,7 +533,7 @@
                                     </div>
 
                                     <div id="exampleModalToggle2"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalToggle2-label">
                                         <div
                                             class="modal-dialog-center">
@@ -545,7 +545,7 @@
                                                         모달 2</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalToggle2">
+                                                        data-overlay="#exampleModalToggle2">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -559,7 +559,7 @@
                                                     class="modal-footer">
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action"
-                                                        data-hs-overlay="#exampleModalToggle1">첫 번째로 돌아가기</button>
+                                                        data-overlay="#exampleModalToggle1">첫 번째로 돌아가기</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -585,10 +585,10 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="fullscreeexampleModal"
-                                        data-hs-overlay="#fullscreeexampleModal">전체 화면 모달</button>
+                                        data-overlay="#fullscreeexampleModal">전체 화면 모달</button>
 
                                     <div id="fullscreeexampleModal"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
                                         role="dialog" tabindex="-1" aria-labelledby="fullscreeexampleModal-label">
                                         <div
                                             class="modal-dialog-fluid">
@@ -600,7 +600,7 @@
                                                         class="modal-title">전체 화면 모달</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#fullscreeexampleModal">
+                                                        data-overlay="#fullscreeexampleModal">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -611,7 +611,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#fullscreeexampleModal">닫기</button>
+                                                        data-overlay="#fullscreeexampleModal">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -628,12 +628,12 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="exampleModalFullscreenSm"
-                                        data-hs-overlay="#exampleModalFullscreenSm">
+                                        data-overlay="#exampleModalFullscreenSm">
                                         sm 미만에서 전체 화면
                                     </button>
 
                                     <div id="exampleModalFullscreenSm"
-                                        class="modal-overlay hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenSm-label">
                                         <div
                                             class="modal-dialog-responsive ui-kit-modal-open-sm-mt ui-kit-inline-margin-sm-auto ui-kit-space-before-sm-0 ui-kit-auto-height-sm ui-kit-max-height-sm-none ui-kit-max-width-sm-lg">
@@ -645,7 +645,7 @@
                                                         class="modal-title">sm 미만에서 전체 화면</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalFullscreenSm">
+                                                        data-overlay="#exampleModalFullscreenSm">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -656,7 +656,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#exampleModalFullscreenSm">닫기</button>
+                                                        data-overlay="#exampleModalFullscreenSm">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -673,12 +673,12 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="exampleModalFullscreenMd"
-                                        data-hs-overlay="#exampleModalFullscreenMd">
+                                        data-overlay="#exampleModalFullscreenMd">
                                         md 미만에서 전체 화면
                                     </button>
 
                                     <div id="exampleModalFullscreenMd"
-                                        class="modal-overlay hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenMd-label">
                                         <div
                                             class="modal-dialog-responsive ui-kit-modal-open-md-mt ui-kit-inline-margin-md-auto ui-kit-space-before-md-0 ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg">
@@ -690,7 +690,7 @@
                                                         class="modal-title">md 미만에서 전체 화면</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalFullscreenMd">
+                                                        data-overlay="#exampleModalFullscreenMd">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -701,7 +701,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#exampleModalFullscreenMd">닫기</button>
+                                                        data-overlay="#exampleModalFullscreenMd">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -718,12 +718,12 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="exampleModalFullscreenLg"
-                                        data-hs-overlay="#exampleModalFullscreenLg">
+                                        data-overlay="#exampleModalFullscreenLg">
                                         lg 미만에서 전체 화면
                                     </button>
 
                                     <div id="exampleModalFullscreenLg"
-                                        class="modal-overlay hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenLg-label">
                                         <div
                                             class="modal-dialog-responsive ui-kit-modal-open-lg-mt ui-kit-inline-margin-lg-auto ui-kit-space-before-lg-0 ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg">
@@ -735,7 +735,7 @@
                                                         class="modal-title">lg 미만에서 전체 화면</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalFullscreenLg">
+                                                        data-overlay="#exampleModalFullscreenLg">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -746,7 +746,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#exampleModalFullscreenLg">닫기</button>
+                                                        data-overlay="#exampleModalFullscreenLg">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -763,12 +763,12 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="exampleModalFullscreenXl"
-                                        data-hs-overlay="#exampleModalFullscreenXl">
+                                        data-overlay="#exampleModalFullscreenXl">
                                         xl 미만에서 전체 화면
                                     </button>
 
                                     <div id="exampleModalFullscreenXl"
-                                        class="modal-overlay hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXl-label">
                                         <div
                                             class="modal-dialog-responsive ui-kit-modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
@@ -780,7 +780,7 @@
                                                         class="modal-title">xl 미만에서 전체 화면</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalFullscreenXl">
+                                                        data-overlay="#exampleModalFullscreenXl">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -791,7 +791,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#exampleModalFullscreenXl">닫기</button>
+                                                        data-overlay="#exampleModalFullscreenXl">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -808,12 +808,12 @@
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
                                         aria-controls="exampleModalFullscreenXxl"
-                                        data-hs-overlay="#exampleModalFullscreenXxl">
+                                        data-overlay="#exampleModalFullscreenXxl">
                                         xxl 미만에서 전체 화면
                                     </button>
 
                                     <div id="exampleModalFullscreenXxl"
-                                        class="modal-overlay hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXxl-label">
                                         <div
                                             class="modal-dialog-responsive ui-kit-modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
@@ -825,7 +825,7 @@
                                                         class="modal-title">xxl 미만에서 전체 화면</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#exampleModalFullscreenXxl">
+                                                        data-overlay="#exampleModalFullscreenXxl">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -836,7 +836,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-subtle-light modal-action"
-                                                        data-hs-overlay="#exampleModalFullscreenXxl">닫기</button>
+                                                        data-overlay="#exampleModalFullscreenXxl">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항
@@ -864,10 +864,10 @@
                                 <div>
                                     <button type="button" class="btn btn-solid-info"
                                         aria-haspopup="dialog" aria-expanded="false" aria-controls="staticBackdrop"
-                                        data-hs-overlay="#staticBackdrop">고정 배경 모달</button>
+                                        data-overlay="#staticBackdrop">고정 배경 모달</button>
 
                                     <div id="staticBackdrop"
-                                        class="modal-overlay modal-overlay-fade hs-overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent" data-hs-overlay-static="true"
+                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent" data-overlay-static="true"
                                         role="dialog" tabindex="-1" aria-labelledby="staticBackdrop-label">
                                         <div class="modal-dialog">
                                             <div
@@ -878,7 +878,7 @@
                                                         모달 제목</h3>
 
                                                     <button type="button" class="modal-close" aria-label="Close"
-                                                        data-hs-overlay="#staticBackdrop">
+                                                        data-overlay="#staticBackdrop">
                                                         <span class="sr-only">닫기</span>
                                                         <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                                     </button>
@@ -891,7 +891,7 @@
                                                 <div class="modal-footer">
                                                     <button type="button"
                                                         class="btn btn-solid-secondary modal-action"
-                                                        data-hs-overlay="#staticBackdrop">닫기</button>
+                                                        data-overlay="#staticBackdrop">닫기</button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action">변경사항

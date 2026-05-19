@@ -7,10 +7,10 @@
 (function () {
   'use strict';
 
-  var DROPDOWN_SELECTOR = '.hs-dropdown';
-  var TOGGLE_SELECTOR = '.hs-dropdown-toggle';
-  var MENU_SELECTOR = '.hs-dropdown-menu';
-  var OPEN_CLASS = 'hs-dropdown-open';
+  var DROPDOWN_SELECTOR = '.dropdown';
+  var TOGGLE_SELECTOR = '.dropdown-toggle';
+  var MENU_SELECTOR = '.dropdown-menu';
+  var OPEN_CLASS = 'dropdown-open';
   var LEGACY_OPEN_CLASS = 'open';
   var VIEWPORT_GAP = 8;
   var MENU_OFFSET = 6;
@@ -490,14 +490,14 @@
 (function () {
   'use strict';
 
-  var ACTIVE_CLASS = 'hs-overlay-open';
+  var ACTIVE_CLASS = 'overlay-open';
   var OPEN_CLASS = 'open';
   var HIDDEN_CLASS = 'hidden';
   var DISABLED_CLASS = 'pointer-events-none';
   var FADE_CLASS = 'opacity-0';
   var overlayStack = [];
   var FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-  var OVERLAY_TRIGGER_SELECTOR = '[data-hs-overlay]';
+  var OVERLAY_TRIGGER_SELECTOR = '[data-overlay]';
 
   var getElementTarget = function getElementTarget(target) {
     if (!target) {
@@ -543,7 +543,7 @@
       return false;
     }
 
-    var hiddenOverlay = element.closest && element.closest('.hs-overlay');
+    var hiddenOverlay = element.closest && element.closest('.overlay');
     if (hiddenOverlay && hiddenOverlay.getAttribute('aria-hidden') === 'true') {
       return false;
     }
@@ -574,7 +574,7 @@
       return null;
     }
 
-    var triggers = document.querySelectorAll('[data-hs-overlay="#' + overlay.id + '"], [data-hs-overlay="' + overlay.id + '"]');
+    var triggers = document.querySelectorAll('[data-overlay="#' + overlay.id + '"], [data-overlay="' + overlay.id + '"]');
     for (var i = 0; i < triggers.length; i += 1) {
       if (isValidFocusTarget(triggers[i], overlay)) {
         return triggers[i];
@@ -671,7 +671,7 @@
         return;
       }
 
-      if (overlay.dataset.hsOverlayStatic === 'true') {
+      if (overlay.dataset.overlayStatic === 'true') {
         return;
       }
 
@@ -724,7 +724,7 @@
       return;
     }
 
-    if (options.skipStatic && overlay.dataset.hsOverlayStatic === 'true') {
+    if (options.skipStatic && overlay.dataset.overlayStatic === 'true') {
       return;
     }
 
@@ -772,7 +772,7 @@
   };
 
   var handleTrigger = function handleTrigger(trigger) {
-    var selector = trigger.getAttribute('data-hs-overlay');
+    var selector = trigger.getAttribute('data-overlay');
     var overlay = resolveOverlay(selector);
 
     if (!overlay) {
@@ -782,11 +782,11 @@
       return;
     }
 
-    if (!overlay.classList.contains('hs-overlay')) {
+    if (!overlay.classList.contains('overlay')) {
       return;
     }
 
-    var currentOverlay = trigger.closest('.hs-overlay');
+    var currentOverlay = trigger.closest('.overlay');
     var isSameOverlay = currentOverlay && currentOverlay === overlay;
     var overlayIsActive = overlay.classList.contains(ACTIVE_CLASS);
     var parentOverlay = !isSameOverlay && currentOverlay ? currentOverlay : null;
@@ -843,7 +843,7 @@
     for (var i = overlayStack.length - 1; i >= 0; i -= 1) {
       var overlay = overlayStack[i];
       hideOverlay(overlay, { skipStatic: true });
-      if (!overlay.dataset.hsOverlayStatic) {
+      if (!overlay.dataset.overlayStatic) {
         break;
       }
     }
@@ -855,14 +855,14 @@
   'use strict';
 
   var TABLIST_SELECTOR = '[role="tablist"]';
-  var TAB_SELECTOR = '[role="tab"][data-hs-tab]';
+  var TAB_SELECTOR = '[role="tab"][data-tab]';
 
   function toArray(nodeList) {
     return Array.prototype.slice.call(nodeList || []);
   }
 
   function resolvePanel(tab) {
-    var selector = tab.getAttribute('data-hs-tab');
+    var selector = tab.getAttribute('data-tab');
     if (!selector) {
       return null;
     }
@@ -1008,4 +1008,86 @@
   }
 
   init();
+})();
+
+
+(function () {
+  'use strict';
+
+  function getElementTarget(target) {
+    if (!target) {
+      return null;
+    }
+
+    return target.nodeType === 1 ? target : target.parentElement || null;
+  }
+
+  function resolveTarget(selector) {
+    if (!selector) {
+      return null;
+    }
+
+    var trimmed = String(selector).trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (trimmed.charAt(0) === '#') {
+      return document.querySelector(trimmed);
+    }
+
+    return document.getElementById(trimmed);
+  }
+
+  function resolvePasswordConfig(trigger) {
+    var raw = trigger.getAttribute('data-toggle-password');
+    if (!raw) {
+      return null;
+    }
+
+    if (raw.charAt(0) !== '{') {
+      return { target: raw };
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    var target = getElementTarget(event.target);
+    var removeTrigger = target && target.closest('[data-remove-element]');
+
+    if (removeTrigger) {
+      var removable = resolveTarget(removeTrigger.getAttribute('data-remove-element'));
+      if (removable) {
+        event.preventDefault();
+        removable.classList.add('removing');
+        setTimeout(function () {
+          removable.remove();
+        }, 300);
+      }
+      return;
+    }
+
+    var passwordTrigger = target && target.closest('[data-toggle-password]');
+    if (!passwordTrigger) {
+      return;
+    }
+
+    var config = resolvePasswordConfig(passwordTrigger);
+    var input = config ? resolveTarget(config.target) : null;
+    if (!input) {
+      return;
+    }
+
+    event.preventDefault();
+
+    var visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    passwordTrigger.classList.toggle('password-active', visible);
+    passwordTrigger.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  });
 })();

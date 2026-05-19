@@ -596,14 +596,14 @@
                                     <button type="button"
                                         class="btn btn-subtle-light ui-kit-radius-none">3</button>
 
-                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                         <button type="button" class="btn btn-subtle-light ui-kit-radius-s-none"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
                                             <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>
                                         </button>
 
-                                        <div class="hs-dropdown-menu" role="menu">
+                                        <div class="dropdown-menu" role="menu">
                                             <a class="dropdown-item" href="#">드롭다운 링크</a>
                                             <a class="dropdown-item" href="#">드롭다운 링크</a>
                                         </div>
@@ -630,7 +630,7 @@
                                                 class="btn btn-subtle-light ui-kit-radius-b-none">버튼 1</button>
                                             <button type="button"
                                                 class="btn btn-subtle-light ui-kit-radius-none">버튼 2</button>
-                                            <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                            <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                 <button type="button"
                                                     class="btn btn-subtle-light ui-kit-radius-t-none"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
@@ -638,7 +638,7 @@
                                                     <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>
                                                 </button>
 
-                                                <div class="hs-dropdown-menu" role="menu">
+                                                <div class="dropdown-menu" role="menu">
                                                     <a class="dropdown-item" href="#">드롭다운 링크</a>
                                                     <a class="dropdown-item" href="#">드롭다운 링크</a>
                                                 </div>

@@ -143,13 +143,13 @@
                                                 <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                     <button type="button"
-                                                        class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                     </button>
-                                                    <div class="hs-dropdown-menu" role="menu"
+                                                    <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <a class="dropdown-item" href="#">
                                                             <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
@@ -178,13 +178,13 @@
                                                 <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                     <button type="button"
-                                                        class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                     </button>
-                                                    <div class="hs-dropdown-menu" role="menu"
+                                                    <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
@@ -216,13 +216,13 @@
                                                     Stock</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                     <button type="button"
-                                                        class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                     </button>
-                                                    <div class="hs-dropdown-menu" role="menu"
+                                                    <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
@@ -253,13 +253,13 @@
                                                 <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                     <button type="button"
-                                                        class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                     </button>
-                                                    <div class="hs-dropdown-menu" role="menu"
+                                                    <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
@@ -290,13 +290,13 @@
                                                 <span class="badge badge-label ui-kit-surface-info-faint ui-kit-ink-info">신규</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                     <button type="button"
-                                                        class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                     </button>
-                                                    <div class="hs-dropdown-menu" role="menu"
+                                                    <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
@@ -352,14 +352,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -390,14 +390,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -429,14 +429,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-surface-light-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -467,14 +467,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -506,14 +506,14 @@
                                                     <span class="badge badge-label ui-kit-surface-info-faint ui-kit-ink-info">신규</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -570,14 +570,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -608,14 +608,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -647,14 +647,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -711,14 +711,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -749,14 +749,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -788,14 +788,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -852,14 +852,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -890,14 +890,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -929,14 +929,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -993,14 +993,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1031,14 +1031,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1070,14 +1070,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1134,14 +1134,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1172,14 +1172,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1211,14 +1211,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1275,14 +1275,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1313,14 +1313,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1352,14 +1352,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1464,14 +1464,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1502,14 +1502,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1541,14 +1541,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1605,14 +1605,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1673,14 +1673,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1712,14 +1712,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1776,14 +1776,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1814,14 +1814,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1853,14 +1853,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1920,14 +1920,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1958,14 +1958,14 @@
                                                     <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
@@ -1997,14 +1997,14 @@
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="hs-dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
                                                         <button type="button"
-                                                            class="hs-dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
                                                         </button>
-                                                        <div class="hs-dropdown-menu" role="menu"
+                                                        <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">

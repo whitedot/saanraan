@@ -172,7 +172,7 @@
                                         role="alert">
                                         하단 테두리가 있는 다크 알림!
 
-                                        <button class="ui-kit-leading-auto" data-hs-remove-element="#dark-alert">
+                                        <button class="ui-kit-leading-auto" data-remove-element="#dark-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></i>
                                         </button>
                                     </div>
@@ -182,7 +182,7 @@
                                         role="alert">
                                         점선 테두리가 있는 성공 알림!
 
-                                        <button class="ui-kit-leading-auto" data-hs-remove-element="#success-alert">
+                                        <button class="ui-kit-leading-auto" data-remove-element="#success-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></i>
                                         </button>
                                     </div>
@@ -192,7 +192,7 @@
                                         role="alert">
                                         두꺼운 테두리가 있는 위험 알림!
 
-                                        <button class="ui-kit-leading-auto" data-hs-remove-element="#danger-alert">
+                                        <button class="ui-kit-leading-auto" data-remove-element="#danger-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></i>
                                         </button>
                                     </div>
@@ -204,7 +204,7 @@
 
                                         <button
                                             class="ui-kit-leading-auto ui-kit-icon-size-7-5 ui-kit-cluster ui-kit-distribute-center ui-kit-align-items-center ui-kit-radius-full ui-kit-surface-warning ui-kit-ink-inverse"
-                                            data-hs-remove-element="#warning-alert">
+                                            data-remove-element="#warning-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></i>
                                         </button>
                                     </div>
@@ -217,7 +217,7 @@
                                             커스텀 아이콘이 있는 정보 알림!
                                         </div>
 
-                                        <button class="ui-kit-leading-auto" data-hs-remove-element="#info-alert">
+                                        <button class="ui-kit-leading-auto" data-remove-element="#info-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-icon-size-6 ui-kit-ink-default-700"></i>
                                         </button>
                                     </div>
@@ -249,7 +249,7 @@
                                         role="alert">
                                         알림 닫기 기능이 있는 프라이머리 알림입니다!
 
-                                        <button class="ui-kit-leading-auto" data-hs-remove-element="#dismiss-alert">
+                                        <button class="ui-kit-leading-auto" data-remove-element="#dismiss-alert">
                                             <i data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></i>
                                         </button>
                                     </div>
