@@ -805,7 +805,7 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 프로젝트 기본 아이콘셋은 self-hosted Google Material Symbols Outlined다. 공용 helper `sr_material_icon_html()`로 출력하면 `assets/icons.css`와 `sr_material_icon_bootstrap_script()`가 폰트 준비 전 ligature 텍스트 노출을 막는다.
 
-Material Symbols는 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시나 드롭다운 caret 같은 컴포넌트 내부 상태 표시는 UI-KIT의 컴포넌트 CSS가 소유한다. 방향 화살표가 필요한 컴포넌트는 재사용 가능한 `sr_ui_arrow_svg_html()` helper를 사용한다.
+Material Symbols는 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시나 드롭다운 caret 같은 컴포넌트 내부 상태 표시는 UI-KIT의 컴포넌트 CSS가 소유한다. 방향 화살표가 필요한 컴포넌트는 재사용 가능한 `sr_ui_arrow_icon_html()` helper를 사용한다.
 
 운영자가 `/admin/menu`에서 저장한 표시 순서와 숨김 여부는 이 기본 선언 위에 마지막으로 적용된다. 이 오버라이드는 관리자 내비게이션 표시 정책일 뿐이며, 모듈 계약 파일이나 실제 route 소유권을 바꾸지 않는다.
 

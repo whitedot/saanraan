@@ -169,14 +169,19 @@ function sr_ui_icon_class_attr(string $class): string
     return implode(' ', $tokens);
 }
 
-function sr_ui_arrow_svg_html(string $direction = 'down', string $class = '', string $label = ''): string
+function sr_ui_arrow_icon_paths(): array
 {
-    $paths = [
+    return [
         'down' => 'M5 7.5l5 5l5 -5',
         'up' => 'M5 12.5l5 -5l5 5',
         'left' => 'M12.5 5l-5 5l5 5',
         'right' => 'M7.5 5l5 5l-5 5',
     ];
+}
+
+function sr_ui_arrow_icon_html(string $direction = 'down', string $class = '', string $label = ''): string
+{
+    $paths = sr_ui_arrow_icon_paths();
     $direction = isset($paths[$direction]) ? $direction : 'down';
     $classes = trim('ui-arrow-icon ' . sr_ui_icon_class_attr($class));
     $label = trim($label);

@@ -604,7 +604,7 @@
                                                             class="dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
-                                                            드롭다운 <?php echo sr_ui_arrow_svg_html('down', 'dropdown-icon ui-kit-ink-inverse'); ?>
+                                                            드롭다운 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon ui-kit-ink-inverse'); ?>
                                                         </button>
 
                                                         <div class="dropdown-menu" role="menu"

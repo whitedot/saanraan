@@ -17,7 +17,7 @@
 
 프로젝트 기본 아이콘셋은 Google Material Symbols Outlined다. 아이콘 폰트는 `assets/fonts/material-symbols-outlined.ttf`로 self-hosting하고 public/admin 런타임에서 preload한다. `sr_material_icon_html()`로 출력한 `.sr-icon[data-sr-material-icon]`은 `sr_material_icon_bootstrap_script()`가 폰트 준비 완료 class를 붙이기 전까지 투명하게 유지하므로, `home`, `settings` 같은 Material ligature 글자가 로딩 중 잠깐 보이지 않는다.
 
-Material Symbols는 메뉴, 툴바, 본문 액션처럼 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시, 드롭다운 caret, 스위치 thumb처럼 컴포넌트 내부 상태나 조작 힌트는 해당 컴포넌트 CSS가 소유하며 Material 아이콘으로 대체하지 않는다. 드롭다운 caret처럼 여러 위치에서 재사용하는 방향 화살표는 `sr_ui_arrow_svg_html()` helper로 출력한다.
+Material Symbols는 메뉴, 툴바, 본문 액션처럼 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시, 드롭다운 caret, 스위치 thumb처럼 컴포넌트 내부 상태나 조작 힌트는 해당 컴포넌트 CSS가 소유하며 Material 아이콘으로 대체하지 않는다. 드롭다운 caret처럼 여러 위치에서 재사용하는 방향 화살표는 `sr_ui_arrow_icon_html()` helper로 출력한다.
 
 드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. 관리자 UI-KIT과 public 런타임 미리보기도 이 파일을 호출해 같은 동작 원형을 확인한다.
 
