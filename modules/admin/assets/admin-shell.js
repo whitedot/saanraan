@@ -445,50 +445,341 @@ window.AdminShell = {
         if (dashboardSectionsRoot) {
             const storageKey = 'sr_admin_dashboard_section_order';
             let draggedSection = null;
+            let currentDropPosition = null;
+            const dropLine = document.createElement('div');
+            dropLine.className = 'admin-dashboard-drop-line';
+            dropLine.setAttribute('aria-hidden', 'true');
 
             const sections = () => Array.prototype.slice.call(dashboardSectionsRoot.querySelectorAll('[data-admin-dashboard-section]'));
+            const sectionKey = section => section ? (section.dataset.adminDashboardSection || '') : '';
+            const applySectionSpan = (section, span) => {
+                if (!section) {
+                    return;
+                }
+
+                if (span === 'full') {
+                    section.dataset.adminDashboardSpan = 'full';
+                    return;
+                }
+
+                delete section.dataset.adminDashboardSpan;
+            };
             const saveSectionOrder = () => {
                 try {
-                    localStorage.setItem(storageKey, JSON.stringify(sections().map(section => section.dataset.adminDashboardSection || '')));
+                    localStorage.setItem(storageKey, JSON.stringify({
+                        items: sections().map(section => ({
+                            key: sectionKey(section),
+                            span: section.dataset.adminDashboardSpan === 'full' ? 'full' : ''
+                        }))
+                    }));
                 } catch (err) {}
+            };
+            const clearDropLine = () => {
+                if (dropLine.parentNode) {
+                    dropLine.parentNode.removeChild(dropLine);
+                }
+                dropLine.classList.remove('is-horizontal', 'is-vertical');
+                dropLine.removeAttribute('style');
+            };
+            const dashboardRows = availableSections => {
+                const rowTolerance = 8;
+                const rows = [];
+                const items = availableSections
+                    .map(section => ({
+                        rect: section.getBoundingClientRect(),
+                        section
+                    }))
+                    .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left);
+
+                items.forEach(item => {
+                    const row = rows[rows.length - 1];
+                    if (row && Math.abs(item.rect.top - row.top) <= rowTolerance) {
+                        row.items.push(item);
+                        row.left = Math.min(row.left, item.rect.left);
+                        row.right = Math.max(row.right, item.rect.right);
+                        row.top = Math.min(row.top, item.rect.top);
+                        row.bottom = Math.max(row.bottom, item.rect.bottom);
+                        return;
+                    }
+
+                    rows.push({
+                        bottom: item.rect.bottom,
+                        items: [item],
+                        left: item.rect.left,
+                        right: item.rect.right,
+                        top: item.rect.top
+                    });
+                });
+
+                return rows;
+            };
+            const rowIndexForSection = (rows, section) => rows.findIndex(row => (
+                row.items.some(item => item.section === section)
+            ));
+            const verticalDropLineX = (rows, position) => {
+                const rect = position.rect;
+                if (!rect) {
+                    return null;
+                }
+
+                const row = rows.find(candidate => (
+                    candidate.items.some(item => item.section === position.section)
+                ));
+                const sortedItems = row
+                    ? row.items.slice().sort((left, right) => left.rect.left - right.rect.left)
+                    : [];
+                const itemIndex = sortedItems.findIndex(item => item.section === position.section);
+                const previousItem = position.side === 'left'
+                    ? sortedItems[itemIndex - 1]
+                    : sortedItems[itemIndex];
+                const nextItem = position.side === 'left'
+                    ? sortedItems[itemIndex]
+                    : sortedItems[itemIndex + 1];
+
+                if (previousItem && nextItem) {
+                    return (previousItem.rect.right + nextItem.rect.left) / 2;
+                }
+
+                return position.side === 'left' ? rect.left : rect.right;
+            };
+            const horizontalDropPosition = (rows, rowIndex, after) => {
+                const nextRowIndex = after ? rowIndex + 1 : rowIndex;
+                const previousRow = rows[nextRowIndex - 1] || null;
+                const nextRow = rows[nextRowIndex] || null;
+                const reference = nextRow && nextRow.items[0] ? nextRow.items[0].section : null;
+                const fallbackY = previousRow
+                    ? previousRow.bottom + 8
+                    : (nextRow ? nextRow.top - 8 : dashboardSectionsRoot.getBoundingClientRect().top);
+                const lineY = previousRow && nextRow
+                    ? (previousRow.bottom + nextRow.top) / 2
+                    : fallbackY;
+
+                return {
+                    reference,
+                    rect: {
+                        bottom: lineY,
+                        left: 0,
+                        right: 0,
+                        top: lineY
+                    },
+                    orientation: 'horizontal',
+                    side: 'slot',
+                    span: 'full'
+                };
+            };
+            const getDropPosition = event => {
+                const availableSections = sections().filter(section => section !== draggedSection);
+                const rows = dashboardRows(availableSections);
+
+                for (let index = 0; index < availableSections.length; index += 1) {
+                    const section = availableSections[index];
+                    const nextSection = availableSections[index + 1] || null;
+                    const rect = section.getBoundingClientRect();
+
+                    if (event.clientY > rect.bottom || event.clientX < rect.left || event.clientX > rect.right) {
+                        continue;
+                    }
+
+                    const distances = {
+                        top: Math.abs(event.clientY - rect.top),
+                        right: Math.abs(rect.right - event.clientX),
+                        bottom: Math.abs(rect.bottom - event.clientY),
+                        left: Math.abs(event.clientX - rect.left)
+                    };
+                    const side = Object.keys(distances).reduce((closest, key) => (
+                        distances[key] < distances[closest] ? key : closest
+                    ), 'top');
+                    const rowIndex = rowIndexForSection(rows, section);
+
+                    if (side === 'left') {
+                        return {
+                            reference: section,
+                            rect,
+                            section,
+                            side: 'left',
+                            orientation: 'vertical',
+                            span: ''
+                        };
+                    }
+
+                    if (side === 'right') {
+                        return {
+                            reference: nextSection,
+                            rect,
+                            section,
+                            side: 'right',
+                            orientation: 'vertical',
+                            span: ''
+                        };
+                    }
+
+                    return horizontalDropPosition(rows, rowIndex, side === 'bottom');
+                }
+
+                let closest = null;
+                for (let index = 0; index < availableSections.length; index += 1) {
+                    const section = availableSections[index];
+                    const rect = section.getBoundingClientRect();
+                    const xDistance = event.clientX < rect.left
+                        ? rect.left - event.clientX
+                        : Math.max(0, event.clientX - rect.right);
+                    const yDistance = event.clientY < rect.top
+                        ? rect.top - event.clientY
+                        : Math.max(0, event.clientY - rect.bottom);
+                    const score = xDistance * xDistance + yDistance * yDistance;
+
+                    if (!closest || score < closest.score) {
+                        closest = {
+                            index,
+                            rect,
+                            score,
+                            section,
+                            xDistance,
+                            yDistance
+                        };
+                    }
+                }
+
+                if (closest && closest.xDistance > closest.yDistance) {
+                    return {
+                        reference: event.clientX < closest.rect.left
+                            ? closest.section
+                            : (availableSections[closest.index + 1] || null),
+                        rect: closest.rect,
+                        section: closest.section,
+                        side: event.clientX < closest.rect.left ? 'left' : 'right',
+                        orientation: 'vertical',
+                        span: ''
+                    };
+                }
+
+                if (closest) {
+                    const rowIndex = rowIndexForSection(rows, closest.section);
+                    return horizontalDropPosition(rows, rowIndex, event.clientY > (closest.rect.top + closest.rect.height / 2));
+                }
+
+                return {
+                    reference: null,
+                    orientation: 'horizontal',
+                    span: 'full'
+                };
+            };
+            const placeDropLine = position => {
+                const nextPosition = position || {
+                    reference: null,
+                    orientation: 'horizontal',
+                    span: 'full'
+                };
+                const reference = nextPosition.reference;
+                const orientation = nextPosition.orientation === 'vertical' ? 'vertical' : 'horizontal';
+                const rootRect = dashboardSectionsRoot.getBoundingClientRect();
+                const rect = nextPosition.rect || null;
+                const lineBoxSize = 16;
+
+                currentDropPosition = nextPosition;
+                dropLine.classList.toggle('is-vertical', orientation === 'vertical');
+                dropLine.classList.toggle('is-horizontal', orientation !== 'vertical');
+
+                if (!dropLine.parentNode) {
+                    dashboardSectionsRoot.appendChild(dropLine);
+                }
+
+                if (orientation === 'vertical' && rect) {
+                    const lineX = verticalDropLineX(dashboardRows(sections().filter(section => section !== draggedSection)), nextPosition)
+                        || (nextPosition.side === 'left' ? rect.left : rect.right);
+                    dropLine.style.left = `${Math.round(lineX - rootRect.left - lineBoxSize / 2)}px`;
+                    dropLine.style.top = `${Math.round(rect.top - rootRect.top)}px`;
+                    dropLine.style.width = `${lineBoxSize}px`;
+                    dropLine.style.height = `${Math.max(48, Math.round(rect.height))}px`;
+                } else if (rect) {
+                    const lineY = nextPosition.side === 'top' ? rect.top : rect.bottom;
+                    dropLine.style.left = '0px';
+                    dropLine.style.top = `${Math.round(lineY - rootRect.top - lineBoxSize / 2)}px`;
+                    dropLine.style.width = `${Math.round(rootRect.width)}px`;
+                    dropLine.style.height = `${lineBoxSize}px`;
+                } else {
+                    dropLine.style.left = '0px';
+                    dropLine.style.top = `${Math.round(rootRect.height - lineBoxSize / 2)}px`;
+                    dropLine.style.width = `${Math.round(rootRect.width)}px`;
+                    dropLine.style.height = `${lineBoxSize}px`;
+                }
+            };
+            const finishDashboardDrag = commit => {
+                if (commit && draggedSection) {
+                    const reference = currentDropPosition ? currentDropPosition.reference : null;
+                    applySectionSpan(draggedSection, currentDropPosition ? currentDropPosition.span : '');
+                    if (reference && reference.parentNode === dashboardSectionsRoot) {
+                        dashboardSectionsRoot.insertBefore(draggedSection, reference);
+                    } else {
+                        dashboardSectionsRoot.appendChild(draggedSection);
+                    }
+                    saveSectionOrder();
+                }
+
+                if (draggedSection) {
+                    draggedSection.classList.remove('is-dragging');
+                }
+
+                clearDropLine();
+                currentDropPosition = null;
+                draggedSection = null;
             };
 
             try {
-                const savedOrder = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                if (Array.isArray(savedOrder) && savedOrder.length > 0) {
-                    savedOrder.forEach(key => {
-                        const section = sections().find(item => (item.dataset.adminDashboardSection || '') === String(key));
-                        if (section) {
-                            dashboardSectionsRoot.appendChild(section);
+                const savedState = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                const savedItems = Array.isArray(savedState)
+                    ? savedState.map(key => ({ key: String(key), span: '' }))
+                    : (Array.isArray(savedState.items) ? savedState.items : []);
+                if (savedItems.length > 0) {
+                    savedItems.forEach(item => {
+                        const key = typeof item === 'string' ? item : String(item.key || '');
+                        const section = sections().find(candidate => sectionKey(candidate) === key);
+                        if (!section) {
+                            return;
                         }
+
+                        applySectionSpan(section, item.span === 'full' ? 'full' : '');
+                        dashboardSectionsRoot.appendChild(section);
                     });
                 }
             } catch (err) {}
 
             sections().forEach(section => {
-                section.addEventListener('dragstart', event => {
+                const handle = section.querySelector('.admin-dashboard-section-handle');
+
+                if (!handle) {
+                    return;
+                }
+
+                handle.addEventListener('dragstart', event => {
                     draggedSection = section;
                     section.classList.add('is-dragging');
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', '');
                 });
 
-                section.addEventListener('dragend', () => {
-                    section.classList.remove('is-dragging');
-                    draggedSection = null;
-                    saveSectionOrder();
+                handle.addEventListener('dragend', () => {
+                    finishDashboardDrag(false);
                 });
+            });
 
-                section.addEventListener('dragover', event => {
-                    if (!draggedSection || draggedSection === section) {
-                        return;
-                    }
+            dashboardSectionsRoot.addEventListener('dragover', event => {
+                if (!draggedSection) {
+                    return;
+                }
 
-                    event.preventDefault();
-                    const rect = section.getBoundingClientRect();
-                    const after = event.clientY > rect.top + rect.height / 2;
-                    dashboardSectionsRoot.insertBefore(draggedSection, after ? section.nextSibling : section);
-                });
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                placeDropLine(getDropPosition(event));
+            });
+
+            dashboardSectionsRoot.addEventListener('drop', event => {
+                if (!draggedSection) {
+                    return;
+                }
+
+                event.preventDefault();
+                finishDashboardDrag(true);
             });
         }
 

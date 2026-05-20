@@ -5,10 +5,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <div class="admin-dashboard-sections" data-admin-dashboard-sections>
-<section class="admin-card admin-list-card card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" draggable="true">
+<section class="admin-card admin-list-card card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site">
     <div class="card-header">
         <h2 class="card-title">사이트</h2>
-        <button type="button" class="admin-dashboard-section-handle" aria-label="사이트 섹션 이동">이동</button>
+        <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="사이트 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <dl class="admin-dashboard-site-grid">
         <div>
@@ -26,10 +26,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </dl>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="install_protection" draggable="true">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="install_protection">
     <div class="card-header">
         <h2 class="card-title">설치 보호</h2>
-        <button type="button" class="admin-dashboard-section-handle" aria-label="설치 보호 섹션 이동">이동</button>
+        <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="설치 보호 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -55,10 +55,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="sensitive_settings" draggable="true">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="sensitive_settings">
     <div class="card-header">
         <h2 class="card-title">고위험 설정</h2>
-        <button type="button" class="admin-dashboard-section-handle" aria-label="고위험 설정 섹션 이동">이동</button>
+        <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="고위험 설정 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -88,10 +88,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="auth_runtime" draggable="true">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="auth_runtime">
     <div class="card-header">
         <h2 class="card-title">인증 런타임</h2>
-        <button type="button" class="admin-dashboard-section-handle" aria-label="인증 런타임 섹션 이동">이동</button>
+        <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="인증 런타임 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">
     <table class="table">
@@ -118,10 +118,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
-    <section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="recovery" draggable="true">
+    <section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="recovery">
         <div class="card-header">
             <h2 class="card-title">복구 상태</h2>
-            <button type="button" class="admin-dashboard-section-handle" aria-label="복구 상태 섹션 이동">이동</button>
+            <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="복구 상태 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
         </div>
 
         <?php if ($recoveryMarkers !== []) { ?>
@@ -169,13 +169,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if (($moduleDashboardSections ?? []) !== []) { ?>
     <?php foreach ($moduleDashboardSections as $section) { ?>
-        <section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="module_<?php echo sr_e((string) $section['key']); ?>" draggable="true">
+        <section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="module_<?php echo sr_e((string) $section['key']); ?>">
             <div class="card-header">
                 <div>
                     <h2 class="card-title"><?php echo sr_e((string) $section['title']); ?></h2>
                     <p class="admin-dashboard-meta"><?php echo sr_e((string) $section['module_key']); ?> 모듈</p>
                 </div>
-                <button type="button" class="admin-dashboard-section-handle" aria-label="<?php echo sr_e((string) $section['title']); ?> 섹션 이동">이동</button>
+                <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="<?php echo sr_e((string) $section['title']); ?> 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
             </div>
             <div class="table-wrapper">
             <table class="table">
@@ -201,10 +201,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } ?>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="modules" draggable="true">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="modules">
     <div class="card-header">
         <h2 class="card-title">모듈</h2>
-        <button type="button" class="admin-dashboard-section-handle" aria-label="모듈 섹션 이동">이동</button>
+        <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="모듈 섹션 이동"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">
     <table class="table">

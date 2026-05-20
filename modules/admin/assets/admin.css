@@ -678,14 +678,21 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-dashboard-sections {
     display: grid;
     gap: calc(var(--spacing) * 4);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    position: relative;
 }
 
 .admin-dashboard-section {
-    cursor: grab;
+    min-width: 0;
+}
+
+.admin-dashboard-section[data-admin-dashboard-span="full"] {
+    grid-column: 1 / -1;
 }
 
 .admin-dashboard-section.is-dragging {
-    opacity: .62;
+    opacity: .45;
 }
 
 .admin-dashboard-section-handle {
@@ -693,8 +700,67 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     background: var(--color-card);
     color: var(--color-default-700);
     cursor: grab;
-    font-size: var(--text-xs);
-    padding: .35rem .6rem;
+    border-radius: var(--radius-sm);
+    width: calc(var(--spacing) * 8);
+    height: calc(var(--spacing) * 8);
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    display: inline-flex;
+    line-height: 1;
+}
+
+.admin-dashboard-section-handle:active {
+    cursor: grabbing;
+}
+
+.admin-dashboard-section-handle-icon {
+    font-size: 1.125rem;
+}
+
+.admin-dashboard-drop-line {
+    border: 0;
+    border-radius: var(--radius);
+    pointer-events: none;
+    position: absolute;
+    z-index: 20;
+}
+
+.admin-dashboard-drop-line::before {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    background: var(--color-primary);
+}
+
+.admin-dashboard-drop-line.is-horizontal::before {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
+    transform: translateY(-50%);
+}
+
+.admin-dashboard-drop-line.is-vertical::before {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
+    transform: translateX(-50%);
+}
+
+@media (max-width: 1279px) {
+    .admin-dashboard-sections {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .admin-dashboard-sections {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 1023px) {
