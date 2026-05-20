@@ -96,6 +96,54 @@
     text-decoration: none;
 }
 
+.public-ui-scope .public-ui-button-secondary {
+    background: var(--public-ui-surface);
+    border-color: var(--public-ui-border);
+    color: var(--public-ui-text);
+}
+
+.public-home {
+    min-height: min(42rem, 100vh);
+    display: grid;
+    align-items: center;
+    padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem);
+}
+
+.public-home-hero {
+    width: min(48rem, 100%);
+    display: grid;
+    gap: 1rem;
+}
+
+.public-home-eyebrow {
+    color: var(--public-ui-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.public-home h1 {
+    color: var(--public-ui-text);
+    font-size: 2.5rem;
+    line-height: 1.15 !important;
+    font-weight: var(--font-weight-semibold);
+}
+
+@media (min-width: 48rem) {
+    .public-home h1 {
+        font-size: 3.5rem;
+    }
+}
+
+.public-home-hero > p:not(.public-home-eyebrow) {
+    color: var(--public-ui-muted);
+    max-width: 42rem;
+    font-size: var(--text-lg);
+}
+
+.public-home-actions {
+    margin-top: .5rem;
+}
+
 .public-ui-scope .public-ui-link-row {
     display: flex;
     flex-wrap: wrap;

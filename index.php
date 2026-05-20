@@ -73,7 +73,7 @@ if (
 
 if ($path === '/') {
     $homePath = is_array($site) ? (string) ($site['home_path'] ?? '/') : '/';
-    if ($homePath !== '/' && sr_is_safe_relative_url($homePath)) {
+    if ($homePath !== '/' && sr_site_home_path_is_available($pdo, $homePath)) {
         sr_redirect($homePath);
     }
 

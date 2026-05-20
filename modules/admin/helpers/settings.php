@@ -150,6 +150,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'module' => '모듈',
             'module_setting' => '모듈 설정',
             'site_setting' => '사이트 설정',
+            'site_settings' => '사이트 설정',
             'privacy_request' => '개인정보 처리 요청',
             'community_post' => '커뮤니티 게시글',
             'community_comment' => '커뮤니티 댓글',
@@ -194,6 +195,7 @@ function sr_admin_event_type_label(string $eventType): string
         'module.version.synced' => '모듈 설치 버전 동기화',
         'site.setting.saved' => '사이트 설정 저장',
         'site.setting.deleted' => '사이트 설정 삭제',
+        'site.homepage.updated' => '홈페이지 설정 변경',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 역할 변경',
@@ -386,6 +388,14 @@ function sr_admin_reserved_site_setting_keys(): array
         'site.default_locale' => true,
         'site.supported_locales' => true,
         'site.status' => true,
+        'site.home_path' => true,
+        'site.home.title' => true,
+        'site.home.eyebrow' => true,
+        'site.home.description' => true,
+        'site.home.primary_label' => true,
+        'site.home.primary_url' => true,
+        'site.home.secondary_label' => true,
+        'site.home.secondary_url' => true,
         'public_layout_key' => true,
         'ui_color_scheme' => true,
     ];
@@ -776,7 +786,7 @@ function sr_admin_site_settings(PDO $pdo): array
     $stmt = $pdo->query(
         "SELECT setting_key, setting_value, value_type, updated_at
          FROM sr_site_settings
-         WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status', 'public_layout_key', 'ui_color_scheme')
+         WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status', 'site.home_path', 'site.home.title', 'site.home.eyebrow', 'site.home.description', 'site.home.primary_label', 'site.home.primary_url', 'site.home.secondary_label', 'site.home.secondary_url', 'public_layout_key', 'ui_color_scheme')
          ORDER BY setting_key ASC"
     );
     foreach ($stmt->fetchAll() as $row) {

@@ -261,6 +261,36 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
     return $stmt->fetchAll();
 }
 
+function sr_page_homepage_candidates(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        "SELECT id, slug, title, updated_at
+         FROM sr_pages
+         WHERE status = 'published'
+         ORDER BY updated_at DESC, id DESC
+         LIMIT 200"
+    );
+
+    $candidates = [];
+    foreach ($stmt->fetchAll() as $page) {
+        $slug = (string) ($page['slug'] ?? '');
+        if (!sr_page_slug_is_valid($slug)) {
+            continue;
+        }
+
+        $path = sr_page_path($slug);
+        $candidates[] = [
+            'module_key' => 'page',
+            'label' => '페이지: ' . (string) ($page['title'] ?? $slug),
+            'path' => $path,
+            'detail' => $path,
+            'available' => true,
+        ];
+    }
+
+    return $candidates;
+}
+
 function sr_page_public_banner_setting_labels(): array
 {
     return [

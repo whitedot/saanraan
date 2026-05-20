@@ -1,5 +1,11 @@
 <?php
 
+$homeViewFile = sr_public_layout_optional_view_file(sr_public_layout_key($site ?? null), 'home');
+if ($homeViewFile !== null && realpath($homeViewFile) !== realpath(__FILE__)) {
+    include $homeViewFile;
+    return;
+}
+
 $pageTitle = isset($site['name']) ? (string) $site['name'] : 'Saanraan';
 $seo = [
     'title' => $pageTitle,

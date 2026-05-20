@@ -47,6 +47,64 @@ function sr_module_enabled(PDO $pdo, string $moduleKey): bool
     return in_array($moduleKey, sr_enabled_module_keys($pdo), true);
 }
 
+function sr_site_home_path_is_available(PDO $pdo, string $homePath): bool
+{
+    if ($homePath === '/') {
+        return true;
+    }
+
+    if (!sr_is_safe_relative_url($homePath)) {
+        return false;
+    }
+
+    if ($homePath === '/admin' || str_starts_with($homePath, '/admin/')) {
+        return false;
+    }
+
+    if (str_starts_with($homePath, '/pages/')) {
+        if (!sr_module_enabled($pdo, 'page') || !is_file(SR_ROOT . '/modules/page/helpers.php')) {
+            return false;
+        }
+
+        require_once SR_ROOT . '/modules/page/helpers.php';
+        $slug = rawurldecode(substr($homePath, strlen('/pages/')));
+        if (!is_string($slug) || $slug === '' || strpos($slug, '/') !== false) {
+            return false;
+        }
+
+        try {
+            return is_array(sr_page_published_by_slug($pdo, sr_page_clean_slug($slug)));
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    foreach (sr_enabled_module_contract_files($pdo, 'paths.php', ['admin']) as $moduleKey => $pathsFile) {
+        $paths = sr_load_module_contract_file($moduleKey, $pathsFile);
+        if (!is_array($paths)) {
+            continue;
+        }
+
+        if (isset($paths['GET ' . $homePath])) {
+            return true;
+        }
+
+        foreach ($paths as $route => $_actionRelativePath) {
+            $route = (string) $route;
+            if (!str_starts_with($route, 'GET ') || !str_ends_with($route, '/*')) {
+                continue;
+            }
+
+            $prefix = substr($route, 4, -1);
+            if ($prefix !== '' && str_starts_with($homePath, $prefix)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function sr_module_record_status(PDO $pdo, string $moduleKey): string
 {
     $module = sr_module_record_entry($pdo, $moduleKey);

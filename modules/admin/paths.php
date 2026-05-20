@@ -4,6 +4,8 @@ return [
     'GET /admin' => 'actions/dashboard.php',
     'GET /admin/settings' => 'actions/settings.php',
     'POST /admin/settings' => 'actions/settings.php',
+    'GET /admin/homepage' => 'actions/homepage.php',
+    'POST /admin/homepage' => 'actions/homepage.php',
     'GET /admin/menu' => 'actions/menu.php',
     'POST /admin/menu' => 'actions/menu.php',
     'GET /admin/modules' => 'actions/modules.php',

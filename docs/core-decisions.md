@@ -343,7 +343,7 @@ core + member + admin + privacy
 - `admin` 모듈: 관리자 화면, 관리자 권한, 관리 기능
 - `privacy` 모듈: 개인정보 처리 요청과 개인정보 사본 제공 조정
 
-`seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `page`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다. 커뮤니티처럼 `module.php`의 `service_domain.main_page`를 선언한 선택 모듈은 설치 시 메인 페이지 후보로 고를 수 있고, 선택값은 `site.home_path`에 저장됩니다.
+`seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `page`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다. 기본 홈페이지는 별도 도메인 모듈이 아니라 public layout/theme이 제공하고, 운영자는 `/admin/homepage`에서 초기화면과 기본 홈페이지 문구를 관리합니다. 커뮤니티처럼 `module.php`의 `service_domain.main_page`를 선언한 선택 모듈은 설치 시 메인 페이지 후보로 고를 수 있고, 선택값은 `site.home_path`에 저장됩니다. 페이지 모듈의 공개 페이지는 설치 후 생성되는 콘텐츠이므로 설치 화면 후보가 아니라 `/admin/homepage`의 초기화면 후보로 제공합니다.
 
 sitemap 같은 SEO 운영 기능은 코어가 아니라 `seo` 모듈 책임으로 두고, 팝업 정책과 대상 규칙은 `popup_layer` 모듈 책임으로 둡니다. 포인트, 적립금, 예치금 같은 회원 연계 도메인도 코어나 `member` 테이블을 넓히지 않고 각 모듈이 `account_id` 기반 확장 테이블로 소유합니다.
 
@@ -533,7 +533,7 @@ module -> point -> slot -> subject
 
 팝업레이어도 배너와 같이 선언된 `content` slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. 화면 소유 모듈은 실제 출력 위치에서 `slot_key`를 포함해 `sr_render_output_slot()`을 명시 호출하고, 팝업레이어 모듈은 저장된 대상 규칙에 맞는 HTML을 해당 content slot으로 반환합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
 
-페이지 모듈은 `page.view` point를 제공하고, 페이지 관리 화면에서 공용 배너/팝업레이어를 직접 선택하는 좁은 편의 경로도 둡니다. 직접 선택은 공용 항목만 허용하며, 세부 노출 규칙이 필요하면 배너/팝업레이어 모듈의 target 규칙을 사용합니다.
+페이지 모듈은 `page.view` point를 제공하고, 페이지 관리 화면에서 공용 배너/팝업레이어를 직접 선택하는 좁은 편의 경로도 둡니다. 직접 선택은 공용 항목만 허용하며, 세부 노출 규칙이 필요하면 배너/팝업레이어 모듈의 target 규칙을 사용합니다. 공개 상태의 페이지는 초기화면 후보가 될 수 있지만, 본문/파일/유료 열람/SEO 정책은 계속 페이지 모듈이 소유합니다. 선택된 초기화면 경로가 숨김 페이지나 비활성 모듈을 가리키면 `/`는 기본 홈페이지로 fallback합니다.
 
 페이지 유료 열람, 다운로드 과금, 완료 액션 정책은 페이지 모듈이 소유합니다. 페이지 모듈은 포인트, 적립금, 예치금 모듈을 필수 의존으로 만들지 않고 활성 모듈의 잔액/원장 helper를 좁게 호출합니다. 열람/다운로드 차감 기록은 `sr_page_asset_access_logs`, 완료 액션 지급/차감 기록은 `sr_page_asset_action_logs`에 페이지 모듈 책임으로 남기며, `account_id` 기반 기록이므로 개인정보 사본 제공에도 포함합니다.
 

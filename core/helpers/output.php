@@ -271,6 +271,7 @@ function sr_public_layout_options(): array
             'label' => '기본 레이아웃',
             'views' => [
                 'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
+                'home' => SR_ROOT . '/layouts/public/basic/home.php',
                 'ui_kit' => SR_ROOT . '/layouts/public/basic/ui-kit.php',
             ],
         ],

@@ -144,6 +144,18 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '데이터 정리', 'path' => '/admin/retention', 'order' => 80],
             ],
         ],
+        [
+            'module_key' => 'site_home',
+            'label' => '홈페이지',
+            'admin_category' => 'site',
+            'admin_category_label' => '사이트',
+            'admin_category_order' => 20,
+            'admin_icon' => ['type' => 'symbol', 'name' => 'home'],
+            'order' => 0,
+            'items' => [
+                ['label' => '홈페이지', 'path' => '/admin/homepage', 'order' => 10],
+            ],
+        ],
     ];
 
     foreach ($groups as &$group) {
