@@ -453,7 +453,11 @@ input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in
     color: var(--color-white);
 }
 @media (hover:hover) {
-    .btn-solid-dark:hover { background-color: var(--color-default-900); }
+    .btn-solid-dark:hover {
+        background-color: color-mix(in oklab, var(--color-dark) 86%, #000);
+        border-color: color-mix(in oklab, var(--color-dark) 86%, #000);
+        box-shadow: 0 2px 6px color-mix(in oklab, var(--color-dark) 26%, transparent);
+    }
 }
 .ui-kit-row-odd-default:nth-child(odd) { background-color: var(--color-default-100); }
 .ui-kit-disabled-pointer-lock:disabled { pointer-events: none; }
