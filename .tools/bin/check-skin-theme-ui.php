@@ -62,7 +62,7 @@ function sr_skin_theme_check_file_exists(string $path, string $label): void
     }
 }
 
-function sr_skin_theme_check_admin_skin_icon_sprites(): void
+function sr_skin_theme_check_admin_skin_material_icons(): void
 {
     global $errors;
     $settingsContent = sr_skin_theme_check_read('modules/admin/helpers/settings.php');
@@ -84,12 +84,16 @@ function sr_skin_theme_check_admin_skin_icon_sprites(): void
             continue;
         }
 
-        if (!str_contains($content, 'sr_admin_menu_symbol_sprite_html();')) {
-            $errors[] = 'Admin skin layout-header must render common icon sprite: ' . $relativePath;
+        if (!str_contains($content, 'sr_material_icon_html(')) {
+            $errors[] = 'Admin skin layout-header must render Material icons through the common helper: ' . $relativePath;
         }
 
-        if (preg_match('/<symbol\s+id="admin-menu-icon-[^"]+"/', $content) === 1) {
-            $errors[] = 'Admin skin layout-header must not inline admin menu icon symbols: ' . $relativePath;
+        if (!str_contains($content, 'sr_material_icon_bootstrap_script();')) {
+            $errors[] = 'Admin skin layout-header must load the Material icon readiness bootstrap: ' . $relativePath;
+        }
+
+        if (preg_match('/<(?:svg|use)\b/', $content) === 1 || str_contains($content, 'admin-menu-icon-')) {
+            $errors[] = 'Admin skin layout-header must not render legacy SVG icon markup: ' . $relativePath;
         }
     }
 }
@@ -425,21 +429,26 @@ sr_skin_theme_check_contains('modules/admin/helpers.php', [
 sr_skin_theme_check_contains('modules/admin/helpers/icons.php', [
     'function sr_admin_icon_symbols(): array',
     'function sr_admin_menu_symbol_allowed(string $name): bool',
-    'function sr_admin_menu_symbol_sprite_html(): string',
+    'function sr_admin_material_icon_names(): array',
+    'function sr_admin_material_icon_name(string $symbolName): string',
     "'module_menu' => true",
     "'module_menu' => false",
 ], 'Admin icon common contract');
 
 sr_skin_theme_check_contains('modules/admin/skins/basic/layout-header.php', [
-    'sr_admin_menu_symbol_sprite_html();',
-], 'Admin skin icon sprite rendering');
+    'sr_material_icon_html(',
+    'sr_material_icon_bootstrap_script();',
+], 'Admin skin Material icon rendering');
 
 sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', [
+    '<svg',
+    '<use',
     '<symbol id="admin-menu-icon-settings"',
     '<symbol id="admin-menu-icon-users"',
-], 'Admin skin inline icon symbols');
+    'admin-menu-icon-',
+], 'Admin skin legacy SVG icon markup');
 
-sr_skin_theme_check_admin_skin_icon_sprites();
+sr_skin_theme_check_admin_skin_material_icons();
 sr_skin_theme_check_admin_icon_contract_docs();
 
 sr_skin_theme_check_contains('assets/ui-kit.css', [

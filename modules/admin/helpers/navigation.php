@@ -326,7 +326,7 @@ function sr_admin_module_menu_asset_icon(string $moduleKey, array $icon): array
     }
 
     $path = str_replace('\\', '/', trim((string) ($icon['path'] ?? '')));
-    if (preg_match('/\Aassets\/[a-zA-Z0-9_\/.-]+\.(svg|png|webp)\z/i', $path) !== 1 || strpos($path, '..') !== false) {
+    if (preg_match('/\Aassets\/[a-zA-Z0-9_\/.-]+\.(png|webp)\z/i', $path) !== 1 || strpos($path, '..') !== false) {
         return [];
     }
 
@@ -342,7 +342,7 @@ function sr_admin_module_menu_asset_icon(string $moduleKey, array $icon): array
     }
 
     $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-    if (!in_array($extension, ['svg', 'png', 'webp'], true)) {
+    if (!in_array($extension, ['png', 'webp'], true)) {
         return [];
     }
 

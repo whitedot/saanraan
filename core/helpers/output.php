@@ -140,10 +140,79 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function sr_material_icon_font_url(): string
+{
+    return sr_url('/assets/fonts/material-symbols-outlined.ttf');
+}
+
+function sr_material_icon_name(string $name): string
+{
+    $name = trim($name);
+
+    return preg_match('/\A[a-z0-9_]+\z/', $name) === 1 ? $name : 'help';
+}
+
+function sr_material_icon_class_attr(string $class): string
+{
+    return sr_ui_icon_class_attr($class);
+}
+
+function sr_ui_icon_class_attr(string $class): string
+{
+    $tokens = [];
+    foreach (preg_split('/\s+/', trim($class)) ?: [] as $token) {
+        if (preg_match('/\A[a-zA-Z0-9_-]+\z/', $token) === 1) {
+            $tokens[] = $token;
+        }
+    }
+
+    return implode(' ', $tokens);
+}
+
+function sr_ui_arrow_svg_html(string $direction = 'down', string $class = '', string $label = ''): string
+{
+    $paths = [
+        'down' => 'M5 7.5l5 5l5 -5',
+        'up' => 'M5 12.5l5 -5l5 5',
+        'left' => 'M12.5 5l-5 5l5 5',
+        'right' => 'M7.5 5l5 5l-5 5',
+    ];
+    $direction = isset($paths[$direction]) ? $direction : 'down';
+    $classes = trim('ui-arrow-icon ' . sr_ui_icon_class_attr($class));
+    $label = trim($label);
+    $accessibility = $label === ''
+        ? ' aria-hidden="true"'
+        : ' role="img" aria-label="' . sr_e($label) . '"';
+
+    return '<svg class="' . sr_e($classes) . '" data-ui-arrow="' . sr_e($direction) . '" viewBox="0 0 20 20"' . $accessibility . ' focusable="false"><path d="' . sr_e($paths[$direction]) . '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+}
+
+function sr_material_icon_html(string $name, string $class = '', string $label = '', string $id = ''): string
+{
+    $classes = trim('sr-icon material-symbols-outlined ' . sr_material_icon_class_attr($class));
+    $iconName = sr_material_icon_name($name);
+    $label = trim($label);
+    $accessibility = $label === ''
+        ? ' aria-hidden="true"'
+        : ' role="img" aria-label="' . sr_e($label) . '"';
+    $idAttribute = preg_match('/\A[a-zA-Z][a-zA-Z0-9_-]*\z/', $id) === 1
+        ? ' id="' . sr_e($id) . '"'
+        : '';
+
+    return '<span class="' . sr_e($classes) . '"' . $idAttribute . ' data-sr-material-icon' . $accessibility . '>' . sr_e($iconName) . '</span>';
+}
+
+function sr_material_icon_bootstrap_script(): string
+{
+    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","home").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
+}
+
 function sr_stylesheet_tag(array $stylesheets = []): string
 {
     $tags = [
+        '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/ui-kit.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',

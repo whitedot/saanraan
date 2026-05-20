@@ -217,11 +217,21 @@ function sr_admin_shell_menu_icon(mixed $icon, string $category): array
 
         $symbolIcon = sr_admin_menu_symbol_icon((string) ($icon['name'] ?? ''));
         if ($symbolIcon !== []) {
-            return $symbolIcon;
+            return [
+                'type' => 'material',
+                'name' => sr_admin_material_icon_name((string) $symbolIcon['name']),
+                'symbol_name' => (string) $symbolIcon['name'],
+            ];
         }
     }
 
-    return ['type' => 'symbol', 'name' => sr_admin_shell_icon_id($category)];
+    $symbolName = sr_admin_shell_icon_id($category);
+
+    return [
+        'type' => 'material',
+        'name' => sr_admin_material_icon_name($symbolName),
+        'symbol_name' => $symbolName,
+    ];
 }
 
 function sr_admin_shell_class_attr(string $class): string
@@ -242,7 +252,9 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null): string
         '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
         '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
+        '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/tokens.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/icons.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/ui-kit.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">',

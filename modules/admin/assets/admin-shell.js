@@ -25,7 +25,7 @@ window.AdminShell = {
         const scrollbar = scrollWrap ? scrollWrap.querySelector('.gnb_scrollbar') : null;
         const scrollThumb = scrollWrap ? scrollWrap.querySelector('.gnb_scrollbar_thumb') : null;
         const themeToggle = document.getElementById('admin_theme_toggle');
-        const themeToggleIconUse = document.getElementById('admin_theme_toggle_icon_use');
+        const themeToggleIcon = document.getElementById('admin_theme_toggle_icon');
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
         const toastStack = document.querySelector('[data-admin-toast-stack]');
@@ -127,18 +127,17 @@ window.AdminShell = {
         };
 
         const syncThemeUI = () => {
-            if (!themeToggle || !themeToggleIconUse) {
+            if (!themeToggle || !themeToggleIcon) {
                 return;
             }
 
             const dark = document.documentElement.getAttribute('data-theme') === 'dark';
             const nextModeLabel = dark ? '라이트 모드' : '다크 모드';
-            const iconHref = dark ? '#admin-menu-icon-sun' : '#admin-menu-icon-moon-stars';
+            const iconName = dark ? 'light_mode' : 'dark_mode';
             themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
             themeToggle.setAttribute('aria-label', `${nextModeLabel} 전환`);
             themeToggle.setAttribute('title', `${nextModeLabel} 전환`);
-            themeToggleIconUse.setAttribute('href', iconHref);
-            themeToggleIconUse.setAttribute('xlink:href', iconHref);
+            themeToggleIcon.textContent = iconName;
         };
 
         const setNavItemState = (item, opened) => {

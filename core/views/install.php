@@ -14,6 +14,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, null); ?>
     <?php echo sr_stylesheet_tag(); ?>
+    <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
 <body class="sr-install-page">
     <main class="sr-install-shell">

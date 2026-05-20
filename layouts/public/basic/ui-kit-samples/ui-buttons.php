@@ -600,7 +600,7 @@
                                         <button type="button" class="btn btn-soft-default ui-kit-radius-s-none"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
-                                            <span class="ui-kit-icon-text">열기</span>
+                                            <?php echo sr_ui_arrow_svg_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu">
@@ -635,7 +635,7 @@
                                                     class="btn btn-soft-default ui-kit-radius-t-none"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
-                                                    <span class="ui-kit-icon-text">열기</span>
+                                                    <?php echo sr_ui_arrow_svg_html('down', 'dropdown-icon'); ?>
                                                 </button>
 
                                                 <div class="dropdown-menu" role="menu">

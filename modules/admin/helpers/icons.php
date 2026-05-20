@@ -225,6 +225,43 @@ function sr_admin_menu_symbol_icon(string $name): array
     return sr_admin_menu_symbol_allowed($name) ? ['type' => 'symbol', 'name' => $name] : [];
 }
 
+function sr_admin_material_icon_names(): array
+{
+    return [
+        'settings' => 'settings',
+        'admin-mode' => 'admin_panel_settings',
+        'users' => 'group',
+        'user' => 'person',
+        'content' => 'dashboard_customize',
+        'stats' => 'monitoring',
+        'home' => 'home',
+        'folder' => 'folder',
+        'image' => 'image',
+        'layers' => 'layers',
+        'search' => 'search',
+        'menu-list' => 'format_list_bulleted',
+        'bell' => 'notifications',
+        'shield' => 'shield',
+        'coins' => 'payments',
+        'wallet' => 'account_balance_wallet',
+        'gift' => 'redeem',
+        'message-circle' => 'forum',
+        'sidebar-toggle' => 'keyboard_double_arrow_left',
+        'menu' => 'menu',
+        'moon-stars' => 'dark_mode',
+        'sun' => 'light_mode',
+        'chevron-down' => 'keyboard_arrow_down',
+    ];
+}
+
+function sr_admin_material_icon_name(string $symbolName): string
+{
+    $icons = sr_admin_material_icon_names();
+    $symbolName = trim($symbolName);
+
+    return (string) ($icons[$symbolName] ?? $icons['folder']);
+}
+
 function sr_admin_default_menu_icon_id(string $category): string
 {
     $icons = [
@@ -244,26 +281,4 @@ function sr_admin_default_menu_icon_id(string $category): string
 function sr_admin_default_menu_icon(string $category): array
 {
     return ['type' => 'symbol', 'name' => sr_admin_default_menu_icon_id($category)];
-}
-
-function sr_admin_menu_symbol_sprite_html(): string
-{
-    $html = '<svg class="admin-nav-icon-sprite" aria-hidden="true" focusable="false">';
-    foreach (sr_admin_icon_symbols() as $name => $symbol) {
-        if (!is_string($name) || preg_match('/\A[a-z0-9_-]+\z/', $name) !== 1) {
-            continue;
-        }
-
-        $viewBox = (string) ($symbol['view_box'] ?? '0 0 24 24');
-        $html .= '<symbol id="admin-menu-icon-' . sr_e($name) . '" viewBox="' . sr_e($viewBox) . '">';
-        foreach ((array) ($symbol['paths'] ?? []) as $path) {
-            if (is_string($path) && $path !== '') {
-                $html .= '<path d="' . sr_e($path) . '"></path>';
-            }
-        }
-        $html .= '</symbol>';
-    }
-    $html .= '</svg>';
-
-    return $html;
 }

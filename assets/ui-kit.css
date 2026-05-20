@@ -27,6 +27,7 @@ code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace,SFMono
 code{color:var(--color-rose-400)}
 [hidden]:where(:not([hidden=until-found])),.hidden{display:none!important}
 .sr-only{clip-path:inset(50%);white-space:nowrap;border-width:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}
+.btn :is(svg,.sr-icon),.btn-icon :is(svg,.sr-icon),.dropdown-toggle :is(svg,.sr-icon),.dropdown-item :is(svg,.sr-icon){width:1em;height:1em;flex:0 0 auto}
 .relative{position:relative}
 .btn{z-index:10;cursor:pointer;justify-content:center;align-items:center;column-gap:calc(var(--spacing) * 2);border-radius:var(--radius);border-style:solid;border-width:1px;border-color:#0000;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 1.75);text-align:center;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);transition-property:background-color,border-color,color,box-shadow,opacity;transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);display:inline-flex;position:relative}
 .btn-sm{padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.25);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
@@ -193,6 +194,7 @@ input[type=file].form-input::file-selector-button{height:100%;margin-inline-end:
 .dropdown{display:inline-block;position:relative}
 .dropdown-toggle{align-items:center;justify-content:center;gap:calc(var(--spacing) * 2);white-space:nowrap}
 .dropdown-icon,.dropdown-caret{width:1em;height:1em;flex:0 0 auto}
+.ui-arrow-icon{display:block;overflow:visible}
 .dropdown-menu{z-index:70;display:none;min-width:10rem;max-width:min(20rem,calc(100vw - 1rem));padding:calc(var(--spacing) * 2);border:1px solid var(--color-default-300);border-radius:var(--radius);background-color:var(--color-card);color:var(--color-body-color);box-shadow:var(--shadow);opacity:0;visibility:hidden;position:fixed;left:0;top:0;margin-top:0}
 .dropdown.dropdown-open>.dropdown-menu,.dropdown.open>.dropdown-menu{display:block;opacity:1;visibility:visible}
 .dropdown-item{width:100%;border-radius:var(--radius-sm);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-default-700);text-decoration:none;white-space:nowrap;align-items:center;gap:calc(var(--spacing) * 2);display:flex}
@@ -222,11 +224,11 @@ input[type=file].form-input::file-selector-button{height:100%;margin-inline-end:
 @media (hover:hover){.btn:not([class*=btn-solid-]):not([class*=btn-outline-]):not([class*=btn-soft-]):not([class*=btn-ghost-]):not([class*=btn-gradient-]):not([class*=ui-kit-surface-]):hover{border-color:transparent;background-color:var(--color-default-100);color:var(--color-default-900)}}
 .btn:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--btn-focus-color,var(--color-primary)) 18%,transparent)}
 .btn:disabled,.btn[aria-disabled=true]{pointer-events:none;opacity:.55}
-.btn svg,.btn-icon svg,.dropdown-toggle svg,[role=tab] svg{width:1em;height:1em;flex:0 0 auto}
+.btn svg,.btn .sr-icon,.btn-icon svg,.btn-icon .sr-icon,.dropdown-toggle svg,.dropdown-toggle .sr-icon,[role=tab] svg,[role=tab] .sr-icon{width:1em;height:1em;flex:0 0 auto}
 .btn-icon{line-height:1}
-.btn-icon svg{font-size:1.125rem}
-.btn-sm.btn-icon svg{font-size:1rem}
-.btn-lg.btn-icon svg{font-size:1.25rem}
+.btn-icon :is(svg,.sr-icon){font-size:1.125rem}
+.btn-sm.btn-icon :is(svg,.sr-icon){font-size:1rem}
+.btn-lg.btn-icon :is(svg,.sr-icon){font-size:1.25rem}
 .btn-solid-primary{border-color:var(--color-primary);--btn-focus-color:var(--color-primary)}
 .btn-solid-secondary{border-color:var(--color-secondary);--btn-focus-color:var(--color-secondary)}
 .btn-solid-success,.btn-solid-success-strong{border-color:var(--color-success);background-color:var(--color-success);color:var(--color-white);--btn-focus-color:var(--color-success)}
@@ -270,7 +272,7 @@ input[type=file].form-input::file-selector-button{height:100%;margin-inline-end:
 @media (hover:hover){.btn-gradient-smooth:hover{filter:saturate(1.16) brightness(1.05);animation-duration:1.9s}}
 @media (prefers-reduced-motion:reduce){.btn-gradient-smooth{animation:none}.btn-gradient-smooth:hover{background-position:100% 50%}}
 .dropdown-toggle .dropdown-icon,.dropdown-toggle .dropdown-caret{font-size:1em;opacity:.9;transition:transform var(--default-transition-duration) var(--default-transition-timing-function),opacity var(--default-transition-duration) var(--default-transition-timing-function)}
-.dropdown.dropdown-open>.dropdown-toggle .dropdown-icon,.dropdown.open>.dropdown-toggle .dropdown-icon{transform:rotate(180deg)}
+.dropdown.dropdown-open>.dropdown-toggle .dropdown-icon[data-ui-arrow=down],.dropdown.open>.dropdown-toggle .dropdown-icon[data-ui-arrow=down]{transform:rotate(180deg)}
 .tab-trigger-underline,.tab-trigger-underline-justified,.tab-trigger-line-primary,.tab-trigger-line-danger,.tab-trigger-line-success,.tab-trigger-pill-primary,.tab-trigger-pill-secondary{gap:calc(var(--spacing) * 2);transition:background-color var(--default-transition-duration) var(--default-transition-timing-function),border-color var(--default-transition-duration) var(--default-transition-timing-function),color var(--default-transition-duration) var(--default-transition-timing-function),box-shadow var(--default-transition-duration) var(--default-transition-timing-function)}
 .tab-trigger-underline:focus-visible,.tab-trigger-underline-justified:focus-visible,.tab-trigger-line-primary:focus-visible,.tab-trigger-line-danger:focus-visible,.tab-trigger-line-success:focus-visible,.tab-trigger-pill-primary:focus-visible,.tab-trigger-pill-secondary:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 16%,transparent)}
 @media (hover:hover){.tab-trigger-underline:not(:disabled):hover,.tab-trigger-underline-justified:not(:disabled):hover,.tab-trigger-line-primary:not(:disabled):hover,.tab-trigger-line-danger:not(:disabled):hover,.tab-trigger-line-success:not(:disabled):hover,.tab-trigger-pill-primary:not(:disabled):hover,.tab-trigger-pill-secondary:not(:disabled):hover{background-color:var(--color-default-100);color:var(--color-default-950)}}
@@ -283,7 +285,7 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .modal-close{border-radius:var(--radius);width:calc(var(--spacing) * 8);height:calc(var(--spacing) * 8);justify-content:center;align-items:center;display:inline-flex}
 @media (hover:hover){.modal-close:hover{background-color:var(--color-default-100);color:var(--color-default-900)}}
 .modal-close:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 16%,transparent)}
-.form-checkbox,.form-radio{appearance:none;background-color:var(--color-card);background-position:center;background-repeat:no-repeat;border:1px solid var(--color-default-400);width:1rem;height:1rem;flex:0 0 auto;vertical-align:middle}
+.form-checkbox,.form-radio{appearance:none;background-color:var(--color-card);background-position:center;background-repeat:no-repeat;border:1px solid var(--color-default-400);width:1rem;height:1rem;flex:0 0 auto;vertical-align:middle;display:inline-grid;place-content:center}
 .form-checkbox{border-radius:var(--radius-sm)}
 .form-radio{border-radius:999px}
 .form-checkbox:focus-visible,.form-radio:focus-visible,.form-switch:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--form-choice-color,var(--color-primary)) 12%,transparent)}

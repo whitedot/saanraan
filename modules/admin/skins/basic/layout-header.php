@@ -43,6 +43,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
     <?php echo sr_admin_stylesheet_tag($pdo ?? null); ?>
+    <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
 <body>
     <div id="to_content" class="admin-skip-link"><a href="#container">본문 바로가기</a></div>
@@ -51,22 +52,16 @@ if (isset($pdo) && $pdo instanceof PDO) {
         <h1 class="sr-only"><?php echo sr_e((string) $adminShell['site_title']); ?></h1>
 
         <nav id="gnb" class="admin-sidebar" aria-label="관리자 메뉴">
-            <?php echo sr_admin_menu_symbol_sprite_html(); ?>
-
             <h2 class="admin-sidebar-brand">
                 <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>">
                     <span class="admin-sidebar-brand-mark" aria-hidden="true">
-                        <svg class="admin-shell-control-icon" focusable="false" viewBox="0 0 24 24">
-                            <use href="#admin-menu-icon-admin-mode"></use>
-                        </svg>
+                        <?php echo sr_material_icon_html('admin_panel_settings', 'admin-shell-control-icon'); ?>
                     </span>
                     <span class="admin-sidebar-brand-name"><?php echo sr_e((string) $adminShell['site_title']); ?></span>
                 </a>
                 <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="사이드바 축소/확장" aria-pressed="false">
                     <span aria-hidden="true">
-                        <svg class="admin-shell-control-icon" focusable="false" viewBox="0 0 24 24">
-                            <use href="#admin-menu-icon-sidebar-toggle"></use>
-                        </svg>
+                        <?php echo sr_material_icon_html('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
                     </span>
                 </button>
             </h2>
@@ -90,16 +85,18 @@ if (isset($pdo) && $pdo instanceof PDO) {
                                             <?php if (($navIcon['type'] ?? '') === 'asset') { ?>
                                                 <img class="admin-nav-icon admin-nav-icon-image" src="<?php echo sr_e((string) ($navIcon['url'] ?? '')); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async">
                                             <?php } else { ?>
-                                                <svg class="admin-nav-icon admin-nav-icon-symbol" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                                    <use href="#admin-menu-icon-<?php echo sr_e((string) ($navIcon['name'] ?? $navItem['icon_id'] ?? 'folder')); ?>"></use>
-                                                </svg>
+                                                <?php
+                                                $navIconName = (string) ($navIcon['name'] ?? '');
+                                                if (($navIcon['type'] ?? '') !== 'material') {
+                                                    $navIconName = sr_admin_material_icon_name((string) ($navIcon['name'] ?? $navItem['icon_id'] ?? 'folder'));
+                                                }
+                                                ?>
+                                                <?php echo sr_material_icon_html($navIconName, 'admin-nav-icon admin-nav-icon-symbol'); ?>
                                             <?php } ?>
                                             <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
                                         </span>
                                         <span class="admin-nav-caret" aria-hidden="true">
-                                            <svg class="admin-nav-caret-icon" focusable="false" viewBox="0 0 24 24">
-                                                <use href="#admin-menu-icon-chevron-down"></use>
-                                            </svg>
+                                            <?php echo sr_material_icon_html('keyboard_arrow_down', 'admin-nav-caret-icon'); ?>
                                         </span>
                                     </button>
                                     <div class="admin-nav-panel<?php echo sr_e((string) $navItem['panel_class']); ?>">
@@ -143,9 +140,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
         <div id="hd_top" class="admin-topbar">
             <div class="hd_top_left admin-topbar-left">
                 <button type="button" id="btn_gnb_mobile" class="admin-mobile-menu-button" aria-controls="gnb" aria-expanded="false" aria-label="메뉴 열기">
-                    <svg class="admin-shell-control-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                        <use href="#admin-menu-icon-menu"></use>
-                    </svg>
+                    <?php echo sr_material_icon_html('menu', 'admin-shell-control-icon'); ?>
                 </button>
                 <div class="hd_breadcrumb admin-breadcrumb">
                     <span>대시보드</span>
@@ -159,23 +154,17 @@ if (isset($pdo) && $pdo instanceof PDO) {
                     <ul>
                         <li class="tnb_li admin-toolbar-item">
                             <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="다크 모드 전환" title="다크 모드 전환">
-                                <svg class="admin-shell-control-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                    <use id="admin_theme_toggle_icon_use" href="#admin-menu-icon-moon-stars"></use>
-                                </svg>
+                                <?php echo sr_material_icon_html('dark_mode', 'admin-shell-control-icon', '', 'admin_theme_toggle_icon'); ?>
                             </button>
                         </li>
                         <li class="tnb_li admin-toolbar-item">
                             <a class="tnb_icon_btn admin-toolbar-icon-button" href="<?php echo sr_e((string) $adminShell['site_home_url']); ?>" target="_blank" title="메인" aria-label="메인">
-                                <svg class="admin-shell-control-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                    <use href="#admin-menu-icon-home"></use>
-                                </svg>
+                                <?php echo sr_material_icon_html('home', 'admin-shell-control-icon'); ?>
                             </a>
                         </li>
                         <li class="tnb_li admin-toolbar-item relative">
                             <button type="button" class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="관리자 메뉴" title="관리자 메뉴">
-                                <svg class="admin-shell-control-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                    <use href="#admin-menu-icon-user"></use>
-                                </svg>
+                                <?php echo sr_material_icon_html('person', 'admin-shell-control-icon'); ?>
                             </button>
                             <ul class="tnb_mb_area admin-toolbar-menu hidden">
                                 <li><a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">계정 정보</a></li>

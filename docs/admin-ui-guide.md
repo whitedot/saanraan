@@ -3,16 +3,21 @@
 관리자 화면은 G5 Codex 계열의 공통 UI 톤을 기준으로 맞춘다. public/admin 양쪽에서 반복되는 기본 UI 원형은 `assets/ui-kit.css`를 공용 출처로 두고, 관리자 shell과 관리자 전용 배치는 `modules/admin/assets/admin.css`로 제한한다. 모듈 도메인 고유 보정은 각 모듈의 `admin.stylesheets`로 분리한다.
 
 - `assets/tokens.css`: 사이트 전반에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
+- `assets/icons.css`: 프로젝트 기본 아이콘셋인 self-hosted Google Material Symbols Outlined 폰트와 `.sr-icon` 표시 규칙을 둔다.
 - `assets/ui-kit.css`: public/admin이 함께 쓰는 reset/base와 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*`, icon sizing 같은 반복 UI 원형을 둔다.
 - `assets/admin-ui.css`: `.admin-ui-scope` 안의 반복 가능한 관리자 작업 조합만 둔다.
 - `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다. 공용 UI 원형이나 모듈 도메인 class를 이 파일에 다시 넣지 않는다.
 - `modules/{module_key}/assets/*.css`: 모듈 관리자 본문에서만 쓰는 도메인 고유 스타일을 둔다. 모듈은 `module.php`의 `admin.stylesheets`에 자기 `assets/` 아래 CSS만 선언하고, admin shell은 활성 모듈의 선언을 검증해 공통 관리자 CSS 뒤에 출력한다.
 
-공개 화면 런타임은 `assets/tokens.css`, `assets/ui-kit.css`, `assets/saanraan.css`, `assets/public-ui.css`를 호출한다. `assets/ui-kit.css`가 공용 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
+공개 화면 런타임은 `assets/tokens.css`, `assets/icons.css`, `assets/ui-kit.css`, `assets/saanraan.css`, `assets/public-ui.css`를 호출한다. `assets/icons.css`가 공용 아이콘 폰트를 맡고, `assets/ui-kit.css`가 공용 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
 
-관리자 런타임 CSS 호출 순서는 `Pretendard`, `assets/tokens.css`, `assets/ui-kit.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, 활성 모듈의 `admin.stylesheets` 선언 순서다. 활성 모듈 stylesheet는 `/modules/{module_key}/assets/*.css` 안쪽 파일만 허용하고 외부 URL, `..` 경로, 모듈 폴더 밖 파일은 무시한다.
+관리자 런타임 CSS 호출 순서는 `Pretendard`, `assets/tokens.css`, `assets/icons.css`, `assets/ui-kit.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, 활성 모듈의 `admin.stylesheets` 선언 순서다. 활성 모듈 stylesheet는 `/modules/{module_key}/assets/*.css` 안쪽 파일만 허용하고 외부 URL, `..` 경로, 모듈 폴더 밖 파일은 무시한다.
+
+프로젝트 기본 아이콘셋은 Google Material Symbols Outlined다. 아이콘 폰트는 `assets/fonts/material-symbols-outlined.ttf`로 self-hosting하고 public/admin 런타임에서 preload한다. `sr_material_icon_html()`로 출력한 `.sr-icon[data-sr-material-icon]`은 `sr_material_icon_bootstrap_script()`가 폰트 준비 완료 class를 붙이기 전까지 투명하게 유지하므로, `home`, `settings` 같은 Material ligature 글자가 로딩 중 잠깐 보이지 않는다.
+
+Material Symbols는 메뉴, 툴바, 본문 액션처럼 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시, 드롭다운 caret, 스위치 thumb처럼 컴포넌트 내부 상태나 조작 힌트는 해당 컴포넌트 CSS가 소유하며 Material 아이콘으로 대체하지 않는다. 드롭다운 caret처럼 여러 위치에서 재사용하는 방향 화살표는 `sr_ui_arrow_svg_html()` helper로 출력한다.
 
 드롭다운, 오버레이/모달, 탭처럼 관리자와 공개 화면에서 함께 쓸 수 있는 기본 상호작용은 `assets/common-ui.js`에 둔다. 관리자 UI-KIT과 public 런타임 미리보기도 이 파일을 호출해 같은 동작 원형을 확인한다.
 
@@ -58,11 +63,11 @@ UI-KIT 샘플은 외부 아이콘 런타임에 의존하지 않는다. 아이콘
 
 관리자 UI-KIT은 일반 메뉴 트리에 넣지 않고 사이드바 메뉴 목록 아래쪽의 보조 링크로 노출한다. UI-KIT은 실제 업무 메뉴가 아니라 관리자 UI 점검 화면이므로 메뉴 순서/숨김 오버라이드 대상과 분리한다.
 
-관리자 메뉴 아이콘의 표현 선택권은 각 모듈에 둔다. 모듈은 `module.php`의 `admin.icon`에 관리자 shell이 제공하는 심볼 이름을 선언하거나, 자기 모듈의 `assets/` 아래에 둔 `svg`, `png`, `webp` 파일을 선언할 수 있다. 관리자 shell은 선언을 그대로 믿지 않고 허용된 심볼과 모듈 내부 자산 경로만 렌더링하며, 선언이 없거나 유효하지 않으면 카테고리 기본 심볼로 fallback한다.
+관리자 메뉴 아이콘의 표현 선택권은 각 모듈에 둔다. 모듈은 `module.php`의 `admin.icon`에 관리자 shell이 제공하는 심볼 이름을 선언하거나, 자기 모듈의 `assets/` 아래에 둔 `png`, `webp` 파일을 선언할 수 있다. 관리자 shell은 선언을 그대로 믿지 않고 허용된 심볼과 모듈 내부 자산 경로만 렌더링하며, 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 fallback한다.
 
-관리자 메뉴 심볼 목록과 SVG sprite는 `modules/admin/helpers/icons.php`의 공통 계약이 소유한다. admin skin은 심볼을 직접 복사해 두지 않고 `sr_admin_menu_symbol_sprite_html()`을 호출해 같은 계약을 렌더링한다. 새 admin skin을 추가할 때도 이 helper를 호출해야 모듈의 `admin.icon` 선언과 실제 sprite가 어긋나지 않는다.
+관리자 메뉴 심볼 이름 목록과 Material Symbols 매핑은 `modules/admin/helpers/icons.php`의 공통 계약이 소유한다. admin skin은 심볼 이름을 직접 해석하지 않고 helper 매핑을 통해 Material 아이콘 이름으로 변환한다. 기본 표현은 Material Symbols다.
 
-모듈 메뉴에 허용되는 심볼 이름은 `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`이다. 툴바 전용 심볼은 같은 sprite에 있더라도 `module_menu`가 꺼져 있으면 모듈 선언에서 사용할 수 없다.
+모듈 메뉴에 허용되는 심볼 이름은 `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`이다. 툴바 전용 심볼은 같은 helper 계약에 있더라도 `module_menu`가 꺼져 있으면 모듈 선언에서 사용할 수 없다.
 
 아이콘은 메뉴 텍스트를 보조하는 장식 요소로 취급한다. 접근 가능한 이름은 메뉴 label이 맡고, 이미지 아이콘도 `alt=""`와 `aria-hidden="true"`로 출력한다.
 

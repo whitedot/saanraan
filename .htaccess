@@ -1,6 +1,10 @@
 DirectoryIndex index.php
 Options -Indexes
 
+<IfModule mod_mime.c>
+    AddType font/ttf .ttf
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
