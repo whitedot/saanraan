@@ -401,11 +401,6 @@ function sr_admin_setting_display_value(array $setting): string
     return $settingValue;
 }
 
-function sr_admin_module_setting_display_value(array $setting): string
-{
-    return sr_admin_setting_display_value($setting);
-}
-
 function sr_admin_setting_value_type_errors(string $settingValue, string $valueType): array
 {
     if ($valueType === 'int' && preg_match('/\A-?\d+\z/', $settingValue) !== 1) {

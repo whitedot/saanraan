@@ -5,11 +5,9 @@ declare(strict_types=1);
 function sr_admin_handle_modules_post(
     PDO $pdo,
     array $account,
-    bool $canManageAdvancedModuleSettings,
     bool $canManageModuleSources,
     array $requiredModules,
     array $allowedStatuses,
-    array $allowedSettingTypes,
     array $allowedInstallStatuses,
     bool $moduleUploadAvailable,
     bool $moduleSourcesEnabled
@@ -26,6 +24,10 @@ function sr_admin_handle_modules_post(
 
     if ($intent === 'upload_module_zip') {
         $moduleKey = trim(sr_post_string('upload_module_key', 60));
+    }
+
+    if (!in_array($intent, ['upload_module_zip', 'sync_module_version', 'status', 'install'], true)) {
+        $errors[] = '지원하지 않는 모듈 관리 요청입니다.';
     }
 
     if ($intent !== 'upload_module_zip' && !sr_is_safe_module_key($moduleKey)) {
@@ -125,7 +127,7 @@ function sr_admin_handle_modules_post(
                 $errors[] = '이미 설치된 모듈입니다.';
             }
         }
-    } elseif ($errors === [] && in_array($intent, ['status', 'module_setting', 'delete_module_setting', 'sync_module_version'], true)) {
+    } elseif ($errors === [] && in_array($intent, ['status', 'sync_module_version'], true)) {
         $stmt = $pdo->prepare('SELECT id, status FROM sr_modules WHERE module_key = :module_key LIMIT 1');
         $stmt->execute(['module_key' => $moduleKey]);
         $module = $stmt->fetch();
@@ -365,120 +367,6 @@ function sr_admin_handle_modules_post(
             sr_log_exception($exception, 'module_install_failed');
             $errors[] = '모듈 설치 중 오류가 발생했습니다.';
         }
-    } elseif ($errors === [] && $intent === 'module_setting') {
-        if (!$canManageAdvancedModuleSettings) {
-            $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
-        }
-
-        $settingKey = sr_post_string('setting_key', 120);
-        $settingValue = sr_post_string('setting_value', 5000);
-        $valueType = sr_post_string('value_type', 20);
-
-        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
-            $errors[] = '설정 key 형식이 올바르지 않습니다.';
-        }
-
-        if (!in_array($valueType, $allowedSettingTypes, true)) {
-            $errors[] = '설정 타입이 올바르지 않습니다.';
-        }
-
-        foreach (sr_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
-            $errors[] = $directEditError;
-        }
-
-        foreach (sr_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
-            $errors[] = $valueError;
-        }
-
-        if ($errors === [] && sr_admin_setting_value_is_secret($settingKey)) {
-            foreach (sr_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'save') as $reauthError) {
-                $errors[] = $reauthError;
-            }
-        }
-
-        if ($errors === []) {
-            $settingValue = sr_admin_normalize_setting_value($settingValue, $valueType);
-            $stmt = $pdo->prepare(
-                'INSERT INTO sr_module_settings
-                    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
-                 VALUES
-                    (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE
-                    setting_value = VALUES(setting_value),
-                    value_type = VALUES(value_type),
-                    updated_at = VALUES(updated_at)'
-            );
-            $stmt->execute([
-                'module_id' => (int) $module['id'],
-                'setting_key' => $settingKey,
-                'setting_value' => $settingValue,
-                'value_type' => $valueType,
-                'created_at' => sr_now(),
-                'updated_at' => sr_now(),
-            ]);
-            sr_clear_module_settings_cache($moduleKey);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'module.setting.saved',
-                'target_type' => 'module_setting',
-                'target_id' => $moduleKey . ':' . $settingKey,
-                'result' => 'success',
-                'message' => 'Module setting saved.',
-                'metadata' => [
-                    'module_key' => $moduleKey,
-                    'setting_key' => $settingKey,
-                    'value_type' => $valueType,
-                ],
-            ]);
-
-            $notice = '모듈 설정 항목을 저장했습니다.';
-        }
-    } elseif ($errors === [] && $intent === 'delete_module_setting') {
-        if (!$canManageAdvancedModuleSettings) {
-            $errors[] = '고급 모듈 설정은 소유자 권한이 필요합니다.';
-        }
-
-        $settingKey = sr_post_string('setting_key', 120);
-        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
-            $errors[] = '설정 key 형식이 올바르지 않습니다.';
-        }
-
-        foreach (sr_admin_module_setting_direct_edit_errors($moduleKey, $settingKey) as $directEditError) {
-            $errors[] = $directEditError;
-        }
-
-        if ($errors === [] && sr_admin_setting_value_is_secret($settingKey)) {
-            foreach (sr_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey, 'delete') as $reauthError) {
-                $errors[] = $reauthError;
-            }
-        }
-
-        if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
-            $stmt->execute([
-                'module_id' => (int) $module['id'],
-                'setting_key' => $settingKey,
-            ]);
-            sr_clear_module_settings_cache($moduleKey);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'module.setting.deleted',
-                'target_type' => 'module_setting',
-                'target_id' => $moduleKey . ':' . $settingKey,
-                'result' => 'success',
-                'message' => 'Module setting deleted.',
-                'metadata' => [
-                    'module_key' => $moduleKey,
-                    'setting_key' => $settingKey,
-                ],
-            ]);
-
-            $notice = '모듈 설정 항목을 삭제했습니다.';
-        }
     } elseif ($errors === [] && $intent === 'sync_module_version') {
         $metadata = sr_module_metadata($moduleKey);
         $codeVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
@@ -614,71 +502,6 @@ function sr_admin_module_route_map(string $moduleKey): array
     }
 
     return ['routes' => $routes, 'errors' => array_values(array_unique($errors))];
-}
-
-function sr_admin_module_setting_direct_edit_errors(string $moduleKey, string $settingKey): array
-{
-    $dedicatedSettingsPaths = [
-        'member' => '/admin/member-settings',
-        'seo' => '/admin/seo/settings',
-        'community' => '/admin/community/settings',
-    ];
-
-    if (!isset($dedicatedSettingsPaths[$moduleKey])) {
-        return [];
-    }
-
-    $metadata = sr_module_metadata($moduleKey);
-    $declaredSettings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
-    if (!array_key_exists($settingKey, $declaredSettings)) {
-        return [];
-    }
-
-    return [
-        $moduleKey . ' 모듈의 ' . $settingKey . ' 설정은 전용 설정 화면(' . $dedicatedSettingsPaths[$moduleKey] . ')에서 수정하세요.',
-    ];
-}
-
-function sr_admin_module_setting_reauth_errors(PDO $pdo, array $account, string $moduleKey, string $settingKey, string $action): array
-{
-    $password = sr_post_string('owner_password', 255);
-    $accountId = (int) ($account['id'] ?? 0);
-    $targetId = $moduleKey . ':' . $settingKey . ':' . $action;
-    if ($accountId < 1) {
-        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
-    }
-
-    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
-    if (!empty($throttle['limited'])) {
-        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        sr_audit_log($pdo, [
-            'actor_account_id' => $accountId,
-            'actor_type' => 'admin',
-            'event_type' => 'module.setting.reauth_blocked',
-            'target_type' => 'module_setting',
-            'target_id' => $targetId,
-            'result' => 'failure',
-            'message' => 'Sensitive module setting reauthentication blocked by throttle.',
-        ]);
-        return ['재인증 시도가 많습니다. 잠시 후 다시 시도하세요.'];
-    }
-
-    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
-        sr_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'failure');
-        sr_audit_log($pdo, [
-            'actor_account_id' => $accountId,
-            'actor_type' => 'admin',
-            'event_type' => 'module.setting.reauth_failed',
-            'target_type' => 'module_setting',
-            'target_id' => $targetId,
-            'result' => 'failure',
-            'message' => 'Sensitive module setting reauthentication failed.',
-        ]);
-        return ['민감한 모듈 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
-    }
-
-    sr_member_log_auth($pdo, $accountId, 'module_setting_reauth', 'success');
-    return [];
 }
 
 function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array
@@ -901,20 +724,8 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
         }
     }
 
-    $moduleSettings = [];
-    $stmt = $pdo->query(
-        'SELECT m.module_key, s.setting_key, s.setting_value, s.value_type, s.updated_at
-         FROM sr_module_settings s
-         INNER JOIN sr_modules m ON m.id = s.module_id
-         ORDER BY m.module_key ASC, s.setting_key ASC'
-    );
-    foreach ($stmt->fetchAll() as $row) {
-        $moduleSettings[] = $row;
-    }
-
     return [
         'modules' => $modules,
         'installable_modules' => $installableModules,
-        'module_settings' => $moduleSettings,
     ];
 }

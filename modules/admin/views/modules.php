@@ -18,7 +18,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <button type="button" id="module-tab-trigger-installed" class="tab-trigger-underline active" role="tab" aria-selected="true" aria-controls="module-tab-installed" data-admin-tab-target="installed">설치된 모듈</button>
     <button type="button" id="module-tab-trigger-installable" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-installable" tabindex="-1" data-admin-tab-target="installable">설치 가능한 모듈</button>
     <button type="button" id="module-tab-trigger-upload" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-upload" tabindex="-1" data-admin-tab-target="upload">zip 업로드</button>
-    <button type="button" id="module-tab-trigger-settings" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-settings" tabindex="-1" data-admin-tab-target="settings">고급 설정</button>
 </nav>
 
 <section id="module-tab-installed" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-installed" data-admin-tab-panel="installed">
@@ -320,129 +319,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     <?php } ?>
-</section>
-
-<section id="module-tab-settings" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-settings" data-admin-tab-panel="settings" hidden>
-    <div class="card-header">
-        <h2 class="card-title">모듈 설정 항목</h2>
-    </div>
-    <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
-    <?php if ($canManageAdvancedModuleSettings) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="module_setting">
-            <section class="admin-card card">
-                <h2>모듈 설정 추가</h2>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">모듈</span></div>
-                    <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">모듈</span>
-                        <select name="module_key" class="form-select">
-                            <?php foreach ($modules as $module) { ?>
-                                <option value="<?php echo sr_e((string) $module['module_key']); ?>">
-                                    <?php echo sr_e((string) $module['module_key']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">키</span></div>
-                    <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">키</span>
-                        <input type="text" name="setting_key" maxlength="120" required class="form-input">
-                        </label>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">값</span></div>
-                    <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">값</span>
-                        <textarea name="setting_value" maxlength="5000" class="form-textarea"></textarea>
-                        </label>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">유형</span></div>
-                    <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">유형</span>
-                        <select name="value_type" class="form-select">
-                            <?php foreach ($allowedSettingTypes as $type) { ?>
-                                <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
-                            <?php } ?>
-                        </select>
-                        </label>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
-                    <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">소유자 비밀번호</span>
-                        <input type="password" name="owner_password" autocomplete="current-password" class="form-input">
-                        </label>
-                    </div>
-                </div>
-            </section>
-            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-                <button type="submit" class="btn btn-solid-primary">항목 저장</button>
-            </div>
-        </form>
-    <?php } ?>
-
-    <div class="table-wrapper">
-    <table class="table">
-        <thead class="ui-table-head">
-            <tr>
-                <th>모듈</th>
-                <th>키</th>
-                <th>값</th>
-                <th>유형</th>
-                <th>수정일</th>
-                <th class="text-end">삭제</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ($moduleSettings === []) { ?>
-                <tr>
-                    <td colspan="6" class="admin-empty-state">설정 항목이 없습니다.</td>
-                </tr>
-            <?php } ?>
-            <?php foreach ($moduleSettings as $setting) { ?>
-                <tr>
-                    <td><?php echo sr_e((string) $setting['module_key']); ?></td>
-                    <td><?php echo sr_e((string) $setting['setting_key']); ?></td>
-                    <td><?php echo sr_e(sr_admin_module_setting_display_value($setting)); ?></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
-                    <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td class="admin-table-actions-cell">
-                        <div class="admin-row-actions">
-                        <?php if ($canManageAdvancedModuleSettings) { ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="delete_module_setting">
-                                <input type="hidden" name="module_key" value="<?php echo sr_e((string) $setting['module_key']); ?>">
-                                <input type="hidden" name="setting_key" value="<?php echo sr_e((string) $setting['setting_key']); ?>">
-                                <?php if (sr_admin_setting_value_is_secret((string) $setting['setting_key'])) { ?>
-                                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
-                                <?php } ?>
-                                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
-                            </form>
-                        <?php } else { ?>
-                            소유자 전용
-                        <?php } ?>
-                        </div>
-                    </td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-    </div>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
