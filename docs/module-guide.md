@@ -981,7 +981,7 @@ return [
 ],
 ```
 
-설치 화면은 이 값을 읽어 `site.home_path`에 저장한다. 값은 `/`로 시작하는 안전한 내부 경로여야 하며, 해당 모듈을 함께 설치하지 않으면 선택할 수 없다. 설치 후에는 `/admin/homepage`에서 기본 홈페이지, service domain 후보, page 모듈의 공개 페이지 후보 중 초기화면을 다시 선택할 수 있다. 후보가 비활성화되거나 숨김 상태가 되면 `/`는 public layout/theme이 제공하는 기본 홈페이지로 fallback한다.
+설치 화면은 이 값을 읽어 해당 모듈 카드에 `초기화면으로 설정` 체크를 제공하고, 선택값을 `site.home_path`에 저장한다. 값은 `/`로 시작하는 안전한 내부 경로여야 하며, 해당 모듈을 함께 설치하지 않으면 선택할 수 없다. 설치 후에는 `/admin/homepage`에서 기본 홈페이지, service domain 후보, page 모듈의 공개 페이지 후보 중 초기화면을 다시 선택할 수 있다. 후보가 비활성화되거나 숨김 상태가 되면 `/`는 public layout/theme이 제공하는 기본 홈페이지로 fallback한다.
 
 ## 16. Output Slots
 

@@ -196,10 +196,12 @@ $mainPageOptions = [
         'path' => '/',
     ],
 ];
+$mainPageOptionsByModule = [];
 foreach (array_keys($requiredModules + $optionalModules) as $moduleKey) {
     $option = sr_install_module_main_page_option((string) $moduleKey);
     if (is_array($option)) {
         $mainPageOptions[(string) $option['path']] = $option;
+        $mainPageOptionsByModule[(string) $moduleKey] = $option;
     }
 }
 
@@ -286,6 +288,10 @@ if (sr_request_method() === 'POST') {
 
     foreach ($values as $key => $default) {
         $values[$key] = sr_post_string($key, $key === 'db_password' ? 255 : 120);
+    }
+    $mainPageCandidatePath = sr_post_string('main_page_candidate_path', 255);
+    if ($mainPageCandidatePath !== '') {
+        $values['main_page_path'] = $mainPageCandidatePath;
     }
 
     $values['db_table_prefix'] = strtolower($values['db_table_prefix']);

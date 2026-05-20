@@ -506,6 +506,12 @@ dd {
     font-weight: 700;
 }
 
+.sr-install-field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
 .sr-install-field-grid input,
 .sr-install-field-grid select {
     width: 100%;
@@ -533,6 +539,35 @@ dd {
 
 .sr-install-module-title strong {
     margin: 0;
+}
+
+.sr-install-main-page-option {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    border-top: 1px solid var(--sr-border-soft);
+    margin-top: 12px;
+    padding-top: 12px;
+    color: var(--sr-text);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.sr-install-main-page-option small {
+    display: block;
+    margin-top: 2px;
+    color: var(--sr-muted-soft);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.sr-install-home-default {
+    display: inline-block;
+    border: 1px solid var(--sr-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--sr-surface-soft);
+    font-weight: 700;
 }
 
 .sr-install-actions {

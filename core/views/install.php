@@ -203,16 +203,10 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         </select>
                     </p>
                     <p>
-                        <label for="main_page_path">메인 페이지</label>
-                        <select id="main_page_path" name="main_page_path">
-                            <?php foreach ($mainPageOptions as $mainPageOption) { ?>
-                                <option value="<?php echo sr_e((string) $mainPageOption['path']); ?>"<?php echo $values['main_page_path'] === (string) $mainPageOption['path'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $mainPageOption['label']); ?>
-                                    <?php echo (string) $mainPageOption['path'] !== '/' ? ' (' . sr_e((string) $mainPageOption['path']) . ')' : ''; ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        <span class="sr-install-help">커뮤니티 같은 서비스 도메인 모듈을 선택 모듈에서 함께 체크하면 메인 페이지로 사용할 수 있습니다.</span>
+                        <span class="sr-install-field-label">초기화면</span>
+                        <input type="hidden" name="main_page_path" value="/">
+                        <span class="sr-install-home-default">기본 홈페이지</span>
+                        <span class="sr-install-help">커뮤니티 같은 서비스 도메인 모듈은 아래 모듈 카드에서 초기화면으로 설정할 수 있습니다.</span>
                     </p>
                 </div>
             </section>
@@ -288,9 +282,13 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <div class="sr-install-module-grid">
                         <?php foreach ($optionalModules as $moduleKey => $module) { ?>
                             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                            <label class="sr-install-module sr-install-module-option">
+                            <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
+                            <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                            <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                            <div class="sr-install-module sr-install-module-option">
                                 <span class="sr-install-module-title">
                                     <input
+                                        id="<?php echo sr_e($moduleCheckboxId); ?>"
                                         type="checkbox"
                                         name="optional_modules[]"
                                         value="<?php echo sr_e((string) $moduleKey); ?>"
@@ -298,13 +296,31 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                         <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                         <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                     >
-                                    <strong><?php echo sr_e((string) $module['label']); ?></strong>
+                                    <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
                                 </span>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <span class="sr-install-status sr-install-status-error">설치 불가</span>
                                 <?php } ?>
                                 <code><?php echo sr_e((string) $moduleKey); ?></code>
                                 <p><?php echo sr_e((string) $module['description']); ?></p>
+                                <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
+                                    <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
+                                        <input
+                                            id="<?php echo sr_e($moduleHomeCheckboxId); ?>"
+                                            type="checkbox"
+                                            name="main_page_candidate_path"
+                                            value="<?php echo sr_e((string) $moduleMainPageOption['path']); ?>"
+                                            class="form-checkbox"
+                                            data-sr-install-main-page
+                                            data-sr-install-module-checkbox="<?php echo sr_e($moduleCheckboxId); ?>"
+                                            <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
+                                        >
+                                        <span>
+                                            초기화면으로 설정
+                                            <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
+                                        </span>
+                                    </label>
+                                <?php } ?>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <ul>
                                         <?php foreach ($moduleErrors as $moduleError) { ?>
@@ -312,7 +328,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                         <?php } ?>
                                     </ul>
                                 <?php } ?>
-                            </label>
+                            </div>
                         <?php } ?>
                     </div>
                 <?php } ?>
@@ -324,5 +340,40 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </div>
         </form>
     </main>
+    <script>
+        (function () {
+            var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
+            mainPageInputs.forEach(function (input) {
+                var moduleCheckboxId = input.getAttribute('data-sr-install-module-checkbox');
+                var moduleCheckbox = moduleCheckboxId ? document.getElementById(moduleCheckboxId) : null;
+                if (input.checked && moduleCheckbox) {
+                    moduleCheckbox.checked = true;
+                }
+                if (moduleCheckbox) {
+                    moduleCheckbox.addEventListener('change', function () {
+                        if (!moduleCheckbox.checked) {
+                            input.checked = false;
+                        }
+                    });
+                }
+
+                input.addEventListener('change', function () {
+                    if (!input.checked) {
+                        return;
+                    }
+
+                    mainPageInputs.forEach(function (otherInput) {
+                        if (otherInput !== input) {
+                            otherInput.checked = false;
+                        }
+                    });
+
+                    if (moduleCheckbox) {
+                        moduleCheckbox.checked = true;
+                    }
+                });
+            });
+        }());
+    </script>
 </body>
 </html>
