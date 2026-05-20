@@ -92,7 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <label>
                     <span class="sr-only">UI 색상 모드</span>
-                <select name="ui_color_scheme" class="form-select">
+                <select name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
                     <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
                         <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $colorSchemeLabel); ?>

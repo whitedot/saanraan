@@ -29,14 +29,8 @@ if (isset($pdo) && $pdo instanceof PDO) {
     <meta charset="utf-8">
     <script>
     (function () {
-        var key = 'sr_admin_theme';
-        var saved = null;
-        try {
-            saved = localStorage.getItem(key);
-        } catch (e) {
-            saved = null;
-        }
-        var dark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var scheme = document.documentElement.getAttribute('data-color-scheme') || 'light';
+        var dark = scheme === 'dark' || (scheme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
     </script>
@@ -153,7 +147,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
                 <div id="tnb" class="admin-toolbar">
                     <ul>
                         <li class="tnb_li admin-toolbar-item">
-                            <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="다크 모드 전환" title="다크 모드 전환">
+                            <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="다크 모드 전환" title="다크 모드 전환" data-admin-theme-url="<?php echo sr_e(sr_url('/admin/color-scheme')); ?>" data-admin-theme-csrf="<?php echo sr_e(sr_csrf_token()); ?>">
                                 <?php echo sr_material_icon_html('dark_mode', 'admin-shell-control-icon', '', 'admin_theme_toggle_icon'); ?>
                             </button>
                         </li>

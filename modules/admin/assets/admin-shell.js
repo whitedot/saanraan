@@ -29,14 +29,39 @@ window.AdminShell = {
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
         const toastStack = document.querySelector('[data-admin-toast-stack]');
+        const colorSchemeSelect = document.querySelector('[data-admin-color-scheme-select]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
         const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
         let hideScrollbarTimer = null;
+        let themeSaving = false;
 
         const isMobileViewport = () => mobileQuery.matches;
+        const systemColorSchemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+        const systemPrefersDark = () => systemColorSchemeQuery && systemColorSchemeQuery.matches;
+
+        const resolvedThemeForScheme = scheme => {
+            if (scheme === 'dark') {
+                return 'dark';
+            }
+
+            if (scheme === 'system' && systemPrefersDark()) {
+                return 'dark';
+            }
+
+            return 'light';
+        };
+
+        const applyColorScheme = scheme => {
+            const nextScheme = ['light', 'dark', 'system'].includes(scheme) ? scheme : 'light';
+            const nextTheme = resolvedThemeForScheme(nextScheme);
+            document.documentElement.setAttribute('data-color-scheme', nextScheme);
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            syncThemeUI();
+        };
 
         const updateMenuScrollbar = () => {
             if (!scrollWrap || !menuScroll || !scrollbar || !scrollThumb) {
@@ -137,6 +162,7 @@ window.AdminShell = {
             themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
             themeToggle.setAttribute('aria-label', `${nextModeLabel} 전환`);
             themeToggle.setAttribute('title', `${nextModeLabel} 전환`);
+            themeToggle.disabled = themeSaving;
             themeToggleIcon.textContent = iconName;
         };
 
@@ -256,14 +282,82 @@ window.AdminShell = {
 
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
+                if (themeSaving) {
+                    return;
+                }
+
+                const previousScheme = document.documentElement.getAttribute('data-color-scheme') || 'light';
                 const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-                const next = dark ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                try {
-                    localStorage.setItem('sr_admin_theme', next);
-                } catch (e) {}
+                const nextScheme = dark ? 'light' : 'dark';
+                const endpoint = themeToggle.getAttribute('data-admin-theme-url') || '';
+                const csrfToken = themeToggle.getAttribute('data-admin-theme-csrf') || '';
+
+                applyColorScheme(nextScheme);
+                if (colorSchemeSelect) {
+                    colorSchemeSelect.value = nextScheme;
+                }
+
+                if (!endpoint || !csrfToken || !window.fetch) {
+                    return;
+                }
+
+                themeSaving = true;
                 syncThemeUI();
+
+                const bodyParams = new URLSearchParams();
+                bodyParams.set('csrf_token', csrfToken);
+                bodyParams.set('ui_color_scheme', nextScheme);
+
+                window.fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: bodyParams.toString(),
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save color scheme.');
+                    }
+
+                    return response.json();
+                }).then(payload => {
+                    const savedScheme = payload && payload.ui_color_scheme ? payload.ui_color_scheme : nextScheme;
+                    applyColorScheme(savedScheme);
+                    if (colorSchemeSelect) {
+                        colorSchemeSelect.value = savedScheme;
+                    }
+                }).catch(() => {
+                    applyColorScheme(previousScheme);
+                    if (colorSchemeSelect) {
+                        colorSchemeSelect.value = previousScheme;
+                    }
+                }).finally(() => {
+                    themeSaving = false;
+                    syncThemeUI();
+                });
             });
+        }
+
+        if (colorSchemeSelect) {
+            colorSchemeSelect.addEventListener('change', () => {
+                applyColorScheme(colorSchemeSelect.value);
+            });
+        }
+
+        if (systemColorSchemeQuery) {
+            const syncSystemColorScheme = () => {
+                if (document.documentElement.getAttribute('data-color-scheme') === 'system') {
+                    applyColorScheme('system');
+                }
+            };
+
+            if (typeof systemColorSchemeQuery.addEventListener === 'function') {
+                systemColorSchemeQuery.addEventListener('change', syncSystemColorScheme);
+            } else if (typeof systemColorSchemeQuery.addListener === 'function') {
+                systemColorSchemeQuery.addListener(syncSystemColorScheme);
+            }
         }
 
         if (navRoot) {
