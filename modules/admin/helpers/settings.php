@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_admin_settings_allowed_types(): array
-{
-    return ['string', 'int', 'bool', 'json'];
-}
-
 function sr_admin_code_label(string $value, string $context = ''): string
 {
     $contextLabels = [
@@ -379,43 +374,11 @@ function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
     sr_clear_module_settings_cache('admin');
 }
 
-function sr_admin_reserved_site_setting_keys(): array
-{
-    return [
-        'site.name' => true,
-        'site.base_url' => true,
-        'site.timezone' => true,
-        'site.default_locale' => true,
-        'site.supported_locales' => true,
-        'site.status' => true,
-        'site.home_path' => true,
-        'site.home.title' => true,
-        'site.home.eyebrow' => true,
-        'site.home.description' => true,
-        'site.home.primary_label' => true,
-        'site.home.primary_url' => true,
-        'site.home.secondary_label' => true,
-        'site.home.secondary_url' => true,
-        'public_layout_key' => true,
-        'ui_color_scheme' => true,
-    ];
-}
-
 function sr_admin_sensitive_site_setting_keys(): array
 {
     return [
         'admin.module_sources_enabled' => true,
     ];
-}
-
-function sr_admin_site_setting_requires_reauth(string $settingKey): bool
-{
-    return isset(sr_admin_sensitive_site_setting_keys()[$settingKey]);
-}
-
-function sr_admin_site_setting_requires_bool(string $settingKey): bool
-{
-    return sr_admin_site_setting_requires_reauth($settingKey);
 }
 
 function sr_admin_setting_value_is_secret(string $settingKey): bool
@@ -436,16 +399,6 @@ function sr_admin_setting_display_value(array $setting): string
     }
 
     return $settingValue;
-}
-
-function sr_admin_site_setting_value_is_secret(string $settingKey): bool
-{
-    return sr_admin_setting_value_is_secret($settingKey);
-}
-
-function sr_admin_site_setting_display_value(array $setting): string
-{
-    return sr_admin_setting_display_value($setting);
 }
 
 function sr_admin_module_setting_display_value(array $setting): string
@@ -551,112 +504,18 @@ function sr_admin_validate_supported_locales(array &$values, array &$errors): vo
 function sr_admin_handle_settings_post(
     PDO $pdo,
     array $account,
-    ?array $site,
-    bool $canManageAdvancedSettings,
-    array $allowedSettingTypes,
-    array $reservedSiteSettingKeys
+    ?array $site
 ): array {
     $errors = [];
     $notice = '';
     $values = sr_admin_site_setting_values($site);
     $intent = sr_post_string('intent', 40);
 
-    if (!in_array($intent, ['site', 'site_setting', 'delete_site_setting'], true)) {
+    if ($intent !== 'site') {
         $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
     }
 
-    if ($errors === [] && $intent === 'site_setting') {
-        if (!$canManageAdvancedSettings) {
-            $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
-        }
-
-        $settingKey = sr_post_string('setting_key', 120);
-        $settingValue = sr_post_string('setting_value', 5000);
-        $valueType = sr_post_string('value_type', 20);
-
-        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
-            $errors[] = '설정 key 형식이 올바르지 않습니다.';
-        }
-
-        if (!in_array($valueType, $allowedSettingTypes, true)) {
-            $errors[] = '설정 타입이 올바르지 않습니다.';
-        }
-
-        if (sr_admin_site_setting_requires_bool($settingKey) && $valueType !== 'bool') {
-            $errors[] = '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.';
-        }
-
-        if (isset($reservedSiteSettingKeys[$settingKey])) {
-            $errors[] = '기본 사이트 설정은 위의 전용 양식에서 수정하세요.';
-        }
-
-        foreach (sr_admin_setting_value_type_errors($settingValue, $valueType) as $valueError) {
-            $errors[] = $valueError;
-        }
-
-        if ($errors === [] && sr_admin_site_setting_requires_reauth($settingKey)) {
-            foreach (sr_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'save') as $reauthError) {
-                $errors[] = $reauthError;
-            }
-        }
-
-        if ($errors === []) {
-            $settingValue = sr_admin_normalize_setting_value($settingValue, $valueType);
-            sr_save_site_setting($pdo, $settingKey, $settingValue, $valueType);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site.setting.saved',
-                'target_type' => 'site_setting',
-                'target_id' => $settingKey,
-                'result' => 'success',
-                'message' => 'Site setting saved.',
-                'metadata' => [
-                    'value_type' => $valueType,
-                ],
-            ]);
-
-            $notice = '사이트 설정 항목을 저장했습니다.';
-        }
-    } elseif ($errors === [] && $intent === 'delete_site_setting') {
-        if (!$canManageAdvancedSettings) {
-            $errors[] = '고급 사이트 설정은 소유자 권한이 필요합니다.';
-        }
-
-        $settingKey = sr_post_string('setting_key', 120);
-        if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $settingKey) !== 1) {
-            $errors[] = '설정 key 형식이 올바르지 않습니다.';
-        }
-
-        if (isset($reservedSiteSettingKeys[$settingKey])) {
-            $errors[] = '기본 사이트 설정은 삭제할 수 없습니다.';
-        }
-
-        if ($errors === [] && sr_admin_site_setting_requires_reauth($settingKey)) {
-            foreach (sr_admin_site_setting_reauth_errors($pdo, $account, $settingKey, 'delete') as $reauthError) {
-                $errors[] = $reauthError;
-            }
-        }
-
-        if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM sr_site_settings WHERE setting_key = :setting_key');
-            $stmt->execute(['setting_key' => $settingKey]);
-            sr_clear_site_settings_cache();
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site.setting.deleted',
-                'target_type' => 'site_setting',
-                'target_id' => $settingKey,
-                'result' => 'success',
-                'message' => 'Site setting deleted.',
-            ]);
-
-            $notice = '사이트 설정 항목을 삭제했습니다.';
-        }
-    } elseif ($errors === [] && $intent === 'site') {
+    if ($errors === []) {
         $values = sr_admin_post_site_setting_values($site);
 
         if ($values['name'] === '') {
@@ -731,67 +590,4 @@ function sr_admin_handle_settings_post(
         'values' => $values,
         'site' => $site,
     ];
-}
-
-function sr_admin_site_setting_reauth_errors(PDO $pdo, array $account, string $settingKey, string $action): array
-{
-    $password = sr_post_string('owner_password', 255);
-    $accountId = (int) ($account['id'] ?? 0);
-    if ($accountId < 1) {
-        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
-    }
-
-    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
-    if (!empty($throttle['limited'])) {
-        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        sr_audit_log($pdo, [
-            'actor_account_id' => $accountId,
-            'actor_type' => 'admin',
-            'event_type' => 'site.setting.reauth_blocked',
-            'target_type' => 'site_setting',
-            'target_id' => $settingKey,
-            'result' => 'failure',
-            'message' => 'Sensitive site setting reauthentication blocked by throttle.',
-            'metadata' => [
-                'action' => $action,
-            ],
-        ]);
-        return ['재인증 시도가 많습니다. 잠시 후 다시 시도하세요.'];
-    }
-
-    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
-        sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'failure');
-        sr_audit_log($pdo, [
-            'actor_account_id' => $accountId,
-            'actor_type' => 'admin',
-            'event_type' => 'site.setting.reauth_failed',
-            'target_type' => 'site_setting',
-            'target_id' => $settingKey,
-            'result' => 'failure',
-            'message' => 'Sensitive site setting reauthentication failed.',
-            'metadata' => [
-                'action' => $action,
-            ],
-        ]);
-        return ['고위험 사이트 설정 변경 전 소유자 비밀번호를 다시 입력하세요.'];
-    }
-
-    sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'success');
-    return [];
-}
-
-function sr_admin_site_settings(PDO $pdo): array
-{
-    $siteSettings = [];
-    $stmt = $pdo->query(
-        "SELECT setting_key, setting_value, value_type, updated_at
-         FROM sr_site_settings
-         WHERE setting_key NOT IN ('site.name', 'site.base_url', 'site.timezone', 'site.default_locale', 'site.supported_locales', 'site.status', 'site.home_path', 'site.home.title', 'site.home.eyebrow', 'site.home.description', 'site.home.primary_label', 'site.home.primary_url', 'site.home.secondary_label', 'site.home.secondary_url', 'public_layout_key', 'ui_color_scheme')
-         ORDER BY setting_key ASC"
-    );
-    foreach ($stmt->fetchAll() as $row) {
-        $siteSettings[] = $row;
-    }
-
-    return $siteSettings;
 }

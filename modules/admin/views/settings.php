@@ -102,17 +102,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
-    </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">저장</button>
-    </div>
-</form>
-
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
-    <section class="admin-card card">
-        <h2>관리자 화면</h2>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="admin_skin">
         <div class="admin-form-row">
             <div class="admin-form-label"><span class="form-label">관리자 스킨</span></div>
             <div class="admin-form-field">
@@ -130,123 +119,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">관리자 화면 설정 저장</button>
+        <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
-
-<section class="admin-card card">
-    <div class="card-header">
-        <h2 class="card-title">추가 사이트 설정 항목</h2>
-    </div>
-    <div class="card-body">
-        <p>이 영역은 전용 화면이 없는 낮은 수준의 고급 설정입니다. 저장과 삭제는 소유자만 실행할 수 있습니다.</p>
-    </div>
-</section>
-
-<?php if ($canManageAdvancedSettings) { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="site_setting">
-        <section class="admin-card card">
-            <h2>설정 항목 추가</h2>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">키</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">키</span>
-                    <input type="text" name="setting_key" maxlength="120" required class="form-input">
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">값</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">값</span>
-                    <textarea name="setting_value" maxlength="5000" class="form-textarea"></textarea>
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">유형</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">유형</span>
-                    <select name="value_type" class="form-select">
-                        <?php foreach ($allowedSettingTypes as $type) { ?>
-                            <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'setting_type')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">소유자 비밀번호</span>
-                    <input type="password" name="owner_password" autocomplete="current-password" class="form-input">
-                    </label>
-                <span class="admin-form-help">고위험 설정 저장 시 필요하며 참/거짓 유형만 허용됩니다. 예: <code>admin.module_sources_enabled</code></span>
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary">항목 저장</button>
-        </div>
-    </form>
-<?php } ?>
-
-<section class="admin-card admin-list-card card admin-list-form">
-    <div class="card-header">
-        <h2 class="card-title">저장된 추가 사이트 설정</h2>
-    </div>
-    <div class="table-wrapper">
-    <table class="table">
-        <thead class="ui-table-head">
-            <tr>
-                <th>키</th>
-                <th>값</th>
-                <th>유형</th>
-                <th>수정일</th>
-                <th class="text-end">삭제</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ($siteSettings === []) { ?>
-                <tr>
-                    <td colspan="5" class="admin-empty-state">설정 항목이 없습니다.</td>
-                </tr>
-            <?php } ?>
-            <?php foreach ($siteSettings as $setting) { ?>
-                <tr>
-                    <td><?php echo sr_e((string) $setting['setting_key']); ?></td>
-                    <td><?php echo sr_e(sr_admin_site_setting_display_value($setting)); ?></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $setting['value_type'], 'setting_type')); ?></td>
-                    <td><?php echo sr_e((string) $setting['updated_at']); ?></td>
-                    <td class="admin-table-actions-cell">
-                        <?php if ($canManageAdvancedSettings) { ?>
-                            <div class="admin-row-actions admin-setting-manage">
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="delete_site_setting">
-                                <input type="hidden" name="setting_key" value="<?php echo sr_e((string) $setting['setting_key']); ?>">
-                                <?php if (sr_admin_site_setting_requires_reauth((string) $setting['setting_key'])) { ?>
-                                    <label class="sr-only" for="delete_owner_password_<?php echo sr_e(preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $setting['setting_key'])); ?>">소유자 비밀번호</label>
-                                    <input type="password" name="owner_password" id="delete_owner_password_<?php echo sr_e(preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $setting['setting_key'])); ?>" class="form-input" autocomplete="current-password" placeholder="소유자 비밀번호" required>
-                                <?php } ?>
-                                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
-                            </form>
-                            </div>
-                        <?php } else { ?>
-                            소유자 전용
-                        <?php } ?>
-                    </td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-    </div>
-</section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
