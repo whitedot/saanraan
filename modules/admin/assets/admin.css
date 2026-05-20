@@ -1,6 +1,6 @@
 /*
  * Saanraan admin module layer.
- * Loaded after assets/tokens.css, assets/ui-kit.css, and assets/admin-ui.css by the admin shell.
+ * Loaded after assets/tokens.css, modules/admin/assets/common.css, and assets/admin-ui.css by the admin shell.
  * Owns admin shell chrome, admin content layout, and admin-only workflow structures.
  * Do not add shared UI kit primitives or module-specific screen layout here.
  */

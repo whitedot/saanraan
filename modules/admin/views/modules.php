@@ -14,14 +14,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<nav class="tab-nav-bordered admin-tabs" data-admin-tabs>
-    <button type="button" class="tab-trigger-underline active" data-admin-tab-target="installed">설치된 모듈</button>
-    <button type="button" class="tab-trigger-underline" data-admin-tab-target="installable">설치 가능한 모듈</button>
-    <button type="button" class="tab-trigger-underline" data-admin-tab-target="upload">zip 업로드</button>
-    <button type="button" class="tab-trigger-underline" data-admin-tab-target="settings">고급 설정</button>
+<nav class="tab-nav-bordered admin-tabs" data-admin-tabs role="tablist" aria-label="모듈 관리 탭">
+    <button type="button" id="module-tab-trigger-installed" class="tab-trigger-underline active" role="tab" aria-selected="true" aria-controls="module-tab-installed" data-admin-tab-target="installed">설치된 모듈</button>
+    <button type="button" id="module-tab-trigger-installable" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-installable" tabindex="-1" data-admin-tab-target="installable">설치 가능한 모듈</button>
+    <button type="button" id="module-tab-trigger-upload" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-upload" tabindex="-1" data-admin-tab-target="upload">zip 업로드</button>
+    <button type="button" id="module-tab-trigger-settings" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-settings" tabindex="-1" data-admin-tab-target="settings">고급 설정</button>
 </nav>
 
-<section id="module-tab-installed" class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="installed">
+<section id="module-tab-installed" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-installed" data-admin-tab-panel="installed">
 <div class="card-header">
     <h2 class="card-title">설치된 모듈</h2>
 </div>
@@ -162,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 </section>
 
-<div data-admin-tab-panel="upload" hidden>
+<div id="module-tab-upload" role="tabpanel" aria-labelledby="module-tab-trigger-upload" data-admin-tab-panel="upload" hidden>
 <?php if (!$canManageModuleSources || !$moduleSourcesEnabled || !$moduleUploadAvailable) { ?>
     <section class="admin-card card">
         <h2>모듈 zip 업로드</h2>
@@ -236,7 +236,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 </div>
 
-<section class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="installable" hidden>
+<section id="module-tab-installable" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-installable" data-admin-tab-panel="installable" hidden>
     <div class="card-header">
         <h2 class="card-title">설치 가능한 모듈</h2>
     </div>
@@ -322,7 +322,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form" data-admin-tab-panel="settings" hidden>
+<section id="module-tab-settings" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-settings" data-admin-tab-panel="settings" hidden>
     <div class="card-header">
         <h2 class="card-title">모듈 설정 항목</h2>
     </div>

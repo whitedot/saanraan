@@ -595,11 +595,11 @@ DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `theme_key`, 
 | admin skin | 관리자 shell, 사이드바, 상단바, 관리자 공통 asset, 관리자 콘텐츠 컨테이너 | 모듈별 관리자 도메인 정책이나 저장 흐름 |
 | admin view | 각 모듈의 관리자 본문 마크업과 도메인 출력 | 관리자 shell, 전역 navigation, 공통 관리자 asset 선택 |
 
-CSS class는 충돌을 줄이기 위해 책임 범위별 이름을 사용합니다. 공통 아이콘 원형은 `assets/icons.css`가 `.sr-icon`과 Material Symbols 폰트 로딩 상태를 소유하고, 반복 가능한 공통 UI 원형은 `assets/ui-kit.css`가 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*` 같은 의미 class로 소유합니다. 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
+CSS class는 충돌을 줄이기 위해 책임 범위별 이름을 사용합니다. 공통 아이콘 원형은 `assets/icons.css`가 `.sr-icon`과 Material Symbols 폰트 로딩 상태를 소유하고, 반복 가능한 UI 원형은 관리자에서는 `modules/admin/assets/common.css`, 공개에서는 `assets/public/common.css`가 각각 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*` 같은 의미 class로 소유합니다. 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
 
 모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공하고, 어떤 모듈 파일을 선택할지는 각 모듈의 allowlist helper가 결정합니다.
 
-모듈 관리자 본문에 전용 CSS가 필요하면 `module.php`의 `admin.stylesheets`에 자기 모듈 `assets/` 아래 CSS를 선언합니다. admin skin은 `assets/icons.css`, `assets/ui-kit.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 뒤에 활성 모듈의 선언만 검증해 출력하며, 공통 UI kit과 admin 공통 CSS는 모듈 도메인 class를 직접 소유하지 않습니다.
+모듈 관리자 본문에 전용 CSS가 필요하면 `module.php`의 `admin.stylesheets`에 자기 모듈 `assets/` 아래 CSS를 선언합니다. admin skin은 `assets/icons.css`, `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 뒤에 활성 모듈의 선언만 검증해 출력하며, admin 공통 CSS는 모듈 도메인 class를 직접 소유하지 않습니다.
 
 스킨별 기능이 필요한 모듈은 스킨 폴더의 `skin.php` 계약으로 필수 view와 선택 action을 명시합니다. action은 스킨 view에서 직접 실행하지 않고 모듈이 소유한 단일 진입 action을 거쳐 현재 선택된 스킨과 allowlist를 검증한 뒤 include합니다. 필수 view가 누락된 스킨은 선택 목록에서 제외하고 저장된 key도 `basic`으로 fallback합니다.
 

@@ -277,7 +277,7 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null): string
         '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/icons.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/ui-kit.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/common.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/admin-ui.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin.css')) . '">',
     ];

@@ -571,22 +571,83 @@ window.AdminShell = {
         if (tabRoot) {
             const buttons = Array.prototype.slice.call(tabRoot.querySelectorAll('[data-admin-tab-target]'));
             const panels = Array.prototype.slice.call(document.querySelectorAll('[data-admin-tab-panel]'));
+            const enabledButtons = () => buttons.filter(button => !button.disabled && button.getAttribute('aria-disabled') !== 'true');
+            const panelForTab = tabName => panels.find(panel => panel.dataset.adminTabPanel === tabName);
             const activateTab = tabName => {
                 buttons.forEach(button => {
                     const active = button.dataset.adminTabTarget === tabName;
                     button.classList.toggle('active', active);
                     button.setAttribute('aria-selected', active ? 'true' : 'false');
+                    button.tabIndex = active ? 0 : -1;
                 });
                 panels.forEach(panel => {
                     panel.hidden = panel.dataset.adminTabPanel !== tabName;
                 });
             };
+            const focusRelativeTab = (button, offset) => {
+                const availableButtons = enabledButtons();
+                const currentIndex = availableButtons.indexOf(button);
+                if (currentIndex === -1 || availableButtons.length === 0) {
+                    return;
+                }
 
-            buttons.forEach(button => {
+                const nextIndex = (currentIndex + offset + availableButtons.length) % availableButtons.length;
+                const nextButton = availableButtons[nextIndex];
+                nextButton.focus();
+                activateTab(nextButton.dataset.adminTabTarget || '');
+            };
+            const focusEdgeTab = index => {
+                const availableButtons = enabledButtons();
+                const nextButton = availableButtons[index];
+                if (!nextButton) {
+                    return;
+                }
+
+                nextButton.focus();
+                activateTab(nextButton.dataset.adminTabTarget || '');
+            };
+
+            panels.forEach((panel, index) => {
+                const panelName = panel.dataset.adminTabPanel || String(index);
+                if (!panel.id) {
+                    panel.id = 'admin-tab-panel-' + panelName;
+                }
+                panel.setAttribute('role', 'tabpanel');
+            });
+
+            buttons.forEach((button, index) => {
+                const tabName = button.dataset.adminTabTarget || String(index);
+                const panel = panelForTab(tabName);
+                if (!button.id) {
+                    button.id = 'admin-tab-trigger-' + tabName;
+                }
                 button.setAttribute('role', 'tab');
+                if (panel) {
+                    button.setAttribute('aria-controls', panel.id);
+                    panel.setAttribute('aria-labelledby', button.id);
+                }
                 button.addEventListener('click', () => activateTab(button.dataset.adminTabTarget || ''));
+                button.addEventListener('keydown', event => {
+                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        focusRelativeTab(button, 1);
+                    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        focusRelativeTab(button, -1);
+                    } else if (event.key === 'Home') {
+                        event.preventDefault();
+                        focusEdgeTab(0);
+                    } else if (event.key === 'End') {
+                        event.preventDefault();
+                        focusEdgeTab(enabledButtons().length - 1);
+                    }
+                });
             });
             tabRoot.setAttribute('role', 'tablist');
+            const selectedButton = buttons.find(button => button.getAttribute('aria-selected') === 'true' || button.classList.contains('active')) || buttons[0];
+            if (selectedButton) {
+                activateTab(selectedButton.dataset.adminTabTarget || '');
+            }
         }
 
         if (memberRuleDefinition) {

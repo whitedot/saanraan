@@ -1,6 +1,6 @@
 /*
  * Public runtime UI-KIT preview layer.
- * Uses assets/tokens.css, assets/ui-kit.css, and public runtime styles loaded by sr_stylesheet_tag().
+ * Uses assets/tokens.css, assets/public/common.css, and public runtime styles loaded by sr_stylesheet_tag().
  * Keeps only sample layout helpers local to this preview stylesheet.
  */
 
@@ -658,35 +658,6 @@ input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in
 .ui-kit-page-no-sidebar .ui-kit-main-content {
     margin-left: 0;
 }
-
-/* Tabs active visibility */
-.ui-kit-sample-body [role='tablist'] [role='tab'] {
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.ui-kit-sample-body [role='tablist'] [role='tab']:not(:disabled):is(.active, [aria-selected='true']) {
-    color: var(--color-primary) !important;
-    border-color: var(--color-primary) !important;
-    box-shadow: inset 0 -2px 0 0 var(--color-primary);
-}
-
-/* Pill 탭은 공통 활성 스타일(파란 텍스트/하단 라인)에서 제외하고 솔리드 상태를 유지 */
-.ui-kit-sample-body [role='tablist'] .tab-trigger-pill-primary:not(:disabled):is(.active, [aria-selected='true']) {
-    background-color: var(--color-primary) !important;
-    border-color: var(--color-primary) !important;
-    color: #ffffff !important;
-    box-shadow: none !important;
-}
-
-.ui-kit-sample-body [role='tablist'] .tab-trigger-pill-secondary:not(:disabled):is(.active, [aria-selected='true']) {
-    background-color: var(--color-secondary) !important;
-    border-color: var(--color-secondary) !important;
-    color: #ffffff !important;
-    box-shadow: none !important;
-}
-
-
-
 
 
 

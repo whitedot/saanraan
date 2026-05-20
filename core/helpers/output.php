@@ -218,7 +218,7 @@ function sr_stylesheet_tag(array $stylesheets = []): string
         '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/ui-kit.css')) . '">',
+        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public/common.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',
     ];
