@@ -401,7 +401,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: auto;
 }
 
-.admin-drag-handle{border:1px solid var(--color-default-300);background:var(--color-default-100);color:var(--color-default-600);width:2rem;height:2rem;align-items:center;justify-content:center;display:inline-flex;cursor:grab;font-weight:var(--font-weight-semibold)}
+.admin-drag-handle{border:1px solid var(--color-default-300);background:var(--color-default-100);color:var(--color-default-600);width:2rem;height:2rem;align-items:center;justify-content:center;display:inline-flex;cursor:all-scroll;font-weight:var(--font-weight-semibold)}
 [data-admin-sortable-row].is-dragging{opacity:.55}
 .admin-tabs{margin-bottom:calc(var(--spacing) * 4);overflow:auto}
 .admin-tabs .tab-trigger-underline{white-space:nowrap}
@@ -773,7 +773,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     border: 1px solid var(--color-default-300);
     background: var(--color-card);
     color: var(--color-default-700);
-    cursor: grab;
+    cursor: all-scroll;
     border-radius: var(--radius-sm);
     width: calc(var(--spacing) * 8);
     height: calc(var(--spacing) * 8);
@@ -784,12 +784,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     line-height: 1;
 }
 
-.admin-dashboard-section-handle:active {
-    cursor: grabbing;
+.admin-dashboard-section-handle-icon {
+    cursor: all-scroll;
+    font-size: 1.125rem;
 }
 
-.admin-dashboard-section-handle-icon {
-    font-size: 1.125rem;
+.admin-dashboard-section-handle * {
+    cursor: all-scroll;
 }
 
 .admin-dashboard-drop-line {
