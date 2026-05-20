@@ -7,9 +7,9 @@ return [
     'description' => '단일 페이지 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
         'category' => 'site',
-        'category_label' => '사이트 구성',
-        'category_order' => 25,
-        'menu_order' => 30,
+        'category_label' => '사이트',
+        'category_order' => 20,
+        'menu_order' => 20,
         'icon' => ['type' => 'symbol', 'name' => 'content'],
     ],
     'saanraan' => [

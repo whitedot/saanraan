@@ -135,13 +135,13 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
             'order' => 0,
             'items' => [
                 ['label' => '대시보드', 'path' => '/admin', 'order' => 10],
-                ['label' => '권한', 'path' => '/admin/roles', 'order' => 20],
-                ['label' => '관리자 작업 로그', 'path' => '/admin/audit-logs', 'order' => 30],
-                ['label' => '설정', 'path' => '/admin/settings', 'order' => 40],
-                ['label' => '메뉴', 'path' => '/admin/menu', 'order' => 45],
-                ['label' => '모듈', 'path' => '/admin/modules', 'order' => 50],
-                ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 60],
-                ['label' => '데이터 정리', 'path' => '/admin/retention', 'order' => 70],
+                ['label' => '설정', 'path' => '/admin/settings', 'order' => 20],
+                ['label' => '메뉴', 'path' => '/admin/menu', 'order' => 30],
+                ['label' => '모듈', 'path' => '/admin/modules', 'order' => 40],
+                ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 50],
+                ['label' => '권한', 'path' => '/admin/roles', 'order' => 60],
+                ['label' => '관리자 작업 로그', 'path' => '/admin/audit-logs', 'order' => 70],
+                ['label' => '데이터 정리', 'path' => '/admin/retention', 'order' => 80],
             ],
         ],
     ];
@@ -382,8 +382,8 @@ function sr_admin_default_menu_category_label(string $category): string
         'system' => '시스템',
         'member' => '회원',
         'site' => '사이트',
-        'system_asset' => '시스템 자산',
-        'content' => '사이트 구성',
+        'system_asset' => '사이트',
+        'content' => '사이트',
         'operation' => '운영',
         'other' => '기타',
     ];
@@ -397,8 +397,8 @@ function sr_admin_default_menu_category_order(string $category): int
         'system' => 0,
         'member' => 10,
         'site' => 20,
-        'system_asset' => 30,
-        'content' => 30,
+        'system_asset' => 20,
+        'content' => 20,
         'operation' => 40,
         'other' => 1000,
     ];
@@ -426,13 +426,39 @@ function sr_admin_menu_overrides(PDO $pdo): array
             continue;
         }
 
+        $sortOrder = (int) ($row['sort_order'] ?? 1000);
+        $isHidden = !empty($row['is_hidden']);
+        if (sr_admin_menu_override_is_stale_default($scope, $targetKey, $sortOrder, $isHidden)) {
+            continue;
+        }
+
         $overrides[$scope][$targetKey] = [
-            'sort_order' => (int) ($row['sort_order'] ?? 1000),
-            'is_hidden' => !empty($row['is_hidden']),
+            'sort_order' => $sortOrder,
+            'is_hidden' => $isHidden,
         ];
     }
 
     return $overrides;
+}
+
+function sr_admin_menu_override_is_stale_default(string $scope, string $targetKey, int $sortOrder, bool $isHidden): bool
+{
+    if ($isHidden || $scope !== 'group') {
+        return false;
+    }
+
+    $legacyDefaults = [
+        'point' => [30],
+        'reward' => [40, 50],
+        'deposit' => [30, 40],
+        'page' => [10, 20, 30],
+        'site_menu' => [20, 60],
+        'banner' => [20, 70],
+        'popup_layer' => [30, 80],
+        'seo' => [40, 90],
+    ];
+
+    return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
 }
 
 function sr_admin_apply_menu_overrides(PDO $pdo, array $groups): array

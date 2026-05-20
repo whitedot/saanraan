@@ -787,16 +787,16 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 ```php
 'admin' => [
-    'category' => 'system_asset',
-    'category_label' => '시스템 자산',
-    'category_order' => 30,
+    'category' => 'site',
+    'category_label' => '사이트',
+    'category_order' => 20,
     'menu_order' => 10,
     'icon' => ['type' => 'symbol', 'name' => 'menu-list'],
     'stylesheets' => ['assets/admin.css'],
 ],
 ```
 
-`admin.category`가 없으면 관리자 모듈은 `기타` 분류로 묶는다. SEO, 사이트 메뉴, 배너, 팝업레이어처럼 사이트 공통 노출과 연결되는 번들 모듈은 `system_asset` 카테고리로 묶어 `운영`보다 위에 표시한다. 포인트, 예치금, 적립금처럼 회원 계정 없이는 성립하지 않는 번들 모듈은 `member` 카테고리로 묶어 사이드바에 `회원` 라벨 아래 표시한다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
+`admin.category`가 없으면 관리자 모듈은 `기타` 분류로 묶는다. 사이트 메뉴, 페이지, 배너, 팝업레이어, SEO처럼 공개 사이트 구성과 노출에 연결되는 번들 모듈은 `site` 카테고리로 묶어 `사이트` 라벨 아래 표시한다. 포인트, 적립금, 예치금처럼 회원 계정 없이는 성립하지 않는 번들 모듈은 `member` 카테고리로 묶어 `회원` 라벨 아래 표시한다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
 
 `admin.icon`은 모듈 메뉴 그룹의 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `png`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다.
 
@@ -1112,11 +1112,11 @@ return [
 - 화면 소유 모듈은 팝업 전용 호출을 따로 두지 않고 필요한 content slot에서 `sr_render_output_slot()`을 호출한다.
 - 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
 
-번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다.
+번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다. 페이지나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다.
 
-페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/예치금/적립금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
+페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/적립금/예치금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
 
-커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/예치금/적립금 증감은 활성 자산 모듈 helper를 호출한다. 게시판은 커뮤니티 전역 자산 정책을 상속하거나 개별 정책을 고를 수 있다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 `sr_community_asset_logs.dedupe_key`로 처리하며, 계정별 자산 로그는 커뮤니티 모듈의 `privacy-export.php`에 포함한다.
+커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/적립금/예치금 증감은 활성 자산 모듈 helper를 호출한다. 게시판은 커뮤니티 전역 자산 정책을 상속하거나 개별 정책을 고를 수 있다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 `sr_community_asset_logs.dedupe_key`로 처리하며, 계정별 자산 로그는 커뮤니티 모듈의 `privacy-export.php`에 포함한다.
 
 ## 18. 사이트 메뉴 후보
 

@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [
-        'category' => 'system_asset',
-        'category_label' => '시스템 자산',
-        'category_order' => 30,
-        'menu_order' => 30,
+        'category' => 'site',
+        'category_label' => '사이트',
+        'category_order' => 20,
+        'menu_order' => 40,
         'icon' => ['type' => 'symbol', 'name' => 'layers'],
     ],
     'saanraan' => [

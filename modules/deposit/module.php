@@ -9,7 +9,7 @@ return [
         'category' => 'member',
         'category_label' => '회원',
         'category_order' => 10,
-        'menu_order' => 30,
+        'menu_order' => 50,
         'icon' => ['type' => 'symbol', 'name' => 'wallet'],
     ],
     'saanraan' => [

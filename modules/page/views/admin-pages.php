@@ -219,7 +219,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
-            <h2>공개 표시</h2>
+            <h2>
+                <span>공개 표시</span>
+                <span class="admin-form-actions">
+                    <?php if (sr_module_enabled($pdo, 'banner')) { ?>
+                        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-soft-default">배너 관리</a>
+                    <?php } ?>
+                    <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
+                        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-soft-default">팝업레이어 관리</a>
+                    <?php } ?>
+                </span>
+            </h2>
             <div class="admin-form-row">
                 <div class="admin-form-label"><span class="form-label">본문 상단 배너</span></div>
                 <div class="admin-form-field">

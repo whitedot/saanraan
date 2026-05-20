@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
     'admin' => [
-        'category' => 'system_asset',
-        'category_label' => '시스템 자산',
-        'category_order' => 30,
-        'menu_order' => 40,
+        'category' => 'site',
+        'category_label' => '사이트',
+        'category_order' => 20,
+        'menu_order' => 50,
         'icon' => ['type' => 'symbol', 'name' => 'search'],
     ],
     'saanraan' => [

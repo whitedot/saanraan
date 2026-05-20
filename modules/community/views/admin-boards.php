@@ -541,7 +541,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>배너</h2>
+            <h2>
+                <span>배너</span>
+                <?php if (sr_module_enabled($pdo, 'banner')) { ?>
+                    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-soft-default">배너 관리</a>
+                <?php } ?>
+            </h2>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <div class="admin-form-label"><span class="form-label"><?php echo sr_e((string) $bannerSettingLabel); ?></span></div>
@@ -564,7 +569,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>팝업레이어</h2>
+            <h2>
+                <span>팝업레이어</span>
+                <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
+                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-soft-default">팝업레이어 관리</a>
+                <?php } ?>
+            </h2>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <div class="admin-form-label"><span class="form-label"><?php echo sr_e((string) $popupLayerSettingLabel); ?></span></div>
