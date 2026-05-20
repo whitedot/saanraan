@@ -59,6 +59,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'write_min_level' => 0,
     'comment_min_level' => 0,
     'skin_key' => 'basic',
+    'asset_policy_source' => 'global',
     'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
     'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
@@ -587,6 +588,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2>회원 자산</h2>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">적용 방식</span></div>
+                <div class="admin-form-field">
+                    <select name="asset_policy_source" class="form-select">
+                        <option value="global"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'global' ? ' selected' : ''; ?>>커뮤니티 전역 설정</option>
+                        <option value="board"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'board' ? ' selected' : ''; ?>>게시판 개별 설정</option>
+                    </select>
+                </div>
+            </div>
             <div class="admin-form-grid">
                 <?php foreach ([
                     'post_reward' => '게시글 적립',

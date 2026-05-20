@@ -19,11 +19,14 @@ if (!sr_community_account_can_delete_post($post, $account)) {
     sr_render_error(403, '이 게시글을 삭제할 수 없습니다.');
 }
 
-sr_community_update_post_status($pdo, $postId, 'deleted');
 $settings = sr_community_settings($pdo);
 if (!empty($settings['post_reward_reversal_enabled'])) {
-    sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+    if (empty($reversalResult['allowed'])) {
+        sr_render_error(409, (string) ($reversalResult['message'] ?? '게시글 적립 회수에 실패해 삭제할 수 없습니다.'));
+    }
 }
+sr_community_update_post_status($pdo, $postId, 'deleted');
 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
     'source_module_key' => 'community',
 ]);

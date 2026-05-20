@@ -36,37 +36,43 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($post)) {
-            sr_community_update_post_status($pdo, $postId, $status);
             if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
-                sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+                if (empty($reversalResult['allowed'])) {
+                    $errors[] = (string) ($reversalResult['message'] ?? '게시글 적립 회수에 실패해 상태를 변경할 수 없습니다.');
+                }
             }
-            $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
-                'source_module_key' => 'community',
-            ]);
-            $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
-            $updatedAttachmentCount = 0;
-            if (in_array($status, ['hidden', 'deleted'], true)) {
-                $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status);
-            } elseif ($status === 'published' && (string) $post['status'] === 'hidden') {
-                $updatedAttachmentCount = sr_community_restore_hidden_post_attachments($pdo, $postId);
+
+            if ($errors === []) {
+                sr_community_update_post_status($pdo, $postId, $status);
+                $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
+                    'source_module_key' => 'community',
+                ]);
+                $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
+                $updatedAttachmentCount = 0;
+                if (in_array($status, ['hidden', 'deleted'], true)) {
+                    $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status);
+                } elseif ($status === 'published' && (string) $post['status'] === 'hidden') {
+                    $updatedAttachmentCount = sr_community_restore_hidden_post_attachments($pdo, $postId);
+                }
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.post.status_updated',
+                    'target_type' => 'community_post',
+                    'target_id' => (string) $postId,
+                    'result' => 'success',
+                    'message' => 'Community post status updated.',
+                    'metadata' => array_merge([
+                        'before_status' => (string) $post['status'],
+                        'after_status' => $status,
+                        'updated_attachment_count' => $updatedAttachmentCount,
+                        'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+                        'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
+                    ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
+                ]);
+                $notice = '게시글 상태를 변경했습니다.';
             }
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.post.status_updated',
-                'target_type' => 'community_post',
-                'target_id' => (string) $postId,
-                'result' => 'success',
-                'message' => 'Community post status updated.',
-                'metadata' => array_merge([
-                    'before_status' => (string) $post['status'],
-                    'after_status' => $status,
-                    'updated_attachment_count' => $updatedAttachmentCount,
-                    'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
-                    'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-                ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
-            ]);
-            $notice = '게시글 상태를 변경했습니다.';
         }
     } elseif ($intent === 'comment_status') {
         $commentIdValue = sr_post_string('comment_id', 20);
@@ -82,28 +88,34 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($comment)) {
-            sr_community_update_comment_status($pdo, $commentId, $status);
             if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
-                sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+                if (empty($reversalResult['allowed'])) {
+                    $errors[] = (string) ($reversalResult['message'] ?? '댓글 적립 회수에 실패해 상태를 변경할 수 없습니다.');
+                }
             }
-            $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.comment.status_updated',
-                'target_type' => 'community_comment',
-                'target_id' => (string) $commentId,
-                'result' => 'success',
-                'message' => 'Community comment status updated.',
-                'metadata' => [
-                    'before_status' => (string) $comment['status'],
-                    'after_status' => $status,
-                    'post_id' => (int) $comment['post_id'],
-                    'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
-                    'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-                ],
-            ]);
-            $notice = '댓글 상태를 변경했습니다.';
+
+            if ($errors === []) {
+                sr_community_update_comment_status($pdo, $commentId, $status);
+                $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.comment.status_updated',
+                    'target_type' => 'community_comment',
+                    'target_id' => (string) $commentId,
+                    'result' => 'success',
+                    'message' => 'Community comment status updated.',
+                    'metadata' => [
+                        'before_status' => (string) $comment['status'],
+                        'after_status' => $status,
+                        'post_id' => (int) $comment['post_id'],
+                        'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+                        'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
+                    ],
+                ]);
+                $notice = '댓글 상태를 변경했습니다.';
+            }
         }
     } else {
         $errors[] = '작업 값이 올바르지 않습니다.';

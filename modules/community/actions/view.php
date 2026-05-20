@@ -64,6 +64,7 @@ if (is_array($postBoard)) {
         if (empty($paidReadResult['allowed'])) {
             sr_render_error(403, (string) ($paidReadResult['message'] ?? '회원 자산이 부족해 게시글을 볼 수 없습니다.'));
         }
+        sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         if (!empty($paidReadResult['processed'])) {
             $assetReadNotices[] = sr_community_asset_module_label((string) $paidReadConfig['asset_module']) . ' ' . number_format((int) $paidReadConfig['amount']) . '을(를) 차감했습니다.';
         }

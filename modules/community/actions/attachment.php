@@ -45,33 +45,59 @@ if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum
     sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
 }
 
-$disposition = sr_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
-if ($disposition === 'attachment') {
-    $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
-    $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
-    if (is_array($board)) {
-        $settings = sr_community_settings($pdo);
-        $downloadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_attachment_download', 'once');
-        $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
-        $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
-        if (!$isUploader && !$isAuthor && sr_community_asset_event_required($downloadConfig)) {
-            if (!is_array($account)) {
-                $account = sr_member_require_login($pdo);
-            }
+$post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
+$board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+$isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+$isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+if (is_array($board)) {
+    $settings = sr_community_settings($pdo);
+    $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+    if (!$isUploader && !$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
+        if (!is_array($account)) {
+            $account = sr_member_require_login($pdo);
+        }
 
-            $downloadResult = sr_community_run_asset_event(
+        $skipPaidReadCharge = (string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
+            && sr_community_has_paid_read_session((int) $account['id'], (int) ($post['id'] ?? 0));
+        if (!$skipPaidReadCharge) {
+            $paidReadResult = sr_community_run_asset_event(
                 $pdo,
-                $downloadConfig,
+                $paidReadConfig,
                 (int) $account['id'],
-                'attachment_download',
-                'community.attachment',
-                (int) $attachment['id'],
+                'post_read',
+                'community.post',
+                (int) $post['id'],
                 'use',
-                '커뮤니티 첨부 다운로드'
+                '커뮤니티 게시글 열람'
             );
-            if (empty($downloadResult['allowed'])) {
-                sr_render_error(403, (string) ($downloadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 다운로드할 수 없습니다.'));
+            if (empty($paidReadResult['allowed'])) {
+                sr_render_error(403, (string) ($paidReadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 볼 수 없습니다.'));
             }
+            sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
+        }
+    }
+}
+
+$disposition = sr_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
+if ($disposition === 'attachment' && is_array($board)) {
+    $downloadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_attachment_download', 'once');
+    if (!$isUploader && !$isAuthor && sr_community_asset_event_required($downloadConfig)) {
+        if (!is_array($account)) {
+            $account = sr_member_require_login($pdo);
+        }
+
+        $downloadResult = sr_community_run_asset_event(
+            $pdo,
+            $downloadConfig,
+            (int) $account['id'],
+            'attachment_download',
+            'community.attachment',
+            (int) $attachment['id'],
+            'use',
+            '커뮤니티 첨부 다운로드'
+        );
+        if (empty($downloadResult['allowed'])) {
+            sr_render_error(403, (string) ($downloadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 다운로드할 수 없습니다.'));
         }
     }
 }

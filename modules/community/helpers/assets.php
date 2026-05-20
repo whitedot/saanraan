@@ -95,6 +95,47 @@ function sr_community_asset_charge_policy(string $value, string $fallback = 'onc
     return isset(sr_community_asset_charge_policies()[$value]) ? $value : $fallback;
 }
 
+function sr_community_asset_policy_source_values(): array
+{
+    return ['global', 'board'];
+}
+
+function sr_community_asset_policy_source(string $value): string
+{
+    return in_array($value, sr_community_asset_policy_source_values(), true) ? $value : 'global';
+}
+
+function sr_community_board_asset_policy_source(PDO $pdo, int $boardId): string
+{
+    $value = sr_community_board_setting_value($pdo, $boardId, 'asset_policy_source');
+    if (is_string($value) && $value !== '') {
+        return sr_community_asset_policy_source($value);
+    }
+
+    foreach (sr_community_asset_setting_keys() as $settingKey) {
+        $settingValue = sr_community_board_setting_value($pdo, $boardId, $settingKey);
+        if (is_string($settingValue) && $settingValue !== '') {
+            return 'board';
+        }
+    }
+
+    return 'global';
+}
+
+function sr_community_asset_setting_keys(): array
+{
+    $keys = [];
+    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $prefix) {
+        $keys[] = $prefix . '_enabled';
+        $keys[] = $prefix . '_asset_module';
+        $keys[] = $prefix . '_amount';
+    }
+    $keys[] = 'paid_read_charge_policy';
+    $keys[] = 'paid_attachment_download_charge_policy';
+
+    return $keys;
+}
+
 function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
 {
     if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
@@ -121,9 +162,12 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
 
 function sr_community_asset_board_setting(PDO $pdo, array $board, array $settings, string $key, mixed $default): string
 {
-    $value = sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), $key);
-    if (is_string($value) && $value !== '') {
-        return $value;
+    $boardId = (int) ($board['id'] ?? 0);
+    if ($boardId > 0 && sr_community_board_asset_policy_source($pdo, $boardId) === 'board') {
+        $value = sr_community_board_setting_value($pdo, $boardId, $key);
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
     }
 
     return (string) ($settings[$key] ?? $default);
@@ -166,6 +210,32 @@ function sr_community_save_board_asset_settings(PDO $pdo, int $boardId, array $a
         $settingValue = is_bool($settingValue) ? ($settingValue ? '1' : '0') : (string) $settingValue;
         sr_community_set_board_setting($pdo, $boardId, (string) $settingKey, $settingValue, $valueType);
     }
+}
+
+function sr_community_paid_read_session_key(int $accountId, int $postId): string
+{
+    return (string) $accountId . ':' . (string) $postId;
+}
+
+function sr_community_has_paid_read_session(int $accountId, int $postId): bool
+{
+    $key = sr_community_paid_read_session_key($accountId, $postId);
+    $sessions = is_array($_SESSION['sr_community_paid_read_posts'] ?? null) ? $_SESSION['sr_community_paid_read_posts'] : [];
+
+    return isset($sessions[$key]);
+}
+
+function sr_community_mark_paid_read_session(int $accountId, int $postId): void
+{
+    if ($accountId < 1 || $postId < 1) {
+        return;
+    }
+
+    if (!isset($_SESSION['sr_community_paid_read_posts']) || !is_array($_SESSION['sr_community_paid_read_posts'])) {
+        $_SESSION['sr_community_paid_read_posts'] = [];
+    }
+
+    $_SESSION['sr_community_paid_read_posts'][sr_community_paid_read_session_key($accountId, $postId)] = time();
 }
 
 function sr_community_asset_dedupe_key(string $assetModule, int $accountId, string $eventKey, int $subjectId): string
