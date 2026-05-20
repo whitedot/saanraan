@@ -41,11 +41,38 @@ if (is_array($postBoard)) {
         $post[$displaySettingKey] = (int) ($postBoard[$displaySettingKey] ?? 0);
     }
 }
+$settings = sr_community_settings($pdo);
+$assetReadNotices = [];
+if (is_array($postBoard)) {
+    $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
+    $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+    if (!$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
+        if (!is_array($account)) {
+            $account = sr_member_require_login($pdo);
+        }
+
+        $paidReadResult = sr_community_run_asset_event(
+            $pdo,
+            $paidReadConfig,
+            (int) $account['id'],
+            'post_read',
+            'community.post',
+            (int) $post['id'],
+            'use',
+            '커뮤니티 게시글 열람'
+        );
+        if (empty($paidReadResult['allowed'])) {
+            sr_render_error(403, (string) ($paidReadResult['message'] ?? '회원 자산이 부족해 게시글을 볼 수 없습니다.'));
+        }
+        if (!empty($paidReadResult['processed'])) {
+            $assetReadNotices[] = sr_community_asset_module_label((string) $paidReadConfig['asset_module']) . ' ' . number_format((int) $paidReadConfig['amount']) . '을(를) 차감했습니다.';
+        }
+    }
+}
 sr_community_increment_post_view_count($pdo, (int) $post['id']);
 $post['view_count'] = (int) $post['view_count'] + 1;
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
-$settings = sr_community_settings($pdo);
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
 $attachments = sr_community_post_attachments($pdo, (int) $post['id']);
@@ -69,7 +96,7 @@ $isScrapped = is_array($account) && sr_community_account_has_scrap($pdo, (int) $
 $postActionUnavailableMessage = is_array($account) ? '' : '로그인하면 스크랩과 신고를 사용할 수 있습니다.';
 $canReportPost = is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();
-$postNotices = [];
+$postNotices = $assetReadNotices;
 if (isset($_SESSION['sr_community_post_notice']) && is_string($_SESSION['sr_community_post_notice'])) {
     $postNotices[] = $_SESSION['sr_community_post_notice'];
 }

@@ -35,6 +35,28 @@ function sr_community_default_settings(): array
         'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
+        'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
+        'post_reward_asset_module' => is_string($settings['post_reward_asset_module'] ?? null) ? (string) $settings['post_reward_asset_module'] : 'point',
+        'post_reward_amount' => (int) ($settings['post_reward_amount'] ?? 0),
+        'post_reward_reversal_enabled' => (bool) ($settings['post_reward_reversal_enabled'] ?? true),
+        'comment_reward_enabled' => (bool) ($settings['comment_reward_enabled'] ?? false),
+        'comment_reward_asset_module' => is_string($settings['comment_reward_asset_module'] ?? null) ? (string) $settings['comment_reward_asset_module'] : 'point',
+        'comment_reward_amount' => (int) ($settings['comment_reward_amount'] ?? 0),
+        'comment_reward_reversal_enabled' => (bool) ($settings['comment_reward_reversal_enabled'] ?? true),
+        'write_charge_enabled' => (bool) ($settings['write_charge_enabled'] ?? false),
+        'write_charge_asset_module' => is_string($settings['write_charge_asset_module'] ?? null) ? (string) $settings['write_charge_asset_module'] : 'point',
+        'write_charge_amount' => (int) ($settings['write_charge_amount'] ?? 0),
+        'comment_charge_enabled' => (bool) ($settings['comment_charge_enabled'] ?? false),
+        'comment_charge_asset_module' => is_string($settings['comment_charge_asset_module'] ?? null) ? (string) $settings['comment_charge_asset_module'] : 'point',
+        'comment_charge_amount' => (int) ($settings['comment_charge_amount'] ?? 0),
+        'paid_read_enabled' => (bool) ($settings['paid_read_enabled'] ?? false),
+        'paid_read_asset_module' => is_string($settings['paid_read_asset_module'] ?? null) ? (string) $settings['paid_read_asset_module'] : 'point',
+        'paid_read_amount' => (int) ($settings['paid_read_amount'] ?? 0),
+        'paid_read_charge_policy' => is_string($settings['paid_read_charge_policy'] ?? null) ? (string) $settings['paid_read_charge_policy'] : 'once',
+        'paid_attachment_download_enabled' => (bool) ($settings['paid_attachment_download_enabled'] ?? false),
+        'paid_attachment_download_asset_module' => is_string($settings['paid_attachment_download_asset_module'] ?? null) ? (string) $settings['paid_attachment_download_asset_module'] : 'point',
+        'paid_attachment_download_amount' => (int) ($settings['paid_attachment_download_amount'] ?? 0),
+        'paid_attachment_download_charge_policy' => is_string($settings['paid_attachment_download_charge_policy'] ?? null) ? (string) $settings['paid_attachment_download_charge_policy'] : 'once',
     ];
 }
 
@@ -83,6 +105,15 @@ function sr_community_normalize_settings(array $settings): array
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
     $settings['theme_key'] = sr_community_theme_key($settings);
+    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+        $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
+        $settings[$assetPrefix . '_asset_module'] = sr_community_asset_module_key((string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));
+        $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
+    }
+    $settings['post_reward_reversal_enabled'] = sr_community_bool_setting($settings['post_reward_reversal_enabled'] ?? true);
+    $settings['comment_reward_reversal_enabled'] = sr_community_bool_setting($settings['comment_reward_reversal_enabled'] ?? true);
+    $settings['paid_read_charge_policy'] = sr_community_asset_charge_policy((string) ($settings['paid_read_charge_policy'] ?? 'once'), 'once');
+    $settings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy((string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'), 'once');
 
     return $settings;
 }

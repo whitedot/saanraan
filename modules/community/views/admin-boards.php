@@ -59,6 +59,26 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'write_min_level' => 0,
     'comment_min_level' => 0,
     'skin_key' => 'basic',
+    'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
+    'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
+    'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
+    'comment_reward_enabled' => !empty($settings['comment_reward_enabled']) ? '1' : '0',
+    'comment_reward_asset_module' => (string) ($settings['comment_reward_asset_module'] ?? 'point'),
+    'comment_reward_amount' => (string) ($settings['comment_reward_amount'] ?? 0),
+    'write_charge_enabled' => !empty($settings['write_charge_enabled']) ? '1' : '0',
+    'write_charge_asset_module' => (string) ($settings['write_charge_asset_module'] ?? 'point'),
+    'write_charge_amount' => (string) ($settings['write_charge_amount'] ?? 0),
+    'comment_charge_enabled' => !empty($settings['comment_charge_enabled']) ? '1' : '0',
+    'comment_charge_asset_module' => (string) ($settings['comment_charge_asset_module'] ?? 'point'),
+    'comment_charge_amount' => (string) ($settings['comment_charge_amount'] ?? 0),
+    'paid_read_enabled' => !empty($settings['paid_read_enabled']) ? '1' : '0',
+    'paid_read_asset_module' => (string) ($settings['paid_read_asset_module'] ?? 'point'),
+    'paid_read_amount' => (string) ($settings['paid_read_amount'] ?? 0),
+    'paid_read_charge_policy' => (string) ($settings['paid_read_charge_policy'] ?? 'once'),
+    'paid_attachment_download_enabled' => !empty($settings['paid_attachment_download_enabled']) ? '1' : '0',
+    'paid_attachment_download_asset_module' => (string) ($settings['paid_attachment_download_asset_module'] ?? 'point'),
+    'paid_attachment_download_amount' => (string) ($settings['paid_attachment_download_amount'] ?? 0),
+    'paid_attachment_download_charge_policy' => (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'),
 ];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -563,6 +583,49 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 <?php } ?>
                 <p><small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small></p>
+        </section>
+
+        <section class="admin-card card">
+            <h2>회원 자산</h2>
+            <div class="admin-form-grid">
+                <?php foreach ([
+                    'post_reward' => '게시글 적립',
+                    'comment_reward' => '댓글 적립',
+                    'write_charge' => '글쓰기 차감',
+                    'comment_charge' => '댓글 차감',
+                    'paid_read' => '유료 열람',
+                    'paid_attachment_download' => '첨부 다운로드 차감',
+                ] as $assetPrefix => $assetLabel) { ?>
+                    <div class="admin-form-row">
+                        <div class="admin-form-label"><span class="form-label"><?php echo sr_e($assetLabel); ?></span></div>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label">
+                                <input type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
+                            </label>
+                            <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
+                            <?php if ($assetPrefix === 'paid_read') { ?>
+                                <select name="paid_read_charge_policy" class="form-select">
+                                    <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                    <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                </select>
+                            <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                <select name="paid_attachment_download_charge_policy" class="form-select">
+                                    <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                    <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                </select>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+            </div>
         </section>
 
         <section class="admin-card card">

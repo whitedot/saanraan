@@ -20,11 +20,24 @@ if (!sr_community_account_can_comment_post($pdo, $post, $account)) {
 }
 
 $settings = sr_community_settings($pdo);
+$board = sr_community_board_by_id($pdo, (int) $post['board_id']);
+$commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
+$commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
 $values = sr_community_comment_input_values();
 $errors = sr_community_validate_comment_input($values);
 
 if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id'], $settings)) {
     $errors[] = '짧은 시간에 댓글을 너무 많이 작성했습니다. 잠시 후 다시 시도해 주세요.';
+}
+
+if ($errors === [] && sr_community_asset_event_required($commentChargeConfig)) {
+    $assetModule = (string) $commentChargeConfig['asset_module'];
+    $amount = (int) $commentChargeConfig['amount'];
+    if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
+        $errors[] = sr_community_asset_module_label($assetModule) . ' 모듈을 사용할 수 없어 댓글을 작성할 수 없습니다.';
+    } elseif (sr_community_asset_balance($pdo, $assetModule, (int) $account['id']) < $amount) {
+        $errors[] = sr_community_asset_module_label($assetModule) . ' 잔액이 부족해 댓글을 작성할 수 없습니다.';
+    }
 }
 
 if ($errors !== []) {
@@ -34,6 +47,17 @@ if ($errors !== []) {
 }
 
 $commentId = sr_community_create_comment($pdo, $postId, (int) $account['id'], $values);
+$commentChargeResult = sr_community_asset_event_required($commentChargeConfig)
+    ? sr_community_run_asset_event($pdo, $commentChargeConfig, (int) $account['id'], 'comment_write_charge', 'community.comment', $commentId, 'use', '커뮤니티 댓글 작성')
+    : ['allowed' => true, 'processed' => false];
+if (empty($commentChargeResult['allowed'])) {
+    sr_community_update_comment_status($pdo, $commentId, 'deleted');
+    $_SESSION['sr_community_comment_errors'] = [(string) ($commentChargeResult['message'] ?? '회원 자산 차감에 실패해 댓글을 작성할 수 없습니다.')];
+    sr_redirect('/community/post?id=' . (string) $postId . '#comments');
+}
+$commentRewardResult = sr_community_asset_event_required($commentRewardConfig)
+    ? sr_community_run_asset_event($pdo, $commentRewardConfig, (int) $account['id'], 'comment_reward', 'community.comment', $commentId, 'grant', '커뮤니티 댓글 적립')
+    : ['allowed' => true, 'processed' => false];
 sr_community_record_comment_rate_limit($pdo, (int) $account['id'], $settings);
 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'comment_created');
 sr_audit_log($pdo, [
@@ -48,6 +72,8 @@ sr_audit_log($pdo, [
         'post_id' => $postId,
         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
+        'asset_comment_charge_processed' => !empty($commentChargeResult['processed']),
+        'asset_comment_reward_processed' => !empty($commentRewardResult['processed']),
     ],
 ]);
 if ((int) $post['author_account_id'] !== (int) $account['id']) {
@@ -60,5 +86,11 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         (int) $account['id']
     );
 }
-$_SESSION['sr_community_comment_notice'] = '댓글을 등록했습니다.';
+if (!empty($commentRewardResult['processed'])) {
+    $_SESSION['sr_community_comment_notice'] = sr_community_asset_module_label((string) $commentRewardConfig['asset_module']) . ' ' . number_format((int) $commentRewardConfig['amount']) . '을(를) 적립했습니다.';
+} elseif (empty($commentChargeResult['allowed'])) {
+    $_SESSION['sr_community_comment_notice'] = (string) ($commentChargeResult['message'] ?? '회원 자산 차감에 실패했습니다.');
+} else {
+    $_SESSION['sr_community_comment_notice'] = '댓글을 등록했습니다.';
+}
 sr_redirect('/community/post?id=' . (string) $postId . '#comments');

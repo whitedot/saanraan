@@ -217,6 +217,28 @@ CREATE TABLE IF NOT EXISTS sr_community_level_logs (
     KEY idx_sr_community_level_logs_created (created_at)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_asset_logs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    asset_module VARCHAR(20) NOT NULL,
+    transaction_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    reference_type VARCHAR(60) NOT NULL,
+    reference_id VARCHAR(120) NOT NULL,
+    subject_type VARCHAR(60) NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    event_key VARCHAR(60) NOT NULL,
+    direction VARCHAR(20) NOT NULL,
+    charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
+    amount BIGINT NOT NULL,
+    dedupe_key VARCHAR(160) NOT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_asset_logs_dedupe (dedupe_key),
+    KEY idx_sr_community_asset_logs_account (account_id, created_at),
+    KEY idx_sr_community_asset_logs_subject (subject_type, subject_id, account_id),
+    KEY idx_sr_community_asset_logs_transaction (asset_module, transaction_id)
+);
+
 INSERT IGNORE INTO sr_community_boards
     (board_key, title, description, status, read_policy, write_policy, comment_policy, image_uploads_enabled, sort_order, created_at, updated_at)
 VALUES

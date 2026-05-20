@@ -124,6 +124,118 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
+        <h2>회원 자산</h2>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">게시글 적립</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="post_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['post_reward_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('게시글 작성 적립 사용'); ?>
+                    </label>
+                    <select name="post_reward_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['post_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="post_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['post_reward_amount']); ?>" class="form-input">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="post_reward_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['post_reward_reversal_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('숨김/삭제 시 적립 회수'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">댓글 적립</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="comment_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_reward_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('댓글 작성 적립 사용'); ?>
+                    </label>
+                    <select name="comment_reward_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="comment_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_reward_amount']); ?>" class="form-input">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="comment_reward_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_reward_reversal_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('숨김/삭제 시 적립 회수'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">글쓰기 차감</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="write_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['write_charge_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('글쓰기 차감 사용'); ?>
+                    </label>
+                    <select name="write_charge_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['write_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="write_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>" class="form-input">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">댓글 차감</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="comment_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_charge_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('댓글 차감 사용'); ?>
+                    </label>
+                    <select name="comment_charge_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_charge_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="comment_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>" class="form-input">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">유료 열람</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="paid_read_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_read_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('게시글 유료 열람 사용'); ?>
+                    </label>
+                    <select name="paid_read_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_read_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="paid_read_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>" class="form-input">
+                    <select name="paid_read_charge_policy" class="form-select">
+                        <option value="once"<?php echo (string) $settings['paid_read_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                        <option value="every_view"<?php echo (string) $settings['paid_read_charge_policy'] === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="admin-form-label"><span class="form-label">첨부 다운로드 차감</span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input type="checkbox" name="paid_attachment_download_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 사용'); ?>
+                    </label>
+                    <select name="paid_attachment_download_asset_module" class="form-select">
+                        <?php foreach (sr_community_asset_modules() as $assetModule => $assetOption) { ?>
+                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['paid_attachment_download_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?><?php echo isset($assetModuleOptions[$assetModule]) ? '' : ' (비활성)'; ?></option>
+                        <?php } ?>
+                    </select>
+                    <input type="number" name="paid_attachment_download_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>" class="form-input">
+                    <select name="paid_attachment_download_charge_policy" class="form-select">
+                        <option value="once"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                        <option value="every_download"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-card card">
         <h2>화면</h2>
         <div class="admin-form-row">
             <div class="admin-form-label"><span class="form-label">커뮤니티 테마</span></div>

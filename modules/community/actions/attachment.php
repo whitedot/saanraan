@@ -46,6 +46,35 @@ if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum
 }
 
 $disposition = sr_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
+if ($disposition === 'attachment') {
+    $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
+    $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+    if (is_array($board)) {
+        $settings = sr_community_settings($pdo);
+        $downloadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_attachment_download', 'once');
+        $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+        $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+        if (!$isUploader && !$isAuthor && sr_community_asset_event_required($downloadConfig)) {
+            if (!is_array($account)) {
+                $account = sr_member_require_login($pdo);
+            }
+
+            $downloadResult = sr_community_run_asset_event(
+                $pdo,
+                $downloadConfig,
+                (int) $account['id'],
+                'attachment_download',
+                'community.attachment',
+                (int) $attachment['id'],
+                'use',
+                '커뮤니티 첨부 다운로드'
+            );
+            if (empty($downloadResult['allowed'])) {
+                sr_render_error(403, (string) ($downloadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 다운로드할 수 없습니다.'));
+            }
+        }
+    }
+}
 if ($driver === 's3') {
     $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
         'response-content-type' => sr_download_content_type($mimeType),

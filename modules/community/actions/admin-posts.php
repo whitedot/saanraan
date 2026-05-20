@@ -13,6 +13,7 @@ $errors = [];
 $notice = '';
 $allowedPostStatuses = sr_community_post_statuses();
 $allowedCommentStatuses = sr_community_comment_statuses();
+$settings = sr_community_settings($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -36,6 +37,9 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === [] && is_array($post)) {
             sr_community_update_post_status($pdo, $postId, $status);
+            if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
+                sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+            }
             $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
                 'source_module_key' => 'community',
             ]);
@@ -79,6 +83,9 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === [] && is_array($comment)) {
             sr_community_update_comment_status($pdo, $commentId, $status);
+            if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
+                sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+            }
             $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

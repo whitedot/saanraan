@@ -20,6 +20,10 @@ if (!sr_community_account_can_delete_post($post, $account)) {
 }
 
 sr_community_update_post_status($pdo, $postId, 'deleted');
+$settings = sr_community_settings($pdo);
+if (!empty($settings['post_reward_reversal_enabled'])) {
+    sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+}
 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
     'source_module_key' => 'community',
 ]);

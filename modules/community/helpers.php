@@ -6,6 +6,7 @@ require_once SR_ROOT . '/modules/community/helpers/boards.php';
 require_once SR_ROOT . '/modules/community/helpers/members.php';
 require_once SR_ROOT . '/modules/community/helpers/posts.php';
 require_once SR_ROOT . '/modules/community/helpers/attachments.php';
+require_once SR_ROOT . '/modules/community/helpers/assets.php';
 require_once SR_ROOT . '/modules/community/helpers/reports.php';
 require_once SR_ROOT . '/modules/community/helpers/scraps.php';
 require_once SR_ROOT . '/modules/community/helpers/themes.php';

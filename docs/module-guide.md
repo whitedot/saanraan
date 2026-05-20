@@ -1108,6 +1108,8 @@ return [
 
 페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/예치금/적립금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
 
+커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/예치금/적립금 증감은 활성 자산 모듈 helper를 호출한다. 중복 방지는 `sr_community_asset_logs.dedupe_key`로 처리하며, 계정별 자산 로그는 커뮤니티 모듈의 `privacy-export.php`에 포함한다.
+
 ## 18. 사이트 메뉴 후보
 
 사이트 공통 메뉴 구조는 `site_menu` 모듈이 소유한다. 각 모듈은 운영자가 선택할 수 있는 후보 링크만 `menu-links.php`로 제공한다.

@@ -12,6 +12,7 @@ return static function (PDO $pdo, int $accountId): array {
         'scraps' => [],
         'level' => [],
         'level_logs' => [],
+        'asset_logs' => [],
     ];
 
     if ($accountId < 1) {
@@ -98,9 +99,20 @@ return static function (PDO $pdo, int $accountId): array {
         );
         $stmt->execute(['account_id' => $accountId]);
         $empty['level_logs'] = $stmt->fetchAll();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, created_at
+             FROM sr_community_asset_logs
+             WHERE account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $empty['asset_logs'] = $stmt->fetchAll();
     } catch (Throwable $exception) {
         $empty['level'] = [];
         $empty['level_logs'] = [];
+        $empty['asset_logs'] = [];
     }
 
     return $empty;

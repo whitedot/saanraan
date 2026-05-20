@@ -25,6 +25,10 @@ if (!sr_community_account_can_delete_comment($comment, $account)) {
 }
 
 sr_community_update_comment_status($pdo, $commentId, 'deleted');
+$settings = sr_community_settings($pdo);
+if (!empty($settings['comment_reward_reversal_enabled'])) {
+    sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+}
 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],

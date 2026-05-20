@@ -13,6 +13,7 @@ $errors = [];
 $notice = '';
 $settings = sr_community_settings($pdo);
 $communityThemeOptions = sr_community_theme_options();
+$assetModuleOptions = sr_community_asset_module_options($pdo);
 $levels = sr_community_levels($pdo);
 $maxLevel = sr_community_max_level_value();
 $memberGroups = sr_member_groups($pdo);
@@ -44,6 +45,16 @@ if (sr_request_method() === 'POST') {
         $messageWriteGroupKeysInput = sr_post_string_without_truncation('message_write_group_keys', 1000);
         $messageWriteGroupKeys = is_string($messageWriteGroupKeysInput) ? sr_community_board_group_keys_from_input($messageWriteGroupKeysInput) : [];
         $themeKey = sr_post_string('theme_key', 40);
+        $assetSettings = [];
+        foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+            $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
+            $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
+            $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
+        }
+        $assetSettings['post_reward_reversal_enabled'] = ($_POST['post_reward_reversal_enabled'] ?? '') === '1';
+        $assetSettings['comment_reward_reversal_enabled'] = ($_POST['comment_reward_reversal_enabled'] ?? '') === '1';
+        $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
+        $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
 
         if ($levelPostScore === null) {
             $errors[] = '게시글 점수는 0 이상 10000 이하의 정수여야 합니다.';
@@ -63,6 +74,18 @@ if (sr_request_method() === 'POST') {
         if (!isset($communityThemeOptions[$themeKey])) {
             $errors[] = '커뮤니티 테마 값이 올바르지 않습니다.';
             $themeKey = 'basic';
+        }
+
+        foreach (['post_reward' => '게시글 적립', 'comment_reward' => '댓글 적립', 'write_charge' => '글쓰기 차감', 'comment_charge' => '댓글 차감', 'paid_read' => '유료 열람', 'paid_attachment_download' => '첨부 다운로드 차감'] as $assetPrefix => $assetLabel) {
+            if ($assetSettings[$assetPrefix . '_amount'] === null) {
+                $errors[] = $assetLabel . ' 금액은 0 이상 999999999 이하의 정수여야 합니다.';
+                $assetSettings[$assetPrefix . '_amount'] = 0;
+            }
+
+            $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
+            if (!isset($assetModuleOptions[$assetModule]) && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
+                $errors[] = $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+            }
         }
 
         if (!is_string($messageWriteGroupKeysInput)) {
@@ -103,6 +126,28 @@ if (sr_request_method() === 'POST') {
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
                 ['theme_key', $themeKey, 'string'],
+                ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
+                ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
+                ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
+                ['post_reward_reversal_enabled', $assetSettings['post_reward_reversal_enabled'] ? '1' : '0', 'bool'],
+                ['comment_reward_enabled', $assetSettings['comment_reward_enabled'] ? '1' : '0', 'bool'],
+                ['comment_reward_asset_module', (string) $assetSettings['comment_reward_asset_module'], 'string'],
+                ['comment_reward_amount', (string) $assetSettings['comment_reward_amount'], 'int'],
+                ['comment_reward_reversal_enabled', $assetSettings['comment_reward_reversal_enabled'] ? '1' : '0', 'bool'],
+                ['write_charge_enabled', $assetSettings['write_charge_enabled'] ? '1' : '0', 'bool'],
+                ['write_charge_asset_module', (string) $assetSettings['write_charge_asset_module'], 'string'],
+                ['write_charge_amount', (string) $assetSettings['write_charge_amount'], 'int'],
+                ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
+                ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
+                ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
+                ['paid_read_enabled', $assetSettings['paid_read_enabled'] ? '1' : '0', 'bool'],
+                ['paid_read_asset_module', (string) $assetSettings['paid_read_asset_module'], 'string'],
+                ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
+                ['paid_read_charge_policy', (string) $assetSettings['paid_read_charge_policy'], 'string'],
+                ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
+                ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
+                ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
+                ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
             ];
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_module_settings
@@ -142,6 +187,7 @@ if (sr_request_method() === 'POST') {
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
                     'theme_key' => $themeKey,
+                    'asset_settings' => $assetSettings,
                 ],
             ]);
 
