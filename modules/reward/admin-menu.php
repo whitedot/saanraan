@@ -5,9 +5,19 @@ return [
     'order' => 60,
     'items' => [
         [
-            'label' => '적립금 관리',
-            'path' => '/admin/rewards',
+            'label' => '잔액',
+            'path' => '/admin/rewards/balances',
             'order' => 10,
+        ],
+        [
+            'label' => '조정',
+            'path' => '/admin/rewards/adjust',
+            'order' => 20,
+        ],
+        [
+            'label' => '거래 내역',
+            'path' => '/admin/rewards/transactions',
+            'order' => 30,
         ],
     ],
 ];

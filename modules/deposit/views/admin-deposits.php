@@ -1,7 +1,7 @@
 <?php
 
 $depositAdminPage = isset($depositAdminPage) ? (string) $depositAdminPage : 'balances';
-$adminPageTitle = '예치금 관리';
+$adminPageTitle = '예치금 잔액';
 if ($depositAdminPage === 'adjust') {
     $adminPageTitle = '예치금 조정';
 } elseif ($depositAdminPage === 'transactions') {
@@ -22,14 +22,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/deposits/balances')); ?>" class="btn btn-soft-default">잔액</a>
-        <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust')); ?>" class="btn btn-soft-default">조정</a>
-        <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions')); ?>" class="btn btn-soft-default">거래 내역</a>
-    </div>
-</div>
-
 <section>
     <h2>회원 조회</h2>
     <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter ui-form-theme">
@@ -49,6 +41,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             공개 해시: <?php echo sr_e((string) $selectedAccount['account_public_hash']); ?>
             잔액: <?php echo sr_e(number_format((int) $selectedBalance)); ?> 원
         </p>
+        <div class="admin-row-actions">
+            <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">잔액 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">조정하기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">거래 내역 보기</a>
+        </div>
     <?php } elseif ($accountIdentifierFilter !== '') { ?>
         <p>회원을 찾을 수 없습니다.</p>
     <?php } ?>
@@ -121,7 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/deposits/balances')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/deposits/balances' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="btn btn-soft-default">잔액</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -182,16 +179,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>상태</th>
                         <th>잔액</th>
                         <th>수정일</th>
+                        <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
-                            <td><a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>"><?php echo sr_e((string) $balance['account_public_hash']); ?></a></td>
+                            <td><?php echo sr_e((string) $balance['account_public_hash']); ?></td>
                             <td><?php echo sr_e((string) $balance['display_name']); ?><br><?php echo sr_e((string) $balance['email']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> 원</td>
                             <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
+                                    <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">거래 내역</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">조정</a>
+                                </div>
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>

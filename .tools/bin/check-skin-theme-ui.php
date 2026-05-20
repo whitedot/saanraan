@@ -24,10 +24,21 @@ function sr_skin_theme_check_read(string $path): string
     return str_replace(["\r\n", "\r"], "\n", $content);
 }
 
-function sr_skin_theme_check_contains(string $path, array $needles, string $label): void
+function sr_skin_theme_check_target_content($path): string
+{
+    $paths = is_array($path) ? $path : [$path];
+    $content = '';
+    foreach ($paths as $targetPath) {
+        $content .= "\n" . sr_skin_theme_check_read((string) $targetPath);
+    }
+
+    return $content;
+}
+
+function sr_skin_theme_check_contains($path, array $needles, string $label): void
 {
     global $errors;
-    $content = sr_skin_theme_check_read($path);
+    $content = sr_skin_theme_check_target_content($path);
     if ($content === '') {
         return;
     }
@@ -39,10 +50,10 @@ function sr_skin_theme_check_contains(string $path, array $needles, string $labe
     }
 }
 
-function sr_skin_theme_check_not_contains(string $path, array $needles, string $label): void
+function sr_skin_theme_check_not_contains($path, array $needles, string $label): void
 {
     global $errors;
-    $content = sr_skin_theme_check_read($path);
+    $content = sr_skin_theme_check_target_content($path);
     if ($content === '') {
         return;
     }
@@ -156,8 +167,8 @@ $targets = [
     [
         'label' => 'Banner skin',
         'helper' => 'modules/banner/helpers.php',
-        'action' => 'modules/banner/actions/admin-banners.php',
-        'view' => 'modules/banner/views/admin-banners.php',
+        'action' => ['modules/banner/actions/admin-banners.php', 'modules/banner/actions/admin-banner-settings.php'],
+        'view' => ['modules/banner/views/admin-banners.php', 'modules/banner/views/admin-banner-settings.php'],
         'render_views' => ['modules/banner/helpers.php'],
         'files' => ['modules/banner/skins/basic/item.php'],
         'helper_needles' => [
@@ -198,8 +209,8 @@ $targets = [
     [
         'label' => 'Popup layer skin',
         'helper' => 'modules/popup_layer/helpers.php',
-        'action' => 'modules/popup_layer/actions/admin-popup-layers.php',
-        'view' => 'modules/popup_layer/views/admin-popup-layers.php',
+        'action' => ['modules/popup_layer/actions/admin-popup-layers.php', 'modules/popup_layer/actions/admin-popup-layer-settings.php'],
+        'view' => ['modules/popup_layer/views/admin-popup-layers.php', 'modules/popup_layer/views/admin-popup-layer-settings.php'],
         'render_views' => ['modules/popup_layer/helpers.php'],
         'files' => ['modules/popup_layer/skins/basic/layer.php'],
         'helper_needles' => [
@@ -353,8 +364,8 @@ $targets = [
 foreach ($targets as $target) {
     $label = (string) $target['label'];
     sr_skin_theme_check_contains((string) $target['helper'], $target['helper_needles'], $label . ' helper');
-    sr_skin_theme_check_contains((string) $target['action'], $target['action_needles'], $label . ' admin action');
-    sr_skin_theme_check_contains((string) $target['view'], $target['view_needles'], $label . ' admin view');
+    sr_skin_theme_check_contains($target['action'], $target['action_needles'], $label . ' admin action');
+    sr_skin_theme_check_contains($target['view'], $target['view_needles'], $label . ' admin view');
 
     foreach ($target['files'] as $file) {
         sr_skin_theme_check_file_exists((string) $file, $label);

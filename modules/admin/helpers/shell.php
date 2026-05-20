@@ -105,6 +105,7 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
 
         $rawItems = isset($moduleGroup['items']) && is_array($moduleGroup['items']) ? $moduleGroup['items'] : [];
         $subItems = [];
+        $activePath = sr_admin_shell_active_menu_path($currentPath, $rawItems);
 
         foreach ($rawItems as $rawItem) {
             if (!is_array($rawItem)) {
@@ -117,7 +118,7 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
                 continue;
             }
 
-            $active = sr_admin_shell_path_matches($currentPath, $path);
+            $active = $activePath !== '' && $path === $activePath;
             $subItems[] = [
                 'title' => $label,
                 'path' => $path,
@@ -154,6 +155,27 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
     }
 
     return $navGroups;
+}
+
+function sr_admin_shell_active_menu_path(string $currentPath, array $rawItems): string
+{
+    $activePath = '';
+    foreach ($rawItems as $rawItem) {
+        if (!is_array($rawItem)) {
+            continue;
+        }
+
+        $path = trim((string) ($rawItem['path'] ?? ''));
+        if ($path === '' || !sr_admin_shell_path_matches($currentPath, $path)) {
+            continue;
+        }
+
+        if ($activePath === '' || strlen($path) > strlen($activePath)) {
+            $activePath = $path;
+        }
+    }
+
+    return $activePath;
 }
 
 function sr_admin_shell_path_matches(string $currentPath, string $itemPath): bool

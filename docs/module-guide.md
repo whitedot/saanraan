@@ -776,6 +776,7 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 - 서버에서 타입과 범위 검증
 - 저장 후 `sr_clear_module_settings_cache('{module_key}')` 호출
 - 변경 감사 로그 기록
+- 목록/검색/행 관리 화면에 모듈 전역 설정을 섞지 않고, 가능하면 `admin-menu.php`에 별도 설정 항목을 둔다.
 
 범용 `/admin/modules` key/value 설정은 비상용 또는 낮은 수준의 관리 도구로 본다. 전용 설정 화면이 있는 번들 모듈의 `module.php` 선언 설정은 전용 화면에서만 수정한다.
 
@@ -808,6 +809,8 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 Material Symbols는 페이지에서 독립 아이콘을 표시할 때 사용한다. 체크박스 체크 표시나 드롭다운 caret 같은 컴포넌트 내부 상태 표시는 UI-KIT의 컴포넌트 CSS가 소유한다. 방향 화살표가 필요한 컴포넌트는 재사용 가능한 `sr_ui_arrow_icon_html()` helper를 사용한다.
 
 운영자가 `/admin/menu`에서 저장한 표시 순서와 숨김 여부는 이 기본 선언 위에 마지막으로 적용된다. 이 오버라이드는 관리자 내비게이션 표시 정책일 뿐이며, 모듈 계약 파일이나 실제 route 소유권을 바꾸지 않는다.
+
+모듈에 목록/콘텐츠 관리 화면과 전역 설정 화면이 모두 있으면 같은 메뉴 그룹 안에 별도 항목으로 둔다. 예를 들어 배너 모듈은 `/admin/banners`와 `/admin/banners/settings`, 팝업레이어 모듈은 `/admin/popup-layers`와 `/admin/popup-layers/settings`를 분리한다.
 
 ```php
 <?php

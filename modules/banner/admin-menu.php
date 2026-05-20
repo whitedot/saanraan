@@ -9,5 +9,10 @@ return [
             'path' => '/admin/banners',
             'order' => 10,
         ],
+        [
+            'label' => '배너 설정',
+            'path' => '/admin/banners/settings',
+            'order' => 20,
+        ],
     ],
 ];

@@ -40,31 +40,7 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     $bannerId = (int) sr_post_string('banner_id', 20);
 
-    if ($intent === 'save_settings') {
-        $postedSkinKey = sr_post_string('banner_skin_key', 40);
-        if (!isset($bannerSkinOptions[$postedSkinKey])) {
-            $errors[] = '배너 스킨 값이 올바르지 않습니다.';
-        }
-
-        if ($errors === []) {
-            sr_banner_save_skin_key($pdo, $postedSkinKey);
-            $bannerSettings = sr_banner_settings($pdo);
-            $bannerSkinKey = sr_banner_skin_key($bannerSettings);
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'banner.settings.updated',
-                'target_type' => 'module',
-                'target_id' => 'banner',
-                'result' => 'success',
-                'message' => 'Banner settings updated.',
-                'metadata' => [
-                    'banner_skin_key' => $bannerSkinKey,
-                ],
-            ]);
-            $notice = '배너 설정을 저장했습니다.';
-        }
-    } elseif ($intent === 'delete') {
+    if ($intent === 'delete') {
         if ($bannerId <= 0) {
             $errors[] = '삭제할 배너를 찾을 수 없습니다.';
         }

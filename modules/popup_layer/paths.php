@@ -2,7 +2,8 @@
 
 return [
     'GET /admin/popup-layers' => 'actions/admin-popup-layers.php',
-    'POST /admin/popup-layers' => 'actions/admin-popup-layers.php',
+    'GET /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
+    'POST /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
     'GET /admin/popup-layers/new' => 'actions/admin-popup-layer-new.php',
     'GET /admin/popup-layers/edit' => 'actions/admin-popup-layer-edit.php',
     'POST /admin/popup-layers/save' => 'actions/admin-popup-layer-save.php',

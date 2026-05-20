@@ -5,9 +5,19 @@ return [
     'order' => 40,
     'items' => [
         [
-            'label' => '포인트 관리',
-            'path' => '/admin/points',
+            'label' => '잔액',
+            'path' => '/admin/points/balances',
             'order' => 10,
+        ],
+        [
+            'label' => '조정',
+            'path' => '/admin/points/adjust',
+            'order' => 20,
+        ],
+        [
+            'label' => '거래 내역',
+            'path' => '/admin/points/transactions',
+            'order' => 30,
         ],
     ],
 ];

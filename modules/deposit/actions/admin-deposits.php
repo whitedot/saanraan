@@ -6,6 +6,10 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/deposit/helpers.php';
 
+if (sr_request_method() === 'GET' && sr_request_path() === '/admin/deposits') {
+    sr_redirect('/admin/deposits/balances');
+}
+
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
@@ -17,6 +21,7 @@ if (!in_array($depositAdminPage, ['balances', 'adjust', 'transactions'], true)) 
     $depositAdminPage = 'balances';
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
+$submittedAccountId = 0;
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -26,6 +31,7 @@ if (sr_request_method() === 'POST') {
         $targetAccountIdentifier = sr_post_string('account_id', 80);
     }
     $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
+    $submittedAccountId = $targetAccountId;
     $amountInput = sr_post_string('amount', 30);
     $transactionType = sr_post_string('transaction_type', 40);
     $reason = sr_deposit_clean_text(sr_post_string('reason', 255), 255);
@@ -108,6 +114,9 @@ if ($accountIdentifierFilter === '') {
     $accountIdentifierFilter = sr_get_string('account_id', 80);
 }
 $accountIdFilter = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifierFilter);
+if ($accountIdFilter <= 0 && $submittedAccountId > 0) {
+    $accountIdFilter = $submittedAccountId;
+}
 $selectedAccount = null;
 $selectedBalance = null;
 if ($accountIdFilter > 0) {

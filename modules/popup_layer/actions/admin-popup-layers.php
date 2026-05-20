@@ -28,31 +28,7 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     $popupId = (int) sr_post_string('popup_id', 20);
 
-    if ($intent === 'save_settings') {
-        $postedSkinKey = sr_post_string('popup_layer_skin_key', 40);
-        if (!isset($popupLayerSkinOptions[$postedSkinKey])) {
-            $errors[] = '팝업레이어 스킨 값이 올바르지 않습니다.';
-        }
-
-        if ($errors === []) {
-            sr_popup_layer_save_skin_key($pdo, $postedSkinKey);
-            $popupLayerSettings = sr_popup_layer_settings($pdo);
-            $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'popup_layer.settings.updated',
-                'target_type' => 'module',
-                'target_id' => 'popup_layer',
-                'result' => 'success',
-                'message' => 'Popup layer settings updated.',
-                'metadata' => [
-                    'popup_layer_skin_key' => $popupLayerSkinKey,
-                ],
-            ]);
-            $notice = '팝업레이어 설정을 저장했습니다.';
-        }
-    } elseif ($intent === 'delete') {
+    if ($intent === 'delete') {
         $stmt = $pdo->prepare('SELECT id FROM sr_popup_layers WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $popupId]);
         if (!is_array($stmt->fetch())) {

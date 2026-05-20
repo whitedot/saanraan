@@ -9,5 +9,10 @@ return [
             'path' => '/admin/popup-layers',
             'order' => 10,
         ],
+        [
+            'label' => '팝업레이어 설정',
+            'path' => '/admin/popup-layers/settings',
+            'order' => 20,
+        ],
     ],
 ];
