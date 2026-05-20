@@ -271,7 +271,7 @@
                         <div class="card">
                             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-align-items-center ui-kit-grid-md-3">
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-s-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-s-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
 
                                 <div class="ui-kit-column-2">
@@ -301,7 +301,7 @@
                                 </div>
 
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-e-sm" alt="검 든 여우 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-e-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
                             </div>
                         </div>
@@ -318,7 +318,7 @@
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
@@ -331,7 +331,7 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3">확장 링크가 있는 카드</h5>
                                     <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
@@ -342,7 +342,7 @@
 
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
@@ -355,7 +355,7 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
                                     <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3">확장 링크가 있는 카드</h5>
                                     <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
@@ -375,7 +375,7 @@
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-3 ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
                                 <p class="ui-kit-space-after-4">이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
@@ -387,7 +387,7 @@
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-none">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
                                 <p class="ui-kit-space-after-4">이 카드는 추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트를 포함하고 있습니다.</p>
@@ -398,7 +398,7 @@
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-none ui-kit-radius-md-e-sm">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
                                 <p class="ui-kit-space-after-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 카드는 동일한 높이 동작을 보여주기 위해 첫
