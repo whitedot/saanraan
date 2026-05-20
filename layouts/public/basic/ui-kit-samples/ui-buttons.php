@@ -414,98 +414,98 @@
                             </p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
-                                <button type="button" class="btn btn-icon btn-solid-primary">
-                                    <span class="ui-kit-icon-text">별</span>
+                                <button type="button" class="btn btn-icon btn-solid-primary" aria-label="즐겨찾기">
+                                    <?php echo sr_material_icon_html('star'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn btn-icon btn-solid-secondary">
-                                    <span class="ui-kit-icon-text">잎</span>
+                                    class="btn btn-icon btn-solid-secondary" aria-label="친환경">
+                                    <?php echo sr_material_icon_html('eco'); ?>
                                 </button>
 
-                                <button type="button" class="btn btn-icon btn-solid-warning">
-                                    <span class="ui-kit-icon-text">설정</span>
-                                </button>
-
-                                <button type="button"
-                                    class="btn btn-icon btn-soft-info">
-                                    <span class="ui-kit-icon-text">알림</span>
+                                <button type="button" class="btn btn-icon btn-solid-warning" aria-label="설정">
+                                    <?php echo sr_material_icon_html('settings'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn btn-icon btn-solid-secondary">
-                                    <span class="ui-kit-icon-text">실행</span>
+                                    class="btn btn-icon btn-soft-info" aria-label="알림">
+                                    <?php echo sr_material_icon_html('notifications'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn btn-icon ui-kit-frame btn-outline-dark btn-pill">
-                                    <span class="ui-kit-icon-text">전송</span>
+                                    class="btn btn-icon btn-solid-secondary" aria-label="실행">
+                                    <?php echo sr_material_icon_html('play_arrow'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn btn-icon btn-soft-secondary">
-                                    <span class="ui-kit-icon-text">음성</span>
+                                    class="btn btn-icon ui-kit-frame btn-outline-dark btn-pill" aria-label="전송">
+                                    <?php echo sr_material_icon_html('send'); ?>
+                                </button>
+
+                                <button type="button"
+                                    class="btn btn-icon btn-soft-secondary" aria-label="음성">
+                                    <?php echo sr_material_icon_html('mic'); ?>
                                 </button>
 
                                 <button type="button" class="btn btn-soft-default">
-                                    <span class="ui-kit-icon-text">중지</span>
+                                    <?php echo sr_material_icon_html('stop'); ?>
                                     중지
                                 </button>
 
                                 <button type="button" class="btn btn-solid-dark">
-                                    <span class="ui-kit-icon-text">빠름</span>
+                                    <?php echo sr_material_icon_html('bolt'); ?>
                                     부스트
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-frame btn-outline-info">
-                                    <span class="ui-kit-icon-text">결제</span>
+                                    <?php echo sr_material_icon_html('payments'); ?>
                                     결제
                                 </button>
 
                                 <button type="button" class="btn btn-solid-danger">
-                                    <span class="ui-kit-icon-text">도구</span>
+                                    <?php echo sr_material_icon_html('build'); ?>
                                     도구
                                 </button>
                             </div>
 
                             <div class="ui-kit-space-before-5 ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-7-5 ui-kit-frame btn-outline-secondary">
-                                    <span class="ui-kit-icon-text">별</span>
+                                    class="btn ui-kit-icon-size-7-5 ui-kit-frame btn-outline-secondary" aria-label="즐겨찾기">
+                                    <?php echo sr_material_icon_html('star'); ?>
                                 </button>
 
-                                <button type="button" class="btn ui-kit-icon-size-7-5 btn-solid-primary">
-                                    <span class="ui-kit-icon-text">잎</span>
-                                </button>
-
-                                <button type="button"
-                                    class="btn ui-kit-icon-size-7-5 btn-solid-success btn-pill">
-                                    <span class="ui-kit-icon-text">설정</span>
+                                <button type="button" class="btn ui-kit-icon-size-7-5 btn-solid-primary" aria-label="친환경">
+                                    <?php echo sr_material_icon_html('eco'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 ui-kit-frame btn-outline-secondary">
-                                    <span class="ui-kit-icon-text">알림</span>
+                                    class="btn ui-kit-icon-size-7-5 btn-solid-success btn-pill" aria-label="설정">
+                                    <?php echo sr_material_icon_html('settings'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-primary btn-pill">
-                                    <span class="ui-kit-icon-text">실행</span>
+                                    class="btn ui-kit-icon-size-11-25 ui-kit-frame btn-outline-secondary" aria-label="알림">
+                                    <?php echo sr_material_icon_html('notifications'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-success btn-pill">
-                                    <span class="ui-kit-icon-text">공유</span>
-                                </button>
-
-                                <button type="button" class="btn ui-kit-icon-size-11-25 btn-solid-info">
-                                    <span class="ui-kit-icon-text">별</span>
+                                    class="btn ui-kit-icon-size-11-25 btn-solid-primary btn-pill" aria-label="실행">
+                                    <?php echo sr_material_icon_html('play_arrow'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-warning">
-                                    <span class="ui-kit-icon-text">경고</span>
+                                    class="btn ui-kit-icon-size-11-25 btn-solid-success btn-pill" aria-label="공유">
+                                    <?php echo sr_material_icon_html('share'); ?>
+                                </button>
+
+                                <button type="button" class="btn ui-kit-icon-size-11-25 btn-solid-info" aria-label="즐겨찾기">
+                                    <?php echo sr_material_icon_html('star'); ?>
+                                </button>
+
+                                <button type="button"
+                                    class="btn ui-kit-icon-size-11-25 btn-solid-warning" aria-label="경고">
+                                    <?php echo sr_material_icon_html('warning'); ?>
                                 </button>
                             </div>
                         </div>
