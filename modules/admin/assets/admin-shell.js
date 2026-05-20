@@ -30,6 +30,8 @@ window.AdminShell = {
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
         const toastStack = document.querySelector('[data-admin-toast-stack]');
         const colorSchemeSelect = document.querySelector('[data-admin-color-scheme-select]');
+        const menuResetButton = document.querySelector('[data-admin-menu-reset-confirm]');
+        const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
         const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
@@ -422,6 +424,19 @@ window.AdminShell = {
 
             Array.prototype.slice.call(toastStack.querySelectorAll('[data-admin-toast]')).forEach(toast => {
                 window.setTimeout(() => closeToast(toast), 6500);
+            });
+        }
+
+        if (menuResetButton && menuResetConfirmedInput) {
+            menuResetButton.addEventListener('click', event => {
+                menuResetConfirmedInput.value = '0';
+                const message = menuResetButton.getAttribute('data-confirm-message') || '설정을 기본값으로 초기화할까요?';
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                menuResetConfirmedInput.value = '1';
             });
         }
 

@@ -706,6 +706,10 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
     }
 
     if ($intent === 'reset_menu_overrides') {
+        if (sr_post_string('reset_confirmed', 1) !== '1') {
+            return sr_admin_action_result(['관리자 메뉴 표시 설정 초기화에 동의해야 합니다.'], '');
+        }
+
         sr_admin_ensure_menu_overrides_table($pdo);
         $pdo->exec('DELETE FROM sr_admin_menu_overrides');
         sr_admin_log_menu_override_change($pdo, $account, 'reset');

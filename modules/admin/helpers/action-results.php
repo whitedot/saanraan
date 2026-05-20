@@ -46,7 +46,7 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
                 <strong><?php echo sr_e((string) $item['title']); ?></strong>
                 <span><?php echo sr_e((string) $item['message']); ?></span>
                 <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="알림 닫기">
-                    <span class="close-icon" aria-hidden="true"></span>
+                    <?php echo sr_material_icon_html('close', 'admin-toast-close-icon'); ?>
                 </button>
             </div>
         <?php } ?>
