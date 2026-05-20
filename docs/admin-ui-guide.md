@@ -39,7 +39,7 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 
 버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 `assets/ui-kit.css`에서 직접 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`과 `/ui-kit`에서 상태별 표현을 함께 확인한다.
 
-UI-KIT 샘플은 외부 아이콘 런타임에 의존하지 않는다. 아이콘이 필요했던 위치는 텍스트 보조 라벨로 대체해 공통 컴포넌트 상태를 확인한다.
+UI-KIT 샘플은 외부 아이콘 런타임에 의존하지 않는다. 실제 아이콘 자리에는 self-hosted Material Symbols helper인 `sr_material_icon_html()`을 사용하고, 샘플 설명이나 임시 보조 표식처럼 아이콘 자체가 목적이 아닌 위치에만 텍스트 보조 라벨을 둔다.
 
 ## 화면 내 이동 링크
 

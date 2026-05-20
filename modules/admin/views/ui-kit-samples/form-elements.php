@@ -55,7 +55,7 @@
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                        <span class="ui-kit-icon-text">check</span>
+                                                        <?php echo sr_material_icon_html('check', 'ui-kit-ink-success', '정상'); ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -133,7 +133,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <span class="ui-kit-icon-text">discount</span>
+                                                    <?php echo sr_material_icon_html('discount', 'input-icon'); ?>
                                                     <select id="discount" class="form-select">
                                                         <option selected>할인 선택</option>
                                                         <option>할인 없음</option>
@@ -172,7 +172,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <span class="ui-kit-icon-text">search</span>
+                                                    <?php echo sr_material_icon_html('search', 'input-icon'); ?>
                                                     <input type="search" id="SearchInput" placeholder="검색어 입력..."
                                                         class="form-input" />
                                                 </div>
@@ -194,7 +194,7 @@
                                                         name="validation-name-success"
                                                         class="form-input ui-kit-line-danger" required=""
                                                         aria-describedby="validation-name-success-helper" />
-                                                    <span class="ui-kit-icon-text ui-kit-ink-danger input-icon ui-kit-type-base">정보</span>
+                                                    <?php echo sr_material_icon_html('info', 'input-icon ui-kit-ink-danger ui-kit-type-base', '오류'); ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -322,9 +322,13 @@
                                                         placeholder="비밀번호 입력" />
                                                     <button type="button"
                                                         data-toggle-password='{"target":"#password"}'
+                                                        data-toggle-password-show-label="비밀번호 표시"
+                                                        data-toggle-password-hide-label="비밀번호 숨기기"
+                                                        aria-label="비밀번호 표시"
+                                                        aria-pressed="false"
                                                         class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
-                                                        <span class="ui-kit-icon-text">보기</span>
-                                                        <span class="ui-kit-icon-text">eye-off</span>
+                                                        <?php echo sr_material_icon_html('visibility', 'password-active-hide'); ?>
+                                                        <?php echo sr_material_icon_html('visibility_off', 'password-active-show'); ?>
                                                     </button>
                                                 </div>
                                             </div>

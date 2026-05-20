@@ -1089,5 +1089,14 @@
     input.type = visible ? 'text' : 'password';
     passwordTrigger.classList.toggle('password-active', visible);
     passwordTrigger.setAttribute('aria-pressed', visible ? 'true' : 'false');
+
+    if (passwordTrigger.dataset) {
+      var label = visible
+        ? passwordTrigger.dataset.togglePasswordHideLabel
+        : passwordTrigger.dataset.togglePasswordShowLabel;
+      if (label) {
+        passwordTrigger.setAttribute('aria-label', label);
+      }
+    }
   });
 })();
