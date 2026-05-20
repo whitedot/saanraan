@@ -81,6 +81,17 @@ if ($path === '/') {
     exit;
 }
 
+if ($method === 'GET' && $path === '/ui-kit') {
+    $uiKitFile = sr_public_layout_optional_view_file(sr_public_layout_key($site), 'ui_kit');
+    if ($uiKitFile === null) {
+        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+        exit;
+    }
+
+    include $uiKitFile;
+    exit;
+}
+
 $routeKey = $method . ' ' . $path;
 $routeMatches = [];
 

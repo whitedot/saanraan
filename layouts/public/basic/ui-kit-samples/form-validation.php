@@ -16,10 +16,8 @@
                                             <input type="text" id="firstName" value="John" required
                                                 class="input-field form-input" />
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success">좋습니다!</p>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">이름을 입력해 주세요.</p>
@@ -33,10 +31,8 @@
                                             <input type="text" id="lastName" value="Doe" required
                                                 class="input-field form-input" />
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success">좋습니다!</p>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">성을 입력해 주세요.</p>
@@ -51,10 +47,8 @@
                                             <input type="text" id="username" placeholder="johndoe123" required
                                                 class="input-field form-input" />
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 사용자 이름을 선택해 주세요.</p>
                                     </div>
@@ -67,10 +61,8 @@
                                             <input type="text" id="city" placeholder="San Francisco" required
                                                 class="input-field form-input" />
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 도시 이름을 입력해 주세요.</p>
                                     </div>
@@ -88,10 +80,8 @@
                                                 <option>Florida</option>
                                             </select>
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">주를 선택해 주세요.
                                         </p>
@@ -105,10 +95,8 @@
                                             <input type="text" id="zip" placeholder="94107" required
                                                 class="input-field form-input" />
 
-                                            <span
-                                                class="iconify tabler--check valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"></span>
-                                            <span
-                                                class="iconify tabler--alert-circle invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"></span>
+                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
+                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger">오류</span>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger">유효한 우편번호를 입력해 주세요.</p>
                                     </div>
@@ -148,7 +136,7 @@
                                                 class="form-input ui-kit-line-success" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text">check</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs">좋습니다!</p>
@@ -162,7 +150,7 @@
                                                 class="form-input ui-kit-line-success" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text">check</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs">좋습니다!</p>
@@ -179,7 +167,7 @@
                                                 placeholder="johndoe123" required />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">사용자 이름을 선택해 주세요.</p>
@@ -193,7 +181,7 @@
                                                 class="form-input ui-kit-line-danger" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 도시를 입력해 주세요.</p>
@@ -211,7 +199,7 @@
                                             </select>
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-6 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 주를 선택해 주세요.</p>
@@ -225,7 +213,7 @@
                                                 class="form-input ui-kit-line-danger" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span data-icon="info" class="ui-kit-ink-danger ui-kit-type-base"></span>
+                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">유효한 우편번호를 입력해 주세요.</p>

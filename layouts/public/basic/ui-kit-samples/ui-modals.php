@@ -30,7 +30,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#standard-modal">
                                                             <span class="sr-only">닫기</span>
-                                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                            <span class="ui-kit-icon-text">닫기</span>
                                                         </button>
                                                     </div>
 
@@ -49,7 +49,7 @@
                                                     <div
                                                         class="modal-footer">
                                                         <button type="button"
-                                                            class="btn btn-subtle-light modal-action"
+                                                            class="btn btn-soft-default modal-action"
                                                             data-overlay="#standard-modal">닫기</button>
 
                                                         <button type="button"
@@ -82,7 +82,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-lg">
                                                             <span class="sr-only">닫기</span>
-                                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                            <span class="ui-kit-icon-text">닫기</span>
                                                         </button>
                                                     </div>
                                                     <div class="modal-body">내용...</div>
@@ -112,7 +112,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-sm">
                                                             <span class="sr-only">닫기</span>
-                                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                            <span class="ui-kit-icon-text">닫기</span>
                                                         </button>
                                                     </div>
 
@@ -144,7 +144,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#full-width-modal">
                                                             <span class="sr-only">닫기</span>
-                                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                            <span class="ui-kit-icon-text">닫기</span>
                                                         </button>
                                                     </div>
 
@@ -161,7 +161,7 @@
                                                     <div
                                                         class="modal-footer">
                                                         <button type="button"
-                                                            class="btn btn-subtle-light modal-action"
+                                                            class="btn btn-soft-default modal-action"
                                                             data-overlay="#full-width-modal">닫기</button>
 
                                                         <button type="button"
@@ -195,7 +195,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#scrollable-modal">
                                                             <span class="sr-only">닫기</span>
-                                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                            <span class="ui-kit-icon-text">닫기</span>
                                                         </button>
                                                     </div>
 
@@ -273,7 +273,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#top-modal">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -284,7 +284,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#top-modal">닫기</button>
 
                                                     <button type="button"
@@ -318,7 +318,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#bottom-modal">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -329,7 +329,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#bottom-modal">닫기</button>
 
                                                     <button type="button"
@@ -363,7 +363,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#centermodal">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -374,7 +374,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#centermodal">닫기</button>
 
                                                     <button type="button"
@@ -420,7 +420,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#multiple-one">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -455,7 +455,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#multiple-two">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -510,7 +510,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle1">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -547,7 +547,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle2">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -602,7 +602,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#fullscreeexampleModal">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -610,7 +610,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#fullscreeexampleModal">닫기</button>
 
                                                     <button type="button"
@@ -647,7 +647,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenSm">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -655,7 +655,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenSm">닫기</button>
 
                                                     <button type="button"
@@ -692,7 +692,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenMd">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -700,7 +700,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenMd">닫기</button>
 
                                                     <button type="button"
@@ -737,7 +737,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenLg">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -745,7 +745,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenLg">닫기</button>
 
                                                     <button type="button"
@@ -782,7 +782,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXl">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -790,7 +790,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenXl">닫기</button>
 
                                                     <button type="button"
@@ -827,7 +827,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXxl">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -835,7 +835,7 @@
 
                                                 <div
                                                     class="modal-footer">
-                                                    <button type="button" class="btn btn-subtle-light modal-action"
+                                                    <button type="button" class="btn btn-soft-default modal-action"
                                                         data-overlay="#exampleModalFullscreenXxl">닫기</button>
 
                                                     <button type="button"
@@ -880,7 +880,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#staticBackdrop">
                                                         <span class="sr-only">닫기</span>
-                                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                                        <span class="ui-kit-icon-text">닫기</span>
                                                     </button>
                                                 </div>
 
@@ -911,6 +911,3 @@
         </div>
         <!-- end card-->
         </div>
-    </div>
-</div>
-</div>

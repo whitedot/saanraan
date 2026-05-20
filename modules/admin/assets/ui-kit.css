@@ -288,6 +288,7 @@
 .ui-kit-disabled-dim:disabled { opacity: .5; }
 .ui-kit-children-ink-inverse > * { color: var(--color-white) !important; }
 .ui-kit-disabled-cursor { cursor: not-allowed; }
+.ui-kit-icon-text { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5em; font-size: .75em; line-height: 1; font-weight: 600; white-space: nowrap; }
 .ui-kit-group { position: relative; }
 .ui-kit-fill-primary-soft { fill: color-mix(in oklab, var(--color-primary) 15%, transparent); }
 .ui-kit-fill-secondary-soft { fill: color-mix(in oklab, var(--color-secondary) 15%, transparent); }

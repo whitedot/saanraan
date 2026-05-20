@@ -415,56 +415,56 @@
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button" class="btn btn-icon btn-solid-primary">
-                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">별</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-solid-secondary">
-                                    <span data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">잎</span>
                                 </button>
 
                                 <button type="button" class="btn btn-icon btn-solid-warning">
-                                    <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">설정</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-soft-info">
-                                    <span data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">알림</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-solid-secondary">
-                                    <span data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">실행</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon ui-kit-frame btn-outline-dark btn-pill">
-                                    <span data-icon="tabler:plane" class="iconify tabler--plane ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">전송</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-soft-secondary">
-                                    <span data-icon="tabler:microphone" class="iconify tabler--microphone ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">음성</span>
                                 </button>
 
                                 <button type="button" class="btn btn-soft-default">
-                                    <span data-icon="tabler:hand-stop" class="iconify tabler--hand-stop ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">중지</span>
                                     중지
                                 </button>
 
                                 <button type="button" class="btn btn-solid-dark">
-                                    <span data-icon="tabler:bolt" class="iconify tabler--bolt ui-kit-type-lg"></span>
+                                    <span class="ui-kit-icon-text">빠름</span>
                                     부스트
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-frame btn-outline-info">
-                                    <span data-icon="tabler:credit-card" class="iconify tabler--credit-card ui-kit-type-base"></span>
+                                    <span class="ui-kit-icon-text">결제</span>
                                     결제
                                 </button>
 
                                 <button type="button" class="btn btn-solid-danger">
-                                    <span data-icon="tabler:tools" class="iconify tabler--tools ui-kit-type-base"></span>
+                                    <span class="ui-kit-icon-text">도구</span>
                                     도구
                                 </button>
                             </div>
@@ -472,40 +472,40 @@
                             <div class="ui-kit-space-before-5 ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
                                     class="btn ui-kit-icon-size-7-5 ui-kit-frame btn-outline-secondary">
-                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xs"></span>
+                                    <span class="ui-kit-icon-text">별</span>
                                 </button>
 
                                 <button type="button" class="btn ui-kit-icon-size-7-5 btn-solid-primary">
-                                    <span data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-xs"></span>
+                                    <span class="ui-kit-icon-text">잎</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-7-5 btn-solid-success btn-pill">
-                                    <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-xs"></span>
+                                    <span class="ui-kit-icon-text">설정</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 ui-kit-frame btn-outline-secondary">
-                                    <span data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-xl"></span>
+                                    <span class="ui-kit-icon-text">알림</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-primary btn-pill">
-                                    <span data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-xl"></span>
+                                    <span class="ui-kit-icon-text">실행</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-success btn-pill">
-                                    <span data-icon="tabler:share" class="iconify tabler--share ui-kit-type-xl"></span>
+                                    <span class="ui-kit-icon-text">공유</span>
                                 </button>
 
                                 <button type="button" class="btn ui-kit-icon-size-11-25 btn-solid-info">
-                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xl"></span>
+                                    <span class="ui-kit-icon-text">별</span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-warning">
-                                    <span data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-xl"></span>
+                                    <span class="ui-kit-icon-text">경고</span>
                                 </button>
                             </div>
                         </div>
@@ -600,7 +600,7 @@
                                         <button type="button" class="btn btn-soft-default ui-kit-radius-s-none"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
-                                            <span data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu">
@@ -635,7 +635,7 @@
                                                     class="btn btn-soft-default ui-kit-radius-t-none"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
-                                                    <span data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></span>
+                                                    <span class="ui-kit-icon-text">열기</span>
                                                 </button>
 
                                                 <div class="dropdown-menu" role="menu">

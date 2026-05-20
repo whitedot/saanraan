@@ -136,15 +136,15 @@
                                 <h4 class="card-title ui-kit-ink-inverse">작업 도구 및 배경색이 있는 카드</h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:chevron-up" class="iconify tabler--chevron-up ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">접기</span>
                                     </button>
 
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:refresh" class="iconify tabler--refresh ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">새로고침</span>
                                     </button>
 
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">닫기</span>
                                     </button>
                                 </div>
                             </div>

@@ -12,12 +12,10 @@ $uiKitSamples = [
     'form-elements' => 'Form Elements',
     'form-validation' => 'Form Validation',
     'tables-static' => 'Static Tables',
-    'icons-tabler' => 'Tabler Icons',
-    'icons-lucide' => 'Lucide Icons',
 ];
 
 $seo = [
-    'title' => 'Public Runtime Preview',
+    'title' => 'Public UI-KIT',
     'robots' => 'noindex, nofollow',
 ];
 
@@ -27,20 +25,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     ],
 ]);
 ?>
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
-    <script>
-    window.addEventListener('load', function () {
-        if (window.Iconify && typeof window.Iconify.scan === 'function') {
-            window.Iconify.scan(document.querySelector('.public-ui-kit-samples') || document.body);
-        }
-    });
-    </script>
     <main class="public-ui-scope public-ui-kit">
         <section class="public-ui-card">
-            <h1 class="public-ui-title">Public Runtime Preview</h1>
-            <p class="public-ui-copy">관리자 권한 안에서 public layout 런타임과 UI-KIT 예시를 확인하는 미리보기 화면입니다.</p>
-            <p class="public-ui-copy"><a href="<?php echo sr_e(sr_url('/admin/ui-kit')); ?>">관리자 UI-KIT 보기</a></p>
-            <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="Public 런타임 미리보기 섹션">
+            <h1 class="public-ui-title">Public UI-KIT</h1>
+            <p class="public-ui-copy">사이트 기본 public layout 런타임에서 공통 UI 원형을 확인하는 화면입니다.</p>
+            <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="Public UI-KIT 섹션">
                 <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                     <a class="public-ui-button" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
                 <?php } ?>
@@ -52,7 +41,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="public-ui-card ui-kit-space-before-base">
                     <h2 class="public-ui-title"><?php echo sr_e($sampleLabel); ?></h2>
                     <?php
-                    $sampleFile = SR_ROOT . '/layouts/public/basic/ui-kit-samples/' . $sampleKey . '.php';
+                    $sampleFile = __DIR__ . '/ui-kit-samples/' . $sampleKey . '.php';
                     if (is_file($sampleFile)) {
                         include $sampleFile;
                     }

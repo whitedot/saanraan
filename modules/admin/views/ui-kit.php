@@ -16,27 +16,17 @@ $uiKitSamples = [
     'form-elements' => 'Form Elements',
     'form-validation' => 'Form Validation',
     'tables-static' => 'Static Tables',
-    'icons-tabler' => 'Tabler Icons',
-    'icons-lucide' => 'Lucide Icons',
 ];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit.css')); ?>">
-<script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
-<script>
-window.addEventListener('load', function () {
-    if (window.Iconify && typeof window.Iconify.scan === 'function') {
-        window.Iconify.scan(document.querySelector('.admin-ui-kit-samples') || document.body);
-    }
-});
-</script>
 
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">조회 범위</h2>
-        <a href="<?php echo sr_e(sr_url('/admin/ui-kit-public')); ?>" class="btn btn-sm btn-solid-primary">Public 런타임 미리보기</a>
+        <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-solid-primary">Public UI-KIT 보기</a>
     </div>
     <div class="card-body">
         <p class="admin-card-subtitle">기존 중앙 UI-KIT의 모든 카테고리 예시를 관리자 런타임 안으로 옮긴 조회 화면입니다.</p>

@@ -35,6 +35,15 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'public UI kit route',
+        'path' => '/ui-kit',
+        'allowed_statuses' => [200],
+        'must_contain_by_status' => [
+            200 => ['Public UI-KIT'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin entry',
         'path' => '/admin',
         'allowed_statuses' => [200, 302, 403],

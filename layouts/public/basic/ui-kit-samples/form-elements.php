@@ -3,37 +3,6 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Public 폼 기준 (Public Form Baseline)</h4>
-                            </div>
-
-                            <div class="card-body">
-                                <form action="#" method="get" class="public-ui-form-panel ui-form-theme">
-                                    <label class="public-ui-field">
-                                        <span>사이트 이름</span>
-                                        <input type="text" name="site_name" value="saanraan" class="form-input public-ui-input">
-                                    </label>
-                                    <label class="public-ui-field">
-                                        <span>운영 상태</span>
-                                        <select name="site_status" class="form-select public-ui-input">
-                                            <option selected>운영</option>
-                                            <option>점검</option>
-                                            <option>비공개</option>
-                                        </select>
-                                    </label>
-                                    <label class="public-ui-field">
-                                        <span>관리 메모</span>
-                                        <textarea name="memo" rows="4" class="form-textarea public-ui-input">Public layout 안에서 표시되는 폼 기준입니다.</textarea>
-                                    </label>
-                                    <div class="public-ui-actions">
-                                        <button type="button" class="public-ui-button">저장</button>
-                                        <button type="button" class="btn btn-light">취소</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
                                 <h4 class="card-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
                             </div>
 
@@ -63,7 +32,7 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context">
                                                     <input type="text" id="floatingInput" placeholder=""
-                                                        class="form-floating-control ui-kit-frame ui-kit-line-default-500 ui-kit-block-flow ui-kit-fill-width ui-kit-radius-base ui-kit-surface-default-100 ui-kit-pad-4 ui-kit-type-sm" />
+                                                        class="form-floating-control form-input" />
                                                     <label for="floatingInput"
                                                         class="form-floating-label">이름</label>
                                                 </div>
@@ -86,7 +55,7 @@
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                        <span data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></span>
+                                                        <span class="ui-kit-icon-text">check</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -164,7 +133,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <span data-icon="tabler:discount" class="iconify tabler--discount input-icon"></span>
+                                                    <span class="ui-kit-icon-text">discount</span>
                                                     <select id="discount" class="form-select">
                                                         <option selected>할인 선택</option>
                                                         <option>할인 없음</option>
@@ -203,7 +172,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <span data-icon="tabler:search" class="iconify tabler--search input-icon"></span>
+                                                    <span class="ui-kit-icon-text">search</span>
                                                     <input type="search" id="SearchInput" placeholder="검색어 입력..."
                                                         class="form-input" />
                                                 </div>
@@ -225,8 +194,7 @@
                                                         name="validation-name-success"
                                                         class="form-input ui-kit-line-danger" required=""
                                                         aria-describedby="validation-name-success-helper" />
-                                                    <span
-                                                        class="iconify tabler--info-circle ui-kit-ink-danger input-icon ui-kit-type-base"></span>
+                                                    <span class="ui-kit-icon-text ui-kit-ink-danger input-icon ui-kit-type-base">정보</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -355,10 +323,8 @@
                                                     <button type="button"
                                                         data-toggle-password='{"target":"#password"}'
                                                         class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
-                                                        <span data-icon="tabler:eye"
-                                                            class="iconify tabler--eye password-active-hide ui-kit-block-flow ui-kit-type-sm"></span>
-                                                        <span data-icon="tabler:eye-off"
-                                                            class="iconify tabler--eye-off password-active-show ui-kit-state-hidden ui-kit-type-sm"></span>
+                                                        <span class="ui-kit-icon-text">보기</span>
+                                                        <span class="ui-kit-icon-text">eye-off</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -638,8 +604,7 @@
                                                             class="dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
-                                                            드롭다운 <span
-                                                                class="iconify tabler--chevron-down ui-kit-type-base ui-kit-ink-inverse"></span>
+                                                            드롭다운 <span class="ui-kit-icon-text ui-kit-type-base ui-kit-ink-inverse">열기</span>
                                                         </button>
 
                                                         <div class="dropdown-menu" role="menu"
@@ -716,7 +681,7 @@
                                                 <!-- Floating Input -->
                                                 <div class="ui-kit-position-context">
                                                     <input type="email" id="floating-input-email"
-                                                        class="form-floating-control ui-kit-frame ui-kit-line-default-500 ui-kit-block-flow ui-kit-fill-width ui-kit-radius-base ui-kit-surface-default-100 ui-kit-pad-4 ui-kit-type-sm"
+                                                        class="form-floating-control form-input"
                                                         placeholder="you@email.com" />
                                                     <label for="floating-input-email"
                                                         class="form-floating-label">이메일</label>
@@ -736,7 +701,7 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context">
                                                     <textarea id="floatingTextarea" rows="4" placeholder=""
-                                                        class="form-floating-control ui-kit-frame ui-kit-line-default-500 ui-kit-block-flow ui-kit-fill-width ui-kit-radius-base ui-kit-surface-default-100 ui-kit-pad-4 ui-kit-type-sm"></textarea>
+                                                        class="form-floating-control form-textarea"></textarea>
                                                     <label for="floatingTextarea"
                                                         class="form-floating-label">의견</label>
                                                 </div>
@@ -754,7 +719,7 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context">
                                                     <input type="password" id="floatingPassword" placeholder=""
-                                                        class="form-floating-control ui-kit-frame ui-kit-line-default-500 ui-kit-block-flow ui-kit-fill-width ui-kit-radius-base ui-kit-surface-default-100 ui-kit-pad-4 ui-kit-type-sm" />
+                                                        class="form-floating-control form-input" />
                                                     <label for="floatingPassword"
                                                         class="form-floating-label">비밀번호</label>
                                                 </div>

@@ -1,6 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-cards">
 <div class="container-fluid">
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-grid-xl-4 ui-kit-gap-base ui-kit-space-after-base">
+                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
+                        <div class="card ui-kit-column-xl-2">
+                            <div class="card-header">
+                                <h4 class="card-title">기본 카드</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-grid-xl-4 ui-kit-gap-base ui-kit-space-after-base">
                         <!-- 기본 카드 -->
                         <div class="card">
                             <div class="card-body">
@@ -52,7 +59,7 @@
                         <!-- 카드 끝-->
                     </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-3 ui-kit-gap-base ui-kit-space-after-base">
+                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-3 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">헤더가 있는 카드</h4>
@@ -95,11 +102,17 @@
                             <div class="card-footer ui-kit-ink-default-400">2일 전</div>
                         </div>
                         <!-- 카드 끝-->
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">고급 카드</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">고급 카드</h4>
+                            </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-3 ui-kit-gap-base ui-kit-space-after-base">
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">작업 도구가 있는 카드</h4>
@@ -123,15 +136,15 @@
                                 <h4 class="card-title ui-kit-ink-inverse">작업 도구 및 배경색이 있는 카드</h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:chevron-up" class="iconify tabler--chevron-up ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">접기</span>
                                     </button>
 
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:refresh" class="iconify tabler--refresh ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">새로고침</span>
                                     </button>
 
                                     <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
-                                        <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-base"></span>
+                                        <span class="ui-kit-icon-text">닫기</span>
                                     </button>
                                 </div>
                             </div>
@@ -162,11 +175,17 @@
                             <!-- 카드 본문 끝-->
                         </div>
                         <!-- 카드 끝-->
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">테두리가 있는 카드</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">테두리가 있는 카드</h4>
+                            </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-3 ui-kit-gap-base ui-kit-space-after-base">
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-line-primary ui-kit-frame">
                             <div class="card-body">
                                 <h4 class="card-title ui-kit-space-after-2-5">유색 테두리가 있는 카드</h4>
@@ -238,11 +257,17 @@
                             <!-- 카드 본문 끝-->
                         </div>
                         <!-- 카드 끝-->
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">수평 카드</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">수평 카드</h4>
+                            </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base ui-kit-space-after-base">
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-align-items-center ui-kit-grid-md-3">
                                 <div>
@@ -280,19 +305,28 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">확장된 링크</h4>
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-grid-xl-4 ui-kit-gap-base ui-kit-space-after-base">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">확장된 링크</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-group">
                             <a href="#">
                                 <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
-                                <div class="card-body">
-                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
-                                    <a href="#"
-                                        class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
-                                </div>
                             </a>
+                            <div class="card-body">
+                                <a href="#">
+                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
+                                </a>
+                                <a href="#"
+                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
+                            </div>
                         </div>
 
                         <div class="card">
@@ -309,12 +343,14 @@
                         <div class="card ui-kit-group">
                             <a href="#">
                                 <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
-                                <div class="card-body">
-                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
-                                    <a href="#"
-                                        class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
-                                </div>
                             </a>
+                            <div class="card-body">
+                                <a href="#">
+                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
+                                </a>
+                                <a href="#"
+                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
+                            </div>
                         </div>
 
                         <div class="card">
@@ -327,11 +363,17 @@
                                 </div>
                             </a>
                         </div>
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">카드 그룹</h4>
+                        <div class="card ui-kit-column-xl-2">
+                            <div class="card-header">
+                                <h4 class="card-title">카드 그룹</h4>
+                            </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-3 ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-3 ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
                             <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="검 든 여우 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
@@ -368,7 +410,7 @@
                         </div>
                     </div>
 
-                    <div class="ui-kit-grid ui-kit-gap-3 ui-kit-radius-base ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
+                                <div class="ui-kit-grid ui-kit-gap-3 ui-kit-radius-base ui-kit-grid-md-3 ui-kit-gap-md-0">
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
                             <div class="card-body ui-kit-flex-fill">
                                 <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
@@ -409,11 +451,17 @@
                                 </p>
                             </div>
                         </div>
-                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h4 class="ui-kit-space-after-base ui-kit-space-before-4 ui-kit-type-base">카드가 있는 내비게이션</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">카드가 있는 내비게이션</h4>
+                            </div>
 
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
+                            <div class="card-body">
+                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header ui-kit-line-dashed ui-kit-pad-after-0">
                                 <nav class="ui-kit-cluster">
@@ -441,7 +489,7 @@
                                 <nav class="ui-kit-cluster">
                                     <a href="#" class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">활성</a>
                                     <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium">링크</a>
-                                    <a hrf="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled>비활성화됨</a>
+                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled>비활성화됨</a>
                                 </nav>
                             </div>
 
@@ -452,6 +500,9 @@
                                 <div class="ui-kit-text-center">
                                     <a href="#" class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로
                                         이동</a>
+                                </div>
+                            </div>
+                        </div>
                                 </div>
                             </div>
                         </div>

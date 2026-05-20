@@ -135,7 +135,7 @@
                                     </div>
 
                                     <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
-                                        <span data-icon="tabler:alarm-snooze" class="iconify tabler--alarm-snooze ui-kit-icon-size-8"></span>
+                                        <span class="ui-kit-icon-text">alarm-snooze</span>
                                         <div>
                                             <h4 class="ui-kit-ink-secondary ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">주의하세요!</h4>
                                             <p class="ui-kit-space-after-4">이 알림 메시지는 알림 내에서 콘텐츠 간격을 보여주기 위해 더 긴 메시지와 함께 추가 정보를 제공합니다.
@@ -146,7 +146,7 @@
                                     </div>
 
                                     <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
-                                        <span data-icon="tabler:phone-ringing" class="iconify tabler--phone-ringing ui-kit-icon-size-8"></span>
+                                        <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div>
                                             <h4 class="ui-kit-ink-danger ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">알림!</h4>
                                             <p class="ui-kit-space-after-4">방금 프라이머리 알림 메시지를 모두 읽으셨습니다. 긴 텍스트는 레이아웃이 콘텐츠 간격을 얼마나 잘 처리하는지
@@ -173,7 +173,7 @@
                                         하단 테두리가 있는 다크 알림!
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dark-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
 
@@ -183,7 +183,7 @@
                                         점선 테두리가 있는 성공 알림!
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#success-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
 
@@ -193,7 +193,7 @@
                                         두꺼운 테두리가 있는 위험 알림!
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#danger-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
 
@@ -205,7 +205,7 @@
                                         <button
                                             class="ui-kit-leading-auto ui-kit-icon-size-7-5 ui-kit-cluster ui-kit-distribute-center ui-kit-align-items-center ui-kit-radius-full ui-kit-surface-warning ui-kit-ink-inverse"
                                             data-remove-element="#warning-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-xl"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
 
@@ -213,18 +213,18 @@
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
                                         <div class="ui-kit-cluster ui-kit-gap-3 ui-kit-align-items-center">
-                                            <span data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-xl"></span>
+                                            <span class="ui-kit-icon-text">경고</span>
                                             커스텀 아이콘이 있는 정보 알림!
                                         </div>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#info-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-icon-size-6 ui-kit-ink-default-700"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
 
                                     <div class="ui-kit-line-light ui-kit-surface-light-faint ui-kit-ink-light ui-kit-cluster ui-kit-align-items-center ui-kit-gap-base ui-kit-radius-base ui-kit-frame-strong ui-kit-pad-6"
                                         role="alert">
-                                        <span data-icon="tabler:phone-ringing" class="iconify tabler--phone-ringing ui-kit-ink-success ui-kit-icon-size-7"></span>
+                                        <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div class="ui-kit-ink-default-400">
                                             <h4 class="ui-kit-ink-default-400 ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">공지!</h4>
                                             <p>방금 프라이머리 알림 메시지를 모두 읽으셨습니다. 긴 텍스트는 레이아웃이 콘텐츠 간격을 얼마나 잘 처리하는지 보여주는 데 도움이
@@ -250,7 +250,7 @@
                                         알림 닫기 기능이 있는 프라이머리 알림입니다!
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dismiss-alert">
-                                            <span data-icon="tabler:x" class="iconify tabler--x ui-kit-type-2xl ui-kit-ink-default-700"></span>
+                                            <span class="ui-kit-icon-text">닫기</span>
                                         </button>
                                     </div>
                                 </div>

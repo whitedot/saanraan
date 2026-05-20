@@ -16,7 +16,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             옵션 선택
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -31,7 +31,7 @@
                                             href="#" role="button" id="dropdownMenuLink" aria-haspopup="true"
                                             aria-expanded="false">
                                             빠른 작업
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-caret"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </a>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -45,7 +45,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             마우스 올리기
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-caret"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="hover-dropdown">
@@ -74,7 +74,7 @@
                                     <button type="button" class="dropdown-toggle btn btn-soft-default"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                         오른쪽 정렬 메뉴
-                                        <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                        <span class="ui-kit-icon-text">열기</span>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -115,7 +115,7 @@
                                             class="dropdown-toggle btn btn-outline-primary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             커스텀 아이콘
-                                            <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-sm"></span>
+                                            <span class="ui-kit-icon-text">수정</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -146,7 +146,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-solid-primary-muted dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -166,7 +166,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-soft-default dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -186,7 +186,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-soft-success dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -206,7 +206,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-solid-info-muted dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -238,7 +238,7 @@
                                             class="dropdown-toggle btn btn-solid-primary ui-kit-disabled-pointer-lock ui-kit-disabled-dim"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             기본(Primary)
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -254,7 +254,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             보조(Secondary)
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -271,7 +271,7 @@
                                             class="dropdown-toggle btn btn-solid-success-contrast"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             성공(Success)
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -302,7 +302,7 @@
                                             class="dropdown-toggle btn btn-soft-default ui-kit-inline-pad-6 ui-kit-block-pad-2 ui-kit-type-lg"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             큰 버튼
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -322,7 +322,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle ui-kit-surface-light ui-kit-hover-ink-primary ui-kit-position-context ui-kit-cluster ui-kit-align-items-center ui-kit-distribute-center ui-kit-radius-e-sm ui-kit-inline-pad-4 ui-kit-block-pad-2">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -340,7 +340,7 @@
                                             class="dropdown-toggle btn btn-sm btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             작은 버튼
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -360,7 +360,7 @@
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-sm ui-kit-ink-default-700 btn-soft-default dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -396,7 +396,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭업
-                                            <span data-icon="tabler:chevron-up" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">접기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -416,7 +416,7 @@
                                         <div class="dropdown" data-dropdown-placement="top-left">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-soft-default dropdown-split-toggle">
-                                                <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">열기</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -450,7 +450,7 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            <span data-icon="tabler:chevron-left" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">chevron-left</span>
                                             드롭스타트
                                         </button>
 
@@ -467,7 +467,7 @@
                                         <div class="dropdown" data-dropdown-placement="left-start">
                                             <button type="button"
                                                 class="dropdown-toggle btn btn-solid-secondary-muted ui-kit-radius-e-none ui-kit-inline-pad-2">
-                                                <span data-icon="tabler:chevron-left" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">chevron-left</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -506,7 +506,7 @@
                                             class="dropdown-toggle btn btn-solid-primary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             Dropend
-                                            <span data-icon="tabler:chevron-right" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">chevron-right</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -526,7 +526,7 @@
                                         <div class="dropdown" data-dropdown-placement="right-end">
                                             <button type="button"
                                                 class="dropdown-toggle ui-kit-surface-primary-muted ui-kit-hover-surface-primary ui-kit-position-context ui-kit-cluster ui-kit-align-items-center ui-kit-distribute-center ui-kit-radius-e-sm ui-kit-inline-pad-2 ui-kit-block-pad-2 ui-kit-ink-inverse">
-                                                <span data-icon="tabler:chevron-right" class="iconify dropdown-icon"></span>
+                                                <span class="ui-kit-icon-text">chevron-right</span>
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -560,7 +560,7 @@
                                         class="dropdown-toggle btn btn-solid-secondary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                         활성화된 항목
-                                        <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                        <span class="ui-kit-icon-text">열기</span>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -590,7 +590,7 @@
                                         class="dropdown-toggle btn btn-solid-primary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                         비활성화됨
-                                        <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                        <span class="ui-kit-icon-text">열기</span>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -618,7 +618,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary-contrast"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             헤더
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -649,7 +649,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-solid-dark"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             다크 드롭다운
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div data-theme="dark" class="dropdown-menu" role="menu"
@@ -685,7 +685,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             중앙 드롭다운
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -702,7 +702,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             중앙 드롭업
-                                            <span data-icon="tabler:chevron-up" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">접기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -732,7 +732,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             기본 드롭다운
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -747,7 +747,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             내부 클릭 가능
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -762,7 +762,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             외부 클릭 가능
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -777,7 +777,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             수동 닫기
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -804,7 +804,7 @@
                                         class="dropdown-toggle btn btn-solid-primary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                         텍스트 드롭다운
-                                        <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                        <span class="ui-kit-icon-text">열기</span>
                                     </button>
 
                                     <div class="dropdown-menu ui-kit-width-44 ui-kit-pad-4" role="menu" aria-orientation="vertical">
@@ -831,7 +831,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             폼
-                                            <span data-icon="tabler:chevron-down" class="iconify dropdown-icon"></span>
+                                            <span class="ui-kit-icon-text">열기</span>
                                         </button>
 
                                         <div class="dropdown-menu ui-kit-min-width-44" role="menu"

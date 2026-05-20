@@ -6,6 +6,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
 {
     $currentPath = sr_request_path();
     $navigationItems = sr_admin_shell_navigation_items($pdo, $currentPath);
+    $auxiliaryLinks = sr_admin_shell_auxiliary_links($currentPath);
 
     return [
         'site_title' => sr_admin_shell_site_title($site),
@@ -17,6 +18,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'profile_url' => sr_url('/account'),
         'logout_url' => sr_url('/logout'),
         'navigation_items' => $navigationItems,
+        'auxiliary_links' => $auxiliaryLinks,
     ];
 }
 
@@ -165,6 +167,32 @@ function sr_admin_shell_path_matches(string $currentPath, string $itemPath): boo
     }
 
     return str_starts_with($currentPath, rtrim($itemPath, '/') . '/');
+}
+
+function sr_admin_shell_auxiliary_links(string $currentPath): array
+{
+    $pathsFile = SR_ROOT . '/modules/admin/paths.php';
+    $paths = is_file($pathsFile) ? include $pathsFile : [];
+    $paths = is_array($paths) ? $paths : [];
+
+    $links = [];
+    foreach ([
+        ['label' => 'UI-KIT', 'path' => '/admin/ui-kit'],
+    ] as $link) {
+        $path = (string) ($link['path'] ?? '');
+        if ($path === '' || !isset($paths['GET ' . $path])) {
+            continue;
+        }
+
+        $links[] = [
+            'title' => (string) ($link['label'] ?? $path),
+            'path' => $path,
+            'url' => sr_url($path),
+            'active' => sr_admin_shell_path_matches($currentPath, $path),
+        ];
+    }
+
+    return $links;
 }
 
 function sr_admin_shell_icon_id(string $category): string

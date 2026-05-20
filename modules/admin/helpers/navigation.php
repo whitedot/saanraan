@@ -142,7 +142,6 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => '모듈', 'path' => '/admin/modules', 'order' => 50],
                 ['label' => '업데이트', 'path' => '/admin/updates', 'order' => 60],
                 ['label' => '데이터 정리', 'path' => '/admin/retention', 'order' => 70],
-                ['label' => 'UI-KIT', 'path' => '/admin/ui-kit', 'order' => 80],
             ],
         ],
     ];

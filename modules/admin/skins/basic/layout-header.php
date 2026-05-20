@@ -17,6 +17,7 @@ $adminShell = [
     'profile_url' => sr_url('/account'),
     'logout_url' => sr_url('/logout'),
     'navigation_items' => [],
+    'auxiliary_links' => [],
 ];
 if (isset($pdo) && $pdo instanceof PDO) {
     $adminShell = sr_admin_shell_view($pdo, $site ?? null, (string) $adminPageTitle, (string) $adminPageSubtitle, (string) $adminContainerClass);
@@ -114,6 +115,20 @@ if (isset($pdo) && $pdo instanceof PDO) {
                             <?php } ?>
                         <?php } ?>
                     </ul>
+                    <?php if (!empty($adminShell['auxiliary_links']) && is_array($adminShell['auxiliary_links'])) { ?>
+                        <div class="admin-sidebar-auxiliary" aria-label="보조 링크">
+                            <ul class="admin-sidebar-auxiliary-list">
+                                <?php foreach ($adminShell['auxiliary_links'] as $auxiliaryLink) { ?>
+                                    <?php if (!is_array($auxiliaryLink)) { continue; } ?>
+                                    <li>
+                                        <a class="admin-sidebar-auxiliary-link<?php echo !empty($auxiliaryLink['active']) ? ' is-current' : ''; ?>" href="<?php echo sr_e((string) ($auxiliaryLink['url'] ?? '#')); ?>"<?php echo !empty($auxiliaryLink['active']) ? ' aria-current="page"' : ''; ?>>
+                                            <?php echo sr_e((string) ($auxiliaryLink['title'] ?? '')); ?>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+                        </div>
+                    <?php } ?>
                 </div>
                 <div class="gnb_scrollbar admin-sidebar-scrollbar" aria-hidden="true">
                     <div class="gnb_scrollbar_thumb admin-sidebar-scrollbar-thumb"></div>

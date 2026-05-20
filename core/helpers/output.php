@@ -197,6 +197,7 @@ function sr_public_layout_options(): array
             'label' => '기본 레이아웃',
             'views' => [
                 'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
+                'ui_kit' => SR_ROOT . '/layouts/public/basic/ui-kit.php',
             ],
         ],
     ], ['layout'], 'public layout');
@@ -225,6 +226,26 @@ function sr_public_layout_file(string $layoutKey): string
     }
 
     return $layoutFile;
+}
+
+function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey): ?string
+{
+    if (preg_match('/\A[a-z0-9_]{1,40}\z/', $viewKey) !== 1) {
+        return null;
+    }
+
+    $options = sr_public_layout_options();
+    if (!isset($options[$layoutKey])) {
+        $layoutKey = 'basic';
+    }
+
+    $viewFile = (string) ($options[$layoutKey]['views'][$viewKey] ?? '');
+    if ($viewFile !== '' && is_file($viewFile)) {
+        return $viewFile;
+    }
+
+    $fallbackFile = (string) ($options['basic']['views'][$viewKey] ?? '');
+    return $fallbackFile !== '' && is_file($fallbackFile) ? $fallbackFile : null;
 }
 
 function sr_filter_view_options(array $options, array $requiredViewKeys, string $label): array
