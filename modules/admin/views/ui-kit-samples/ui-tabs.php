@@ -451,7 +451,7 @@
                                             class="tab-trigger-line-danger active"
                                             id="home-icon" aria-selected="true" data-tab="#home-ib1"
                                             aria-controls="home-ib1" role="tab">
-                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-type-base"></i>
+                                            <span data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-type-base"></span>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">홈</div>
                                         </button>
 
@@ -459,7 +459,7 @@
                                             class="tab-trigger-line-danger"
                                             id="profile-icon" aria-selected="false" data-tab="#profile-ib1"
                                             aria-controls="profile-ib1" role="tab">
-                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-type-base"></i>
+                                            <span data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-type-base"></span>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">프로필</div>
                                         </button>
 
@@ -467,7 +467,7 @@
                                             class="tab-trigger-line-danger"
                                             id="settings-icon" aria-selected="false" data-tab="#settings-ib1"
                                             aria-controls="settings-ib1" role="tab">
-                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-base"></i>
+                                            <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-base"></span>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>
                                         </button>
 
@@ -475,7 +475,7 @@
                                             class="tab-trigger-line-danger"
                                             id="about-icon" aria-selected="false" data-tab="#about-ib1"
                                             aria-controls="about-ib1" role="tab">
-                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-base"></i>
+                                            <span data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-base"></span>
                                             <div class="ui-kit-state-hidden ui-kit-show-md">정보</div>
                                         </button>
                                     </nav>
@@ -524,28 +524,28 @@
                                             class="tab-trigger-line-success active"
                                             id="home-icon-2" aria-selected="true" data-tab="#home-i1"
                                             aria-controls="home-i1" role="tab">
-                                            <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-icon-size-5-5"></i>
+                                            <span data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-icon-size-5-5"></span>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="profile-icon-2" aria-selected="false" data-tab="#profile-i1"
                                             aria-controls="profile-i1" role="tab">
-                                            <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-icon-size-5-5"></i>
+                                            <span data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-icon-size-5-5"></span>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="settings-icon-2" aria-selected="false" data-tab="#settings-i1"
                                             aria-controls="settings-i1" role="tab">
-                                            <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-icon-size-5-5"></i>
+                                            <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-icon-size-5-5"></span>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="about-icon-2" aria-selected="false" data-tab="#about-i1"
                                             aria-controls="about-i1" role="tab">
-                                            <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-icon-size-5-5"></i>
+                                            <span data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-icon-size-5-5"></span>
                                         </button>
                                     </nav>
                                 </div>
@@ -586,7 +586,7 @@
                                         class="nav-link nav-link-line-primary active"
                                         id="summary" aria-selected="true" data-tab="#home-ct" aria-controls="home-ct"
                                         role="tab">
-                                        <i data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <span data-icon="tabler:smart-home" class="iconify tabler--smart-home ui-kit-block-flow ui-kit-hide-md"></span>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">요약</div>
                                     </button>
 
@@ -594,7 +594,7 @@
                                         class="nav-link nav-link-line-primary"
                                         id="accounts" aria-selected="false" data-tab="#profile-ct"
                                         aria-controls="profile-ct" role="tab">
-                                        <i data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <span data-icon="tabler:user-circle" class="iconify tabler--user-circle ui-kit-block-flow ui-kit-hide-md"></span>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">계정</div>
                                     </button>
 
@@ -602,7 +602,7 @@
                                         class="nav-link nav-link-line-primary"
                                         id="setting" aria-selected="false" data-tab="#settings-ct"
                                         aria-controls="settings-ct" role="tab">
-                                        <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-block-flow ui-kit-hide-md"></i>
+                                        <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-block-flow ui-kit-hide-md"></span>
                                         <div class="ui-kit-state-hidden ui-kit-show-md">설정</div>
                                     </button>
                                 </nav>

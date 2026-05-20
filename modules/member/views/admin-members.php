@@ -11,7 +11,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap admin-ui-card">
+<div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-soft-default">전체 보기</a>
     </div>
@@ -22,40 +22,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div class="admin-filter-card admin-ui-card">
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
-        <div class="admin-filter-grid admin-account-search-grid admin-ui-filter">
-            <div class="admin-filter-field">
-                <label for="admin-status-filter" class="admin-filter-label">상태</label>
-                <select name="status" id="admin-status-filter" class="form-select admin-filter-input">
-                    <option value="">전체</option>
-                    <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field">
-                <label for="member-search-field" class="admin-filter-label">검색 조건</label>
-                <select name="field" id="member-search-field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e($fieldLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field">
-                <label for="member-search-keyword" class="admin-filter-label">검색어</label>
-                <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 이름">
-            </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter ui-form-theme">
+    <div class="admin-filter-grid admin-account-search-grid">
+        <div class="admin-filter-field">
+            <label for="admin-status-filter" class="admin-filter-label">상태</label>
+            <select name="status" id="admin-status-filter" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($allowedStatuses as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                        <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
+                    </option>
+                <?php } ?>
+            </select>
         </div>
-    </form>
-</div>
+        <div class="admin-filter-field">
+            <label for="member-search-field" class="admin-filter-label">검색 조건</label>
+            <select name="field" id="member-search-field" class="form-select admin-filter-input">
+                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                        <?php echo sr_e($fieldLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="member-search-keyword" class="admin-filter-label">검색어</label>
+            <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 이름">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
 
-<div class="admin-card admin-list-card card admin-list-form admin-ui-card">
+<div class="admin-card admin-list-card card admin-list-form">
     <div class="table-wrapper">
         <table class="table">
             <caption>회원관리 목록</caption>
@@ -144,7 +142,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div class="admin-notice admin-ui-card">
+<div class="admin-notice">
     <span class="admin-notice-icon" aria-hidden="true">i</span>
     <div class="admin-notice-copy">
         <strong>회원 관리 안내</strong>

@@ -108,33 +108,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title">발송 대기열</h2>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>">
-            <div class="admin-filter-card">
-                <div class="admin-filter-grid admin-account-search-grid community-search-fields-compact">
-                    <div class="admin-filter-field">
-                        <label for="delivery_channel" class="admin-filter-label">발송 채널</label>
-                        <select name="delivery_channel" id="delivery_channel" class="form-select admin-filter-input">
+        <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter ui-form-theme">
+            <div class="admin-filter-grid admin-account-search-grid community-search-fields-compact">
+                <div class="admin-filter-field">
+                    <label for="delivery_channel" class="admin-filter-label">발송 채널</label>
+                    <select name="delivery_channel" id="delivery_channel" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['delivery_channel'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedChannels as $channel) { ?>
                             <option value="<?php echo sr_e($channel); ?>"<?php echo $filters['delivery_channel'] === $channel ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
                             </option>
                         <?php } ?>
-                        </select>
-                    </div>
-                    <div class="admin-filter-field">
-                        <label for="delivery_status" class="admin-filter-label">발송 상태</label>
-                        <select name="delivery_status" id="delivery_status" class="form-select admin-filter-input">
+                    </select>
+                </div>
+                <div class="admin-filter-field">
+                    <label for="delivery_status" class="admin-filter-label">발송 상태</label>
+                    <select name="delivery_status" id="delivery_status" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['delivery_status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $filters['delivery_status'] === $status ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
                             </option>
                         <?php } ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+                    </select>
                 </div>
+                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
         <?php if ($deliveries === []) { ?>
@@ -196,22 +194,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">알림 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-soft-default">새 알림 등록</a>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>">
-            <div class="admin-filter-card">
-                <div class="admin-filter-grid admin-account-search-grid">
-                    <div class="admin-filter-field">
-                        <label for="audience" class="admin-filter-label">대상</label>
-                        <select name="audience" id="audience" class="form-select admin-filter-input">
+        <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter ui-form-theme">
+            <div class="admin-filter-grid admin-account-search-grid">
+                <div class="admin-filter-field">
+                    <label for="audience" class="admin-filter-label">대상</label>
+                    <select name="audience" id="audience" class="form-select admin-filter-input">
                         <option value=""<?php echo $filters['audience'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo sr_e($audience); ?>"<?php echo $filters['audience'] === $audience ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?>
                             </option>
                         <?php } ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+                    </select>
                 </div>
+                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
         <?php if ($notifications === []) { ?>

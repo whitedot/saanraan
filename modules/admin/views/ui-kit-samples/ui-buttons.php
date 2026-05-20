@@ -415,56 +415,56 @@
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button" class="btn btn-icon btn-solid-primary">
-                                    <i data-icon="tabler:star" class="iconify tabler--star ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-solid-secondary">
-                                    <i data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button" class="btn btn-icon btn-solid-warning">
-                                    <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-soft-info">
-                                    <i data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-solid-secondary">
-                                    <i data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon ui-kit-frame btn-outline-dark btn-pill">
-                                    <i data-icon="tabler:plane" class="iconify tabler--plane ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:plane" class="iconify tabler--plane ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn btn-icon btn-soft-secondary">
-                                    <i data-icon="tabler:microphone" class="iconify tabler--microphone ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:microphone" class="iconify tabler--microphone ui-kit-type-lg"></span>
                                 </button>
 
                                 <button type="button" class="btn btn-soft-default">
-                                    <i data-icon="tabler:hand-stop" class="iconify tabler--hand-stop ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:hand-stop" class="iconify tabler--hand-stop ui-kit-type-lg"></span>
                                     중지
                                 </button>
 
                                 <button type="button" class="btn btn-solid-dark">
-                                    <i data-icon="tabler:bolt" class="iconify tabler--bolt ui-kit-type-lg"></i>
+                                    <span data-icon="tabler:bolt" class="iconify tabler--bolt ui-kit-type-lg"></span>
                                     부스트
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-frame btn-outline-info">
-                                    <i data-icon="tabler:credit-card" class="iconify tabler--credit-card ui-kit-type-base"></i>
+                                    <span data-icon="tabler:credit-card" class="iconify tabler--credit-card ui-kit-type-base"></span>
                                     결제
                                 </button>
 
                                 <button type="button" class="btn btn-solid-danger">
-                                    <i data-icon="tabler:tools" class="iconify tabler--tools ui-kit-type-base"></i>
+                                    <span data-icon="tabler:tools" class="iconify tabler--tools ui-kit-type-base"></span>
                                     도구
                                 </button>
                             </div>
@@ -472,40 +472,40 @@
                             <div class="ui-kit-space-before-5 ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
                                     class="btn ui-kit-icon-size-7-5 ui-kit-frame btn-outline-secondary">
-                                    <i data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xs"></i>
+                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xs"></span>
                                 </button>
 
                                 <button type="button" class="btn ui-kit-icon-size-7-5 btn-solid-primary">
-                                    <i data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-xs"></i>
+                                    <span data-icon="tabler:leaf" class="iconify tabler--leaf ui-kit-type-xs"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-7-5 btn-solid-success btn-pill">
-                                    <i data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-xs"></i>
+                                    <span data-icon="tabler:settings" class="iconify tabler--settings ui-kit-type-xs"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 ui-kit-frame btn-outline-secondary">
-                                    <i data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-xl"></i>
+                                    <span data-icon="tabler:bell" class="iconify tabler--bell ui-kit-type-xl"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-primary btn-pill">
-                                    <i data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-xl"></i>
+                                    <span data-icon="tabler:rocket" class="iconify tabler--rocket ui-kit-type-xl"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-success btn-pill">
-                                    <i data-icon="tabler:share" class="iconify tabler--share ui-kit-type-xl"></i>
+                                    <span data-icon="tabler:share" class="iconify tabler--share ui-kit-type-xl"></span>
                                 </button>
 
                                 <button type="button" class="btn ui-kit-icon-size-11-25 btn-solid-info">
-                                    <i data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xl"></i>
+                                    <span data-icon="tabler:star" class="iconify tabler--star ui-kit-type-xl"></span>
                                 </button>
 
                                 <button type="button"
                                     class="btn ui-kit-icon-size-11-25 btn-solid-warning">
-                                    <i data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-xl"></i>
+                                    <span data-icon="tabler:alert-octagon" class="iconify tabler--alert-octagon ui-kit-type-xl"></span>
                                 </button>
                             </div>
                         </div>
@@ -600,7 +600,7 @@
                                         <button type="button" class="btn btn-soft-default ui-kit-radius-s-none"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
-                                            <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>
+                                            <span data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu">
@@ -635,7 +635,7 @@
                                                     class="btn btn-soft-default ui-kit-radius-t-none"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
-                                                    <i data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></i>
+                                                    <span data-icon="tabler:chevron-down" class="iconify tabler--chevron-down"></span>
                                                 </button>
 
                                                 <div class="dropdown-menu" role="menu">

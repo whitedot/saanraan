@@ -134,14 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 | `sr-install-help` | `admin-form-help` |
 | `af-check` | `admin-form-check` |
 
-전환 중에는 같은 요소에 기존 class와 새 class를 함께 붙인다.
-
-```php
-<div class="af-row admin-form-row">
-    <div class="af-label admin-form-label">...</div>
-    <div class="af-field admin-form-field">...</div>
-</div>
-```
+배포 전 관리자 화면은 호환 class 병기 없이 새 `admin-form-*` 원형을 직접 사용한다.
 
 ### 4. 필터
 

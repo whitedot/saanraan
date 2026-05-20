@@ -25,6 +25,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit.css')); ?>">
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
+<script>
+window.addEventListener('load', function () {
+    if (window.Iconify && typeof window.Iconify.scan === 'function') {
+        window.Iconify.scan(document.querySelector('.admin-ui-kit-samples') || document.body);
+    }
+});
+</script>
 
 <section class="admin-card card">
     <div class="card-header">

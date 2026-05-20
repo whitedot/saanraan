@@ -296,7 +296,7 @@ $targets = [
         ],
         'view_needles' => [
             '<span class="form-label">커뮤니티 테마</span>',
-            '<select name="theme_key">',
+            '<select name="theme_key" class="form-select">',
             'foreach ($communityThemeOptions as $themeKey => $themeOption)',
         ],
         'render_needles' => [
@@ -336,7 +336,7 @@ $targets = [
         'view_needles' => [
             '<span class="form-label">게시판 스킨</span>',
             '<input type="hidden" name="intent" value="update_skin">',
-            '<select name="skin_key">',
+            '<select name="skin_key" class="form-select">',
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [

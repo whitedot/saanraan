@@ -82,7 +82,7 @@ function sr_send_security_headers(?array $config = null): void
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: no-referrer');
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://code.iconify.design; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data:; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://code.iconify.design; connect-src 'self' https://api.iconify.design; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data:; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
 

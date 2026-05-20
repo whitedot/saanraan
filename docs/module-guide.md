@@ -99,7 +99,7 @@ modules/sample/
 - install.sql
 ```
 
-관리자 목록/폼 마크업은 [관리자 UI 작성 기준](admin-ui-guide.md)을 따른다. 특히 등록, 수정, 설정 화면은 `form.admin-form-layout > section.card` 구조를 실제 view에 직접 작성하고, 목록 검색/행 액션 폼과 구분한다.
+관리자 목록/폼 마크업은 [관리자 UI 작성 기준](admin-ui-guide.md)을 따른다. 특히 등록, 수정, 설정 화면은 `form.admin-form.ui-form-theme > section.admin-card.card` 구조를 실제 view에 직접 작성하고, 목록 검색/행 액션 폼과 구분한다.
 
 공개 화면과 확장 지점이 있는 모듈:
 

@@ -30,6 +30,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 ]);
 ?>
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js" defer></script>
+    <script>
+    window.addEventListener('load', function () {
+        if (window.Iconify && typeof window.Iconify.scan === 'function') {
+            window.Iconify.scan(document.querySelector('.public-ui-kit-samples') || document.body);
+        }
+    });
+    </script>
     <main class="public-ui-scope public-ui-kit">
         <section class="public-ui-card">
             <h1 class="public-ui-title">Public Runtime Preview</h1>

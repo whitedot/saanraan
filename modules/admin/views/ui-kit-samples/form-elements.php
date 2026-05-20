@@ -55,7 +55,7 @@
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                        <i data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></i>
+                                                        <span data-icon="tabler:check" class="iconify tabler--check ui-kit-ink-success ui-kit-type-base"></span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -133,7 +133,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <i data-icon="tabler:discount" class="iconify tabler--discount input-icon"></i>
+                                                    <span data-icon="tabler:discount" class="iconify tabler--discount input-icon"></span>
                                                     <select id="discount" class="form-select">
                                                         <option selected>할인 선택</option>
                                                         <option>할인 없음</option>
@@ -172,7 +172,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <i data-icon="tabler:search" class="iconify tabler--search input-icon"></i>
+                                                    <span data-icon="tabler:search" class="iconify tabler--search input-icon"></span>
                                                     <input type="search" id="SearchInput" placeholder="검색어 입력..."
                                                         class="form-input" />
                                                 </div>
@@ -194,8 +194,8 @@
                                                         name="validation-name-success"
                                                         class="form-input ui-kit-line-danger" required=""
                                                         aria-describedby="validation-name-success-helper" />
-                                                    <i
-                                                        class="iconify tabler--info-circle ui-kit-ink-danger input-icon ui-kit-type-base"></i>
+                                                    <span
+                                                        class="iconify tabler--info-circle ui-kit-ink-danger input-icon ui-kit-type-base"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -324,10 +324,10 @@
                                                     <button type="button"
                                                         data-toggle-password='{"target":"#password"}'
                                                         class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
-                                                        <i data-icon="tabler:eye"
-                                                            class="iconify tabler--eye password-active-hide ui-kit-block-flow ui-kit-type-sm"></i>
-                                                        <i data-icon="tabler:eye-off"
-                                                            class="iconify tabler--eye-off password-active-show ui-kit-state-hidden ui-kit-type-sm"></i>
+                                                        <span data-icon="tabler:eye"
+                                                            class="iconify tabler--eye password-active-hide ui-kit-block-flow ui-kit-type-sm"></span>
+                                                        <span data-icon="tabler:eye-off"
+                                                            class="iconify tabler--eye-off password-active-show ui-kit-state-hidden ui-kit-type-sm"></span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -607,8 +607,8 @@
                                                             class="dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
-                                                            드롭다운 <i
-                                                                class="iconify tabler--chevron-down ui-kit-type-base ui-kit-ink-inverse"></i>
+                                                            드롭다운 <span
+                                                                class="iconify tabler--chevron-down ui-kit-type-base ui-kit-ink-inverse"></span>
                                                         </button>
 
                                                         <div class="dropdown-menu" role="menu"

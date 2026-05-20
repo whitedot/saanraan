@@ -148,20 +148,20 @@
                                                     <button type="button"
                                                         class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                        <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <a class="dropdown-item" href="#">
-                                                            <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                            <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                             개요
                                                         </a>
                                                         <a class="dropdown-item" href="#">
-                                                            <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                            <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                             수정
                                                         </a>
                                                         <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                            <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                            <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                             삭제
                                                         </a>
                                                     </div>
@@ -183,21 +183,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                        <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                 개요
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                 수정
                                                             </a>
                                                             <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                 삭제
                                                             </a>
                                                         </div>
@@ -221,21 +221,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                        <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                 개요
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                 수정
                                                             </a>
                                                             <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                 삭제
                                                             </a>
                                                         </div>
@@ -258,21 +258,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                        <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                 개요
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                 수정
                                                             </a>
                                                             <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                 삭제
                                                             </a>
                                                         </div>
@@ -295,21 +295,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                        <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                 개요
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                 수정
                                                             </a>
                                                             <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                 삭제
                                                             </a>
                                                         </div>
@@ -359,21 +359,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -397,21 +397,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -436,21 +436,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -474,21 +474,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -513,21 +513,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -577,21 +577,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -615,21 +615,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -654,21 +654,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -718,21 +718,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -756,21 +756,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -795,21 +795,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -859,21 +859,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -897,21 +897,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -936,21 +936,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1000,21 +1000,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1038,21 +1038,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1077,21 +1077,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1141,21 +1141,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1179,21 +1179,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1218,21 +1218,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1282,21 +1282,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1320,21 +1320,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1359,21 +1359,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1471,21 +1471,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1509,21 +1509,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1548,21 +1548,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1612,21 +1612,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1680,21 +1680,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1719,21 +1719,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1783,21 +1783,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1821,21 +1821,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1860,21 +1860,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1927,21 +1927,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -1965,21 +1965,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>
@@ -2004,21 +2004,21 @@
                                                             class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <i data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></i>
+                                                            <span data-icon="tabler:dots-vertical" class="iconify tabler--dots-vertical ui-kit-type-xl"></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:eye" class="iconify tabler--eye ui-kit-type-xs"></span>
                                                                     개요
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <i data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:edit" class="iconify tabler--edit ui-kit-type-xs"></span>
                                                                     수정
                                                                 </a>
                                                                 <a class="dropdown-item ui-kit-ink-danger" href="#">
-                                                                    <i data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></i>
+                                                                    <span data-icon="tabler:trash" class="iconify tabler--trash ui-kit-type-xs"></span>
                                                                     삭제
                                                                 </a>
                                                             </div>

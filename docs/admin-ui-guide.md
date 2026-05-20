@@ -29,6 +29,10 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 - UI-KIT 조회 화면의 배치와 예시 상태 표시처럼 실제 컴포넌트 원형이 아닌 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*` 같은 Tailwind식 범용 utility 표현은 관리자/공개 UI-KIT 샘플에 사용하지 않는다.
 - 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/admin/ui-kit-public` public 런타임 미리보기에서 런타임별 결과를 확인한다.
 
+버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 관리자 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 `modules/admin/assets/admin.css`에서 직접 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`에서 상태별 표현과 아이콘 렌더링을 함께 확인한다.
+
+UI-KIT의 Tabler/Lucide 예시는 Iconify 런타임을 사용한다. 아이콘은 `span.iconify[data-icon]` 형태로 출력하되, 버튼, 탭, 드롭다운, 모달 닫기 버튼 안에서도 크기와 정렬이 깨지지 않도록 공통 icon sizing을 관리자 CSS에 둔다.
+
 ## 화면 내 이동 링크
 
 사이드 메뉴에 이미 등록된 관리자 화면 이동 링크는 본문 상단에 다시 만들지 않는다. 예를 들어 회원 그룹의 그룹 목록, 자동 규칙, 재평가, 수동 배정처럼 사이드 메뉴가 1차 탐색을 제공하는 화면은 각 view 안에서 `admin-local-nav` 버튼 묶음을 반복하지 않는다.
@@ -109,18 +113,18 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 </div>
 ```
 
-회원 설정의 선택 프로필 항목처럼 한 항목에 여러 불리언 옵션이 붙는 경우에도 같은 `af-row` 안에 체크박스를 나란히 둔다. 선택 프로필은 항목별로 `보이기`와 `필수입력`을 제공하며, `필수입력`은 `보이기`가 켜진 항목에만 유효하다.
+회원 설정의 선택 프로필 항목처럼 한 항목에 여러 불리언 옵션이 붙는 경우에도 같은 `admin-form-row` 안에 체크박스를 나란히 둔다. 선택 프로필은 항목별로 `보이기`와 `필수입력`을 제공하며, `필수입력`은 `보이기`가 켜진 항목에만 유효하다.
 
 ## 목록 화면
 
 목록형 화면은 공통 관리자 목록 원형을 기준으로 맞춘다.
 
-- 상단 요약/탭 성격의 이동 링크는 `admin-summary`와 `admin-summary-links`를 사용한다.
+- 사이드 메뉴에 없는 하위 흐름이나 필터성 이동 링크는 `admin-local-nav-wrap`과 `admin-local-nav`를 사용한다.
 - 목록 테이블은 `admin-card card` 또는 `admin-list-card admin-card card` 섹션 안에서 `table-wrapper`와 `table`을 사용한다.
 - 테이블 전체를 감싸는 일괄 작업 폼은 `admin-list-form`을 사용한다.
-- 행 단위 관리 버튼은 `admin-cell-actions`와 `admin-row-actions` 안에 둔다.
+- 행 단위 관리 버튼은 `admin-table-actions-cell`과 `admin-row-actions` 안에 둔다.
 
-목록 위 필터는 테이블 카드 안에서 임의의 문단으로 붙이지 않고 `admin-filter`, `admin-filter-fields`, `admin-filter-field`, `admin-filter-label` 구조를 사용한다. 필터가 목록 범위를 바꾸는 조건일 때는 목록 위에 두고, 화면 전체 범위를 바꾸는 조건일 때는 목록 섹션 바깥에 둔다.
+목록 위 필터는 테이블 카드 안에서 임의의 문단으로 붙이지 않고 `form.admin-filter.ui-form-theme > .admin-filter-grid > .admin-filter-field` 구조를 사용한다. 제목이나 초기화 버튼이 필요하면 `.admin-filter-header`를 먼저 둔다. 필터가 목록 범위를 바꾸는 조건일 때는 목록 위에 두고, 화면 전체 범위를 바꾸는 조건일 때는 목록 섹션 바깥에 둔다.
 
 저장, 삭제, 적용 같은 짧은 결과 안내는 `sr_admin_feedback_toasts($notice, $errors)`를 사용해 토스트로 출력한다. 화면 본문에 영구적으로 남아야 하는 설명과 작업 결과 피드백을 섞지 않는다.
 
