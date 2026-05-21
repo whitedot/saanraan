@@ -14,6 +14,34 @@ $notice = '';
 $allowedPostStatuses = sr_community_post_statuses();
 $allowedCommentStatuses = sr_community_comment_statuses();
 $settings = sr_community_settings($pdo);
+$postBoardOptionsStmt = $pdo->query(
+    'SELECT b.id, b.board_key, b.title, g.title AS board_group_title
+     FROM sr_community_boards b
+     LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
+     ORDER BY COALESCE(g.sort_order, 1000000) ASC, g.id ASC, b.sort_order ASC, b.id ASC'
+);
+$postBoardOptions = $postBoardOptionsStmt->fetchAll();
+$postBoardIds = [];
+foreach ($postBoardOptions as $postBoardOption) {
+    $postBoardIds[(int) $postBoardOption['id']] = true;
+}
+$postBoardFilterValue = sr_get_string('board_id', 20);
+$postBoardFilterId = preg_match('/\A[1-9][0-9]*\z/', $postBoardFilterValue) === 1 ? (int) $postBoardFilterValue : 0;
+if ($postBoardFilterId > 0 && !isset($postBoardIds[$postBoardFilterId])) {
+    $postBoardFilterId = 0;
+}
+$postListFilters = [
+    'status' => sr_get_string('status', 30),
+    'board_id' => $postBoardFilterId,
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if ($postListFilters['status'] !== '' && !in_array($postListFilters['status'], $allowedPostStatuses, true)) {
+    $postListFilters['status'] = '';
+}
+if (!in_array($postListFilters['field'], ['all', 'title', 'author', 'board'], true)) {
+    $postListFilters['field'] = 'all';
+}
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -122,7 +150,21 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$posts = sr_community_admin_posts($pdo, 100);
+$postStatusCounts = ['total' => 0];
+foreach ($allowedPostStatuses as $status) {
+    $postStatusCounts[$status] = 0;
+}
+$postStatusCountStmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_posts GROUP BY status');
+foreach ($postStatusCountStmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $postStatusCounts)) {
+        $postStatusCounts[$status] = $count;
+    }
+    $postStatusCounts['total'] += $count;
+}
+
+$posts = sr_community_admin_posts($pdo, 100, $postListFilters);
 $comments = sr_community_admin_comments($pdo, 100);
 
 include SR_ROOT . '/modules/community/views/admin-posts.php';
