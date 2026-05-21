@@ -56,7 +56,7 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
     for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) {
         $html .= '<option value="' . sr_e((string) $levelValue) . '"' . ($selectedLevel === $levelValue ? ' selected' : '') . '>';
-        $html .= sr_e('레벨 ' . (string) $levelValue);
+        $html .= sr_e((string) $levelValue);
         $html .= '</option>';
     }
 

@@ -96,7 +96,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
                                         <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
-                                            <?php echo sr_e('레벨 ' . (string) $levelValue); ?>
+                                            <?php echo sr_e((string) $levelValue); ?>
                                         </option>
                                     <?php } ?>
                                 </select>
