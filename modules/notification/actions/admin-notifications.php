@@ -10,6 +10,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedAudiences = ['account', 'all'];
+$allowedNotificationStatuses = sr_notification_admin_statuses();
 $allowedChannels = sr_notification_allowed_channels();
 $allowedCreateChannels = array_values(array_intersect($allowedChannels, ['site', 'email']));
 $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
@@ -20,19 +21,30 @@ if (!in_array($notificationAdminPage, ['list', 'new', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
-$filters = [
+$notificationListFilters = [
     'audience' => sr_get_string('audience', 30),
+    'status' => sr_get_string('status', 30),
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+$deliveryListFilters = [
     'delivery_channel' => sr_get_string('delivery_channel', 30),
     'delivery_status' => sr_get_string('delivery_status', 30),
 ];
-if ($filters['audience'] !== '' && !in_array($filters['audience'], $allowedAudiences, true)) {
-    $filters['audience'] = '';
+if ($notificationListFilters['audience'] !== '' && !in_array($notificationListFilters['audience'], $allowedAudiences, true)) {
+    $notificationListFilters['audience'] = '';
 }
-if ($filters['delivery_channel'] !== '' && !in_array($filters['delivery_channel'], $allowedChannels, true)) {
-    $filters['delivery_channel'] = '';
+if ($notificationListFilters['status'] !== '' && !in_array($notificationListFilters['status'], $allowedNotificationStatuses, true)) {
+    $notificationListFilters['status'] = '';
 }
-if ($filters['delivery_status'] !== '' && !in_array($filters['delivery_status'], $allowedDeliveryStatuses, true)) {
-    $filters['delivery_status'] = '';
+if (!in_array($notificationListFilters['field'], ['all', 'title', 'body', 'link', 'account', 'id'], true)) {
+    $notificationListFilters['field'] = 'all';
+}
+if ($deliveryListFilters['delivery_channel'] !== '' && !in_array($deliveryListFilters['delivery_channel'], $allowedChannels, true)) {
+    $deliveryListFilters['delivery_channel'] = '';
+}
+if ($deliveryListFilters['delivery_status'] !== '' && !in_array($deliveryListFilters['delivery_status'], $allowedDeliveryStatuses, true)) {
+    $deliveryListFilters['delivery_status'] = '';
 }
 
 if (sr_request_method() === 'POST') {
@@ -229,33 +241,21 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$notifications = [];
-$notificationSql = 'SELECT id, audience, status, created_at
-                    FROM sr_notifications';
-$notificationParams = [];
-if ($filters['audience'] !== '') {
-    $notificationSql .= ' WHERE audience = :audience';
-    $notificationParams['audience'] = $filters['audience'];
-}
-$notificationSql .= ' ORDER BY id DESC LIMIT 100';
-$stmt = $pdo->prepare($notificationSql);
-$stmt->execute($notificationParams);
-foreach ($stmt->fetchAll() as $row) {
-    $notifications[] = $row;
-}
+$notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
+$notifications = sr_notification_admin_notifications($pdo, 100, $notificationListFilters);
 
 $deliveries = [];
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.updated_at
                 FROM sr_notification_deliveries d';
 $deliveryParams = [];
 $deliveryWhere = [];
-if ($filters['delivery_channel'] !== '') {
+if ($deliveryListFilters['delivery_channel'] !== '') {
     $deliveryWhere[] = 'd.channel = :delivery_channel';
-    $deliveryParams['delivery_channel'] = $filters['delivery_channel'];
+    $deliveryParams['delivery_channel'] = $deliveryListFilters['delivery_channel'];
 }
-if ($filters['delivery_status'] !== '') {
+if ($deliveryListFilters['delivery_status'] !== '') {
     $deliveryWhere[] = 'd.status = :delivery_status';
-    $deliveryParams['delivery_status'] = $filters['delivery_status'];
+    $deliveryParams['delivery_status'] = $deliveryListFilters['delivery_status'];
 }
 if ($deliveryWhere !== []) {
     $deliverySql .= ' WHERE ' . implode(' AND ', $deliveryWhere);

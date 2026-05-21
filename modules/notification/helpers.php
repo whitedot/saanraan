@@ -72,6 +72,92 @@ function sr_notification_external_channels(array $channels): array
     return $externalChannels;
 }
 
+function sr_notification_admin_statuses(): array
+{
+    return ['queued', 'active', 'deleted'];
+}
+
+function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = []): array
+{
+    $limit = max(1, min(200, $limit));
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['audience'] ?? '') !== '') {
+        $where[] = 'n.audience = :audience';
+        $params['audience'] = (string) $filters['audience'];
+    }
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 'n.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'title') {
+            $where[] = 'n.title LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'body') {
+            $where[] = 'n.body_text LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'link') {
+            $where[] = 'n.link_url LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'account') {
+            $where[] = 'CAST(n.account_id AS CHAR) LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'id') {
+            $where[] = 'CAST(n.id AS CHAR) LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } else {
+            $where[] = '(n.title LIKE :title_keyword OR n.body_text LIKE :body_keyword OR n.link_url LIKE :link_keyword OR CAST(n.id AS CHAR) LIKE :id_keyword OR CAST(n.account_id AS CHAR) LIKE :account_keyword)';
+            $params['title_keyword'] = '%' . $keyword . '%';
+            $params['body_keyword'] = '%' . $keyword . '%';
+            $params['link_keyword'] = '%' . $keyword . '%';
+            $params['id_keyword'] = '%' . $keyword . '%';
+            $params['account_keyword'] = '%' . $keyword . '%';
+        }
+    }
+
+    $sql = 'SELECT n.id, n.audience, n.account_id, n.title, n.status, n.created_at
+            FROM sr_notifications n';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY n.id DESC LIMIT :limit_value';
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_notification_admin_status_counts(PDO $pdo, array $allowedStatuses): array
+{
+    $counts = ['total' => 0];
+    foreach ($allowedStatuses as $status) {
+        $counts[$status] = 0;
+    }
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_notifications GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
 function sr_notification_create(PDO $pdo, array $data): int
 {
     $audience = (string) ($data['audience'] ?? 'account');

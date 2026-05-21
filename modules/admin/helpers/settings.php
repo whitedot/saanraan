@@ -88,6 +88,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'sms' => '문자',
         ],
         'notification_status' => [
+            'queued' => '대기',
             'active' => '활성',
             'deleted' => '삭제됨',
         ],

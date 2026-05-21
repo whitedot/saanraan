@@ -51,3 +51,18 @@
 .notification-dashboard-detail span {
     color: var(--color-default-700);
 }
+
+.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
+.admin-page-notification-list .admin-notification-filter .admin-filter-field{min-width:0}
+.admin-page-notification-list .admin-notification-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-page-notification-list .admin-notification-table{table-layout:fixed;min-width:62rem}
+.admin-page-notification-list .admin-notification-table th,.admin-page-notification-list .admin-notification-table td{overflow:hidden;text-overflow:ellipsis}
+.admin-page-notification-list .admin-notification-table .admin-table-actions-cell{min-width:7rem;overflow:visible}
+.admin-page-notification-list .admin-notification-title-cell,.admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{overflow:hidden;text-overflow:ellipsis}
+.admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{white-space:nowrap}
+.admin-page-notification-list .admin-notification-table .admin-row-actions{gap:.5rem}
+.admin-page-notification-list .admin-notification-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
+.notification-id{font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-semibold);color:inherit}
+
+@media (max-width:1023px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .admin-filter-submit{grid-column:1 / -1}.admin-page-notification-list .admin-notification-filter .admin-filter-submit{width:100%}}
+@media (max-width:767px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .admin-filter-submit{grid-column:auto}}
