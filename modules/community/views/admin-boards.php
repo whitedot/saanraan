@@ -31,6 +31,17 @@ $boardArrayValue = static function (array $board, string $key): string {
 $boardField = static function (array $board, string $key, string $default = ''): string {
     return (string) ($board[$key] ?? $default);
 };
+$communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
+    $selectedLevel = sr_community_normalize_level_value($selectedLevel);
+    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
+    for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) {
+        $html .= '<option value="' . sr_e((string) $levelValue) . '"' . ($selectedLevel === $levelValue ? ' selected' : '') . '>';
+        $html .= sr_e('레벨 ' . (string) $levelValue);
+        $html .= '</option>';
+    }
+
+    return $html . '</select>';
+};
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
 $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'board_group_id' => 0,
@@ -325,7 +336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_read_min_level">읽기 최소 레벨</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_read_min_level" type="number" name="read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'read_min_level', '0')); ?>">
+                    <?php echo $communityLevelSelectHtml('community_admin_boards_read_min_level', 'read_min_level', (int) $boardField($formBoard, 'read_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_read_min_level" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -370,7 +381,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_write_min_level">쓰기 최소 레벨</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_write_min_level" type="number" name="write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'write_min_level', '0')); ?>">
+                    <?php echo $communityLevelSelectHtml('community_admin_boards_write_min_level', 'write_min_level', (int) $boardField($formBoard, 'write_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_write_min_level" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -415,7 +426,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_comment_min_level">댓글 최소 레벨</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_comment_min_level" type="number" name="comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
+                    <?php echo $communityLevelSelectHtml('community_admin_boards_comment_min_level', 'comment_min_level', (int) $boardField($formBoard, 'comment_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_comment_min_level" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
