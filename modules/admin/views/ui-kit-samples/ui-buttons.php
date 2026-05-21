@@ -613,7 +613,7 @@
                                         class="btn btn-soft-default btn-group-middle">3</button>
 
                                     <div class="dropdown">
-                                        <button type="button" class="btn btn-soft-default btn-group-end"
+                                        <button type="button" class="dropdown-toggle btn btn-soft-default btn-group-end"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
@@ -648,7 +648,7 @@
                                                 class="btn btn-soft-default btn-group-middle">버튼 2</button>
                                             <div class="dropdown">
                                                 <button type="button"
-                                                    class="btn btn-soft-default btn-group-bottom"
+                                                    class="dropdown-toggle btn btn-soft-default btn-group-bottom"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
                                                     <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
