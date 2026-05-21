@@ -41,6 +41,7 @@ if ($pageAdminPage === 'form') {
     }
 } else {
     $filters = sr_page_admin_filters();
+    $pageStatusCounts = sr_page_admin_status_counts($pdo);
     $pages = sr_page_admin_list($pdo, $filters);
 }
 

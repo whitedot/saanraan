@@ -142,7 +142,8 @@
 #config_tabs_nav,#member_tabs_nav{background-color:var(--color-default-100);width:100%;top:var(--admin-shell-bar-height);z-index:15;margin:0 0 .375rem;transition:box-shadow .14s,border-color .14s;position:sticky}
 #content_tabs_bar{box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 1px 2px #393e5026;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);--config-tabs-inline-pad:.75rem;top:var(--admin-shell-bar-height);z-index:15;padding:0 var(--config-tabs-inline-pad);margin:0 0 .375rem;transition:box-shadow .14s,border-color .14s}
 .admin-form>section[id^=anc_]{scroll-margin-top:calc(var(--admin-shell-bar-height) + var(--config-tabs-height,3.25rem) + .75rem)}
-.admin-form-sticky-actions{padding-inline:calc(var(--spacing) * 5);padding-top:calc(var(--spacing) * 4);padding-bottom:calc(var(--spacing) * 5);background-color:var(--color-default-100);position:static}
+.admin-form-sticky-actions{padding-inline:calc(var(--spacing) * 5);padding-top:calc(var(--spacing) * 4);padding-bottom:calc(var(--spacing) * 5);border-top:1px solid var(--color-default-300);background-color:var(--color-default-100);position:sticky;bottom:0;z-index:14}
+@supports (color:color-mix(in lab, red, red)){.admin-form-sticky-actions{background-color:color-mix(in oklab, var(--color-default-100) 88%, transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
 .admin-form-actions{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
 .admin-form-actions-primary{justify-content:flex-end}
 .admin-form-actions-split>button[type=submit],.admin-form-actions-split>input[type=submit]{margin-left:auto}
@@ -373,7 +374,6 @@
 .admin-menu-row.is-drop-before>td:first-child::before{top:-.275rem}
 .admin-menu-row.is-drop-after>td:first-child::after{bottom:-.275rem}
 .admin-list-card.admin-menu-form{overflow:visible}
-.admin-form-sticky-actions.admin-menu-form-actions{position:sticky;bottom:0;z-index:14;border-top:1px solid var(--color-default-300);background-color:color-mix(in oklab, var(--color-default-100) 88%, transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .admin-menu-form-actions>button[name="intent"][value="save_menu_overrides"]{margin-left:auto}
 .admin-drag-handle-icon{font-size:1.25rem;line-height:1}
 .scroll_top{border-radius:var(--radius-lg);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-default-100);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.5);font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-medium);color:var(--color-default-600);transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);align-items:center;display:inline-flex}
@@ -432,11 +432,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     }
 
     .admin-form-sticky-actions{
-        position:static;
         padding-inline:calc(var(--spacing) * 4);
-        background:var(--color-default-100);
-        -webkit-backdrop-filter:none;
-        backdrop-filter:none;
     }
 
     .admin-form-actions-split{

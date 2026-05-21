@@ -226,10 +226,38 @@ function sr_page_admin_filters(): array
         $status = '';
     }
 
+    $field = sr_get_string('field', 20);
+    if (!in_array($field, ['all', 'title', 'slug'], true)) {
+        $field = 'all';
+    }
+
     return [
         'status' => $status,
+        'field' => $field,
         'q' => sr_page_clean_single_line(sr_get_string('q', 120), 120),
     ];
+}
+
+function sr_page_admin_status_counts(PDO $pdo): array
+{
+    $counts = [
+        'total' => 0,
+        'draft' => 0,
+        'published' => 0,
+        'hidden' => 0,
+    ];
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_pages GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
 }
 
 function sr_page_admin_list(PDO $pdo, array $filters): array
@@ -242,9 +270,18 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
     }
 
     if ((string) ($filters['q'] ?? '') !== '') {
-        $where[] = '(p.title LIKE :title_keyword OR p.slug LIKE :slug_keyword)';
-        $params['title_keyword'] = '%' . (string) $filters['q'] . '%';
-        $params['slug_keyword'] = '%' . (string) $filters['q'] . '%';
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'title') {
+            $where[] = 'p.title LIKE :keyword';
+            $params['keyword'] = '%' . (string) $filters['q'] . '%';
+        } elseif ($field === 'slug') {
+            $where[] = 'p.slug LIKE :keyword';
+            $params['keyword'] = '%' . (string) $filters['q'] . '%';
+        } else {
+            $where[] = '(p.title LIKE :title_keyword OR p.slug LIKE :slug_keyword)';
+            $params['title_keyword'] = '%' . (string) $filters['q'] . '%';
+            $params['slug_keyword'] = '%' . (string) $filters['q'] . '%';
+        }
     }
 
     $sql = 'SELECT p.*, creator.display_name AS created_by_name, updater.display_name AS updated_by_name

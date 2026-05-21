@@ -35,6 +35,11 @@ if ($values === []) {
 }
 
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? '페이지 수정' : '페이지 추가') : '페이지';
+$adminPageSubtitle = $pageAdminPage === 'form' ? '공개 페이지의 본문, 노출 상태, 자산 정책을 관리합니다.' : '페이지 상태를 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminContainerClass = $pageAdminPage === 'form' ? 'admin-page-content-form admin-ui-scope' : 'admin-page-content-list admin-ui-scope';
+$filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'field' => 'all', 'q' => ''];
+$pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
+$totalPages = (int) ($pageStatusCounts['total'] ?? count($pages ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -390,6 +395,49 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } else { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총페이지 <strong><?php echo sr_e((string) $totalPages); ?>개</strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=published')); ?>" class="admin-summary-meta">공개 <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=draft')); ?>" class="admin-summary-meta">초안 <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=hidden')); ?>" class="admin-summary-meta">숨김 <?php echo sr_e((string) ($pageStatusCounts['hidden'] ?? 0)); ?>개</a>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter admin-page-filter ui-form-theme">
+        <div class="admin-filter-grid admin-page-search-grid">
+            <div class="admin-filter-field admin-page-filter-status">
+                <label for="modules_page_admin_pages_status" class="admin-filter-label">상태</label>
+                <select id="modules_page_admin_pages_status" name="status" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach (sr_page_allowed_statuses() as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-page-filter-field">
+                <label for="modules_page_admin_pages_field" class="admin-filter-label">검색 조건</label>
+                <select id="modules_page_admin_pages_field" name="field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'title' => '제목', 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-page-filter-keyword">
+                <label for="modules_page_admin_pages_q" class="admin-filter-label">검색어</label>
+                <input id="modules_page_admin_pages_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="제목, Slug">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>
@@ -398,28 +446,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-solid-light">새 페이지 추가</a>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter ui-form-theme">
-            <div class="admin-filter-grid admin-filter-grid-compact">
-                <label class="admin-filter-field" for="modules_page_admin_pages_status">
-                    <span class="admin-filter-label">상태</span>
-                    <select id="modules_page_admin_pages_status" name="status" class="form-select">
-                        <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
-                        <?php foreach (sr_page_allowed_statuses() as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-                <label class="admin-filter-field" for="modules_page_admin_pages_q">
-                    <span class="admin-filter-label">검색</span>
-                    <input id="modules_page_admin_pages_q" type="search" name="q" value="<?php echo sr_e((string) $filters['q']); ?>" class="form-input" maxlength="120">
-                </label>
-                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
-            </div>
-        </form>
         <div class="table-wrapper">
-            <table class="table">
+            <table class="table admin-page-table">
+                <caption class="sr-only">페이지 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
                         <th>제목</th>
@@ -429,7 +458,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>작성자</th>
                         <th>수정일</th>
                         <th>공개일</th>
-                        <th>관리</th>
+                        <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -439,10 +468,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
+                            <?php
+                            $pageStatus = (string) $page['status'];
+                            $statusClass = match ($pageStatus) {
+                                'published' => 'is-normal',
+                                'draft' => 'is-blocked',
+                                default => 'is-left',
+                            };
+                            ?>
                             <tr>
-                                <td><?php echo sr_e((string) $page['title']); ?></td>
-                                <td><code><?php echo sr_e((string) $page['slug']); ?></code></td>
-                                <td><?php echo sr_e(sr_admin_code_label((string) $page['status'], 'content_status')); ?></td>
+                                <td class="admin-table-break admin-page-title-cell"><?php echo sr_e((string) $page['title']); ?></td>
+                                <td class="admin-table-nowrap admin-page-slug-cell"><code><?php echo sr_e((string) $page['slug']); ?></code></td>
+                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>
                                     <?php if ((int) ($page['asset_access_enabled'] ?? 0) === 1) { ?>
                                         <?php echo sr_e(sr_page_asset_module_label((string) ($page['asset_module'] ?? ''))); ?>
@@ -452,11 +489,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         무료
                                     <?php } ?>
                                 </td>
-                                <td><?php echo sr_e((string) ($page['created_by_name'] ?? '')); ?></td>
-                                <td><?php echo sr_e((string) $page['updated_at']); ?></td>
-                                <td><?php echo sr_e((string) ($page['published_at'] ?? '')); ?></td>
-                                <td>
-                                    <div class="admin-actions">
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['created_by_name'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap admin-page-date-cell"><?php echo sr_e((string) $page['updated_at']); ?></td>
+                                <td class="admin-table-nowrap admin-page-date-cell"><?php echo sr_e((string) ($page['published_at'] ?? '')); ?></td>
+                                <td class="admin-table-actions-cell">
+                                    <div class="admin-row-actions">
                                         <?php if ((string) $page['status'] === 'published') { ?>
                                             <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer">보기</a>
                                         <?php } ?>
