@@ -60,6 +60,26 @@ try {
     exit;
 }
 
+$autoCleanupScope = null;
+if ($method === 'GET') {
+    $autoCleanupScope = $path === '/admin' || str_starts_with($path, '/admin/') ? 'admin' : 'public';
+}
+
+if ($autoCleanupScope !== null) {
+    $autoCleanupEnabled = sr_site_setting($pdo, 'admin.retention.auto_cleanup_enabled', true);
+    $autoCleanupEnabled = in_array($autoCleanupEnabled, [true, 1, '1', 'true', 'yes', 'on'], true);
+    $autoCleanupLastAt = (string) sr_site_setting($pdo, 'admin.retention.last_auto_cleanup_at.' . $autoCleanupScope, '');
+    $autoCleanupLastTime = $autoCleanupLastAt === '' ? false : strtotime($autoCleanupLastAt);
+    $autoCleanupInterval = sr_site_setting($pdo, 'admin.retention.auto_cleanup_interval_hours', 24);
+    $autoCleanupIntervalHours = is_int($autoCleanupInterval) ? $autoCleanupInterval : (ctype_digit((string) $autoCleanupInterval) ? (int) $autoCleanupInterval : 24);
+    $autoCleanupDue = $autoCleanupLastTime === false || time() - $autoCleanupLastTime >= max(1, $autoCleanupIntervalHours) * 3600;
+    if ($autoCleanupEnabled && $autoCleanupDue && sr_module_enabled($pdo, 'admin')) {
+        require_once SR_ROOT . '/modules/member/helpers.php';
+        require_once SR_ROOT . '/modules/admin/helpers.php';
+        sr_admin_retention_maybe_run_auto_cleanup($pdo, $autoCleanupScope);
+    }
+}
+
 if (
     $site !== null
     && $site['status'] === 'maintenance'

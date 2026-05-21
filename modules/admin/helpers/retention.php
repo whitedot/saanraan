@@ -16,6 +16,21 @@ function sr_admin_retention_default_values(): array
         'sessions_days' => 30,
         'notifications_days' => 365,
         'module_backups_days' => 180,
+        'auto_cleanup_enabled' => 1,
+        'auto_cleanup_interval_hours' => 24,
+        'auto_cleanup_batch_size' => 200,
+    ];
+}
+
+function sr_admin_retention_day_value_keys(): array
+{
+    return [
+        'auth_logs_days',
+        'audit_logs_days',
+        'used_tokens_days',
+        'sessions_days',
+        'notifications_days',
+        'module_backups_days',
     ];
 }
 
@@ -28,7 +43,23 @@ function sr_admin_retention_setting_keys(): array
         'sessions_days' => 'admin.retention.sessions_days',
         'notifications_days' => 'admin.retention.notifications_days',
         'module_backups_days' => 'admin.retention.module_backups_days',
+        'auto_cleanup_enabled' => 'admin.retention.auto_cleanup_enabled',
+        'auto_cleanup_interval_hours' => 'admin.retention.auto_cleanup_interval_hours',
+        'auto_cleanup_batch_size' => 'admin.retention.auto_cleanup_batch_size',
     ];
+}
+
+function sr_admin_retention_int_setting_value(mixed $value, int $default, int $min, int $max): int
+{
+    if (is_int($value) && $value >= $min && $value <= $max) {
+        return $value;
+    }
+
+    if (is_string($value) && ctype_digit($value) && (int) $value >= $min && (int) $value <= $max) {
+        return (int) $value;
+    }
+
+    return $default;
 }
 
 function sr_admin_retention_values(PDO $pdo): array
@@ -36,10 +67,14 @@ function sr_admin_retention_values(PDO $pdo): array
     $values = sr_admin_retention_default_values();
     foreach (sr_admin_retention_setting_keys() as $valueKey => $settingKey) {
         $value = sr_site_setting($pdo, $settingKey, $values[$valueKey]);
-        if (is_int($value) && $value >= 1 && $value <= 3650) {
-            $values[$valueKey] = $value;
-        } elseif (is_string($value) && ctype_digit($value) && (int) $value >= 1 && (int) $value <= 3650) {
-            $values[$valueKey] = (int) $value;
+        if (in_array($valueKey, sr_admin_retention_day_value_keys(), true)) {
+            $values[$valueKey] = sr_admin_retention_int_setting_value($value, $values[$valueKey], 1, 3650);
+        } elseif ($valueKey === 'auto_cleanup_enabled') {
+            $values[$valueKey] = in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true) ? 1 : 0;
+        } elseif ($valueKey === 'auto_cleanup_interval_hours') {
+            $values[$valueKey] = sr_admin_retention_int_setting_value($value, $values[$valueKey], 1, 720);
+        } elseif ($valueKey === 'auto_cleanup_batch_size') {
+            $values[$valueKey] = sr_admin_retention_int_setting_value($value, $values[$valueKey], 1, 5000);
         }
     }
 
@@ -49,11 +84,14 @@ function sr_admin_retention_values(PDO $pdo): array
 function sr_admin_retention_post_values(array $currentValues): array
 {
     $values = $currentValues;
-    foreach (array_keys(sr_admin_retention_default_values()) as $key) {
+    foreach (sr_admin_retention_day_value_keys() as $key) {
         if (array_key_exists($key, $_POST)) {
             $values[$key] = sr_admin_post_int_in_range($key, 1, 3650, 5) ?? 0;
         }
     }
+    $values['auto_cleanup_enabled'] = ($_POST['auto_cleanup_enabled'] ?? '') === '1' ? 1 : 0;
+    $values['auto_cleanup_interval_hours'] = sr_admin_post_int_in_range('auto_cleanup_interval_hours', 1, 720, 5) ?? 0;
+    $values['auto_cleanup_batch_size'] = sr_admin_post_int_in_range('auto_cleanup_batch_size', 1, 5000, 5) ?? 0;
 
     return $values;
 }
@@ -61,11 +99,26 @@ function sr_admin_retention_post_values(array $currentValues): array
 function sr_admin_validate_retention_values(array $values): array
 {
     $errors = [];
-    foreach ($values as $days) {
+    foreach (sr_admin_retention_day_value_keys() as $key) {
+        $days = (int) ($values[$key] ?? 0);
         if ($days < 1 || $days > 3650) {
             $errors[] = '보관 기간은 1일부터 3650일 사이로 입력하세요.';
             break;
         }
+    }
+
+    if (!in_array((int) ($values['auto_cleanup_enabled'] ?? 0), [0, 1], true)) {
+        $errors[] = '자동 정리 사용 값이 올바르지 않습니다.';
+    }
+
+    $intervalHours = (int) ($values['auto_cleanup_interval_hours'] ?? 0);
+    if ($intervalHours < 1 || $intervalHours > 720) {
+        $errors[] = '자동 정리 실행 간격은 1시간부터 720시간 사이로 입력하세요.';
+    }
+
+    $batchSize = (int) ($values['auto_cleanup_batch_size'] ?? 0);
+    if ($batchSize < 1 || $batchSize > 5000) {
+        $errors[] = '자동 정리 배치 크기는 1개부터 5000개 사이로 입력하세요.';
     }
 
     return $errors;
@@ -87,9 +140,10 @@ function sr_admin_save_retention_values(PDO $pdo, array $values): void
 {
     $settings = [];
     foreach (sr_admin_retention_setting_keys() as $valueKey => $settingKey) {
+        $type = $valueKey === 'auto_cleanup_enabled' ? 'bool' : 'int';
         $settings[$settingKey] = [
             'value' => (string) $values[$valueKey],
-            'type' => 'int',
+            'type' => $type,
         ];
     }
 
@@ -141,54 +195,63 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
     return [
         'auth_logs' => [
             'enabled' => true,
+            'auto_scope' => 'public',
             'cutoff_key' => 'auth_logs',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_member_auth_logs WHERE created_at < :cutoff',
             'count_params' => [
                 'cutoff' => 'auth_logs',
             ],
             'delete_sql' => 'DELETE FROM sr_member_auth_logs WHERE created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_member_auth_logs WHERE created_at < :cutoff ORDER BY id ASC LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'auth_logs',
             ],
         ],
         'audit_logs' => [
             'enabled' => true,
+            'auto_scope' => 'admin',
             'cutoff_key' => 'audit_logs',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_audit_logs WHERE created_at < :cutoff',
             'count_params' => [
                 'cutoff' => 'audit_logs',
             ],
             'delete_sql' => 'DELETE FROM sr_audit_logs WHERE created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_audit_logs WHERE created_at < :cutoff ORDER BY id ASC LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'audit_logs',
             ],
         ],
         'password_resets' => [
             'enabled' => true,
+            'auto_scope' => 'public',
             'cutoff_key' => 'used_tokens',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
             'count_params' => [
                 'cutoff' => 'used_tokens',
             ],
             'delete_sql' => 'DELETE FROM sr_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_member_password_resets WHERE used_at IS NOT NULL AND used_at < :cutoff ORDER BY id ASC LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'used_tokens',
             ],
         ],
         'email_verifications' => [
             'enabled' => true,
+            'auto_scope' => 'public',
             'cutoff_key' => 'used_tokens',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
             'count_params' => [
                 'cutoff' => 'used_tokens',
             ],
             'delete_sql' => 'DELETE FROM sr_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_member_email_verifications WHERE verified_at IS NOT NULL AND verified_at < :cutoff ORDER BY id ASC LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'used_tokens',
             ],
         ],
         'sessions' => [
             'enabled' => $hasSessionsTable,
+            'auto_scope' => 'public',
             'cutoff_key' => 'sessions',
             'count_sql' => 'SELECT COUNT(*) AS count_value
              FROM sr_member_sessions
@@ -201,6 +264,11 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
             'delete_sql' => 'DELETE FROM sr_member_sessions
              WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
                 OR expires_at < :expired_cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_member_sessions
+             WHERE (revoked_at IS NOT NULL AND revoked_at < :revoked_cutoff)
+                OR expires_at < :expired_cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
             'delete_params' => [
                 'revoked_cutoff' => 'sessions',
                 'expired_cutoff' => 'sessions',
@@ -208,6 +276,7 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
         ],
         'runtime_sessions' => [
             'enabled' => $hasRuntimeSessionsTable,
+            'auto_scope' => 'public',
             'cutoff_key' => 'sessions',
             'count_sql' => 'SELECT COUNT(*) AS count_value
              FROM sr_sessions
@@ -217,12 +286,17 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
             ],
             'delete_sql' => 'DELETE FROM sr_sessions
              WHERE expires_at < :expired_cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_sessions
+             WHERE expires_at < :expired_cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
             'delete_params' => [
                 'expired_cutoff' => 'sessions',
             ],
         ],
         'rate_limits' => [
             'enabled' => $hasRateLimitsTable,
+            'auto_scope' => 'public',
             'cutoff_key' => 'sessions',
             'count_sql' => 'SELECT COUNT(*) AS count_value
              FROM sr_rate_limits
@@ -232,24 +306,40 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
             ],
             'delete_sql' => 'DELETE FROM sr_rate_limits
              WHERE expires_at < :expired_cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_rate_limits
+             WHERE expires_at < :expired_cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
             'delete_params' => [
                 'expired_cutoff' => 'sessions',
             ],
         ],
         'notifications' => [
             'enabled' => $hasNotificationTables,
+            'auto_scope' => 'public',
             'cutoff_key' => 'notifications',
             'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_notifications WHERE created_at < :cutoff',
             'count_params' => [
                 'cutoff' => 'notifications',
             ],
             'delete_sql' => 'DELETE FROM sr_notifications WHERE created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_notifications
+             WHERE created_at < :cutoff
+               AND NOT EXISTS (
+                    SELECT 1 FROM sr_notification_deliveries d WHERE d.notification_id = sr_notifications.id
+               )
+               AND NOT EXISTS (
+                    SELECT 1 FROM sr_notification_reads r WHERE r.notification_id = sr_notifications.id
+               )
+             ORDER BY id ASC
+             LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'notifications',
             ],
         ],
         'notification_deliveries' => [
             'enabled' => $hasNotificationTables,
+            'auto_scope' => 'public',
             'cutoff_key' => 'notifications',
             'count_sql' => 'SELECT COUNT(*) AS count_value
              FROM sr_notification_deliveries d
@@ -262,12 +352,18 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
              FROM sr_notification_deliveries d
              INNER JOIN sr_notifications n ON n.id = d.notification_id
              WHERE n.created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_notification_deliveries
+             WHERE notification_id IN (
+                SELECT id FROM sr_notifications WHERE created_at < :cutoff
+             )
+             LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'notifications',
             ],
         ],
         'notification_reads' => [
             'enabled' => $hasNotificationTables,
+            'auto_scope' => 'public',
             'cutoff_key' => 'notifications',
             'count_sql' => 'SELECT COUNT(*) AS count_value
              FROM sr_notification_reads r
@@ -280,12 +376,18 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
              FROM sr_notification_reads r
              INNER JOIN sr_notifications n ON n.id = r.notification_id
              WHERE n.created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_notification_reads
+             WHERE notification_id IN (
+                SELECT id FROM sr_notifications WHERE created_at < :cutoff
+             )
+             LIMIT {limit}',
             'delete_params' => [
                 'cutoff' => 'notifications',
             ],
         ],
         'module_backups' => [
             'enabled' => true,
+            'auto_scope' => 'admin',
             'cutoff_key' => 'module_backups',
             'count_callback' => 'sr_admin_retention_module_backup_count',
             'delete_callback' => 'sr_admin_retention_delete_module_backups',
@@ -293,9 +395,9 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
     ];
 }
 
-function sr_admin_retention_cleanup_target_keys(): array
+function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): array
 {
-    return [
+    $targetKeys = [
         'auth_logs',
         'audit_logs',
         'password_resets',
@@ -308,6 +410,20 @@ function sr_admin_retention_cleanup_target_keys(): array
         'notifications',
         'module_backups',
     ];
+
+    if ($autoScope === null) {
+        return $targetKeys;
+    }
+
+    $scopedKeys = [];
+    $targets = sr_admin_retention_target_definitions(true, true, true, true);
+    foreach ($targetKeys as $targetKey) {
+        if ((string) ($targets[$targetKey]['auto_scope'] ?? '') === $autoScope) {
+            $scopedKeys[] = $targetKey;
+        }
+    }
+
+    return $scopedKeys;
 }
 
 function sr_admin_retention_query_params(array $paramCutoffKeys, array $cutoffs): array
@@ -354,10 +470,15 @@ function sr_admin_retention_module_backup_count(string $cutoff): int
     return count(sr_admin_retention_module_backup_dirs($cutoff));
 }
 
-function sr_admin_retention_delete_module_backups(string $cutoff): int
+function sr_admin_retention_delete_module_backups(string $cutoff, ?int $limit = null): int
 {
     $deletedCount = 0;
-    foreach (sr_admin_retention_module_backup_dirs($cutoff) as $directory) {
+    $directories = sr_admin_retention_module_backup_dirs($cutoff);
+    if ($limit !== null) {
+        $directories = array_slice($directories, 0, max(0, $limit));
+    }
+
+    foreach ($directories as $directory) {
         sr_admin_remove_directory($directory);
         $deletedCount++;
     }
@@ -372,16 +493,30 @@ function sr_admin_retention_delete_count(PDO $pdo, string $sql, array $params): 
     return $stmt->rowCount();
 }
 
-function sr_admin_retention_delete_target(PDO $pdo, array $target, array $cutoffs): int
+function sr_admin_retention_limited_sql(array $target, ?int $limit): string
+{
+    if ($limit === null) {
+        return (string) $target['delete_sql'];
+    }
+
+    $limitedSql = (string) ($target['delete_limited_sql'] ?? '');
+    if ($limitedSql === '') {
+        return (string) $target['delete_sql'];
+    }
+
+    return str_replace('{limit}', (string) max(1, $limit), $limitedSql);
+}
+
+function sr_admin_retention_delete_target(PDO $pdo, array $target, array $cutoffs, ?int $limit = null): int
 {
     $deleteCallback = (string) ($target['delete_callback'] ?? '');
     if ($deleteCallback !== '') {
-        return $deleteCallback($cutoffs[$target['cutoff_key']]);
+        return $deleteCallback($cutoffs[$target['cutoff_key']], $limit);
     }
 
     return sr_admin_retention_delete_count(
         $pdo,
-        (string) $target['delete_sql'],
+        sr_admin_retention_limited_sql($target, $limit),
         sr_admin_retention_query_params($target['delete_params'], $cutoffs)
     );
 }
@@ -430,7 +565,7 @@ function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool
     return $previewCounts;
 }
 
-function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNotificationTables): array
+function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNotificationTables, ?int $limitPerTarget = null, ?string $autoScope = null): array
 {
     $cutoffs = sr_admin_retention_preview_cutoffs($values);
     $targets = sr_admin_retention_target_definitions(
@@ -440,13 +575,13 @@ function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNo
         sr_admin_retention_rate_limits_table_exists($pdo)
     );
     $deletedCounts = [];
-    foreach (sr_admin_retention_cleanup_target_keys() as $key) {
+    foreach (sr_admin_retention_cleanup_target_keys($autoScope) as $key) {
         $target = $targets[$key];
         if (!$target['enabled']) {
             continue;
         }
 
-        $deletedCounts[$key] = sr_admin_retention_delete_target($pdo, $target, $cutoffs);
+        $deletedCounts[$key] = sr_admin_retention_delete_target($pdo, $target, $cutoffs, $limitPerTarget);
     }
 
     return $deletedCounts;
@@ -463,10 +598,141 @@ function sr_admin_log_retention_cleanup(PDO $pdo, array $account, array $values,
         'result' => 'success',
         'message' => 'Retention cleanup completed.',
         'metadata' => [
-            'days' => $values,
+            'days' => sr_admin_retention_auto_cleanup_days($values),
             'deleted' => $deletedCounts,
         ],
     ]);
+}
+
+function sr_admin_retention_auto_cleanup_scopes(): array
+{
+    return ['public', 'admin'];
+}
+
+function sr_admin_retention_auto_cleanup_scope_valid(string $autoScope): bool
+{
+    return in_array($autoScope, sr_admin_retention_auto_cleanup_scopes(), true);
+}
+
+function sr_admin_retention_last_auto_cleanup_setting_key(string $autoScope): string
+{
+    return 'admin.retention.last_auto_cleanup_at.' . $autoScope;
+}
+
+function sr_admin_retention_auto_cleanup_due(PDO $pdo, array $values, string $autoScope): bool
+{
+    if ((int) ($values['auto_cleanup_enabled'] ?? 0) !== 1) {
+        return false;
+    }
+
+    if (!sr_admin_retention_auto_cleanup_scope_valid($autoScope)) {
+        return false;
+    }
+
+    $lastCleanupAt = (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), '');
+    $lastCleanupTime = $lastCleanupAt === '' ? false : strtotime($lastCleanupAt);
+    if ($lastCleanupTime === false) {
+        return true;
+    }
+
+    $intervalSeconds = max(1, (int) ($values['auto_cleanup_interval_hours'] ?? 24)) * 3600;
+    return time() - $lastCleanupTime >= $intervalSeconds;
+}
+
+function sr_admin_retention_auto_cleanup_lock_acquire(PDO $pdo, string $autoScope): bool
+{
+    if (!sr_admin_retention_auto_cleanup_scope_valid($autoScope)) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT GET_LOCK(:lock_name, 0) AS lock_acquired');
+        $stmt->execute(['lock_name' => 'saanraan_retention_auto_cleanup_' . $autoScope]);
+        $row = $stmt->fetch();
+    } catch (Throwable $exception) {
+        return false;
+    }
+
+    return is_array($row) && (string) ($row['lock_acquired'] ?? '') === '1';
+}
+
+function sr_admin_retention_auto_cleanup_lock_release(PDO $pdo, string $autoScope): void
+{
+    if (!sr_admin_retention_auto_cleanup_scope_valid($autoScope)) {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+        $stmt->execute(['lock_name' => 'saanraan_retention_auto_cleanup_' . $autoScope]);
+    } catch (Throwable $ignored) {
+    }
+}
+
+function sr_admin_retention_auto_cleanup_days(array $values): array
+{
+    $days = [];
+    foreach (sr_admin_retention_day_value_keys() as $key) {
+        $days[$key] = (int) ($values[$key] ?? 0);
+    }
+
+    return $days;
+}
+
+function sr_admin_retention_maybe_run_auto_cleanup(PDO $pdo, string $autoScope): void
+{
+    if (!sr_admin_retention_auto_cleanup_scope_valid($autoScope)) {
+        return;
+    }
+
+    $values = sr_admin_retention_values($pdo);
+    if (!sr_admin_retention_auto_cleanup_due($pdo, $values, $autoScope)) {
+        return;
+    }
+
+    if (!sr_admin_retention_auto_cleanup_lock_acquire($pdo, $autoScope)) {
+        return;
+    }
+
+    try {
+        $values = sr_admin_retention_values($pdo);
+        if (!sr_admin_retention_auto_cleanup_due($pdo, $values, $autoScope)) {
+            return;
+        }
+
+        $now = sr_now();
+        sr_save_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), $now, 'string');
+
+        $batchSize = max(1, min(5000, (int) ($values['auto_cleanup_batch_size'] ?? 200)));
+        $deletedCounts = sr_admin_retention_execute_cleanup(
+            $pdo,
+            $values,
+            sr_admin_retention_notification_tables_exist($pdo),
+            $batchSize,
+            $autoScope
+        );
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => null,
+            'actor_type' => 'system',
+            'event_type' => 'retention.auto_cleanup.completed',
+            'target_type' => 'retention',
+            'target_id' => $autoScope,
+            'result' => 'success',
+            'message' => 'Retention auto cleanup completed.',
+            'metadata' => [
+                'days' => sr_admin_retention_auto_cleanup_days($values),
+                'deleted' => $deletedCounts,
+                'scope' => $autoScope,
+                'interval_hours' => (int) ($values['auto_cleanup_interval_hours'] ?? 24),
+                'batch_size' => $batchSize,
+            ],
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'retention_auto_cleanup_failed');
+    } finally {
+        sr_admin_retention_auto_cleanup_lock_release($pdo, $autoScope);
+    }
 }
 
 function sr_admin_log_retention_settings_update(PDO $pdo, array $account, array $beforeValues, array $afterValues): void

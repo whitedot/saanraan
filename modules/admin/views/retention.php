@@ -71,6 +71,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">요청 기반 자동 정리</span></div>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label">
+                    <input type="checkbox" name="auto_cleanup_enabled" value="1" class="form-checkbox"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('사용'); ?>
+                </label>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">자동 정리 간격</span></div>
+            <div class="admin-form-field">
+                <label>
+                    <span class="sr-only">자동 정리 간격</span>
+                <input type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
+                </label>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <div class="admin-form-label"><span class="form-label">자동 정리 배치 크기</span></div>
+            <div class="admin-form-field">
+                <label>
+                    <span class="sr-only">자동 정리 배치 크기</span>
+                <input type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
+                </label>
+            </div>
+        </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <button type="button" class="btn btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">

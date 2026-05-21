@@ -103,6 +103,8 @@ function sr_admin_audit_log_display_message(array $log): string
         'Member status update failed.' => '회원 상태 변경에 실패했습니다.',
         'Member status updated.' => '회원 상태가 변경되었습니다.',
         'Retention cleanup completed.' => '보관 정리가 완료되었습니다.',
+        'Retention auto cleanup completed.' => '요청 기반 자동 정리가 완료되었습니다.',
+        'Retention settings updated.' => '보관 기간 설정이 변경되었습니다.',
         'Privacy request updated.' => '개인정보 처리 요청이 변경되었습니다.',
         'Privacy request export reauthentication blocked by throttle.' => '개인정보 처리 자료 다운로드 재인증이 제한 정책으로 차단되었습니다.',
         'Privacy request export reauthentication failed.' => '개인정보 처리 자료 다운로드 재인증에 실패했습니다.',

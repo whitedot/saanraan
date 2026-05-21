@@ -194,6 +194,9 @@ function sr_admin_event_type_label(string $eventType): string
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 역할 변경',
+        'retention.settings.updated' => '보관 기간 설정 변경',
+        'retention.cleanup.completed' => '보관 정리 완료',
+        'retention.auto_cleanup.completed' => '요청 기반 자동 정리 완료',
     ];
     if (isset($labels[$eventType])) {
         return $labels[$eventType];
