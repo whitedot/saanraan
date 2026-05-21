@@ -1,6 +1,6 @@
 /*
  * Public runtime UI-KIT preview layer.
- * Uses assets/tokens.css, assets/public/common.css, and public runtime styles loaded by sr_stylesheet_tag().
+ * Uses assets/tokens.css, assets/common.css, and public runtime styles loaded by sr_stylesheet_tag().
  * Keeps only sample layout helpers local to this preview stylesheet.
  */
 

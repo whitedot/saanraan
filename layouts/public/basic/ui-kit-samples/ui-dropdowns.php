@@ -161,7 +161,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-default ui-kit-ink-default-700 ui-kit-radius-s-sm dropdown-split-main">보조(Secondary)</button>
+                                            class="btn btn-soft-default dropdown-split-main">보조(Secondary)</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -181,7 +181,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-success ui-kit-radius-s-sm dropdown-split-main">성공(Success)</button>
+                                            class="btn btn-soft-success dropdown-split-main">성공(Success)</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -201,7 +201,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-solid-info ui-kit-radius-s-sm dropdown-split-main">정보(Info)</button>
+                                            class="btn btn-solid-info dropdown-split-main">정보(Info)</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -235,7 +235,7 @@
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle btn btn-solid-primary ui-kit-disabled-pointer-lock ui-kit-disabled-dim"
+                                            class="dropdown-toggle btn btn-solid-primary is-disabled-look"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             기본(Primary)
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
@@ -299,7 +299,7 @@
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
-                                            class="dropdown-toggle btn btn-soft-default ui-kit-inline-pad-6 ui-kit-block-pad-2 ui-kit-type-lg"
+                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-lg"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             큰 버튼
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
@@ -316,12 +316,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="ui-kit-surface-light ui-kit-hover-ink-primary ui-kit-ink-default-700 ui-kit-position-context ui-kit-radius-s-sm ui-kit-inline-pad-6 ui-kit-block-pad-2 ui-kit-type-lg">큰
+                                            class="btn btn-soft-default dropdown-split-main dropdown-toggle-lg">큰
                                             버튼</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle ui-kit-surface-light ui-kit-hover-ink-primary ui-kit-position-context ui-kit-cluster ui-kit-align-items-center ui-kit-distribute-center ui-kit-radius-e-sm ui-kit-inline-pad-4 ui-kit-block-pad-2">
+                                                class="dropdown-toggle btn btn-soft-default dropdown-split-toggle">
                                                 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                             </button>
 
@@ -354,12 +354,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-sm ui-kit-ink-default-700 ui-kit-radius-e-none btn-soft-default">작은
+                                            class="btn btn-sm btn-group-start btn-soft-default">작은
                                             버튼</button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
-                                                class="dropdown-toggle btn btn-sm ui-kit-ink-default-700 btn-soft-default dropdown-split-toggle">
+                                                class="dropdown-toggle btn btn-sm btn-soft-default dropdown-split-toggle">
                                                 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                             </button>
 
@@ -410,7 +410,7 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn ui-kit-ink-default-700 ui-kit-radius-e-none btn-soft-default">분할
+                                            class="btn btn-group-start btn-soft-default">분할
                                             드롭업</button>
 
                                         <div class="dropdown" data-dropdown-placement="top-left">
@@ -466,7 +466,7 @@
                                     <div class="dropdown-split">
                                         <div class="dropdown" data-dropdown-placement="left-start">
                                             <button type="button"
-                                                class="dropdown-toggle btn btn-solid-secondary-muted ui-kit-radius-e-none ui-kit-inline-pad-2">
+                                                class="dropdown-toggle btn btn-solid-secondary-muted btn-group-start dropdown-toggle-compact">
                                                 <?php echo sr_ui_arrow_icon_html('left', 'dropdown-icon'); ?>
                                             </button>
 
@@ -480,7 +480,7 @@
                                         </div>
 
                                         <button type="button"
-                                            class="btn ui-kit-radius-s-none btn-solid-secondary">분할
+                                            class="btn btn-group-end btn-solid-secondary">분할
                                             드롭스타트</button>
                                     </div>
                                 </div>
@@ -520,12 +520,12 @@
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-position-context ui-kit-radius-s-sm ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium ui-kit-ink-inverse">분할
+                                            class="btn btn-solid-primary dropdown-split-main">분할
                                             드롭스타트</button>
 
                                         <div class="dropdown" data-dropdown-placement="right-end">
                                             <button type="button"
-                                                class="dropdown-toggle ui-kit-surface-primary-muted ui-kit-hover-surface-primary ui-kit-position-context ui-kit-cluster ui-kit-align-items-center ui-kit-distribute-center ui-kit-radius-e-sm ui-kit-inline-pad-2 ui-kit-block-pad-2 ui-kit-ink-inverse">
+                                                class="dropdown-toggle btn btn-solid-primary-muted dropdown-split-toggle dropdown-toggle-compact">
                                                 <?php echo sr_ui_arrow_icon_html('right', 'dropdown-icon'); ?>
                                             </button>
 
@@ -807,7 +807,7 @@
                                         <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                     </button>
 
-                                    <div class="dropdown-menu ui-kit-width-44 ui-kit-pad-4" role="menu" aria-orientation="vertical">
+                                    <div class="dropdown-menu dropdown-menu-wide dropdown-menu-padded" role="menu" aria-orientation="vertical">
                                         <span class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴 내에서 자유롭게 흐르는 예시 텍스트입니다.</span>
                                         <p class="ui-kit-ink-default-400">그리고 이것은 추가 예시 텍스트입니다.</p>
                                     </div>
@@ -834,23 +834,23 @@
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
-                                        <div class="dropdown-menu ui-kit-min-width-44" role="menu"
+                                        <div class="dropdown-menu dropdown-menu-min-wide" role="menu"
                                             aria-orientation="forms-dropdown-menu">
                                             <form class="dropdown-form">
                                                 <div class="ui-kit-space-after-5">
                                                     <label class="form-label" for="dropdown-form-email">이메일 주소</label>
-                                                    <input id="dropdown-form-email" class="form-input ui-kit-type-sm" type="email"
+                                                    <input id="dropdown-form-email" class="form-input form-input-sm" type="email"
                                                         placeholder="email@example.com" />
                                                 </div>
 
                                                 <div class="ui-kit-space-after-5">
                                                     <label class="form-label" for="dropdown-form-password">비밀번호</label>
-                                                    <input id="dropdown-form-password" class="form-input ui-kit-type-sm" type="password"
+                                                    <input id="dropdown-form-password" class="form-input form-input-sm" type="password"
                                                         placeholder="비밀번호" />
                                                 </div>
 
                                                 <div class="ui-kit-space-after-4 ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2-5">
-                                                    <input type="checkbox" class="form-checkbox ui-kit-preserve-size"
+                                                    <input type="checkbox" class="form-checkbox"
                                                         id="dropdownCheck" />
                                                     <label for="dropdownCheck" class="dropdown-note">로그인
                                                         상태 유지</label>

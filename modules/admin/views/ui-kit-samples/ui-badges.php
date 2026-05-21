@@ -8,19 +8,19 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge</code> 및 <code>.bg-*</code> 클래스를 사용하여 배지를 만듭니다.
+                                    <code>.badge</code>와 <code>.badge-solid-*</code> 클래스를 사용하여 배지를 만듭니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-line-default-300 ui-kit-frame">기본</span>
-                                    <span class="badge ui-kit-surface-primary ui-kit-ink-inverse ui-kit-hover-surface-primary">프라이머리</span>
-                                    <span class="badge ui-kit-surface-secondary ui-kit-ink-inverse">세컨더리</span>
-                                    <span class="badge ui-kit-surface-success ui-kit-ink-inverse">성공</span>
-                                    <span class="badge ui-kit-surface-danger ui-kit-ink-inverse ui-kit-hover-surface-danger">위험</span>
-                                    <span class="badge ui-kit-surface-warning ui-kit-ink-inverse">경고</span>
-                                    <span class="badge ui-kit-surface-info ui-kit-ink-inverse">정보</span>
-                                    <span class="badge ui-kit-surface-light">라이트</span>
-                                    <span class="badge ui-kit-surface-dark ui-kit-ink-inverse">다크</span>
+                                    <span class="badge badge-outline-default">기본</span>
+                                    <span class="badge badge-solid-primary">프라이머리</span>
+                                    <span class="badge badge-solid-secondary">세컨더리</span>
+                                    <span class="badge badge-solid-success">성공</span>
+                                    <span class="badge badge-solid-danger">위험</span>
+                                    <span class="badge badge-solid-warning">경고</span>
+                                    <span class="badge badge-solid-info">정보</span>
+                                    <span class="badge badge-solid-light">라이트</span>
+                                    <span class="badge badge-solid-dark">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -34,19 +34,19 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.rounded-full</code> 클래스를 사용하여 배지를 더 둥글게 만듭니다.
+                                    <code>.badge-pill</code> 클래스를 사용하여 배지를 더 둥글게 만듭니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-line-default-300 ui-kit-radius-full ui-kit-frame">기본</span>
-                                    <span class="badge ui-kit-surface-primary ui-kit-radius-full ui-kit-ink-inverse">프라이머리</span>
-                                    <span class="badge ui-kit-surface-secondary ui-kit-radius-full ui-kit-ink-inverse">세컨더리</span>
-                                    <span class="badge ui-kit-surface-success ui-kit-radius-full ui-kit-ink-inverse">성공</span>
-                                    <span class="badge ui-kit-surface-danger ui-kit-radius-full ui-kit-ink-inverse">위험</span>
-                                    <span class="badge ui-kit-surface-warning ui-kit-radius-full ui-kit-ink-inverse">경고</span>
-                                    <span class="badge ui-kit-surface-info ui-kit-radius-full ui-kit-ink-inverse">정보</span>
-                                    <span class="badge ui-kit-surface-light ui-kit-radius-full">라이트</span>
-                                    <span class="badge ui-kit-surface-dark ui-kit-radius-full ui-kit-ink-inverse">다크</span>
+                                    <span class="badge badge-outline-default badge-pill">기본</span>
+                                    <span class="badge badge-solid-primary badge-pill">프라이머리</span>
+                                    <span class="badge badge-solid-secondary badge-pill">세컨더리</span>
+                                    <span class="badge badge-solid-success badge-pill">성공</span>
+                                    <span class="badge badge-solid-danger badge-pill">위험</span>
+                                    <span class="badge badge-solid-warning badge-pill">경고</span>
+                                    <span class="badge badge-solid-info badge-pill">정보</span>
+                                    <span class="badge badge-solid-light badge-pill">라이트</span>
+                                    <span class="badge badge-solid-dark badge-pill">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -60,17 +60,17 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.border-*</code> 를 사용하여 테두리가 있는 배지를 빠르게 생성합니다.
+                                    <code>.badge-outline-*</code> 클래스를 사용하여 테두리가 있는 배지를 빠르게 생성합니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-line-primary ui-kit-ink-primary ui-kit-frame">프라이머리</span>
-                                    <span class="badge ui-kit-line-secondary ui-kit-ink-secondary ui-kit-frame">세컨더리</span>
-                                    <span class="badge ui-kit-line-success ui-kit-ink-success ui-kit-frame">성공</span>
-                                    <span class="badge ui-kit-line-danger ui-kit-ink-danger ui-kit-frame">위험</span>
-                                    <span class="badge ui-kit-line-warning ui-kit-ink-warning ui-kit-frame">경고</span>
-                                    <span class="badge ui-kit-line-info ui-kit-ink-info ui-kit-frame">정보</span>
-                                    <span class="badge ui-kit-line-dark ui-kit-ink-dark ui-kit-frame">다크</span>
+                                    <span class="badge badge-outline-primary">프라이머리</span>
+                                    <span class="badge badge-outline-secondary">세컨더리</span>
+                                    <span class="badge badge-outline-success">성공</span>
+                                    <span class="badge badge-outline-danger">위험</span>
+                                    <span class="badge badge-outline-warning">경고</span>
+                                    <span class="badge badge-outline-info">정보</span>
+                                    <span class="badge badge-outline-dark">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -84,17 +84,17 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    배제를 더 둥글게 만들려면 <code>.rounded-full</code> 수정자 클래스를 사용하세요.
+                                    배지를 더 둥글게 만들려면 <code>.badge-pill</code> 수정자 클래스를 사용하세요.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-line-primary ui-kit-ink-primary ui-kit-radius-full ui-kit-frame">프라이머리</span>
-                                    <span class="badge ui-kit-line-secondary ui-kit-ink-secondary ui-kit-radius-full ui-kit-frame">세컨더리</span>
-                                    <span class="badge ui-kit-line-success ui-kit-ink-success ui-kit-radius-full ui-kit-frame">성공</span>
-                                    <span class="badge ui-kit-line-danger ui-kit-ink-danger ui-kit-radius-full ui-kit-frame">위험</span>
-                                    <span class="badge ui-kit-line-warning ui-kit-ink-warning ui-kit-radius-full ui-kit-frame">경고</span>
-                                    <span class="badge ui-kit-line-info ui-kit-ink-info ui-kit-radius-full ui-kit-frame">정보</span>
-                                    <span class="badge ui-kit-line-dark ui-kit-ink-dark ui-kit-radius-full ui-kit-frame">다크</span>
+                                    <span class="badge badge-outline-primary badge-pill">프라이머리</span>
+                                    <span class="badge badge-outline-secondary badge-pill">세컨더리</span>
+                                    <span class="badge badge-outline-success badge-pill">성공</span>
+                                    <span class="badge badge-outline-danger badge-pill">위험</span>
+                                    <span class="badge badge-outline-warning badge-pill">경고</span>
+                                    <span class="badge badge-outline-info badge-pill">정보</span>
+                                    <span class="badge badge-outline-dark badge-pill">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -108,17 +108,17 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    배경 투명도 <code>.bg-*/15</code> 클래스를 사용하여 밝은 색상의 배지를 만듭니다.
+                                    <code>.badge-soft-*</code> 클래스를 사용하여 밝은 색상의 배지를 만듭니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-surface-primary-soft ui-kit-ink-primary">프라이머리</span>
-                                    <span class="badge ui-kit-surface-secondary-soft ui-kit-ink-secondary">세컨더리</span>
-                                    <span class="badge ui-kit-surface-success-soft ui-kit-ink-success">성공</span>
-                                    <span class="badge ui-kit-surface-danger-soft ui-kit-ink-danger">위험</span>
-                                    <span class="badge ui-kit-surface-warning-soft ui-kit-ink-warning">경고</span>
-                                    <span class="badge ui-kit-surface-info-soft ui-kit-ink-info">정보</span>
-                                    <span class="badge ui-kit-surface-dark-soft ui-kit-ink-dark">다크</span>
+                                    <span class="badge badge-soft-primary">프라이머리</span>
+                                    <span class="badge badge-soft-secondary">세컨더리</span>
+                                    <span class="badge badge-soft-success">성공</span>
+                                    <span class="badge badge-soft-danger">위험</span>
+                                    <span class="badge badge-soft-warning">경고</span>
+                                    <span class="badge badge-soft-info">정보</span>
+                                    <span class="badge badge-soft-dark">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -132,17 +132,17 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    배지를 밝게 만들려면 배경 투명도 <code>.bg-*/15</code> 수정자 클래스를 사용하세요.
+                                    배지를 밝게 만들려면 <code>.badge-soft-*</code> 수정자 클래스를 사용하세요.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-radius-full">프라이머리</span>
-                                    <span class="badge ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-radius-full">세컨더리</span>
-                                    <span class="badge ui-kit-surface-success-soft ui-kit-ink-success ui-kit-radius-full">성공</span>
-                                    <span class="badge ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-radius-full">위험</span>
-                                    <span class="badge ui-kit-surface-warning-soft ui-kit-ink-warning ui-kit-radius-full">경고</span>
-                                    <span class="badge ui-kit-surface-info-soft ui-kit-ink-info ui-kit-radius-full">정보</span>
-                                    <span class="badge ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-radius-full">다크</span>
+                                    <span class="badge badge-soft-primary badge-pill">프라이머리</span>
+                                    <span class="badge badge-soft-secondary badge-pill">세컨더리</span>
+                                    <span class="badge badge-soft-success badge-pill">성공</span>
+                                    <span class="badge badge-soft-danger badge-pill">위험</span>
+                                    <span class="badge badge-soft-warning badge-pill">경고</span>
+                                    <span class="badge badge-soft-info badge-pill">정보</span>
+                                    <span class="badge badge-soft-dark badge-pill">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -160,15 +160,15 @@
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-label ui-kit-line-default-300 ui-kit-frame">기본</span>
-                                    <span class="badge badge-label ui-kit-surface-primary ui-kit-ink-inverse">프라이머리</span>
-                                    <span class="badge badge-label ui-kit-surface-secondary ui-kit-ink-inverse">세컨더리</span>
-                                    <span class="badge badge-label ui-kit-surface-success ui-kit-ink-inverse">성공</span>
-                                    <span class="badge badge-label ui-kit-surface-danger ui-kit-ink-inverse">위험</span>
-                                    <span class="badge badge-label ui-kit-surface-warning ui-kit-ink-inverse">경고</span>
-                                    <span class="badge badge-label ui-kit-surface-info ui-kit-ink-inverse">정보</span>
-                                    <span class="badge badge-label ui-kit-surface-light ui-kit-ink-dark">라이트</span>
-                                    <span class="badge badge-label ui-kit-surface-dark ui-kit-ink-inverse">다크</span>
+                                    <span class="badge badge-label badge-outline-default">기본</span>
+                                    <span class="badge badge-label badge-solid-primary">프라이머리</span>
+                                    <span class="badge badge-label badge-solid-secondary">세컨더리</span>
+                                    <span class="badge badge-label badge-solid-success">성공</span>
+                                    <span class="badge badge-label badge-solid-danger">위험</span>
+                                    <span class="badge badge-label badge-solid-warning">경고</span>
+                                    <span class="badge badge-label badge-solid-info">정보</span>
+                                    <span class="badge badge-label badge-solid-light">라이트</span>
+                                    <span class="badge badge-label badge-solid-dark">다크</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -182,19 +182,19 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.size-*</code> 를 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
+                                    <code>.badge-square</code> 클래스를 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-frame ui-kit-line-default-300">0</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-primary ui-kit-ink-inverse ui-kit-hover-surface-primary">1</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-secondary ui-kit-ink-inverse">2</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-success ui-kit-ink-inverse">3</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-danger ui-kit-ink-inverse ui-kit-hover-surface-danger">4</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-warning ui-kit-ink-inverse">5</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-info ui-kit-ink-inverse">6</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-light">7</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-surface-dark ui-kit-ink-inverse">8</span>
+                                    <span class="badge badge-square badge-outline-default">0</span>
+                                    <span class="badge badge-square badge-solid-primary">1</span>
+                                    <span class="badge badge-square badge-solid-secondary">2</span>
+                                    <span class="badge badge-square badge-solid-success">3</span>
+                                    <span class="badge badge-square badge-solid-danger">4</span>
+                                    <span class="badge badge-square badge-solid-warning">5</span>
+                                    <span class="badge badge-square badge-solid-info">6</span>
+                                    <span class="badge badge-square badge-solid-light">7</span>
+                                    <span class="badge badge-square badge-solid-dark">8</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -208,21 +208,21 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.rounded-full</code> 을 사용하여 원형 기반의 배지를 빠르게 생성합니다.
+                                    <code>.badge-square</code>와 <code>.badge-pill</code>을 사용하여 원형 기반의 배지를 빠르게 생성합니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-frame ui-kit-line-default-300">0</span>
+                                    <span class="badge badge-square badge-outline-default badge-pill">0</span>
                                     <span
-                                        class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-primary ui-kit-ink-inverse ui-kit-hover-surface-primary">1</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-secondary ui-kit-ink-inverse">2</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-success ui-kit-ink-inverse">3</span>
+                                        class="badge badge-square badge-solid-primary badge-pill">1</span>
+                                    <span class="badge badge-square badge-solid-secondary badge-pill">2</span>
+                                    <span class="badge badge-square badge-solid-success badge-pill">3</span>
                                     <span
-                                        class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-danger ui-kit-ink-inverse ui-kit-hover-surface-danger">4</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-warning ui-kit-ink-inverse">5</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-info ui-kit-ink-inverse">6</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-light ui-kit-ink-dark">7</span>
-                                    <span class="badge ui-kit-icon-size-4 ui-kit-radius-full ui-kit-surface-dark ui-kit-ink-inverse">8</span>
+                                        class="badge badge-square badge-solid-danger badge-pill">4</span>
+                                    <span class="badge badge-square badge-solid-warning badge-pill">5</span>
+                                    <span class="badge badge-square badge-solid-info badge-pill">6</span>
+                                    <span class="badge badge-square badge-solid-light badge-pill">7</span>
+                                    <span class="badge badge-square badge-solid-dark badge-pill">8</span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -236,27 +236,27 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4">
-                                    유틸리티를 사용하여 <code>.badge</code> 를 수정하고 링크나 버튼의 모서리에 배치합니다.
+                                    <code>.badge-corner</code> 보조 클래스로 링크나 버튼의 모서리에 배치합니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-4">
                                     <button type="button"
-                                        class="btn ui-kit-position-context ui-kit-transition-all ui-kit-duration-300 btn-solid-primary">
+                                        class="btn btn-solid-primary badge-anchor">
                                         수신함
-                                        <span class="badge ui-kit-surface-danger ui-kit-position-absolute ui-kit-position-end-neg-1 ui-kit-position-top-neg-1 ui-kit-radius-full">99+</span>
+                                        <span class="badge badge-solid-danger badge-pill badge-corner">99+</span>
                                     </button>
 
                                     <button type="button"
-                                        class="btn ui-kit-position-context ui-kit-transition-all ui-kit-duration-300 btn-solid-primary">
+                                        class="btn btn-solid-primary badge-anchor">
                                         프로필
                                         <span
-                                            class="ui-kit-surface-danger ui-kit-position-absolute ui-kit-position-end-neg-1 ui-kit-position-top-neg-1 ui-kit-icon-size-3 ui-kit-radius-full ui-kit-frame ui-kit-line-white ui-kit-inline-pad-0-75 ui-kit-block-pad-0-5"></span>
+                                            class="badge-dot badge-corner-dot"></span>
                                     </button>
 
                                     <button type="button"
-                                        class="btn btn-solid-success ui-kit-transition-all ui-kit-duration-300">
+                                        class="btn btn-solid-success">
                                         알림
-                                        <span class="badge ui-kit-surface-white ui-kit-ink-black">4</span>
+                                        <span class="badge badge-solid-white">4</span>
                                     </button>
                                 </div>
                             </div>

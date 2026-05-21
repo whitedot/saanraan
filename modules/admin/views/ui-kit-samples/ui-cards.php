@@ -14,7 +14,7 @@
                                 <p class="ui-kit-space-after-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
 
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -26,17 +26,17 @@
                                 <h5 class="card-title ui-kit-space-after-2-5">제목이 있는 기본 카드</h5>
                                 <p class="ui-kit-space-after-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
                         <!-- 카드 끝-->
 
                         <!-- 기본 카드 -->
-                        <div class="card ui-kit-surface-primary">
+                        <div class="card card-solid-primary card-inverse">
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5 ui-kit-ink-inverse">배경색이 있는 카드</h5>
-                                <p class="ui-kit-space-after-4 ui-kit-ink-inverse">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
+                                <h5 class="card-title ui-kit-space-after-2-5">배경색이 있는 카드</h5>
+                                <p class="ui-kit-space-after-4">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
                                     카드의 핵심 내용을 빠르게 보여줍니다.</p>
                                 <a href="javascript: void(0);"
                                     class="btn btn-sm btn-solid-light">버튼</a>
@@ -46,10 +46,10 @@
                         <!-- 카드 끝-->
 
                         <!-- 기본 카드 -->
-                        <div class="card ui-kit-surface-success">
+                        <div class="card card-solid-success card-inverse">
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5 ui-kit-ink-inverse">배경 그라데이션이 있는 카드</h5>
-                                <p class="ui-kit-space-after-4 ui-kit-ink-inverse">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
+                                <h5 class="card-title ui-kit-space-after-2-5">배경 그라데이션이 있는 카드</h5>
+                                <p class="ui-kit-space-after-4">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
                                     카드의 핵심 내용을 빠르게 보여줍니다.</p>
                                 <a href="javascript: void(0);"
                                     class="btn btn-sm btn-solid-light">버튼</a>
@@ -70,7 +70,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -95,7 +95,7 @@
 
                             <div class="card-body">
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
                             </div>
                             <!-- 카드 본문 끝-->
 
@@ -125,32 +125,32 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-surface-primary">
-                            <div class="card-header ui-kit-line-dashed ui-kit-line-white">
-                                <h4 class="card-title ui-kit-ink-inverse">작업 도구 및 배경색이 있는 카드</h4>
+                        <div class="card card-solid-primary card-inverse">
+                            <div class="card-header card-inverse-header">
+                                <h4 class="card-title">작업 도구 및 배경색이 있는 카드</h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
-                                    <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
+                                    <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
                                         <span class="ui-kit-icon-text">접기</span>
                                     </button>
 
-                                    <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
+                                    <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
                                         <span class="ui-kit-icon-text">새로고침</span>
                                     </button>
 
-                                    <button class="btn ui-kit-icon-size-6 ui-kit-radius-full ui-kit-surface-white-soft ui-kit-ink-inverse">
+                                    <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
                                         <span class="ui-kit-icon-text">닫기</span>
                                     </button>
                                 </div>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4 ui-kit-ink-inverse">아래 보조 텍스트는 추가 콘텐츠로 자연스럽게 이어집니다.</p>
+                                <p class="ui-kit-space-after-4">아래 보조 텍스트는 추가 콘텐츠로 자연스럽게 이어집니다.</p>
                                 <a href="javascript: void(0);" class="btn btn-sm btn-solid-light">어딘가로
                                     이동</a>
                             </div>
@@ -170,7 +170,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -192,7 +192,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -204,7 +204,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -216,7 +216,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -228,7 +228,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-dark ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-dark">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -240,7 +240,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -252,7 +252,7 @@
                                 <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm ui-kit-surface-info ui-kit-hover-surface-primary ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-info">버튼</a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -325,7 +325,7 @@
                                     <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
                                 </a>
                                 <a href="#"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary btn-space-before">버튼</a>
                             </div>
                         </div>
 
@@ -349,7 +349,7 @@
                                     <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
                                 </a>
                                 <a href="#"
-                                    class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-space-before-3 ui-kit-ink-inverse">버튼</a>
+                                    class="btn btn-sm btn-solid-primary btn-space-before">버튼</a>
                             </div>
                         </div>
 
@@ -478,7 +478,7 @@
                                 <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center">특별한 제목 처리</h5>
                                 <p class="ui-kit-space-after-4 ui-kit-text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
                                 <div class="ui-kit-text-center">
-                                    <a href="#" class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로
+                                    <a href="#" class="btn btn-sm btn-solid-primary">어딘가로
                                         이동</a>
                                 </div>
                             </div>
@@ -487,7 +487,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <nav class="ui-kit-cluster">
-                                    <a href="#" class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">활성</a>
+                                    <a href="#" class="btn btn-sm btn-solid-primary">활성</a>
                                     <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium">링크</a>
                                     <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled>비활성화됨</a>
                                 </nav>
@@ -498,7 +498,7 @@
                                 <p class="ui-kit-space-after-4 ui-kit-text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
 
                                 <div class="ui-kit-text-center">
-                                    <a href="#" class="btn btn-sm ui-kit-surface-primary ui-kit-hover-surface-primary ui-kit-ink-inverse">어딘가로
+                                    <a href="#" class="btn btn-sm btn-solid-primary">어딘가로
                                         이동</a>
                                 </div>
                             </div>

@@ -28,7 +28,7 @@
                                                 <td>120</td>
                                                 <td>4.5 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
@@ -45,7 +45,7 @@
                                                 <td>80</td>
                                                 <td>4.2 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
@@ -62,7 +62,7 @@
                                                 <td>0</td>
                                                 <td>4.0 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Out of
+                                                    <span class="badge badge-label badge-soft-warning">Out of
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
@@ -80,7 +80,7 @@
                                                 <td>250</td>
                                                 <td>4.7 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
@@ -97,7 +97,7 @@
                                                 <td>35</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
@@ -141,12 +141,12 @@
                                             <td>200</td>
                                             <td>4.6 ★</td>
                                             <td>
-                                                <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown">
                                                     <button type="button"
-                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <span class="ui-kit-icon-text">더보기</span>
                                                     </button>
@@ -160,7 +160,7 @@
                                                             <span class="ui-kit-icon-text">수정</span>
                                                             수정
                                                         </a>
-                                                        <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                        <a class="dropdown-item dropdown-item-danger" href="#">
                                                             <span class="ui-kit-icon-text">삭제</span>
                                                             삭제
                                                         </a>
@@ -176,12 +176,12 @@
                                             <td>150</td>
                                             <td>4.3 ★</td>
                                             <td>
-                                                <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown">
                                                     <button type="button"
-                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <span class="ui-kit-icon-text">더보기</span>
                                                     </button>
@@ -196,7 +196,7 @@
                                                                 <span class="ui-kit-icon-text">수정</span>
                                                                 수정
                                                             </a>
-                                                            <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                            <a class="dropdown-item dropdown-item-danger" href="#">
                                                                 <span class="ui-kit-icon-text">삭제</span>
                                                                 삭제
                                                             </a>
@@ -213,13 +213,13 @@
                                             <td>60</td>
                                             <td>4.1 ★</td>
                                             <td>
-                                                <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                <span class="badge badge-label badge-soft-warning">Limited
                                                     Stock</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown">
                                                     <button type="button"
-                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <span class="ui-kit-icon-text">더보기</span>
                                                     </button>
@@ -234,7 +234,7 @@
                                                                 <span class="ui-kit-icon-text">수정</span>
                                                                 수정
                                                             </a>
-                                                            <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                            <a class="dropdown-item dropdown-item-danger" href="#">
                                                                 <span class="ui-kit-icon-text">삭제</span>
                                                                 삭제
                                                             </a>
@@ -251,12 +251,12 @@
                                             <td>30</td>
                                             <td>4.8 ★</td>
                                             <td>
-                                                <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success">활성</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown">
                                                     <button type="button"
-                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <span class="ui-kit-icon-text">더보기</span>
                                                     </button>
@@ -271,7 +271,7 @@
                                                                 <span class="ui-kit-icon-text">수정</span>
                                                                 수정
                                                             </a>
-                                                            <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                            <a class="dropdown-item dropdown-item-danger" href="#">
                                                                 <span class="ui-kit-icon-text">삭제</span>
                                                                 삭제
                                                             </a>
@@ -288,12 +288,12 @@
                                             <td>10</td>
                                             <td>4.4 ★</td>
                                             <td>
-                                                <span class="badge badge-label ui-kit-surface-info-faint ui-kit-ink-info">신규</span>
+                                                <span class="badge badge-label badge-soft-info">신규</span>
                                             </td>
                                             <td class="ui-kit-text-end">
-                                                <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                <div class="dropdown">
                                                     <button type="button"
-                                                        class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                        class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                         <span class="ui-kit-icon-text">더보기</span>
                                                     </button>
@@ -308,7 +308,7 @@
                                                                 <span class="ui-kit-icon-text">수정</span>
                                                                 수정
                                                             </a>
-                                                            <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                            <a class="dropdown-item dropdown-item-danger" href="#">
                                                                 <span class="ui-kit-icon-text">삭제</span>
                                                                 삭제
                                                             </a>
@@ -351,12 +351,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -372,7 +372,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -389,12 +389,12 @@
                                                 <td>150</td>
                                                 <td class="ui-kit-surface-warning-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -410,7 +410,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -427,13 +427,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-surface-light-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -449,7 +449,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -466,12 +466,12 @@
                                                 <td class="ui-kit-surface-danger-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">30</td>
                                                 <td>4.8 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -487,7 +487,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -505,12 +505,12 @@
                                                 <td>10</td>
                                                 <td>4.4 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-info-faint ui-kit-ink-info">신규</span>
+                                                    <span class="badge badge-label badge-soft-info">신규</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -526,7 +526,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -569,12 +569,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -590,7 +590,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -607,12 +607,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -628,7 +628,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -645,13 +645,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -667,7 +667,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -710,12 +710,12 @@
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">200</td>
                                                 <td>4.6 ★</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -731,7 +731,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -748,12 +748,12 @@
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">150</td>
                                                 <td>4.3 ★</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -769,7 +769,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -786,13 +786,13 @@
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">60</td>
                                                 <td>4.1 ★</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -808,7 +808,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -851,12 +851,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -872,7 +872,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -889,12 +889,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -910,7 +910,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -927,13 +927,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -949,7 +949,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -992,12 +992,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1013,7 +1013,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1030,12 +1030,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1051,7 +1051,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1068,13 +1068,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1090,7 +1090,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1133,12 +1133,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1154,7 +1154,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1171,12 +1171,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1192,7 +1192,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1209,13 +1209,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1231,7 +1231,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1274,12 +1274,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1295,7 +1295,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1312,12 +1312,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1333,7 +1333,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1350,13 +1350,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1372,7 +1372,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1463,12 +1463,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1484,7 +1484,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1501,12 +1501,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1522,7 +1522,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1539,13 +1539,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1561,7 +1561,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1604,12 +1604,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1625,7 +1625,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1672,12 +1672,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1693,7 +1693,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1710,13 +1710,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1732,7 +1732,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1775,12 +1775,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1796,7 +1796,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1813,12 +1813,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1834,7 +1834,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1851,13 +1851,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1873,7 +1873,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1896,7 +1896,7 @@
 
                             <div class="card-body">
                                 <div class="table-wrapper">
-                                    <table class="ui-kit-fill-width table table-hover">
+                                    <table class="table table-hover">
                                         <caption class="ui-kit-ink-default-400 ui-kit-caption-below ui-kit-block-pad-3 ui-kit-text-start">
                                             이커머스 상품 목록
                                         </caption>
@@ -1919,12 +1919,12 @@
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1940,7 +1940,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1957,12 +1957,12 @@
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-success-faint ui-kit-ink-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success">활성</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -1978,7 +1978,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>
@@ -1995,13 +1995,13 @@
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label ui-kit-surface-warning-faint ui-kit-ink-warning">Limited
+                                                    <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle ui-kit-cluster ui-kit-height-7-5 ui-kit-width-11-25 ui-kit-align-items-center ui-kit-distribute-center ui-kit-weight-semibold"
+                                                            class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
                                                             <span class="ui-kit-icon-text">더보기</span>
@@ -2017,7 +2017,7 @@
                                                                     <span class="ui-kit-icon-text">수정</span>
                                                                     수정
                                                                 </a>
-                                                                <a class="dropdown-item ui-kit-ink-danger" href="#">
+                                                                <a class="dropdown-item dropdown-item-danger" href="#">
                                                                     <span class="ui-kit-icon-text">삭제</span>
                                                                     삭제
                                                                 </a>

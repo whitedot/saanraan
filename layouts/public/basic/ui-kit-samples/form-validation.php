@@ -133,7 +133,7 @@
                                         <label for="serverFirstName" class="form-label">이름 (First name)</label>
                                         <div class="ui-kit-position-context">
                                             <input type="text" id="serverFirstName" value="Mark" required
-                                                class="form-input ui-kit-line-success" />
+                                                class="form-input form-input-valid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
                                                 <span class="ui-kit-icon-text">check</span>
@@ -147,7 +147,7 @@
                                         <label for="serverLastName" class="form-label">성 (Last name)</label>
                                         <div class="ui-kit-position-context">
                                             <input type="text" id="serverLastName" value="Otto" required
-                                                class="form-input ui-kit-line-success" />
+                                                class="form-input form-input-valid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
                                                 <span class="ui-kit-icon-text">check</span>
@@ -163,7 +163,7 @@
                                             <span
                                                 class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-ink-default-600 ui-kit-inline-cluster ui-kit-align-items-center ui-kit-radius-s-md ui-kit-frame ui-kit-inline-pad-3 ui-kit-type-sm">@</span>
                                             <input type="text" id="serverUsername" name="username"
-                                                class="form-input ui-kit-line-danger ui-kit-radius-s-none"
+                                                class="form-input form-input-invalid form-control-group-end"
                                                 placeholder="johndoe123" required />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -178,7 +178,7 @@
                                         <label for="serverCity" class="form-label">도시 (City)</label>
                                         <div class="ui-kit-position-context">
                                             <input type="text" id="serverCity" required placeholder="도시 입력"
-                                                class="form-input ui-kit-line-danger" />
+                                                class="form-input form-input-invalid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
                                                 <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
@@ -191,7 +191,7 @@
                                     <div class="ui-kit-column-md-3">
                                         <label for="serverState" class="form-label">주 (State)</label>
                                         <div class="ui-kit-position-context">
-                                            <select id="serverState" required class="form-select ui-kit-line-danger">
+                                            <select id="serverState" required class="form-select form-select-invalid">
                                                 <option value="">선택...</option>
                                                 <option>California</option>
                                                 <option>Texas</option>
@@ -210,7 +210,7 @@
                                         <label for="serverZip" class="form-label">우편번호 (Zip)</label>
                                         <div class="ui-kit-position-context">
                                             <input type="text" id="serverZip" required placeholder="우편번호"
-                                                class="form-input ui-kit-line-danger" />
+                                                class="form-input form-input-invalid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
                                                 <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base">정보</span>
@@ -249,14 +249,14 @@
                                     <div>
                                         <label for="validationTextarea" class="form-label">텍스트 영역 (Textarea)</label>
                                         <textarea id="validationTextarea" placeholder="필수 입력 텍스트 영역 예시" required
-                                            class="form-textarea ui-kit-line-danger"></textarea>
+                                            class="form-textarea form-textarea-invalid"></textarea>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">텍스트 영역에 메시지를 입력해 주세요.</p>
                                     </div>
 
                                     <!-- Checkbox -->
                                     <div class="ui-kit-cluster ui-kit-align-items-start ui-kit-gap-2">
                                         <input id="validationFormCheck1" type="checkbox" required
-                                            class="form-checkbox form-choice-danger form-choice-invalid ui-kit-space-before-0-5" />
+                                            class="form-checkbox form-choice-danger form-choice-invalid form-choice-offset" />
                                         <div>
                                             <label for="validationFormCheck1" class="ui-kit-ink-danger">이 체크박스를 체크하세요</label>
                                             <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">잘못된 피드백 텍스트 예시</p>
@@ -283,7 +283,7 @@
 
                                     <!-- Select -->
                                     <div>
-                                        <select required class="form-select ui-kit-line-success">
+                                        <select required class="form-select form-select-valid">
                                             <option value="">이 선택 메뉴를 여세요</option>
                                             <option value="1">하나</option>
                                             <option value="2">둘</option>
@@ -293,14 +293,14 @@
 
                                     <!-- File Input -->
                                     <div>
-                                        <input type="file" required class="form-input ui-kit-block-flow ui-kit-fill-width ui-kit-type-sm" />
+                                        <input type="file" required class="form-input" />
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs">잘못된 양식 파일 피드백 예시</p>
                                     </div>
 
                                     <!-- Submit -->
                                     <div>
                                         <button type="submit" disabled
-                                            class="btn ui-kit-disabled-cursor btn-solid-primary">양식
+                                            class="btn btn-solid-primary">양식
                                             제출 (Submit form)</button>
                                     </div>
                                 </form>

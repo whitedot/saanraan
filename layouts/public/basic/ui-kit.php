@@ -1,7 +1,6 @@
 <?php
 
 $uiKitSamples = [
-    'index' => 'Dashboard',
     'ui-buttons' => 'Buttons',
     'ui-cards' => 'Cards',
     'ui-alerts' => 'Alerts',

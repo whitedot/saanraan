@@ -51,7 +51,7 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context">
                                                     <input type="text" id="validInput" name="validation-name-success"
-                                                        class="form-input ui-kit-line-success" required=""
+                                                        class="form-input form-input-valid" required=""
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -192,7 +192,7 @@
                                                 <div class="input-icon-group">
                                                     <input type="text" id="inValidationInput"
                                                         name="validation-name-success"
-                                                        class="form-input ui-kit-line-danger" required=""
+                                                        class="form-input form-input-invalid" required=""
                                                         aria-describedby="validation-name-success-helper" />
                                                     <?php echo sr_material_icon_html('info', 'input-icon ui-kit-ink-danger ui-kit-type-base', '오류'); ?>
                                                 </div>
@@ -225,7 +225,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-readonly" value="읽기 전용 값" readonly
-                                                    class="form-input ui-kit-disabled-cursor" />
+                                                    class="form-input" />
                                             </div>
                                         </div>
 
@@ -240,7 +240,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-static" value="email@example.com"
-                                                    readonly class="form-input ui-kit-line-transparent ui-kit-surface-transparent" />
+                                                    readonly class="form-input form-input-plain" />
                                             </div>
                                         </div>
 
@@ -272,7 +272,7 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <select id="example-multiselect" multiple class="form-select ui-kit-auto-height">
+                                                <select id="example-multiselect" multiple class="form-select form-control-auto">
                                                     <option>1</option>
                                                     <option>2</option>
                                                     <option>3</option>
@@ -318,7 +318,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context ui-kit-cluster ui-kit-align-items-center">
-                                                    <input id="password" type="password" class="form-input ui-kit-fill-width ui-kit-end-pad-10"
+                                                    <input id="password" type="password" class="form-input form-control-icon-end"
                                                         placeholder="비밀번호 입력" />
                                                     <button type="button"
                                                         data-toggle-password='{"target":"#password"}'
@@ -431,7 +431,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="color" id="example-color" value="#2563eb"
-                                                    class="form-input ui-kit-height-10 ui-kit-pad-1" />
+                                                    class="form-input form-input-color" />
                                             </div>
                                         </div>
                                     </div>
@@ -603,12 +603,12 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                    <div class="dropdown">
                                                         <button type="button"
-                                                            class="dropdown-toggle btn ui-kit-radius-e-none btn-solid-primary"
+                                                            class="dropdown-toggle btn btn-group-start btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
-                                                            드롭다운 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon ui-kit-ink-inverse'); ?>
+                                                            드롭다운 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                                         </button>
 
                                                         <div class="dropdown-menu" role="menu"
@@ -653,7 +653,7 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
                                                     <span class="input-group-text">옵션</span>
-                                                    <select class="form-select ui-kit-radius-s-none">
+                                                    <select class="form-select form-control-group-end">
                                                         <option selected>선택...</option>
                                                         <option>하나</option>
                                                         <option>둘</option>
@@ -1249,17 +1249,17 @@
                                                     <div>
                                                         <input type="checkbox" id="toggle1" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle1"
-                                                            class="btn btn-choice-primary ui-kit-radius-e-none">하나</label>
+                                                            class="btn btn-choice-primary btn-group-start">하나</label>
                                                     </div>
                                                     <div>
                                                         <input type="checkbox" id="toggle2" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle2"
-                                                            class="btn btn-choice-primary ui-kit-radius-none ui-kit-divider-inline-none">둘</label>
+                                                            class="btn btn-choice-primary btn-group-middle">둘</label>
                                                     </div>
                                                     <div>
                                                         <input type="checkbox" id="toggle3" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle3"
-                                                            class="btn btn-choice-primary ui-kit-radius-s-none">셋</label>
+                                                            class="btn btn-choice-primary btn-group-end">셋</label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1278,21 +1278,21 @@
                                                     <input type="radio" name="radiotoggle" id="radioLeft"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" checked />
                                                     <label for="radioLeft"
-                                                        class="btn btn-choice-secondary ui-kit-radius-e-none">왼쪽</label>
+                                                        class="btn btn-choice-secondary btn-group-start">왼쪽</label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioMiddle"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioMiddle"
-                                                        class="btn btn-choice-secondary ui-kit-radius-none ui-kit-divider-inline-none">가운데</label>
+                                                        class="btn btn-choice-secondary btn-group-middle">가운데</label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioRight"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioRight"
-                                                        class="btn btn-choice-secondary ui-kit-radius-s-none">오른쪽</label>
+                                                        class="btn btn-choice-secondary btn-group-end">오른쪽</label>
                                                 </div>
                                             </div>
                                         </div>

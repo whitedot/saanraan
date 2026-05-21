@@ -15,7 +15,7 @@
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
-                                    <button type="button" class="btn ui-kit-line-default-300">기본</button>
+                                    <button type="button" class="btn btn-outline-light">기본</button>
                                     <button type="button"
                                         class="btn btn-solid-primary">프라이머리</button>
                                     <button type="button"
@@ -44,11 +44,11 @@
 
                         <div class="card-body">
                             <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                버튼에 <code>.rounded-full</code>을 추가하여 매끄러운 알약 모양의 모서리를 제공합니다.
+                                <code>.btn-pill</code>을 추가하여 매끄러운 알약 모양의 모서리를 제공합니다.
                             </p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
-                                <button type="button" class="btn ui-kit-line-default-300 btn-pill">기본</button>
+                                <button type="button" class="btn btn-outline-light btn-pill">기본</button>
                                 <button type="button"
                                     class="btn btn-solid-primary btn-pill">프라이머리</button>
                                 <button type="button"
@@ -83,6 +83,8 @@
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
+                                    class="btn btn-outline-default">기본</button>
+                                <button type="button"
                                     class="btn btn-outline-primary">프라이머리</button>
                                 <button type="button"
                                     class="btn btn-outline-secondary">세컨더리</button>
@@ -111,10 +113,12 @@
 
                         <div class="card-body">
                             <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                아웃라인 버튼에 <code>.rounded-full</code>을 적용하여 매끄러운 알약 모양의 모서리를 제공합니다.
+                                <code>.btn-pill</code>을 적용하여 매끄러운 알약 모양의 모서리를 제공합니다.
                             </p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
+                                <button type="button"
+                                    class="btn btn-outline-default btn-pill">기본</button>
                                 <button type="button"
                                     class="btn btn-outline-primary btn-pill">프라이머리</button>
                                 <button type="button"
@@ -161,6 +165,8 @@
                                 <button type="button"
                                     class="btn btn-soft-info">정보</button>
                                 <button type="button"
+                                    class="btn btn-soft-light">라이트</button>
+                                <button type="button"
                                     class="btn btn-soft-dark">다크</button>
                             </div>
                         </div>
@@ -192,6 +198,8 @@
                                 <button type="button"
                                     class="btn btn-soft-info btn-pill">정보</button>
                                 <button type="button"
+                                    class="btn btn-soft-light btn-pill">라이트</button>
+                                <button type="button"
                                     class="btn btn-soft-dark btn-pill">다크</button>
                             </div>
                         </div>
@@ -209,6 +217,8 @@
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
+                                    class="btn btn-ghost-default">기본</button>
+                                <button type="button"
                                     class="btn btn-ghost-primary">프라이머리</button>
                                 <button type="button"
                                     class="btn btn-ghost-secondary">세컨더리</button>
@@ -220,6 +230,8 @@
                                     class="btn btn-ghost-warning">경고</button>
                                 <button type="button"
                                     class="btn btn-ghost-info">정보</button>
+                                <button type="button"
+                                    class="btn btn-ghost-light">라이트</button>
                                 <button type="button"
                                     class="btn btn-ghost-dark">다크</button>
                             </div>
@@ -235,10 +247,12 @@
 
                         <div class="card-body">
                             <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                고스트 스타일 버튼과 <code>.rounded-full</code>을 결합하여 호버 시 강조되는 둥근 투명 버튼을 만듭니다.
+                                고스트 스타일 버튼과 <code>.btn-pill</code>을 결합하여 호버 시 강조되는 둥근 투명 버튼을 만듭니다.
                             </p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
+                                <button type="button"
+                                    class="btn btn-ghost-default btn-pill">기본</button>
                                 <button type="button"
                                     class="btn btn-ghost-primary btn-pill">프라이머리</button>
                                 <button type="button"
@@ -251,6 +265,8 @@
                                     class="btn btn-ghost-warning btn-pill">경고</button>
                                 <button type="button"
                                     class="btn btn-ghost-info btn-pill">정보</button>
+                                <button type="button"
+                                    class="btn btn-ghost-light btn-pill">라이트</button>
                                 <button type="button"
                                     class="btn btn-ghost-dark btn-pill">다크</button>
                             </div>
@@ -270,25 +286,25 @@
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
-                                    class="btn btn-gradient-smooth btn-gradient-purple-blue ui-kit-ink-inverse">보라색에서
+                                    class="btn btn-gradient-smooth btn-gradient-purple-blue">보라색에서
                                     파란색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-cyan-blue ui-kit-ink-inverse">청록색에서
+                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-cyan-blue">청록색에서
                                     파란색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth btn-gradient-green-blue ui-kit-ink-inverse">녹색에서
+                                    class="btn btn-gradient-smooth btn-gradient-green-blue">녹색에서
                                     파란색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-purple-pink ui-kit-ink-inverse">보라색에서
+                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-purple-pink">보라색에서
                                     분홍색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth btn-gradient-pink-orange ui-kit-ink-inverse">분홍색에서
+                                    class="btn btn-gradient-smooth btn-gradient-pink-orange">분홍색에서
                                     주황색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-teal-lime ui-kit-ink-strong">청록색에서
+                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-teal-lime">청록색에서
                                     라임색으로</button>
                                 <button type="button"
-                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-red-yellow ui-kit-ink-strong">빨간색에서
+                                    class="btn btn-gradient-smooth gradient-axis-r btn-gradient-red-yellow">빨간색에서
                                     노란색으로</button>
                             </div>
                         </div>
@@ -303,30 +319,30 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    그라데이션 유틸리티와 <code>.rounded-full</code>을 결합하여 혼합된 색상 전환이 있는 매끄러운 알약 모양의 버튼을 만듭니다.
+                                    그라데이션 버튼과 <code>.btn-pill</code>을 결합하여 혼합된 색상 전환이 있는 매끄러운 알약 모양의 버튼을 만듭니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                     <button type="button"
-                                        class="btn btn-gradient-smooth btn-gradient-purple-blue ui-kit-ink-inverse btn-pill">보라색에서
+                                        class="btn btn-gradient-smooth btn-gradient-purple-blue btn-pill">보라색에서
                                         파란색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-cyan-blue ui-kit-ink-inverse btn-pill">청록색에서
+                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-cyan-blue btn-pill">청록색에서
                                         파란색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth btn-gradient-green-blue ui-kit-ink-inverse btn-pill">녹색에서
+                                        class="btn btn-gradient-smooth btn-gradient-green-blue btn-pill">녹색에서
                                         파란색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-purple-pink ui-kit-ink-inverse btn-pill">보라색에서
+                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-purple-pink btn-pill">보라색에서
                                         분홍색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth btn-gradient-pink-orange ui-kit-ink-inverse btn-pill">분홍색에서
+                                        class="btn btn-gradient-smooth btn-gradient-pink-orange btn-pill">분홍색에서
                                         주황색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-teal-lime ui-kit-ink-strong btn-pill">청록색에서
+                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-teal-lime btn-pill">청록색에서
                                         라임색으로</button>
                                     <button type="button"
-                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-red-yellow ui-kit-ink-strong btn-pill">빨간색에서
+                                        class="btn btn-gradient-smooth gradient-axis-r btn-gradient-red-yellow btn-pill">빨간색에서
                                         노란색으로</button>
                                 </div>
                             </div>
@@ -387,15 +403,15 @@
 
                         <div class="card-body">
                             <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                <code>.w-full</code> 클래스를 추가하여 버튼이 컨테이너의 전체 너비를 차지하게 합니다.
+                                <code>.btn-block</code> 클래스를 추가하여 버튼이 컨테이너의 전체 너비를 차지하게 합니다.
                             </p>
 
                             <div class="ui-kit-stack-3">
                                 <button type="button"
-                                    class="btn ui-kit-fill-width btn-solid-primary">Block
+                                    class="btn btn-block btn-solid-primary">Block
                                     버튼</button>
                                 <button type="button"
-                                    class="btn btn-lg ui-kit-fill-width btn-solid-success">Block
+                                    class="btn btn-lg btn-block btn-solid-success">Block
                                     버튼</button>
                             </div>
                         </div>
@@ -438,7 +454,7 @@
                                 </button>
 
                                 <button type="button"
-                                    class="btn btn-icon ui-kit-frame btn-outline-dark btn-pill" aria-label="전송">
+                                    class="btn btn-icon btn-outline-dark btn-pill" aria-label="전송">
                                     <?php echo sr_material_icon_html('send'); ?>
                                 </button>
 
@@ -458,7 +474,7 @@
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-frame btn-outline-info">
+                                    class="btn btn-outline-info">
                                     <?php echo sr_material_icon_html('payments'); ?>
                                     결제
                                 </button>
@@ -471,40 +487,40 @@
 
                             <div class="ui-kit-space-before-5 ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-7-5 ui-kit-frame btn-outline-secondary" aria-label="즐겨찾기">
+                                    class="btn btn-sm btn-icon btn-outline-secondary" aria-label="즐겨찾기">
                                     <?php echo sr_material_icon_html('star'); ?>
                                 </button>
 
-                                <button type="button" class="btn ui-kit-icon-size-7-5 btn-solid-primary" aria-label="친환경">
+                                <button type="button" class="btn btn-sm btn-icon btn-solid-primary" aria-label="친환경">
                                     <?php echo sr_material_icon_html('eco'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-7-5 btn-solid-success btn-pill" aria-label="설정">
+                                    class="btn btn-sm btn-icon btn-solid-success btn-pill" aria-label="설정">
                                     <?php echo sr_material_icon_html('settings'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 ui-kit-frame btn-outline-secondary" aria-label="알림">
+                                    class="btn btn-icon-lg btn-outline-secondary" aria-label="알림">
                                     <?php echo sr_material_icon_html('notifications'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-primary btn-pill" aria-label="실행">
+                                    class="btn btn-icon-lg btn-solid-primary btn-pill" aria-label="실행">
                                     <?php echo sr_material_icon_html('play_arrow'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-success btn-pill" aria-label="공유">
+                                    class="btn btn-icon-lg btn-solid-success btn-pill" aria-label="공유">
                                     <?php echo sr_material_icon_html('share'); ?>
                                 </button>
 
-                                <button type="button" class="btn ui-kit-icon-size-11-25 btn-solid-info" aria-label="즐겨찾기">
+                                <button type="button" class="btn btn-icon-lg btn-solid-info" aria-label="즐겨찾기">
                                     <?php echo sr_material_icon_html('star'); ?>
                                 </button>
 
                                 <button type="button"
-                                    class="btn ui-kit-icon-size-11-25 btn-solid-warning" aria-label="경고">
+                                    class="btn btn-icon-lg btn-solid-warning" aria-label="경고">
                                     <?php echo sr_material_icon_html('warning'); ?>
                                 </button>
                             </div>
@@ -553,33 +569,33 @@
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-e-none">왼쪽</button>
+                                        class="btn btn-soft-default btn-group-start">왼쪽</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-none">중간</button>
+                                        class="btn btn-soft-default btn-group-middle">중간</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-s-none">오른쪽</button>
+                                        class="btn btn-soft-default btn-group-end">오른쪽</button>
                                 </div>
 
                                 <br />
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-e-none">1</button>
+                                        class="btn btn-soft-default btn-group-start">1</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-none">2</button>
+                                        class="btn btn-soft-default btn-group-middle">2</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-none">3</button>
+                                        class="btn btn-soft-default btn-group-middle">3</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-s-none">4</button>
+                                        class="btn btn-soft-default btn-group-end">4</button>
                                 </div>
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-e-none">5</button>
+                                        class="btn btn-soft-default btn-group-start">5</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-none">6</button>
+                                        class="btn btn-soft-default btn-group-middle">6</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-s-none">7</button>
+                                        class="btn btn-soft-default btn-group-end">7</button>
                                 </div>
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
@@ -590,14 +606,14 @@
 
                                 <div class="ui-kit-space-after-3 ui-kit-inline-cluster">
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-e-none">1</button>
+                                        class="btn btn-soft-default btn-group-start">1</button>
                                     <button type="button"
-                                        class="btn ui-kit-radius-none btn-solid-primary">2</button>
+                                        class="btn btn-group-middle btn-solid-primary">2</button>
                                     <button type="button"
-                                        class="btn btn-soft-default ui-kit-radius-none">3</button>
+                                        class="btn btn-soft-default btn-group-middle">3</button>
 
-                                    <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
-                                        <button type="button" class="btn btn-soft-default ui-kit-radius-s-none"
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-soft-default btn-group-end"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             드롭다운
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
@@ -616,23 +632,23 @@
                                     <div>
                                         <div class="ui-kit-inline-cluster ui-kit-stack-layout">
                                             <button type="button"
-                                                class="btn btn-soft-default ui-kit-radius-b-none">상단</button>
+                                                class="btn btn-soft-default btn-group-top">상단</button>
                                             <button type="button"
-                                                class="btn btn-soft-default ui-kit-radius-none">중간</button>
+                                                class="btn btn-soft-default btn-group-middle">중간</button>
                                             <button type="button"
-                                                class="btn btn-soft-default ui-kit-radius-t-none">하단</button>
+                                                class="btn btn-soft-default btn-group-bottom">하단</button>
                                         </div>
                                     </div>
 
                                     <div>
                                         <div class="ui-kit-inline-cluster ui-kit-stack-layout">
                                             <button type="button"
-                                                class="btn btn-soft-default ui-kit-radius-b-none">버튼 1</button>
+                                                class="btn btn-soft-default btn-group-top">버튼 1</button>
                                             <button type="button"
-                                                class="btn btn-soft-default ui-kit-radius-none">버튼 2</button>
-                                            <div class="dropdown ui-kit-position-context ui-kit-inline-cluster">
+                                                class="btn btn-soft-default btn-group-middle">버튼 2</button>
+                                            <div class="dropdown">
                                                 <button type="button"
-                                                    class="btn btn-soft-default ui-kit-radius-t-none"
+                                                    class="btn btn-soft-default btn-group-bottom"
                                                     aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                                     버튼 3
                                                     <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
