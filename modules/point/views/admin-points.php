@@ -90,8 +90,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역 보기</a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">회원 <strong><?php echo sr_e((string) $selectedAccount['display_name']); ?></strong></span>
-            <span class="admin-summary-meta"><?php echo sr_e((string) $selectedAccount['email']); ?></span>
+            <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($selectedAccount)); ?></strong></span>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($selectedAccount)); ?></span>
             <span class="admin-summary-meta">잔액 <strong><?php echo sr_e(number_format((int) $selectedBalance)); ?> P</strong></span>
         </div>
     </div>
@@ -126,8 +126,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo sr_e((string) $transaction['id']); ?></td>
                             <td>
-                                <?php echo sr_e((string) $transaction['display_name']); ?><br>
-                                <?php echo sr_e((string) $transaction['email']); ?><br>
+                                <?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br>
+                                <?php echo sr_e(sr_admin_member_email_display($transaction)); ?><br>
                                 <?php echo sr_e((string) $transaction['account_public_hash']); ?>
                             </td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
@@ -172,7 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $balance['account_public_hash']); ?></td>
-                            <td><?php echo sr_e((string) $balance['display_name']); ?><br><?php echo sr_e((string) $balance['email']); ?></td>
+                            <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> P</td>
                             <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
@@ -217,8 +217,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php if ((string) $pointAdjustModalAccount['account_public_hash'] !== '') { ?>
                             <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $pointAdjustModalAccount['account_public_hash']); ?>">
                             <div class="admin-summary-stats">
-                                <span class="admin-summary-meta">회원 <strong><?php echo sr_e((string) $pointAdjustModalAccount['display_name']); ?></strong></span>
-                                <span class="admin-summary-meta"><?php echo sr_e((string) $pointAdjustModalAccount['email']); ?></span>
+                                <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointAdjustModalAccount)); ?></strong></span>
+                                <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointAdjustModalAccount)); ?></span>
                                 <span class="admin-summary-meta">현재 잔액 <strong><?php echo sr_e(number_format((int) $pointAdjustModalAccount['balance'])); ?> P</strong></span>
                             </div>
                         <?php } else { ?>
