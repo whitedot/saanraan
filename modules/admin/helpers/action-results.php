@@ -10,6 +10,37 @@ function sr_admin_action_result(array $errors = [], string $notice = ''): array
     ];
 }
 
+function sr_admin_flash_result(array $result): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $_SESSION['sr_admin_action_result'] = sr_admin_action_result(
+        isset($result['errors']) && is_array($result['errors']) ? $result['errors'] : [],
+        (string) ($result['notice'] ?? '')
+    );
+}
+
+function sr_admin_pop_flash_result(): array
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return sr_admin_action_result();
+    }
+
+    $result = $_SESSION['sr_admin_action_result'] ?? null;
+    unset($_SESSION['sr_admin_action_result']);
+
+    if (!is_array($result)) {
+        return sr_admin_action_result();
+    }
+
+    return sr_admin_action_result(
+        isset($result['errors']) && is_array($result['errors']) ? $result['errors'] : [],
+        (string) ($result['notice'] ?? '')
+    );
+}
+
 function sr_admin_feedback_toasts(string $notice = '', array $errors = []): string
 {
     $items = [];

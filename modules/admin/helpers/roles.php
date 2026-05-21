@@ -83,6 +83,94 @@ function sr_admin_role_actions(): array
     return ['grant', 'revoke'];
 }
 
+function sr_admin_post_role_keys(array $allowedRoles): array
+{
+    $roleKeys = $_POST['role_keys'] ?? [];
+    if (!is_array($roleKeys)) {
+        return [];
+    }
+
+    $selectedMap = [];
+    foreach ($roleKeys as $roleKey) {
+        $roleKey = is_string($roleKey) ? trim($roleKey) : '';
+        if (in_array($roleKey, $allowedRoles, true)) {
+            $selectedMap[$roleKey] = true;
+        }
+    }
+
+    $selectedRoles = [];
+    foreach ($allowedRoles as $allowedRole) {
+        if (isset($selectedMap[$allowedRole])) {
+            $selectedRoles[] = $allowedRole;
+        }
+    }
+
+    return array_values($selectedRoles);
+}
+
+function sr_admin_post_role_keys_valid(array $allowedRoles): bool
+{
+    $roleKeys = $_POST['role_keys'] ?? [];
+    if ($roleKeys === []) {
+        return true;
+    }
+
+    if (!is_array($roleKeys)) {
+        return false;
+    }
+
+    foreach ($roleKeys as $roleKey) {
+        if (!is_string($roleKey) || !in_array(trim($roleKey), $allowedRoles, true)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function sr_admin_role_filter(array $allowedRoles): string
+{
+    $roleFilter = sr_get_string('role', 40);
+    if ($roleFilter === '') {
+        return '';
+    }
+
+    if (in_array($roleFilter, array_merge(['any', 'none'], $allowedRoles), true)) {
+        return $roleFilter;
+    }
+
+    return '';
+}
+
+function sr_admin_role_filter_has_conditions(string $statusFilter, string $roleFilter, array $searchFilter): bool
+{
+    return $statusFilter !== ''
+        || $roleFilter !== ''
+        || trim((string) ($searchFilter['keyword'] ?? '')) !== '';
+}
+
+function sr_admin_role_filter_url(string $statusFilter, string $roleFilter, array $searchFilter): string
+{
+    $query = [];
+    if ($statusFilter !== '') {
+        $query['status'] = $statusFilter;
+    }
+
+    if ($roleFilter !== '') {
+        $query['role'] = $roleFilter;
+    }
+
+    if ((string) ($searchFilter['field'] ?? 'all') !== 'all') {
+        $query['field'] = (string) $searchFilter['field'];
+    }
+
+    if (trim((string) ($searchFilter['keyword'] ?? '')) !== '') {
+        $query['q'] = (string) $searchFilter['keyword'];
+    }
+
+    return '/admin/roles' . ($query === [] ? '' : '?' . http_build_query($query));
+}
+
 function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRoles, array $allowedActions): array
 {
     $errors = [];
@@ -90,17 +178,25 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
     $targetAccountId = sr_admin_post_positive_int('account_id');
     $roleKey = sr_post_string('role_key', 40);
     $roleAction = sr_post_string('role_action', 20);
+    $intent = sr_post_string('intent', 40);
+    $selectedRoles = sr_admin_post_role_keys($allowedRoles);
 
     if ($targetAccountId <= 0) {
         $errors[] = '계정을 선택하세요.';
     }
 
-    if (!in_array($roleKey, $allowedRoles, true)) {
-        $errors[] = '역할 값이 올바르지 않습니다.';
-    }
+    if ($intent === 'sync_roles') {
+        if (!sr_admin_post_role_keys_valid($allowedRoles)) {
+            $errors[] = '역할 값이 올바르지 않습니다.';
+        }
+    } else {
+        if (!in_array($roleKey, $allowedRoles, true)) {
+            $errors[] = '역할 값이 올바르지 않습니다.';
+        }
 
-    if (!in_array($roleAction, $allowedActions, true)) {
-        $errors[] = '역할 작업 값이 올바르지 않습니다.';
+        if (!in_array($roleAction, $allowedActions, true)) {
+            $errors[] = '역할 작업 값이 올바르지 않습니다.';
+        }
     }
 
     if ($errors === []) {
@@ -113,13 +209,22 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
         }
     }
 
-    if ($errors === [] && $roleAction === 'revoke' && $roleKey === 'owner') {
-        $targetRoles = sr_admin_current_roles($pdo, $targetAccountId);
+    if ($errors === []) {
+        $targetRoles = array_values(array_intersect($allowedRoles, sr_admin_current_roles($pdo, $targetAccountId)));
+    }
+
+    if ($errors === [] && $intent === 'sync_roles' && in_array('owner', $targetRoles, true) && !in_array('owner', $selectedRoles, true)) {
+        if (sr_admin_owner_count($pdo) <= 1) {
+            $errors[] = '마지막 소유자 권한은 회수할 수 없습니다.';
+        } elseif ((string) $targetAccount['status'] === 'active' && sr_admin_active_owner_count($pdo) <= 1) {
+            $errors[] = '마지막 활성 소유자 권한은 회수할 수 없습니다.';
+        }
+    }
+
+    if ($errors === [] && $intent !== 'sync_roles' && $roleAction === 'revoke' && $roleKey === 'owner') {
         if (in_array('owner', $targetRoles, true) && sr_admin_owner_count($pdo) <= 1) {
             $errors[] = '마지막 소유자 권한은 회수할 수 없습니다.';
-        }
-
-        if (
+        } elseif (
             in_array('owner', $targetRoles, true)
             && (string) $targetAccount['status'] === 'active'
             && sr_admin_active_owner_count($pdo) <= 1
@@ -128,7 +233,41 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
         }
     }
 
-    if ($errors === []) {
+    if ($errors === [] && $intent === 'sync_roles') {
+        $beforeRoles = $targetRoles;
+        $grantedRoles = array_values(array_diff($selectedRoles, $beforeRoles));
+        $revokedRoles = array_values(array_diff($beforeRoles, $selectedRoles));
+
+        foreach ($grantedRoles as $grantRole) {
+            sr_admin_grant_role($pdo, $targetAccountId, $grantRole);
+        }
+
+        foreach ($revokedRoles as $revokeRole) {
+            sr_admin_revoke_role($pdo, $targetAccountId, $revokeRole);
+        }
+
+        if ($grantedRoles === [] && $revokedRoles === []) {
+            $notice = '관리자 역할 변경 사항이 없습니다.';
+        } else {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'admin.role.changed',
+                'target_type' => 'member_account',
+                'target_id' => (string) $targetAccountId,
+                'result' => 'success',
+                'message' => 'Admin roles changed.',
+                'metadata' => [
+                    'before_roles' => $beforeRoles,
+                    'after_roles' => $selectedRoles,
+                    'granted_roles' => $grantedRoles,
+                    'revoked_roles' => $revokedRoles,
+                ],
+            ]);
+
+            $notice = '관리자 역할을 저장했습니다.';
+        }
+    } elseif ($errors === []) {
         if ($roleAction === 'grant') {
             sr_admin_grant_role($pdo, $targetAccountId, $roleKey);
             $eventType = 'admin.role.granted';
@@ -157,17 +296,66 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
     return sr_admin_action_result($errors, $notice);
 }
 
-function sr_admin_role_accounts(PDO $pdo): array
+function sr_admin_role_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $roleFilter = ''): array
 {
     $accounts = [];
-    $stmt = $pdo->query(
+    $where = [];
+    $having = '';
+    $params = [];
+
+    if ($statusFilter !== '') {
+        $where[] = 'a.status = :status';
+        $params['status'] = $statusFilter;
+    }
+
+    $field = (string) ($searchFilter['field'] ?? 'all');
+    $keyword = trim((string) ($searchFilter['keyword'] ?? ''));
+    $accountId = (int) ($searchFilter['account_id'] ?? 0);
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        if ($field === 'hash') {
+            $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
+            if ($accountId > 0) {
+                $params['account_id'] = $accountId;
+            }
+        } elseif ($field === 'email') {
+            $where[] = 'a.email LIKE :keyword_like';
+            $params['keyword_like'] = $like;
+        } elseif ($field === 'name') {
+            $where[] = 'a.display_name LIKE :keyword_like';
+            $params['keyword_like'] = $like;
+        } else {
+            $clauses = ['a.email LIKE :keyword_like', 'a.display_name LIKE :keyword_like'];
+            $params['keyword_like'] = $like;
+            if ($accountId > 0) {
+                $clauses[] = 'a.id = :account_id';
+                $params['account_id'] = $accountId;
+            }
+            $where[] = '(' . implode(' OR ', $clauses) . ')';
+        }
+    }
+
+    if ($roleFilter === 'any') {
+        $having = 'HAVING COUNT(r.role_key) > 0';
+    } elseif ($roleFilter === 'none') {
+        $having = 'HAVING COUNT(r.role_key) = 0';
+    } elseif ($roleFilter !== '') {
+        $having = 'HAVING SUM(CASE WHEN r.role_key = :role_filter THEN 1 ELSE 0 END) > 0';
+        $params['role_filter'] = $roleFilter;
+    }
+
+    $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    $stmt = $pdo->prepare(
         'SELECT a.id, a.email, a.display_name, a.status, GROUP_CONCAT(r.role_key ORDER BY r.role_key SEPARATOR ",") AS role_keys
          FROM sr_member_accounts a
          LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id
+         ' . $whereSql . '
          GROUP BY a.id, a.email, a.display_name, a.status
+         ' . $having . '
          ORDER BY a.id DESC
          LIMIT 100'
     );
+    $stmt->execute($params);
 
     foreach ($stmt->fetchAll() as $row) {
         $roleKeys = (string) ($row['role_keys'] ?? '');
