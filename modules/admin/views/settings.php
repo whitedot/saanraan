@@ -12,12 +12,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2>사이트 기본값</h2>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">사이트 이름</span></div>
+            <label class="form-label" for="admin_settings_name">사이트 이름</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">사이트 이름</span>
-                <input type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
-                </label>
+                <input id="admin_settings_name" type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
             </div>
         </div>
         <p>
@@ -30,91 +27,70 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-form-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</span>
         </p>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">시간대</span></div>
+            <label class="form-label" for="admin_settings_timezone">시간대</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">시간대</span>
-                <input type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" class="form-input" maxlength="80" required>
-                </label>
+                <input id="admin_settings_timezone" type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" class="form-input" maxlength="80" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">기본 locale</span></div>
+            <label class="form-label" for="admin_settings_default_locale">기본 locale</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">기본 locale</span>
-                <input type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" class="form-input" maxlength="20" required>
-                </label>
+                <input id="admin_settings_default_locale" type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" class="form-input" maxlength="20" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">지원 locale 목록</span></div>
+            <label class="form-label" for="admin_settings_supported_locales">지원 locale 목록</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">지원 locale 목록</span>
-                <input type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" class="form-input" maxlength="255" required>
-                </label>
-            <span class="admin-form-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+                <input id="admin_settings_supported_locales" type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" class="form-input" maxlength="255" required>
+                <span class="admin-form-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">운영 상태</span></div>
+            <label class="form-label" for="admin_settings_status">운영 상태</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">운영 상태</span>
-                <select name="status" class="form-select">
-                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
-                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>>점검</option>
-                </select>
-                </label>
+                <select id="admin_settings_status" name="status" class="form-select">
+                                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
+                                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>>점검</option>
+                                </select>
             </div>
         </div>
     </section>
     <section class="admin-card card">
         <h2>화면</h2>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">공통 레이아웃</span></div>
+            <label class="form-label" for="admin_settings_public_layout_key">공통 레이아웃</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">공통 레이아웃</span>
-                <select name="public_layout_key" class="form-select">
-                    <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
-                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                </label>
+                <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
+                                    <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
+                                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">UI 색상 모드</span></div>
+            <label class="form-label" for="admin_settings_ui_color_scheme">UI 색상 모드</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">UI 색상 모드</span>
-                <select name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
-                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $colorSchemeLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                </label>
+                <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
+                                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
+                                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) $colorSchemeLabel); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">관리자 스킨</span></div>
+            <label class="form-label" for="admin_settings_admin_skin_key">관리자 스킨</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">관리자 스킨</span>
-                <select name="admin_skin_key" class="form-select">
-                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
-                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                </label>
+                <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
+                                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
+                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
             </div>
         </div>
     </section>

@@ -80,9 +80,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="install">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                <label>
+                                <label for="modules_admin_modules_status">
                                     <span>설치 후 상태</span>
-                                    <select name="status" class="form-select">
+                                    <select id="modules_admin_modules_status" name="status" class="form-select">
                                         <?php foreach ($allowedInstallStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
                                                 <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -200,9 +200,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="sync_module_version">
                                         <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                        <label>
+                                        <label for="modules_admin_modules_owner_password">
                                             <span class="sr-only">소유자 비밀번호</span>
-                                            <input type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
+                                            <input id="modules_admin_modules_owner_password" type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
                                         </label>
                                         <button type="submit" class="btn btn-sm btn-soft-default">파일 업데이트 반영</button>
                                     </form>
@@ -235,9 +235,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="install">
                             <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                            <label>
+                            <label for="modules_admin_modules_status_2">
                                 <span>설치 후 상태</span>
-                                <select name="status" class="form-select">
+                                <select id="modules_admin_modules_status_2" name="status" class="form-select">
                                     <?php foreach ($allowedInstallStatuses as $status) { ?>
                                         <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
                                             <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -255,9 +255,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="status">
                             <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                            <label>
+                            <label for="modules_admin_modules_status_3">
                                 <span>상태</span>
-                                <select name="status"<?php echo $isRequired ? ' disabled' : ''; ?> class="form-select">
+                                <select id="modules_admin_modules_status_3" name="status"<?php echo $isRequired ? ' disabled' : ''; ?> class="form-select">
                                     <?php foreach ($allowedStatuses as $status) { ?>
                                         <option value="<?php echo sr_e($status); ?>"<?php echo $moduleStatus === $status ? ' selected' : ''; ?>>
                                             <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
@@ -348,12 +348,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </div>
 
-<div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="module-upload-modal-label">
+<?php $moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable) ? 'module-upload-modal-label-unavailable' : 'module-upload-modal-label'; ?>
+<div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleUploadModalLabelId); ?>">
     <div class="modal-dialog modal-dialog-lg">
         <div class="modal-content">
             <?php if (!$canManageModuleSources || !$moduleUploadAvailable) { ?>
                 <div class="modal-header">
-                    <h3 id="module-upload-modal-label" class="modal-title">모듈 zip 업로드</h3>
+                    <h3 id="module-upload-modal-label-unavailable" class="modal-title">모듈 zip 업로드</h3>
                     <button type="button" class="modal-close" aria-label="닫기" data-overlay="#module-upload-modal">
                         <?php echo sr_material_icon_html('close', '', '닫기'); ?>
                     </button>
@@ -380,50 +381,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="upload_module_zip">
                         <div class="admin-form-row">
-                            <div class="admin-form-label"><span class="form-label">모듈 zip</span></div>
+                            <label class="form-label" for="admin_modules_module_zip">모듈 zip</label>
                             <div class="admin-form-field">
-                                <label>
-                                    <span class="sr-only">모듈 zip</span>
-                                    <input type="file" name="module_zip" accept=".zip,application/zip" required class="form-input" data-overlay-focus>
-                                </label>
+                                <input id="admin_modules_module_zip" type="file" name="module_zip" accept=".zip,application/zip" required class="form-input" data-overlay-focus>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <div class="admin-form-label"><span class="form-label">모듈 key</span></div>
+                            <label class="form-label" for="admin_modules_upload_module_key">모듈 key</label>
                             <div class="admin-form-field">
-                                <label>
-                                    <span class="sr-only">모듈 key</span>
-                                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" class="form-input">
-                                </label>
+                                <input id="admin_modules_upload_module_key" type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" class="form-input">
                             </div>
                         </div>
                         <div class="admin-form-grid">
                             <div class="admin-form-row">
-                                <div class="admin-form-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
+                                <span class="form-label">기존 모듈 파일 백업과 교체 확인</span>
                                 <div class="admin-form-field">
-                                    <label class="admin-form-check form-label">
-                                        <input type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
-                                        <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
-                                    </label>
+                                    <label class="admin-form-check form-label" for="modules_admin_modules_confirm_file_replace">
+                                                                            <input id="modules_admin_modules_confirm_file_replace" type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
+                                                                            <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
+                                                                        </label>
                                 </div>
                             </div>
                             <div class="admin-form-row">
-                                <div class="admin-form-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
+                                <span class="form-label">낮은 버전 덮어쓰기 허용</span>
                                 <div class="admin-form-field">
-                                    <label class="admin-form-check form-label">
-                                        <input type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
-                                        <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
-                                    </label>
+                                    <label class="admin-form-check form-label" for="modules_admin_modules_allow_downgrade">
+                                                                            <input id="modules_admin_modules_allow_downgrade" type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
+                                                                            <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
+                                                                        </label>
                                 </div>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
+                            <label class="form-label" for="admin_modules_owner_password">소유자 비밀번호</label>
                             <div class="admin-form-field">
-                                <label>
-                                    <span class="sr-only">소유자 비밀번호</span>
-                                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
-                                </label>
+                                <input id="admin_modules_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                             </div>
                         </div>
                         <p>소유자 비밀번호 확인을 통과한 요청에서만 모듈 파일 반영을 일시적으로 허용하고, 업로드 처리가 끝나면 자동으로 다시 비활성화합니다. 최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>

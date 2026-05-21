@@ -65,22 +65,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">
             <?php } ?>
             <p>
-                <label>
+                <label for="modules_community_form_title">
                     <span>제목</span>
-                    <input type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
+                    <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
                 </label>
             </p>
             <p>
-                <label>
+                <label for="modules_community_form_body_text">
                     <span>본문</span>
-                    <textarea name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
-                    <label>
+                    <label for="modules_community_form_image_attachment">
                     <span>이미지 첨부</span>
-                        <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
+                        <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
                     </label>
                     <br>
                     <small>JPEG, PNG, WebP / 파일당 최대 <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
@@ -88,9 +88,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
             <?php if ($fileUploadEnabled) { ?>
                 <p>
-                    <label>
+                    <label for="modules_community_form_file_attachments">
                     <span>파일 첨부</span>
-                        <input type="file" name="file_attachments[]" multiple>
+                        <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple>
                     </label>
                     <br>
                     <small>

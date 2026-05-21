@@ -30,13 +30,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <form method="post" action="<?php echo sr_e(sr_url('/login')); ?>" class="public-ui-content-list">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
-                <label class="public-ui-field">
+                <label class="public-ui-field" for="modules_member_login_identifier">
                     <span><?php echo sr_e($identifierLabel); ?></span>
-                    <input type="text" name="identifier" value="<?php echo sr_e($identifier); ?>" autocomplete="username" required class="public-ui-input">
+                    <input id="modules_member_login_identifier" type="text" name="identifier" value="<?php echo sr_e($identifier); ?>" autocomplete="username" required class="public-ui-input">
                 </label>
-                <label class="public-ui-field">
+                <label class="public-ui-field" for="modules_member_login_password">
                     <span>비밀번호</span>
-                    <input type="password" name="password" required class="public-ui-input">
+                    <input id="modules_member_login_password" type="password" name="password" required class="public-ui-input">
                 </label>
                 <button type="submit" class="public-ui-button">로그인</button>
             </form>

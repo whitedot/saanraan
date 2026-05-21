@@ -838,14 +838,14 @@
                                             aria-orientation="forms-dropdown-menu">
                                             <form class="dropdown-form">
                                                 <div class="ui-kit-space-after-5">
-                                                    <label class="form-label">이메일 주소</label>
-                                                    <input class="form-input ui-kit-type-sm" type="email"
+                                                    <label class="form-label" for="dropdown-form-email">이메일 주소</label>
+                                                    <input id="dropdown-form-email" class="form-input ui-kit-type-sm" type="email"
                                                         placeholder="email@example.com" />
                                                 </div>
 
                                                 <div class="ui-kit-space-after-5">
-                                                    <label class="form-label">비밀번호</label>
-                                                    <input class="form-input ui-kit-type-sm" type="password"
+                                                    <label class="form-label" for="dropdown-form-password">비밀번호</label>
+                                                    <input id="dropdown-form-password" class="form-input ui-kit-type-sm" type="password"
                                                         placeholder="비밀번호" />
                                                 </div>
 

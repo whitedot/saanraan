@@ -13,19 +13,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">배너 스킨</span></div>
+            <label class="form-label" for="banner_admin_banner_settings_banner_skin_key">배너 스킨</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">배너 스킨</span>
-                <select name="banner_skin_key" class="form-select">
-                    <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
-                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                            (<?php echo sr_e(implode(', ', array_map('sr_banner_placement_kind_label', is_array($skinOption['supports'] ?? null) ? $skinOption['supports'] : ['inline']))); ?>)
-                        </option>
-                    <?php } ?>
-                </select>
-                </label>
+                <select id="banner_admin_banner_settings_banner_skin_key" name="banner_skin_key" class="form-select">
+                                    <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
+                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                            (<?php echo sr_e(implode(', ', array_map('sr_banner_placement_kind_label', is_array($skinOption['supports'] ?? null) ? $skinOption['supports'] : ['inline']))); ?>)
+                                        </option>
+                                    <?php } ?>
+                                </select>
             </div>
         </div>
         <p>배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>

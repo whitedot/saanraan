@@ -102,21 +102,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="edit">
                                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <label>
+                                        <label for="modules_member_admin_members_email">
                                             <span>이메일</span>
-                                            <input type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" class="form-input" required>
+                                            <input id="modules_member_admin_members_email" type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" class="form-input" required>
                                         </label>
-                                        <label>
+                                        <label for="modules_member_admin_members_display_name">
                                             <span>이름</span>
-                                            <input type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" class="form-input" maxlength="120" required>
+                                            <input id="modules_member_admin_members_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" class="form-input" maxlength="120" required>
                                         </label>
-                                        <label>
+                                        <label for="modules_member_admin_members_locale">
                                             <span>Locale</span>
-                                            <input type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" class="form-input" maxlength="20" required>
+                                            <input id="modules_member_admin_members_locale" type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" class="form-input" maxlength="20" required>
                                         </label>
-                                        <label>
+                                        <label for="modules_member_admin_members_status">
                                             <span>상태</span>
-                                            <select name="status" class="form-select form-select-sm">
+                                            <select id="modules_member_admin_members_status" name="status" class="form-select form-select-sm">
                                                 <?php foreach ($allowedStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo $memberStatus === $status ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>

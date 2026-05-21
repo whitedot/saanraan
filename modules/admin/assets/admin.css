@@ -178,7 +178,8 @@
 .admin-role-choice-list{border:0;display:grid;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-role-choice{min-height:calc(var(--spacing) * 9);border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
 .admin-role-choice:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent)}
-.admin-form .admin-form-label{color:var(--color-default-700);font-weight:var(--font-weight-semibold);padding-top:.55rem}
+.admin-form .admin-form-label,
+.admin-form .admin-form-row>.form-label{color:var(--color-default-700);font-weight:var(--font-weight-semibold);padding-top:.55rem}
 .admin-form .admin-form-field{grid-column:auto;min-width:0}
 .admin-form .admin-form-field label{margin:0}
 .admin-form .admin-form-field .admin-form-help,
@@ -423,7 +424,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         grid-template-columns:1fr;
     }
 
-    .admin-form .admin-form-label{
+    .admin-form .admin-form-label,
+    .admin-form .admin-form-row>.form-label{
         padding-top:0;
     }
 }
@@ -937,6 +939,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 /* Text color policy: inherit the stronger body text unless the element is genuinely auxiliary. */
 .admin-content :is(
     .admin-form .admin-form-label,
+    .admin-form .admin-form-row>.form-label,
     .admin-filter-header strong,
     .admin-filter-label,
     .admin-list-card>.card-header>.card-title,

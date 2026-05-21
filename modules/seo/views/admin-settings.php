@@ -12,30 +12,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2>기본 메타</h2>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">제목 접미사</span></div>
+            <label class="form-label" for="seo_admin_settings_title_suffix">제목 접미사</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">제목 접미사</span>
-                <input type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" class="form-input" maxlength="80">
-                </label>
+                <input id="seo_admin_settings_title_suffix" type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" class="form-input" maxlength="80">
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">기본 설명</span></div>
+            <label class="form-label" for="seo_admin_settings_default_description">기본 설명</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">기본 설명</span>
-                <input type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input" maxlength="255">
-                </label>
+                <input id="seo_admin_settings_default_description" type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input" maxlength="255">
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">기본 OG 이미지 URL</span></div>
+            <label class="form-label" for="seo_admin_settings_default_og_image">기본 OG 이미지 URL</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">기본 OG 이미지 URL</span>
-                <input type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input" maxlength="255">
-                </label>
+                <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input" maxlength="255">
             </div>
         </div>
     </section>
@@ -44,12 +35,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2>사이트맵</h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">홈 URL 포함</span></div>
+                <span class="form-label">홈 URL 포함</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="sitemap_include_home" value="1" class="form-checkbox"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('홈 URL 포함'); ?>
-                    </label>
+                    <label class="admin-form-check form-label" for="modules_seo_admin_settings_sitemap_include_home">
+                                            <input id="modules_seo_admin_settings_sitemap_include_home" type="checkbox" name="sitemap_include_home" value="1" class="form-checkbox"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html('홈 URL 포함'); ?>
+                                        </label>
                 </div>
             </div>
         </div>
@@ -67,12 +58,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="seo-robots-content">
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">차단 경로</span></div>
+                    <label class="form-label" for="seo_admin_settings_robots_disallow_paths">차단 경로</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">차단 경로</span>
-                        <textarea name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
-                        </label>
+                        <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
                     </div>
                 </div>
                 <pre><?php echo sr_e($robotsPreview); ?></pre>

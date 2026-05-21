@@ -13,18 +13,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">팝업레이어 스킨</span></div>
+            <label class="form-label" for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key">팝업레이어 스킨</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">팝업레이어 스킨</span>
-                <select name="popup_layer_skin_key" class="form-select">
-                    <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
-                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $popupLayerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                </label>
+                <select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select">
+                                    <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
+                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $popupLayerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
             </div>
         </div>
     </section>

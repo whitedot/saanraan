@@ -36,16 +36,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     받는 회원<br>
                     <?php echo sr_e($recipientLabel); ?>
                 <?php } else { ?>
-                    <label>
+                    <label for="modules_community_message_write_recipient_identifier">
                     <span>받는 회원 이메일 또는 아이디</span>
-                        <input type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required>
+                        <input id="modules_community_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required>
                     </label>
                 <?php } ?>
             </p>
             <p>
-                <label>
+                <label for="modules_community_message_write_body_text">
                     <span>내용</span>
-                    <textarea name="body_text" rows="10" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_message_write_body_text" name="body_text" rows="10" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <button type="submit">보내기</button>

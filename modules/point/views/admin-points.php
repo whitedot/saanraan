@@ -26,9 +26,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <h2>회원 조회</h2>
     <form method="get" action="<?php echo sr_e(sr_url($pointAdminPage === 'transactions' ? '/admin/points/transactions' : ($pointAdminPage === 'adjust' ? '/admin/points/adjust' : '/admin/points/balances'))); ?>" class="admin-filter ui-form-theme">
         <div class="admin-filter-grid admin-filter-grid-compact">
-            <label class="admin-filter-field">
+            <label class="admin-filter-field" for="modules_point_admin_points_account_identifier">
                 <span class="admin-filter-label">회원 공개 해시</span>
-                <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80">
+                <input id="modules_point_admin_points_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80">
             </label>
             <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
         </div>
@@ -57,63 +57,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>포인트 조정</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">회원 공개 해시</span></div>
+                <label class="form-label" for="point_admin_points_account_identifier">회원 공개 해시</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required>
-                    </label>
+                    <input id="point_admin_points_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">거래 유형</span></div>
+                <label class="form-label" for="point_admin_points_transaction_type">거래 유형</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">거래 유형</span>
-                    <select name="transaction_type" class="form-select">
-                        <?php foreach ($allowedTransactionTypes as $type) { ?>
-                            <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="point_admin_points_transaction_type" name="transaction_type" class="form-select">
+                                            <?php foreach ($allowedTransactionTypes as $type) { ?>
+                                                <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">수량</span></div>
+                <label class="form-label" for="point_admin_points_amount">수량</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">수량</span>
-                    <input type="number" name="amount" step="1" required class="form-input">
-                    </label>
-                <br>
-                지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.
+                    <input id="point_admin_points_amount" type="number" name="amount" step="1" required class="form-input">
+                    <br>
+                                    지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">사유</span></div>
+                <label class="form-label" for="point_admin_points_reason">사유</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">사유</span>
-                    <input type="text" name="reason" maxlength="255" required class="form-input">
-                    </label>
+                    <input id="point_admin_points_reason" type="text" name="reason" maxlength="255" required class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">참조 유형</span></div>
+                <label class="form-label" for="point_admin_points_reference_type">참조 유형</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">참조 유형</span>
-                    <input type="text" name="reference_type" maxlength="60" class="form-input">
-                    </label>
+                    <input id="point_admin_points_reference_type" type="text" name="reference_type" maxlength="60" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">참조 ID</span></div>
+                <label class="form-label" for="point_admin_points_reference_id">참조 ID</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">참조 ID</span>
-                    <input type="text" name="reference_id" maxlength="120" class="form-input">
-                    </label>
+                    <input id="point_admin_points_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
                 </div>
             </div>
         </section>

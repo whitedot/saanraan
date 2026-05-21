@@ -56,8 +56,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                <label>상태
-                                    <select name="status" class="form-select">
+                                <label for="modules_community_admin_posts_status">상태
+                                    <select id="modules_community_admin_posts_status" name="status" class="form-select">
                                         <?php foreach ($allowedPostStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>
@@ -117,8 +117,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="comment_status">
                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                <label>상태
-                                    <select name="status" class="form-select">
+                                <label for="modules_community_admin_posts_status_2">상태
+                                    <select id="modules_community_admin_posts_status_2" name="status" class="form-select">
                                         <?php foreach ($allowedCommentStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                         <?php } ?>

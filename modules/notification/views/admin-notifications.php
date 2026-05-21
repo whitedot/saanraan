@@ -26,75 +26,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>알림 등록</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">대상</span></div>
+                <label class="form-label" for="notification_admin_notifications_audience">대상</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">대상</span>
-                    <select name="audience" class="form-select">
-                        <?php foreach ($allowedAudiences as $audience) { ?>
-                            <option value="<?php echo sr_e($audience); ?>"><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="notification_admin_notifications_audience" name="audience" class="form-select">
+                                            <?php foreach ($allowedAudiences as $audience) { ?>
+                                                <option value="<?php echo sr_e($audience); ?>"><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">회원 공개 해시</span></div>
+                <label class="form-label" for="notification_admin_notifications_account_identifier">회원 공개 해시</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">회원 공개 해시</span>
-                    <input type="text" name="account_identifier" value="" maxlength="80" class="form-input">
-                    </label>
+                    <input id="notification_admin_notifications_account_identifier" type="text" name="account_identifier" value="" maxlength="80" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">제목</span></div>
+                <label class="form-label" for="notification_admin_notifications_title">제목</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">제목</span>
-                    <input type="text" name="title" value="" maxlength="160" required class="form-input">
-                    </label>
+                    <input id="notification_admin_notifications_title" type="text" name="title" value="" maxlength="160" required class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">내용</span></div>
+                <label class="form-label" for="notification_admin_notifications_body_text">내용</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">내용</span>
-                    <textarea name="body_text" maxlength="5000" class="form-textarea"></textarea>
-                    </label>
+                    <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span></div>
+                <label class="form-label" for="notification_admin_notifications_link_url">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</span>
-                    <input type="text" name="link_url" value="" maxlength="255" class="form-input">
-                    </label>
+                    <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="" maxlength="255" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">외부 수신자</span></div>
+                <label class="form-label" for="notification_admin_notifications_recipient">외부 수신자</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">외부 수신자</span>
-                    <input type="text" name="recipient" value="" maxlength="255" class="form-input">
-                    </label>
+                    <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="" maxlength="255" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">채널</span></div>
+                <span class="form-label">채널</span>
                 <div class="admin-form-field">
                     <div class="admin-check-list">
-                        <?php foreach ($allowedCreateChannels as $channel) { ?>
-                            <label class="admin-form-check form-label">
-                                <input type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
-                            </label>
-                        <?php } ?>
-                    </div>
-                    <small>알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
+                                            <?php foreach ($allowedCreateChannels as $channel) { ?>
+                                                <label class="admin-form-check form-label" for="modules_notification_admin_notifications_channels">
+                                                    <input id="modules_notification_admin_notifications_channels" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
+                                                    <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
+                                                </label>
+                                            <?php } ?>
+                                        </div>
+                                        <small>알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
                 </div>
             </div>
         </section>

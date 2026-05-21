@@ -54,9 +54,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <form method="get" action="<?php echo sr_e(sr_url('/community/board')); ?>">
             <input type="hidden" name="key" value="<?php echo sr_e((string) $board['board_key']); ?>">
             <p>
-                <label>
+                <label for="modules_community_list_q">
                     <span>검색</span>
-                    <input type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>">
+                    <input id="modules_community_list_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>">
                 </label>
                 <button type="submit">검색</button>
                 <?php if ($keyword !== '') { ?>

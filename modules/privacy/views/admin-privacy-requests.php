@@ -84,16 +84,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <span>새 관리자 메모</span>
                                         <textarea name="admin_note" id="privacy_note_<?php echo sr_e((string) $request['id']); ?>" class="form-textarea" rows="3" cols="30" placeholder="새 관리자 메모"></textarea>
                                     </label>
-                                    <label class="admin-form-check form-label">
-                                        <input type="checkbox" name="identity_confirmed" value="1" class="form-checkbox">
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_identity_confirmed">
+                                        <input id="modules_privacy_admin_privacy_requests_identity_confirmed" type="checkbox" name="identity_confirmed" value="1" class="form-checkbox">
                                         <span class="form-label">요청자 확인</span>
                                     </label>
-                                    <label class="admin-form-check form-label">
-                                        <input type="checkbox" name="export_confirmed" value="1" class="form-checkbox">
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_export_confirmed">
+                                        <input id="modules_privacy_admin_privacy_requests_export_confirmed" type="checkbox" name="export_confirmed" value="1" class="form-checkbox">
                                         <span class="form-label">처리 자료 또는 처리 결과 확인</span>
                                     </label>
-                                    <label class="admin-form-check form-label">
-                                        <input type="checkbox" name="action_confirmed" value="1" class="form-checkbox">
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_action_confirmed">
+                                        <input id="modules_privacy_admin_privacy_requests_action_confirmed" type="checkbox" name="action_confirmed" value="1" class="form-checkbox">
                                         <span class="form-label">관리자 메모에 처리 내용 기록</span>
                                     </label>
                                     <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>

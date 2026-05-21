@@ -10,10 +10,10 @@
                                     novalidate>
                                     <!-- First Name -->
                                     <div class="ui-kit-column-md-4">
-                                        <label class="form-label">이름 (First Name)</label>
+                                        <label class="form-label" for="customFirstName">이름 (First Name)</label>
 
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="firstName" value="John" required
+                                            <input type="text" id="customFirstName" value="John" required
                                                 class="input-field form-input" />
 
                                             <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
@@ -25,10 +25,10 @@
 
                                     <!-- Last Name -->
                                     <div class="ui-kit-column-md-4">
-                                        <label class="form-label">성 (Last Name)</label>
+                                        <label class="form-label" for="customLastName">성 (Last Name)</label>
 
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="lastName" value="Doe" required
+                                            <input type="text" id="customLastName" value="Doe" required
                                                 class="input-field form-input" />
 
                                             <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
@@ -40,11 +40,11 @@
 
                                     <!-- Username -->
                                     <div class="ui-kit-column-md-4">
-                                        <label class="form-label">사용자 이름 (Username)</label>
+                                        <label class="form-label" for="customUsername">사용자 이름 (Username)</label>
 
                                         <div class="ui-kit-position-context input-group">
                                             <span class="input-group-text">@</span>
-                                            <input type="text" id="username" placeholder="johndoe123" required
+                                            <input type="text" id="customUsername" placeholder="johndoe123" required
                                                 class="input-field form-input" />
 
                                             <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
@@ -55,10 +55,10 @@
 
                                     <!-- City -->
                                     <div class="ui-kit-column-md-6">
-                                        <label class="form-label">도시 (City)</label>
+                                        <label class="form-label" for="customCity">도시 (City)</label>
 
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="city" placeholder="San Francisco" required
+                                            <input type="text" id="customCity" placeholder="San Francisco" required
                                                 class="input-field form-input" />
 
                                             <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
@@ -69,10 +69,10 @@
 
                                     <!-- State -->
                                     <div class="ui-kit-column-md-3">
-                                        <label class="form-label">주 (State)</label>
+                                        <label class="form-label" for="customState">주 (State)</label>
 
                                         <div class="ui-kit-position-context">
-                                            <select id="state" required class="input-field form-select">
+                                            <select id="customState" required class="input-field form-select">
                                                 <option value="">선택...</option>
                                                 <option>California</option>
                                                 <option>Texas</option>
@@ -89,10 +89,10 @@
 
                                     <!-- Zip -->
                                     <div class="ui-kit-column-md-3">
-                                        <label class="form-label">우편번호 (Zip Code)</label>
+                                        <label class="form-label" for="customZip">우편번호 (Zip Code)</label>
 
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="zip" placeholder="94107" required
+                                            <input type="text" id="customZip" placeholder="94107" required
                                                 class="input-field form-input" />
 
                                             <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success">정상</span>
@@ -104,8 +104,8 @@
                                     <!-- Terms -->
                                     <div class="ui-kit-column-md-12">
                                         <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center">
-                                            <input id="terms" type="checkbox" required class="form-checkbox" />
-                                            <label for="terms" class="ui-kit-start-margin-2 ui-kit-type-sm ui-kit-ink-default-700">이용 약관에
+                                            <input id="customTerms" type="checkbox" required class="form-checkbox" />
+                                            <label for="customTerms" class="ui-kit-start-margin-2 ui-kit-type-sm ui-kit-ink-default-700">이용 약관에
                                                 동의합니다</label>
                                             <p class="invalid-msg ui-kit-space-before-2 ui-kit-state-hidden ui-kit-fill-width ui-kit-type-sm ui-kit-ink-danger">제출하기 전에 동의해야
                                                 합니다.</p>
@@ -130,9 +130,9 @@
                                 <form id="serverForm" class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-12 ui-kit-gap-base" novalidate>
                                     <!-- First name -->
                                     <div class="ui-kit-column-md-4">
-                                        <label for="firstName" class="form-label">이름 (First name)</label>
+                                        <label for="serverFirstName" class="form-label">이름 (First name)</label>
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="firstName" value="Mark" required
+                                            <input type="text" id="serverFirstName" value="Mark" required
                                                 class="form-input ui-kit-line-success" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -144,9 +144,9 @@
 
                                     <!-- Last name -->
                                     <div class="ui-kit-column-md-4">
-                                        <label for="lastName" class="form-label">성 (Last name)</label>
+                                        <label for="serverLastName" class="form-label">성 (Last name)</label>
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="lastName" value="Otto" required
+                                            <input type="text" id="serverLastName" value="Otto" required
                                                 class="form-input ui-kit-line-success" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -158,11 +158,11 @@
 
                                     <!-- Username -->
                                     <div class="ui-kit-column-md-4">
-                                        <label for="username" class="form-label">사용자 이름 (Username)</label>
+                                        <label for="serverUsername" class="form-label">사용자 이름 (Username)</label>
                                         <div class="ui-kit-position-context ui-kit-cluster ui-kit-radius-md">
                                             <span
                                                 class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-ink-default-600 ui-kit-inline-cluster ui-kit-align-items-center ui-kit-radius-s-md ui-kit-frame ui-kit-inline-pad-3 ui-kit-type-sm">@</span>
-                                            <input type="text" id="username" name="username"
+                                            <input type="text" id="serverUsername" name="username"
                                                 class="form-input ui-kit-line-danger ui-kit-radius-s-none"
                                                 placeholder="johndoe123" required />
                                             <div
@@ -175,9 +175,9 @@
 
                                     <!-- City -->
                                     <div class="ui-kit-column-md-6">
-                                        <label for="city" class="form-label">도시 (City)</label>
+                                        <label for="serverCity" class="form-label">도시 (City)</label>
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="city" required placeholder="도시 입력"
+                                            <input type="text" id="serverCity" required placeholder="도시 입력"
                                                 class="form-input ui-kit-line-danger" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -189,9 +189,9 @@
 
                                     <!-- State -->
                                     <div class="ui-kit-column-md-3">
-                                        <label for="state" class="form-label">주 (State)</label>
+                                        <label for="serverState" class="form-label">주 (State)</label>
                                         <div class="ui-kit-position-context">
-                                            <select id="state" required class="form-select ui-kit-line-danger">
+                                            <select id="serverState" required class="form-select ui-kit-line-danger">
                                                 <option value="">선택...</option>
                                                 <option>California</option>
                                                 <option>Texas</option>
@@ -207,9 +207,9 @@
 
                                     <!-- Zip -->
                                     <div class="ui-kit-column-md-3">
-                                        <label for="zip" class="form-label">우편번호 (Zip)</label>
+                                        <label for="serverZip" class="form-label">우편번호 (Zip)</label>
                                         <div class="ui-kit-position-context">
-                                            <input type="text" id="zip" required placeholder="우편번호"
+                                            <input type="text" id="serverZip" required placeholder="우편번호"
                                                 class="form-input ui-kit-line-danger" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
@@ -221,8 +221,8 @@
 
                                     <!-- Checkbox -->
                                     <div class="ui-kit-column-md-12">
-                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2">
-                                            <input type="checkbox" id="terms" required
+                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2" for="serverTerms">
+                                            <input type="checkbox" id="serverTerms" required
                                                 class="form-checkbox form-choice-danger" />
                                             <span class="ui-kit-ink-danger">이용 약관에 동의합니다</span>
                                         </label>
@@ -360,7 +360,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2">
+                                        <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2" for="invalidCheck2">
                                             <input type="checkbox" id="invalidCheck2" required class="form-checkbox" />
                                             <span class="ui-kit-ink-default-700">이용 약관에 동의합니다</span>
                                         </label>

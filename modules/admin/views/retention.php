@@ -14,88 +14,64 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">보관 기간</h2>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">인증 로그 보관일</span></div>
+            <label class="form-label" for="admin_retention_auth_logs_days">인증 로그 보관일</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">인증 로그 보관일</span>
-                <input type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
-                </label>
+                <input id="admin_retention_auth_logs_days" type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">관리자 작업 로그 보관일</span></div>
+            <label class="form-label" for="admin_retention_audit_logs_days">관리자 작업 로그 보관일</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">관리자 작업 로그 보관일</span>
-                <input type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" class="form-input" min="1" max="3650" required>
-                </label>
+                <input id="admin_retention_audit_logs_days" type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">사용 완료 토큰 보관일</span></div>
+            <label class="form-label" for="admin_retention_used_tokens_days">사용 완료 토큰 보관일</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">사용 완료 토큰 보관일</span>
-                <input type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" class="form-input" min="1" max="3650" required>
-                </label>
+                <input id="admin_retention_used_tokens_days" type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">만료/폐기 세션 보관일</span></div>
+            <label class="form-label" for="admin_retention_sessions_days">만료/폐기 세션 보관일</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">만료/폐기 세션 보관일</span>
-                <input type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
-                </label>
+                <input id="admin_retention_sessions_days" type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <?php if ($hasNotificationTables) { ?>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">알림 보관일</span></div>
+                <label class="form-label" for="admin_retention_notifications_days">알림 보관일</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">알림 보관일</span>
-                    <input type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" class="form-input" min="1" max="3650" required>
-                    </label>
+                    <input id="admin_retention_notifications_days" type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" class="form-input" min="1" max="3650" required>
                 </div>
             </div>
         <?php } else { ?>
             <input type="hidden" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>">
         <?php } ?>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">모듈 백업 보관일</span></div>
+            <label class="form-label" for="admin_retention_module_backups_days">모듈 백업 보관일</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">모듈 백업 보관일</span>
-                <input type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
-                </label>
+                <input id="admin_retention_module_backups_days" type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">요청 기반 자동 정리</span></div>
+            <span class="form-label">요청 기반 자동 정리</span>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label">
-                    <input type="checkbox" name="auto_cleanup_enabled" value="1" class="form-checkbox"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
-                    <?php echo sr_admin_choice_label_html('사용'); ?>
-                </label>
+                <label class="admin-form-check form-label" for="modules_admin_retention_auto_cleanup_enabled">
+                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-checkbox"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
+                                    <?php echo sr_admin_choice_label_html('사용'); ?>
+                                </label>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">자동 정리 간격</span></div>
+            <label class="form-label" for="admin_retention_auto_cleanup_interval_hours">자동 정리 간격</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">자동 정리 간격</span>
-                <input type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
-                </label>
+                <input id="admin_retention_auto_cleanup_interval_hours" type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <div class="admin-form-label"><span class="form-label">자동 정리 배치 크기</span></div>
+            <label class="form-label" for="admin_retention_auto_cleanup_batch_size">자동 정리 배치 크기</label>
             <div class="admin-form-field">
-                <label>
-                    <span class="sr-only">자동 정리 배치 크기</span>
-                <input type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
-                </label>
+                <input id="admin_retention_auto_cleanup_batch_size" type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
             </div>
         </div>
     </section>
@@ -192,21 +168,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </table>
                     </div>
                     <div class="admin-form-row">
-                        <div class="admin-form-label"><span class="form-label">삭제 후보 확인</span></div>
+                        <span class="form-label">삭제 후보 확인</span>
                         <div class="admin-form-field">
-                            <label class="admin-form-check form-label">
-                                <input type="checkbox" name="cleanup_confirmed" value="1" class="form-checkbox" required data-overlay-focus>
-                                <?php echo sr_admin_choice_label_html('삭제 후보 수를 확인했습니다.'); ?>
-                            </label>
+                            <label class="admin-form-check form-label" for="modules_admin_retention_cleanup_confirmed">
+                                                            <input id="modules_admin_retention_cleanup_confirmed" type="checkbox" name="cleanup_confirmed" value="1" class="form-checkbox" required data-overlay-focus>
+                                                            <?php echo sr_admin_choice_label_html('삭제 후보 수를 확인했습니다.'); ?>
+                                                        </label>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <div class="admin-form-label"><span class="form-label">확인 문구</span></div>
+                        <label class="form-label" for="admin_retention_cleanup_phrase">확인 문구</label>
                         <div class="admin-form-field">
-                            <label>
-                                <span class="sr-only">확인 문구</span>
-                                <input type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input">
-                            </label>
+                            <input id="admin_retention_cleanup_phrase" type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input">
                         </div>
                     </div>
                 </div>

@@ -21,137 +21,107 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">제목</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_title">제목</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">제목</span>
-                        <input type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" class="form-input" maxlength="120" required>
-                        </label>
+                        <input id="popup_layer_admin_popup_layers_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" class="form-input" maxlength="120" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">내용</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_body_text">내용</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">내용</span>
-                        <textarea name="body_text" maxlength="5000" class="form-textarea"><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
-                        </label>
+                        <textarea id="popup_layer_admin_popup_layers_body_text" name="body_text" maxlength="5000" class="form-textarea"><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">상태</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_status">상태</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">상태</span>
-                        <select name="status" class="form-select">
-                            <?php foreach ($allowedStatuses as $status) { ?>
-                                <?php $currentStatus = $editing ? (string) $editPopup['status'] : 'draft'; ?>
-                                <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select">
+                                                    <?php foreach ($allowedStatuses as $status) { ?>
+                                                        <?php $currentStatus = $editing ? (string) $editPopup['status'] : 'draft'; ?>
+                                                        <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">팝업 스킨</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_skin_key">팝업 스킨</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">팝업 스킨</span>
-                        <select name="skin_key" class="form-select">
-                            <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
-                                <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
-                                <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">
+                                                    <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
+                                                        <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
+                                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">노출 대상</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_target_option">노출 대상</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">노출 대상</span>
-                        <select name="target_option" class="form-select">
-                            <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
-                                공용 팝업레이어
-                            </option>
-                            <?php foreach ($availableTargets as $target) { ?>
-                                <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
-                                <option value="<?php echo sr_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_popup_layer_target_option_label($target)); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
-                    <br>
-                    <small>공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
+                        <select id="popup_layer_admin_popup_layers_target_option" name="target_option" class="form-select">
+                                                    <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
+                                                        공용 팝업레이어
+                                                    </option>
+                                                    <?php foreach ($availableTargets as $target) { ?>
+                                                        <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
+                                                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e(sr_popup_layer_target_option_label($target)); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                        <br>
+                                            <small>공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.</small>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">매칭 방식</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_match_type">매칭 방식</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">매칭 방식</span>
-                        <select name="match_type" class="form-select">
-                            <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                                <?php $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all'; ?>
-                                <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select">
+                                                    <?php foreach ($allowedMatchTypes as $matchType) { ?>
+                                                        <?php $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all'; ?>
+                                                        <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">특정 subject ID</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_subject_id">특정 subject ID</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">특정 subject ID</span>
-                        <input type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80">
-                        </label>
+                        <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80">
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">시작 시각</span></div>
+                    <label class="form-label" for="popup_starts_at">시작 시각</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">시작 시각</span>
                         <input type="datetime-local" name="starts_at" id="popup_starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>" class="form-input">
-                        </label>
                         <div class="admin-date-quick-actions">
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick="now" data-datetime-target="popup_starts_at">지금</button>
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_starts_at">+1일</button>
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_starts_at">+3일</button>
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_starts_at">+7일</button>
-                        </div>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick="now" data-datetime-target="popup_starts_at">지금</button>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_starts_at">+1일</button>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_starts_at">+3일</button>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_starts_at">+7일</button>
+                                                </div>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">종료 시각</span></div>
+                    <label class="form-label" for="popup_ends_at">종료 시각</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">종료 시각</span>
                         <input type="datetime-local" name="ends_at" id="popup_ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>" class="form-input">
-                        </label>
                         <div class="admin-date-quick-actions">
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_ends_at">+1일</button>
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_ends_at">+3일</button>
-                            <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_ends_at">+7일</button>
-                        </div>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_ends_at">+1일</button>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_ends_at">+3일</button>
+                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_ends_at">+7일</button>
+                                                </div>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">닫기 유지일</span></div>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_dismiss_cookie_days">닫기 유지일</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">닫기 유지일</span>
-                        <input type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" class="form-input" min="0" max="365">
-                        </label>
+                        <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" class="form-input" min="0" max="365">
                     </div>
                 </div>
         </section>

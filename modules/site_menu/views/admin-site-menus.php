@@ -34,37 +34,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : ''; ?>">
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">메뉴 key</span></div>
+                <label class="form-label" for="site_menu_admin_site_menus_menu_key">메뉴 key</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">메뉴 key</span>
-                    <input type="text" name="menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : 'header'; ?>" class="form-input" maxlength="60" required>
-                    </label>
+                    <input id="site_menu_admin_site_menus_menu_key" type="text" name="menu_key" value="<?php echo $editingMenu ? sr_e((string) $editMenu['menu_key']) : 'header'; ?>" class="form-input" maxlength="60" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">메뉴 이름</span></div>
+                <label class="form-label" for="site_menu_admin_site_menus_label">메뉴 이름</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">메뉴 이름</span>
-                    <input type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" class="form-input" maxlength="120" required>
-                    </label>
+                    <input id="site_menu_admin_site_menus_label" type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" class="form-input" maxlength="120" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">상태</span></div>
+                <label class="form-label" for="site_menu_admin_site_menus_status">상태</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">상태</span>
-                    <select name="status" class="form-select">
-                        <?php foreach ($allowedStatuses as $status) { ?>
-                            <?php $currentMenuStatus = $editingMenu ? (string) $editMenu['status'] : 'enabled'; ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo $currentMenuStatus === $status ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="site_menu_admin_site_menus_status" name="status" class="form-select">
+                                            <?php foreach ($allowedStatuses as $status) { ?>
+                                                <?php $currentMenuStatus = $editingMenu ? (string) $editMenu['status'] : 'enabled'; ?>
+                                                <option value="<?php echo sr_e($status); ?>"<?php echo $currentMenuStatus === $status ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
         </section>
@@ -130,78 +121,60 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="item_id" value="<?php echo $editingItem ? sr_e((string) $editItem['id']) : '0'; ?>">
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">메뉴</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_menu_id">메뉴</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">메뉴</span>
-                        <select name="menu_id" class="form-select">
-                            <?php $selectedMenuId = $editingItem ? (int) $editItem['menu_id'] : (int) $menus[0]['id']; ?>
-                            <?php foreach ($menus as $menu) { ?>
-                                <option value="<?php echo sr_e((string) $menu['id']); ?>"<?php echo $selectedMenuId === (int) $menu['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $menu['label'] . ' (' . (string) $menu['menu_key'] . ')'); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="site_menu_admin_site_menus_menu_id" name="menu_id" class="form-select">
+                                                    <?php $selectedMenuId = $editingItem ? (int) $editItem['menu_id'] : (int) $menus[0]['id']; ?>
+                                                    <?php foreach ($menus as $menu) { ?>
+                                                        <option value="<?php echo sr_e((string) $menu['id']); ?>"<?php echo $selectedMenuId === (int) $menu['id'] ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e((string) $menu['label'] . ' (' . (string) $menu['menu_key'] . ')'); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">항목 이름</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_label_2">항목 이름</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">항목 이름</span>
-                        <input type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" class="form-input" maxlength="120" required>
-                        </label>
+                        <input id="site_menu_admin_site_menus_label_2" type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" class="form-input" maxlength="120" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">URL</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_url">URL</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">URL</span>
-                        <input type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" class="form-input" maxlength="255" required>
-                        </label>
+                        <input id="site_menu_admin_site_menus_url" type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" class="form-input" maxlength="255" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">링크 대상</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_target">링크 대상</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">링크 대상</span>
-                            <select name="target" class="form-select">
-                            <?php foreach ($allowedTargets as $target) { ?>
-                                <?php $currentTarget = $editingItem ? (string) $editItem['target'] : 'self'; ?>
-                                <option value="<?php echo sr_e($target); ?>"<?php echo $currentTarget === $target ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($target, 'menu_target')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="site_menu_admin_site_menus_target" name="target" class="form-select">
+                                                    <?php foreach ($allowedTargets as $target) { ?>
+                                                        <?php $currentTarget = $editingItem ? (string) $editItem['target'] : 'self'; ?>
+                                                        <option value="<?php echo sr_e($target); ?>"<?php echo $currentTarget === $target ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e(sr_admin_code_label($target, 'menu_target')); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">상태</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_status_2">상태</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">상태</span>
-                        <select name="status" class="form-select">
-                            <?php foreach ($allowedStatuses as $status) { ?>
-                                <?php $currentStatus = $editingItem ? (string) $editItem['status'] : 'enabled'; ?>
-                                <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        </label>
+                        <select id="site_menu_admin_site_menus_status_2" name="status" class="form-select">
+                                                    <?php foreach ($allowedStatuses as $status) { ?>
+                                                        <?php $currentStatus = $editingItem ? (string) $editItem['status'] : 'enabled'; ?>
+                                                        <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">정렬</span></div>
+                    <label class="form-label" for="site_menu_admin_site_menus_sort_order">정렬</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">정렬</span>
-                        <input type="number" name="sort_order" value="<?php echo $editingItem ? sr_e((string) $editItem['sort_order']) : '100'; ?>" class="form-input">
-                        </label>
+                        <input id="site_menu_admin_site_menus_sort_order" type="number" name="sort_order" value="<?php echo $editingItem ? sr_e((string) $editItem['sort_order']) : '100'; ?>" class="form-input">
                     </div>
                 </div>
             </section>

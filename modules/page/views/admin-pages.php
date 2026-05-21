@@ -47,178 +47,142 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="page_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">제목</span></div>
+                <label class="form-label" for="page_admin_pages_title">제목</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">제목</span>
-                        <input type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input" maxlength="160" required>
-                    </label>
+                    <input id="page_admin_pages_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input" maxlength="160" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">Slug</span></div>
+                <label class="form-label" for="page_admin_pages_slug">Slug</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">Slug</span>
-                        <input type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input" maxlength="120" required>
-                    </label>
+                    <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input" maxlength="120" required>
                     <br>
-                    <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
+                                        <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">요약</span></div>
+                <label class="form-label" for="page_admin_pages_summary">요약</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">요약</span>
-                        <textarea name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
-                    </label>
+                    <textarea id="page_admin_pages_summary" name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">본문</span></div>
+                <label class="form-label" for="page_admin_pages_body_text">본문</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">본문</span>
-                        <textarea name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
-                    </label>
+                    <textarea id="page_admin_pages_body_text" name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
-                    <small>1차 페이지 본문은 plain text로 저장하고 출력 시 escape합니다.</small>
+                                        <small>1차 페이지 본문은 plain text로 저장하고 출력 시 escape합니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">상태</span></div>
+                <label class="form-label" for="page_admin_pages_status">상태</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">상태</span>
-                        <select name="status" class="form-select">
-                            <?php foreach (sr_page_allowed_statuses() as $status) { ?>
-                                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'draft') === $status ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_status" name="status" class="form-select">
+                                                <?php foreach (sr_page_allowed_statuses() as $status) { ?>
+                                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'draft') === $status ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                 </div>
             </div>
         </section>
         <section class="admin-card card">
             <h2>유료 열람</h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">유료 열람 사용</span></div>
+                <span class="form-label">유료 열람 사용</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('유료 열람 사용'); ?>
-                    </label>
-                    <p class="admin-form-help">선택한 회원 자산을 차감한 뒤 페이지 본문을 보여줍니다.</p>
+                    <label class="admin-form-check form-label" for="modules_page_admin_pages_asset_access_enabled">
+                                            <input id="modules_page_admin_pages_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html('유료 열람 사용'); ?>
+                                        </label>
+                                        <p class="admin-form-help">선택한 회원 자산을 차감한 뒤 페이지 본문을 보여줍니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">차감 자산</span></div>
+                <label class="form-label" for="page_admin_pages_asset_module">차감 자산</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">차감 자산</span>
-                        <select name="asset_module" class="form-select">
-                            <?php if ($assetModuleOptions === []) { ?>
-                                <option value="">활성 자산 모듈 없음</option>
-                            <?php } ?>
-                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_asset_module" name="asset_module" class="form-select">
+                                                <?php if ($assetModuleOptions === []) { ?>
+                                                    <option value="">활성 자산 모듈 없음</option>
+                                                <?php } ?>
+                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $assetOption['label']); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                     <p class="admin-form-help">포인트, 적립금, 예치금 모듈 중 활성화된 자산만 사용할 수 있습니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">차감 금액</span></div>
+                <label class="form-label" for="page_admin_pages_asset_access_amount">차감 금액</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">차감 금액</span>
-                        <input type="number" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
-                    </label>
+                    <input id="page_admin_pages_asset_access_amount" type="number" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">과금 방식</span></div>
+                <label class="form-label" for="page_admin_pages_asset_charge_policy">과금 방식</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">과금 방식</span>
-                        <select name="asset_charge_policy" class="form-select">
-                            <?php foreach (sr_page_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
-                                <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($values['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $policyLabel); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_asset_charge_policy" name="asset_charge_policy" class="form-select">
+                                                <?php foreach (sr_page_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
+                                                    <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($values['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $policyLabel); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                 </div>
             </div>
         </section>
         <section class="admin-card card">
             <h2>완료 액션</h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">액션 사용</span></div>
+                <span class="form-label">액션 사용</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('완료 액션 사용'); ?>
-                    </label>
-                    <p class="admin-form-help">회원이 공개 페이지에서 버튼을 누르면 선택한 자산을 1회 지급하거나 차감합니다.</p>
+                    <label class="admin-form-check form-label" for="modules_page_admin_pages_asset_action_enabled">
+                                            <input id="modules_page_admin_pages_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html('완료 액션 사용'); ?>
+                                        </label>
+                                        <p class="admin-form-help">회원이 공개 페이지에서 버튼을 누르면 선택한 자산을 1회 지급하거나 차감합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">버튼 문구</span></div>
+                <label class="form-label" for="page_admin_pages_asset_action_label">버튼 문구</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">버튼 문구</span>
-                        <input type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? '완료')); ?>" class="form-input" maxlength="80">
-                    </label>
+                    <input id="page_admin_pages_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? '완료')); ?>" class="form-input" maxlength="80">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">처리 방향</span></div>
+                <label class="form-label" for="page_admin_pages_asset_action_direction">처리 방향</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">처리 방향</span>
-                        <select name="asset_action_direction" class="form-select">
-                            <?php foreach (sr_page_asset_action_directions() as $directionKey => $directionLabel) { ?>
-                                <option value="<?php echo sr_e((string) $directionKey); ?>"<?php echo (string) ($values['asset_action_direction'] ?? 'grant') === (string) $directionKey ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $directionLabel); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_asset_action_direction" name="asset_action_direction" class="form-select">
+                                                <?php foreach (sr_page_asset_action_directions() as $directionKey => $directionLabel) { ?>
+                                                    <option value="<?php echo sr_e((string) $directionKey); ?>"<?php echo (string) ($values['asset_action_direction'] ?? 'grant') === (string) $directionKey ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $directionLabel); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">대상 자산</span></div>
+                <label class="form-label" for="page_admin_pages_asset_action_module">대상 자산</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">대상 자산</span>
-                        <select name="asset_action_module" class="form-select">
-                            <?php if ($assetModuleOptions === []) { ?>
-                                <option value="">활성 자산 모듈 없음</option>
-                            <?php } ?>
-                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_action_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_asset_action_module" name="asset_action_module" class="form-select">
+                                                <?php if ($assetModuleOptions === []) { ?>
+                                                    <option value="">활성 자산 모듈 없음</option>
+                                                <?php } ?>
+                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_action_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $assetOption['label']); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">금액</span></div>
+                <label class="form-label" for="page_admin_pages_asset_action_amount">금액</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">금액</span>
-                        <input type="number" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
-                    </label>
+                    <input id="page_admin_pages_asset_action_amount" type="number" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                 </div>
             </div>
         </section>
@@ -235,73 +199,58 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </span>
             </h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">본문 상단 배너</span></div>
+                <label class="form-label" for="page_admin_pages_banner_before_content_id">본문 상단 배너</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">본문 상단 배너</span>
-                        <select name="banner_before_content_id" class="form-select">
-                            <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                            <?php foreach ($publicBanners as $banner) { ?>
-                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $banner['title']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select">
+                                                <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                                                <?php foreach ($publicBanners as $banner) { ?>
+                                                    <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $banner['title']); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">본문 하단 배너</span></div>
+                <label class="form-label" for="page_admin_pages_banner_after_content_id">본문 하단 배너</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">본문 하단 배너</span>
-                        <select name="banner_after_content_id" class="form-select">
-                            <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                            <?php foreach ($publicBanners as $banner) { ?>
-                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $banner['title']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select">
+                                                <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                                                <?php foreach ($publicBanners as $banner) { ?>
+                                                    <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $banner['title']); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                     <br>
-                    <small>공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                                        <small>공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">팝업레이어</span></div>
+                <label class="form-label" for="page_admin_pages_popup_layer_id">팝업레이어</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">팝업레이어</span>
-                        <select name="popup_layer_id" class="form-select">
-                            <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                            <?php foreach ($publicPopupLayers as $popupLayer) { ?>
-                                <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $popupLayer['title']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
+                    <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select">
+                                                <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                                                <?php foreach ($publicPopupLayers as $popupLayer) { ?>
+                                                    <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) $popupLayer['title']); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
                     <br>
-                    <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                                        <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">SEO 제목</span></div>
+                <label class="form-label" for="page_admin_pages_seo_title">SEO 제목</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">SEO 제목</span>
-                        <input type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input" maxlength="160">
-                    </label>
+                    <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">SEO 설명</span></div>
+                <label class="form-label" for="page_admin_pages_seo_description">SEO 설명</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">SEO 설명</span>
-                        <input type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input" maxlength="255">
-                    </label>
+                    <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input" maxlength="255">
                 </div>
             </div>
             <?php if ($editing) { ?>
@@ -323,24 +272,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tbody>
                             <?php foreach ($pageFiles as $pageFile) { ?>
                                 <?php $fileId = (int) $pageFile['id']; ?>
+                                <?php $pageFileTitleId = 'page_file_title_' . (string) $fileId; ?>
+                                <?php $pageFileChargeEnabledId = 'page_file_asset_download_enabled_' . (string) $fileId; ?>
+                                <?php $pageFileAssetModuleId = 'page_file_asset_module_' . (string) $fileId; ?>
+                                <?php $pageFileAmountId = 'page_file_asset_download_amount_' . (string) $fileId; ?>
+                                <?php $pageFileChargePolicyId = 'page_file_asset_charge_policy_' . (string) $fileId; ?>
+                                <?php $pageFileDeleteId = 'page_file_delete_' . (string) $fileId; ?>
                                 <tr>
                                     <td>
                                         <input type="hidden" name="page_file_ids[]" value="<?php echo sr_e((string) $fileId); ?>">
-                                        <label>
+                                        <label for="<?php echo sr_e($pageFileTitleId); ?>">
                                             <span class="sr-only">파일 제목</span>
-                                            <input type="text" name="page_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $pageFile['title']); ?>" class="form-input" maxlength="160">
+                                            <input id="<?php echo sr_e($pageFileTitleId); ?>" type="text" name="page_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $pageFile['title']); ?>" class="form-input" maxlength="160">
                                         </label>
                                         <br>
                                         <small><?php echo sr_e((string) $pageFile['original_name']); ?> · <?php echo sr_e(sr_page_format_bytes((int) $pageFile['size_bytes'])); ?></small>
                                     </td>
                                     <td>
-                                        <label class="admin-form-check form-label">
-                                            <input type="checkbox" name="page_file_asset_download_enabled[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox"<?php echo (int) ($pageFile['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                        <label class="admin-form-check form-label" for="<?php echo sr_e($pageFileChargeEnabledId); ?>">
+                                            <input id="<?php echo sr_e($pageFileChargeEnabledId); ?>" type="checkbox" name="page_file_asset_download_enabled[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox"<?php echo (int) ($pageFile['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html('과금'); ?>
                                         </label>
-                                        <label>
+                                        <label for="<?php echo sr_e($pageFileAssetModuleId); ?>">
                                             <span class="sr-only">파일 차감 자산</span>
-                                            <select name="page_file_asset_module[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
+                                            <select id="<?php echo sr_e($pageFileAssetModuleId); ?>" name="page_file_asset_module[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
                                                 <?php if ($assetModuleOptions === []) { ?>
                                                     <option value="">활성 자산 모듈 없음</option>
                                                 <?php } ?>
@@ -351,13 +306,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php } ?>
                                             </select>
                                         </label>
-                                        <label>
+                                        <label for="<?php echo sr_e($pageFileAmountId); ?>">
                                             <span class="sr-only">파일 차감 금액</span>
-                                            <input type="number" name="page_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($pageFile['asset_download_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
+                                            <input id="<?php echo sr_e($pageFileAmountId); ?>" type="number" name="page_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($pageFile['asset_download_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                                         </label>
-                                        <label>
+                                        <label for="<?php echo sr_e($pageFileChargePolicyId); ?>">
                                             <span class="sr-only">파일 과금 방식</span>
-                                            <select name="page_file_asset_charge_policy[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
+                                            <select id="<?php echo sr_e($pageFileChargePolicyId); ?>" name="page_file_asset_charge_policy[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
                                                 <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
                                                     <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($pageFile['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
                                                         <?php echo sr_e((string) $policyLabel); ?>
@@ -367,8 +322,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                     </td>
                                     <td>
-                                        <label class="admin-form-check form-label">
-                                            <input type="checkbox" name="page_file_delete[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox">
+                                        <label class="admin-form-check form-label" for="<?php echo sr_e($pageFileDeleteId); ?>">
+                                            <input id="<?php echo sr_e($pageFileDeleteId); ?>" type="checkbox" name="page_file_delete[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox">
                                             <?php echo sr_admin_choice_label_html('삭제'); ?>
                                         </label>
                                     </td>
@@ -383,61 +338,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p>새 페이지 저장과 함께 파일을 추가할 수 있습니다.</p>
             <?php } ?>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">새 파일</span></div>
+                <label class="form-label" for="page_admin_pages_page_file_upload">새 파일</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">새 파일</span>
-                        <input type="file" name="page_file_upload" class="form-input">
-                    </label>
+                    <input id="page_admin_pages_page_file_upload" type="file" name="page_file_upload" class="form-input">
                     <br>
-                    <small>PDF, 문서, 표, 압축 파일, 이미지 / 최대 <?php echo sr_e(sr_page_format_bytes(sr_page_file_upload_max_bytes())); ?></small>
+                                        <small>PDF, 문서, 표, 압축 파일, 이미지 / 최대 <?php echo sr_e(sr_page_format_bytes(sr_page_file_upload_max_bytes())); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">새 파일 제목</span></div>
+                <label class="form-label" for="page_admin_pages_new_page_file_title">새 파일 제목</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">새 파일 제목</span>
-                        <input type="text" name="new_page_file_title" value="" class="form-input" maxlength="160">
-                    </label>
+                    <input id="page_admin_pages_new_page_file_title" type="text" name="new_page_file_title" value="" class="form-input" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">새 파일 과금</span></div>
+                <span class="form-label">새 파일 과금</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
-                        <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
-                    </label>
-                    <label>
-                        <span class="sr-only">새 파일 차감 자산</span>
-                        <select name="new_page_file_asset_module" class="form-select">
-                            <?php if ($assetModuleOptions === []) { ?>
-                                <option value="">활성 자산 모듈 없음</option>
-                            <?php } ?>
-                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                <option value="<?php echo sr_e((string) $assetModule); ?>">
-                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
-                    <label>
-                        <span class="sr-only">새 파일 차감 금액</span>
-                        <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input" min="0" max="999999999" step="1">
-                    </label>
-                    <label>
-                        <span class="sr-only">새 파일 과금 방식</span>
-                        <select name="new_page_file_asset_charge_policy" class="form-select">
-                            <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                <option value="<?php echo sr_e((string) $policyKey); ?>">
-                                    <?php echo sr_e((string) $policyLabel); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </label>
-                </div>
-            </div>
+                            <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
+                                <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
+                                <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
+                            </label>
+                            <select name="new_page_file_asset_module" class="form-select" aria-label="새 파일 차감 자산">
+                                <?php if ($assetModuleOptions === []) { ?>
+                                    <option value="">활성 자산 모듈 없음</option>
+                                <?php } ?>
+                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                    <option value="<?php echo sr_e((string) $assetModule); ?>">
+                                        <?php echo sr_e((string) $assetOption['label']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
+                            <select name="new_page_file_asset_charge_policy" class="form-select" aria-label="새 파일 과금 방식">
+                                <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+                                    <option value="<?php echo sr_e((string) $policyKey); ?>">
+                                        <?php echo sr_e((string) $policyLabel); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-soft-default">목록</a>
@@ -455,9 +395,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-filter-grid-compact">
-                <label class="admin-filter-field">
+                <label class="admin-filter-field" for="modules_page_admin_pages_status">
                     <span class="admin-filter-label">상태</span>
-                    <select name="status" class="form-select">
+                    <select id="modules_page_admin_pages_status" name="status" class="form-select">
                         <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
                         <?php foreach (sr_page_allowed_statuses() as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
@@ -466,9 +406,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </label>
-                <label class="admin-filter-field">
+                <label class="admin-filter-field" for="modules_page_admin_pages_q">
                     <span class="admin-filter-label">검색</span>
-                    <input type="search" name="q" value="<?php echo sr_e((string) $filters['q']); ?>" class="form-input" maxlength="120">
+                    <input id="modules_page_admin_pages_q" type="search" name="q" value="<?php echo sr_e((string) $filters['q']); ?>" class="form-input" maxlength="120">
                 </label>
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>

@@ -65,8 +65,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             required class="form-input">
                     </td>
                     <td>
-                        <label class="admin-form-check form-label">
-                            <input
+                        <label class="admin-form-check form-label" for="modules_admin_menu_is_hidden">
+                            <input id="modules_admin_menu_is_hidden"
                                 type="checkbox"
                                 name="is_hidden[]"
                                 value="<?php echo sr_e((string) $row['form_key']); ?>"

@@ -178,73 +178,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p>게시판 key: <?php echo sr_e((string) $formBoard['board_key']); ?></p>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">게시판 key</span></div>
+                    <label class="form-label" for="community_admin_boards_board_key">게시판 key</label>
                     <div class="admin-form-field">
-                        <label>
-                            <span class="sr-only">게시판 key</span>
-                        <input type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" required>
-                        </label>
+                        <input id="community_admin_boards_board_key" type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" required>
                     </div>
                 </div>
             <?php } ?>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">게시판 그룹</span></div>
+                <label class="form-label" for="community_admin_boards_board_group_id">게시판 그룹</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">게시판 그룹</span>
-                    <select name="board_group_id" class="form-select">
-                        <option value="0">없음</option>
-                        <?php foreach ($boardGroups as $boardGroup) { ?>
-                            <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="community_admin_boards_board_group_id" name="board_group_id" class="form-select">
+                                            <option value="0">없음</option>
+                                            <?php foreach ($boardGroups as $boardGroup) { ?>
+                                                <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">이름</span></div>
+                <label class="form-label" for="community_admin_boards_title">이름</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">이름</span>
-                    <input type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input" required>
-                    </label>
+                    <input id="community_admin_boards_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">설명</span></div>
+                <label class="form-label" for="community_admin_boards_description">설명</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">설명</span>
-                    <textarea name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
-                    </label>
+                    <textarea id="community_admin_boards_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">상태</span></div>
+                <label class="form-label" for="community_admin_boards_status">상태</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">상태</span>
-                    <select name="status" class="form-select">
-                        <?php foreach ($allowedStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="community_admin_boards_status" name="status" class="form-select">
+                                            <?php foreach ($allowedStatuses as $status) { ?>
+                                                <option value="<?php echo sr_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">게시판 스킨</span></div>
+                <label class="form-label" for="community_admin_boards_skin_key">게시판 스킨</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">게시판 스킨</span>
-                    <select name="skin_key" class="form-select">
-                        <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
-                            <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $boardField($formBoard, 'skin_key', 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    </label>
+                    <select id="community_admin_boards_skin_key" name="skin_key" class="form-select">
+                                            <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
+                                                <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $boardField($formBoard, 'skin_key', 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
                 </div>
             </div>
 
@@ -258,284 +240,242 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>접근 정책</h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">읽기 정책</span></div>
+                <label class="form-label" for="community_admin_boards_read_policy">읽기 정책</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">읽기 정책</span>
-                    <select name="read_policy" class="form-select">
-                        <?php foreach ($allowedReadPolicies as $policy) { ?>
-                            <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_read_policy" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy']), 'policy')); ?></small>
-                <?php } ?>
+                    <select id="community_admin_boards_read_policy" name="read_policy" class="form-select">
+                                            <?php foreach ($allowedReadPolicies as $policy) { ?>
+                                                <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
+                                            <?php } ?>
+                                        </select>
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_read_policy" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy']), 'policy')); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">읽기 그룹 key</span></div>
+                <label class="form-label" for="community_admin_boards_read_group_keys">읽기 그룹 key</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">읽기 그룹 key</span>
-                    <input type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_read_group_keys" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                <?php } ?>
+                    <input id="community_admin_boards_read_group_keys" type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_read_group_keys" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">읽기 최소 레벨</span></div>
+                <label class="form-label" for="community_admin_boards_read_min_level">읽기 최소 레벨</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">읽기 최소 레벨</span>
-                    <input type="number" name="read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'read_min_level', '0')); ?>">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_read_min_level" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_read_min_level'] ?? $formBoard['read_min_level'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_read_min_level" type="number" name="read_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'read_min_level', '0')); ?>">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_read_min_level" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_read_min_level'] ?? $formBoard['read_min_level'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">쓰기 정책</span></div>
+                <label class="form-label" for="community_admin_boards_write_policy">쓰기 정책</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">쓰기 정책</span>
-                    <select name="write_policy" class="form-select">
-                        <?php foreach ($allowedWritePolicies as $policy) { ?>
-                            <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_write_policy" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy']), 'policy')); ?></small>
-                <?php } ?>
+                    <select id="community_admin_boards_write_policy" name="write_policy" class="form-select">
+                                            <?php foreach ($allowedWritePolicies as $policy) { ?>
+                                                <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
+                                            <?php } ?>
+                                        </select>
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_write_policy" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy']), 'policy')); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">쓰기 그룹 key</span></div>
+                <label class="form-label" for="community_admin_boards_write_group_keys">쓰기 그룹 key</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">쓰기 그룹 key</span>
-                    <input type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_write_group_keys" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                <?php } ?>
+                    <input id="community_admin_boards_write_group_keys" type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_write_group_keys" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">쓰기 최소 레벨</span></div>
+                <label class="form-label" for="community_admin_boards_write_min_level">쓰기 최소 레벨</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">쓰기 최소 레벨</span>
-                    <input type="number" name="write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'write_min_level', '0')); ?>">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_write_min_level" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_write_min_level'] ?? $formBoard['write_min_level'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_write_min_level" type="number" name="write_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'write_min_level', '0')); ?>">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_write_min_level" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_write_min_level'] ?? $formBoard['write_min_level'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">댓글 정책</span></div>
+                <label class="form-label" for="community_admin_boards_comment_policy">댓글 정책</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">댓글 정책</span>
-                    <select name="comment_policy" class="form-select">
-                        <?php foreach ($allowedCommentPolicies as $policy) { ?>
-                            <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_comment_policy" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy']), 'policy')); ?></small>
-                <?php } ?>
+                    <select id="community_admin_boards_comment_policy" name="comment_policy" class="form-select">
+                                            <?php foreach ($allowedCommentPolicies as $policy) { ?>
+                                                <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
+                                            <?php } ?>
+                                        </select>
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_comment_policy" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy']), 'policy')); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">댓글 그룹 key</span></div>
+                <label class="form-label" for="community_admin_boards_comment_group_keys">댓글 그룹 key</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">댓글 그룹 key</span>
-                    <input type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_comment_group_keys" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                <?php } ?>
+                    <input id="community_admin_boards_comment_group_keys" type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_comment_group_keys" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">댓글 최소 레벨</span></div>
+                <label class="form-label" for="community_admin_boards_comment_min_level">댓글 최소 레벨</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">댓글 최소 레벨</span>
-                    <input type="number" name="comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_comment_min_level" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_comment_min_level" type="number" name="comment_min_level" min="0" max="<?php echo sr_e((string) sr_community_max_level_value()); ?>" class="form-input" value="<?php echo sr_e($boardField($formBoard, 'comment_min_level', '0')); ?>">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_comment_min_level" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">이미지 첨부 허용</span></div>
+                <span class="form-label">이미지 첨부 허용</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="image_uploads_enabled" value="1" class="form-checkbox"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_image_uploads_enabled" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'image_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo !empty($formBoard['effective_image_uploads_enabled']) ? '허용' : '차단'; ?></small>
-                <?php } ?>
+                    <label class="admin-form-check form-label" for="modules_community_admin_boards_image_uploads_enabled">
+                                            <input id="modules_community_admin_boards_image_uploads_enabled" type="checkbox" name="image_uploads_enabled" value="1" class="form-checkbox"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
+                                        </label>
+                                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_image_uploads_enabled" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'image_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo !empty($formBoard['effective_image_uploads_enabled']) ? '허용' : '차단'; ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">이미지 최대 용량(bytes)</span></div>
+                <label class="form-label" for="community_admin_boards_attachment_max_bytes">이미지 최대 용량(bytes)</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">이미지 최대 용량(bytes)</span>
-                    <input type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_attachment_max_bytes" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_bytes'] ?? $formBoard['attachment_max_bytes'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_attachment_max_bytes" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_bytes'] ?? $formBoard['attachment_max_bytes'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">이미지 최대 개수</span></div>
+                <label class="form-label" for="community_admin_boards_attachment_max_count">이미지 최대 개수</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">이미지 최대 개수</span>
-                    <input type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" class="form-input">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_attachment_max_count" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_attachment_max_count" type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_attachment_max_count" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">파일 첨부 허용</span></div>
+                <span class="form-label">파일 첨부 허용</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label">
-                        <input type="checkbox" name="file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_file_uploads_enabled" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo !empty($formBoard['effective_file_uploads_enabled']) ? '허용' : '차단'; ?></small>
-                <?php } ?>
+                    <label class="admin-form-check form-label" for="modules_community_admin_boards_file_uploads_enabled">
+                                            <input id="modules_community_admin_boards_file_uploads_enabled" type="checkbox" name="file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
+                                        </label>
+                                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_file_uploads_enabled" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo !empty($formBoard['effective_file_uploads_enabled']) ? '허용' : '차단'; ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">파일 최대 용량(bytes)</span></div>
+                <label class="form-label" for="community_admin_boards_file_attachment_max_bytes">파일 최대 용량(bytes)</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">파일 최대 용량(bytes)</span>
-                    <input type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_file_attachment_max_bytes" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_bytes'] ?? $formBoard['file_attachment_max_bytes'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_file_attachment_max_bytes" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_bytes'] ?? $formBoard['file_attachment_max_bytes'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">파일 최대 개수</span></div>
+                <label class="form-label" for="community_admin_boards_file_attachment_max_count">파일 최대 개수</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">파일 최대 개수</span>
-                    <input type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>" class="form-input">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_file_attachment_max_count" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_count'] ?? $formBoard['file_attachment_max_count'])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_file_attachment_max_count" type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>" class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_file_attachment_max_count" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_count'] ?? $formBoard['file_attachment_max_count'])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">파일 허용 확장자</span></div>
+                <label class="form-label" for="community_admin_boards_file_allowed_extensions">파일 허용 확장자</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">파일 허용 확장자</span>
-                    <input type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input" placeholder="pdf, txt, zip">
-                    </label>
-                <?php if ($communityBoardsPage === 'edit') { ?>
-                    <select name="source_file_allowed_extensions" class="form-select">
-                        <?php foreach ($sourceLabels as $source => $label) { ?>
-                            <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_allowed_extensions') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                        <?php } ?>
-                    </select>
-                    <small>적용값: <?php echo sr_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
-                <?php } ?>
+                    <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input" placeholder="pdf, txt, zip">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <select name="source_file_allowed_extensions" class="form-select">
+                                            <?php foreach ($sourceLabels as $source => $label) { ?>
+                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_allowed_extensions') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <small>적용값: <?php echo sr_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
+                                    <?php } ?>
                 </div>
             </div>
         </section>
@@ -549,19 +489,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </h2>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
                     <div class="admin-form-row">
-                        <div class="admin-form-label"><span class="form-label"><?php echo sr_e((string) $bannerSettingLabel); ?></span></div>
+                        <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
                         <div class="admin-form-field">
-                            <label>
-                                <span class="sr-only"><?php echo sr_e((string) $bannerSettingLabel); ?></span>
-                                <select name="<?php echo sr_e((string) $bannerSettingKey); ?>" class="form-select">
-                                    <option value="0">사용 안 함</option>
-                                    <?php foreach ($publicBanners as $publicBanner) { ?>
-                                        <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $publicBanner['title']); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </label>
+                            <select id="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e((string) $bannerSettingKey); ?>" class="form-select">
+                                                                <option value="0">사용 안 함</option>
+                                                                <?php foreach ($publicBanners as $publicBanner) { ?>
+                                                                    <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                                                        <?php echo sr_e((string) $publicBanner['title']); ?>
+                                                                    </option>
+                                                                <?php } ?>
+                                                            </select>
                         </div>
                     </div>
                 <?php } ?>
@@ -577,19 +514,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </h2>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                     <div class="admin-form-row">
-                        <div class="admin-form-label"><span class="form-label"><?php echo sr_e((string) $popupLayerSettingLabel); ?></span></div>
+                        <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
                         <div class="admin-form-field">
-                            <label>
-                                <span class="sr-only"><?php echo sr_e((string) $popupLayerSettingLabel); ?></span>
-                                <select name="<?php echo sr_e((string) $popupLayerSettingKey); ?>" class="form-select">
-                                    <option value="0">사용 안 함</option>
-                                    <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
-                                        <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $publicPopupLayer['title']); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </label>
+                            <select id="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e((string) $popupLayerSettingKey); ?>" class="form-select">
+                                                                <option value="0">사용 안 함</option>
+                                                                <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                                                                    <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                                                        <?php echo sr_e((string) $publicPopupLayer['title']); ?>
+                                                                    </option>
+                                                                <?php } ?>
+                                                            </select>
                         </div>
                     </div>
                 <?php } ?>
@@ -599,9 +533,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>회원 자산</h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">적용 방식</span></div>
+                <label class="form-label" for="community_admin_boards_asset_policy_source">적용 방식</label>
                 <div class="admin-form-field">
-                    <select name="asset_policy_source" class="form-select">
+                    <select id="community_admin_boards_asset_policy_source" name="asset_policy_source" class="form-select">
                         <option value="global"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'global' ? ' selected' : ''; ?>>커뮤니티 전역 설정</option>
                         <option value="board"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'board' ? ' selected' : ''; ?>>게시판 개별 설정</option>
                     </select>
@@ -616,35 +550,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     'paid_read' => '유료 열람',
                     'paid_attachment_download' => '첨부 다운로드 차감',
                 ] as $assetPrefix => $assetLabel) { ?>
+                    <?php $assetEnabledId = 'community_board_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                     <div class="admin-form-row">
-                        <div class="admin-form-label"><span class="form-label"><?php echo sr_e($assetLabel); ?></span></div>
+                        <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
                         <div class="admin-form-field">
-                            <label class="admin-form-check form-label">
-                                <input type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
-                            </label>
-                            <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
-                                <?php if ($assetModuleOptions === []) { ?>
-                                    <option value="">활성 자산 모듈 없음</option>
-                                <?php } ?>
-                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $assetOption['label']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
-                            <?php if ($assetPrefix === 'paid_read') { ?>
-                                <select name="paid_read_charge_policy" class="form-select">
-                                    <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                    <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
-                                </select>
-                            <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                                <select name="paid_attachment_download_charge_policy" class="form-select">
-                                    <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                    <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
-                                </select>
-                            <?php } ?>
+                            <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                                            <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                                            <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
+                                                        </label>
+                                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                                            <?php if ($assetModuleOptions === []) { ?>
+                                                                <option value="">활성 자산 모듈 없음</option>
+                                                            <?php } ?>
+                                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                                    <?php echo sr_e((string) $assetOption['label']); ?>
+                                                                </option>
+                                                            <?php } ?>
+                                                        </select>
+                                                        <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
+                                                        <?php if ($assetPrefix === 'paid_read') { ?>
+                                                            <select name="paid_read_charge_policy" class="form-select">
+                                                                <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                                                <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                                            </select>
+                                                        <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                                            <select name="paid_attachment_download_charge_policy" class="form-select">
+                                                                <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                                                <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                                            </select>
+                                                        <?php } ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -654,12 +589,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>정렬</h2>
             <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">정렬 순서</span></div>
+                <label class="form-label" for="community_admin_boards_sort_order">정렬 순서</label>
                 <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">정렬 순서</span>
-                    <input type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'sort_order', '0')); ?>" class="form-input">
-                    </label>
+                    <input id="community_admin_boards_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'sort_order', '0')); ?>" class="form-input">
                 </div>
             </div>
         </section>
