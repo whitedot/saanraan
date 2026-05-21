@@ -2,6 +2,7 @@
 
 $adminPageTitle = '관리자 작업 로그';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
+$auditMetadataModals = [];
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
@@ -81,10 +82,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if ($metadata === '') { ?>
                         -
                     <?php } else { ?>
-                        <details>
-                            <summary>보기</summary>
-                            <code><?php echo sr_e($metadata); ?></code>
-                        </details>
+                        <?php
+                        $metadataModalId = 'admin-audit-metadata-modal-' . (int) $log['id'];
+                        $auditMetadataModals[] = [
+                            'id' => $metadataModalId,
+                            'log_id' => (int) $log['id'],
+                            'created_at' => (string) $log['created_at'],
+                            'event_type' => sr_admin_event_type_label((string) $log['event_type']),
+                            'metadata' => $metadata,
+                        ];
+                        ?>
+                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($metadataModalId); ?>" data-overlay="#<?php echo sr_e($metadataModalId); ?>">보기</button>
                     <?php } ?>
                 </td>
             </tr>
@@ -93,5 +101,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </table>
 </div>
 </div>
+
+<?php foreach ($auditMetadataModals as $auditMetadataModal) { ?>
+    <div id="<?php echo sr_e((string) $auditMetadataModal['id']); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e((string) $auditMetadataModal['id']); ?>_title" aria-hidden="true" inert>
+        <div class="modal-dialog admin-audit-metadata-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e((string) $auditMetadataModal['id']); ?>_title" class="modal-title">메타 정보</h3>
+                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e((string) $auditMetadataModal['id']); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="admin-summary-stats">
+                        <span class="admin-summary-meta">로그 <strong>#<?php echo sr_e((string) $auditMetadataModal['log_id']); ?></strong></span>
+                        <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['event_type']); ?></span>
+                        <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['created_at']); ?></span>
+                    </div>
+                    <pre class="admin-audit-metadata-pre"><code><?php echo sr_e((string) $auditMetadataModal['metadata']); ?></code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e((string) $auditMetadataModal['id']); ?>">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -697,23 +697,9 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     max-width: 12rem;
 }
 
-.admin-audit-log-table .admin-audit-metadata details {
-    position: relative;
-}
-
-.admin-audit-log-table .admin-audit-metadata summary {
-    color: var(--color-primary);
-    cursor: pointer;
-    font-weight: var(--font-weight-semibold);
-}
-
-.admin-audit-log-table .admin-audit-metadata code {
-    display: block;
-    margin-top: calc(var(--spacing) * 1.5);
-    max-width: 28rem;
-    overflow-wrap: anywhere;
-    white-space: normal;
-}
+.admin-audit-metadata-dialog{max-width:min(48rem,calc(100vw - 2rem))}
+.admin-audit-metadata-pre{background-color:var(--color-default-100);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:var(--text-xs);line-height:1.6;margin-top:calc(var(--spacing) * 4);max-height:26rem;overflow:auto;padding:calc(var(--spacing) * 3);white-space:pre-wrap;word-break:break-word}
+.admin-audit-metadata-pre code{font:inherit}
 
 .admin-list-form .admin-status {
     align-items: center;
@@ -1047,8 +1033,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-card-subtitle,
     .admin-empty-state,
     .admin-check-list + small,
-    .admin-advanced-details summary,
-    .admin-audit-log-table .admin-audit-metadata summary
+    .admin-advanced-details summary
 ) {
     color: var(--admin-muted-text);
 }

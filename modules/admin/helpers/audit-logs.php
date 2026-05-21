@@ -80,7 +80,7 @@ function sr_admin_audit_log_display_metadata(array $log): string
         return '[invalid metadata]';
     }
 
-    $encoded = json_encode(sr_admin_audit_metadata_redact($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $encoded = json_encode(sr_admin_audit_metadata_redact($metadata), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
     return is_string($encoded) ? $encoded : '[invalid metadata]';
 }
