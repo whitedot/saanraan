@@ -33,6 +33,9 @@ if (!empty($settings['comment_reward_reversal_enabled'])) {
 }
 sr_community_update_comment_status($pdo, $commentId, 'deleted');
 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
+$groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
+    'source_module_key' => 'community',
+]);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -41,13 +44,13 @@ sr_audit_log($pdo, [
     'target_id' => (string) $commentId,
     'result' => 'success',
     'message' => 'Community comment deleted by author.',
-    'metadata' => [
+    'metadata' => array_merge([
         'post_id' => (int) $comment['post_id'],
         'before_status' => (string) $comment['status'],
         'after_status' => 'deleted',
         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-    ],
+    ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 $_SESSION['sr_community_comment_notice'] = '댓글을 삭제했습니다.';
 sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

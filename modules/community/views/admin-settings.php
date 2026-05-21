@@ -3,6 +3,16 @@
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $adminPageTitle = $communitySettingsPage === 'levels' ? '커뮤니티 레벨 정의' : '커뮤니티 설정';
 $messageWriteGroupKeysValue = implode(', ', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : []);
+$accessConditionPriorityLabels = [
+    'both_required' => '그룹과 레벨 모두 필요',
+    'group_first' => '그룹 우선',
+    'level_first' => '레벨 우선',
+];
+$accessConditionPriorityDescriptions = [
+    'both_required' => '그룹 조건과 레벨 조건이 함께 설정된 경우 두 조건을 모두 만족해야 허용합니다.',
+    'group_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 그룹 조건으로 통과한 것으로 기록합니다.',
+    'level_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 레벨 조건으로 통과한 것으로 기록합니다.',
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -66,9 +76,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <select id="community_admin_settings_access_condition_priority" name="access_condition_priority" class="form-select">
                                     <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
-                                        <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e($priority); ?></option>
+                                        <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></option>
                                     <?php } ?>
                                 </select>
+                                <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
+                                    <small><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?>: <?php echo sr_e((string) ($accessConditionPriorityDescriptions[$priority] ?? '')); ?></small>
+                                <?php } ?>
+                                <small>게시판 읽기/쓰기/댓글, 쪽지 발송처럼 그룹 key와 최소 레벨을 함께 설정한 접근 조건에 적용됩니다.</small>
             </div>
         </div>
     </section>

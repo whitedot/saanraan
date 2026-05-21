@@ -27,10 +27,10 @@ if (!empty($settings['post_reward_reversal_enabled'])) {
     }
 }
 sr_community_update_post_status($pdo, $postId, 'deleted');
+$levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_deleted');
 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
     'source_module_key' => 'community',
 ]);
-$levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_deleted');
 $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, 'deleted');
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],

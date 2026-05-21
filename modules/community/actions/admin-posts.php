@@ -85,10 +85,10 @@ if (sr_request_method() === 'POST') {
 
             if ($errors === []) {
                 sr_community_update_post_status($pdo, $postId, $status);
+                $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
                 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
                     'source_module_key' => 'community',
                 ]);
-                $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
                 $updatedAttachmentCount = 0;
                 if (in_array($status, ['hidden', 'deleted'], true)) {
                     $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status);
@@ -138,6 +138,9 @@ if (sr_request_method() === 'POST') {
             if ($errors === []) {
                 sr_community_update_comment_status($pdo, $commentId, $status);
                 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
+                $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
+                    'source_module_key' => 'community',
+                ]);
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
@@ -146,13 +149,13 @@ if (sr_request_method() === 'POST') {
                     'target_id' => (string) $commentId,
                     'result' => 'success',
                     'message' => 'Community comment status updated.',
-                    'metadata' => [
+                    'metadata' => array_merge([
                         'before_status' => (string) $comment['status'],
                         'after_status' => $status,
                         'post_id' => (int) $comment['post_id'],
                         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
                         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-                    ],
+                    ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
                 ]);
                 $notice = '댓글 상태를 변경했습니다.';
             }

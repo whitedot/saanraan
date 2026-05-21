@@ -71,10 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['sr_community_post_notice'] = sr_community_asset_module_label((string) $postRewardConfig['asset_module']) . ' ' . number_format((int) $postRewardConfig['amount']) . '을(를) 적립했습니다.';
         }
         sr_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
+        $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
         $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $account['id'], [
             'source_module_key' => 'community',
         ]);
-        $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
         $attachmentId = null;
         $attachmentIds = [];
         $attachmentResults = [];

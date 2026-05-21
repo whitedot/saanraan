@@ -60,6 +60,9 @@ $commentRewardResult = sr_community_asset_event_required($commentRewardConfig)
     : ['allowed' => true, 'processed' => false];
 sr_community_record_comment_rate_limit($pdo, (int) $account['id'], $settings);
 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'comment_created');
+$groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $account['id'], [
+    'source_module_key' => 'community',
+]);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -68,13 +71,13 @@ sr_audit_log($pdo, [
     'target_id' => (string) $commentId,
     'result' => 'success',
     'message' => 'Community comment created.',
-    'metadata' => [
+    'metadata' => array_merge([
         'post_id' => $postId,
         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
         'asset_comment_charge_processed' => !empty($commentChargeResult['processed']),
         'asset_comment_reward_processed' => !empty($commentRewardResult['processed']),
-    ],
+    ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 if ((int) $post['author_account_id'] !== (int) $account['id']) {
     sr_community_create_account_notification(
