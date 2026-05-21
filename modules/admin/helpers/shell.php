@@ -394,16 +394,29 @@ function sr_admin_choice_label_parts(string $labelText): array
         return ['', ''];
     }
 
-    $suffixes = ['허용', '사용', '포함'];
+    if (str_ends_with($labelText, '확인했습니다.')) {
+        $hidden = trim(substr($labelText, 0, strlen($labelText) - strlen('확인했습니다.')));
+        return [$hidden !== '' ? $hidden . ' ' : '', '확인했습니다.'];
+    }
+
+    $suffixes = [
+        '자동 재계산',
+        '완료로 처리',
+        '필수입력',
+        '적립 회수',
+        '보이기',
+        '허용',
+        '사용',
+        '포함',
+        '과금',
+        '확인',
+        '삭제',
+    ];
     foreach ($suffixes as $suffix) {
         if (str_ends_with($labelText, $suffix)) {
             $hidden = trim(substr($labelText, 0, strlen($labelText) - strlen($suffix)));
             return [$hidden !== '' ? $hidden . ' ' : '', $suffix];
         }
-    }
-
-    if (str_ends_with($labelText, '했습니다.')) {
-        return ['', '확인했습니다.'];
     }
 
     return ['', $labelText];
