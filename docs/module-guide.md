@@ -780,6 +780,8 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 범용 `/admin/modules` key/value 설정 화면은 제공하지 않는다. 모듈 설정은 의미, 단위, 허용 범위가 드러나는 전용 관리자 화면에서 수정한다.
 
+모듈 수명주기 자체는 관리자 모듈의 사유 API가 아니라 코어 API를 기준으로 처리한다. 모듈 설치, 상태 변경, route 충돌 검사, pending SQL 계산, update SQL 적용, 파일 전용 버전 반영, 모듈 소스 배치 검증은 코어 helper를 사용하고, 관리자 화면은 권한 확인과 결과 표시를 덧붙인다. 새 관리자 UI나 CLI를 만들 때도 같은 코어 helper를 호출해야 기존 `/admin/modules`, `/admin/updates`와 같은 판정을 공유한다.
+
 ## 14. 관리자 메뉴
 
 관리자 메뉴가 필요한 모듈은 `admin-menu.php`를 둔다.

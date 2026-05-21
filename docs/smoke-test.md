@@ -185,6 +185,7 @@ php .tools/bin/smoke-community-auth.php
 /admin/modules에서 pending SQL이 있는 모듈이 /admin/updates 이동 대상으로 구분됨
 /admin/updates에서 pending SQL 적용 전 백업 확인을 요구함
 /admin/updates에서 SQL 없는 파일 전용 업데이트가 설치 버전 반영 대상으로 구분됨
+모듈 수명주기 판정이 core helper 기준으로 유지되고, /admin/modules와 /admin/updates가 같은 pending SQL/버전 차이를 표시함
 ```
 
 ## 실패 시 확인 순서

@@ -226,7 +226,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
-            <p>최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_admin_format_bytes(sr_admin_module_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
+            <p>최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
             </section>
             <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
                 <button type="submit" class="btn btn-solid-primary">zip 업로드</button>

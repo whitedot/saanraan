@@ -217,21 +217,23 @@ function sr_check_module_lifecycle_ui_contract(): void
     $moduleView = file_get_contents('modules/admin/views/modules.php');
     $updatesHelper = file_get_contents('modules/admin/helpers/updates.php');
     $moduleSources = file_get_contents('modules/admin/helpers/module-sources.php');
-    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($updatesHelper) || !is_string($moduleSources)) {
+    $moduleLifecycle = file_get_contents('core/helpers/module-lifecycle.php');
+    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($updatesHelper) || !is_string($moduleSources) || !is_string($moduleLifecycle)) {
         sr_check_add_error('Admin module lifecycle files cannot be read.');
         return;
     }
 
+    $moduleLifecycleContent = $moduleActions . "\n" . $moduleSources . "\n" . $moduleLifecycle;
     foreach ([
-        'function sr_admin_module_lifecycle_state',
+        'function sr_module_lifecycle_state',
         'install_incomplete',
         'contract_error',
         'sql_pending',
         'file_only_update',
         'code_older',
-        'sr_admin_module_code_older_errors',
+        'sr_module_code_older_errors',
     ] as $needle) {
-        if (!str_contains($moduleActions, $needle)) {
+        if (!str_contains($moduleLifecycleContent, $needle)) {
             sr_check_add_error('Admin module lifecycle state handling is missing: ' . $needle);
         }
     }
@@ -248,8 +250,8 @@ function sr_check_module_lifecycle_ui_contract(): void
         }
     }
 
-    foreach (['sr_admin_zip_upload_stats', 'sr_admin_validate_extracted_module_tree', 'sr_admin_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
-        if (!str_contains($moduleSources, $needle)) {
+    foreach (['sr_module_zip_upload_stats', 'sr_validate_extracted_module_tree', 'sr_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
+        if (!str_contains($moduleLifecycleContent, $needle)) {
             sr_check_add_error('Admin module source safety marker is missing: ' . $needle);
         }
     }

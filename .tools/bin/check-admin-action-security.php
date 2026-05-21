@@ -616,50 +616,54 @@ if (!is_string($bannerHelper)) {
     $errors[] = 'Banner rendering must use explicit banner skin views with a basic fallback.';
 }
 
+$moduleLifecycleHelper = file_get_contents($root . '/core/helpers/module-lifecycle.php');
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
 if (!is_string($adminModuleSourcesHelper)) {
     $errors[] = 'Admin module sources helper cannot be read.';
-} elseif (
-    strpos($adminModuleSourcesHelper, 'function sr_admin_zip_entry_is_symlink') === false
-    || strpos($adminModuleSourcesHelper, 'sr_admin_zip_entry_is_symlink($zip, $i)') === false
-    || strpos($adminModuleSourcesHelper, 'zip 안에 심볼릭 링크가 있습니다.') === false
+    $adminModuleSourcesHelper = '';
+}
+$moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . $adminModuleSourcesHelper;
+if (
+    strpos($moduleSourceSafetyContent, 'function sr_module_zip_entry_is_symlink') === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_zip_entry_is_symlink($zip, $i)') === false
+    || strpos($moduleSourceSafetyContent, 'zip 안에 심볼릭 링크가 있습니다.') === false
 ) {
     $errors[] = 'Admin module source zip checks must reject symlink entries before extraction.';
 }
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
-    || strpos($adminModuleSourcesHelper, "str_contains(\$name, ':')") === false
-    || strpos($adminModuleSourcesHelper, "str_contains(\$name, '//')") === false
-    || strpos($adminModuleSourcesHelper, "\$segment === '.'") === false
-)) {
+if (
+    strpos($moduleSourceSafetyContent, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
+    || strpos($moduleSourceSafetyContent, "str_contains(\$name, ':')") === false
+    || strpos($moduleSourceSafetyContent, "str_contains(\$name, '//')") === false
+    || strpos($moduleSourceSafetyContent, "\$segment === '.'") === false
+) {
     $errors[] = 'Admin module source zip paths must reject control characters, colon separators, and ambiguous path segments.';
 }
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, "throw new RuntimeException('zip 항목 속성을 확인할 수 없습니다.');") === false
-)) {
+if (
+    strpos($moduleSourceSafetyContent, "throw new RuntimeException('zip 항목 속성을 확인할 수 없습니다.');") === false
+) {
     $errors[] = 'Admin module source zip symlink checks must fail closed when entry attributes cannot be read.';
 }
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function sr_admin_validate_extracted_module_tree') === false
-    || strpos($adminModuleSourcesHelper, 'sr_admin_validate_extracted_module_tree($extractDir)') === false
-    || strpos($adminModuleSourcesHelper, '압축 해제된 모듈에 심볼릭 링크가 있습니다.') === false
-    || strpos($adminModuleSourcesHelper, '압축 해제된 모듈 경로가 작업 디렉터리 밖을 가리킵니다.') === false
-    || strpos($adminModuleSourcesHelper, 'sr_admin_path_is_inside($item->getPathname(), $extractDir)') === false
-)) {
+if (
+    strpos($moduleSourceSafetyContent, 'function sr_validate_extracted_module_tree') === false
+    || strpos($moduleSourceSafetyContent, 'sr_validate_extracted_module_tree($extractDir)') === false
+    || strpos($moduleSourceSafetyContent, '압축 해제된 모듈에 심볼릭 링크가 있습니다.') === false
+    || strpos($moduleSourceSafetyContent, '압축 해제된 모듈 경로가 작업 디렉터리 밖을 가리킵니다.') === false
+    || strpos($moduleSourceSafetyContent, 'sr_path_is_inside($item->getPathname(), $extractDir)') === false
+) {
     $errors[] = 'Admin module source extraction must verify the extracted file tree stays inside the work directory.';
 }
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function sr_admin_module_metadata_errors') === false
-    || strpos($adminModuleSourcesHelper, 'sr_module_metadata_errors($metadata)') === false
-    || strpos($adminModuleSourcesHelper, 'sr_module_contract_file_errors($sourceDir, $metadata)') === false
-)) {
+if (
+    strpos($moduleSourceSafetyContent, 'function sr_validate_module_source') === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_metadata_errors($metadata)') === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_contract_file_errors($sourceDir, $metadata)') === false
+) {
     $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
 }
-if (is_string($adminModuleSourcesHelper) && (
-    strpos($adminModuleSourcesHelper, 'function sr_admin_install_module_source_files') === false
-    || strpos($adminModuleSourcesHelper, '!rename($backupDir, $targetDir)') === false
-    || strpos($adminModuleSourcesHelper, "throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, \$exception)") === false
-)) {
+if (
+    strpos($moduleSourceSafetyContent, 'function sr_install_module_source_files') === false
+    || strpos($moduleSourceSafetyContent, '!rename($backupDir, $targetDir)') === false
+    || strpos($moduleSourceSafetyContent, "throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, \$exception)") === false
+) {
     $errors[] = 'Admin module source replacement must fail closed when backup restore fails.';
 }
 
@@ -673,10 +677,10 @@ if (!is_string($adminModuleActionsHelper)) {
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
 }
-if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper, 'sr_admin_module_metadata_errors($metadata)') < 3) {
+if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper . "\n" . $moduleSourceSafetyContent, 'sr_module_metadata_errors($metadata)') < 3) {
     $errors[] = 'Admin module install, enable, and version sync actions must validate module metadata contracts server-side.';
 }
-if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper, 'sr_module_contract_file_errors(') < 5) {
+if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper . "\n" . $moduleSourceSafetyContent, 'sr_module_contract_file_errors(') < 5) {
     $errors[] = 'Admin module install, enable, sync, and listing flows must validate declared contract files server-side.';
 }
 
@@ -687,7 +691,7 @@ if (!is_string($adminUpdatesHelper)) {
     substr_count($adminUpdatesHelper, 'sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') < 2
     || strpos($adminUpdatesHelper, "'schema.update.failed'") === false
     || strpos($adminUpdatesHelper, '\'message\' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') === false
-    || strpos($adminUpdatesHelper, "sr_log_sensitive_text_sanitize(sr_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false
+    || strpos($adminUpdatesHelper . "\n" . (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : ''), "sr_log_sensitive_text_sanitize(sr_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false
 ) {
     $errors[] = 'Admin schema update failures must write sanitized audit and marker messages.';
 }

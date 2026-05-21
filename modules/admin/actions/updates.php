@@ -11,7 +11,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner']);
 $errors = [];
 $notice = '';
 $appliedUpdates = [];
-$previousUpdateFailure = sr_admin_previous_update_failure();
+$previousUpdateFailure = sr_previous_schema_update_failure();
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -22,10 +22,10 @@ if (sr_request_method() === 'POST') {
     $appliedUpdates = $postResult['applied_updates'];
 }
 
-$pendingUpdates = sr_admin_pending_updates($pdo);
-$schemaVersions = sr_admin_schema_versions($pdo);
-$pendingUpdateCounts = sr_admin_module_pending_update_counts($pendingUpdates);
-$moduleVersionDrifts = sr_admin_module_version_drifts($pdo, $pendingUpdateCounts);
-$fileOnlyModuleVersionDrifts = sr_admin_file_only_module_version_drifts($moduleVersionDrifts);
+$pendingUpdates = sr_pending_schema_updates($pdo);
+$schemaVersions = sr_schema_version_rows($pdo);
+$pendingUpdateCounts = sr_module_pending_update_counts($pendingUpdates);
+$moduleVersionDrifts = sr_module_version_drifts($pdo, $pendingUpdateCounts);
+$fileOnlyModuleVersionDrifts = sr_file_only_module_version_drifts($moduleVersionDrifts);
 
 include SR_ROOT . '/modules/admin/views/updates.php';

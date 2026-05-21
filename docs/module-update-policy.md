@@ -6,6 +6,8 @@
 
 산란은 모듈 소스의 출처를 관리하지 않는다. 현재 `modules/{module_key}`에 놓인 폴더를 읽고, DB에는 설치 상태와 SQL 적용 상태만 기록한다.
 
+모듈 설치, 상태 변경, 파일 전용 버전 반영, pending SQL 계산, SQL 적용, 모듈 소스 zip 검증 같은 수명주기 실행 기준은 코어 helper가 제공한다. 기본 `/admin/modules`와 `/admin/updates` 화면은 이 코어 helper를 호출하는 운영 UI이며, 권한 확인, owner 재인증, 감사 로그, 결과 표시를 맡는다. 별도 관리자 UI를 만들더라도 같은 코어 helper를 호출해야 DB 상태와 업데이트 판정이 분기되지 않는다.
+
 ```text
 파일 기준:
 modules/{module_key}/module.php
