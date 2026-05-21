@@ -21,9 +21,9 @@ $settingLabels = [
     'read_policy' => '읽기 정책',
     'write_policy' => '쓰기 정책',
     'comment_policy' => '댓글 정책',
-    'read_group_keys' => '읽기 그룹 key',
-    'write_group_keys' => '쓰기 그룹 key',
-    'comment_group_keys' => '댓글 그룹 key',
+    'read_group_keys' => '읽기 회원 그룹',
+    'write_group_keys' => '쓰기 회원 그룹',
+    'comment_group_keys' => '댓글 회원 그룹',
     'read_min_level' => '읽기 최소 레벨',
     'write_min_level' => '쓰기 최소 레벨',
     'comment_min_level' => '댓글 최소 레벨',
@@ -38,15 +38,15 @@ $settingLabels = [
 $groupSettingValue = static function (array $settings, string $key, string $default): string {
     return (string) ($settings[$key] ?? $default);
 };
-$groupKeysSettingValue = static function (array $settings, string $key): string {
+$groupKeysSettingValue = static function (array $settings, string $key): array {
     $value = (string) ($settings[$key] ?? '');
     if ($value === '') {
-        return '';
+        return [];
     }
 
     $decoded = json_decode($value, true);
     $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
-    return implode(', ', sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []));
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 };
 $groupField = static function (array $group, string $key, string $default = ''): string {
     return (string) ($group[$key] ?? $default);
@@ -68,20 +68,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-
-<?php if ($communityBoardGroupsPage !== 'list' && $enabledMemberGroups !== []) { ?>
-    <section>
-        <h2>사용 가능한 회원 그룹 key</h2>
-        <ul>
-            <?php foreach ($enabledMemberGroups as $memberGroup) { ?>
-                <li>
-                    <?php echo sr_e((string) $memberGroup['group_key']); ?>
-                    - <?php echo sr_e((string) $memberGroup['title']); ?>
-                </li>
-            <?php } ?>
-        </ul>
-    </section>
-<?php } ?>
 
 <?php if ($communityBoardGroupsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
@@ -245,9 +231,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_group_keys">읽기 그룹 key</label>
+                    <label class="form-label" for="community_admin_board_groups_group_read_group_keys">읽기 회원 그룹</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_read_group_keys" type="text" name="group_read_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'read_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_read_group_keys', 'group_read_group_keys', $groupKeysSettingValue($formGroupSettings, 'read_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -267,9 +253,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_group_keys">쓰기 그룹 key</label>
+                    <label class="form-label" for="community_admin_board_groups_group_write_group_keys">쓰기 회원 그룹</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_write_group_keys" type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_write_group_keys', 'group_write_group_keys', $groupKeysSettingValue($formGroupSettings, 'write_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -289,9 +275,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_group_keys">댓글 그룹 key</label>
+                    <label class="form-label" for="community_admin_board_groups_group_comment_group_keys">댓글 회원 그룹</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_comment_group_keys" type="text" name="group_comment_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'comment_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_comment_group_keys', 'group_comment_group_keys', $groupKeysSettingValue($formGroupSettings, 'comment_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">

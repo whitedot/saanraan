@@ -606,6 +606,19 @@ function sr_community_board_group_keys_from_input(string $value): array
     return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
+function sr_community_board_group_keys_from_input_value(mixed $value): array
+{
+    if (is_array($value)) {
+        return sr_community_normalize_board_group_keys($value);
+    }
+
+    if (is_string($value)) {
+        return sr_community_board_group_keys_from_input($value);
+    }
+
+    return [];
+}
+
 function sr_community_invalid_board_group_keys_from_input(string $value): array
 {
     if (trim($value) === '') {
@@ -626,6 +639,57 @@ function sr_community_invalid_board_group_keys_from_input(string $value): array
     }
 
     return array_values(array_unique($invalidKeys));
+}
+
+function sr_community_invalid_board_group_keys_from_input_value(mixed $value): array
+{
+    if (is_array($value)) {
+        $invalidKeys = [];
+        foreach ($value as $rawKey) {
+            if (is_array($rawKey)) {
+                $invalidKeys[] = 'array';
+                continue;
+            }
+
+            $groupKey = trim((string) $rawKey);
+            if ($groupKey !== '' && !sr_member_group_key_is_valid($groupKey)) {
+                $invalidKeys[] = $groupKey;
+            }
+        }
+
+        return array_values(array_unique($invalidKeys));
+    }
+
+    if (is_string($value)) {
+        return sr_community_invalid_board_group_keys_from_input($value);
+    }
+
+    return [];
+}
+
+function sr_community_board_group_keys_input_too_long(mixed $value, int $maxLength = 1000): bool
+{
+    if (is_array($value)) {
+        $length = 0;
+        foreach ($value as $rawKey) {
+            if (is_array($rawKey)) {
+                return true;
+            }
+
+            $length += strlen(trim((string) $rawKey)) + 1;
+            if ($length > $maxLength) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    if (is_string($value)) {
+        return strlen(trim($value)) > $maxLength;
+    }
+
+    return false;
 }
 
 function sr_community_board_group_keys_setting_value(array $groupKeys): string

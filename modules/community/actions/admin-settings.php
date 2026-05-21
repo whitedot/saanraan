@@ -42,8 +42,8 @@ if (sr_request_method() === 'POST') {
         $accessConditionPriority = sr_community_access_condition_priority(sr_post_string('access_condition_priority', 40));
         $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
-        $messageWriteGroupKeysInput = sr_post_string_without_truncation('message_write_group_keys', 1000);
-        $messageWriteGroupKeys = is_string($messageWriteGroupKeysInput) ? sr_community_board_group_keys_from_input($messageWriteGroupKeysInput) : [];
+        $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
+        $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $themeKey = sr_post_string('theme_key', 40);
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
@@ -88,22 +88,22 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        if (!is_string($messageWriteGroupKeysInput)) {
-            $errors[] = '쪽지 그룹 key 목록은 1000자 이하로 입력하세요.';
+        if (sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
+            $errors[] = '쪽지 회원 그룹 목록은 1000자 이하로 선택하세요.';
         } else {
-            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input($messageWriteGroupKeysInput);
+            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input_value($messageWriteGroupKeysInput);
             if ($invalidGroupKeys !== []) {
-                $errors[] = '쪽지 그룹 key 형식이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+                $errors[] = '쪽지 회원 그룹 값이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
             }
         }
 
         $unknownGroupKeys = array_values(array_diff($messageWriteGroupKeys, $enabledMemberGroupKeys));
         if ($unknownGroupKeys !== []) {
-            $errors[] = '쪽지 그룹 key는 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
+            $errors[] = '쪽지 회원 그룹은 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
         }
 
         if ($messageWritePolicy === 'group' && $messageWriteGroupKeys === []) {
-            $errors[] = '쪽지 발송 정책을 group으로 선택하려면 그룹 key를 하나 이상 입력하세요.';
+            $errors[] = '쪽지 발송 정책을 group으로 선택하려면 회원 그룹을 하나 이상 선택하세요.';
         }
 
         if ($errors === []) {

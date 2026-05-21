@@ -78,12 +78,12 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('group_read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('group_write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
-        $readGroupKeysInput = sr_post_string_without_truncation('group_read_group_keys', 1000);
-        $writeGroupKeysInput = sr_post_string_without_truncation('group_write_group_keys', 1000);
-        $commentGroupKeysInput = sr_post_string_without_truncation('group_comment_group_keys', 1000);
-        $readGroupKeys = is_string($readGroupKeysInput) ? sr_community_board_group_keys_from_input($readGroupKeysInput) : [];
-        $writeGroupKeys = is_string($writeGroupKeysInput) ? sr_community_board_group_keys_from_input($writeGroupKeysInput) : [];
-        $commentGroupKeys = is_string($commentGroupKeysInput) ? sr_community_board_group_keys_from_input($commentGroupKeysInput) : [];
+        $readGroupKeysInput = $_POST['group_read_group_keys'] ?? [];
+        $writeGroupKeysInput = $_POST['group_write_group_keys'] ?? [];
+        $commentGroupKeysInput = $_POST['group_comment_group_keys'] ?? [];
+        $readGroupKeys = sr_community_board_group_keys_from_input_value($readGroupKeysInput);
+        $writeGroupKeys = sr_community_board_group_keys_from_input_value($writeGroupKeysInput);
+        $commentGroupKeys = sr_community_board_group_keys_from_input_value($commentGroupKeysInput);
 
         if ($intent === 'create_group' && !sr_community_board_group_key_is_valid($groupKey)) {
             $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -171,14 +171,14 @@ if (sr_request_method() === 'POST') {
             '그룹 쓰기 회원 그룹' => $writeGroupKeysInput,
             '그룹 댓글 회원 그룹' => $commentGroupKeysInput,
         ] as $label => $groupKeysInput) {
-            if (!is_string($groupKeysInput)) {
-                $errors[] = $label . ' key 목록은 1000자 이하로 입력하세요.';
+            if (sr_community_board_group_keys_input_too_long($groupKeysInput)) {
+                $errors[] = $label . ' 목록은 1000자 이하로 선택하세요.';
                 continue;
             }
 
-            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input($groupKeysInput);
+            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input_value($groupKeysInput);
             if ($invalidGroupKeys !== []) {
-                $errors[] = $label . ' key 형식이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+                $errors[] = $label . ' 값이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
             }
         }
 
@@ -189,7 +189,7 @@ if (sr_request_method() === 'POST') {
         ] as $label => $groupKeys) {
             $unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys));
             if ($unknownGroupKeys !== []) {
-                $errors[] = $label . ' key는 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
+                $errors[] = $label . '은 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
             }
         }
 
@@ -199,7 +199,7 @@ if (sr_request_method() === 'POST') {
             '댓글' => [$commentPolicy, $commentGroupKeys],
         ] as $label => $policyGroupKeys) {
             if ((string) $policyGroupKeys[0] === 'group' && $policyGroupKeys[1] === []) {
-                $errors[] = '그룹 ' . $label . ' 정책을 group으로 선택하려면 회원 그룹 key를 하나 이상 입력하세요.';
+                $errors[] = '그룹 ' . $label . ' 정책을 group으로 선택하려면 회원 그룹을 하나 이상 선택하세요.';
             }
         }
 

@@ -147,6 +147,10 @@
 .admin-form-actions{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
 .admin-form-actions-primary{justify-content:flex-end}
 .admin-form-actions-split>button[type=submit],.admin-form-actions-split>input[type=submit]{margin-left:auto}
+.admin-form-label-help{gap:calc(var(--spacing) * 1.5)}
+.admin-form-label-help>label{min-width:0}
+.admin-label-help-button{color:var(--color-default-500);flex:0 0 auto}
+.admin-label-help-button:hover,.admin-label-help-button:focus-visible{color:var(--color-primary)}
 .admin-form>section.card{margin-bottom:calc(var(--spacing) * 5);overflow:hidden}
 .admin-form>section.card>.card-header{padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75)}
 .admin-form>section.card>.card-body{padding:calc(var(--spacing) * 5)}
@@ -224,6 +228,7 @@
 .admin-form .form-select{width:fit-content;max-width:100%}
 .admin-form .form-select[multiple],
 .admin-form .form-select.form-control-full{width:100%}
+.admin-form .form-select.admin-member-group-key-select{max-width:42rem;min-height:calc(var(--spacing) * 28)}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select),.admin-content .ui-form-theme textarea:not(.form-textarea){width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
 .admin-content .ui-form-theme textarea:not(.form-textarea){min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}

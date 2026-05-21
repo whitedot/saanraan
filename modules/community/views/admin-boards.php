@@ -25,9 +25,6 @@ $boardSettingSource = static function (array $board, string $key): string {
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
     return (string) ($sources[$key] ?? 'board');
 };
-$boardGroupKeysValue = static function (array $board, string $key): string {
-    return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
-};
 $boardArrayValue = static function (array $board, string $key): string {
     return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
 };
@@ -95,20 +92,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-
-<?php if ($communityBoardsPage !== 'list' && $enabledMemberGroups !== []) { ?>
-    <section>
-        <h2>사용 가능한 회원 그룹 key</h2>
-        <ul>
-            <?php foreach ($enabledMemberGroups as $memberGroup) { ?>
-                <li>
-                    <?php echo sr_e((string) $memberGroup['group_key']); ?>
-                    - <?php echo sr_e((string) $memberGroup['title']); ?>
-                </li>
-            <?php } ?>
-        </ul>
-    </section>
-<?php } ?>
 
 <?php if ($communityBoardsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
@@ -327,9 +310,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_group_keys">읽기 그룹 key</label>
+                <label class="form-label" for="community_admin_boards_read_group_keys">읽기 회원 그룹</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_read_group_keys" type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                    <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_read_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -372,9 +355,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_group_keys">쓰기 그룹 key</label>
+                <label class="form-label" for="community_admin_boards_write_group_keys">쓰기 회원 그룹</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_write_group_keys" type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                    <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_write_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -417,9 +400,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_group_keys">댓글 그룹 key</label>
+                <label class="form-label" for="community_admin_boards_comment_group_keys">댓글 회원 그룹</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_comment_group_keys" type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                    <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_comment_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>

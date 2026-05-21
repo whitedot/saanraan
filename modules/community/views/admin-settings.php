@@ -2,7 +2,6 @@
 
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $adminPageTitle = $communitySettingsPage === 'levels' ? '커뮤니티 레벨 정의' : '커뮤니티 설정';
-$messageWriteGroupKeysValue = implode(', ', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : []);
 $accessConditionPriorityLabels = [
     'both_required' => '그룹과 레벨 모두 필요',
     'group_first' => '그룹 우선',
@@ -13,24 +12,13 @@ $accessConditionPriorityDescriptions = [
     'group_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 그룹 조건으로 통과한 것으로 기록합니다.',
     'level_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 레벨 조건으로 통과한 것으로 기록합니다.',
 ];
+$accessConditionPriorityInputId = 'community_admin_settings_access_condition_priority';
+$currentAccessConditionPriority = (string) $settings['access_condition_priority'];
+$accessConditionPriorityHelpModalId = 'community_access_condition_priority_help_modal';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-
-<?php if ($enabledMemberGroups !== []) { ?>
-    <section>
-        <h2>사용 가능한 회원 그룹 key</h2>
-        <ul>
-            <?php foreach ($enabledMemberGroups as $memberGroup) { ?>
-                <li>
-                    <?php echo sr_e((string) $memberGroup['group_key']); ?>
-                    - <?php echo sr_e((string) $memberGroup['title']); ?>
-                </li>
-            <?php } ?>
-        </ul>
-    </section>
-<?php } ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme">
@@ -72,17 +60,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_access_condition_priority">그룹+레벨 판정</label>
+            <?php echo sr_admin_form_label_help_html($accessConditionPriorityInputId, '그룹+레벨 판정', $accessConditionPriorityHelpModalId, '판정 방식 보기'); ?>
             <div class="admin-form-field">
-                <select id="community_admin_settings_access_condition_priority" name="access_condition_priority" class="form-select">
+                <select id="<?php echo sr_e($accessConditionPriorityInputId); ?>" name="access_condition_priority" class="form-select">
                                     <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
                                         <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></option>
                                     <?php } ?>
                                 </select>
-                                <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
-                                    <small><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?>: <?php echo sr_e((string) ($accessConditionPriorityDescriptions[$priority] ?? '')); ?></small>
-                                <?php } ?>
-                                <small>게시판 읽기/쓰기/댓글, 쪽지 발송처럼 그룹 key와 최소 레벨을 함께 설정한 접근 조건에 적용됩니다.</small>
+                                <small class="admin-form-help">현재: <?php echo sr_e((string) ($accessConditionPriorityLabels[$currentAccessConditionPriority] ?? $currentAccessConditionPriority)); ?>. 그룹 key와 최소 레벨을 함께 설정한 접근 조건에 적용됩니다.</small>
             </div>
         </div>
     </section>
@@ -100,9 +85,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_group_keys">발송 그룹 key</label>
+            <label class="form-label" for="community_admin_settings_message_write_group_keys">발송 회원 그룹</label>
             <div class="admin-form-field">
-                <input id="community_admin_settings_message_write_group_keys" type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
+                <?php echo sr_admin_member_group_key_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
         </div>
         <div class="admin-form-row">
@@ -269,6 +254,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary">설정 저장</button>
     </div>
 </form>
+
+<?php ob_start(); ?>
+<p class="admin-form-help">게시판 접근 조건에서 그룹 key와 최소 레벨이 함께 설정된 경우에만 적용됩니다.</p>
+<div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th>방식</th>
+                <th>설명</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
+                <tr>
+                    <td><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></td>
+                    <td><?php echo sr_e((string) ($accessConditionPriorityDescriptions[$priority] ?? '')); ?></td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</div>
+<?php echo sr_admin_help_modal_html($accessConditionPriorityHelpModalId, '그룹+레벨 판정 방식', (string) ob_get_clean()); ?>
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>
