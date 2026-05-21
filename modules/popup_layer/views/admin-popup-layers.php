@@ -3,6 +3,15 @@
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 $editing = is_array($editPopup);
 $adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? '팝업 수정' : '팝업 추가') : '팝업레이어';
+$adminPageSubtitle = $popupLayerAdminPage === 'form' ? '팝업 내용, 노출 대상, 기간과 닫기 정책을 관리합니다.' : '팝업 상태를 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminContainerClass = $popupLayerAdminPage === 'form' ? 'admin-page-popup-layer-form admin-ui-scope' : 'admin-page-popup-layer-list admin-ui-scope';
+$filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$popupStatusCounts = isset($popupStatusCounts) && is_array($popupStatusCounts) ? $popupStatusCounts : [];
+$totalPopups = (int) ($popupStatusCounts['total'] ?? count($popups ?? []));
+$targetLabels = [];
+foreach ($availableTargets as $target) {
+    $targetLabels[sr_popup_layer_target_option_value($target)] = sr_popup_layer_target_option_label($target);
+}
 $selectedTargetOption = sr_popup_layer_public_target_option_value();
 if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '') . '|' . (string) ($editPopup['slot_key'] ?? '');
@@ -131,13 +140,70 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } else { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총팝업 <strong><?php echo sr_e((string) $totalPopups); ?>개</strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($popupStatusCounts['enabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers?status=draft')); ?>" class="admin-summary-meta">초안 <?php echo sr_e((string) ($popupStatusCounts['draft'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers?status=disabled')); ?>" class="admin-summary-meta">중지 <?php echo sr_e((string) ($popupStatusCounts['disabled'] ?? 0)); ?>개</a>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-filter admin-popup-layer-filter ui-form-theme">
+        <div class="admin-filter-grid admin-popup-layer-search-grid">
+            <div class="admin-filter-field admin-popup-layer-filter-status">
+                <label for="modules_popup_layer_admin_popup_layers_status_filter" class="admin-filter-label">상태</label>
+                <select id="modules_popup_layer_admin_popup_layers_status_filter" name="status" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-popup-layer-filter-target">
+                <label for="modules_popup_layer_admin_popup_layers_target_filter" class="admin-filter-label">노출 대상</label>
+                <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($filters['target'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo (string) ($filters['target'] ?? '') === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>공용 팝업레이어</option>
+                    <?php foreach ($availableTargets as $target) { ?>
+                        <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
+                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo (string) ($filters['target'] ?? '') === $optionValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_popup_layer_target_option_label($target)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-popup-layer-filter-field">
+                <label for="modules_popup_layer_admin_popup_layers_field" class="admin-filter-label">검색 조건</label>
+                <select id="modules_popup_layer_admin_popup_layers_field" name="field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'title' => '제목', 'subject' => 'Subject ID'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-popup-layer-filter-keyword">
+                <label for="modules_popup_layer_admin_popup_layers_q" class="admin-filter-label">검색어</label>
+                <input id="modules_popup_layer_admin_popup_layers_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="제목, Subject ID">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">팝업 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-solid-light">새 팝업 추가</a>
         </div>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-popup-layer-table">
+            <caption class="sr-only">팝업 목록</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>제목</th>
@@ -161,23 +227,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         if ((string) ($popup['module_key'] ?? '') === '') {
                             $popupTargetLabel = '공용 팝업레이어';
                         } else {
-                            $popupTargetLabel = (string) $popup['module_key'] . ' / ' . (string) $popup['point_key'] . ' / ' . (string) $popup['slot_key'];
+                            $popupTargetOption = (string) $popup['module_key'] . '|' . (string) $popup['point_key'] . '|' . (string) $popup['slot_key'];
+                            $popupTargetLabel = (string) ($targetLabels[$popupTargetOption] ?? ((string) $popup['module_key'] . ' / ' . (string) $popup['point_key'] . ' / ' . (string) $popup['slot_key']));
                         }
+                        $popupStatus = (string) $popup['status'];
+                        $statusClass = match ($popupStatus) {
+                            'enabled' => 'is-normal',
+                            'draft' => 'is-blocked',
+                            default => 'is-left',
+                        };
                         ?>
                         <tr>
-                            <td><?php echo sr_e((string) $popup['title']); ?></td>
-                            <td><?php echo sr_e(sr_admin_code_label((string) $popup['status'], 'content_status')); ?></td>
-                            <td><?php echo sr_e(sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($popup['skin_key'] ?? 'basic')])); ?></td>
-                            <td>
+                            <td class="admin-table-break admin-popup-layer-title-cell"><?php echo sr_e((string) $popup['title']); ?></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($popup['skin_key'] ?? 'basic')])); ?></td>
+                            <td class="admin-table-break admin-popup-layer-target-cell">
                                 <?php echo sr_e($popupTargetLabel); ?><br>
                                 <?php echo sr_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                             </td>
-                            <td>
+                            <td class="admin-table-nowrap admin-popup-layer-date-cell">
                                 <?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?><br>
                                 <?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?>
                             </td>
-                            <td><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
-                            <td><?php echo sr_e((string) $popup['updated_at']); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
+                            <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>

@@ -21,6 +21,23 @@ $availableTargets = sr_popup_layer_available_targets($pdo);
 $popupLayerSettings = sr_popup_layer_settings($pdo);
 $popupLayerSkinOptions = sr_popup_layer_skin_options();
 $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
+$filters = [
+    'status' => sr_get_string('status', 30),
+    'target' => sr_get_string('target', 300),
+    'field' => sr_get_string('field', 20),
+    'q' => sr_popup_layer_clean_single_line(sr_get_string('q', 120), 120),
+];
+if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
+    $filters['status'] = '';
+}
+if (!in_array($filters['field'], ['all', 'title', 'subject'], true)) {
+    $filters['field'] = 'all';
+}
+$filterPublicTarget = sr_popup_layer_is_public_target_option($filters['target']);
+$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? sr_popup_layer_find_target($availableTargets, $filters['target']) : null;
+if ($filters['target'] !== '' && !$filterPublicTarget && $filterTarget === null) {
+    $filters['target'] = '';
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -243,14 +260,60 @@ if ($editId > 0) {
     }
 }
 
+$popupStatusCounts = [
+    'total' => 0,
+    'draft' => 0,
+    'enabled' => 0,
+    'disabled' => 0,
+];
+$stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_popup_layers GROUP BY status');
+foreach ($stmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $popupStatusCounts)) {
+        $popupStatusCounts[$status] = $count;
+    }
+    $popupStatusCounts['total'] += $count;
+}
+
 $popups = [];
-$stmt = $pdo->query(
-    'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
-            t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
-     FROM sr_popup_layers p
-     LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id
-     ORDER BY p.id DESC'
-);
+$popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
+                    t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
+             FROM sr_popup_layers p
+             LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id';
+$popupParams = [];
+$popupWhere = [];
+if ($filters['status'] !== '') {
+    $popupWhere[] = 'p.status = :status';
+    $popupParams['status'] = $filters['status'];
+}
+if ($filterTarget !== null) {
+    $popupWhere[] = 't.module_key = :filter_module_key AND t.point_key = :filter_point_key AND t.slot_key = :filter_slot_key';
+    $popupParams['filter_module_key'] = (string) $filterTarget['module_key'];
+    $popupParams['filter_point_key'] = (string) $filterTarget['point_key'];
+    $popupParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
+} elseif ($filterPublicTarget) {
+    $popupWhere[] = 't.id IS NULL';
+}
+if ($filters['q'] !== '') {
+    if ($filters['field'] === 'title') {
+        $popupWhere[] = 'p.title LIKE :keyword';
+        $popupParams['keyword'] = '%' . $filters['q'] . '%';
+    } elseif ($filters['field'] === 'subject') {
+        $popupWhere[] = 't.subject_id LIKE :keyword';
+        $popupParams['keyword'] = '%' . $filters['q'] . '%';
+    } else {
+        $popupWhere[] = '(p.title LIKE :title_keyword OR t.subject_id LIKE :subject_keyword)';
+        $popupParams['title_keyword'] = '%' . $filters['q'] . '%';
+        $popupParams['subject_keyword'] = '%' . $filters['q'] . '%';
+    }
+}
+if ($popupWhere !== []) {
+    $popupSql .= ' WHERE ' . implode(' AND ', $popupWhere);
+}
+$popupSql .= ' ORDER BY p.id DESC';
+$stmt = $pdo->prepare($popupSql);
+$stmt->execute($popupParams);
 foreach ($stmt->fetchAll() as $row) {
     $popups[] = $row;
 }
