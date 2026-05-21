@@ -533,6 +533,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-filter + .admin-list-card,
 .admin-filter + .admin-card.admin-list-card,
+.admin-filter + .admin-local-nav-wrap,
+.admin-filter + .admin-empty-state,
 .admin-list-card > .admin-filter + :is(.table-wrapper, p) {
     margin-top: calc(var(--spacing) * 4);
 }
@@ -548,6 +550,23 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-page-member-list .admin-member-search-grid {
     grid-template-columns: minmax(0, 10rem) minmax(0, 10rem) minmax(0, 1fr) auto;
     justify-content: start;
+}
+
+.admin-asset-member-search-grid {
+    grid-template-columns: max-content minmax(0, 1fr) auto;
+    justify-content: start;
+}
+
+.admin-asset-member-search-grid .admin-filter-field:first-child {
+    min-width: 0;
+}
+
+.admin-asset-member-search-grid .admin-filter-field:first-child .admin-filter-input {
+    width: fit-content;
+}
+
+.admin-asset-member-search-grid .admin-filter-submit {
+    min-width: 0;
 }
 
 .admin-page-member-list .admin-filter-input {

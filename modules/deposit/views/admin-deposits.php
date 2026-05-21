@@ -7,6 +7,7 @@ if ($depositAdminPage === 'adjust') {
 } elseif ($depositAdminPage === 'transactions') {
     $adminPageTitle = '예치금 거래 내역';
 }
+$accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -22,34 +23,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </ul>
 <?php } ?>
 
-<section>
-    <h2>회원 조회</h2>
-    <form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter ui-form-theme">
-        <div class="admin-filter-grid admin-filter-grid-compact">
-            <label class="admin-filter-field" for="modules_deposit_admin_deposits_account_identifier">
-                <span class="admin-filter-label">회원 공개 해시</span>
-                <input id="modules_deposit_admin_deposits_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80">
-            </label>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+<form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter admin-asset-member-filter ui-form-theme">
+    <div class="admin-filter-grid admin-asset-member-search-grid">
+        <div class="admin-filter-field">
+            <label for="deposit-member-search-field" class="admin-filter-label">검색 조건</label>
+            <select name="field" id="deposit-member-search-field" class="form-select admin-filter-input">
+                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($accountLookupFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                        <?php echo sr_e($fieldLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
         </div>
-    </form>
+        <div class="admin-filter-field admin-asset-member-filter-keyword">
+            <label for="deposit-member-search-keyword" class="admin-filter-label">검색어</label>
+            <input type="text" id="deposit-member-search-keyword" name="q" value="<?php echo sr_e((string) ($accountLookupFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="해시 아이디, 이메일, 이름">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
 
-    <?php if (is_array($selectedAccount)) { ?>
-        <p>
-            <?php echo sr_e((string) $selectedAccount['display_name']); ?>
-            (<?php echo sr_e((string) $selectedAccount['email']); ?>)
-            공개 해시: <?php echo sr_e((string) $selectedAccount['account_public_hash']); ?>
-            잔액: <?php echo sr_e(number_format((int) $selectedBalance)); ?> 원
-        </p>
-        <div class="admin-row-actions">
+<?php if (is_array($selectedAccount)) { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
             <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">잔액 보기</a>
             <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">조정하기</a>
             <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역 보기</a>
         </div>
-    <?php } elseif ($accountIdentifierFilter !== '') { ?>
-        <p>회원을 찾을 수 없습니다.</p>
-    <?php } ?>
-</section>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">회원 <strong><?php echo sr_e((string) $selectedAccount['display_name']); ?></strong></span>
+            <span class="admin-summary-meta"><?php echo sr_e((string) $selectedAccount['email']); ?></span>
+            <span class="admin-summary-meta">잔액 <strong><?php echo sr_e(number_format((int) $selectedBalance)); ?> 원</strong></span>
+        </div>
+    </div>
+<?php } elseif ((string) ($accountLookupFilter['keyword'] ?? '') !== '') { ?>
+    <p class="admin-empty-state">회원을 찾을 수 없습니다.</p>
+<?php } ?>
 
 <?php if ($depositAdminPage === 'adjust') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="admin-form ui-form-theme">

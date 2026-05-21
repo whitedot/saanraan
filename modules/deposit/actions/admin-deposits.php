@@ -109,11 +109,9 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$accountIdentifierFilter = sr_get_string('account_identifier', 80);
-if ($accountIdentifierFilter === '') {
-    $accountIdentifierFilter = sr_get_string('account_id', 80);
-}
-$accountIdFilter = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifierFilter);
+$accountLookupFilter = sr_admin_member_account_lookup_filter($pdo, $runtimeConfig);
+$accountIdentifierFilter = (string) $accountLookupFilter['keyword'];
+$accountIdFilter = (int) $accountLookupFilter['account_id'];
 if ($accountIdFilter <= 0 && $submittedAccountId > 0) {
     $accountIdFilter = $submittedAccountId;
 }

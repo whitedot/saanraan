@@ -63,6 +63,28 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
         return 0;
     }
 
+    if ($field === 'all') {
+        $accountId = sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+        if ($accountId > 0) {
+            return $accountId;
+        }
+
+        $email = sr_normalize_identifier($keyword);
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash LIMIT 1');
+            $stmt->execute(['email_hash' => sr_hmac_hash($email, $config)]);
+            $row = $stmt->fetch();
+            if (is_array($row)) {
+                return (int) $row['id'];
+            }
+        }
+
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
+        $stmt->execute(['display_name' => $keyword]);
+        $row = $stmt->fetch();
+        return is_array($row) ? (int) $row['id'] : 0;
+    }
+
     if ($field === 'hash' || $field === '') {
         return sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
     }
@@ -87,6 +109,31 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
     }
 
     return sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+}
+
+function sr_admin_member_account_lookup_filter(PDO $pdo, array $config): array
+{
+    $field = sr_get_string('field', 30);
+    $keyword = trim(sr_get_string('q', 120));
+    $allowedFields = ['all', 'hash', 'email', 'name'];
+    if (!in_array($field, $allowedFields, true)) {
+        $field = 'all';
+    }
+
+    $legacyIdentifier = sr_get_string('account_identifier', 80);
+    if ($legacyIdentifier === '') {
+        $legacyIdentifier = sr_get_string('account_id', 80);
+    }
+    if ($keyword === '' && $legacyIdentifier !== '') {
+        $field = 'hash';
+        $keyword = $legacyIdentifier;
+    }
+
+    return [
+        'field' => $field,
+        'keyword' => $keyword,
+        'account_id' => sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword),
+    ];
 }
 
 function sr_admin_member_row_with_public_hash(array $config, array $row): array
