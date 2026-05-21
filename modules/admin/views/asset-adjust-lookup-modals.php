@@ -5,6 +5,7 @@ $assetAdjustPrefix = (string) ($assetAdjustLookup['field_prefix'] ?? 'asset_adju
 $assetAdjustMemberInputId = (string) ($assetAdjustLookup['member_input_id'] ?? '');
 $assetAdjustReferenceTypeId = (string) ($assetAdjustLookup['reference_type_id'] ?? '');
 $assetAdjustReferenceIdId = (string) ($assetAdjustLookup['reference_id_id'] ?? '');
+$assetAdjustReturnOverlayId = (string) ($assetAdjustLookup['return_overlay_id'] ?? '');
 $assetAdjustMemberSearchUrl = (string) ($assetAdjustLookup['member_search_url'] ?? sr_url('/admin/members/search'));
 $assetAdjustReferenceSearchUrl = (string) ($assetAdjustLookup['reference_search_url'] ?? '');
 $assetAdjustReferenceOptions = $assetAdjustLookup['reference_options'] ?? [];
@@ -18,7 +19,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
 ?>
 
 <?php if ($assetAdjustMemberInputId !== '') { ?>
-    <div id="<?php echo sr_e($assetAdjustMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" data-overlay-stack="true" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustMemberModalId); ?>_title" aria-hidden="true" inert>
+    <div id="<?php echo sr_e($assetAdjustMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustMemberModalId); ?>_title" aria-hidden="true" inert data-admin-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
         <div class="modal-dialog admin-lookup-dialog">
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
@@ -28,7 +29,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form class="admin-lookup-search-form" data-admin-member-search-form data-endpoint="<?php echo sr_e($assetAdjustMemberSearchUrl); ?>" data-target="#<?php echo sr_e($assetAdjustMemberInputId); ?>" data-results="#<?php echo sr_e($assetAdjustMemberResultsId); ?>">
+                    <form class="admin-lookup-search-form" data-admin-member-search-form data-endpoint="<?php echo sr_e($assetAdjustMemberSearchUrl); ?>" data-target="#<?php echo sr_e($assetAdjustMemberInputId); ?>" data-results="#<?php echo sr_e($assetAdjustMemberResultsId); ?>" data-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
                         <select name="field" class="form-select" aria-label="회원 검색 조건">
                             <option value="all">전체</option>
                             <option value="hash">해시 아이디</option>
@@ -43,6 +44,9 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <?php if ($assetAdjustReturnOverlayId !== '') { ?>
+                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">조정 모달로 돌아가기</button>
+                    <?php } ?>
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetAdjustMemberModalId); ?>">닫기</button>
                 </div>
             </div>
@@ -51,7 +55,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
 <?php } ?>
 
 <?php if ($assetAdjustReferenceSearchUrl !== '' && $assetAdjustReferenceTypeId !== '' && $assetAdjustReferenceIdId !== '') { ?>
-    <div id="<?php echo sr_e($assetAdjustReferenceModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" data-overlay-stack="true" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustReferenceModalId); ?>_title" aria-hidden="true" inert>
+    <div id="<?php echo sr_e($assetAdjustReferenceModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustReferenceModalId); ?>_title" aria-hidden="true" inert data-admin-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
         <div class="modal-dialog admin-lookup-dialog">
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
@@ -61,7 +65,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e($assetAdjustReferenceSearchUrl); ?>" data-type-target="#<?php echo sr_e($assetAdjustReferenceTypeId); ?>" data-id-target="#<?php echo sr_e($assetAdjustReferenceIdId); ?>" data-results="#<?php echo sr_e($assetAdjustReferenceResultsId); ?>">
+                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e($assetAdjustReferenceSearchUrl); ?>" data-type-target="#<?php echo sr_e($assetAdjustReferenceTypeId); ?>" data-id-target="#<?php echo sr_e($assetAdjustReferenceIdId); ?>" data-results="#<?php echo sr_e($assetAdjustReferenceResultsId); ?>" data-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
                         <select name="reference_type" class="form-select" aria-label="참조 유형">
                             <?php foreach ($assetAdjustReferenceOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
                                 <option value="<?php echo sr_e((string) $referenceTypeValue); ?>"><?php echo sr_e((string) $referenceTypeLabel); ?></option>
@@ -75,6 +79,9 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <?php if ($assetAdjustReturnOverlayId !== '') { ?>
+                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">조정 모달로 돌아가기</button>
+                    <?php } ?>
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetAdjustReferenceModalId); ?>">닫기</button>
                 </div>
             </div>

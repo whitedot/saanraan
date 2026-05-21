@@ -32,6 +32,35 @@
         }
     }
 
+    function openOverlay(selector) {
+        if (!selector) {
+            return;
+        }
+
+        var triggers = document.querySelectorAll('[data-overlay="' + selector + '"]');
+        for (var i = 0; i < triggers.length; i += 1) {
+            var hiddenOverlay = triggers[i].closest && triggers[i].closest('.overlay[aria-hidden="true"]');
+            if (!hiddenOverlay) {
+                triggers[i].click();
+                return;
+            }
+        }
+    }
+
+    function returnToOverlay(overlay) {
+        if (!overlay) {
+            return;
+        }
+
+        var selector = overlay.getAttribute('data-admin-return-overlay') || '';
+        closeOverlay(overlay);
+        if (selector) {
+            window.requestAnimationFrame(function () {
+                openOverlay(selector);
+            });
+        }
+    }
+
     function endpointUrl(form) {
         var endpoint = form.getAttribute('data-endpoint') || '';
         if (!endpoint) {
@@ -89,6 +118,7 @@
             button.setAttribute('data-admin-member-apply', 'true');
             button.setAttribute('data-target', form.getAttribute('data-target') || '');
             button.setAttribute('data-value', item.account_public_hash || '');
+            button.setAttribute('data-return-overlay', form.getAttribute('data-return-overlay') || '');
 
             var title = document.createElement('strong');
             title.textContent = item.display_name || '(이름 없음)';
@@ -126,6 +156,7 @@
             button.setAttribute('data-id-target', form.getAttribute('data-id-target') || '');
             button.setAttribute('data-reference-type', item.reference_type || '');
             button.setAttribute('data-reference-id', item.reference_id || '');
+            button.setAttribute('data-return-overlay', form.getAttribute('data-return-overlay') || '');
 
             var title = document.createElement('strong');
             title.textContent = (item.reference_type || '') + ':' + (item.reference_id || '');
@@ -192,7 +223,7 @@
                 memberTarget.value = memberApply.getAttribute('data-value') || '';
                 memberTarget.dispatchEvent(new Event('change', { bubbles: true }));
             }
-            closeOverlay(memberApply.closest('.overlay'));
+            returnToOverlay(memberApply.closest('.overlay'));
             return;
         }
 
@@ -209,7 +240,7 @@
                 idTarget.value = referenceApply.getAttribute('data-reference-id') || '';
                 idTarget.dispatchEvent(new Event('change', { bubbles: true }));
             }
-            closeOverlay(referenceApply.closest('.overlay'));
+            returnToOverlay(referenceApply.closest('.overlay'));
             return;
         }
 

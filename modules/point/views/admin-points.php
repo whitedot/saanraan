@@ -227,7 +227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($pointAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
-                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustMemberLookupModalId); ?>" data-overlay-stack="true" data-admin-member-lookup-open data-target="#<?php echo sr_e($pointAdjustAccountInputId); ?>">회원 검색</button>
+                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($pointAdjustAccountInputId); ?>">회원 검색</button>
                                     </div>
                                 </div>
                             </div>
@@ -270,7 +270,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-field">
                                 <div class="admin-lookup-control">
                                     <input id="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input">
-                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($pointAdjustReferenceIdInputId); ?>">참조 검색</button>
+                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($pointAdjustReferenceIdInputId); ?>">참조 검색</button>
                                 </div>
                             </div>
                         </div>
@@ -288,6 +288,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'member_input_id' => (string) $pointAdjustModalAccount['account_public_hash'] === '' ? $pointAdjustAccountInputId : '',
             'reference_type_id' => $pointAdjustReferenceTypeInputId,
             'reference_id_id' => $pointAdjustReferenceIdInputId,
+            'return_overlay_id' => $pointAdjustModalId,
             'member_search_url' => sr_url('/admin/members/search'),
             'reference_search_url' => sr_url('/admin/points/reference-search'),
             'reference_options' => $pointReferenceTypeOptions,
