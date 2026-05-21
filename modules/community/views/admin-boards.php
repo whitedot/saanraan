@@ -492,6 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light">배너 관리</a>
                 <?php } ?>
             </h2>
+                <p>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</p>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
@@ -507,12 +508,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 <?php } ?>
-                <div class="admin-form-row">
-                    <span class="form-label">안내</span>
-                    <div class="admin-form-field">
-                        <p class="admin-form-help">배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</p>
-                    </div>
-                </div>
         </section>
 
         <section class="admin-card card">
@@ -522,6 +517,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light">팝업레이어 관리</a>
                 <?php } ?>
             </h2>
+                <p>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</p>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
@@ -537,12 +533,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 <?php } ?>
-                <div class="admin-form-row">
-                    <span class="form-label">안내</span>
-                    <div class="admin-form-field">
-                        <p class="admin-form-help">팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</p>
-                    </div>
-                </div>
         </section>
 
         <section class="admin-card card">

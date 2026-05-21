@@ -16,6 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
         <section class="admin-card card">
             <h2><?php echo $editing ? '배너 수정' : '배너 추가'; ?></h2>
+            <p>배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? sr_e((string) $editBanner['id']) : '0'; ?>">
             <div class="admin-form-row">
@@ -134,12 +135,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="banner_admin_banners_sort_order">정렬</label>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_sort_order" type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>" class="form-input">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label">안내</span>
-                <div class="admin-form-field">
-                    <p class="admin-form-help">배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
                 </div>
             </div>
         </section>

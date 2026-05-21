@@ -10,6 +10,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/settings')); ?>" class="admin-form ui-form-theme">
     <section class="admin-card card">
         <h2>배너 설정</h2>
+        <p>배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
         <div class="admin-form-row">
@@ -23,12 +24,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                 </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <span class="form-label">안내</span>
-            <div class="admin-form-field">
-                <p class="admin-form-help">배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
             </div>
         </div>
     </section>

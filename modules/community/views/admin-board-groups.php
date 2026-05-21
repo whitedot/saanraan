@@ -291,12 +291,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <section class="admin-card card">
                     <h2>같은 그룹 게시판에 적용</h2>
-                    <div class="admin-form-row">
-                        <span class="form-label">안내</span>
-                        <div class="admin-form-field">
-                            <p class="admin-form-help">적용할 설정을 선택하세요.</p>
-                        </div>
-                    </div>
+                    <p>적용할 설정을 선택하세요.</p>
                     <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_apply_setting_keys">
                             <input id="modules_community_admin_board_groups_apply_setting_keys" type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">
