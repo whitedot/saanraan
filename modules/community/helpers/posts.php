@@ -61,8 +61,9 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $where .= " AND (p.title LIKE :keyword ESCAPE '\\\\' OR p.body_text LIKE :keyword ESCAPE '\\\\')";
-        $params['keyword'] = sr_community_like_pattern($keyword);
+        $where .= " AND (p.title LIKE :title_keyword ESCAPE '\\\\' OR p.body_text LIKE :body_keyword ESCAPE '\\\\')";
+        $params['title_keyword'] = sr_community_like_pattern($keyword);
+        $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
 
     $stmt = $pdo->prepare(
@@ -94,8 +95,9 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
     $where = "board_id = :board_id AND status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $where .= " AND (title LIKE :keyword ESCAPE '\\\\' OR body_text LIKE :keyword ESCAPE '\\\\')";
-        $params['keyword'] = sr_community_like_pattern($keyword);
+        $where .= " AND (title LIKE :title_keyword ESCAPE '\\\\' OR body_text LIKE :body_keyword ESCAPE '\\\\')";
+        $params['title_keyword'] = sr_community_like_pattern($keyword);
+        $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
 
     $stmt = $pdo->prepare(

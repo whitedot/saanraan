@@ -62,11 +62,14 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt = $pdo->prepare(
         'SELECT id, sender_account_id, recipient_account_id, body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at
          FROM sr_community_messages
-         WHERE sender_account_id = :account_id OR recipient_account_id = :account_id
+         WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id
          ORDER BY id ASC
          LIMIT 1000'
     );
-    $stmt->execute(['account_id' => $accountId]);
+    $stmt->execute([
+        'sender_account_id' => $accountId,
+        'recipient_account_id' => $accountId,
+    ]);
     $empty['messages'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(

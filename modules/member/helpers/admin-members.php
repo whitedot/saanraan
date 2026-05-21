@@ -434,8 +434,9 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
             $where[] = 'a.display_name LIKE :keyword_like';
             $params['keyword_like'] = $like;
         } else {
-            $clauses = ['a.email LIKE :keyword_like', 'a.display_name LIKE :keyword_like'];
-            $params['keyword_like'] = $like;
+            $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like'];
+            $params['keyword_email_like'] = $like;
+            $params['keyword_name_like'] = $like;
             if ($accountId > 0) {
                 $clauses[] = 'a.id = :account_id';
                 $params['account_id'] = $accountId;

@@ -242,8 +242,9 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
     }
 
     if ((string) ($filters['q'] ?? '') !== '') {
-        $where[] = '(p.title LIKE :keyword OR p.slug LIKE :keyword)';
-        $params['keyword'] = '%' . (string) $filters['q'] . '%';
+        $where[] = '(p.title LIKE :title_keyword OR p.slug LIKE :slug_keyword)';
+        $params['title_keyword'] = '%' . (string) $filters['q'] . '%';
+        $params['slug_keyword'] = '%' . (string) $filters['q'] . '%';
     }
 
     $sql = 'SELECT p.*, creator.display_name AS created_by_name, updater.display_name AS updated_by_name
