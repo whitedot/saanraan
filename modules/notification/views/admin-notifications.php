@@ -8,10 +8,12 @@ if ($notificationAdminPage === 'deliveries') {
     $adminContainerClass = 'admin-page-notification-delivery-list admin-ui-scope';
 }
 $notificationListFilters = isset($notificationListFilters) && is_array($notificationListFilters) ? $notificationListFilters : ['audience' => '', 'status' => '', 'field' => 'all', 'q' => ''];
-$deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilters) ? $deliveryListFilters : ['delivery_channel' => '', 'delivery_status' => ''];
+$deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilters) ? $deliveryListFilters : ['delivery_channel' => '', 'delivery_status' => '', 'field' => 'all', 'q' => ''];
 $notificationStatusCounts = isset($notificationStatusCounts) && is_array($notificationStatusCounts) ? $notificationStatusCounts : [];
+$deliveryStatusCounts = isset($deliveryStatusCounts) && is_array($deliveryStatusCounts) ? $deliveryStatusCounts : [];
 $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($allowedNotificationStatuses) ? $allowedNotificationStatuses : [];
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
+$totalDeliveries = (int) ($deliveryStatusCounts['total'] ?? count($deliveries ?? []));
 $notificationCreateModalId = 'notification-create-modal';
 $notificationCreateModalOpen = !empty($notificationCreateModalOpen);
 $notificationCreateValues = isset($notificationCreateValues) && is_array($notificationCreateValues) ? $notificationCreateValues : [
@@ -30,44 +32,75 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($notificationAdminPage === 'deliveries') { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총발송 <strong><?php echo sr_e((string) $totalDeliveries); ?>개</strong></span>
+            <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries?delivery_status=' . rawurlencode((string) $status))); ?>" class="admin-summary-meta">
+                    <?php echo sr_e(sr_admin_code_label((string) $status, 'delivery_status')); ?> <?php echo sr_e((string) ($deliveryStatusCounts[$status] ?? 0)); ?>개
+                </a>
+            <?php } ?>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter admin-notification-delivery-filter ui-form-theme">
+        <div class="admin-filter-grid admin-notification-delivery-search-grid">
+            <div class="admin-filter-field admin-notification-delivery-filter-channel">
+                <label for="notification_admin_delivery_channel_filter" class="admin-filter-label">발송 채널</label>
+                <select name="delivery_channel" id="notification_admin_delivery_channel_filter" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedChannels as $channel) { ?>
+                        <option value="<?php echo sr_e($channel); ?>"<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === $channel ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-notification-delivery-filter-status">
+                <label for="notification_admin_delivery_status_filter" class="admin-filter-label">발송 상태</label>
+                <select name="delivery_status" id="notification_admin_delivery_status_filter" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-notification-delivery-filter-field">
+                <label for="notification_admin_delivery_search_field" class="admin-filter-label">검색 조건</label>
+                <select name="field" id="notification_admin_delivery_search_field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'id' => '발송 ID', 'notification' => '알림 ID', 'title' => '알림 제목', 'recipient' => '수신자'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($deliveryListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-notification-delivery-filter-keyword">
+                <label for="notification_admin_delivery_search_keyword" class="admin-filter-label">검색어</label>
+                <input type="search" id="notification_admin_delivery_search_keyword" name="q" value="<?php echo sr_e((string) ($deliveryListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="발송 ID, 알림 ID, 제목, 수신자">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">발송 대기열</h2>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter ui-form-theme">
-            <div class="admin-filter-grid admin-account-search-grid admin-filter-grid-compact">
-                <div class="admin-filter-field">
-                    <label for="delivery_channel" class="admin-filter-label">발송 채널</label>
-                    <select name="delivery_channel" id="delivery_channel" class="form-select admin-filter-input">
-                        <option value=""<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
-                        <?php foreach ($allowedChannels as $channel) { ?>
-                            <option value="<?php echo sr_e($channel); ?>"<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === $channel ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="admin-filter-field">
-                    <label for="delivery_status" class="admin-filter-label">발송 상태</label>
-                    <select name="delivery_status" id="delivery_status" class="form-select admin-filter-input">
-                        <option value=""<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
-                        <?php foreach ($allowedDeliveryStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === $status ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
-            </div>
-        </form>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-notification-delivery-table">
+            <caption class="sr-only">알림 발송 대기열</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>알림</th>
                     <th>채널</th>
+                    <th>수신자</th>
                     <th>상태</th>
                     <th>수정일</th>
                     <th class="text-end">관리</th>
@@ -75,15 +108,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($deliveries === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
+                    <tr><td colspan="7" class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
                 <?php } else { ?>
                     <?php foreach ($deliveries as $delivery) { ?>
+                        <?php
+                        $deliveryStatus = (string) $delivery['status'];
+                        $deliveryStatusClass = match ($deliveryStatus) {
+                            'ready', 'sent' => 'is-normal',
+                            'failed', 'canceled' => 'is-left',
+                            default => 'is-blocked',
+                        };
+                        ?>
                         <tr>
-                            <td><?php echo sr_e((string) $delivery['id']); ?></td>
-                            <td><?php echo sr_e((string) $delivery['notification_id']); ?></td>
-                            <td><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
-                            <td><?php echo sr_e(sr_admin_code_label((string) $delivery['status'], 'delivery_status')); ?></td>
-                            <td><?php echo sr_e((string) $delivery['updated_at']); ?></td>
+                            <td class="admin-table-nowrap notification-id"><?php echo sr_e((string) $delivery['id']); ?></td>
+                            <td class="admin-table-break admin-notification-delivery-title-cell">
+                                <?php echo sr_e((string) ($delivery['notification_title'] ?? '')); ?><br>
+                                <span class="admin-table-subtext">#<?php echo sr_e((string) $delivery['notification_id']); ?></span>
+                            </td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
+                            <td class="admin-table-break admin-notification-delivery-recipient-cell"><?php echo sr_e((string) (($delivery['recipient'] ?? '') !== '' ? $delivery['recipient'] : '-')); ?></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span></td>
+                            <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_e((string) $delivery['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status')); ?>">

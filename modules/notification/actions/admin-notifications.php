@@ -40,6 +40,8 @@ $notificationListFilters = [
 $deliveryListFilters = [
     'delivery_channel' => sr_get_string('delivery_channel', 30),
     'delivery_status' => sr_get_string('delivery_status', 30),
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
 ];
 if ($notificationListFilters['audience'] !== '' && !in_array($notificationListFilters['audience'], $allowedAudiences, true)) {
     $notificationListFilters['audience'] = '';
@@ -55,6 +57,9 @@ if ($deliveryListFilters['delivery_channel'] !== '' && !in_array($deliveryListFi
 }
 if ($deliveryListFilters['delivery_status'] !== '' && !in_array($deliveryListFilters['delivery_status'], $allowedDeliveryStatuses, true)) {
     $deliveryListFilters['delivery_status'] = '';
+}
+if (!in_array($deliveryListFilters['field'], ['all', 'id', 'notification', 'title', 'recipient'], true)) {
+    $deliveryListFilters['field'] = 'all';
 }
 
 if (sr_request_method() === 'POST') {
@@ -277,9 +282,25 @@ if (sr_request_method() === 'POST') {
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
 $notifications = sr_notification_admin_notifications($pdo, 100, $notificationListFilters);
 
+$deliveryStatusCounts = ['total' => 0];
+foreach ($allowedDeliveryStatuses as $status) {
+    $deliveryStatusCounts[$status] = 0;
+}
+$stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_notification_deliveries GROUP BY status');
+foreach ($stmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $deliveryStatusCounts)) {
+        $deliveryStatusCounts[$status] = $count;
+    }
+    $deliveryStatusCounts['total'] += $count;
+}
+
 $deliveries = [];
-$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.status, d.updated_at
-                FROM sr_notification_deliveries d';
+$deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
+                       n.title AS notification_title
+                FROM sr_notification_deliveries d
+                LEFT JOIN sr_notifications n ON n.id = d.notification_id';
 $deliveryParams = [];
 $deliveryWhere = [];
 if ($deliveryListFilters['delivery_channel'] !== '') {
@@ -289,6 +310,30 @@ if ($deliveryListFilters['delivery_channel'] !== '') {
 if ($deliveryListFilters['delivery_status'] !== '') {
     $deliveryWhere[] = 'd.status = :delivery_status';
     $deliveryParams['delivery_status'] = $deliveryListFilters['delivery_status'];
+}
+if ($deliveryListFilters['q'] !== '') {
+    $deliveryLike = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $deliveryListFilters['q']) . '%';
+    if ($deliveryListFilters['field'] === 'id') {
+        $deliveryWhere[] = 'CAST(d.id AS CHAR) LIKE :delivery_q';
+        $deliveryParams['delivery_q'] = $deliveryLike;
+    } elseif ($deliveryListFilters['field'] === 'notification') {
+        $deliveryWhere[] = 'CAST(d.notification_id AS CHAR) LIKE :delivery_q';
+        $deliveryParams['delivery_q'] = $deliveryLike;
+    } elseif ($deliveryListFilters['field'] === 'title') {
+        $deliveryWhere[] = 'n.title LIKE :delivery_q';
+        $deliveryParams['delivery_q'] = $deliveryLike;
+    } elseif ($deliveryListFilters['field'] === 'recipient') {
+        $deliveryWhere[] = 'd.recipient LIKE :delivery_q';
+        $deliveryParams['delivery_q'] = $deliveryLike;
+    } else {
+        $deliveryWhere[] = '(CAST(d.id AS CHAR) LIKE :delivery_q_id OR CAST(d.notification_id AS CHAR) LIKE :delivery_q_notification OR n.title LIKE :delivery_q_title OR d.recipient LIKE :delivery_q_recipient OR d.provider_message_id LIKE :delivery_q_provider OR d.error_message LIKE :delivery_q_error)';
+        $deliveryParams['delivery_q_id'] = $deliveryLike;
+        $deliveryParams['delivery_q_notification'] = $deliveryLike;
+        $deliveryParams['delivery_q_title'] = $deliveryLike;
+        $deliveryParams['delivery_q_recipient'] = $deliveryLike;
+        $deliveryParams['delivery_q_provider'] = $deliveryLike;
+        $deliveryParams['delivery_q_error'] = $deliveryLike;
+    }
 }
 if ($deliveryWhere !== []) {
     $deliverySql .= ' WHERE ' . implode(' AND ', $deliveryWhere);
