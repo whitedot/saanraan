@@ -152,6 +152,7 @@
 .admin-form>section.card>.card-body>p,
 .admin-form>section.card>p{margin-bottom:var(--spacing-base,1rem);padding-inline:calc(var(--spacing) * 5);font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-default-500)}
 .admin-form>section.card>.card-body>p{padding-inline:0}
+.admin-form>section.card>p{padding-top:calc(var(--spacing) * 3)}
 .admin-form>section.card>p:last-child{margin-bottom:0}
 #container>form.admin-form>section.card>.admin-form-grid{gap:0;padding:0}
 .admin-form>section.card>.admin-form-grid + p{margin-top:calc(var(--spacing) * -2)}
