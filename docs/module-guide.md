@@ -798,7 +798,7 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 ],
 ```
 
-`admin.category`가 없으면 관리자 모듈은 `기타` 분류로 묶는다. 사이트 메뉴, 페이지, 배너, 팝업레이어, SEO처럼 공개 사이트 구성과 노출에 연결되는 번들 모듈은 `site` 카테고리로 묶어 `사이트` 라벨 아래 표시한다. 포인트, 적립금, 예치금처럼 회원 계정 없이는 성립하지 않는 번들 모듈은 `member` 카테고리로 묶어 `회원` 라벨 아래 표시한다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다.
+`admin.category`가 없으면 관리자 모듈은 `기타` 분류로 묶는다. 사이트 메뉴, 페이지, 배너, 팝업레이어, SEO처럼 공개 사이트 구성과 노출에 연결되는 번들 모듈은 `site` 카테고리로 묶어 `사이트` 라벨 아래 표시한다. 포인트, 적립금, 예치금처럼 회원 계정 없이는 성립하지 않는 번들 모듈은 `member` 카테고리로 묶어 `회원` 라벨 아래 표시한다. `admin-menu.php`의 `order`는 모듈 안의 메뉴 항목 정렬에 사용하고, 모듈끼리의 정렬은 `admin.menu_order`를 우선 사용한다. 하위 메뉴 항목이 하나뿐인 모듈 그룹은 관리자 사이드바에서 그룹 클릭 시 해당 항목 화면을 바로 연다.
 
 `admin.icon`은 모듈 메뉴 그룹의 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `png`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다.
 

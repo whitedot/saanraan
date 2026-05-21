@@ -169,7 +169,7 @@ window.AdminShell = {
         };
 
         const setNavItemState = (item, opened) => {
-            if (!item) {
+            if (!item || !item.querySelector('.admin-nav-panel')) {
                 return;
             }
 
@@ -364,7 +364,8 @@ window.AdminShell = {
 
         if (navRoot) {
             const navItems = Array.prototype.slice.call(navRoot.querySelectorAll('.admin-nav-item'));
-            navItems.forEach(item => {
+            const navToggleItems = navItems.filter(item => item.querySelector('.admin-nav-panel'));
+            navToggleItems.forEach(item => {
                 setNavItemState(item, item.classList.contains('is-open'));
             });
 
@@ -374,13 +375,17 @@ window.AdminShell = {
                     return;
                 }
 
+                if (trigger.classList.contains('admin-nav-direct-link')) {
+                    return;
+                }
+
                 const activeItem = trigger.closest('.admin-nav-item');
                 if (!activeItem) {
                     return;
                 }
 
                 const willOpen = !activeItem.classList.contains('is-open');
-                navItems.forEach(item => {
+                navToggleItems.forEach(item => {
                     setNavItemState(item, item === activeItem ? willOpen : false);
                 });
 

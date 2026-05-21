@@ -69,7 +69,15 @@ if (isset($pdo) && $pdo instanceof PDO) {
                             </li>
                             <?php foreach ($navSection['groups'] as $navItem) { ?>
                                 <li class="admin-nav-item<?php echo sr_e((string) $navItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $navItem['menu_code']); ?>">
-                                    <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
+                                    <?php
+                                    $navDirectUrl = trim((string) ($navItem['direct_url'] ?? ''));
+                                    $navHasSubmenu = !empty($navItem['has_submenu']);
+                                    ?>
+                                    <?php if ($navDirectUrl !== '') { ?>
+                                        <a class="admin-nav-trigger admin-nav-direct-link" href="<?php echo sr_e($navDirectUrl); ?>" title="<?php echo sr_e((string) $navItem['title']); ?>"<?php echo !empty($navItem['active']) ? ' aria-current="page"' : ''; ?>>
+                                    <?php } else { ?>
+                                        <button type="button" class="admin-nav-trigger" title="<?php echo sr_e((string) $navItem['title']); ?>" aria-expanded="<?php echo sr_e((string) $navItem['aria_expanded']); ?>">
+                                    <?php } ?>
                                         <span class="admin-nav-trigger-main">
                                             <?php
                                             $navIcon = isset($navItem['icon']) && is_array($navItem['icon'])
@@ -89,19 +97,27 @@ if (isset($pdo) && $pdo instanceof PDO) {
                                             <?php } ?>
                                             <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
                                         </span>
-                                        <span class="admin-nav-caret" aria-hidden="true">
-                                            <?php echo sr_material_icon_html('keyboard_arrow_down', 'admin-nav-caret-icon'); ?>
-                                        </span>
-                                    </button>
-                                    <div class="admin-nav-panel<?php echo sr_e((string) $navItem['panel_class']); ?>">
-                                        <ul class="admin-nav-sub-list">
-                                            <?php foreach ($navItem['sub_items'] as $subItem) { ?>
-                                                <li class="admin-nav-sub-item<?php echo sr_e((string) $subItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $subItem['menu_code']); ?>">
-                                                    <a href="<?php echo sr_e((string) $subItem['url']); ?>"><?php echo sr_e((string) $subItem['title']); ?></a>
-                                                </li>
-                                            <?php } ?>
-                                        </ul>
-                                    </div>
+                                        <?php if ($navHasSubmenu) { ?>
+                                            <span class="admin-nav-caret" aria-hidden="true">
+                                                <?php echo sr_material_icon_html('keyboard_arrow_down', 'admin-nav-caret-icon'); ?>
+                                            </span>
+                                        <?php } ?>
+                                    <?php if ($navDirectUrl !== '') { ?>
+                                        </a>
+                                    <?php } else { ?>
+                                        </button>
+                                    <?php } ?>
+                                    <?php if ($navHasSubmenu) { ?>
+                                        <div class="admin-nav-panel<?php echo sr_e((string) $navItem['panel_class']); ?>">
+                                            <ul class="admin-nav-sub-list">
+                                                <?php foreach ($navItem['sub_items'] as $subItem) { ?>
+                                                    <li class="admin-nav-sub-item<?php echo sr_e((string) $subItem['item_class']); ?>" data-menu="<?php echo sr_e((string) $subItem['menu_code']); ?>">
+                                                        <a href="<?php echo sr_e((string) $subItem['url']); ?>"><?php echo sr_e((string) $subItem['title']); ?></a>
+                                                    </li>
+                                                <?php } ?>
+                                            </ul>
+                                        </div>
+                                    <?php } ?>
                                 </li>
                             <?php } ?>
                         <?php } ?>

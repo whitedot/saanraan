@@ -77,10 +77,25 @@ function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath): array
         }
 
         if (!$hasOpenItem) {
-            $sections[0]['section_class'] = ' is-active';
-            $sections[0]['groups'][0]['item_class'] = ' is-open';
-            $sections[0]['groups'][0]['panel_class'] = '';
-            $sections[0]['groups'][0]['aria_expanded'] = 'true';
+            $openedDefaultGroup = false;
+            foreach ($sections as $sectionIndex => $section) {
+                foreach ((array) ($section['groups'] ?? []) as $groupIndex => $navGroup) {
+                    if (empty($navGroup['has_submenu'])) {
+                        continue;
+                    }
+
+                    $sections[$sectionIndex]['section_class'] = ' is-active';
+                    $sections[$sectionIndex]['groups'][$groupIndex]['item_class'] = ' is-open';
+                    $sections[$sectionIndex]['groups'][$groupIndex]['panel_class'] = '';
+                    $sections[$sectionIndex]['groups'][$groupIndex]['aria_expanded'] = 'true';
+                    $openedDefaultGroup = true;
+                    break 2;
+                }
+            }
+
+            if (!$openedDefaultGroup) {
+                $sections[0]['section_class'] = ' is-active';
+            }
         }
     }
 
@@ -141,15 +156,21 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
             }
         }
 
+        $directItem = count($subItems) === 1 ? $subItems[0] : [];
+        $hasSubmenu = $directItem === [];
+
         $navGroups[] = [
             'title' => $moduleLabel !== '' ? $moduleLabel : '메뉴',
             'icon' => sr_admin_shell_menu_icon($moduleGroup['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
             'item_class' => $active ? ' is-open is-active' : '',
-            'panel_class' => $active ? '' : ' hidden',
-            'aria_expanded' => $active ? 'true' : 'false',
+            'panel_class' => $hasSubmenu && $active ? '' : ' hidden',
+            'aria_expanded' => $hasSubmenu && $active ? 'true' : 'false',
             'menu_code' => preg_replace('/[^a-z0-9_-]+/', '-', strtolower((string) ($moduleGroup['module_key'] ?? $moduleLabel))),
+            'has_submenu' => $hasSubmenu,
+            'direct_url' => $hasSubmenu ? '' : (string) ($directItem['url'] ?? ''),
+            'direct_path' => $hasSubmenu ? '' : (string) ($directItem['path'] ?? ''),
             'sub_items' => $subItems,
         ];
     }
