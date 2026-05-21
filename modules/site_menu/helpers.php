@@ -63,10 +63,32 @@ function sr_site_menu_link_suggestions(PDO $pdo): array
 function sr_site_menu_item_href(string $url): string
 {
     if (sr_is_safe_relative_url($url)) {
+        if ($url === '/login') {
+            $next = sr_site_menu_current_login_next_path();
+            if ($next !== '') {
+                return sr_url('/login?next=' . rawurlencode($next));
+            }
+        }
+
         return sr_url($url);
     }
 
     return $url;
+}
+
+function sr_site_menu_current_login_next_path(): string
+{
+    $path = sr_request_path();
+    if (in_array($path, ['/', '/login', '/logout', '/register', '/password/reset', '/password/reset/confirm'], true)) {
+        return '';
+    }
+
+    $query = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    if (is_string($query) && $query !== '') {
+        $path .= '?' . $query;
+    }
+
+    return sr_is_safe_relative_url($path) ? $path : '';
 }
 
 function sr_site_menu_render(PDO $pdo, string $menuKey): string

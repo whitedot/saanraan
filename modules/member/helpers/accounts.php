@@ -215,7 +215,7 @@ function sr_member_require_login(PDO $pdo): array
     $account = sr_member_current_account($pdo);
     if ($account === null) {
         sr_request_contract_guard_blocked('auth');
-        $next = sr_request_path();
+        $next = sr_member_current_request_next_path();
         sr_redirect('/login?next=' . rawurlencode($next));
     }
 
@@ -316,6 +316,91 @@ function sr_member_public_account_summaries_by_hash(PDO $pdo, array $config): ar
     return $accountsByHash;
 }
 
+function sr_member_current_request_next_path(): string
+{
+    $path = sr_request_path();
+    $query = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    if (is_string($query) && $query !== '') {
+        $path .= '?' . $query;
+    }
+
+    return sr_member_safe_next_path($path);
+}
+
+function sr_member_login_next_path(): string
+{
+    $next = sr_member_safe_next_path(sr_get_string_without_truncation('next', 1024) ?? '');
+    if ($next !== '/') {
+        return $next;
+    }
+
+    return sr_member_referrer_next_path();
+}
+
+function sr_member_referrer_next_path(): string
+{
+    $referrer = $_SERVER['HTTP_REFERER'] ?? '';
+    if (!is_string($referrer) || $referrer === '' || strlen($referrer) > 2048) {
+        return '/';
+    }
+
+    if (sr_is_safe_relative_url($referrer)) {
+        return sr_member_safe_next_path($referrer);
+    }
+
+    if (!sr_is_http_url($referrer) || !sr_member_url_matches_current_host($referrer)) {
+        return '/';
+    }
+
+    $path = parse_url($referrer, PHP_URL_PATH);
+    $path = is_string($path) && $path !== '' ? $path : '/';
+    $basePath = sr_base_path();
+    if ($basePath !== '' && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+        $path = substr($path, strlen($basePath));
+        $path = is_string($path) && $path !== '' ? $path : '/';
+    } elseif ($basePath !== '') {
+        return '/';
+    }
+
+    $query = parse_url($referrer, PHP_URL_QUERY);
+    if (is_string($query) && $query !== '') {
+        $path .= '?' . $query;
+    }
+
+    return sr_member_safe_next_path($path);
+}
+
+function sr_member_url_matches_current_host(string $url): bool
+{
+    $currentHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    if (!sr_http_host_is_valid($currentHost)) {
+        return false;
+    }
+
+    $currentParts = parse_url('http://' . $currentHost);
+    if (!is_array($currentParts)) {
+        return false;
+    }
+
+    $currentAuthority = strtolower((string) ($currentParts['host'] ?? ''));
+    if (isset($currentParts['port'])) {
+        $currentAuthority .= ':' . (string) $currentParts['port'];
+    }
+
+    $referrerHost = parse_url($url, PHP_URL_HOST);
+    if (!is_string($referrerHost) || $referrerHost === '') {
+        return false;
+    }
+
+    $referrerAuthority = strtolower($referrerHost);
+    $referrerPort = parse_url($url, PHP_URL_PORT);
+    if (is_int($referrerPort)) {
+        $referrerAuthority .= ':' . (string) $referrerPort;
+    }
+
+    return $currentAuthority !== '' && hash_equals($currentAuthority, $referrerAuthority);
+}
+
 function sr_member_safe_next_path(string $path): string
 {
     if (
@@ -324,11 +409,22 @@ function sr_member_safe_next_path(string $path): string
         || str_starts_with($path, '//')
         || strpos($path, '\\') !== false
         || preg_match('/[\x00-\x1F\x7F]/', $path) === 1
+        || sr_member_next_path_is_auth_path($path)
     ) {
-        return '/account';
+        return '/';
     }
 
     return $path;
+}
+
+function sr_member_next_path_is_auth_path(string $path): bool
+{
+    $requestPath = parse_url($path, PHP_URL_PATH);
+    if (!is_string($requestPath) || $requestPath === '') {
+        return true;
+    }
+
+    return in_array($requestPath, ['/login', '/logout'], true);
 }
 
 function sr_member_verify_login_password(?array $account, string $password): bool

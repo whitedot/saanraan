@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
+$next = sr_member_login_next_path();
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
     if (sr_request_method() === 'POST') {
         sr_require_csrf();
+        $next = sr_member_safe_next_path(sr_post_string_without_truncation('next', 1024) ?? '');
     }
-    sr_redirect('/account');
+    sr_redirect($next);
 }
 
 $errors = [];
 $notice = '';
 $identifier = '';
-$next = sr_member_safe_next_path(sr_get_string('next', 255));
 $memberSettings = sr_member_settings($pdo);
 
 if (!empty($_SESSION['sr_member_login_notice']) && is_string($_SESSION['sr_member_login_notice'])) {
@@ -36,7 +37,7 @@ if (sr_request_method() === 'POST') {
     }
 
     $password = sr_post_string('password', 255);
-    $next = sr_member_safe_next_path(sr_post_string('next', 255));
+    $next = sr_member_safe_next_path(sr_post_string_without_truncation('next', 1024) ?? '');
     $account = sr_member_find_by_identifier($pdo, $config, $identifier);
     $throttle = sr_member_login_throttle_status($pdo, $account !== null ? (int) $account['id'] : null);
     $passwordVerified = false;
