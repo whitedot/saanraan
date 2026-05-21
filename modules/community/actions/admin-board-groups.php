@@ -20,6 +20,17 @@ $allowedReadPolicies = sr_community_policy_values('read');
 $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $maxLevel = sr_community_max_level_value();
+$boardGroupListFilters = [
+    'status' => sr_get_string('status', 30),
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if ($boardGroupListFilters['status'] !== '' && !in_array($boardGroupListFilters['status'], $allowedGroupStatuses, true)) {
+    $boardGroupListFilters['status'] = '';
+}
+if (!in_array($boardGroupListFilters['field'], ['all', 'key', 'title'], true)) {
+    $boardGroupListFilters['field'] = 'all';
+}
 $memberGroups = sr_member_groups($pdo);
 $enabledMemberGroups = [];
 $enabledMemberGroupKeys = [];
@@ -272,6 +283,49 @@ if (sr_request_method() === 'POST') {
 }
 
 $boardGroups = sr_community_board_groups($pdo);
+$boardGroupStatusCounts = ['total' => 0];
+foreach ($allowedGroupStatuses as $status) {
+    $boardGroupStatusCounts[$status] = 0;
+}
+foreach ($boardGroups as $boardGroup) {
+    $status = (string) ($boardGroup['status'] ?? '');
+    if (array_key_exists($status, $boardGroupStatusCounts)) {
+        $boardGroupStatusCounts[$status]++;
+    }
+    $boardGroupStatusCounts['total']++;
+}
+if ($communityBoardGroupsPage === 'list') {
+    $boardGroups = array_values(array_filter($boardGroups, static function (array $boardGroup) use ($boardGroupListFilters): bool {
+        if ((string) $boardGroupListFilters['status'] !== '' && (string) ($boardGroup['status'] ?? '') !== (string) $boardGroupListFilters['status']) {
+            return false;
+        }
+
+        $keyword = trim((string) $boardGroupListFilters['q']);
+        if ($keyword === '') {
+            return true;
+        }
+
+        $field = (string) $boardGroupListFilters['field'];
+        $haystacks = [];
+        if ($field === 'key') {
+            $haystacks[] = (string) ($boardGroup['group_key'] ?? '');
+        } elseif ($field === 'title') {
+            $haystacks[] = (string) ($boardGroup['title'] ?? '');
+        } else {
+            $haystacks[] = (string) ($boardGroup['group_key'] ?? '');
+            $haystacks[] = (string) ($boardGroup['title'] ?? '');
+            $haystacks[] = (string) ($boardGroup['description'] ?? '');
+        }
+
+        foreach ($haystacks as $haystack) {
+            if ($haystack !== '' && stripos($haystack, $keyword) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }));
+}
 $boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupSettings[(int) $boardGroup['id']] = sr_community_board_group_settings($pdo, (int) $boardGroup['id']);
