@@ -246,7 +246,7 @@
 .admin-notice-copy strong,.admin-notice-copy p{margin:calc(var(--spacing) * 0)}
 .admin-notice-copy p{color:var(--color-default-600)}
 .admin-notice-icon{height:calc(var(--spacing) * 8);width:calc(var(--spacing) * 8);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-bold);color:var(--color-info-hover);border-radius:0;justify-content:center;align-items:center;display:inline-flex}
-.admin-filter-submit{white-space:nowrap;align-self:end;min-height:2.75rem}
+.admin-filter-submit{white-space:nowrap;align-self:end;min-height:calc(var(--spacing) * 9.25)}
 .admin-list-card{margin-bottom:calc(var(--spacing) * 4);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .admin-list-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
@@ -460,14 +460,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-tabs{margin-bottom:calc(var(--spacing) * 4);overflow:auto}
 .admin-tabs .tab-trigger-underline{white-space:nowrap}
 
-.admin-filter {
-    border: 1px solid var(--color-default-300);
-    background: var(--color-card);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: calc(var(--spacing) * 4);
-    padding: calc(var(--spacing) * 4);
-}
-
 .admin-filter-header {
     align-items: center;
     display: flex;
@@ -507,8 +499,14 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-filter-submit {
     align-self: end;
-    min-height: 2.5rem;
+    min-height: calc(var(--spacing) * 9.25);
     min-width: 5rem;
+}
+
+.admin-filter + .admin-list-card,
+.admin-filter + .admin-card.admin-list-card,
+.admin-list-card > .admin-filter + :is(.table-wrapper, p) {
+    margin-top: calc(var(--spacing) * 4);
 }
 
 .admin-audit-filter .admin-filter-grid {

@@ -22,9 +22,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter admin-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-account-search-grid">
-        <div class="admin-filter-field">
+        <div class="admin-filter-field admin-member-filter-status">
             <label for="admin-status-filter" class="admin-filter-label">상태</label>
             <select name="status" id="admin-status-filter" class="form-select admin-filter-input">
                 <option value="">전체</option>
@@ -35,7 +35,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </div>
-        <div class="admin-filter-field">
+        <div class="admin-filter-field admin-member-filter-field">
             <label for="member-search-field" class="admin-filter-label">검색 조건</label>
             <select name="field" id="member-search-field" class="form-select admin-filter-input">
                 <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </div>
-        <div class="admin-filter-field">
+        <div class="admin-filter-field admin-member-filter-keyword">
             <label for="member-search-keyword" class="admin-filter-label">검색어</label>
             <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 이름">
         </div>
@@ -55,8 +55,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-card admin-list-card card admin-list-form">
     <div class="table-wrapper">
-        <table class="table">
-            <caption>회원관리 목록</caption>
+        <table class="table admin-member-table">
+            <caption class="sr-only">회원관리 목록</caption>
+            <colgroup>
+                <col class="admin-member-col-hash">
+                <col class="admin-member-col-email">
+                <col class="admin-member-col-name">
+                <col class="admin-member-col-status">
+                <col class="admin-member-col-date">
+                <col class="admin-member-col-date">
+                <col class="admin-member-col-session">
+                <col class="admin-member-col-date">
+                <col class="admin-member-col-actions">
+            </colgroup>
             <thead class="ui-table-head">
                 <tr>
                     <th scope="col">공개 해시</th>
@@ -86,14 +97,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     };
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap admin-table-id"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
-                        <td class="admin-table-break"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
+                        <td class="admin-table-nowrap admin-table-id admin-member-hash-cell" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
+                        <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
-                        <td><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>
-                        <td><?php echo sr_e((string) ($member['last_login_at'] ?? '')); ?></td>
-                        <td><?php echo sr_e((string) $member['active_session_count']); ?></td>
-                        <td><?php echo sr_e((string) $member['created_at']); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['last_login_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-member-session-cell"><?php echo sr_e((string) $member['active_session_count']); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) $member['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <details class="admin-inline-edit-details">
@@ -102,21 +113,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="edit">
                                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <label for="modules_member_admin_members_email">
+                                        <?php $memberFieldIdPrefix = 'modules_member_admin_members_' . (string) $member['id'] . '_'; ?>
+                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>email">
                                             <span>이메일</span>
-                                            <input id="modules_member_admin_members_email" type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" class="form-input" required>
+                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>email" type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" class="form-input" required>
                                         </label>
-                                        <label for="modules_member_admin_members_display_name">
+                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>display_name">
                                             <span>이름</span>
-                                            <input id="modules_member_admin_members_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" class="form-input" maxlength="120" required>
+                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>display_name" type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" class="form-input" maxlength="120" required>
                                         </label>
-                                        <label for="modules_member_admin_members_locale">
+                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>locale">
                                             <span>Locale</span>
-                                            <input id="modules_member_admin_members_locale" type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" class="form-input" maxlength="20" required>
+                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>locale" type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" class="form-input" maxlength="20" required>
                                         </label>
-                                        <label for="modules_member_admin_members_status">
+                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>status">
                                             <span>상태</span>
-                                            <select id="modules_member_admin_members_status" name="status" class="form-select form-select-sm">
+                                            <select id="<?php echo sr_e($memberFieldIdPrefix); ?>status" name="status" class="form-select form-select-sm">
                                                 <?php foreach ($allowedStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo $memberStatus === $status ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
