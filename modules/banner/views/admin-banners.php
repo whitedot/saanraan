@@ -3,6 +3,11 @@
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 $editing = is_array($editBanner);
 $adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? '배너 수정' : '배너 추가') : '배너';
+$adminPageSubtitle = $bannerAdminPage === 'form' ? '배너 내용, 출력 위치, 노출 기간을 관리합니다.' : '배너 상태를 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminContainerClass = $bannerAdminPage === 'form' ? 'admin-page-banner-form admin-ui-scope' : 'admin-page-banner-list admin-ui-scope';
+$filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$bannerStatusCounts = isset($bannerStatusCounts) && is_array($bannerStatusCounts) ? $bannerStatusCounts : [];
+$totalBanners = (int) ($bannerStatusCounts['total'] ?? count($banners ?? []));
 $selectedTargetOption = sr_banner_public_target_option_value();
 if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editBanner['module_key'] ?? '') . '|' . (string) ($editBanner['point_key'] ?? '') . '|' . (string) ($editBanner['slot_key'] ?? '');
@@ -144,6 +149,62 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } else { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총배너 <strong><?php echo sr_e((string) $totalBanners); ?>개</strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/banners?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($bannerStatusCounts['enabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners?status=draft')); ?>" class="admin-summary-meta">초안 <?php echo sr_e((string) ($bannerStatusCounts['draft'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners?status=disabled')); ?>" class="admin-summary-meta">중지 <?php echo sr_e((string) ($bannerStatusCounts['disabled'] ?? 0)); ?>개</a>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter admin-banner-filter ui-form-theme">
+        <div class="admin-filter-grid admin-banner-search-grid">
+            <div class="admin-filter-field admin-banner-filter-status">
+                <label for="modules_banner_admin_banners_status" class="admin-filter-label">상태</label>
+                <select id="modules_banner_admin_banners_status" name="status" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-banner-filter-target">
+                <label for="modules_banner_admin_banners_target" class="admin-filter-label">출력 위치</label>
+                <select id="modules_banner_admin_banners_target" name="target" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($filters['target'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo (string) ($filters['target'] ?? '') === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
+                    <?php foreach ($availableTargets as $target) { ?>
+                        <?php $optionValue = sr_banner_target_option_value($target); ?>
+                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo (string) ($filters['target'] ?? '') === $optionValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $target['label']); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-banner-filter-field">
+                <label for="modules_banner_admin_banners_field" class="admin-filter-label">검색 조건</label>
+                <select id="modules_banner_admin_banners_field" name="field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'title' => '제목', 'link' => '링크'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-banner-filter-keyword">
+                <label for="modules_banner_admin_banners_q" class="admin-filter-label">검색어</label>
+                <input id="modules_banner_admin_banners_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="제목, 링크">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>
@@ -152,37 +213,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-solid-light">새 배너 추가</a>
         </div>
-        <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter ui-form-theme">
-            <div class="admin-filter-grid admin-filter-grid-compact">
-                <label class="admin-filter-field" for="modules_banner_admin_banners_status">
-                    <span class="admin-filter-label">상태</span>
-                    <select id="modules_banner_admin_banners_status" name="status" class="form-select">
-                        <option value=""<?php echo $filters['status'] === '' ? ' selected' : ''; ?>>전체</option>
-                        <?php foreach ($allowedStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo $filters['status'] === $status ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-                <label class="admin-filter-field" for="modules_banner_admin_banners_target">
-                    <span class="admin-filter-label">출력 위치</span>
-                    <select id="modules_banner_admin_banners_target" name="target" class="form-select">
-                        <option value=""<?php echo $filters['target'] === '' ? ' selected' : ''; ?>>전체</option>
-                        <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $filters['target'] === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>공용 배너</option>
-                        <?php foreach ($availableTargets as $target) { ?>
-                            <?php $optionValue = sr_banner_target_option_value($target); ?>
-                            <option value="<?php echo sr_e($optionValue); ?>"<?php echo $filters['target'] === $optionValue ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $target['label']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </label>
-                <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
-            </div>
-        </form>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-banner-table">
+            <caption class="sr-only">배너 목록</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>제목</th>
@@ -210,27 +243,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $bannerTargetOption = (string) $banner['module_key'] . '|' . (string) $banner['point_key'] . '|' . (string) $banner['slot_key'];
                             $bannerTargetLabel = (string) ($targetLabels[$bannerTargetOption] ?? ('선언이 사라진 출력 위치 / ' . (string) $banner['module_key'] . ' / ' . (string) $banner['point_key'] . ' / ' . (string) $banner['slot_key']));
                         }
+                        $bannerStatus = (string) $banner['status'];
+                        $statusClass = match ($bannerStatus) {
+                            'enabled' => 'is-normal',
+                            'draft' => 'is-blocked',
+                            default => 'is-left',
+                        };
                         ?>
                         <tr>
-                            <td><?php echo sr_e((string) $banner['title']); ?></td>
-                            <td>
-                                <?php echo sr_e(sr_admin_code_label((string) $banner['status'], 'content_status')); ?>
-                                <?php if ((string) $banner['status'] !== 'enabled') { ?>
+                            <td class="admin-table-break admin-banner-title-cell"><?php echo sr_e((string) $banner['title']); ?></td>
+                            <td class="admin-table-nowrap">
+                                <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
+                                <?php if ($bannerStatus !== 'enabled') { ?>
                                     <br><small>사용자 화면 미노출</small>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e(sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')])); ?></td>
-                            <td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')])); ?></td>
+                            <td class="admin-table-break admin-banner-link-cell">
                                 <?php echo sr_e(sr_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?><br>
                                 <?php echo sr_e((string) ($banner['link_url'] ?? '')); ?>
                             </td>
-                            <td><?php echo sr_e(number_format((int) ($banner['click_count'] ?? 0))); ?></td>
-                            <td><?php echo sr_e($bannerTargetLabel); ?></td>
-                            <td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($banner['click_count'] ?? 0))); ?></td>
+                            <td class="admin-table-break admin-banner-target-cell"><?php echo sr_e($bannerTargetLabel); ?></td>
+                            <td class="admin-table-nowrap admin-banner-date-cell">
                                 <?php echo sr_e((string) ($banner['starts_at'] ?? '-')); ?><br>
                                 <?php echo sr_e((string) ($banner['ends_at'] ?? '-')); ?>
                             </td>
-                            <td><?php echo sr_e((string) $banner['sort_order']); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $banner['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>

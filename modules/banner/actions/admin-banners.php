@@ -24,9 +24,14 @@ $bannerSkinKey = sr_banner_skin_key($bannerSettings);
 $filters = [
     'status' => sr_get_string('status', 30),
     'target' => sr_get_string('target', 300),
+    'field' => sr_get_string('field', 20),
+    'q' => sr_banner_clean_single_line(sr_get_string('q', 120), 120),
 ];
 if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
     $filters['status'] = '';
+}
+if (!in_array($filters['field'], ['all', 'title', 'link'], true)) {
+    $filters['field'] = 'all';
 }
 $filterPublicTarget = sr_banner_is_public_target_option($filters['target']);
 $filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? sr_banner_target_from_option($filters['target']) : null;
@@ -305,6 +310,22 @@ if ($editId > 0) {
 
 $targetLabels = sr_banner_target_labels($availableTargets);
 
+$bannerStatusCounts = [
+    'total' => 0,
+    'draft' => 0,
+    'enabled' => 0,
+    'disabled' => 0,
+];
+$stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_banners GROUP BY status');
+foreach ($stmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $bannerStatusCounts)) {
+        $bannerStatusCounts[$status] = $count;
+    }
+    $bannerStatusCounts['total'] += $count;
+}
+
 $banners = [];
 $bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
@@ -323,6 +344,19 @@ if ($filterTarget !== null) {
     $bannerParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
 } elseif ($filterPublicTarget) {
     $bannerWhere[] = 't.id IS NULL';
+}
+if ($filters['q'] !== '') {
+    if ($filters['field'] === 'title') {
+        $bannerWhere[] = 'b.title LIKE :keyword';
+        $bannerParams['keyword'] = '%' . $filters['q'] . '%';
+    } elseif ($filters['field'] === 'link') {
+        $bannerWhere[] = 'b.link_url LIKE :keyword';
+        $bannerParams['keyword'] = '%' . $filters['q'] . '%';
+    } else {
+        $bannerWhere[] = '(b.title LIKE :title_keyword OR b.link_url LIKE :link_keyword)';
+        $bannerParams['title_keyword'] = '%' . $filters['q'] . '%';
+        $bannerParams['link_keyword'] = '%' . $filters['q'] . '%';
+    }
 }
 if ($bannerWhere !== []) {
     $bannerSql .= ' WHERE ' . implode(' AND ', $bannerWhere);

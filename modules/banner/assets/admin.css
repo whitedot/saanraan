@@ -65,6 +65,49 @@
     margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * 4);
 }
 
+.admin-page-banner-list .admin-banner-search-grid {
+    align-items: end;
+    grid-template-columns: minmax(0, 10rem) minmax(0, 14rem) minmax(0, 10rem) minmax(14rem, 1fr) minmax(5rem, auto);
+    justify-content: stretch;
+    width: 100%;
+}
+
+.admin-page-banner-list .admin-banner-filter .admin-filter-field {
+    min-width: 0;
+}
+
+.admin-page-banner-list .admin-banner-filter .admin-filter-submit {
+    justify-content: center;
+    width: auto;
+}
+
+.admin-page-banner-list .admin-banner-table {
+    min-width: 78rem;
+    table-layout: fixed;
+}
+
+.admin-page-banner-list .admin-banner-table th,
+.admin-page-banner-list .admin-banner-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-page-banner-list .admin-banner-table .admin-table-actions-cell {
+    min-width: 10rem;
+    overflow: visible;
+}
+
+.admin-page-banner-list .admin-banner-title-cell,
+.admin-page-banner-list .admin-banner-date-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-page-banner-list .admin-banner-table .admin-row-actions {
+    gap: .5rem;
+}
+
 @media (max-width: 767px) {
     .banner-dashboard-summary {
         grid-template-columns: 1fr;
@@ -74,5 +117,31 @@
         border-bottom: 1px solid var(--color-default-300);
         border-right: 0;
         grid-template-columns: 2fr 1fr 1fr;
+    }
+}
+
+@media (max-width: 1023px) {
+    .admin-page-banner-list .admin-banner-search-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .admin-page-banner-list .admin-banner-filter-keyword,
+    .admin-page-banner-list .admin-banner-filter .admin-filter-submit {
+        grid-column: 1 / -1;
+    }
+
+    .admin-page-banner-list .admin-banner-filter .admin-filter-submit {
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .admin-page-banner-list .admin-banner-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-page-banner-list .admin-banner-filter-keyword,
+    .admin-page-banner-list .admin-banner-filter .admin-filter-submit {
+        grid-column: auto;
     }
 }
