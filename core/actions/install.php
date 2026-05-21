@@ -179,6 +179,7 @@ $values = [
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
     'main_page_path' => '/',
+    'member_login_identifier' => 'both',
     'admin_login_id' => '',
     'admin_email' => '',
     'admin_display_name' => '관리자',
@@ -360,9 +361,16 @@ if (sr_request_method() === 'POST') {
         $errors[] = '관리자 표시 이름을 입력하세요.';
     }
 
+    if (!array_key_exists($values['member_login_identifier'], sr_member_login_identifier_options())) {
+        $errors[] = '로그인 정책 값이 올바르지 않습니다.';
+    }
+    $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
     $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
     if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
         $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
+    }
+    if ($values['member_login_identifier'] === 'login_id' && $values['admin_login_id'] === '') {
+        $errors[] = '아이디만 허용하려면 최초 관리자 로그인 아이디를 입력하세요.';
     }
 
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
@@ -558,6 +566,32 @@ if (sr_request_method() === 'POST') {
                     'updated_at' => $now,
                 ]);
             }
+
+            $installStage = 'save_member_settings';
+            $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'member' LIMIT 1");
+            $stmt->execute();
+            $memberModule = $stmt->fetch();
+            if (!is_array($memberModule)) {
+                throw new RuntimeException('Member module was not registered.');
+            }
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_module_settings
+                    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+                 VALUES
+                    (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    setting_value = VALUES(setting_value),
+                    value_type = VALUES(value_type),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'module_id' => (int) $memberModule['id'],
+                'setting_key' => 'login_identifier',
+                'setting_value' => $values['member_login_identifier'],
+                'value_type' => 'string',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
 
             $installStage = 'record_schema_versions';
             sr_record_installed_core_schema_versions($pdo, '2026.04.008');

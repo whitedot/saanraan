@@ -42,12 +42,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_login_identifier">로그인 식별자</label>
+            <span class="form-label">로그인 식별자</span>
             <div class="admin-form-field">
-                <select id="member_admin_settings_login_identifier" name="login_identifier" class="form-select">
-                                    <option value="email"<?php echo (string) $settings['login_identifier'] === 'email' ? ' selected' : ''; ?>>이메일</option>
-                                    <option value="login_id"<?php echo (string) $settings['login_identifier'] === 'login_id' ? ' selected' : ''; ?>>로그인 아이디</option>
-                                </select>
+                <strong><?php echo sr_e((string) (sr_member_login_identifier_options()[(string) $settings['login_identifier']] ?? '이메일 + 로그인 아이디')); ?></strong>
+                <small class="admin-form-help">로그인 정책은 최초 설치 때 정하는 값입니다. 운영 중 변경은 기존 계정 로그인 가능 여부에 영향을 줄 수 있어 이 화면에서 수정하지 않습니다.</small>
             </div>
         </div>
     </section>

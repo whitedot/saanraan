@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.05.004',
+    'version' => '2026.05.005',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
@@ -33,7 +33,7 @@ return [
     'settings' => [
         'allow_registration' => true,
         'email_verification_enabled' => true,
-        'login_identifier' => 'email',
+        'login_identifier' => 'both',
         'login_throttle_window_seconds' => 900,
         'login_throttle_account_limit' => 5,
         'login_throttle_ip_limit' => 20,

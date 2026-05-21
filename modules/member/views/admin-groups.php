@@ -394,9 +394,10 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                     <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
                         <option value="hash">해시 아이디</option>
                         <option value="email">이메일</option>
+                        <option value="login_id">로그인 아이디</option>
                         <option value="name">이름</option>
                     </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어">
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
                 </div>
             </div>
             <div class="admin-form-row">
@@ -443,9 +444,10 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                     <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
                         <option value="hash">해시 아이디</option>
                         <option value="email">이메일</option>
+                        <option value="login_id">로그인 아이디</option>
                         <option value="name">이름</option>
                     </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어">
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
                 </div>
             </div>
             <div class="admin-form-row">

@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-filter-field">
             <label for="admin-role-search-field" class="admin-filter-label">검색 조건</label>
             <select name="field" id="admin-role-search-field" class="form-select admin-filter-input">
-                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'login_id' => '로그인 아이디', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
                     </option>
@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-filter-field">
             <label for="admin-role-search-keyword" class="admin-filter-label">검색어</label>
-            <input type="text" id="admin-role-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 이름">
+            <input type="text" id="admin-role-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
         </div>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>

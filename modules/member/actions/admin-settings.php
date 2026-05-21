@@ -24,12 +24,6 @@ if (sr_request_method() === 'POST') {
     } else {
         $settings['member_skin_key'] = $memberSkinKey;
     }
-    $loginIdentifier = sr_post_string('login_identifier', 20);
-    if (!in_array($loginIdentifier, ['email', 'login_id'], true)) {
-        $errors[] = '로그인 식별자 설정이 올바르지 않습니다.';
-    } else {
-        $settings['login_identifier'] = $loginIdentifier;
-    }
     foreach (sr_member_profile_field_definitions() as $definition) {
         $enabledKey = (string) $definition['enabled_key'];
         $requiredKey = (string) $definition['required_key'];
@@ -72,7 +66,6 @@ if (sr_request_method() === 'POST') {
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
-            ['login_identifier', (string) $settings['login_identifier'], 'string'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
         ];
         foreach (sr_member_profile_field_definitions() as $definition) {

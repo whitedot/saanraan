@@ -17,6 +17,7 @@ if (!in_array($memberAdminPage, ['members', 'create_form', 'edit_form'], true)) 
 }
 $memberCreateValues = sr_admin_member_create_default_values(is_array($site ?? null) ? $site : []);
 $memberEditValues = [];
+$memberSettings = sr_member_settings($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);

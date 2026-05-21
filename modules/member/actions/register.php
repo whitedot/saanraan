@@ -15,7 +15,7 @@ if ($account !== null) {
 $memberSettings = sr_member_settings($pdo);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
-$loginIdentifierMode = (string) $memberSettings['login_identifier'];
+$loginIdRequired = sr_member_login_id_required($memberSettings);
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
 $errors = [];
@@ -43,9 +43,7 @@ if (sr_request_method() === 'POST') {
     $loginId = sr_post_string_without_truncation('login_id', 40);
     if ($loginId === null) {
         $loginId = '';
-        if ($loginIdentifierMode === 'login_id') {
-            $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
-        }
+        $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
     }
 
     $values = [
@@ -66,8 +64,12 @@ if (sr_request_method() === 'POST') {
         $errors[] = '이메일 형식이 올바르지 않습니다.';
     }
 
-    if ($loginIdentifierMode === 'login_id' && !sr_member_is_valid_login_id($values['login_id'])) {
+    if ($values['login_id'] !== '' && !sr_member_is_valid_login_id($values['login_id'])) {
         $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+    }
+
+    if ($loginIdRequired && $values['login_id'] === '') {
+        $errors[] = '로그인 아이디를 입력하세요.';
     }
 
     if ($values['display_name'] === '') {
@@ -161,7 +163,7 @@ if (sr_request_method() === 'POST') {
 
             $accountId = sr_member_create_account($pdo, $config, [
                 'email' => $values['email'],
-                'login_id' => $loginIdentifierMode === 'login_id' ? $values['login_id'] : '',
+                'login_id' => $values['login_id'],
                 'password' => $password,
                 'display_name' => $values['display_name'],
                 'locale' => (string) ($site['default_locale'] ?? 'ko'),
@@ -227,7 +229,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $newAccount = sr_member_find_by_identifier($pdo, $config, $loginIdentifierMode === 'login_id' ? $values['login_id'] : $values['email']);
+            $newAccount = sr_member_find_by_id($pdo, $accountId);
             if ($emailVerificationEnabled) {
                 $_SESSION['sr_member_login_notice'] = '가입을 접수했습니다. 이메일 인증을 완료한 뒤 로그인하세요.';
                 sr_redirect('/login');

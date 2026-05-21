@@ -38,7 +38,7 @@ if (sr_request_method() === 'POST') {
 
     $password = sr_post_string('password', 255);
     $next = sr_member_safe_next_path(sr_post_string_without_truncation('next', 1024) ?? '');
-    $account = sr_member_find_by_identifier($pdo, $config, $identifier);
+    $account = sr_member_find_by_identifier($pdo, $config, $identifier, sr_member_email_login_enabled($memberSettings));
     $throttle = sr_member_login_throttle_status($pdo, $account !== null ? (int) $account['id'] : null);
     $passwordVerified = false;
 

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS sr_member_accounts (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_member_identifier (account_identifier_hash),
+    UNIQUE KEY uq_sr_member_login_id_hash (login_id_hash),
     UNIQUE KEY uq_sr_member_email_hash (email_hash)
 );
 

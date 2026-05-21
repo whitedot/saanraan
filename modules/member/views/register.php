@@ -6,6 +6,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$loginIdRequired = sr_member_login_id_required($memberSettings ?? []);
 ?>
     <main>
         <h1><?php echo sr_e($pageTitle); ?></h1>
@@ -29,14 +30,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <input id="modules_member_register_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required>
                     </label>
                 </p>
-                <?php if ($loginIdentifierMode === 'login_id') { ?>
-                    <p>
-                        <label for="modules_member_register_login_id">
+                <p>
+                    <label for="modules_member_register_login_id">
                     <span>로그인 아이디</span>
-                            <input id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" required>
-                        </label>
-                    </p>
-                <?php } ?>
+                        <input id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username"<?php echo $loginIdRequired ? ' required' : ''; ?>>
+                    </label>
+                    <small><?php echo $loginIdRequired ? '이 설정에서는 로그인 아이디로만 로그인할 수 있습니다.' : '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.'; ?></small>
+                </p>
                 <p>
                     <label for="modules_member_register_display_name">
                     <span>표시 이름</span>

@@ -79,6 +79,17 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
             }
         }
 
+        $loginId = sr_member_normalize_login_id($keyword);
+        if (sr_member_is_valid_login_id($loginId)) {
+            $loginIdHash = sr_hmac_hash($loginId, $config);
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash LIMIT 1');
+            $stmt->execute(['login_id_hash' => $loginIdHash]);
+            $row = $stmt->fetch();
+            if (is_array($row)) {
+                return (int) $row['id'];
+            }
+        }
+
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
         $stmt->execute(['display_name' => $keyword]);
         $row = $stmt->fetch();
@@ -101,6 +112,19 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
         return is_array($row) ? (int) $row['id'] : 0;
     }
 
+    if ($field === 'login_id') {
+        $loginId = sr_member_normalize_login_id($keyword);
+        if (!sr_member_is_valid_login_id($loginId)) {
+            return 0;
+        }
+
+        $loginIdHash = sr_hmac_hash($loginId, $config);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash LIMIT 1');
+        $stmt->execute(['login_id_hash' => $loginIdHash]);
+        $row = $stmt->fetch();
+        return is_array($row) ? (int) $row['id'] : 0;
+    }
+
     if ($field === 'name') {
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
         $stmt->execute(['display_name' => $keyword]);
@@ -115,7 +139,7 @@ function sr_admin_member_account_lookup_filter(PDO $pdo, array $config): array
 {
     $field = sr_get_string('field', 30);
     $keyword = trim(sr_get_string('q', 120));
-    $allowedFields = ['all', 'hash', 'email', 'name'];
+    $allowedFields = ['all', 'hash', 'email', 'login_id', 'name'];
     if (!in_array($field, $allowedFields, true)) {
         $field = 'all';
     }
@@ -157,7 +181,7 @@ function sr_admin_member_rows_with_public_hash(array $config, array $rows): arra
 
 function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, string $keyword, int $limit = 20): array
 {
-    $allowedFields = ['all', 'hash', 'email', 'name'];
+    $allowedFields = ['all', 'hash', 'email', 'login_id', 'name'];
     if (!in_array($field, $allowedFields, true)) {
         $field = 'all';
     }
@@ -171,7 +195,7 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
         $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
 
-        if ($field === 'hash') {
+        if ($field === 'hash' || $field === 'login_id') {
             $where[] = $accountId > 0 ? 'id = :account_id' : '1 = 0';
             if ($accountId > 0) {
                 $params['account_id'] = $accountId;
@@ -231,7 +255,7 @@ function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
+        'SELECT id, account_identifier_hash, login_id_hash, email, email_hash, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
          FROM sr_member_accounts
          WHERE id = :id
          LIMIT 1'
@@ -286,6 +310,8 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
     $errors = [];
     $notice = '';
     $runtimeConfig = sr_runtime_config();
+    $memberSettings = sr_member_settings($pdo);
+    $loginIdRequired = sr_member_login_id_required($memberSettings);
     $allowedCreateStatuses = sr_admin_member_create_allowed_statuses();
     $supportedLocales = sr_supported_locales($site);
     $values = sr_admin_member_create_values_from_post($site);
@@ -320,6 +346,10 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
 
     if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
         $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+    }
+
+    if ($loginIdRequired && $loginId === '') {
+        $errors[] = '로그인 아이디를 입력하세요.';
     }
 
     if ($displayName === '') {
@@ -505,20 +535,40 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
     } elseif ($errors === [] && $intent === 'edit') {
         $runtimeConfig = sr_runtime_config();
+        $memberSettings = sr_member_settings($pdo);
+        $loginIdRequired = sr_member_login_id_required($memberSettings);
         $supportedLocales = sr_supported_locales($site);
-        $email = sr_normalize_identifier(sr_post_string('email', 255));
+        $emailInput = sr_post_string_without_truncation('email', 255);
+        $loginIdInput = sr_post_string_without_truncation('login_id', 40);
+        $email = sr_normalize_identifier((string) ($emailInput ?? ''));
+        $loginId = $loginIdInput === null ? '' : sr_member_normalize_login_id($loginIdInput);
+        $clearLoginId = ($_POST['clear_login_id'] ?? '') === '1';
         $displayName = trim(sr_post_string('display_name', 120));
         $locale = sr_post_string('locale', 20);
         $resultExtra['edit_values'] = [
             'id' => $targetAccountId,
             'email' => $email,
+            'login_id' => $loginId,
+            'clear_login_id' => $clearLoginId ? '1' : '0',
             'display_name' => $displayName,
             'locale' => $locale,
             'status' => $status,
         ];
 
+        if ($emailInput === null) {
+            $errors[] = '이메일은 255자 이하로 입력하세요.';
+        }
+
+        if ($loginIdInput === null) {
+            $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+        }
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = '이메일 형식이 올바르지 않습니다.';
+        }
+
+        if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
+            $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
         }
 
         if ($displayName === '') {
@@ -541,12 +591,53 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             }
         }
 
+        $nextLoginIdHash = null;
+        if ($errors === [] && $loginId !== '') {
+            $nextLoginIdHash = sr_hmac_hash($loginId, $runtimeConfig);
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE (login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash) AND id <> :id LIMIT 1');
+            $stmt->execute([
+                'login_id_hash' => $nextLoginIdHash,
+                'id' => $targetAccountId,
+            ]);
+            if (is_array($stmt->fetch())) {
+                $errors[] = '이미 사용 중인 로그인 아이디입니다.';
+            }
+        }
+
         if ($errors === []) {
-            $accountIdentifierHash = (string) ($targetAccount['login_id_hash'] ?? '') === ''
-                ? $emailHash
-                : (string) ($targetAccount['account_identifier_hash'] ?? '');
-            if ($accountIdentifierHash === '') {
+            $hasCurrentLoginIdentifier = (string) ($targetAccount['login_id_hash'] ?? '') !== ''
+                || (
+                    (string) ($targetAccount['account_identifier_hash'] ?? '') !== ''
+                    && (string) ($targetAccount['email_hash'] ?? '') !== ''
+                    && !hash_equals((string) $targetAccount['email_hash'], (string) $targetAccount['account_identifier_hash'])
+                );
+            if ($loginIdRequired && $loginId === '' && ($clearLoginId || !$hasCurrentLoginIdentifier)) {
+                $errors[] = '아이디만 허용하는 정책에서는 로그인 아이디를 유지하거나 새로 입력해야 합니다.';
+            }
+        }
+
+        if ($errors === []) {
+            $currentAccountIdentifierHash = (string) ($targetAccount['account_identifier_hash'] ?? '');
+            $currentEmailHash = (string) ($targetAccount['email_hash'] ?? '');
+            $currentLoginIdHash = (string) ($targetAccount['login_id_hash'] ?? '');
+            if ($clearLoginId) {
+                $nextLoginIdHash = null;
                 $accountIdentifierHash = $emailHash;
+            } elseif ($loginId !== '') {
+                $accountIdentifierHash = (string) $nextLoginIdHash;
+            } elseif ($currentLoginIdHash !== '') {
+                $nextLoginIdHash = $currentLoginIdHash;
+                $accountIdentifierHash = (string) ($targetAccount['account_identifier_hash'] ?? '');
+                if ($accountIdentifierHash === '') {
+                    $accountIdentifierHash = $currentLoginIdHash;
+                }
+            } else {
+                $nextLoginIdHash = null;
+                $accountIdentifierHash = $currentAccountIdentifierHash !== ''
+                    && $currentEmailHash !== ''
+                    && !hash_equals($currentEmailHash, $currentAccountIdentifierHash)
+                    ? $currentAccountIdentifierHash
+                    : $emailHash;
             }
 
             $pdo->beginTransaction();
@@ -554,6 +645,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 $stmt = $pdo->prepare(
                     'UPDATE sr_member_accounts
                      SET account_identifier_hash = :account_identifier_hash,
+                         login_id_hash = :login_id_hash,
                          email = :email,
                          email_hash = :email_hash,
                          display_name = :display_name,
@@ -564,6 +656,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 );
                 $stmt->execute([
                     'account_identifier_hash' => $accountIdentifierHash,
+                    'login_id_hash' => $nextLoginIdHash,
                     'email' => $email,
                     'email_hash' => $emailHash,
                     'display_name' => $displayName,
@@ -599,6 +692,8 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
                     'email_changed' => $email !== (string) $targetAccount['email'],
+                    'login_id_changed' => $loginId !== '' || $clearLoginId,
+                    'login_id_set' => $nextLoginIdHash !== null,
                 ],
             ]);
             $notice = '회원 정보를 저장했습니다.';
@@ -680,14 +775,14 @@ function sr_admin_member_search_filter(PDO $pdo, array $config): array
 {
     $field = sr_get_string('field', 30);
     $keyword = trim(sr_get_string('q', 120));
-    $allowedFields = ['all', 'hash', 'email', 'name'];
+    $allowedFields = ['all', 'hash', 'email', 'login_id', 'name'];
     if (!in_array($field, $allowedFields, true)) {
         $field = 'all';
     }
 
     $accountId = 0;
-    if (($field === 'all' || $field === 'hash') && sr_member_public_account_hash_is_valid($keyword)) {
-        $accountId = sr_admin_member_account_id_from_identifier($pdo, $config, $keyword);
+    if ($field === 'all' || $field === 'hash' || $field === 'login_id') {
+        $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
     }
 
     return [
@@ -738,7 +833,7 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
     $accountId = (int) ($searchFilter['account_id'] ?? 0);
     if ($keyword !== '') {
         $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
-        if ($field === 'hash') {
+        if ($field === 'hash' || $field === 'login_id') {
             $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
             if ($accountId > 0) {
                 $params['account_id'] = $accountId;

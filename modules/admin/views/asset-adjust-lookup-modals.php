@@ -38,9 +38,10 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                             <option value="all">전체</option>
                             <option value="hash">해시 아이디</option>
                             <option value="email">이메일</option>
+                            <option value="login_id">로그인 아이디</option>
                             <option value="name">이름</option>
                         </select>
-                        <input type="text" name="q" maxlength="120" class="form-input" placeholder="해시 아이디, 이메일, 이름" data-overlay-focus>
+                        <input type="text" name="q" maxlength="120" class="form-input" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름" data-overlay-focus>
                         <button type="submit" class="btn btn-solid-primary">검색</button>
                     </form>
                     <div id="<?php echo sr_e($assetAdjustMemberResultsId); ?>" class="admin-lookup-results">

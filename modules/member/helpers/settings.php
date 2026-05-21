@@ -15,7 +15,7 @@ function sr_member_default_settings(): array
     return [
         'allow_registration' => (bool) ($settings['allow_registration'] ?? true),
         'email_verification_enabled' => (bool) ($settings['email_verification_enabled'] ?? true),
-        'login_identifier' => is_string($settings['login_identifier'] ?? null) ? (string) $settings['login_identifier'] : 'email',
+        'login_identifier' => sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both'),
         'login_throttle_window_seconds' => (int) ($settings['login_throttle_window_seconds'] ?? 900),
         'login_throttle_account_limit' => (int) ($settings['login_throttle_account_limit'] ?? 5),
         'login_throttle_ip_limit' => (int) ($settings['login_throttle_ip_limit'] ?? 20),
@@ -47,7 +47,7 @@ function sr_member_settings(PDO $pdo): array
 
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
-    $settings['login_identifier'] = (string) $settings['login_identifier'] === 'login_id' ? 'login_id' : 'email';
+    $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
     $settings['member_skin_key'] = sr_member_skin_key($settings);
     foreach (sr_member_profile_field_definitions() as $definition) {
         $enabledKey = (string) $definition['enabled_key'];
@@ -61,6 +61,29 @@ function sr_member_settings(PDO $pdo): array
     }
 
     return $settings;
+}
+
+function sr_member_login_identifier_options(): array
+{
+    return [
+        'both' => '이메일 + 로그인 아이디',
+        'login_id' => '로그인 아이디만',
+    ];
+}
+
+function sr_member_normalize_login_identifier_setting($value): string
+{
+    return (string) $value === 'login_id' ? 'login_id' : 'both';
+}
+
+function sr_member_email_login_enabled(array $settings): bool
+{
+    return sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both') !== 'login_id';
+}
+
+function sr_member_login_id_required(array $settings): bool
+{
+    return !sr_member_email_login_enabled($settings);
 }
 
 function sr_member_skin_options(): array

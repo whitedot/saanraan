@@ -5,7 +5,7 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$identifierLabel = ((string) ($memberSettings['login_identifier'] ?? 'email') === 'login_id') ? '아이디 또는 이메일' : '이메일 또는 아이디';
+$identifierLabel = sr_member_email_login_enabled($memberSettings ?? []) ? '이메일 또는 아이디' : '아이디';
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main class="public-ui-scope member-login-public">

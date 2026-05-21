@@ -44,6 +44,21 @@ function sr_member_create_account(PDO $pdo, array $config, array $data): int
         throw new RuntimeException('Account already exists.');
     }
 
+    if ($loginIdHash !== null) {
+        $params = ['login_id_hash' => $loginIdHash];
+        $where = '(login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash)';
+        if (is_array($existing)) {
+            $where .= ' AND id <> :id';
+            $params['id'] = (int) $existing['id'];
+        }
+
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE ' . $where . ' LIMIT 1');
+        $stmt->execute($params);
+        if (is_array($stmt->fetch())) {
+            throw new RuntimeException('Login ID already exists.');
+        }
+    }
+
     if (is_array($existing)) {
         $stmt = $pdo->prepare(
             'UPDATE sr_member_accounts
@@ -110,26 +125,72 @@ function sr_normalize_login_id(string $loginId): string
     return strtolower(trim($loginId));
 }
 
-function sr_member_find_by_identifier(PDO $pdo, array $config, string $identifier): ?array
+function sr_member_find_by_identifier(PDO $pdo, array $config, string $identifier, bool $allowEmailLogin = true): ?array
 {
     $normalizedIdentifier = sr_normalize_identifier($identifier);
-    $identifierHash = sr_hmac_hash($normalizedIdentifier, $config);
-    $emailHash = filter_var($normalizedIdentifier, FILTER_VALIDATE_EMAIL)
-        ? sr_hmac_hash($normalizedIdentifier, $config)
-        : '';
+    if ($normalizedIdentifier === '') {
+        return null;
+    }
+
+    $isEmailIdentifier = filter_var($normalizedIdentifier, FILTER_VALIDATE_EMAIL) !== false;
+    if ($isEmailIdentifier && !$allowEmailLogin) {
+        return null;
+    }
+
+    if ($isEmailIdentifier) {
+        $stmt = $pdo->prepare(
+            'SELECT ' . sr_member_account_select_columns() . '
+             FROM sr_member_accounts
+             WHERE email_hash = :email_hash
+             LIMIT 1'
+        );
+        $stmt->execute(['email_hash' => sr_hmac_hash($normalizedIdentifier, $config)]);
+        $account = $stmt->fetch();
+        if (is_array($account)) {
+            return $account;
+        }
+    }
+
+    $loginId = sr_member_normalize_login_id($identifier);
+    if (sr_member_is_valid_login_id($loginId)) {
+        $stmt = $pdo->prepare(
+            'SELECT ' . sr_member_account_select_columns() . '
+             FROM sr_member_accounts
+             WHERE login_id_hash = :login_id_hash
+             LIMIT 1'
+        );
+        $stmt->execute(['login_id_hash' => sr_hmac_hash($loginId, $config)]);
+        $account = $stmt->fetch();
+        if (is_array($account)) {
+            return $account;
+        }
+    }
 
     $stmt = $pdo->prepare(
         'SELECT ' . sr_member_account_select_columns() . '
          FROM sr_member_accounts
          WHERE account_identifier_hash = :identifier_hash
-            OR (:email_hash_guard <> \'\' AND email_hash = :email_hash)
          LIMIT 1'
     );
-    $stmt->execute([
-        'identifier_hash' => $identifierHash,
-        'email_hash_guard' => $emailHash,
-        'email_hash' => $emailHash,
-    ]);
+    $stmt->execute(['identifier_hash' => sr_hmac_hash($normalizedIdentifier, $config)]);
+    $account = $stmt->fetch();
+
+    return is_array($account) ? $account : null;
+}
+
+function sr_member_find_by_id(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT ' . sr_member_account_select_columns() . '
+         FROM sr_member_accounts
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $accountId]);
     $account = $stmt->fetch();
 
     return is_array($account) ? $account : null;

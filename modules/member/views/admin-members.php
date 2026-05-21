@@ -16,6 +16,8 @@ $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
 $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
+$memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
+$memberLoginIdRequired = sr_member_login_id_required($memberSettings);
 $createStatuses = sr_admin_member_create_allowed_statuses();
 $memberLocaleOptions = sr_supported_locales($site ?? null);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -38,8 +40,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_create_login_id">로그인 아이디</label>
                 <div class="admin-form-field">
-                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                    <small class="admin-form-help">비워두면 이메일로 로그인할 수 있습니다.</small>
+                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username"<?php echo $memberLoginIdRequired ? ' required' : ''; ?>>
+                    <small class="admin-form-help"><?php echo $memberLoginIdRequired ? '이 설정에서는 로그인 아이디로만 로그인할 수 있습니다.' : '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.'; ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -118,6 +120,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_edit_login_id">로그인 아이디</label>
+                    <div class="admin-form-field">
+                        <?php
+                        $memberEditAccountIdentifierHash = (string) ($editMember['account_identifier_hash'] ?? '');
+                        $memberEditEmailHash = (string) ($editMember['email_hash'] ?? '');
+                        $memberEditHasLoginId = (string) ($editMember['login_id_hash'] ?? '') !== ''
+                            || (
+                                $memberEditAccountIdentifierHash !== ''
+                                && $memberEditEmailHash !== ''
+                                && !hash_equals($memberEditEmailHash, $memberEditAccountIdentifierHash)
+                            );
+                        ?>
+                        <input id="member_admin_edit_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberEditValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" placeholder="새 로그인 아이디">
+                        <small class="admin-form-help">현재 상태: <?php echo $memberEditHasLoginId ? '등록됨' : '없음'; ?>. 새 값을 입력하면 로그인 아이디가 변경되고, 비워두면 기존 상태를 유지합니다.</small>
+                        <?php if (!$memberLoginIdRequired) { ?>
+                            <label class="admin-form-check form-label" for="member_admin_edit_clear_login_id">
+                                <input id="member_admin_edit_clear_login_id" type="checkbox" name="clear_login_id" value="1" class="form-checkbox"<?php echo (string) ($memberEditValues['clear_login_id'] ?? '0') === '1' ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html('로그인 아이디 해제'); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="admin-form-row">
                     <label class="form-label" for="member_admin_edit_display_name">이름</label>
                     <div class="admin-form-field">
                         <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
@@ -186,7 +211,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-filter-field admin-member-filter-field">
             <label for="member-search-field" class="admin-filter-label">검색 조건</label>
             <select name="field" id="member-search-field" class="form-select admin-filter-input">
-                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                <?php foreach (['all' => '전체', 'hash' => '해시 아이디', 'email' => '이메일', 'login_id' => '로그인 아이디', 'name' => '이름'] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
                     </option>
@@ -195,7 +220,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-filter-field admin-member-filter-keyword">
             <label for="member-search-keyword" class="admin-filter-label">검색어</label>
-            <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 이름">
+            <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
         </div>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>

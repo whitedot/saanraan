@@ -222,13 +222,24 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
                 <div class="sr-install-field-grid">
                     <p>
+                        <label for="member_login_identifier">로그인 정책</label>
+                        <select id="member_login_identifier" name="member_login_identifier" required>
+                            <?php foreach (sr_member_login_identifier_options() as $loginIdentifierValue => $loginIdentifierLabel) { ?>
+                                <option value="<?php echo sr_e((string) $loginIdentifierValue); ?>"<?php echo $values['member_login_identifier'] === (string) $loginIdentifierValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $loginIdentifierLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <span class="sr-install-help">설치 후에는 운영 중 변경하지 않는 정책입니다.</span>
+                    </p>
+                    <p>
                         <label for="admin_email">이메일</label>
                         <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required>
                     </p>
                     <p>
                         <label for="admin_login_id">로그인 아이디</label>
                         <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                        <span class="sr-install-help">비우면 이메일로 로그인하고, 입력하면 이 아이디로 로그인합니다. 예: admin, site_admin</span>
+                        <span class="sr-install-help">아이디만 허용하는 정책이면 필수입니다. 예: admin, site_admin</span>
                     </p>
                     <p>
                         <label for="admin_password">비밀번호</label>
