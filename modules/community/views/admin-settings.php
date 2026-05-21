@@ -262,29 +262,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">레벨 정의</h2>
     </div>
-    <?php if ($levels === []) { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <tbody>
-                <tr><td class="admin-empty-state">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
-            </tbody>
-        </table>
-        </div>
-    <?php } else { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
+        <?php if ($levels !== []) { ?>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_level_definitions">
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
-                    <tr>
-                        <th>레벨</th>
-                        <th>이름</th>
-                        <th>최소 점수</th>
-                        <th>상태</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <?php } ?>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>레벨</th>
+                    <th>이름</th>
+                    <th>최소 점수</th>
+                    <th>상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($levels === []) { ?>
+                    <tr><td colspan="4" class="admin-empty-state">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
+                <?php } else { ?>
                     <?php foreach ($levels as $level) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $level['level_value']); ?></td>
@@ -302,14 +298,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_code_label((string) $level['status'], 'content_status')); ?></td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
+        <?php if ($levels !== []) { ?>
             <div class="admin-list-actions">
                 <button type="submit" class="btn btn-solid-primary">레벨 정의 저장</button>
             </div>
-        </form>
-    <?php } ?>
+        <?php } ?>
+    </form>
 
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php echo sr_csrf_field(); ?>

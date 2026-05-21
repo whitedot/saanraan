@@ -81,27 +81,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">대기 중인 업데이트</h2>
     </div>
-    <?php if ($pendingUpdates === []) { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <tbody>
-                <tr><td class="admin-empty-state">적용할 업데이트가 없습니다.</td></tr>
-            </tbody>
-        </table>
-        </div>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th scope="col">범위</th>
-                    <th scope="col">버전</th>
-                    <th scope="col">SQL 문</th>
-                    <th scope="col">파일</th>
-                    <th scope="col">체크섬</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th scope="col">범위</th>
+                <th scope="col">버전</th>
+                <th scope="col">SQL 문</th>
+                <th scope="col">파일</th>
+                <th scope="col">체크섬</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($pendingUpdates === []) { ?>
+                <tr><td colspan="5" class="admin-empty-state">적용할 업데이트가 없습니다.</td></tr>
+            <?php } else { ?>
                 <?php foreach ($pendingUpdates as $update) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $update['label']); ?></td>
@@ -115,10 +109,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><code><?php echo sr_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
                     </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        </div>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 
+    <?php if ($pendingUpdates !== []) { ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="apply_updates">
@@ -139,26 +135,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">적용된 스키마 버전</h2>
     </div>
-    <?php if ($schemaVersions === []) { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <tbody>
-                <tr><td class="admin-empty-state">기록된 스키마 버전이 없습니다.</td></tr>
-            </tbody>
-        </table>
-        </div>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th scope="col">범위</th>
-                    <th scope="col">모듈</th>
-                    <th scope="col">버전</th>
-                    <th scope="col">적용 시각</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th scope="col">범위</th>
+                <th scope="col">모듈</th>
+                <th scope="col">버전</th>
+                <th scope="col">적용 시각</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($schemaVersions === []) { ?>
+                <tr><td colspan="4" class="admin-empty-state">기록된 스키마 버전이 없습니다.</td></tr>
+            <?php } else { ?>
                 <?php foreach ($schemaVersions as $version) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $version['scope']); ?></td>
@@ -167,10 +157,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $version['applied_at']); ?></td>
                     </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 </section>
 
 <?php if ($appliedUpdates !== []) { ?>

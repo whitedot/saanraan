@@ -180,6 +180,9 @@
 #container>form.admin-form>section.card>.admin-form-grid>.admin-form-row:last-child{border-bottom-width:0}
 #container>form.admin-form>section.card>.admin-form-grid:has(+ .admin-form-row)>.admin-form-row:last-child{border-bottom-width:1px}
 .modal-body>.admin-form-row{align-items:start;column-gap:calc(var(--spacing) * 5);display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);margin-top:calc(var(--spacing) * 3)}
+.modal-body>.admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-weight:var(--font-weight-semibold);min-height:calc(var(--spacing) * 9.25);padding-top:0}
+.modal-body>.admin-form-row>.admin-form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
+.modal-body>.admin-form-row>.admin-form-field>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 .admin-form .admin-form-row>.admin-form-field.admin-form-check,
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-form-check.form-label){

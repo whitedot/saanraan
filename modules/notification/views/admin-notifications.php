@@ -117,28 +117,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
-        <?php if ($deliveries === []) { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <tbody>
-                    <tr><td class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
-                </tbody>
-            </table>
-            </div>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
-                    <tr>
-                        <th>ID</th>
-                        <th>알림</th>
-                        <th>채널</th>
-                        <th>상태</th>
-                        <th>수정일</th>
-                        <th class="text-end">관리</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>ID</th>
+                    <th>알림</th>
+                    <th>채널</th>
+                    <th>상태</th>
+                    <th>수정일</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($deliveries === []) { ?>
+                    <tr><td colspan="6" class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
+                <?php } else { ?>
                     <?php foreach ($deliveries as $delivery) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $delivery['id']); ?></td>
@@ -165,10 +159,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">
@@ -192,27 +186,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
-        <?php if ($notifications === []) { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <tbody>
-                    <tr><td class="admin-empty-state">등록된 알림이 없습니다.</td></tr>
-                </tbody>
-            </table>
-            </div>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
-                    <tr>
-                        <th>ID</th>
-                        <th>대상</th>
-                        <th>상태</th>
-                        <th>생성일</th>
-                        <th class="text-end">관리</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>ID</th>
+                    <th>대상</th>
+                    <th>상태</th>
+                    <th>생성일</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($notifications === []) { ?>
+                    <tr><td colspan="5" class="admin-empty-state">등록된 알림이 없습니다.</td></tr>
+                <?php } else { ?>
                     <?php foreach ($notifications as $notification) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $notification['id']); ?></td>
@@ -230,10 +218,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } ?>
 

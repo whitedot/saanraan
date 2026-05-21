@@ -136,24 +136,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">팝업 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-solid-light">새 팝업 추가</a>
         </div>
-        <?php if ($popups === []) { ?>
-            <p>등록된 팝업이 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>제목</th>
+                    <th>상태</th>
+                    <th>스킨</th>
+                    <th>대상</th>
+                    <th>기간</th>
+                    <th>닫기 유지일</th>
+                    <th>수정일</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($popups === []) { ?>
                     <tr>
-                        <th>제목</th>
-                        <th>상태</th>
-                        <th>스킨</th>
-                        <th>대상</th>
-                        <th>기간</th>
-                        <th>닫기 유지일</th>
-                        <th>수정일</th>
-                        <th class="text-end">관리</th>
+                        <td colspan="8" class="admin-empty-state">등록된 팝업이 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($popups as $popup) { ?>
                         <?php
                         if ((string) ($popup['module_key'] ?? '') === '') {
@@ -188,10 +190,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } ?>
 

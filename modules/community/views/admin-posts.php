@@ -10,25 +10,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($communityPostsPage !== 'comments') { ?>
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">게시글 목록</h2></div>
-    <?php if ($posts === []) { ?>
-        <p>게시글이 없습니다.</p>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th>ID</th>
+                <th>게시판</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>상태</th>
+                <th>댓글</th>
+                <th>첨부</th>
+                <th>작성일</th>
+                <th class="text-end">처리</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($posts === []) { ?>
                 <tr>
-                    <th>ID</th>
-                    <th>게시판</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>상태</th>
-                    <th>댓글</th>
-                    <th>첨부</th>
-                    <th>작성일</th>
-                    <th class="text-end">처리</th>
+                    <td colspan="9" class="admin-empty-state">게시글이 없습니다.</td>
                 </tr>
-            </thead>
-            <tbody>
+            <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $post['id']); ?></td>
@@ -69,33 +71,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                     </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 </section>
 <?php } ?>
 
 <?php if ($communityPostsPage === 'comments') { ?>
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">댓글 목록</h2></div>
-    <?php if ($comments === []) { ?>
-        <p>댓글이 없습니다.</p>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th>ID</th>
+                <th>게시글</th>
+                <th>작성자</th>
+                <th>본문</th>
+                <th>상태</th>
+                <th>작성일</th>
+                <th class="text-end">처리</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($comments === []) { ?>
                 <tr>
-                    <th>ID</th>
-                    <th>게시글</th>
-                    <th>작성자</th>
-                    <th>본문</th>
-                    <th>상태</th>
-                    <th>작성일</th>
-                    <th class="text-end">처리</th>
+                    <td colspan="7" class="admin-empty-state">댓글이 없습니다.</td>
                 </tr>
-            </thead>
-            <tbody>
+            <?php } else { ?>
                 <?php foreach ($comments as $comment) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $comment['id']); ?></td>
@@ -130,10 +134,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                     </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 </section>
 <?php } ?>
 

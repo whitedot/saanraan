@@ -18,27 +18,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">신고 목록</h2></div>
-    <?php if ($reports === []) { ?>
-        <p>접수된 신고가 없습니다.</p>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+    <div class="table-wrapper">
+    <table class="table">
+        <thead class="ui-table-head">
+            <tr>
+                <th>ID</th>
+                <th>대상</th>
+                <th>사유</th>
+                <th>상태</th>
+                <th>신고자</th>
+                <th>대상 회원</th>
+                <th>메모</th>
+                <th>접수일</th>
+                <th>처리자</th>
+                <th>처리일</th>
+                <th class="text-end">처리</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($reports === []) { ?>
                 <tr>
-                    <th>ID</th>
-                    <th>대상</th>
-                    <th>사유</th>
-                    <th>상태</th>
-                    <th>신고자</th>
-                    <th>대상 회원</th>
-                    <th>메모</th>
-                    <th>접수일</th>
-                    <th>처리자</th>
-                    <th>처리일</th>
-                    <th class="text-end">처리</th>
+                    <td colspan="11" class="admin-empty-state">접수된 신고가 없습니다.</td>
                 </tr>
-            </thead>
-            <tbody>
+            <?php } else { ?>
                 <?php foreach ($reports as $report) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $report['id']); ?></td>
@@ -87,10 +89,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                     </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

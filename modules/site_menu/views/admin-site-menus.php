@@ -70,21 +70,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">메뉴 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-sm btn-solid-light">새 메뉴 추가</a>
         </div>
-        <?php if ($menus === []) { ?>
-            <p>등록된 메뉴가 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>key</th>
+                    <th>이름</th>
+                    <th>상태</th>
+                    <th>수정일</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($menus === []) { ?>
                     <tr>
-                        <th>key</th>
-                        <th>이름</th>
-                        <th>상태</th>
-                        <th>수정일</th>
-                        <th class="text-end">관리</th>
+                        <td colspan="5" class="admin-empty-state">등록된 메뉴가 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($menus as $menu) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $menu['menu_key']); ?></td>
@@ -103,10 +105,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } elseif ($siteMenuPage === 'item_form') { ?>
     <?php if ($menus === []) { ?>
@@ -189,22 +191,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title">메뉴 후보</h2>
         </div>
-        <?php if ($menus === []) { ?>
-            <p>먼저 메뉴를 추가하세요.</p>
-        <?php } elseif ($menuLinkSuggestions === []) { ?>
-            <p>활성 모듈이 제공한 메뉴 후보가 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>모듈</th>
+                    <th>항목</th>
+                    <th>URL</th>
+                    <th class="text-end">추가</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($menus === []) { ?>
                     <tr>
-                        <th>모듈</th>
-                        <th>항목</th>
-                        <th>URL</th>
-                        <th class="text-end">추가</th>
+                        <td colspan="4" class="admin-empty-state">먼저 메뉴를 추가하세요.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } elseif ($menuLinkSuggestions === []) { ?>
+                    <tr>
+                        <td colspan="4" class="admin-empty-state">활성 모듈이 제공한 메뉴 후보가 없습니다.</td>
+                    </tr>
+                <?php } else { ?>
                     <?php foreach ($menuLinkSuggestions as $suggestion) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $suggestion['module_key']); ?></td>
@@ -238,10 +244,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 
     <section class="admin-card admin-list-card card admin-list-form">
@@ -249,22 +255,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">항목 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/new')); ?>" class="btn btn-sm btn-solid-light">새 항목 추가</a>
         </div>
-        <?php if ($items === []) { ?>
-            <p>등록된 메뉴 항목이 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>메뉴</th>
+                    <th>항목</th>
+                    <th>URL</th>
+                    <th>상태</th>
+                    <th>정렬</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($items === []) { ?>
                     <tr>
-                        <th>메뉴</th>
-                        <th>항목</th>
-                        <th>URL</th>
-                        <th>상태</th>
-                        <th>정렬</th>
-                        <th class="text-end">관리</th>
+                        <td colspan="6" class="admin-empty-state">등록된 메뉴 항목이 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($items as $item) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $item['menu_key']); ?></td>
@@ -284,10 +292,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } ?>
 

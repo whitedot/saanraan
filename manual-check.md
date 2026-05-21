@@ -216,16 +216,16 @@
 - [ ] `/admin/site-menu-items/edit?id=...` 사이트 메뉴 항목 수정
 - [ ] `/admin/seo` SEO 설정
 - [ ] `/admin/points` 포인트 설정
-- [ ] `/admin/points/adjust` 포인트 조정
 - [ ] `/admin/points/balances` 포인트 잔액
+- [ ] `/admin/points/balances` 포인트 잔액 행 조정 모달
 - [ ] `/admin/points/transactions` 포인트 거래 내역
 - [ ] `/admin/deposits` 예치금 설정
-- [ ] `/admin/deposits/adjust` 예치금 조정
 - [ ] `/admin/deposits/balances` 예치금 잔액
+- [ ] `/admin/deposits/balances` 예치금 잔액 행 조정 모달
 - [ ] `/admin/deposits/transactions` 예치금 거래 내역
 - [ ] `/admin/rewards` 리워드 설정
-- [ ] `/admin/rewards/adjust` 리워드 조정
 - [ ] `/admin/rewards/balances` 리워드 잔액
+- [ ] `/admin/rewards/balances` 리워드 잔액 행 조정 모달
 - [ ] `/admin/rewards/transactions` 리워드 거래 내역
 
 메모:

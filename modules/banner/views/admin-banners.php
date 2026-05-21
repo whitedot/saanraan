@@ -181,25 +181,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
-        <?php if ($banners === []) { ?>
-            <p>등록된 배너가 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>제목</th>
+                    <th>상태</th>
+                    <th>스킨</th>
+                    <th>링크</th>
+                    <th>클릭</th>
+                    <th>출력 위치</th>
+                    <th>기간</th>
+                    <th>정렬</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($banners === []) { ?>
                     <tr>
-                        <th>제목</th>
-                        <th>상태</th>
-                        <th>스킨</th>
-                        <th>링크</th>
-                        <th>클릭</th>
-                        <th>출력 위치</th>
-                        <th>기간</th>
-                        <th>정렬</th>
-                        <th class="text-end">관리</th>
+                        <td colspan="9" class="admin-empty-state">등록된 배너가 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($banners as $banner) { ?>
                         <?php
                         if ((string) ($banner['module_key'] ?? '') === '') {
@@ -241,10 +243,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } ?>
 

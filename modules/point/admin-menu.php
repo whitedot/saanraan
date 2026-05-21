@@ -10,11 +10,6 @@ return [
             'order' => 10,
         ],
         [
-            'label' => '조정',
-            'path' => '/admin/points/adjust',
-            'order' => 20,
-        ],
-        [
             'label' => '거래 내역',
             'path' => '/admin/points/transactions',
             'order' => 30,

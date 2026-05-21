@@ -14,10 +14,11 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedTransactionTypes = ['adjustment', 'deposit', 'use', 'refund', 'withdraw'];
+$allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];
 $errors = [];
 $notice = '';
 $depositAdminPage = isset($depositAdminPage) ? (string) $depositAdminPage : 'balances';
-if (!in_array($depositAdminPage, ['balances', 'adjust', 'transactions'], true)) {
+if (!in_array($depositAdminPage, ['balances', 'transactions'], true)) {
     $depositAdminPage = 'balances';
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
@@ -37,6 +38,9 @@ if (sr_request_method() === 'POST') {
     $reason = sr_deposit_clean_text(sr_post_string('reason', 255), 255);
     $referenceType = sr_deposit_clean_key(sr_post_string('reference_type', 60), 60);
     $referenceId = sr_deposit_clean_reference_id(sr_post_string('reference_id', 120), 120);
+    if (!in_array($referenceType, $allowedReferenceTypes, true)) {
+        $referenceType = '';
+    }
 
     if ($targetAccountId <= 0) {
         $errors[] = '회원 공개 해시를 입력하세요.';

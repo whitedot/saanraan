@@ -6,5 +6,6 @@ return [
     'GET /admin/rewards/adjust' => 'actions/admin-rewards-adjust.php',
     'POST /admin/rewards/adjust' => 'actions/admin-rewards-adjust.php',
     'GET /admin/rewards/balances' => 'actions/admin-rewards-balances.php',
+    'POST /admin/rewards/balances' => 'actions/admin-rewards-balances.php',
     'GET /admin/rewards/transactions' => 'actions/admin-rewards-transactions.php',
 ];

@@ -2,28 +2,68 @@
 
 $depositAdminPage = isset($depositAdminPage) ? (string) $depositAdminPage : 'balances';
 $adminPageTitle = '예치금 잔액';
-if ($depositAdminPage === 'adjust') {
-    $adminPageTitle = '예치금 조정';
-} elseif ($depositAdminPage === 'transactions') {
+if ($depositAdminPage === 'transactions') {
     $adminPageTitle = '예치금 거래 내역';
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
+$depositReferenceTypeOptions = [
+    '' => '없음',
+    'order' => '주문',
+    'payment' => '결제',
+    'refund' => '환불',
+    'support_ticket' => '고객문의',
+    'event' => '이벤트',
+    'migration' => '데이터 이관',
+];
+$depositAdjustModalAccounts = [];
+if ($depositAdminPage === 'balances') {
+    $depositAdjustModalSeen = [];
+    $depositAdjustModalAccounts[] = [
+        'id' => 0,
+        'account_public_hash' => '',
+        'display_name' => '',
+        'email' => '',
+        'balance' => 0,
+    ];
+    if (isset($selectedAccount) && is_array($selectedAccount)) {
+        $depositSelectedHash = (string) ($selectedAccount['account_public_hash'] ?? '');
+        if ($depositSelectedHash !== '') {
+            $depositAdjustModalAccounts[] = [
+                'id' => (int) ($selectedAccount['id'] ?? 0),
+                'account_public_hash' => $depositSelectedHash,
+                'display_name' => (string) ($selectedAccount['display_name'] ?? ''),
+                'email' => (string) ($selectedAccount['email'] ?? ''),
+                'balance' => (int) ($selectedBalance ?? 0),
+            ];
+            $depositAdjustModalSeen[$depositSelectedHash] = true;
+        }
+    }
+    if (isset($balances) && is_array($balances)) {
+        foreach ($balances as $depositBalanceModalAccount) {
+            if (!is_array($depositBalanceModalAccount)) {
+                continue;
+            }
+            $depositBalanceHash = (string) ($depositBalanceModalAccount['account_public_hash'] ?? '');
+            if ($depositBalanceHash === '' || isset($depositAdjustModalSeen[$depositBalanceHash])) {
+                continue;
+            }
+            $depositAdjustModalAccounts[] = [
+                'id' => (int) ($depositBalanceModalAccount['account_id'] ?? 0),
+                'account_public_hash' => $depositBalanceHash,
+                'display_name' => (string) ($depositBalanceModalAccount['display_name'] ?? ''),
+                'email' => (string) ($depositBalanceModalAccount['email'] ?? ''),
+                'balance' => (int) ($depositBalanceModalAccount['balance'] ?? 0),
+            ];
+            $depositAdjustModalSeen[$depositBalanceHash] = true;
+        }
+    }
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
-
-<form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : ($depositAdminPage === 'adjust' ? '/admin/deposits/adjust' : '/admin/deposits/balances'))); ?>" class="admin-filter admin-asset-member-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url($depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : '/admin/deposits/balances')); ?>" class="admin-filter admin-asset-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-member-search-grid">
         <div class="admin-filter-field">
             <label for="deposit-member-search-field" class="admin-filter-label">검색 조건</label>
@@ -47,7 +87,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
             <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">잔액 보기</a>
-            <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">조정하기</a>
             <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역 보기</a>
         </div>
         <div class="admin-summary-stats">
@@ -60,80 +99,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <p class="admin-empty-state">회원을 찾을 수 없습니다.</p>
 <?php } ?>
 
-<?php if ($depositAdminPage === 'adjust') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/adjust' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
-            <h2>예치금 조정</h2>
-            <?php echo sr_csrf_field(); ?>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_account_identifier">회원 공개 해시</label>
-                <div class="admin-form-field">
-                    <input id="deposit_admin_deposits_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_transaction_type">거래 유형</label>
-                <div class="admin-form-field">
-                    <select id="deposit_admin_deposits_transaction_type" name="transaction_type" class="form-select">
-                                            <?php foreach ($allowedTransactionTypes as $type) { ?>
-                                                <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_amount">금액</label>
-                <div class="admin-form-field">
-                    <input id="deposit_admin_deposits_amount" type="number" name="amount" step="1" required class="form-input">
-                    <br>
-                                    예치/환불은 양수, 사용/출금은 음수, 조정은 양수 또는 음수로 입력합니다.
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_reason">사유</label>
-                <div class="admin-form-field">
-                    <input id="deposit_admin_deposits_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_reference_type">참조 유형</label>
-                <div class="admin-form-field">
-                    <input id="deposit_admin_deposits_reference_type" type="text" name="reference_type" maxlength="60" class="form-input">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="deposit_admin_deposits_reference_id">참조 ID</label>
-                <div class="admin-form-field">
-                    <input id="deposit_admin_deposits_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/deposits/balances' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="btn btn-solid-light">잔액</a>
-            <button type="submit" class="btn btn-solid-primary">저장</button>
-        </div>
-    </form>
-<?php } elseif ($depositAdminPage === 'transactions') { ?>
+<?php if ($depositAdminPage === 'transactions') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title">최근 거래</h2></div>
-        <?php if ($transactions === []) { ?>
-            <p>예치금 거래가 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>ID</th>
+                    <th>회원</th>
+                    <th>유형</th>
+                    <th>금액</th>
+                    <th>거래 후 잔액</th>
+                    <th>사유</th>
+                    <th>참조</th>
+                    <th>생성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($transactions === []) { ?>
                     <tr>
-                        <th>ID</th>
-                        <th>회원</th>
-                        <th>유형</th>
-                        <th>금액</th>
-                        <th>거래 후 잔액</th>
-                        <th>사유</th>
-                        <th>참조</th>
-                        <th>생성일</th>
+                        <td colspan="8" class="admin-empty-state">예치금 거래가 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $transaction['id']); ?></td>
@@ -150,30 +138,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header"><h2 class="card-title">최근 잔액</h2></div>
-        <?php if ($balances === []) { ?>
-            <p>예치금 잔액이 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+        <div class="card-header">
+            <h2 class="card-title">최근 잔액</h2>
+            <?php $depositHeaderAdjustModalId = is_array($selectedAccount) ? 'deposit-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'deposit-adjust-modal-0'; ?>
+            <?php $depositHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/deposits/balances'; ?>
+            <a href="<?php echo sr_e(sr_url($depositHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositHeaderAdjustModalId); ?>">조정하기</a>
+        </div>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>회원 공개 해시</th>
+                    <th>회원</th>
+                    <th>상태</th>
+                    <th>잔액</th>
+                    <th>수정일</th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($balances === []) { ?>
                     <tr>
-                        <th>회원 공개 해시</th>
-                        <th>회원</th>
-                        <th>상태</th>
-                        <th>잔액</th>
-                        <th>수정일</th>
-                        <th class="text-end">관리</th>
+                        <td colspan="6" class="admin-empty-state">예치금 잔액이 없습니다.</td>
                     </tr>
-                </thead>
-                <tbody>
+                <?php } else { ?>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
                             <td><?php echo sr_e((string) $balance['account_public_hash']); ?></td>
@@ -184,16 +179,99 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역</a>
-                                    <a href="<?php echo sr_e(sr_url('/admin/deposits/adjust?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">조정</a>
+                                    <?php $depositBalanceAdjustModalId = 'deposit-adjust-modal-' . (int) ($balance['account_id'] ?? 0); ?>
+                                    <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositBalanceAdjustModalId); ?>">조정</a>
                                 </div>
                             </td>
                         </tr>
                     <?php } ?>
-                </tbody>
-            </table>
-            </div>
-        <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
     </section>
+<?php } ?>
+
+<?php if ($depositAdminPage === 'balances' && $depositAdjustModalAccounts !== []) { ?>
+    <?php foreach ($depositAdjustModalAccounts as $depositAdjustModalAccount) { ?>
+        <?php
+        $depositAdjustModalId = 'deposit-adjust-modal-' . (int) $depositAdjustModalAccount['id'];
+        $depositAdjustFieldPrefix = 'deposit_adjust_' . (int) $depositAdjustModalAccount['id'];
+        ?>
+        <div id="<?php echo sr_e($depositAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($depositAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/balances' . ((string) $depositAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $depositAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_title" class="modal-title">예치금 조정</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>">
+                            <?php echo sr_material_icon_html('close'); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <?php if ((string) $depositAdjustModalAccount['account_public_hash'] !== '') { ?>
+                            <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $depositAdjustModalAccount['account_public_hash']); ?>">
+                            <div class="admin-summary-stats">
+                                <span class="admin-summary-meta">회원 <strong><?php echo sr_e((string) $depositAdjustModalAccount['display_name']); ?></strong></span>
+                                <span class="admin-summary-meta"><?php echo sr_e((string) $depositAdjustModalAccount['email']); ?></span>
+                                <span class="admin-summary-meta">현재 잔액 <strong><?php echo sr_e(number_format((int) $depositAdjustModalAccount['balance'])); ?> 원</strong></span>
+                            </div>
+                        <?php } else { ?>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_account_identifier">회원 공개 해시</label>
+                                <div class="admin-form-field">
+                                    <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
+                                </div>
+                            </div>
+                        <?php } ?>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_transaction_type">거래 유형</label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
+                                    <?php foreach ($allowedTransactionTypes as $type) { ?>
+                                        <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_amount">금액</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
+                                <p class="admin-form-help">예치/환불은 양수, 사용/출금은 음수, 조정은 양수 또는 음수로 입력합니다.</p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reason">사유</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reference_type">참조 유형</label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reference_type" name="reference_type" class="form-select">
+                                    <?php foreach ($depositReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
+                                        <option value="<?php echo sr_e($referenceTypeValue); ?>"><?php echo sr_e($referenceTypeLabel); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reference_id">참조 ID</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>">닫기</button>
+                        <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

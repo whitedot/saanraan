@@ -418,24 +418,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
             </div>
         </form>
-        <?php if ($pages === []) { ?>
-            <p>등록된 페이지가 없습니다.</p>
-        <?php } else { ?>
-            <div class="table-wrapper">
-                <table class="table">
-                    <thead class="ui-table-head">
+        <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
+                    <tr>
+                        <th>제목</th>
+                        <th>Slug</th>
+                        <th>상태</th>
+                        <th>유료 열람</th>
+                        <th>작성자</th>
+                        <th>수정일</th>
+                        <th>공개일</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($pages === []) { ?>
                         <tr>
-                            <th>제목</th>
-                            <th>Slug</th>
-                            <th>상태</th>
-                            <th>유료 열람</th>
-                            <th>작성자</th>
-                            <th>수정일</th>
-                            <th>공개일</th>
-                            <th>관리</th>
+                            <td colspan="8" class="admin-empty-state">등록된 페이지가 없습니다.</td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
                             <tr>
                                 <td><?php echo sr_e((string) $page['title']); ?></td>
@@ -470,10 +472,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </td>
                             </tr>
                         <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
     </section>
 <?php } ?>
 
