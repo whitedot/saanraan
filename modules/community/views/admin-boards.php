@@ -2,11 +2,20 @@
 
 $communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPage : 'list';
 $adminPageTitle = '커뮤니티 게시판';
+$adminPageSubtitle = '게시판 상태와 그룹을 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminContainerClass = 'admin-page-community-board-list admin-ui-scope';
 if ($communityBoardsPage === 'new') {
     $adminPageTitle = '게시판 생성';
+    $adminPageSubtitle = '커뮤니티에서 사용할 게시판과 접근 정책을 생성합니다.';
+    $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 } elseif ($communityBoardsPage === 'edit') {
     $adminPageTitle = '게시판 수정';
+    $adminPageSubtitle = '게시판 기본 정보와 접근, 표시, 자산 정책을 수정합니다.';
+    $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 }
+$boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => '', 'group_id' => 0, 'field' => 'all', 'q' => ''];
+$boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ? $boardStatusCounts : [];
+$totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 
 $sourceLabels = [
     'board' => '개별 설정',
@@ -102,21 +111,68 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communityBoardsPage === 'list') { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총게시판 <strong><?php echo sr_e((string) $totalBoards); ?>개</strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($boardStatusCounts['enabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=disabled')); ?>" class="admin-summary-meta">중지 <?php echo sr_e((string) ($boardStatusCounts['disabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=archived')); ?>" class="admin-summary-meta">보관 <?php echo sr_e((string) ($boardStatusCounts['archived'] ?? 0)); ?>개</a>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-filter admin-community-board-filter ui-form-theme">
+        <div class="admin-filter-grid admin-community-board-search-grid">
+            <div class="admin-filter-field admin-community-board-filter-status">
+                <label for="community_admin_boards_status_filter" class="admin-filter-label">상태</label>
+                <select id="community_admin_boards_status_filter" name="status" class="form-select admin-filter-input">
+                    <option value=""<?php echo (string) ($boardListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($boardListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-community-board-filter-group">
+                <label for="community_admin_boards_group_filter" class="admin-filter-label">게시판 그룹</label>
+                <select id="community_admin_boards_group_filter" name="group_id" class="form-select admin-filter-input">
+                    <option value="0"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($boardGroups as $boardGroup) { ?>
+                        <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === (int) $boardGroup['id'] ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $boardGroup['title']); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-community-board-filter-field">
+                <label for="community_admin_boards_field" class="admin-filter-label">검색 조건</label>
+                <select id="community_admin_boards_field" name="field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'key' => 'key', 'title' => '이름', 'group' => '그룹'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($boardListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-community-board-filter-keyword">
+                <label for="community_admin_boards_q" class="admin-filter-label">검색어</label>
+                <input id="community_admin_boards_q" type="search" name="q" value="<?php echo sr_e((string) ($boardListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="key, 이름, 그룹">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">게시판 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-solid-light">새 게시판 추가</a>
         </div>
-        <?php if ((int) ($boardGroupFilterId ?? 0) > 0) { ?>
-            <div class="admin-filter">
-                <div class="admin-filter-header">
-                    <strong><?php echo sr_e((string) ($boardGroupTitles[(int) $boardGroupFilterId] ?? '선택한 그룹')); ?> 그룹에 속한 게시판만 표시 중</strong>
-                    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-sm btn-solid-light">전체 보기</a>
-                </div>
-            </div>
-        <?php } ?>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-community-board-table">
+            <caption class="sr-only">커뮤니티 게시판 목록</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
@@ -135,13 +191,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
+                    <?php
+                    $boardStatus = (string) $board['status'];
+                    $statusClass = match ($boardStatus) {
+                        'enabled' => 'is-normal',
+                        'disabled' => 'is-blocked',
+                        default => 'is-left',
+                    };
+                    ?>
                     <tr>
-                        <td><?php echo sr_e((string) $board['id']); ?></td>
-                        <td><?php echo sr_e((string) $board['board_key']); ?></td>
-                        <td><?php echo sr_e((string) $board['title']); ?></td>
-                        <td><?php echo sr_e((string) ($board['board_group_title'] ?? '')); ?></td>
-                        <td><?php echo sr_e(sr_admin_code_label((string) $board['status'], 'content_status')); ?></td>
-                        <td>
+                        <td class="admin-table-nowrap community-id"><?php echo sr_e((string) $board['id']); ?></td>
+                        <td class="admin-table-nowrap admin-community-board-key-cell"><?php echo sr_e((string) $board['board_key']); ?></td>
+                        <td class="admin-table-break admin-community-board-title-cell"><?php echo sr_e((string) $board['title']); ?></td>
+                        <td class="admin-table-break admin-community-board-group-cell"><?php echo sr_e((string) ($board['board_group_title'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="update_skin">

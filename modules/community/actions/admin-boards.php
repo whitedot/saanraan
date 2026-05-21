@@ -71,15 +71,25 @@ foreach ($memberGroups as $memberGroup) {
 
 $boardGroups = sr_community_board_groups($pdo);
 $boardGroupIds = [];
-$boardGroupTitles = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupIds[(int) $boardGroup['id']] = true;
-    $boardGroupTitles[(int) $boardGroup['id']] = (string) $boardGroup['title'];
 }
 $boardGroupFilterValue = sr_get_string('group_id', 20);
 $boardGroupFilterId = preg_match('/\A[1-9][0-9]*\z/', $boardGroupFilterValue) === 1 ? (int) $boardGroupFilterValue : 0;
 if ($boardGroupFilterId > 0 && !isset($boardGroupIds[$boardGroupFilterId])) {
     $boardGroupFilterId = 0;
+}
+$boardListFilters = [
+    'status' => sr_get_string('status', 30),
+    'group_id' => $boardGroupFilterId,
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if ($boardListFilters['status'] !== '' && !in_array($boardListFilters['status'], $allowedStatuses, true)) {
+    $boardListFilters['status'] = '';
+}
+if (!in_array($boardListFilters['field'], ['all', 'key', 'title', 'group'], true)) {
+    $boardListFilters['field'] = 'all';
 }
 
 if (sr_request_method() === 'POST') {
@@ -585,9 +595,57 @@ foreach ($boards as &$board) {
 }
 unset($board);
 
-if ($communityBoardsPage === 'list' && $boardGroupFilterId > 0) {
-    $boards = array_values(array_filter($boards, static function (array $board) use ($boardGroupFilterId): bool {
-        return (int) ($board['board_group_id'] ?? 0) === $boardGroupFilterId;
+$boardStatusCounts = ['total' => 0];
+foreach ($allowedStatuses as $status) {
+    $boardStatusCounts[$status] = 0;
+}
+foreach ($boards as $board) {
+    $status = (string) ($board['status'] ?? '');
+    if (array_key_exists($status, $boardStatusCounts)) {
+        $boardStatusCounts[$status]++;
+    }
+    $boardStatusCounts['total']++;
+}
+
+if ($communityBoardsPage === 'list') {
+    $boards = array_values(array_filter($boards, static function (array $board) use ($boardListFilters): bool {
+        if ((string) $boardListFilters['status'] !== '' && (string) ($board['status'] ?? '') !== (string) $boardListFilters['status']) {
+            return false;
+        }
+
+        if ((int) $boardListFilters['group_id'] > 0 && (int) ($board['board_group_id'] ?? 0) !== (int) $boardListFilters['group_id']) {
+            return false;
+        }
+
+        $keyword = trim((string) $boardListFilters['q']);
+        if ($keyword === '') {
+            return true;
+        }
+
+        $field = (string) $boardListFilters['field'];
+        $haystacks = [];
+        if ($field === 'key') {
+            $haystacks[] = (string) ($board['board_key'] ?? '');
+        } elseif ($field === 'title') {
+            $haystacks[] = (string) ($board['title'] ?? '');
+        } elseif ($field === 'group') {
+            $haystacks[] = (string) ($board['board_group_title'] ?? '');
+            $haystacks[] = (string) ($board['board_group_key'] ?? '');
+        } else {
+            $haystacks[] = (string) ($board['board_key'] ?? '');
+            $haystacks[] = (string) ($board['title'] ?? '');
+            $haystacks[] = (string) ($board['description'] ?? '');
+            $haystacks[] = (string) ($board['board_group_title'] ?? '');
+            $haystacks[] = (string) ($board['board_group_key'] ?? '');
+        }
+
+        foreach ($haystacks as $haystack) {
+            if ($haystack !== '' && stripos($haystack, $keyword) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }));
 }
 

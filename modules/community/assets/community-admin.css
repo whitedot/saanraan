@@ -32,6 +32,17 @@
 .community-number.is-muted,.community-date{white-space:nowrap;color:var(--admin-muted-text)}
 .community-table-card .admin-row-actions{justify-content:flex-end;align-items:center;gap:calc(var(--spacing) * 1.5);white-space:nowrap;flex-wrap:nowrap;display:flex}
 .community-table-card .admin-row-actions .btn{flex:none}
+.admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,14rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
+.admin-page-community-board-list .admin-community-board-filter .admin-filter-field{min-width:0}
+.admin-page-community-board-list .admin-community-board-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-page-community-board-list .admin-community-board-table{table-layout:fixed;min-width:68rem}
+.admin-page-community-board-list .admin-community-board-table th,.admin-page-community-board-list .admin-community-board-table td{overflow:hidden;text-overflow:ellipsis}
+.admin-page-community-board-list .admin-community-board-table .admin-table-actions-cell{min-width:10rem;overflow:visible}
+.admin-page-community-board-list .admin-community-board-key-cell,.admin-page-community-board-list .admin-community-board-title-cell,.admin-page-community-board-list .admin-community-board-group-cell{overflow:hidden;text-overflow:ellipsis}
+.admin-page-community-board-list .admin-community-board-key-cell{white-space:nowrap}
+.admin-page-community-board-list .admin-community-board-table .admin-row-actions{gap:.5rem}
+.admin-page-community-board-list .admin-community-board-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
+.admin-page-community-board-list .admin-community-board-table td form .form-select{min-width:8rem}
 .community-point-adjust-form{margin-bottom:calc(var(--spacing) * 5)}
 .community-point-adjust-actions{margin-bottom:calc(var(--spacing) * 5);justify-content:flex-end}
 .admin-list-actions.community-bulk-actions{justify-content:flex-start;gap:calc(var(--spacing) * 2)}
@@ -64,3 +75,5 @@
 .community-dashboard-side strong{color:var(--color-warning);display:block;font-size:var(--text-2xl);line-height:1;margin-top:calc(var(--spacing) * 2)}
 .community-dashboard-links{display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);grid-column:1 / -1}
 @media (max-width:767px){.community-dashboard-summary{grid-template-columns:1fr}}
+@media (max-width:1023px){.admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-community-board-list .admin-community-board-filter-keyword,.admin-page-community-board-list .admin-community-board-filter .admin-filter-submit{grid-column:1 / -1}.admin-page-community-board-list .admin-community-board-filter .admin-filter-submit{width:100%}}
+@media (max-width:767px){.admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:1fr}.admin-page-community-board-list .admin-community-board-filter-keyword,.admin-page-community-board-list .admin-community-board-filter .admin-filter-submit{grid-column:auto}}
