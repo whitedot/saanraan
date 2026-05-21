@@ -124,6 +124,87 @@ function sr_member_groups(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
+function sr_admin_member_group_list_filter(array $allowedStatuses): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
+        $status = '';
+    }
+
+    $field = sr_get_string('field', 30);
+    if (!in_array($field, ['all', 'key', 'title', 'description'], true)) {
+        $field = 'all';
+    }
+
+    return [
+        'status' => $status,
+        'field' => $field,
+        'keyword' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_admin_member_group_status_counts(array $groups): array
+{
+    $counts = [
+        'total' => 0,
+        'enabled' => 0,
+        'disabled' => 0,
+        'archived' => 0,
+    ];
+
+    foreach ($groups as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $status = (string) ($group['status'] ?? '');
+        if (array_key_exists($status, $counts)) {
+            $counts[$status]++;
+        }
+        $counts['total']++;
+    }
+
+    return $counts;
+}
+
+function sr_admin_member_group_filter_rows(array $groups, array $filter): array
+{
+    $status = (string) ($filter['status'] ?? '');
+    $field = (string) ($filter['field'] ?? 'all');
+    $keyword = trim((string) ($filter['keyword'] ?? ''));
+    $keyword = function_exists('mb_strtolower') ? mb_strtolower($keyword, 'UTF-8') : strtolower($keyword);
+
+    return array_values(array_filter($groups, static function (array $group) use ($status, $field, $keyword): bool {
+        if ($status !== '' && (string) ($group['status'] ?? '') !== $status) {
+            return false;
+        }
+
+        if ($keyword === '') {
+            return true;
+        }
+
+        $values = [];
+        if ($field === 'key' || $field === 'all') {
+            $values[] = (string) ($group['group_key'] ?? '');
+        }
+        if ($field === 'title' || $field === 'all') {
+            $values[] = (string) ($group['title'] ?? '');
+        }
+        if ($field === 'description' || $field === 'all') {
+            $values[] = (string) ($group['description'] ?? '');
+        }
+
+        foreach ($values as $value) {
+            $normalizedValue = function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
+            if (str_contains($normalizedValue, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }));
+}
+
 function sr_member_group_by_id(PDO $pdo, int $groupId): ?array
 {
     if ($groupId < 1 || !sr_member_groups_table_exists($pdo)) {

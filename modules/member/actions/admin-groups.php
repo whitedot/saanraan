@@ -314,7 +314,12 @@ if ($editRuleIdValue !== '' && preg_match('/\A[1-9][0-9]*\z/', $editRuleIdValue)
 
 $editGroup = $editGroupId > 0 ? sr_member_group_by_id($pdo, $editGroupId) : null;
 $editRule = $editRuleId > 0 ? sr_member_group_rule_by_id($pdo, $editRuleId) : null;
-$groups = sr_member_groups($pdo);
+$groupListFilter = sr_admin_member_group_list_filter($allowedStatuses);
+$allGroups = sr_member_groups($pdo);
+$groupStatusCounts = sr_admin_member_group_status_counts($allGroups);
+$groups = $memberGroupsPage === 'groups'
+    ? sr_admin_member_group_filter_rows($allGroups, $groupListFilter)
+    : $allGroups;
 $groupRules = sr_member_group_rules($pdo);
 $memberships = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, 100));
 $membershipLogs = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, 50));

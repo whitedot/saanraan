@@ -1,6 +1,7 @@
 <?php
 
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
+$adminContainerClass = 'admin-page-member-groups admin-ui-scope';
 $adminPageTitle = '회원 그룹';
 if ($memberGroupsPage === 'group_form') {
     $adminPageTitle = is_array($editGroup) ? '회원 그룹 수정' : '회원 그룹 생성';
@@ -15,6 +16,9 @@ if ($memberGroupsPage === 'group_form') {
 }
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
+$groupListFilter = isset($groupListFilter) && is_array($groupListFilter) ? $groupListFilter : ['status' => '', 'field' => 'all', 'keyword' => ''];
+$groupStatusCounts = isset($groupStatusCounts) && is_array($groupStatusCounts) ? $groupStatusCounts : [];
+$totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -38,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
 
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_title">이름</label>
+                <label class="form-label" for="member_admin_groups_title">그룹명</label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input" required>
                 </div>
@@ -75,18 +79,62 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
+    <div class="admin-local-nav-wrap">
+        <div class="admin-local-nav">
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-soft-default">전체 보기</a>
+        </div>
+        <div class="admin-summary-stats">
+            <span class="admin-summary-meta">총그룹 <strong><?php echo sr_e((string) $totalGroups); ?>개</strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($groupStatusCounts['enabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=disabled')); ?>" class="admin-summary-meta">미사용 <?php echo sr_e((string) ($groupStatusCounts['disabled'] ?? 0)); ?>개</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=archived')); ?>" class="admin-summary-meta">보관 <?php echo sr_e((string) ($groupStatusCounts['archived'] ?? 0)); ?>개</a>
+        </div>
+    </div>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter admin-member-group-filter ui-form-theme">
+        <div class="admin-filter-grid admin-member-group-search-grid">
+            <div class="admin-filter-field">
+                <label for="member-group-status-filter" class="admin-filter-label">상태</label>
+                <select name="status" id="member-group-status-filter" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach ($allowedStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($groupListFilter['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field">
+                <label for="member-group-search-field" class="admin-filter-label">검색 조건</label>
+                <select name="field" id="member-group-search-field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'key' => '그룹 key', 'title' => '그룹명', 'description' => '설명'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e($fieldLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-member-group-filter-keyword">
+                <label for="member-group-search-keyword" class="admin-filter-label">검색어</label>
+                <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="그룹 key, 그룹명, 설명">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">그룹 목록</h2>
             <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-soft-default">새 그룹 추가</a>
         </div>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-member-group-table">
+            <caption class="sr-only">회원 그룹 목록</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
-                    <th>이름</th>
+                    <th>그룹명</th>
                     <th>상태</th>
                     <th>회원 수</th>
                     <th>정렬</th>
@@ -100,13 +148,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </tr>
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
+                    <?php
+                    $groupStatus = (string) $group['status'];
+                    $statusClass = match ($groupStatus) {
+                        'enabled' => 'is-normal',
+                        'disabled' => 'is-blocked',
+                        default => 'is-left',
+                    };
+                    ?>
                     <tr>
                         <td><?php echo sr_e((string) $group['id']); ?></td>
-                        <td><?php echo sr_e((string) $group['group_key']); ?></td>
-                        <td><?php echo sr_e((string) $group['title']); ?></td>
-                        <td><?php echo sr_e(sr_admin_code_label((string) $group['status'], 'content_status')); ?></td>
-                        <td><?php echo sr_e((string) $group['active_member_count']); ?></td>
-                        <td><?php echo sr_e((string) $group['sort_order']); ?></td>
+                        <td class="admin-table-nowrap admin-member-group-key-cell"><?php echo sr_e((string) $group['group_key']); ?></td>
+                        <td class="admin-member-group-title-cell"><?php echo sr_e((string) $group['title']); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['active_member_count']); ?></td>
+                        <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
