@@ -15,6 +15,9 @@ $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
 $totalDeliveries = (int) ($deliveryStatusCounts['total'] ?? count($deliveries ?? []));
 $notificationCreateModalId = 'notification-create-modal';
+$notificationCreateAccountInputId = 'notification_admin_notifications_account_identifier';
+$notificationCreateMemberLookupPrefix = 'notification_create';
+$notificationCreateMemberLookupModalId = $notificationCreateMemberLookupPrefix . '_member_lookup_modal';
 $notificationCreateModalOpen = !empty($notificationCreateModalOpen);
 $notificationCreateValues = isset($notificationCreateValues) && is_array($notificationCreateValues) ? $notificationCreateValues : [
     'audience' => (string) ($allowedAudiences[0] ?? 'account'),
@@ -287,9 +290,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_account_identifier">회원 공개 해시</label>
+                        <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>">회원 공개 해시</label>
                         <div class="admin-form-field">
-                            <input id="notification_admin_notifications_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input">
+                            <div class="admin-lookup-control">
+                                <input id="<?php echo sr_e($notificationCreateAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input">
+                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($notificationCreateAccountInputId); ?>">회원 검색</button>
+                            </div>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -339,6 +345,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
+    <?php
+    $assetAdjustLookup = [
+        'field_prefix' => $notificationCreateMemberLookupPrefix,
+        'member_input_id' => $notificationCreateAccountInputId,
+        'return_overlay_id' => $notificationCreateModalId,
+        'return_label' => '알림 등록으로 돌아가기',
+        'member_search_url' => sr_url('/admin/members/search'),
+    ];
+    include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+    ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -6,6 +6,10 @@ $assetAdjustMemberInputId = (string) ($assetAdjustLookup['member_input_id'] ?? '
 $assetAdjustReferenceTypeId = (string) ($assetAdjustLookup['reference_type_id'] ?? '');
 $assetAdjustReferenceIdId = (string) ($assetAdjustLookup['reference_id_id'] ?? '');
 $assetAdjustReturnOverlayId = (string) ($assetAdjustLookup['return_overlay_id'] ?? '');
+$assetAdjustReturnLabel = trim((string) ($assetAdjustLookup['return_label'] ?? ''));
+if ($assetAdjustReturnLabel === '') {
+    $assetAdjustReturnLabel = '조정 모달로 돌아가기';
+}
 $assetAdjustMemberSearchUrl = (string) ($assetAdjustLookup['member_search_url'] ?? sr_url('/admin/members/search'));
 $assetAdjustReferenceSearchUrl = (string) ($assetAdjustLookup['reference_search_url'] ?? '');
 $assetAdjustReferenceOptions = $assetAdjustLookup['reference_options'] ?? [];
@@ -45,7 +49,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                 </div>
                 <div class="modal-footer">
                     <?php if ($assetAdjustReturnOverlayId !== '') { ?>
-                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">조정 모달로 돌아가기</button>
+                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>"><?php echo sr_e($assetAdjustReturnLabel); ?></button>
                     <?php } ?>
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetAdjustMemberModalId); ?>">닫기</button>
                 </div>
@@ -80,7 +84,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
                 </div>
                 <div class="modal-footer">
                     <?php if ($assetAdjustReturnOverlayId !== '') { ?>
-                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">조정 모달로 돌아가기</button>
+                        <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>"><?php echo sr_e($assetAdjustReturnLabel); ?></button>
                     <?php } ?>
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetAdjustReferenceModalId); ?>">닫기</button>
                 </div>
