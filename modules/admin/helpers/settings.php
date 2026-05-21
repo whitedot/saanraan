@@ -445,6 +445,7 @@ function sr_admin_site_setting_values(?array $site): array
         'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
         'status' => (string) ($site['status'] ?? 'active'),
         'public_layout_key' => sr_public_layout_key($site),
+        'home_path' => (string) ($site['home_path'] ?? '/'),
         'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
@@ -459,6 +460,7 @@ function sr_admin_previous_site_setting_values(?array $site): array
         'supported_locales' => (string) ($site['supported_locales'] ?? ''),
         'status' => (string) ($site['status'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site),
+        'home_path' => (string) ($site['home_path'] ?? ''),
         'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
@@ -473,6 +475,7 @@ function sr_admin_post_site_setting_values(?array $site): array
         'supported_locales' => sr_admin_post_supported_locales(),
         'status' => sr_post_string('status', 30),
         'public_layout_key' => sr_post_string('public_layout_key', 60),
+        'home_path' => sr_post_string('home_path', 255),
         'ui_color_scheme' => sr_post_string('ui_color_scheme', 20),
     ];
 }
@@ -571,6 +574,11 @@ function sr_admin_handle_settings_post(
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
 
+        $homepageCandidates = sr_admin_homepage_candidate_options($pdo, (string) ($values['home_path'] ?? '/'));
+        if (!isset($homepageCandidates[$values['home_path']]) || empty($homepageCandidates[$values['home_path']]['available'])) {
+            $errors[] = '초기화면 후보가 올바르지 않거나 현재 사용할 수 없습니다.';
+        }
+
         if (!isset(sr_color_scheme_options()[$values['ui_color_scheme']])) {
             $errors[] = 'UI 색상 모드 값이 올바르지 않습니다.';
         }
@@ -586,6 +594,7 @@ function sr_admin_handle_settings_post(
                 'site.supported_locales' => ['value' => $values['supported_locales'], 'type' => 'string'],
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
+                'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
                 'ui_color_scheme' => ['value' => $values['ui_color_scheme'], 'type' => 'string'],
             ]);
 

@@ -72,4 +72,8 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
 }
 
+$localeOptions = sr_available_locale_options($site ?? null);
+$homepageCandidates = sr_admin_homepage_candidate_options($pdo, (string) ($values['home_path'] ?? '/'));
+$currentHomepageAvailable = sr_site_home_path_is_available($pdo, (string) ($values['home_path'] ?? '/'));
+
 include SR_ROOT . '/modules/admin/views/settings.php';
