@@ -3,10 +3,7 @@
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
 $adminPageTitle = '알림';
 $adminContainerClass = 'admin-page-notification-list admin-ui-scope';
-if ($notificationAdminPage === 'new') {
-    $adminPageTitle = '알림 등록';
-    $adminContainerClass = 'admin-page-notification-form admin-ui-scope';
-} elseif ($notificationAdminPage === 'deliveries') {
+if ($notificationAdminPage === 'deliveries') {
     $adminPageTitle = '알림 발송 대기열';
     $adminContainerClass = 'admin-page-notification-delivery-list admin-ui-scope';
 }
@@ -15,86 +12,24 @@ $deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilt
 $notificationStatusCounts = isset($notificationStatusCounts) && is_array($notificationStatusCounts) ? $notificationStatusCounts : [];
 $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($allowedNotificationStatuses) ? $allowedNotificationStatuses : [];
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
+$notificationCreateModalId = 'notification-create-modal';
+$notificationCreateModalOpen = !empty($notificationCreateModalOpen);
+$notificationCreateValues = isset($notificationCreateValues) && is_array($notificationCreateValues) ? $notificationCreateValues : [
+    'audience' => (string) ($allowedAudiences[0] ?? 'account'),
+    'account_identifier' => '',
+    'title' => '',
+    'body_text' => '',
+    'link_url' => '',
+    'recipient' => '',
+    'channels' => ['site'],
+];
+$notificationCreateChannels = is_array($notificationCreateValues['channels'] ?? null) ? $notificationCreateValues['channels'] : ['site'];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">알림 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-solid-light">알림 등록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light">발송 대기열</a>
-    </div>
-</div>
-
-<?php if ($notificationAdminPage === 'new') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
-            <h2>알림 등록</h2>
-            <?php echo sr_csrf_field(); ?>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_audience">대상</label>
-                <div class="admin-form-field">
-                    <select id="notification_admin_notifications_audience" name="audience" class="form-select">
-                                            <?php foreach ($allowedAudiences as $audience) { ?>
-                                                <option value="<?php echo sr_e($audience); ?>"><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_account_identifier">회원 공개 해시</label>
-                <div class="admin-form-field">
-                    <input id="notification_admin_notifications_account_identifier" type="text" name="account_identifier" value="" maxlength="80" class="form-input">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_title">제목</label>
-                <div class="admin-form-field">
-                    <input id="notification_admin_notifications_title" type="text" name="title" value="" maxlength="160" required class="form-input form-control-full">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_body_text">내용</label>
-                <div class="admin-form-field">
-                    <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"></textarea>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_link_url">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</label>
-                <div class="admin-form-field">
-                    <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="" maxlength="255" class="form-input form-control-full">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="notification_admin_notifications_recipient">외부 수신자</label>
-                <div class="admin-form-field">
-                    <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="" maxlength="255" class="form-input form-control-full">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label">채널</span>
-                <div class="admin-form-field">
-                    <div class="admin-check-list">
-                                            <?php foreach ($allowedCreateChannels as $channel) { ?>
-                                                <?php $channelInputId = 'notification_admin_notifications_channel_' . (string) $channel; ?>
-                                                <label class="admin-form-check form-label" for="<?php echo sr_e($channelInputId); ?>">
-                                                    <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo $channel === 'site' ? ' checked' : ''; ?>>
-                                                    <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
-                                                </label>
-                                            <?php } ?>
-                                        </div>
-                                        <small>알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">목록</a>
-            <button type="submit" class="btn btn-solid-primary">알림 등록</button>
-        </div>
-    </form>
-<?php } elseif ($notificationAdminPage === 'deliveries') { ?>
+<?php if ($notificationAdminPage === 'deliveries') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">발송 대기열</h2>
@@ -233,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">알림 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-solid-light">새 알림 등록</a>
+            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">새 알림 등록</button>
         </div>
         <div class="table-wrapper">
         <table class="table admin-notification-table">
@@ -283,6 +218,82 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+
+    <div id="<?php echo sr_e($notificationCreateModalId); ?>" class="modal-overlay modal-overlay-fade overlay<?php echo $notificationCreateModalOpen ? ' overlay-open open' : ' hidden pointer-events-none opacity-0'; ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($notificationCreateModalId); ?>_title" aria-hidden="<?php echo $notificationCreateModalOpen ? 'false' : 'true'; ?>"<?php echo $notificationCreateModalOpen ? '' : ' inert'; ?>>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($notificationCreateModalId); ?>_title" class="modal-title">알림 등록</h3>
+                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="create">
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_audience">대상</label>
+                        <div class="admin-form-field">
+                            <select id="notification_admin_notifications_audience" name="audience" class="form-select" data-overlay-focus>
+                                <?php foreach ($allowedAudiences as $audience) { ?>
+                                    <option value="<?php echo sr_e($audience); ?>"<?php echo (string) ($notificationCreateValues['audience'] ?? '') === $audience ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_account_identifier">회원 공개 해시</label>
+                        <div class="admin-form-field">
+                            <input id="notification_admin_notifications_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_title">제목</label>
+                        <div class="admin-form-field">
+                            <input id="notification_admin_notifications_title" type="text" name="title" value="<?php echo sr_e((string) ($notificationCreateValues['title'] ?? '')); ?>" maxlength="160" required class="form-input form-control-full">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_body_text">내용</label>
+                        <div class="admin-form-field">
+                            <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_link_url">링크 URL</label>
+                        <div class="admin-form-field">
+                            <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="/path 또는 https://example.com">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="notification_admin_notifications_recipient">외부 수신자</label>
+                        <div class="admin-form-field">
+                            <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="<?php echo sr_e((string) ($notificationCreateValues['recipient'] ?? '')); ?>" maxlength="255" class="form-input form-control-full">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label">채널</span>
+                        <div class="admin-form-field">
+                            <div class="admin-check-list">
+                                <?php foreach ($allowedCreateChannels as $channel) { ?>
+                                    <?php $channelInputId = 'notification_admin_notifications_channel_' . (string) $channel; ?>
+                                    <label class="admin-form-check form-label" for="<?php echo sr_e($channelInputId); ?>">
+                                        <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox"<?php echo in_array($channel, $notificationCreateChannels, true) ? ' checked' : ''; ?>>
+                                        <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                            <small class="admin-form-help">알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">닫기</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">알림 등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

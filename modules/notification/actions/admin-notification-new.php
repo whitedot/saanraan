@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
-$notificationAdminPage = 'new';
+$notificationAdminPage = 'list';
+$notificationCreateModalOpen = true;
 
 include SR_ROOT . '/modules/notification/actions/admin-notifications.php';

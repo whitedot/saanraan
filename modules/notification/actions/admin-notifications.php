@@ -17,9 +17,19 @@ $allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
-if (!in_array($notificationAdminPage, ['list', 'new', 'deliveries'], true)) {
+if (!in_array($notificationAdminPage, ['list', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
 }
+$notificationCreateModalOpen = !empty($notificationCreateModalOpen);
+$notificationCreateValues = [
+    'audience' => (string) ($allowedAudiences[0] ?? 'account'),
+    'account_identifier' => '',
+    'title' => '',
+    'body_text' => '',
+    'link_url' => '',
+    'recipient' => '',
+    'channels' => ['site'],
+];
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $notificationListFilters = [
     'audience' => sr_get_string('audience', 30),
@@ -169,6 +179,15 @@ if (sr_request_method() === 'POST') {
         $recipient = sr_notification_clean_single_line(sr_post_string('recipient', 255), 255);
         $postedChannels = $_POST['channels'] ?? [];
         $channels = [];
+        $notificationCreateValues = [
+            'audience' => $audience,
+            'account_identifier' => $accountIdentifier,
+            'title' => $title,
+            'body_text' => $bodyText,
+            'link_url' => $rawLinkUrl,
+            'recipient' => $recipient,
+            'channels' => is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [],
+        ];
 
         if (!in_array($audience, $allowedAudiences, true)) {
             $errors[] = '알림 대상을 선택하세요.';
@@ -234,9 +253,23 @@ if (sr_request_method() === 'POST') {
                 ]);
 
                 $notice = '알림을 등록했습니다. 이메일은 발송 대기열에 쌓입니다.';
+                $notificationCreateModalOpen = false;
+                $notificationCreateValues = [
+                    'audience' => (string) ($allowedAudiences[0] ?? 'account'),
+                    'account_identifier' => '',
+                    'title' => '',
+                    'body_text' => '',
+                    'link_url' => '',
+                    'recipient' => '',
+                    'channels' => ['site'],
+                ];
             } catch (Throwable $exception) {
                 $errors[] = '알림 등록 중 오류가 발생했습니다.';
             }
+        }
+
+        if ($errors !== []) {
+            $notificationCreateModalOpen = true;
         }
     }
 }

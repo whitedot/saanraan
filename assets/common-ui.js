@@ -584,6 +584,19 @@
     return null;
   };
 
+  var setOverlayTriggersExpanded = function setOverlayTriggersExpanded(overlay, expanded) {
+    if (!overlay || !overlay.id) {
+      return;
+    }
+
+    var triggers = document.querySelectorAll('[data-overlay="#' + overlay.id + '"], [data-overlay="' + overlay.id + '"]');
+    for (var i = 0; i < triggers.length; i += 1) {
+      if (triggers[i].hasAttribute('aria-expanded')) {
+        triggers[i].setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      }
+    }
+  };
+
   var restoreFocus = function restoreFocus(overlay) {
     if (!overlay) {
       return false;
@@ -711,6 +724,7 @@
     });
 
     attachBackdropHandler(overlay);
+    setOverlayTriggersExpanded(overlay, true);
     overlayStack.push(overlay);
     lockBodyScroll();
   };
@@ -759,6 +773,7 @@
     setTimeout(finalize, 400);
 
     detachBackdropHandler(overlay);
+    setOverlayTriggersExpanded(overlay, false);
 
     var index = overlayStack.lastIndexOf(overlay);
     if (index > -1) {
@@ -801,7 +816,6 @@
 
     if (isSameOverlay && overlayIsActive) {
       hideOverlay(overlay);
-      trigger.setAttribute('aria-expanded', 'false');
       return;
     }
 
@@ -811,7 +825,6 @@
 
     if (overlayIsActive) {
       hideOverlay(overlay);
-      trigger.setAttribute('aria-expanded', 'false');
       return;
     }
 
@@ -819,11 +832,29 @@
     overlay._overlayPreviousActive = isValidFocusTarget(previouslyFocused, overlay) ? previouslyFocused : fallbackTarget;
 
     showOverlay(overlay);
-    trigger.setAttribute('aria-expanded', 'true');
     requestAnimationFrame(function () {
       focusOverlay(overlay);
     });
   };
+
+  document.querySelectorAll('.overlay.' + ACTIVE_CLASS + ', .overlay.' + OPEN_CLASS).forEach(function (overlay) {
+    overlay.removeAttribute('inert');
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove(HIDDEN_CLASS);
+    overlay.classList.remove(DISABLED_CLASS);
+    overlay.classList.remove(FADE_CLASS);
+    overlay.classList.add(ACTIVE_CLASS);
+    overlay.classList.add(OPEN_CLASS);
+    attachBackdropHandler(overlay);
+    setOverlayTriggersExpanded(overlay, true);
+    if (overlayStack.indexOf(overlay) === -1) {
+      overlayStack.push(overlay);
+    }
+    requestAnimationFrame(function () {
+      focusOverlay(overlay);
+    });
+  });
+  lockBodyScroll();
 
   document.addEventListener('click', function (event) {
     var trigger = closestFromEventTarget(event.target, OVERLAY_TRIGGER_SELECTOR);

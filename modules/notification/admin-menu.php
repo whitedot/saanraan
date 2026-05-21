@@ -9,5 +9,10 @@ return [
             'path' => '/admin/notifications',
             'order' => 10,
         ],
+        [
+            'label' => '발송 대기열',
+            'path' => '/admin/notification-deliveries',
+            'order' => 20,
+        ],
     ],
 ];
