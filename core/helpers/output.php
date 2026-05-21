@@ -60,6 +60,35 @@ function sr_supported_locales(?array $site): array
     return array_values($locales !== [] ? $locales : ['ko']);
 }
 
+function sr_available_locale_options(?array $site = null): array
+{
+    $locales = [];
+    $langDir = SR_ROOT . '/lang';
+    if (is_dir($langDir)) {
+        foreach (scandir($langDir) ?: [] as $localeDirectory) {
+            if (!is_string($localeDirectory) || preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $localeDirectory) !== 1) {
+                continue;
+            }
+
+            if (is_file($langDir . '/' . $localeDirectory . '/core.php')) {
+                $locales[$localeDirectory] = $localeDirectory;
+            }
+        }
+    }
+
+    foreach (sr_supported_locales($site) as $locale) {
+        $locales[$locale] = $locale;
+    }
+
+    if ($locales === []) {
+        $locales['ko'] = 'ko';
+    }
+
+    ksort($locales);
+
+    return array_values($locales);
+}
+
 function sr_t(string $key, array $params = [], ?string $locale = null): string
 {
     $locale = $locale ?? sr_locale();

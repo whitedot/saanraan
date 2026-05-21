@@ -3,17 +3,10 @@
 .member-rule-param-panel{display:grid;gap:.75rem}
 .member-rule-param-panel p{margin:0;color:var(--admin-muted-text);font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
 
-.admin-page-member-list .admin-member-filter .admin-account-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
+.admin-page-member-list .admin-member-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-member-list .admin-member-filter .admin-filter-field{min-width:0}
 .admin-page-member-list .admin-member-filter .admin-filter-submit{justify-content:center;width:auto}
 .admin-page-member-list .admin-member-table{table-layout:fixed;min-width:72rem}
-.admin-page-member-list .admin-member-col-hash{width:21%}
-.admin-page-member-list .admin-member-col-email{width:12%}
-.admin-page-member-list .admin-member-col-name{width:7%}
-.admin-page-member-list .admin-member-col-status{width:6%}
-.admin-page-member-list .admin-member-col-date{width:12%}
-.admin-page-member-list .admin-member-col-session{width:6%}
-.admin-page-member-list .admin-member-col-actions{width:12%}
 .admin-page-member-list .admin-member-table th,.admin-page-member-list .admin-member-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-list .admin-member-table .admin-table-actions-cell{overflow:visible}
 .admin-page-member-list .admin-member-hash-cell,.admin-page-member-list .admin-member-email-cell,.admin-page-member-list .admin-member-date-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -29,7 +22,7 @@
 .admin-page-member-groups .admin-member-group-number-cell,.admin-page-member-groups .admin-member-group-table thead th:nth-child(5),.admin-page-member-groups .admin-member-group-table thead th:nth-child(6){text-align:center}
 
 @media (max-width:1280px){
-    .admin-page-member-list .admin-member-filter .admin-account-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .admin-page-member-list .admin-member-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     .admin-page-member-list .admin-member-filter-keyword{grid-column:1 / -1}
     .admin-page-member-list .admin-member-filter .admin-filter-submit{grid-column:1 / -1}
     .admin-page-member-list .admin-member-filter .admin-filter-submit{width:100%}
@@ -39,7 +32,7 @@
 }
 
 @media (max-width:767px){
-    .admin-page-member-list .admin-member-filter .admin-account-search-grid{grid-template-columns:1fr}
+    .admin-page-member-list .admin-member-search-grid{grid-template-columns:1fr}
     .admin-page-member-list .admin-member-filter-keyword{grid-column:auto}
     .admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:1fr}
     .admin-page-member-groups .admin-member-group-filter-keyword{grid-column:auto}

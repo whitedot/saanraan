@@ -180,6 +180,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
 function sr_admin_event_type_label(string $eventType): string
 {
     $labels = [
+        'member.account.created' => '회원 계정 생성',
         'member.sessions.revoked' => '회원 세션 폐기',
         'member.status.updated' => '회원 상태 변경',
         'privacy.request.updated' => '개인정보 처리 요청 상태 변경',
@@ -469,22 +470,45 @@ function sr_admin_post_site_setting_values(?array $site): array
         'base_url' => (string) ($site['base_url'] ?? ''),
         'timezone' => sr_post_string('timezone', 80),
         'default_locale' => sr_post_string('default_locale', 20),
-        'supported_locales' => sr_post_string('supported_locales', 255),
+        'supported_locales' => sr_admin_post_supported_locales(),
         'status' => sr_post_string('status', 30),
         'public_layout_key' => sr_post_string('public_layout_key', 60),
         'ui_color_scheme' => sr_post_string('ui_color_scheme', 20),
     ];
 }
 
+function sr_admin_post_supported_locales(): string
+{
+    $rawLocales = $_POST['supported_locales'] ?? [];
+    if (!is_array($rawLocales)) {
+        return sr_post_string('supported_locales', 255);
+    }
+
+    $locales = [];
+    foreach ($rawLocales as $locale) {
+        if (!is_string($locale)) {
+            continue;
+        }
+
+        $locale = trim($locale);
+        if ($locale !== '') {
+            $locales[] = $locale;
+        }
+    }
+
+    return implode(',', $locales);
+}
+
 function sr_admin_validate_supported_locales(array &$values, array &$errors): void
 {
     $supportedLocales = [];
+    $availableLocales = sr_available_locale_options();
     foreach (preg_split('/[\s,]+/', $values['supported_locales']) ?: [] as $locale) {
         if ($locale === '') {
             continue;
         }
 
-        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1 || !in_array($locale, $availableLocales, true)) {
             $errors[] = '지원 locale 목록 값이 올바르지 않습니다.';
             return;
         }
@@ -528,7 +552,10 @@ function sr_admin_handle_settings_post(
             $errors[] = 'timezone 값이 올바르지 않습니다.';
         }
 
-        if (!preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale'])) {
+        if (
+            !preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale'])
+            || !in_array($values['default_locale'], sr_available_locale_options($site), true)
+        ) {
             $errors[] = '기본 locale 값이 올바르지 않습니다.';
         }
 

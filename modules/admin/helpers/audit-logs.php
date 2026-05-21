@@ -100,6 +100,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Schema update lock could not be acquired.' => '스키마 업데이트 잠금을 얻지 못했습니다.',
         'Member sessions could not be revoked.' => '회원 세션을 폐기하지 못했습니다.',
         'Member sessions revoked.' => '회원 세션이 폐기되었습니다.',
+        'Member account created by admin.' => '관리자가 회원 계정을 생성했습니다.',
         'Member status update failed.' => '회원 상태 변경에 실패했습니다.',
         'Member status updated.' => '회원 상태가 변경되었습니다.',
         'Retention cleanup completed.' => '보관 정리가 완료되었습니다.',

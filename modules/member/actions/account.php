@@ -16,6 +16,7 @@ $memberSettings = sr_member_settings($pdo);
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
+$memberLocaleOptions = sr_supported_locales($site ?? null);
 
 if (
     $emailVerificationEnabled
@@ -47,7 +48,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '표시 이름을 입력하세요.';
         }
 
-        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $basics['locale']) !== 1) {
+        if (!in_array($basics['locale'], $memberLocaleOptions, true)) {
             $errors[] = '선호 locale 값이 올바르지 않습니다.';
         }
 

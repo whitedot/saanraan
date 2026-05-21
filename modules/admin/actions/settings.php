@@ -14,6 +14,8 @@ $values = sr_admin_site_setting_values($site ?? null);
 $adminSettings = sr_admin_settings($pdo);
 $adminSkinOptions = sr_admin_skin_options();
 $adminSkinKey = sr_admin_skin_key($adminSettings);
+$timezoneOptions = timezone_identifiers_list();
+$localeOptions = sr_available_locale_options($site ?? null);
 $values = array_merge($values, ['admin_skin_key' => $adminSkinKey]);
 
 if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {

@@ -265,23 +265,10 @@ $installChecks = [
     ],
 ];
 $timezoneOptions = timezone_identifiers_list();
-$localeOptions = [];
-$langDir = SR_ROOT . '/lang';
-if (is_dir($langDir)) {
-    foreach (scandir($langDir) ?: [] as $localeDirectory) {
-        if (!is_string($localeDirectory) || preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $localeDirectory) !== 1) {
-            continue;
-        }
-
-        if (is_file($langDir . '/' . $localeDirectory . '/core.php')) {
-            $localeOptions[] = $localeDirectory;
-        }
-    }
-}
-sort($localeOptions);
-if ($localeOptions === []) {
-    $localeOptions = ['ko'];
-}
+$localeOptions = sr_available_locale_options([
+    'default_locale' => $values['default_locale'],
+    'supported_locales' => $values['default_locale'],
+]);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -382,7 +369,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = 'timezone 값이 올바르지 않습니다.';
     }
 
-    if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale']) !== 1) {
+    if (
+        preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale']) !== 1
+        || !in_array($values['default_locale'], $localeOptions, true)
+    ) {
         $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
     }
 

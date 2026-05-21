@@ -108,11 +108,203 @@ function sr_admin_member_rows_with_public_hash(array $config, array $rows): arra
     return $rows;
 }
 
-function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedStatuses): array
+function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
+         FROM sr_member_accounts
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $accountId]);
+    $member = $stmt->fetch();
+
+    return is_array($member) ? $member : null;
+}
+
+function sr_admin_member_create_allowed_statuses(): array
+{
+    return ['active', 'pending', 'suspended'];
+}
+
+function sr_admin_member_create_default_values(array $site = []): array
+{
+    $supportedLocales = sr_supported_locales($site);
+    $defaultLocale = trim((string) ($site['default_locale'] ?? ''));
+    if (!in_array($defaultLocale, $supportedLocales, true)) {
+        $defaultLocale = $supportedLocales[0] ?? 'ko';
+    }
+
+    return [
+        'email' => '',
+        'login_id' => '',
+        'display_name' => '',
+        'locale' => $defaultLocale,
+        'status' => 'active',
+        'email_verified' => '1',
+    ];
+}
+
+function sr_admin_member_create_values_from_post(array $site = []): array
+{
+    $values = sr_admin_member_create_default_values($site);
+    $email = sr_post_string_without_truncation('email', 255);
+    $loginId = sr_post_string_without_truncation('login_id', 40);
+
+    $values['email'] = $email === null ? '' : $email;
+    $values['login_id'] = $loginId === null ? '' : sr_member_normalize_login_id($loginId);
+    $values['display_name'] = sr_post_string('display_name', 120);
+    $values['locale'] = sr_post_string('locale', 20);
+    $values['status'] = sr_post_string('status', 30);
+    $values['email_verified'] = ($_POST['email_verified'] ?? '') === '1' ? '1' : '0';
+
+    return $values;
+}
+
+function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $site = []): array
 {
     $errors = [];
     $notice = '';
+    $runtimeConfig = sr_runtime_config();
+    $allowedCreateStatuses = sr_admin_member_create_allowed_statuses();
+    $supportedLocales = sr_supported_locales($site);
+    $values = sr_admin_member_create_values_from_post($site);
+
+    $emailInput = sr_post_string_without_truncation('email', 255);
+    $loginIdInput = sr_post_string_without_truncation('login_id', 40);
+    $password = sr_post_string_without_truncation('password', 255);
+    $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
+
+    $email = sr_normalize_identifier((string) $values['email']);
+    $loginId = sr_member_normalize_login_id((string) $values['login_id']);
+    $displayName = trim((string) $values['display_name']);
+    $locale = (string) $values['locale'];
+    $status = (string) $values['status'];
+    $emailVerified = (string) $values['email_verified'] === '1';
+
+    $values['email'] = $email;
+    $values['login_id'] = $loginId;
+    $values['display_name'] = $displayName;
+
+    if ($emailInput === null) {
+        $errors[] = '이메일은 255자 이하로 입력하세요.';
+    }
+
+    if ($loginIdInput === null) {
+        $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = '이메일 형식이 올바르지 않습니다.';
+    }
+
+    if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
+        $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+    }
+
+    if ($displayName === '') {
+        $errors[] = '이름을 입력하세요.';
+    }
+
+    if ($password === null || $passwordConfirm === null) {
+        $errors[] = '비밀번호는 255자 이하로 입력하세요.';
+        $password = '';
+        $passwordConfirm = '';
+    }
+
+    if (strlen((string) $password) < 8) {
+        $errors[] = '비밀번호는 8자 이상이어야 합니다.';
+    }
+
+    if ($password !== $passwordConfirm) {
+        $errors[] = '비밀번호 확인이 일치하지 않습니다.';
+    }
+
+    if (!in_array($locale, $supportedLocales, true)) {
+        $errors[] = '선호 locale 값이 올바르지 않습니다.';
+    }
+
+    if (!in_array($status, $allowedCreateStatuses, true)) {
+        $errors[] = '회원 상태 값이 올바르지 않습니다.';
+    }
+
+    if ($errors === []) {
+        $emailHash = sr_hmac_hash($email, $runtimeConfig);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash LIMIT 1');
+        $stmt->execute(['email_hash' => $emailHash]);
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 사용 중인 이메일입니다.';
+        }
+    }
+
+    if ($errors === [] && $loginId !== '') {
+        $loginIdHash = sr_hmac_hash($loginId, $runtimeConfig);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE account_identifier_hash = :login_id_hash OR login_id_hash = :login_id_hash LIMIT 1');
+        $stmt->execute(['login_id_hash' => $loginIdHash]);
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 사용 중인 로그인 아이디입니다.';
+        }
+    }
+
+    $createdAccountId = 0;
+    if ($errors === []) {
+        try {
+            $createdAccountId = sr_member_create_account($pdo, $runtimeConfig, [
+                'email' => $email,
+                'login_id' => $loginId,
+                'password' => (string) $password,
+                'display_name' => $displayName,
+                'locale' => $locale,
+                'status' => $status,
+                'email_verified_at' => $emailVerified ? sr_now() : null,
+            ]);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'admin_member_create');
+            $errors[] = '이미 사용 중인 계정 정보이거나 회원을 추가할 수 없습니다.';
+        }
+    }
+
+    if ($errors === [] && $createdAccountId > 0) {
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'member.account.created',
+            'target_type' => 'member_account',
+            'target_id' => (string) $createdAccountId,
+            'result' => 'success',
+            'message' => 'Member account created by admin.',
+            'metadata' => [
+                'status' => $status,
+                'login_id_set' => $loginId !== '',
+                'email_verified' => $emailVerified,
+            ],
+        ]);
+
+        $notice = '회원을 추가했습니다.';
+        $values = sr_admin_member_create_default_values($site);
+    }
+
+    return sr_admin_action_result($errors, $notice) + [
+        'create_values' => $values,
+        'created_account_id' => $createdAccountId,
+    ];
+}
+
+function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedStatuses, array $site = []): array
+{
+    $errors = [];
+    $notice = '';
+    $resultExtra = [];
     $intent = sr_post_string('intent', 40);
+
+    if ($intent === 'create') {
+        return sr_admin_handle_member_create_post($pdo, $account, $site);
+    }
+
     $targetAccountId = sr_admin_post_positive_int('account_id');
     $status = sr_post_string('status', 30);
 
@@ -197,9 +389,17 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
     } elseif ($errors === [] && $intent === 'edit') {
         $runtimeConfig = sr_runtime_config();
+        $supportedLocales = sr_supported_locales($site);
         $email = sr_normalize_identifier(sr_post_string('email', 255));
         $displayName = trim(sr_post_string('display_name', 120));
         $locale = sr_post_string('locale', 20);
+        $resultExtra['edit_values'] = [
+            'id' => $targetAccountId,
+            'email' => $email,
+            'display_name' => $displayName,
+            'locale' => $locale,
+            'status' => $status,
+        ];
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = '이메일 형식이 올바르지 않습니다.';
@@ -209,7 +409,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             $errors[] = '이름을 입력하세요.';
         }
 
-        if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
+        if (!in_array($locale, $supportedLocales, true)) {
             $errors[] = '선호 locale 값이 올바르지 않습니다.';
         }
 
@@ -347,7 +547,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
     }
 
-    return sr_admin_action_result($errors, $notice);
+    return sr_admin_action_result($errors, $notice) + $resultExtra;
 }
 
 function sr_admin_member_status_filter(array $allowedStatuses): string

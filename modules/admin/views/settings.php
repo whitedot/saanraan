@@ -29,20 +29,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_timezone">시간대</label>
             <div class="admin-form-field">
-                <input id="admin_settings_timezone" type="text" name="timezone" value="<?php echo sr_e($values['timezone']); ?>" class="form-input" maxlength="80" required>
+                <select id="admin_settings_timezone" name="timezone" class="form-select" required>
+                    <?php foreach ($timezoneOptions as $timezoneOption) { ?>
+                        <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
+                            <?php echo sr_e($timezoneOption); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </div>
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_default_locale">기본 locale</label>
             <div class="admin-form-field">
-                <input id="admin_settings_default_locale" type="text" name="default_locale" value="<?php echo sr_e($values['default_locale']); ?>" class="form-input" maxlength="20" required>
+                <select id="admin_settings_default_locale" name="default_locale" class="form-select" required>
+                    <?php foreach ($localeOptions as $localeOption) { ?>
+                        <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
+                            <?php echo sr_e($localeOption); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </div>
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_supported_locales">지원 locale 목록</label>
             <div class="admin-form-field">
-                <input id="admin_settings_supported_locales" type="text" name="supported_locales" value="<?php echo sr_e($values['supported_locales']); ?>" class="form-input" maxlength="255" required>
-                <span class="admin-form-help">쉼표 또는 공백으로 구분합니다. 예: ko,en,ja</span>
+                <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
+                <select id="admin_settings_supported_locales" name="supported_locales[]" class="form-select" multiple required>
+                    <?php foreach ($localeOptions as $localeOption) { ?>
+                        <option value="<?php echo sr_e($localeOption); ?>"<?php echo in_array($localeOption, $selectedSupportedLocales, true) ? ' selected' : ''; ?>>
+                            <?php echo sr_e($localeOption); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </div>
         <div class="admin-form-row">

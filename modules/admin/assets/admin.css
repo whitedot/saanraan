@@ -250,8 +250,9 @@
 .admin-list-card{margin-bottom:calc(var(--spacing) * 4);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .admin-list-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
-.admin-list-card .table-wrapper{min-width:0;width:100%;overflow:auto}
-.admin-list-card .table-wrapper:focus-within{outline:2px solid color-mix(in oklab, var(--color-primary) 28%, transparent);outline-offset:-2px}
+.admin-list-card .table-wrapper{min-width:0;width:100%;overflow:auto;padding:0}
+#container>section.admin-list-card>.table-wrapper,
+#container>form>section.admin-list-card>.table-wrapper{padding:0}
 .admin-list-card .table-wrapper::after{content:"";display:block;height:1px}
 .admin-list-form .admin-table-nowrap,.admin-list-form .admin-table-actions-cell{white-space:nowrap}
 .admin-list-form .admin-table-actions-cell{min-width:9.75rem}
@@ -517,7 +518,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     justify-content: center;
 }
 
-.admin-page-member-list .admin-account-search-grid {
+.admin-page-member-list .admin-member-search-grid {
     grid-template-columns: minmax(0, 10rem) minmax(0, 10rem) minmax(0, 1fr) auto;
     justify-content: start;
 }
@@ -902,7 +903,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1023px) {
-    .admin-page-member-list .admin-account-search-grid,
+    .admin-page-member-list .admin-member-search-grid,
     .admin-filter-grid,
     .admin-audit-filter .admin-filter-grid {
         grid-template-columns: 1fr;
@@ -913,7 +914,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         width: 100%;
     }
 
-    .admin-page-member-list .admin-account-search-grid {
+    .admin-page-member-list .admin-member-search-grid {
         grid-template-columns: 1fr;
     }
 

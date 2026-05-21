@@ -3,14 +3,157 @@
 $adminPageTitle = '회원관리';
 $adminPageSubtitle = '회원 상태를 한눈에 확인하고, 조건 검색과 빠른 관리 동선을 자연스럽게 이어가세요.';
 $adminContainerClass = 'admin-page-member-list admin-ui-scope';
+$memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
+if ($memberAdminPage === 'create_form') {
+    $adminPageTitle = '회원 추가';
+    $adminPageSubtitle = '운영자가 회원 계정을 직접 생성합니다.';
+} elseif ($memberAdminPage === 'edit_form') {
+    $adminPageTitle = '회원 정보 수정';
+    $adminPageSubtitle = '회원 기본 정보와 상태를 수정합니다.';
+}
 $statusCounts = isset($statusCounts) && is_array($statusCounts) ? $statusCounts : [];
 $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
+$memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
+$memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
+$createStatuses = sr_admin_member_create_allowed_statuses();
+$memberLocaleOptions = sr_supported_locales($site ?? null);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php if ($memberAdminPage === 'create_form') { ?>
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme">
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="create">
+        <section class="admin-card card">
+            <h2>회원 추가</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_email">이메일</label>
+                <div class="admin-form-field">
+                    <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="email" required>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_login_id">로그인 아이디</label>
+                <div class="admin-form-field">
+                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                    <small class="admin-form-help">비워두면 이메일로 로그인할 수 있습니다.</small>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_display_name">이름</label>
+                <div class="admin-form-field">
+                    <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input" maxlength="120" required>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_password">비밀번호</label>
+                <div class="admin-form-field">
+                    <input id="member_admin_create_password" type="password" name="password" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_password_confirm">비밀번호 확인</label>
+                <div class="admin-form-field">
+                    <input id="member_admin_create_password_confirm" type="password" name="password_confirm" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_locale">Locale</label>
+                <div class="admin-form-field">
+                    <select id="member_admin_create_locale" name="locale" class="form-select" required>
+                        <?php foreach ($memberLocaleOptions as $localeOption) { ?>
+                            <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) ($memberCreateValues['locale'] ?? 'ko') === $localeOption ? ' selected' : ''; ?>>
+                                <?php echo sr_e($localeOption); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="member_admin_create_status">상태</label>
+                <div class="admin-form-field">
+                    <select id="member_admin_create_status" name="status" class="form-select">
+                        <?php foreach ($createStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($memberCreateValues['status'] ?? 'active') === $status ? ' selected' : ''; ?>>
+                                <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label">이메일 인증</span>
+                <div class="admin-form-field admin-form-check">
+                    <input id="member_admin_create_email_verified" type="checkbox" name="email_verified" value="1" class="form-checkbox"<?php echo (string) ($memberCreateValues['email_verified'] ?? '1') === '1' ? ' checked' : ''; ?>>
+                    <label for="member_admin_create_email_verified"><?php echo sr_admin_choice_label_html('인증 완료로 처리'); ?></label>
+                </div>
+            </div>
+        </section>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light">목록</a>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
+    </form>
+<?php } elseif ($memberAdminPage === 'edit_form') { ?>
+    <?php if (is_array($editMember)) { ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="edit">
+            <input type="hidden" name="account_id" value="<?php echo sr_e((string) ($memberEditValues['id'] ?? $editMember['id'])); ?>">
+            <section class="admin-card card">
+                <h2>회원 정보 수정</h2>
+                <p>공개 해시: <?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></p>
+                <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_edit_email">이메일</label>
+                    <div class="admin-form-field">
+                        <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="email" required>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_edit_display_name">이름</label>
+                    <div class="admin-form-field">
+                        <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input" maxlength="120" required>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_edit_locale">Locale</label>
+                    <div class="admin-form-field">
+                        <select id="member_admin_edit_locale" name="locale" class="form-select" required>
+                            <?php foreach ($memberLocaleOptions as $localeOption) { ?>
+                                <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) ($memberEditValues['locale'] ?? 'ko') === $localeOption ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($localeOption); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_edit_status">상태</label>
+                    <div class="admin-form-field">
+                        <select id="member_admin_edit_status" name="status" class="form-select">
+                            <?php foreach ($allowedStatuses as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($memberEditValues['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                                    <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+            </section>
+            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+                <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light">목록</a>
+                <button type="submit" class="btn btn-solid-primary">저장</button>
+            </div>
+        </form>
+    <?php } else { ?>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light">목록</a>
+        </div>
+    <?php } ?>
+<?php } else { ?>
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
         <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light">전체 보기</a>
@@ -23,7 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter admin-member-filter ui-form-theme">
-    <div class="admin-filter-grid admin-account-search-grid">
+    <div class="admin-filter-grid admin-member-search-grid">
         <div class="admin-filter-field admin-member-filter-status">
             <label for="admin-status-filter" class="admin-filter-label">상태</label>
             <select name="status" id="admin-status-filter" class="form-select admin-filter-input">
@@ -53,32 +196,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<div class="admin-card admin-list-card card admin-list-form">
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title">회원 목록</h2>
+        <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-solid-light">새 회원 추가</a>
+    </div>
     <div class="table-wrapper">
         <table class="table admin-member-table">
             <caption class="sr-only">회원관리 목록</caption>
-            <colgroup>
-                <col class="admin-member-col-hash">
-                <col class="admin-member-col-email">
-                <col class="admin-member-col-name">
-                <col class="admin-member-col-status">
-                <col class="admin-member-col-date">
-                <col class="admin-member-col-date">
-                <col class="admin-member-col-session">
-                <col class="admin-member-col-date">
-                <col class="admin-member-col-actions">
-            </colgroup>
             <thead class="ui-table-head">
                 <tr>
-                    <th scope="col">공개 해시</th>
-                    <th scope="col">이메일</th>
-                    <th scope="col">이름</th>
-                    <th scope="col">상태</th>
-                    <th scope="col">이메일 인증</th>
-                    <th scope="col">최근 로그인</th>
-                    <th scope="col">활성 세션</th>
-                    <th scope="col">생성일</th>
-                    <th scope="col" class="text-end">관리</th>
+                    <th>공개 해시</th>
+                    <th>이메일</th>
+                    <th>이름</th>
+                    <th>상태</th>
+                    <th>이메일 인증</th>
+                    <th>최근 로그인</th>
+                    <th>활성 세션</th>
+                    <th>생성일</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
@@ -107,38 +243,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) $member['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <details class="admin-inline-edit-details">
-                                    <summary class="btn btn-sm btn-solid-light">정보 수정</summary>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-inline-edit-form">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="intent" value="edit">
-                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <?php $memberFieldIdPrefix = 'modules_member_admin_members_' . (string) $member['id'] . '_'; ?>
-                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>email">
-                                            <span>이메일</span>
-                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>email" type="email" name="email" value="<?php echo sr_e((string) $member['email']); ?>" class="form-input" required>
-                                        </label>
-                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>display_name">
-                                            <span>이름</span>
-                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>display_name" type="text" name="display_name" value="<?php echo sr_e((string) $member['display_name']); ?>" class="form-input" maxlength="120" required>
-                                        </label>
-                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>locale">
-                                            <span>Locale</span>
-                                            <input id="<?php echo sr_e($memberFieldIdPrefix); ?>locale" type="text" name="locale" value="<?php echo sr_e((string) $member['locale']); ?>" class="form-input" maxlength="20" required>
-                                        </label>
-                                        <label for="<?php echo sr_e($memberFieldIdPrefix); ?>status">
-                                            <span>상태</span>
-                                            <select id="<?php echo sr_e($memberFieldIdPrefix); ?>status" name="status" class="form-select form-select-sm">
-                                                <?php foreach ($allowedStatuses as $status) { ?>
-                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $memberStatus === $status ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                                        </label>
-                                        <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>
-                                    </form>
-                                </details>
+                                <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="revoke_sessions">
@@ -152,7 +257,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
-</div>
+</section>
 
 <div class="admin-notice">
     <span class="admin-notice-icon" aria-hidden="true">i</span>
@@ -161,5 +266,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p>상태 변경은 즉시 적용되며, 세션 폐기 시 해당 회원의 활성 로그인 세션이 모두 종료됩니다.</p>
     </div>
 </div>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

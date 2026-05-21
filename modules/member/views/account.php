@@ -46,7 +46,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <p>
                     <label for="modules_member_account_locale">
                     <span>선호 locale</span>
-                        <input id="modules_member_account_locale" type="text" name="locale" value="<?php echo sr_e((string) $account['locale']); ?>" maxlength="20" required>
+                        <select id="modules_member_account_locale" name="locale" required>
+                            <?php foreach ($memberLocaleOptions as $localeOption) { ?>
+                                <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) $account['locale'] === $localeOption ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($localeOption); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </label>
                 </p>
                 <button type="submit">계정 정보 저장</button>
