@@ -42,6 +42,18 @@ if ($postListFilters['status'] !== '' && !in_array($postListFilters['status'], $
 if (!in_array($postListFilters['field'], ['all', 'title', 'author', 'board'], true)) {
     $postListFilters['field'] = 'all';
 }
+$commentListFilters = [
+    'status' => sr_get_string('status', 30),
+    'board_id' => $postBoardFilterId,
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if ($commentListFilters['status'] !== '' && !in_array($commentListFilters['status'], $allowedCommentStatuses, true)) {
+    $commentListFilters['status'] = '';
+}
+if (!in_array($commentListFilters['field'], ['all', 'body', 'author', 'post', 'board'], true)) {
+    $commentListFilters['field'] = 'all';
+}
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -165,6 +177,20 @@ foreach ($postStatusCountStmt->fetchAll() as $row) {
 }
 
 $posts = sr_community_admin_posts($pdo, 100, $postListFilters);
-$comments = sr_community_admin_comments($pdo, 100);
+$commentStatusCounts = ['total' => 0];
+foreach ($allowedCommentStatuses as $status) {
+    $commentStatusCounts[$status] = 0;
+}
+$commentStatusCountStmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_comments GROUP BY status');
+foreach ($commentStatusCountStmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $commentStatusCounts)) {
+        $commentStatusCounts[$status] = $count;
+    }
+    $commentStatusCounts['total'] += $count;
+}
+
+$comments = sr_community_admin_comments($pdo, 100, $commentListFilters);
 
 include SR_ROOT . '/modules/community/views/admin-posts.php';

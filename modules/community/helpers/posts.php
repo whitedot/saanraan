@@ -381,21 +381,65 @@ function sr_community_comment_statuses(): array
     return ['published', 'hidden', 'deleted'];
 }
 
-function sr_community_admin_comments(PDO $pdo, int $limit = 100): array
+function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = []): array
 {
     $limit = max(1, min(200, $limit));
-    $stmt = $pdo->prepare(
-        'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
-                p.title AS post_title,
-                b.board_key, b.title AS board_title,
-                a.display_name AS author_display_name
-         FROM sr_community_comments c
-         INNER JOIN sr_community_posts p ON p.id = c.post_id
-         INNER JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
-         ORDER BY c.id DESC
-         LIMIT :limit_value'
-    );
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 'c.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((int) ($filters['board_id'] ?? 0) > 0) {
+        $where[] = 'b.id = :board_id';
+        $params['board_id'] = (int) $filters['board_id'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'body') {
+            $where[] = 'c.body_text LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'author') {
+            $where[] = 'a.display_name LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'post') {
+            $where[] = 'p.title LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'board') {
+            $where[] = '(b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $params['board_title_keyword'] = '%' . $keyword . '%';
+            $params['board_key_keyword'] = '%' . $keyword . '%';
+        } else {
+            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $params['body_keyword'] = '%' . $keyword . '%';
+            $params['post_title_keyword'] = '%' . $keyword . '%';
+            $params['author_keyword'] = '%' . $keyword . '%';
+            $params['board_title_keyword'] = '%' . $keyword . '%';
+            $params['board_key_keyword'] = '%' . $keyword . '%';
+        }
+    }
+
+    $sql = 'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+                   p.title AS post_title,
+                   b.board_key, b.title AS board_title,
+                   a.display_name AS author_display_name
+            FROM sr_community_comments c
+            INNER JOIN sr_community_posts p ON p.id = c.post_id
+            INNER JOIN sr_community_boards b ON b.id = p.board_id
+            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY c.id DESC LIMIT :limit_value';
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
 
