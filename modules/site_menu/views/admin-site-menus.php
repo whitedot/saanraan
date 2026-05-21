@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="site_menu_admin_site_menus_label">메뉴 이름</label>
                 <div class="admin-form-field">
-                    <input id="site_menu_admin_site_menus_label" type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" class="form-input" maxlength="120" required>
+                    <input id="site_menu_admin_site_menus_label" type="text" name="label" value="<?php echo $editingMenu ? sr_e((string) $editMenu['label']) : '헤더 메뉴'; ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -136,13 +136,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="site_menu_admin_site_menus_label_2">항목 이름</label>
                     <div class="admin-form-field">
-                        <input id="site_menu_admin_site_menus_label_2" type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" class="form-input" maxlength="120" required>
+                        <input id="site_menu_admin_site_menus_label_2" type="text" name="label" value="<?php echo $editingItem ? sr_e((string) $editItem['label']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
                     <label class="form-label" for="site_menu_admin_site_menus_url">URL</label>
                     <div class="admin-form-field">
-                        <input id="site_menu_admin_site_menus_url" type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" class="form-input" maxlength="255" required>
+                        <input id="site_menu_admin_site_menus_url" type="text" name="url" value="<?php echo $editingItem ? sr_e((string) $editItem['url']) : '/'; ?>" class="form-input form-control-full" maxlength="255" required>
                     </div>
                 </div>
                 <div class="admin-form-row">

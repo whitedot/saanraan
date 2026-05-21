@@ -22,10 +22,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             (<?php echo sr_e(implode(', ', array_map('sr_banner_placement_kind_label', is_array($skinOption['supports'] ?? null) ? $skinOption['supports'] : ['inline']))); ?>)
                                         </option>
                                     <?php } ?>
-                                </select>
+                </select>
             </div>
         </div>
-        <p>배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
+        <div class="admin-form-row">
+            <span class="form-label">안내</span>
+            <div class="admin-form-field">
+                <p class="admin-form-help">배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
+            </div>
+        </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light">배너 목록</a>

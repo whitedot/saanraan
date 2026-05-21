@@ -20,13 +20,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="seo_admin_settings_default_description">기본 설명</label>
             <div class="admin-form-field">
-                <input id="seo_admin_settings_default_description" type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input" maxlength="255">
+                <input id="seo_admin_settings_default_description" type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input form-control-full" maxlength="255">
             </div>
         </div>
         <div class="admin-form-row">
             <label class="form-label" for="seo_admin_settings_default_og_image">기본 OG 이미지 URL</label>
             <div class="admin-form-field">
-                <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input" maxlength="255">
+                <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input form-control-full" maxlength="255">
             </div>
         </div>
     </section>
@@ -45,7 +45,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <?php if ($sitemapUrl !== '') { ?>
-            <p><a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>">sitemap.xml 확인</a></p>
+            <div class="admin-form-row">
+                <span class="form-label">사이트맵 파일</span>
+                <div class="admin-form-field">
+                    <a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>">sitemap.xml 확인</a>
+                </div>
+            </div>
         <?php } ?>
     </section>
 

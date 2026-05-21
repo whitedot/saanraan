@@ -21,7 +21,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_title">제목</label>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input" maxlength="120" required>
+                    <input id="banner_admin_banners_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -33,13 +33,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_link_url">링크 URL (외부 http/https 링크는 새 창으로 열림)</label>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_link_url" type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input" maxlength="255">
+                    <input id="banner_admin_banners_link_url" type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_image_url">이미지 URL (/ 내부 경로 또는 http/https URL)</label>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input" maxlength="255">
+                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
             <div class="admin-form-row">
@@ -136,7 +136,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="banner_admin_banners_sort_order" type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>" class="form-input">
                 </div>
             </div>
-            <p>배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
+            <div class="admin-form-row">
+                <span class="form-label">안내</span>
+                <div class="admin-form-field">
+                    <p class="admin-form-help">배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light">목록</a>

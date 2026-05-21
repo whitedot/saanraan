@@ -88,7 +88,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="community_admin_settings_message_write_group_keys">발송 그룹 key</label>
             <div class="admin-form-field">
-                <input id="community_admin_settings_message_write_group_keys" type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" class="form-input" placeholder="regular_member, vip">
+                <input id="community_admin_settings_message_write_group_keys" type="text" name="message_write_group_keys" maxlength="1000" value="<?php echo sr_e($messageWriteGroupKeysValue); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
             </div>
         </div>
         <div class="admin-form-row">

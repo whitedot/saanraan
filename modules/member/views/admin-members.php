@@ -32,7 +32,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_create_email">이메일</label>
                 <div class="admin-form-field">
-                    <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="email" required>
+                    <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_create_display_name">이름</label>
                 <div class="admin-form-field">
-                    <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input" maxlength="120" required>
+                    <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -105,17 +105,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="account_id" value="<?php echo sr_e((string) ($memberEditValues['id'] ?? $editMember['id'])); ?>">
             <section class="admin-card card">
                 <h2>회원 정보 수정</h2>
-                <p>공개 해시: <?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></p>
+                <div class="admin-form-row">
+                    <span class="form-label">공개 해시</span>
+                    <div class="admin-form-field">
+                        <code><?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></code>
+                    </div>
+                </div>
                 <div class="admin-form-row">
                     <label class="form-label" for="member_admin_edit_email">이메일</label>
                     <div class="admin-form-field">
-                        <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="email" required>
+                        <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
                     <label class="form-label" for="member_admin_edit_display_name">이름</label>
                     <div class="admin-form-field">
-                        <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input" maxlength="120" required>
+                        <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
                 <div class="admin-form-row">

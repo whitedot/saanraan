@@ -119,13 +119,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
-                        <p>
-                            <strong><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></strong><br>
-                            <?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?> · <?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?>
-                        </p>
-                        <p>현재 역할: <?php echo sr_e($adminAccount['roles'] === [] ? '없음' : implode(', ', array_map(static function (string $roleKey): string {
-                            return sr_admin_code_label($roleKey, 'role');
-                        }, $adminAccount['roles']))); ?></p>
+                        <div class="admin-form-row">
+                            <span class="form-label">회원</span>
+                            <div class="admin-form-field">
+                                <strong><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></strong><br>
+                                <?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?> · <?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <span class="form-label">현재 역할</span>
+                            <div class="admin-form-field">
+                                <?php echo sr_e($adminAccount['roles'] === [] ? '없음' : implode(', ', array_map(static function (string $roleKey): string {
+                                    return sr_admin_code_label($roleKey, 'role');
+                                }, $adminAccount['roles']))); ?>
+                            </div>
+                        </div>
                         <input type="hidden" name="intent" value="sync_roles">
                         <div class="admin-form-row">
                             <span class="form-label">역할</span>

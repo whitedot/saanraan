@@ -175,7 +175,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                <p>게시판 key: <?php echo sr_e((string) $formBoard['board_key']); ?></p>
+                <div class="admin-form-row">
+                    <span class="form-label">게시판 key</span>
+                    <div class="admin-form-field">
+                        <code><?php echo sr_e((string) $formBoard['board_key']); ?></code>
+                    </div>
+                </div>
             <?php } else { ?>
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_boards_board_key">게시판 key</label>
@@ -198,7 +203,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_title">이름</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input" required>
+                    <input id="community_admin_boards_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -260,7 +265,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_read_group_keys">읽기 그룹 key</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_read_group_keys" type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <input id="community_admin_boards_read_group_keys" type="text" name="read_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'read_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_read_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -305,7 +310,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_write_group_keys">쓰기 그룹 key</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_write_group_keys" type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <input id="community_admin_boards_write_group_keys" type="text" name="write_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'write_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_write_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -350,7 +355,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_comment_group_keys">댓글 그룹 key</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_comment_group_keys" type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                    <input id="community_admin_boards_comment_group_keys" type="text" name="comment_group_keys" maxlength="1000" value="<?php echo sr_e($boardGroupKeysValue($formBoard, 'comment_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_comment_group_keys" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -467,7 +472,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_file_allowed_extensions">파일 허용 확장자</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input" placeholder="pdf, txt, zip">
+                    <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <select name="source_file_allowed_extensions" class="form-select">
                                             <?php foreach ($sourceLabels as $source => $label) { ?>
@@ -491,7 +496,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e((string) $bannerSettingKey); ?>" class="form-select">
+                            <select id="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e((string) $bannerSettingKey); ?>" class="form-select form-control-full">
                                                                 <option value="0">사용 안 함</option>
                                                                 <?php foreach ($publicBanners as $publicBanner) { ?>
                                                                     <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
@@ -502,7 +507,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 <?php } ?>
-                <p><small>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</small></p>
+                <div class="admin-form-row">
+                    <span class="form-label">안내</span>
+                    <div class="admin-form-field">
+                        <p class="admin-form-help">배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</p>
+                    </div>
+                </div>
         </section>
 
         <section class="admin-card card">
@@ -516,7 +526,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e((string) $popupLayerSettingKey); ?>" class="form-select">
+                            <select id="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e((string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
                                                                 <option value="0">사용 안 함</option>
                                                                 <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
                                                                     <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
@@ -527,7 +537,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 <?php } ?>
-                <p><small>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</small></p>
+                <div class="admin-form-row">
+                    <span class="form-label">안내</span>
+                    <div class="admin-form-field">
+                        <p class="admin-form-help">팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</p>
+                    </div>
+                </div>
         </section>
 
         <section class="admin-card card">

@@ -83,7 +83,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="reward_admin_rewards_reason">사유</label>
                 <div class="admin-form-field">
-                    <input id="reward_admin_rewards_reason" type="text" name="reason" maxlength="255" required class="form-input">
+                    <input id="reward_admin_rewards_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                 </div>
             </div>
             <div class="admin-form-row">

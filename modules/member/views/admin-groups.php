@@ -31,7 +31,12 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <input type="hidden" name="group_id" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['id'] : ''); ?>">
 
             <?php if (is_array($editGroup)) { ?>
-                <p>그룹 key: <?php echo sr_e((string) $editGroup['group_key']); ?></p>
+                <div class="admin-form-row">
+                    <span class="form-label">그룹 key</span>
+                    <div class="admin-form-field">
+                        <code><?php echo sr_e((string) $editGroup['group_key']); ?></code>
+                    </div>
+                </div>
             <?php } else { ?>
                 <div class="admin-form-row">
                     <label class="form-label" for="member_admin_groups_group_key">그룹 key</label>
@@ -44,7 +49,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_groups_title">그룹명</label>
                 <div class="admin-form-field">
-                    <input id="member_admin_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input" required>
+                    <input id="member_admin_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
             <div class="admin-form-row">

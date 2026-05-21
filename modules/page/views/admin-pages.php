@@ -49,13 +49,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_title">제목</label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input" maxlength="160" required>
+                    <input id="page_admin_pages_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160" required>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_slug">Slug</label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input" maxlength="120" required>
+                    <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     <br>
                                         <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
                 </div>
@@ -201,7 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_banner_before_content_id">본문 상단 배너</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select">
+                    <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
                                                 <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                                                 <?php foreach ($publicBanners as $banner) { ?>
                                                     <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
@@ -214,7 +214,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_banner_after_content_id">본문 하단 배너</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select">
+                    <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
                                                 <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                                                 <?php foreach ($publicBanners as $banner) { ?>
                                                     <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
@@ -229,7 +229,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_popup_layer_id">팝업레이어</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select">
+                    <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
                                                 <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
                                                 <?php foreach ($publicPopupLayers as $popupLayer) { ?>
                                                     <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
@@ -244,17 +244,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_seo_title">SEO 제목</label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input" maxlength="160">
+                    <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_seo_description">SEO 설명</label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input" maxlength="255">
+                    <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
             <?php if ($editing) { ?>
-                <p>공개 URL: <a href="<?php echo sr_e(sr_url(sr_page_path((string) $editPage['slug']))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_page_path((string) $editPage['slug'])); ?></a></p>
+                <div class="admin-form-row">
+                    <span class="form-label">공개 URL</span>
+                    <div class="admin-form-field">
+                        <a href="<?php echo sr_e(sr_url(sr_page_path((string) $editPage['slug']))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_page_path((string) $editPage['slug'])); ?></a>
+                    </div>
+                </div>
             <?php } ?>
         </section>
         <section class="admin-card card">
@@ -283,7 +288,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="hidden" name="page_file_ids[]" value="<?php echo sr_e((string) $fileId); ?>">
                                         <label for="<?php echo sr_e($pageFileTitleId); ?>">
                                             <span class="sr-only">파일 제목</span>
-                                            <input id="<?php echo sr_e($pageFileTitleId); ?>" type="text" name="page_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $pageFile['title']); ?>" class="form-input" maxlength="160">
+                                            <input id="<?php echo sr_e($pageFileTitleId); ?>" type="text" name="page_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $pageFile['title']); ?>" class="form-input form-control-full" maxlength="160">
                                         </label>
                                         <br>
                                         <small><?php echo sr_e((string) $pageFile['original_name']); ?> · <?php echo sr_e(sr_page_format_bytes((int) $pageFile['size_bytes'])); ?></small>
@@ -348,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_new_page_file_title">새 파일 제목</label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_new_page_file_title" type="text" name="new_page_file_title" value="" class="form-input" maxlength="160">
+                    <input id="page_admin_pages_new_page_file_title" type="text" name="new_page_file_title" value="" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">

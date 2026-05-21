@@ -27,15 +27,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input id="admin_settings_name" type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
             </div>
         </div>
-        <p>
-            <strong>외부 공개 URL</strong><br>
-            <?php if ($values['base_url'] !== '') { ?>
-                <code><?php echo sr_e($values['base_url']); ?></code>
-            <?php } else { ?>
-                <span>설정되지 않음</span>
-            <?php } ?>
-            <span class="admin-form-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</span>
-        </p>
+        <div class="admin-form-row">
+            <span class="form-label">외부 공개 URL</span>
+            <div class="admin-form-field">
+                <?php if ($values['base_url'] !== '') { ?>
+                    <code><?php echo sr_e($values['base_url']); ?></code>
+                <?php } else { ?>
+                    <span>설정되지 않음</span>
+                <?php } ?>
+                <p class="admin-form-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</p>
+            </div>
+        </div>
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_timezone">시간대</label>
             <div class="admin-form-field">
@@ -64,7 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="admin_settings_supported_locales">지원 locale 목록</label>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
-                <select id="admin_settings_supported_locales" name="supported_locales[]" class="form-select" multiple required>
+                <select id="admin_settings_supported_locales" name="supported_locales[]" class="form-select form-control-full" multiple required>
                     <?php foreach ($localeOptions as $localeOption) { ?>
                         <option value="<?php echo sr_e($localeOption); ?>"<?php echo in_array($localeOption, $selectedSupportedLocales, true) ? ' selected' : ''; ?>>
                             <?php echo sr_e($localeOption); ?>
@@ -100,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_home_path">초기화면</label>
             <div class="admin-form-field">
-                <select id="admin_settings_home_path" name="home_path" class="form-select">
+                <select id="admin_settings_home_path" name="home_path" class="form-select form-control-full">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
                         <?php $candidatePath = (string) ($candidate['path'] ?? ''); ?>
                         <?php $candidateSelected = (string) ($values['home_path'] ?? '/') === $candidatePath; ?>

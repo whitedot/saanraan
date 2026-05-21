@@ -127,7 +127,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
-                <p>그룹 key: <?php echo sr_e((string) $formBoardGroup['group_key']); ?></p>
+                <div class="admin-form-row">
+                    <span class="form-label">그룹 key</span>
+                    <div class="admin-form-field">
+                        <code><?php echo sr_e((string) $formBoardGroup['group_key']); ?></code>
+                    </div>
+                </div>
             <?php } else { ?>
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_key">그룹 key</label>
@@ -139,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_board_groups_title">이름</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_board_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input" required>
+                    <input id="community_admin_board_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -181,7 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_read_group_keys">읽기 그룹 key</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_read_group_keys" type="text" name="group_read_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'read_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                        <input id="community_admin_board_groups_group_read_group_keys" type="text" name="group_read_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'read_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -203,7 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_write_group_keys">쓰기 그룹 key</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_write_group_keys" type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                        <input id="community_admin_board_groups_group_write_group_keys" type="text" name="group_write_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'write_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -225,7 +230,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_comment_group_keys">댓글 그룹 key</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_comment_group_keys" type="text" name="group_comment_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'comment_group_keys')); ?>" class="form-input" placeholder="regular_member, vip">
+                        <input id="community_admin_board_groups_group_comment_group_keys" type="text" name="group_comment_group_keys" maxlength="1000" value="<?php echo sr_e($groupKeysSettingValue($formGroupSettings, 'comment_group_keys')); ?>" class="form-input form-control-full" placeholder="regular_member, vip">
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -279,14 +284,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_file_allowed_extensions">파일 허용 확장자</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input" placeholder="pdf, txt, zip">
+                        <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
                     </div>
                 </div>
         </section>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <section class="admin-card card">
                     <h2>같은 그룹 게시판에 적용</h2>
-                    <p>적용할 설정을 선택하세요.</p>
+                    <div class="admin-form-row">
+                        <span class="form-label">안내</span>
+                        <div class="admin-form-field">
+                            <p class="admin-form-help">적용할 설정을 선택하세요.</p>
+                        </div>
+                    </div>
                     <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_apply_setting_keys">
                             <input id="modules_community_admin_board_groups_apply_setting_keys" type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">

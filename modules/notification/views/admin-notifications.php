@@ -44,7 +44,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="notification_admin_notifications_title">제목</label>
                 <div class="admin-form-field">
-                    <input id="notification_admin_notifications_title" type="text" name="title" value="" maxlength="160" required class="form-input">
+                    <input id="notification_admin_notifications_title" type="text" name="title" value="" maxlength="160" required class="form-input form-control-full">
                 </div>
             </div>
             <div class="admin-form-row">
@@ -56,13 +56,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="notification_admin_notifications_link_url">링크 URL (/로 시작하는 내부 URL 또는 http/https URL)</label>
                 <div class="admin-form-field">
-                    <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="" maxlength="255" class="form-input">
+                    <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="" maxlength="255" class="form-input form-control-full">
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="notification_admin_notifications_recipient">외부 수신자</label>
                 <div class="admin-form-field">
-                    <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="" maxlength="255" class="form-input">
+                    <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="" maxlength="255" class="form-input form-control-full">
                 </div>
             </div>
             <div class="admin-form-row">
