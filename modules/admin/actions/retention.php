@@ -8,23 +8,24 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner']);
 
-$values = sr_admin_retention_default_values();
+$values = sr_admin_retention_values($pdo);
 $errors = [];
 $notice = '';
-$deletedCounts = [];
 
 $hasNotificationTables = sr_admin_retention_notification_tables_exist($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
-    $postResult = sr_admin_handle_retention_post($pdo, $account, $hasNotificationTables);
-    $errors = $postResult['errors'];
-    $notice = (string) $postResult['notice'];
-    $values = $postResult['values'];
-    $deletedCounts = $postResult['deleted_counts'];
+    $postResult = sr_admin_handle_retention_post($pdo, $account, $hasNotificationTables, $values);
+    sr_admin_flash_result($postResult);
+    sr_redirect('/admin/retention');
 }
 
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
+$values = sr_admin_retention_values($pdo);
 $previewCutoffs = sr_admin_retention_preview_cutoffs($values);
 $previewCounts = sr_admin_retention_preview_counts($pdo, $previewCutoffs, $hasNotificationTables);
 

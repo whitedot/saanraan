@@ -63,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($logs === []) { ?>
             <tr>
-                <td colspan="9" class="admin-empty-state">감사 로그가 없습니다.</td>
+                <td colspan="9" class="admin-empty-state">관리자 작업 로그가 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($logs as $log) { ?>

@@ -19,17 +19,46 @@ function sr_admin_retention_default_values(): array
     ];
 }
 
-function sr_admin_retention_post_values(): array
+function sr_admin_retention_setting_keys(): array
 {
-    $values = [];
-    foreach (array_keys(sr_admin_retention_default_values()) as $key) {
-        $values[$key] = sr_admin_post_int_in_range($key, 1, 3650, 5) ?? 0;
+    return [
+        'auth_logs_days' => 'admin.retention.auth_logs_days',
+        'audit_logs_days' => 'admin.retention.audit_logs_days',
+        'used_tokens_days' => 'admin.retention.used_tokens_days',
+        'sessions_days' => 'admin.retention.sessions_days',
+        'notifications_days' => 'admin.retention.notifications_days',
+        'module_backups_days' => 'admin.retention.module_backups_days',
+    ];
+}
+
+function sr_admin_retention_values(PDO $pdo): array
+{
+    $values = sr_admin_retention_default_values();
+    foreach (sr_admin_retention_setting_keys() as $valueKey => $settingKey) {
+        $value = sr_site_setting($pdo, $settingKey, $values[$valueKey]);
+        if (is_int($value) && $value >= 1 && $value <= 3650) {
+            $values[$valueKey] = $value;
+        } elseif (is_string($value) && ctype_digit($value) && (int) $value >= 1 && (int) $value <= 3650) {
+            $values[$valueKey] = (int) $value;
+        }
     }
 
     return $values;
 }
 
-function sr_admin_validate_retention_cleanup(array $values): array
+function sr_admin_retention_post_values(array $currentValues): array
+{
+    $values = $currentValues;
+    foreach (array_keys(sr_admin_retention_default_values()) as $key) {
+        if (array_key_exists($key, $_POST)) {
+            $values[$key] = sr_admin_post_int_in_range($key, 1, 3650, 5) ?? 0;
+        }
+    }
+
+    return $values;
+}
+
+function sr_admin_validate_retention_values(array $values): array
 {
     $errors = [];
     foreach ($values as $days) {
@@ -39,6 +68,12 @@ function sr_admin_validate_retention_cleanup(array $values): array
         }
     }
 
+    return $errors;
+}
+
+function sr_admin_validate_retention_cleanup(): array
+{
+    $errors = [];
     $cleanupConfirmed = ($_POST['cleanup_confirmed'] ?? '') === '1';
     $cleanupPhrase = sr_post_string('cleanup_phrase', 20);
     if (!$cleanupConfirmed || $cleanupPhrase !== 'DELETE') {
@@ -46,6 +81,19 @@ function sr_admin_validate_retention_cleanup(array $values): array
     }
 
     return $errors;
+}
+
+function sr_admin_save_retention_values(PDO $pdo, array $values): void
+{
+    $settings = [];
+    foreach (sr_admin_retention_setting_keys() as $valueKey => $settingKey) {
+        $settings[$settingKey] = [
+            'value' => (string) $values[$valueKey],
+            'type' => 'int',
+        ];
+    }
+
+    sr_save_site_settings($pdo, $settings);
 }
 
 function sr_admin_retention_count(PDO $pdo, string $sql, array $params): int
@@ -421,17 +469,55 @@ function sr_admin_log_retention_cleanup(PDO $pdo, array $account, array $values,
     ]);
 }
 
-function sr_admin_handle_retention_post(PDO $pdo, array $account, bool $hasNotificationTables): array
+function sr_admin_log_retention_settings_update(PDO $pdo, array $account, array $beforeValues, array $afterValues): void
 {
-    $values = sr_admin_retention_post_values();
-    $errors = sr_admin_validate_retention_cleanup($values);
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'retention.settings.updated',
+        'target_type' => 'retention',
+        'target_id' => 'settings',
+        'result' => 'success',
+        'message' => 'Retention settings updated.',
+        'metadata' => [
+            'before' => $beforeValues,
+            'after' => $afterValues,
+        ],
+    ]);
+}
+
+function sr_admin_handle_retention_post(PDO $pdo, array $account, bool $hasNotificationTables, array $currentValues): array
+{
+    $intent = sr_post_string('intent', 40);
+    $values = $currentValues;
+    $errors = [];
     $deletedCounts = [];
     $notice = '';
 
-    if ($errors === []) {
-        $deletedCounts = sr_admin_retention_execute_cleanup($pdo, $values, $hasNotificationTables);
-        sr_admin_log_retention_cleanup($pdo, $account, $values, $deletedCounts);
-        $notice = '보관 기간 정리를 실행했습니다.';
+    if ($intent === 'settings') {
+        $values = sr_admin_retention_post_values($currentValues);
+        $errors = sr_admin_validate_retention_values($values);
+
+        if ($errors === []) {
+            sr_admin_save_retention_values($pdo, $values);
+            if ($values !== $currentValues) {
+                sr_admin_log_retention_settings_update($pdo, $account, $currentValues, $values);
+            }
+            $notice = $values === $currentValues ? '보관 기간 변경 사항이 없습니다.' : '보관 기간을 저장했습니다.';
+        }
+    } elseif ($intent === 'cleanup') {
+        $errors = sr_admin_validate_retention_values($values);
+        foreach (sr_admin_validate_retention_cleanup() as $cleanupError) {
+            $errors[] = $cleanupError;
+        }
+
+        if ($errors === []) {
+            $deletedCounts = sr_admin_retention_execute_cleanup($pdo, $values, $hasNotificationTables);
+            sr_admin_log_retention_cleanup($pdo, $account, $values, $deletedCounts);
+            $notice = '보관 기간 정리를 실행했습니다.';
+        }
+    } else {
+        $errors[] = '데이터 정리 요청 값이 올바르지 않습니다.';
     }
 
     return array_merge(sr_admin_action_result($errors, $notice), [
