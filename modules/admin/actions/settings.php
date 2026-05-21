@@ -14,6 +14,7 @@ $values = sr_admin_site_setting_values($site ?? null);
 $adminSettings = sr_admin_settings($pdo);
 $adminSkinOptions = sr_admin_skin_options();
 $adminSkinKey = sr_admin_skin_key($adminSettings);
+$values = array_merge($values, ['admin_skin_key' => $adminSkinKey]);
 
 if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     sr_require_csrf();

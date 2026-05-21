@@ -38,10 +38,6 @@ function sr_admin_handle_modules_post(
             $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
         }
 
-        if (!$moduleSourcesEnabled) {
-            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. 소유자가 admin.module_sources_enabled 설정을 참/거짓 유형의 참 값으로 저장해야 합니다.';
-        }
-
         if (!$moduleUploadAvailable) {
             $errors[] = 'PHP ZipArchive 확장이 없어 모듈 zip을 처리할 수 없습니다.';
         }
@@ -51,7 +47,7 @@ function sr_admin_handle_modules_post(
         }
 
         if (!$moduleSourcesEnabled) {
-            $errors[] = '현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. 소유자가 admin.module_sources_enabled 설정을 참/거짓 유형의 참 값으로 저장해야 합니다.';
+            $errors[] = '파일 전용 업데이트 반영은 현재 환경에서 비활성화되어 있습니다.';
         }
     } elseif ($intent === 'status') {
         $status = sr_post_string('status', 30);
@@ -196,6 +192,7 @@ function sr_admin_handle_modules_post(
             ]);
             $errors[] = sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500));
         } finally {
+            sr_save_site_setting($pdo, 'admin.module_sources_enabled', '0', 'bool');
             if ($extractDir !== '') {
                 try {
                     sr_remove_directory($extractDir);

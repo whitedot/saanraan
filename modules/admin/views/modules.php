@@ -14,13 +14,97 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<nav class="tab-nav-bordered admin-tabs" data-admin-tabs role="tablist" aria-label="모듈 관리 탭">
-    <button type="button" id="module-tab-trigger-installed" class="tab-trigger-underline active" role="tab" aria-selected="true" aria-controls="module-tab-installed" data-admin-tab-target="installed">설치된 모듈</button>
-    <button type="button" id="module-tab-trigger-installable" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-installable" tabindex="-1" data-admin-tab-target="installable">설치 가능한 모듈</button>
-    <button type="button" id="module-tab-trigger-upload" class="tab-trigger-underline" role="tab" aria-selected="false" aria-controls="module-tab-upload" tabindex="-1" data-admin-tab-target="upload">zip 업로드</button>
-</nav>
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title">설치 가능한 모듈</h2>
+        <button type="button" class="btn btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
+            <?php echo sr_material_icon_html('upload'); ?>
+            <span>zip 업로드</span>
+        </button>
+    </div>
+    <?php if ($installableModules === []) { ?>
+        <p>설치 가능한 새 모듈이 없습니다.</p>
+    <?php } else { ?>
+        <div class="table-wrapper">
+        <table class="table">
+            <thead class="ui-table-head">
+                <tr>
+                    <th>키</th>
+                    <th>이름</th>
+                    <th>유형</th>
+                    <th>코드 버전</th>
+                    <th>수명주기</th>
+                    <th>Saanraan 최소</th>
+                    <th>Saanraan 검증</th>
+                    <th>계약</th>
+                    <th>설명</th>
+                    <th class="text-end">설치</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($installableModules as $module) { ?>
+                    <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                    <tr>
+                        <td><?php echo sr_e((string) $module['module_key']); ?></td>
+                        <td><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></td>
+                        <td><?php echo sr_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
+                        <td>
+                            <?php echo sr_e((string) ($module['lifecycle_label'] ?? '미설치')); ?>
+                            <br>
+                            <?php echo sr_e((string) ($module['lifecycle_action'] ?? '설치 가능')); ?>
+                        </td>
+                        <td><?php echo sr_e((string) ($module['saanraan_min_version'] !== '' ? $module['saanraan_min_version'] : '-')); ?></td>
+                        <td><?php echo sr_e((string) ($module['saanraan_tested_with'] !== '' ? $module['saanraan_tested_with'] : '-')); ?></td>
+                        <td>
+                            <?php echo sr_e((string) (($module['saanraan_module_contract'] ?? '') !== '' ? $module['saanraan_module_contract'] : '-')); ?>
+                            <?php if ($moduleErrors !== []) { ?>
+                                <br>
+                                <strong>메타데이터/계약 오류</strong>
+                                <ul>
+                                    <?php foreach ($moduleErrors as $moduleError) { ?>
+                                        <li><?php echo sr_e((string) $moduleError); ?></li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } ?>
+                        </td>
+                        <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
+                            <?php if ($moduleErrors !== []) { ?>
+                                설치 불가
+                            <?php } else { ?>
+                                <details class="admin-inline-edit-details">
+                                    <summary class="btn btn-sm btn-soft-default">설치</summary>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="install">
+                                        <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
+                                        <label>
+                                            <span>설치 후 상태</span>
+                                            <select name="status" class="form-select">
+                                                <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-solid-primary">설치</button>
+                                    </form>
+                                </details>
+                            <?php } ?>
+                            </div>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+        </div>
+    <?php } ?>
+</section>
 
-<section id="module-tab-installed" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-installed" data-admin-tab-panel="installed">
+<section class="admin-card admin-list-card card admin-list-form">
 <div class="card-header">
     <h2 class="card-title">설치된 모듈</h2>
 </div>
@@ -161,164 +245,94 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 </section>
 
-<div id="module-tab-upload" role="tabpanel" aria-labelledby="module-tab-trigger-upload" data-admin-tab-panel="upload" hidden>
-<?php if (!$canManageModuleSources || !$moduleSourcesEnabled || !$moduleUploadAvailable) { ?>
-    <section class="admin-card card">
-        <h2>모듈 zip 업로드</h2>
-        <?php if (!$canManageModuleSources) { ?>
-            <p>모듈 파일 업로드는 소유자 권한이 필요합니다.</p>
-        <?php } elseif (!$moduleSourcesEnabled) { ?>
-            <p>현재 환경에서는 모듈 소스 반영 기능이 비활성화되어 있습니다. <code>admin.module_sources_enabled</code>를 참/거짓 유형의 참 값으로 저장하면 소유자 재인증 후 사용할 수 있습니다.</p>
-        <?php } elseif (!$moduleUploadAvailable) { ?>
-            <p>PHP ZipArchive 확장이 없어 이 서버에서는 zip 업로드를 사용할 수 없습니다. FTP로 <code>modules/{module_key}</code>에 업로드한 뒤 설치하세요.</p>
-        <?php } ?>
-    </section>
-<?php } else { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
-            <section class="admin-card card">
-                <h2>모듈 zip 업로드</h2>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="upload_module_zip">
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">모듈 zip</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">모듈 zip</span>
-                    <input type="file" name="module_zip" accept=".zip,application/zip" required class="form-input">
-                    </label>
+<div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="module-upload-modal-label">
+    <div class="modal-dialog modal-dialog-lg">
+        <div class="modal-content">
+            <?php if (!$canManageModuleSources || !$moduleUploadAvailable) { ?>
+                <div class="modal-header">
+                    <h3 id="module-upload-modal-label" class="modal-title">모듈 zip 업로드</h3>
+                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#module-upload-modal">
+                        <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                    </button>
                 </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">모듈 key</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">모듈 key</span>
-                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" class="form-input">
-                    </label>
+                <div class="modal-body">
+                    <?php if (!$canManageModuleSources) { ?>
+                        <p>모듈 파일 업로드는 소유자 권한이 필요합니다.</p>
+                    <?php } elseif (!$moduleUploadAvailable) { ?>
+                        <p>PHP ZipArchive 확장이 없어 이 서버에서는 zip 업로드를 사용할 수 없습니다. FTP로 <code>modules/{module_key}</code>에 업로드한 뒤 설치하세요.</p>
+                    <?php } ?>
                 </div>
-            </div>
-            <div class="admin-form-grid">
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
-                    <div class="admin-form-field">
-                        <label class="admin-form-check form-label">
-                            <input type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
-                            <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
-                        </label>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-default modal-action" data-overlay="#module-upload-modal">닫기</button>
+                </div>
+            <?php } else { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="module-upload-modal-label" class="modal-title">모듈 zip 업로드</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#module-upload-modal">
+                            <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                        </button>
                     </div>
-                </div>
-                <div class="admin-form-row">
-                    <div class="admin-form-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
-                    <div class="admin-form-field">
-                        <label class="admin-form-check form-label">
-                            <input type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
-                            <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
-                <div class="admin-form-field">
-                    <label>
-                        <span class="sr-only">소유자 비밀번호</span>
-                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
-                    </label>
-                </div>
-            </div>
-            <p>최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
-            </section>
-            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-                <button type="submit" class="btn btn-solid-primary">zip 업로드</button>
-            </div>
-        </form>
-<?php } ?>
-</div>
-
-<section id="module-tab-installable" class="admin-card admin-list-card card admin-list-form" role="tabpanel" aria-labelledby="module-tab-trigger-installable" data-admin-tab-panel="installable" hidden>
-    <div class="card-header">
-        <h2 class="card-title">설치 가능한 모듈</h2>
-    </div>
-    <?php if ($installableModules === []) { ?>
-        <p>설치 가능한 새 모듈이 없습니다.</p>
-    <?php } else { ?>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th>키</th>
-                    <th>이름</th>
-                    <th>유형</th>
-                    <th>코드 버전</th>
-                    <th>수명주기</th>
-                    <th>Saanraan 최소</th>
-                    <th>Saanraan 검증</th>
-                    <th>계약</th>
-                    <th>설명</th>
-                    <th class="text-end">설치</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($installableModules as $module) { ?>
-                    <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                    <tr>
-                        <td><?php echo sr_e((string) $module['module_key']); ?></td>
-                        <td><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></td>
-                        <td><?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></td>
-                        <td><?php echo sr_e((string) ($module['version'] !== '' ? $module['version'] : '-')); ?></td>
-                        <td>
-                            <?php echo sr_e((string) ($module['lifecycle_label'] ?? '미설치')); ?>
-                            <br>
-                            <?php echo sr_e((string) ($module['lifecycle_action'] ?? '설치 가능')); ?>
-                        </td>
-                        <td><?php echo sr_e((string) ($module['saanraan_min_version'] !== '' ? $module['saanraan_min_version'] : '-')); ?></td>
-                        <td><?php echo sr_e((string) ($module['saanraan_tested_with'] !== '' ? $module['saanraan_tested_with'] : '-')); ?></td>
-                        <td>
-                            <?php echo sr_e((string) (($module['saanraan_module_contract'] ?? '') !== '' ? $module['saanraan_module_contract'] : '-')); ?>
-                            <?php if ($moduleErrors !== []) { ?>
-                                <br>
-                                <strong>메타데이터/계약 오류</strong>
-                                <ul>
-                                    <?php foreach ($moduleErrors as $moduleError) { ?>
-                                        <li><?php echo sr_e((string) $moduleError); ?></li>
-                                    <?php } ?>
-                                </ul>
-                            <?php } ?>
-                        </td>
-                        <td><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></td>
-                        <td class="admin-table-actions-cell">
-                            <div class="admin-row-actions">
-                            <?php if ($moduleErrors !== []) { ?>
-                                설치 불가
-                            <?php } else { ?>
-                                <details class="admin-inline-edit-details">
-                                    <summary class="btn btn-sm btn-soft-default">설치</summary>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="intent" value="install">
-                                        <input type="hidden" name="module_key" value="<?php echo sr_e((string) $module['module_key']); ?>">
-                                        <label>
-                                            <span>설치 후 상태</span>
-                                            <select name="status" class="form-select">
-                                                <?php foreach ($allowedInstallStatuses as $status) { ?>
-                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                                        </label>
-                                        <button type="submit" class="btn btn-sm btn-solid-primary">설치</button>
-                                    </form>
-                                </details>
-                            <?php } ?>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="upload_module_zip">
+                        <div class="admin-form-row">
+                            <div class="admin-form-label"><span class="form-label">모듈 zip</span></div>
+                            <div class="admin-form-field">
+                                <label>
+                                    <span class="sr-only">모듈 zip</span>
+                                    <input type="file" name="module_zip" accept=".zip,application/zip" required class="form-input" data-overlay-focus>
+                                </label>
                             </div>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-label"><span class="form-label">모듈 key</span></div>
+                            <div class="admin-form-field">
+                                <label>
+                                    <span class="sr-only">모듈 key</span>
+                                    <input type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" class="form-input">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="admin-form-grid">
+                            <div class="admin-form-row">
+                                <div class="admin-form-label"><span class="form-label">기존 모듈 파일 백업과 교체 확인</span></div>
+                                <div class="admin-form-field">
+                                    <label class="admin-form-check form-label">
+                                        <input type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
+                                        <?php echo sr_admin_choice_label_html('기존 모듈 파일 백업과 교체 확인'); ?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <div class="admin-form-label"><span class="form-label">낮은 버전 덮어쓰기 허용</span></div>
+                                <div class="admin-form-field">
+                                    <label class="admin-form-check form-label">
+                                        <input type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
+                                        <?php echo sr_admin_choice_label_html('낮은 버전 덮어쓰기 허용'); ?>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-label"><span class="form-label">소유자 비밀번호</span></div>
+                            <div class="admin-form-field">
+                                <label>
+                                    <span class="sr-only">소유자 비밀번호</span>
+                                    <input type="password" name="owner_password" autocomplete="current-password" required class="form-input">
+                                </label>
+                            </div>
+                        </div>
+                        <p>소유자 비밀번호 확인을 통과한 요청에서만 모듈 파일 반영을 일시적으로 허용하고, 업로드 처리가 끝나면 자동으로 다시 비활성화합니다. 최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-soft-default modal-action" data-overlay="#module-upload-modal">닫기</button>
+                        <button type="submit" class="btn btn-solid-primary modal-action">zip 업로드</button>
+                    </div>
+                </form>
+            <?php } ?>
         </div>
-    <?php } ?>
-</section>
+    </div>
+</div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

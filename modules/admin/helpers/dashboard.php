@@ -371,7 +371,7 @@ function sr_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array
         'state' => $moduleSourcesEnabled && sr_runtime_is_production($config) ? '주의' : '정상',
         'detail' => $moduleSourcesEnabled
             ? '소유자 재인증 후 모듈 zip 업로드 가능'
-            : 'admin.module_sources_enabled 설정이 없으면 운영 환경에서 기본 비활성화',
+            : 'zip 업로드는 소유자 재인증 요청에서만 일시 허용',
     ];
 
     $storageDriver = sr_storage_default_driver($config);

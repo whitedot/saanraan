@@ -283,9 +283,17 @@ function sr_module_source_upload_limit_bytes(): int
 
 function sr_module_sources_enabled(PDO $pdo, ?array $config = null): bool
 {
-    $setting = sr_site_setting($pdo, 'admin.module_sources_enabled', null);
-    if ($setting !== null) {
-        return !empty($setting);
+    $stmt = $pdo->prepare(
+        "SELECT setting_value, value_type
+         FROM sr_site_settings
+         WHERE setting_key = 'admin.module_sources_enabled'
+         LIMIT 1"
+    );
+    $stmt->execute();
+    $setting = $stmt->fetch();
+    if (is_array($setting)) {
+        return (string) ($setting['value_type'] ?? '') === 'bool'
+            && (bool) sr_cast_setting_value($setting['setting_value'] ?? '', 'bool');
     }
 
     return !sr_runtime_is_production($config);

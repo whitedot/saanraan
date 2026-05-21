@@ -162,7 +162,7 @@
     border-bottom:1px dashed var(--color-default-200);
     column-gap:calc(var(--spacing) * 8);
     display:grid;
-    grid-template-columns:minmax(8rem,14rem) minmax(0,44rem);
+    grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);
     padding-bottom:calc(var(--spacing) * 4);
 }
 .admin-form>section.card>.admin-form-row:last-of-type{border-bottom-width:0}
@@ -171,7 +171,7 @@
     align-items:start;
     column-gap:calc(var(--spacing) * 8);
     display:grid;
-    grid-template-columns:minmax(8rem,14rem) minmax(0,44rem);
+    grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);
 }
 .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 .admin-form .admin-form-label{color:var(--color-default-700);font-weight:var(--font-weight-semibold);padding-top:.55rem}

@@ -309,7 +309,7 @@
     align-items: start;
     column-gap: calc(var(--spacing) * 8);
     row-gap: calc(var(--spacing) * 2);
-    grid-template-columns: minmax(8rem, 14rem) minmax(0, 44rem);
+    grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr);
 }
 
 .admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .ui-kit-grid.ui-kit-grid-1.ui-kit-gap-1-5.ui-kit-grid-lg-3.ui-kit-gap-lg-9 > .ui-kit-column-lg-2 {
@@ -369,7 +369,7 @@
     .ui-kit-grid-lg-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .ui-kit-grid-lg-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .ui-kit-grid.ui-kit-grid-1.ui-kit-gap-1-5.ui-kit-grid-lg-3.ui-kit-gap-lg-9 {
-        grid-template-columns: minmax(8rem, 14rem) minmax(0, 44rem);
+        grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr);
     }
     .ui-kit-column-lg-2 { grid-column: span 2 / span 2; }
     .admin-ui-kit-samples .ui-kit-sample-section[data-ui-kit-sample="form-elements"] .ui-kit-grid.ui-kit-grid-1.ui-kit-gap-1-5.ui-kit-grid-lg-3.ui-kit-gap-lg-9 > .ui-kit-column-lg-2 {
