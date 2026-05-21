@@ -153,7 +153,7 @@
 .admin-form>section.card>p{margin-bottom:var(--spacing-base,1rem);padding-inline:calc(var(--spacing) * 5);font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-default-500)}
 .admin-form>section.card>.card-body>p{padding-inline:0}
 .admin-form>section.card>p:last-child{margin-bottom:0}
-.admin-form>section.card>.admin-form-grid{padding:calc(var(--spacing) * 5)}
+#container>form.admin-form>section.card>.admin-form-grid{gap:0;padding:0}
 .admin-form>section.card>.admin-form-grid + p{margin-top:calc(var(--spacing) * -2)}
 #container>form.admin-form>section.card>.admin-form-row{margin:0;padding:calc(var(--spacing) * 2) calc(var(--spacing) * 5)}
 .admin-form>section.card>.admin-form-check{margin-inline:calc(var(--spacing) * 5);margin-block:calc(var(--spacing) * 2)}
@@ -172,6 +172,12 @@
     display:grid;
     grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);
 }
+#container>form.admin-form>section.card>.admin-form-grid>.admin-form-row{
+    border-bottom:1px dashed var(--color-default-200);
+    padding:calc(var(--spacing) * 2) calc(var(--spacing) * 5);
+}
+#container>form.admin-form>section.card>.admin-form-grid>.admin-form-row:last-child{border-bottom-width:0}
+#container>form.admin-form>section.card>.admin-form-grid:has(+ .admin-form-row)>.admin-form-row:last-child{border-bottom-width:1px}
 .modal-body>.admin-form-row{align-items:start;column-gap:calc(var(--spacing) * 5);display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);margin-top:calc(var(--spacing) * 3)}
 .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 .admin-form .admin-form-row>.admin-form-field.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
