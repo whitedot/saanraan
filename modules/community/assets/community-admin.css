@@ -74,6 +74,18 @@
 .admin-page-community-comment-list .admin-community-comment-table .admin-row-actions{gap:.5rem}
 .admin-page-community-comment-list .admin-community-comment-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
 .admin-page-community-comment-list .admin-community-comment-table td form .form-select{min-width:8rem}
+.admin-page-community-report-list .admin-community-report-search-grid{grid-template-columns:minmax(0,9rem) minmax(0,10rem) minmax(0,11rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
+.admin-page-community-report-list .admin-community-report-filter .admin-filter-field{min-width:0}
+.admin-page-community-report-list .admin-community-report-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-page-community-report-list .admin-community-report-table{table-layout:fixed;min-width:104rem}
+.admin-page-community-report-list .admin-community-report-table th,.admin-page-community-report-list .admin-community-report-table td{overflow:hidden;text-overflow:ellipsis}
+.admin-page-community-report-list .admin-community-report-table .admin-table-actions-cell{min-width:22rem;overflow:visible}
+.admin-page-community-report-list .admin-community-report-target-cell,.admin-page-community-report-list .admin-community-report-reason-cell,.admin-page-community-report-list .admin-community-report-account-cell,.admin-page-community-report-list .admin-community-report-memo-cell,.admin-page-community-report-list .admin-community-report-date-cell{overflow:hidden;text-overflow:ellipsis}
+.admin-page-community-report-list .admin-community-report-date-cell,.admin-page-community-report-list .admin-community-report-target-cell,.admin-page-community-report-list .admin-community-report-reason-cell{white-space:nowrap}
+.admin-page-community-report-list .admin-community-report-table .admin-row-actions{gap:.5rem}
+.admin-page-community-report-list .admin-community-report-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
+.admin-page-community-report-list .admin-community-report-table td form .form-select{min-width:8rem}
+.admin-page-community-report-list .admin-community-report-table td form .form-textarea{min-width:10rem;max-width:12rem;min-height:2.5rem;resize:vertical}
 .community-point-adjust-form{margin-bottom:calc(var(--spacing) * 5)}
 .community-point-adjust-actions{margin-bottom:calc(var(--spacing) * 5);justify-content:flex-end}
 .admin-list-actions.community-bulk-actions{justify-content:flex-start;gap:calc(var(--spacing) * 2)}
@@ -114,3 +126,5 @@
 @media (max-width:767px){.admin-page-community-post-list .admin-community-post-search-grid{grid-template-columns:1fr}.admin-page-community-post-list .admin-community-post-filter-keyword,.admin-page-community-post-list .admin-community-post-filter .admin-filter-submit{grid-column:auto}}
 @media (max-width:1023px){.admin-page-community-comment-list .admin-community-comment-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-community-comment-list .admin-community-comment-filter-keyword,.admin-page-community-comment-list .admin-community-comment-filter .admin-filter-submit{grid-column:1 / -1}.admin-page-community-comment-list .admin-community-comment-filter .admin-filter-submit{width:100%}}
 @media (max-width:767px){.admin-page-community-comment-list .admin-community-comment-search-grid{grid-template-columns:1fr}.admin-page-community-comment-list .admin-community-comment-filter-keyword,.admin-page-community-comment-list .admin-community-comment-filter .admin-filter-submit{grid-column:auto}}
+@media (max-width:1023px){.admin-page-community-report-list .admin-community-report-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-community-report-list .admin-community-report-filter-keyword,.admin-page-community-report-list .admin-community-report-filter .admin-filter-submit{grid-column:1 / -1}.admin-page-community-report-list .admin-community-report-filter .admin-filter-submit{width:100%}}
+@media (max-width:767px){.admin-page-community-report-list .admin-community-report-search-grid{grid-template-columns:1fr}.admin-page-community-report-list .admin-community-report-filter-keyword,.admin-page-community-report-list .admin-community-report-filter .admin-filter-submit{grid-column:auto}}

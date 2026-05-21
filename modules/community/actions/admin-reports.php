@@ -12,6 +12,27 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager'])
 $errors = [];
 $notice = '';
 $allowedStatuses = sr_community_report_statuses();
+$allowedReasonKeys = sr_community_report_reason_keys();
+$allowedTargetTypes = ['post', 'comment', 'message'];
+$reportListFilters = [
+    'status' => sr_get_string('status', 30),
+    'target_type' => sr_get_string('target_type', 30),
+    'reason_key' => sr_get_string('reason_key', 30),
+    'field' => sr_get_string('field', 20),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if ($reportListFilters['status'] !== '' && !in_array($reportListFilters['status'], $allowedStatuses, true)) {
+    $reportListFilters['status'] = '';
+}
+if ($reportListFilters['target_type'] !== '' && !in_array($reportListFilters['target_type'], $allowedTargetTypes, true)) {
+    $reportListFilters['target_type'] = '';
+}
+if ($reportListFilters['reason_key'] !== '' && !in_array($reportListFilters['reason_key'], $allowedReasonKeys, true)) {
+    $reportListFilters['reason_key'] = '';
+}
+if (!in_array($reportListFilters['field'], ['all', 'target', 'reporter', 'reported', 'reviewer', 'memo'], true)) {
+    $reportListFilters['field'] = 'all';
+}
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -59,6 +80,20 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$reports = sr_community_reports($pdo, 100);
+$reportStatusCounts = ['total' => 0];
+foreach ($allowedStatuses as $status) {
+    $reportStatusCounts[$status] = 0;
+}
+$reportStatusCountStmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_reports GROUP BY status');
+foreach ($reportStatusCountStmt->fetchAll() as $row) {
+    $status = (string) ($row['status'] ?? '');
+    $count = (int) ($row['count_value'] ?? 0);
+    if (array_key_exists($status, $reportStatusCounts)) {
+        $reportStatusCounts[$status] = $count;
+    }
+    $reportStatusCounts['total'] += $count;
+}
+
+$reports = sr_community_reports($pdo, 100, $reportListFilters);
 
 include SR_ROOT . '/modules/community/views/admin-reports.php';

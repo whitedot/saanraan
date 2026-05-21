@@ -197,22 +197,80 @@ function sr_community_record_report_rate_limit(PDO $pdo, int $accountId, array $
     sr_rate_limit_increment($pdo, 'community.report.account', (string) $accountId, $windowSeconds);
 }
 
-function sr_community_reports(PDO $pdo, int $limit = 100): array
+function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): array
 {
     $limit = max(1, min(200, $limit));
-    $stmt = $pdo->prepare(
-        'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
-                r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
-                reporter.display_name AS reporter_display_name,
-                reported.display_name AS reported_display_name,
-                reviewer.display_name AS reviewer_display_name
-         FROM sr_community_reports r
-         LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
-         LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
-         LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
-         ORDER BY r.id DESC
-         LIMIT :limit_value'
-    );
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 'r.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((string) ($filters['target_type'] ?? '') !== '') {
+        $where[] = 'r.target_type = :target_type';
+        $params['target_type'] = (string) $filters['target_type'];
+    }
+
+    if ((string) ($filters['reason_key'] ?? '') !== '') {
+        $where[] = 'r.reason_key = :reason_key';
+        $params['reason_key'] = (string) $filters['reason_key'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'reporter') {
+            $where[] = '(reporter.display_name LIKE :reporter_name_keyword OR CAST(r.reporter_account_id AS CHAR) LIKE :reporter_id_keyword)';
+            $params['reporter_name_keyword'] = '%' . $keyword . '%';
+            $params['reporter_id_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'reported') {
+            $where[] = '(reported.display_name LIKE :reported_name_keyword OR CAST(r.reported_account_id AS CHAR) LIKE :reported_id_keyword)';
+            $params['reported_name_keyword'] = '%' . $keyword . '%';
+            $params['reported_id_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'reviewer') {
+            $where[] = '(reviewer.display_name LIKE :reviewer_name_keyword OR CAST(r.reviewer_account_id AS CHAR) LIKE :reviewer_id_keyword)';
+            $params['reviewer_name_keyword'] = '%' . $keyword . '%';
+            $params['reviewer_id_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'memo') {
+            $where[] = '(r.memo_text LIKE :memo_keyword OR r.review_note LIKE :review_note_keyword)';
+            $params['memo_keyword'] = '%' . $keyword . '%';
+            $params['review_note_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'target') {
+            $where[] = '(r.target_type LIKE :target_type_keyword OR CAST(r.target_id AS CHAR) LIKE :target_id_keyword)';
+            $params['target_type_keyword'] = '%' . $keyword . '%';
+            $params['target_id_keyword'] = '%' . $keyword . '%';
+        } else {
+            $where[] = '(r.memo_text LIKE :memo_keyword OR r.review_note LIKE :review_note_keyword OR reporter.display_name LIKE :reporter_keyword OR reported.display_name LIKE :reported_keyword OR reviewer.display_name LIKE :reviewer_keyword OR r.target_type LIKE :target_type_keyword OR CAST(r.target_id AS CHAR) LIKE :target_id_keyword)';
+            $params['memo_keyword'] = '%' . $keyword . '%';
+            $params['review_note_keyword'] = '%' . $keyword . '%';
+            $params['reporter_keyword'] = '%' . $keyword . '%';
+            $params['reported_keyword'] = '%' . $keyword . '%';
+            $params['reviewer_keyword'] = '%' . $keyword . '%';
+            $params['target_type_keyword'] = '%' . $keyword . '%';
+            $params['target_id_keyword'] = '%' . $keyword . '%';
+        }
+    }
+
+    $sql = 'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
+                   r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
+                   reporter.display_name AS reporter_display_name,
+                   reported.display_name AS reported_display_name,
+                   reviewer.display_name AS reviewer_display_name
+            FROM sr_community_reports r
+            LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
+            LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
+            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY r.id DESC LIMIT :limit_value';
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
 
