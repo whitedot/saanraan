@@ -7,5 +7,6 @@ return [
     'POST /admin/points/adjust' => 'actions/admin-points-adjust.php',
     'GET /admin/points/balances' => 'actions/admin-points-balances.php',
     'POST /admin/points/balances' => 'actions/admin-points-balances.php',
+    'GET /admin/points/reference-search' => 'actions/admin-points-reference-search.php',
     'GET /admin/points/transactions' => 'actions/admin-points-transactions.php',
 ];

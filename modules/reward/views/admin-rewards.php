@@ -197,6 +197,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php
         $rewardAdjustModalId = 'reward-adjust-modal-' . (int) $rewardAdjustModalAccount['id'];
         $rewardAdjustFieldPrefix = 'reward_adjust_' . (int) $rewardAdjustModalAccount['id'];
+        $rewardAdjustAccountInputId = $rewardAdjustFieldPrefix . '_account_identifier';
+        $rewardAdjustReferenceTypeInputId = $rewardAdjustFieldPrefix . '_reference_type';
+        $rewardAdjustReferenceIdInputId = $rewardAdjustFieldPrefix . '_reference_id';
+        $rewardAdjustMemberLookupModalId = $rewardAdjustFieldPrefix . '_member_lookup_modal';
+        $rewardAdjustReferenceLookupModalId = $rewardAdjustFieldPrefix . '_reference_lookup_modal';
         ?>
         <div id="<?php echo sr_e($rewardAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
@@ -218,9 +223,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } else { ?>
                             <div class="admin-form-row">
-                                <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_account_identifier">회원 공개 해시</label>
+                                <label class="form-label" for="<?php echo sr_e($rewardAdjustAccountInputId); ?>">회원 공개 해시</label>
                                 <div class="admin-form-field">
-                                    <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_account_identifier" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
+                                    <div class="admin-lookup-control">
+                                        <input id="<?php echo sr_e($rewardAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
+                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardAdjustMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($rewardAdjustMemberLookupModalId); ?>" data-overlay-stack="true" data-admin-member-lookup-open data-target="#<?php echo sr_e($rewardAdjustAccountInputId); ?>">회원 검색</button>
+                                    </div>
                                 </div>
                             </div>
                         <?php } ?>
@@ -248,9 +256,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reference_type">참조 유형</label>
+                            <label class="form-label" for="<?php echo sr_e($rewardAdjustReferenceTypeInputId); ?>">참조 유형</label>
                             <div class="admin-form-field">
-                                <select id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reference_type" name="reference_type" class="form-select">
+                                <select id="<?php echo sr_e($rewardAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select">
                                     <?php foreach ($rewardReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
                                         <option value="<?php echo sr_e($referenceTypeValue); ?>"><?php echo sr_e($referenceTypeLabel); ?></option>
                                     <?php } ?>
@@ -258,9 +266,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reference_id">참조 ID</label>
+                            <label class="form-label" for="<?php echo sr_e($rewardAdjustReferenceIdInputId); ?>">참조 ID</label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
+                                <div class="admin-lookup-control">
+                                    <input id="<?php echo sr_e($rewardAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input">
+                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($rewardAdjustReferenceLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($rewardAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($rewardAdjustReferenceIdInputId); ?>">참조 검색</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -271,6 +282,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </form>
             </div>
         </div>
+        <?php
+        $assetAdjustLookup = [
+            'field_prefix' => $rewardAdjustFieldPrefix,
+            'member_input_id' => (string) $rewardAdjustModalAccount['account_public_hash'] === '' ? $rewardAdjustAccountInputId : '',
+            'reference_type_id' => $rewardAdjustReferenceTypeInputId,
+            'reference_id_id' => $rewardAdjustReferenceIdInputId,
+            'member_search_url' => sr_url('/admin/members/search'),
+            'reference_search_url' => sr_url('/admin/rewards/reference-search'),
+            'reference_options' => $rewardReferenceTypeOptions,
+        ];
+        include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+        ?>
     <?php } ?>
 <?php } ?>
 

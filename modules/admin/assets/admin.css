@@ -183,6 +183,20 @@
 .modal-body>.admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-weight:var(--font-weight-semibold);min-height:calc(var(--spacing) * 9.25);padding-top:0}
 .modal-body>.admin-form-row>.admin-form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
 .modal-body>.admin-form-row>.admin-form-field>.admin-form-help{flex-basis:100%;margin-top:0}
+.admin-lookup-control{align-items:center;display:flex;gap:calc(var(--spacing) * 2);min-width:0;width:100%}
+.admin-lookup-control>.form-input,.admin-lookup-control>.form-select{min-width:0}
+.admin-lookup-control>.form-input{flex:1 1 16rem;width:auto}
+.admin-lookup-control>.btn{flex:0 0 auto;white-space:nowrap}
+.admin-lookup-dialog{max-width:min(42rem,calc(100vw - 2rem))}
+.admin-lookup-search-form{align-items:end;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(8rem,10rem) minmax(0,1fr) auto}
+.admin-lookup-results{border:1px solid var(--color-default-200);border-radius:var(--radius);margin-top:calc(var(--spacing) * 4);max-height:22rem;overflow:auto;padding:calc(var(--spacing) * 2)}
+.admin-lookup-empty{margin:0;padding:calc(var(--spacing) * 3)}
+.admin-lookup-results-list{display:grid;gap:calc(var(--spacing) * 1.5)}
+.admin-lookup-result-button{appearance:none;background:var(--color-card);border:1px solid var(--color-default-200);border-radius:var(--radius);color:inherit;cursor:pointer;display:grid;gap:calc(var(--spacing) * 1);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);text-align:left;width:100%}
+.admin-lookup-result-button:hover,.admin-lookup-result-button:focus-visible{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent);outline:0}
+.admin-lookup-result-button>strong{font-size:var(--text-sm);font-weight:var(--font-weight-semibold);line-height:var(--text-sm--line-height);overflow-wrap:anywhere}
+.admin-lookup-result-meta{color:var(--admin-muted-text);display:flex;flex-wrap:wrap;font-size:var(--text-xs);gap:calc(var(--spacing) * 1) calc(var(--spacing) * 2);line-height:var(--text-xs--line-height)}
+.admin-lookup-result-meta>span{overflow-wrap:anywhere}
 .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 .admin-form .admin-form-row>.admin-form-field.admin-form-check,
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-form-check.form-label){
@@ -457,6 +471,28 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
     .admin-form .form-input,
     .admin-form .form-select{
+        width:100%;
+    }
+
+    .modal-body>.admin-form-row{
+        gap:calc(var(--spacing) * 2);
+        grid-template-columns:1fr;
+    }
+
+    .admin-lookup-control,
+    .admin-lookup-search-form{
+        grid-template-columns:1fr;
+    }
+
+    .admin-lookup-control{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .admin-lookup-control>.form-input,
+    .admin-lookup-control>.form-select,
+    .admin-lookup-control>.btn{
+        justify-content:center;
         width:100%;
     }
 }

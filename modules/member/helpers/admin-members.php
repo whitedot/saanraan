@@ -155,6 +155,75 @@ function sr_admin_member_rows_with_public_hash(array $config, array $rows): arra
     return $rows;
 }
 
+function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, string $keyword, int $limit = 20): array
+{
+    $allowedFields = ['all', 'hash', 'email', 'name'];
+    if (!in_array($field, $allowedFields, true)) {
+        $field = 'all';
+    }
+
+    $keyword = trim($keyword);
+    $limit = max(1, min(30, $limit));
+    $params = [];
+    $where = [];
+    $accountId = 0;
+    if ($keyword !== '') {
+        $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
+        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+
+        if ($field === 'hash') {
+            $where[] = $accountId > 0 ? 'id = :account_id' : '1 = 0';
+            if ($accountId > 0) {
+                $params['account_id'] = $accountId;
+            }
+        } elseif ($field === 'email') {
+            $where[] = "email LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = $like;
+        } elseif ($field === 'name') {
+            $where[] = "display_name LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = $like;
+        } else {
+            $clauses = ["email LIKE :keyword_email_like ESCAPE '\\\\'", "display_name LIKE :keyword_name_like ESCAPE '\\\\'"];
+            $params['keyword_email_like'] = $like;
+            $params['keyword_name_like'] = $like;
+            if ($accountId > 0) {
+                $clauses[] = 'id = :account_id';
+                $params['account_id'] = $accountId;
+            }
+            $where[] = '(' . implode(' OR ', $clauses) . ')';
+        }
+    }
+
+    $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    $stmt = $pdo->prepare(
+        'SELECT id, email, display_name, status, created_at
+         FROM sr_member_accounts
+         ' . $whereSql . '
+         ORDER BY id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute($params);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $accountId = (int) ($row['id'] ?? 0);
+        $rows[] = [
+            'id' => $accountId,
+            'account_public_hash' => $accountId > 0 ? sr_admin_member_public_hash($config, $accountId) : '',
+            'display_name' => sr_admin_member_display_name_preview($row),
+            'email' => sr_admin_member_email_display($row),
+            'status' => (string) ($row['status'] ?? ''),
+            'created_at' => (string) ($row['created_at'] ?? ''),
+        ];
+    }
+
+    return $rows;
+}
+
 function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
 {
     if ($accountId < 1) {

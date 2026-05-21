@@ -218,14 +218,17 @@
 - [ ] `/admin/points` 포인트 설정
 - [ ] `/admin/points/balances` 포인트 잔액
 - [ ] `/admin/points/balances` 포인트 잔액 행 조정 모달
+- [ ] `/admin/points/balances` 포인트 조정 모달의 회원 검색 / 참조 검색 적용
 - [ ] `/admin/points/transactions` 포인트 거래 내역
 - [ ] `/admin/deposits` 예치금 설정
 - [ ] `/admin/deposits/balances` 예치금 잔액
 - [ ] `/admin/deposits/balances` 예치금 잔액 행 조정 모달
+- [ ] `/admin/deposits/balances` 예치금 조정 모달의 회원 검색 / 참조 검색 적용
 - [ ] `/admin/deposits/transactions` 예치금 거래 내역
 - [ ] `/admin/rewards` 리워드 설정
 - [ ] `/admin/rewards/balances` 리워드 잔액
 - [ ] `/admin/rewards/balances` 리워드 잔액 행 조정 모달
+- [ ] `/admin/rewards/balances` 리워드 조정 모달의 회원 검색 / 참조 검색 적용
 - [ ] `/admin/rewards/transactions` 리워드 거래 내역
 
 메모:

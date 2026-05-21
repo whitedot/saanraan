@@ -790,6 +790,7 @@
     var isSameOverlay = currentOverlay && currentOverlay === overlay;
     var overlayIsActive = overlay.classList.contains(ACTIVE_CLASS);
     var parentOverlay = !isSameOverlay && currentOverlay ? currentOverlay : null;
+    var shouldStackOverlay = trigger.dataset.overlayStack === 'true' || overlay.dataset.overlayStack === 'true';
     var previouslyFocused = document.activeElement;
     var fallbackTarget = trigger;
 
@@ -805,7 +806,7 @@
       return;
     }
 
-    if (parentOverlay && parentOverlay.classList.contains(ACTIVE_CLASS)) {
+    if (parentOverlay && !shouldStackOverlay && parentOverlay.classList.contains(ACTIVE_CLASS)) {
       hideOverlay(parentOverlay);
     }
 
