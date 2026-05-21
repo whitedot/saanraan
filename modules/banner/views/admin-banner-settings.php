@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p>배너 스킨은 기본 출력 템플릿입니다. 개별 배너에서 다른 스킨을 선택하면 개별 설정이 우선합니다.</p>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-soft-default">배너 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light">배너 목록</a>
         <button type="submit" class="btn btn-solid-primary">배너 설정 저장</button>
     </div>
 </form>

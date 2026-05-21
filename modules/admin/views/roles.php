@@ -92,7 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 }, $adminAccount['roles']))); ?></td>
                 <td class="admin-table-actions-cell">
                     <div class="admin-row-actions">
-                        <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($roleModalId); ?>" data-overlay="#<?php echo sr_e($roleModalId); ?>">
+                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($roleModalId); ?>" data-overlay="#<?php echo sr_e($roleModalId); ?>">
                             권한 변경
                         </button>
                     </div>
@@ -144,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-soft-default modal-action" data-overlay="#<?php echo sr_e($roleModalId); ?>">닫기</button>
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($roleModalId); ?>">닫기</button>
                         <button type="submit" class="btn btn-solid-primary modal-action">권한 저장</button>
                     </div>
                 </form>

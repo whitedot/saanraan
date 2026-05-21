@@ -26,7 +26,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-soft-default">팝업 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light">팝업 목록</a>
         <button type="submit" class="btn btn-solid-primary">팝업레이어 설정 저장</button>
     </div>
 </form>

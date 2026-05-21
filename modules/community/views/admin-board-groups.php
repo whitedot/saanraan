@@ -78,7 +78,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">게시판 그룹 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-soft-default">새 게시판 그룹 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-solid-light">새 게시판 그룹 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -105,13 +105,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $boardGroup['title']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $boardGroup['status'], 'content_status')); ?></td>
                         <td>
-                            <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-soft-default">
+                            <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-solid-light">
                                 <?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?>개 보기
                             </a>
                         </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -296,7 +296,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </section>
             <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? '그룹 변경' : '그룹 생성'; ?></button>
         </div>
     </form>

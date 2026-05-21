@@ -139,7 +139,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <p>배너 스킨은 배너를 화면에 그리는 템플릿입니다. 선택한 스킨이 지원하는 출력 방식과 배너 출력 위치가 맞아야 사용자 화면에 표시됩니다.</p>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -150,7 +150,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title">배너 목록</h2>
                 <p class="admin-dashboard-meta">사용 상태이고 기간 조건에 맞는 배너만 사용자 화면에 노출됩니다.</p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-soft-default">새 배너 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-solid-light">새 배너 추가</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-filter-grid-compact">
@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $banner['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">

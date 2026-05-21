@@ -13,7 +13,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-soft-default">전체 보기</a>
+        <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light">전체 보기</a>
     </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta">총회원 <strong><?php echo sr_e((string) $totalMembers); ?>명</strong></span>
@@ -108,7 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <details class="admin-inline-edit-details">
-                                    <summary class="btn btn-sm btn-soft-default">정보 수정</summary>
+                                    <summary class="btn btn-sm btn-solid-light">정보 수정</summary>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-inline-edit-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="edit">

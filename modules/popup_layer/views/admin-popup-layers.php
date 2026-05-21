@@ -100,10 +100,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <input type="datetime-local" name="starts_at" id="popup_starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>" class="form-input">
                         <div class="admin-date-quick-actions">
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick="now" data-datetime-target="popup_starts_at">지금</button>
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_starts_at">+1일</button>
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_starts_at">+3일</button>
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_starts_at">+7일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick="now" data-datetime-target="popup_starts_at">지금</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="1" data-datetime-target="popup_starts_at">+1일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="3" data-datetime-target="popup_starts_at">+3일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="7" data-datetime-target="popup_starts_at">+7일</button>
                                                 </div>
                     </div>
                 </div>
@@ -112,9 +112,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <input type="datetime-local" name="ends_at" id="popup_ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>" class="form-input">
                         <div class="admin-date-quick-actions">
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="1" data-datetime-target="popup_ends_at">+1일</button>
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="3" data-datetime-target="popup_ends_at">+3일</button>
-                                                    <button type="button" class="btn btn-sm btn-soft-default" data-datetime-quick-days="7" data-datetime-target="popup_ends_at">+7일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="1" data-datetime-target="popup_ends_at">+1일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="3" data-datetime-target="popup_ends_at">+3일</button>
+                                                    <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="7" data-datetime-target="popup_ends_at">+7일</button>
                                                 </div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">팝업 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-soft-default">새 팝업 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-solid-light">새 팝업 추가</a>
         </div>
         <?php if ($popups === []) { ?>
             <p>등록된 팝업이 없습니다.</p>
@@ -178,7 +178,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">

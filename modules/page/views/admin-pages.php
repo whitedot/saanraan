@@ -191,10 +191,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span>공개 표시</span>
                 <span class="admin-form-actions">
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
-                        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-soft-default">배너 관리</a>
+                        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light">배너 관리</a>
                     <?php } ?>
                     <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
-                        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-soft-default">팝업레이어 관리</a>
+                        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light">팝업레이어 관리</a>
                     <?php } ?>
                 </span>
             </h2>
@@ -380,7 +380,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -391,7 +391,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title">페이지 목록</h2>
                 <p class="admin-dashboard-meta">공개 상태인 페이지는 /pages/slug URL로 노출됩니다.</p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-soft-default">새 페이지 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-solid-light">새 페이지 추가</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-filter-grid-compact">
@@ -451,9 +451,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td>
                                     <div class="admin-actions">
                                         <?php if ((string) $page['status'] === 'published') { ?>
-                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-soft-default" target="_blank" rel="noopener noreferrer">보기</a>
+                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer">보기</a>
                                         <?php } ?>
-                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/pages/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>

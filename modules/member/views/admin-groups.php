@@ -74,14 +74,14 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-soft-default">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light">전체 보기</a>
         </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta">총그룹 <strong><?php echo sr_e((string) $totalGroups); ?>개</strong></span>
@@ -125,7 +125,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">그룹 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-soft-default">새 그룹 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light">새 그룹 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-member-group-table">
@@ -165,7 +165,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -228,7 +228,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">저장된 자동 규칙</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-soft-default">새 자동 규칙 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-solid-light">새 자동 규칙 추가</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -262,7 +262,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td><?php echo sr_e((string) ($rule['last_evaluated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -374,7 +374,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">자동 규칙 저장</button>
         </div>
     </form>

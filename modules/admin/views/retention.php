@@ -76,7 +76,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <button type="button" class="btn btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">
+        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">
             정리 실행
         </button>
         <button type="submit" class="btn btn-solid-primary">보관 기간 저장</button>
@@ -184,7 +184,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-soft-default modal-action" data-overlay="#admin-retention-cleanup-modal">닫기</button>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-retention-cleanup-modal">닫기</button>
                     <button type="submit" class="btn btn-solid-primary modal-action">정리 실행</button>
                 </div>
             </form>

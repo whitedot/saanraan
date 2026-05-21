@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-section-heading">
     <h2>설치 가능한 모듈</h2>
-    <button type="button" class="btn btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal" hidden>
+    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal" hidden>
         <?php echo sr_material_icon_html('upload'); ?>
         <span>zip 업로드</span>
     </button>
@@ -70,12 +70,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </div>
                 <div class="admin-module-card-actions">
-                    <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleModalId); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
+                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleModalId); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
                         상세보기
                     </button>
                     <?php if ($canInstall) { ?>
                         <details class="admin-inline-edit-details">
-                            <summary class="btn btn-sm btn-soft-default">설치</summary>
+                            <summary class="btn btn-sm btn-solid-light">설치</summary>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="install">
@@ -142,7 +142,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </dl>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-soft-default modal-action" data-overlay="#<?php echo sr_e($moduleModalId); ?>">닫기</button>
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleModalId); ?>">닫기</button>
                         </div>
                     </div>
                 </div>
@@ -204,7 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <span class="sr-only">소유자 비밀번호</span>
                                             <input id="modules_admin_modules_owner_password" type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
                                         </label>
-                                        <button type="submit" class="btn btn-sm btn-soft-default">파일 업데이트 반영</button>
+                                        <button type="submit" class="btn btn-sm btn-solid-light">파일 업데이트 반영</button>
                                     </form>
                                 <?php } elseif ($canManageModuleSources) { ?>
                                     소스 반영 비활성화
@@ -225,12 +225,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </div>
             <div class="admin-module-card-actions">
-                <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleModalId); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
+                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleModalId); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
                     상세보기
                 </button>
                 <?php if (in_array($moduleStatus, ['failed', 'installing'], true)) { ?>
                     <details class="admin-inline-edit-details">
-                        <summary class="btn btn-sm btn-soft-default">재설치</summary>
+                        <summary class="btn btn-sm btn-solid-light">재설치</summary>
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="install">
@@ -250,7 +250,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </details>
                 <?php } else { ?>
                     <details class="admin-inline-edit-details">
-                        <summary class="btn btn-sm btn-soft-default"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
+                        <summary class="btn btn-sm btn-solid-light"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="status">
@@ -340,7 +340,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </dl>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-soft-default modal-action" data-overlay="#<?php echo sr_e($moduleModalId); ?>">닫기</button>
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleModalId); ?>">닫기</button>
                     </div>
                 </div>
             </div>
@@ -367,7 +367,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-soft-default modal-action" data-overlay="#module-upload-modal">닫기</button>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-upload-modal">닫기</button>
                 </div>
             <?php } else { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
@@ -421,7 +421,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <p>소유자 비밀번호 확인을 통과한 요청에서만 모듈 파일 반영을 일시적으로 허용하고, 업로드 처리가 끝나면 자동으로 다시 비활성화합니다. 최대 <?php echo sr_e($moduleUploadLimitLabel); ?>까지 업로드할 수 있습니다. 압축 해제 후 모듈 파일은 최대 <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?>까지 허용합니다. zip은 <code>{module_key}/module.php</code> 구조를 권장하고, <code>module/module.php</code> 구조라면 module key를 입력하세요.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-soft-default modal-action" data-overlay="#module-upload-modal">닫기</button>
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-upload-modal">닫기</button>
                         <button type="submit" class="btn btn-solid-primary modal-action">zip 업로드</button>
                     </div>
                 </form>

@@ -105,13 +105,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">게시판 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-soft-default">새 게시판 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-solid-light">새 게시판 추가</a>
         </div>
         <?php if ((int) ($boardGroupFilterId ?? 0) > 0) { ?>
             <div class="admin-filter">
                 <div class="admin-filter-header">
                     <strong><?php echo sr_e((string) ($boardGroupTitles[(int) $boardGroupFilterId] ?? '선택한 그룹')); ?> 그룹에 속한 게시판만 표시 중</strong>
-                    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-sm btn-soft-default">전체 보기</a>
+                    <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-sm btn-solid-light">전체 보기</a>
                 </div>
             </div>
         <?php } ?>
@@ -153,13 +153,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                                 </select>
-                                <button type="submit" class="btn btn-sm btn-soft-default">저장</button>
+                                <button type="submit" class="btn btn-sm btn-solid-light">저장</button>
                             </form>
                         </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-soft-default">바로가기</a>
-                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-solid-light">바로가기</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                             </div>
                         </td>
                     </tr>
@@ -484,7 +484,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>
                 <span>배너</span>
                 <?php if (sr_module_enabled($pdo, 'banner')) { ?>
-                    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-soft-default">배너 관리</a>
+                    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light">배너 관리</a>
                 <?php } ?>
             </h2>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
@@ -509,7 +509,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>
                 <span>팝업레이어</span>
                 <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
-                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-soft-default">팝업레이어 관리</a>
+                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light">팝업레이어 관리</a>
                 <?php } ?>
             </h2>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
@@ -596,7 +596,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? '변경' : '생성'; ?></button>
         </div>
     </form>

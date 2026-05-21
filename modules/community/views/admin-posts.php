@@ -63,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-soft-default">변경</button>
+                                <button type="submit" class="btn btn-sm btn-solid-light">변경</button>
                             </form>
                             </div>
                         </td>
@@ -124,7 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } ?>
                                     </select>
                                 </label>
-                                <button type="submit" class="btn btn-sm btn-soft-default">변경</button>
+                                <button type="submit" class="btn btn-sm btn-solid-light">변경</button>
                             </form>
                             </div>
                         </td>

@@ -42,9 +42,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             잔액: <?php echo sr_e(number_format((int) $selectedBalance)); ?> P
         </p>
         <div class="admin-row-actions">
-            <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">잔액 보기</a>
-            <a href="<?php echo sr_e(sr_url('/admin/points/adjust?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">조정하기</a>
-            <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">거래 내역 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">잔액 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/points/adjust?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">조정하기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역 보기</a>
         </div>
     <?php } elseif ($accountIdentifierFilter !== '') { ?>
         <p>회원을 찾을 수 없습니다.</p>
@@ -100,7 +100,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/points/balances' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="btn btn-soft-default">잔액</a>
+            <a href="<?php echo sr_e(sr_url('/admin/points/balances' . ($accountIdentifierFilter !== '' ? '?account_identifier=' . rawurlencode($accountIdentifierFilter) : ''))); ?>" class="btn btn-solid-light">잔액</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
     </form>
@@ -174,8 +174,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">거래 내역</a>
-                                    <a href="<?php echo sr_e(sr_url('/admin/points/adjust?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-soft-default">조정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/points/adjust?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">조정</a>
                                 </div>
                             </td>
                         </tr>

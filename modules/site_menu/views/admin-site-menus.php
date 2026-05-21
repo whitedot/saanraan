@@ -60,7 +60,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">메뉴 저장</button>
         </div>
     </form>
@@ -68,7 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">메뉴 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-sm btn-soft-default">새 메뉴 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/site-menus/new')); ?>" class="btn btn-sm btn-solid-light">새 메뉴 추가</a>
         </div>
         <?php if ($menus === []) { ?>
             <p>등록된 메뉴가 없습니다.</p>
@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $menu['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/site-menus/edit?id=' . rawurlencode((string) $menu['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/site-menus/edit?id=' . rawurlencode((string) $menu['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $menu['id']); ?>">
@@ -179,7 +179,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </section>
             <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-                <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-soft-default">목록</a>
+                <a href="<?php echo sr_e(sr_url('/admin/site-menu-items')); ?>" class="btn btn-solid-light">목록</a>
                 <button type="submit" class="btn btn-solid-primary">항목 저장</button>
             </div>
         </form>
@@ -230,7 +230,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input type="hidden" name="target" value="self">
                                             <input type="hidden" name="status" value="enabled">
                                             <input type="hidden" name="sort_order" value="<?php echo sr_e((string) ($menuNextSortOrders[$suggestionMenuId] ?? 100)); ?>">
-                                            <button type="submit" class="btn btn-sm btn-soft-default"><?php echo sr_e((string) $menu['label']); ?>에 추가</button>
+                                            <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e((string) $menu['label']); ?>에 추가</button>
                                         </form>
                                     <?php } ?>
                                 <?php } ?>
@@ -247,7 +247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">항목 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/new')); ?>" class="btn btn-sm btn-soft-default">새 항목 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/new')); ?>" class="btn btn-sm btn-solid-light">새 항목 추가</a>
         </div>
         <?php if ($items === []) { ?>
             <p>등록된 메뉴 항목이 없습니다.</p>
@@ -274,7 +274,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $item['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/edit?id=' . rawurlencode((string) $item['id']))); ?>" class="btn btn-sm btn-soft-default">수정</a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/site-menu-items/edit?id=' . rawurlencode((string) $item['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menu-items/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="item_id" value="<?php echo sr_e((string) $item['id']); ?>">

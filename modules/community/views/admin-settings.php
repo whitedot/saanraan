@@ -315,7 +315,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
         <div class="admin-list-actions">
-            <button type="submit" class="btn btn-soft-default">최근 회원 레벨 재계산</button>
+            <button type="submit" class="btn btn-solid-light">최근 회원 레벨 재계산</button>
         </div>
     </form>
 </section>

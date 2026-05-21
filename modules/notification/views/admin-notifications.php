@@ -14,9 +14,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-soft-default">알림 목록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-soft-default">알림 등록</a>
-        <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-soft-default">발송 대기열</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">알림 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-solid-light">알림 등록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light">발송 대기열</a>
     </div>
 </div>
 
@@ -81,7 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-soft-default">목록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">알림 등록</button>
         </div>
     </form>
@@ -159,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-soft-default">저장</button>
+                                    <button type="submit" class="btn btn-sm btn-solid-light">저장</button>
                                 </form>
                                 </div>
                             </td>
@@ -174,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">알림 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-soft-default">새 알림 등록</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notifications/new')); ?>" class="btn btn-sm btn-solid-light">새 알림 등록</a>
         </div>
         <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter ui-form-theme">
             <div class="admin-filter-grid admin-account-search-grid">
