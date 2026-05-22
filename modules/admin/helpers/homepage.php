@@ -7,9 +7,9 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
     $candidates = [
         '/' => [
             'module_key' => 'core',
-            'label' => '기본 홈페이지',
+            'label' => sr_t('admin::homepage.default.label'),
             'path' => '/',
-            'detail' => '공개 레이아웃이 제공하는 기본 홈',
+            'detail' => sr_t('admin::homepage.default.detail'),
             'available' => true,
         ],
     ];
@@ -42,9 +42,9 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
     if ($currentPath !== '' && !isset($candidates[$currentPath])) {
         $candidates[$currentPath] = [
             'module_key' => '',
-            'label' => '현재 저장값',
+            'label' => sr_t('admin::homepage.current.label'),
             'path' => $currentPath,
-            'detail' => '현재 사용할 수 없는 초기화면입니다.',
+            'detail' => sr_t('admin::homepage.current.detail'),
             'available' => false,
         ];
     }

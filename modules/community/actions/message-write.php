@@ -10,7 +10,7 @@ $account = sr_member_require_login($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $settings = sr_community_settings($pdo);
 if (!sr_community_account_can_write_message($pdo, $account, $settings)) {
-    sr_render_error(403, '쪽지를 보낼 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.message_send_forbidden'));
 }
 $errors = [];
 $notice = '';

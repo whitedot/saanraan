@@ -9,7 +9,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 if (!sr_member_groups_table_exists($pdo)) {
-    sr_render_error(500, '회원 그룹 테이블이 없습니다. 회원 모듈 업데이트를 먼저 적용하세요.');
+    sr_render_error(500, sr_t('member::action.admin_groups.table_missing'));
 }
 
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
@@ -39,36 +39,36 @@ if (sr_request_method() === 'POST') {
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
 
         if ($groupId < 1 && !sr_member_group_key_is_valid($groupKey)) {
-            $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+            $errors[] = sr_t('member::action.admin_groups.group_key_invalid');
         }
 
         if ($title === '') {
-            $errors[] = '그룹 이름을 입력하세요.';
+            $errors[] = sr_t('member::action.admin_groups.group_title_required');
         }
 
         if ($description === null) {
-            $errors[] = '설명은 2000자 이하로 입력하세요.';
+            $errors[] = sr_t('member::action.admin_groups.description_too_long');
             $description = '';
         }
 
         if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = '그룹 상태 값이 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.admin_groups.group_status_invalid');
         }
 
         if ($sortOrder === null) {
-            $errors[] = '정렬 순서는 0 이상의 정수여야 합니다.';
+            $errors[] = sr_t('member::action.admin_groups.sort_order_invalid');
             $sortOrder = 0;
         }
 
         if ($errors === [] && $groupId > 0) {
             $existingGroup = sr_member_group_by_id($pdo, $groupId);
             if (!is_array($existingGroup)) {
-                $errors[] = '수정할 그룹을 찾을 수 없습니다.';
+                $errors[] = sr_t('member::action.admin_groups.group_edit_not_found');
             }
         }
 
         if ($errors === [] && $groupId < 1 && sr_member_group_by_key($pdo, $groupKey) !== null) {
-            $errors[] = '이미 사용 중인 그룹 key입니다.';
+            $errors[] = sr_t('member::action.admin_groups.group_key_duplicate');
         }
 
         if ($errors === []) {
@@ -94,7 +94,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = $groupId > 0 ? '회원 그룹을 수정했습니다.' : '회원 그룹을 만들었습니다.';
+            $notice = $groupId > 0 ? sr_t('member::action.admin_groups.group_updated') : sr_t('member::action.admin_groups.group_created');
             if ($groupId <= 0) {
                 sr_admin_flash_result(sr_admin_action_result([], $notice));
                 sr_redirect('/admin/member-groups');
@@ -110,38 +110,38 @@ if (sr_request_method() === 'POST') {
         $status = sr_post_string('status', 30);
 
         if ($groupId < 1 || !is_array(sr_member_group_by_id($pdo, $groupId))) {
-            $errors[] = '자동 규칙을 적용할 그룹을 선택하세요.';
+            $errors[] = sr_t('member::action.admin_groups.rule_group_required');
         }
 
         if (!isset($ruleDefinitions[$definitionKey])) {
-            $errors[] = '자동 규칙 조건 후보가 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.admin_groups.rule_definition_invalid');
         }
 
         if (is_array($ruleParamInputs) && isset($ruleDefinitions[$definitionKey])) {
             $decodedParams = sr_member_group_rule_params_from_input($ruleDefinitions[$definitionKey], $ruleParamInputs);
             $ruleParamsJson = '{}';
         } elseif ($ruleParamsJson === null) {
-            $errors[] = '조건 설정 JSON은 5000자 이하로 입력하세요.';
+            $errors[] = sr_t('member::action.admin_groups.rule_json_too_long');
             $ruleParamsJson = '{}';
             $decodedParams = [];
         } else {
             $decodedParams = json_decode((string) $ruleParamsJson, true);
             if (!is_array($decodedParams)) {
-                $errors[] = '조건 설정 JSON 형식이 올바르지 않습니다.';
+                $errors[] = sr_t('member::action.admin_groups.rule_json_invalid');
                 $decodedParams = [];
             }
         }
 
         if (!in_array($evaluationPolicy, $allowedEvaluationPolicies, true)) {
-            $errors[] = '평가 정책 값이 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.admin_groups.evaluation_policy_invalid');
         }
 
         if (!in_array($status, $allowedRuleStatuses, true)) {
-            $errors[] = '자동 규칙 상태 값이 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.admin_groups.rule_status_invalid');
         }
 
         if ($errors === [] && $ruleId > 0 && !is_array(sr_member_group_rule_by_id($pdo, $ruleId))) {
-            $errors[] = '수정할 자동 규칙을 찾을 수 없습니다.';
+            $errors[] = sr_t('member::action.admin_groups.rule_edit_not_found');
         }
 
         if ($errors === []) {
@@ -178,7 +178,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = $ruleId > 0 ? '자동 규칙을 수정했습니다.' : '자동 규칙을 만들었습니다.';
+            $notice = $ruleId > 0 ? sr_t('member::action.admin_groups.rule_updated') : sr_t('member::action.admin_groups.rule_created');
             if ($ruleId <= 0) {
                 sr_admin_flash_result(sr_admin_action_result([], $notice));
                 sr_redirect('/admin/member-group-rules');
@@ -195,23 +195,23 @@ if (sr_request_method() === 'POST') {
         $limit = sr_admin_post_int_in_range('limit', 1, 200);
 
         if ($intent === 'evaluate_account' && $targetAccountId < 1) {
-            $errors[] = '재평가할 회원 공개 해시를 입력하세요.';
+            $errors[] = sr_t('member::action.admin_groups.evaluate_member_required');
         }
 
         if ($intent === 'evaluate_batch' && $limit === null) {
-            $errors[] = 'batch 재평가 수는 1 이상 200 이하의 정수여야 합니다.';
+            $errors[] = sr_t('member::action.admin_groups.batch_limit_invalid');
             $limit = 50;
         }
 
         if ($sourceModuleKey !== '' && !sr_is_safe_module_key($sourceModuleKey)) {
-            $errors[] = '모듈 key가 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.admin_groups.module_key_invalid');
         }
 
         if ($errors === [] && $intent === 'evaluate_account') {
             $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $targetAccountId]);
             if (!is_array($stmt->fetch())) {
-                $errors[] = '회원을 찾을 수 없습니다.';
+                $errors[] = sr_t('member::action.admin.member_not_found');
             }
         }
 
@@ -223,7 +223,11 @@ if (sr_request_method() === 'POST') {
                 $targetType = 'member_account';
                 $targetId = (string) $targetAccountId;
                 $eventType = 'member.group_rules.evaluated';
-                $notice = '회원 그룹 자동 규칙을 재평가했습니다. 평가 ' . (string) $summary['evaluated'] . '건, 부여 ' . (string) $summary['granted'] . '건, 회수 ' . (string) $summary['revoked'] . '건.';
+                $notice = sr_t('member::action.admin_groups.evaluated', [
+                    'evaluated' => (string) $summary['evaluated'],
+                    'granted' => (string) $summary['granted'],
+                    'revoked' => (string) $summary['revoked'],
+                ]);
             } else {
                 $summary = sr_member_group_evaluate_accounts($pdo, [
                     'source_module_key' => $sourceModuleKey,
@@ -232,7 +236,12 @@ if (sr_request_method() === 'POST') {
                 $targetType = 'member_group_rule';
                 $targetId = 'batch';
                 $eventType = 'member.group_rules.batch_evaluated';
-                $notice = '회원 그룹 자동 규칙을 batch 재평가했습니다. 회원 ' . (string) $summary['accounts'] . '명, 평가 ' . (string) $summary['evaluated'] . '건, 부여 ' . (string) $summary['granted'] . '건, 회수 ' . (string) $summary['revoked'] . '건.';
+                $notice = sr_t('member::action.admin_groups.batch_evaluated', [
+                    'accounts' => (string) $summary['accounts'],
+                    'evaluated' => (string) $summary['evaluated'],
+                    'granted' => (string) $summary['granted'],
+                    'revoked' => (string) $summary['revoked'],
+                ]);
             }
 
             sr_audit_log($pdo, [
@@ -256,17 +265,17 @@ if (sr_request_method() === 'POST') {
         $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, $runtimeConfig, $targetAccountField, $targetAccountIdentifier);
 
         if ($groupId < 1) {
-            $errors[] = '그룹을 선택하세요.';
+            $errors[] = sr_t('member::action.admin_groups.group_required');
         }
 
         if ($targetAccountId < 1) {
-            $errors[] = '회원 공개 해시를 입력하세요.';
+            $errors[] = sr_t('member::action.admin_groups.member_hash_required');
         }
 
         if ($errors === []) {
             $group = sr_member_group_by_id($pdo, $groupId);
             if (!is_array($group)) {
-                $errors[] = '그룹을 찾을 수 없습니다.';
+                $errors[] = sr_t('member::action.admin_groups.group_not_found');
             }
         }
 
@@ -275,7 +284,7 @@ if (sr_request_method() === 'POST') {
             $stmt->execute(['id' => $targetAccountId]);
             $targetAccount = $stmt->fetch();
             if (!is_array($targetAccount)) {
-                $errors[] = '회원을 찾을 수 없습니다.';
+                $errors[] = sr_t('member::action.admin.member_not_found');
             }
         }
 
@@ -283,11 +292,11 @@ if (sr_request_method() === 'POST') {
             if ($intent === 'grant_manual') {
                 sr_member_group_grant_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
                 $eventType = 'member.group.manual_granted';
-                $notice = '회원에게 그룹을 수동 배정했습니다.';
+                $notice = sr_t('member::action.admin_groups.manual_granted');
             } else {
                 sr_member_group_revoke_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
                 $eventType = 'member.group.manual_revoked';
-                $notice = '회원 그룹 수동 배정을 해제했습니다.';
+                $notice = sr_t('member::action.admin_groups.manual_revoked');
             }
 
             sr_audit_log($pdo, [
@@ -305,7 +314,7 @@ if (sr_request_method() === 'POST') {
             ]);
         }
     } else {
-        $errors[] = '회원 그룹 작업 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.admin_groups.intent_invalid');
     }
 }
 

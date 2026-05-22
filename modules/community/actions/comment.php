@@ -12,11 +12,11 @@ $postIdValue = sr_post_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $post = sr_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
 if (!sr_community_account_can_comment_post($pdo, $post, $account)) {
-    sr_render_error(403, '이 게시글에 댓글을 작성할 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.comment_write_forbidden'));
 }
 
 $settings = sr_community_settings($pdo);

@@ -11,14 +11,14 @@ if ($token === null) {
 $verification = sr_member_find_email_verification($pdo, $config, $token);
 
 if ($verification === null || $verification['status'] !== 'active') {
-    sr_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
+    sr_render_error(400, sr_t('member::action.email_verification.link_invalid'));
 }
 
 $pdo->beginTransaction();
 try {
     if (!sr_member_mark_email_verified($pdo, (int) $verification['id'], (int) $verification['account_id'], (string) $verification['email'])) {
         $pdo->rollBack();
-        sr_render_error(400, '이메일 인증 링크가 올바르지 않거나 만료되었습니다.');
+        sr_render_error(400, sr_t('member::action.email_verification.link_invalid'));
     }
 
     $pdo->commit();

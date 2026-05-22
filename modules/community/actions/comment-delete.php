@@ -12,23 +12,23 @@ $commentIdValue = sr_post_string('comment_id', 20);
 $commentId = preg_match('/\A[1-9][0-9]*\z/', $commentIdValue) === 1 ? (int) $commentIdValue : 0;
 $comment = sr_community_admin_comment_by_id($pdo, $commentId);
 if (!is_array($comment)) {
-    sr_render_error(404, '댓글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.comment_not_found'));
 }
 
 $post = sr_community_post_for_read($pdo, (int) $comment['post_id'], $account);
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
 if (!sr_community_account_can_delete_comment($comment, $account)) {
-    sr_render_error(403, '이 댓글을 삭제할 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.comment_delete_forbidden'));
 }
 
 $settings = sr_community_settings($pdo);
 if (!empty($settings['comment_reward_reversal_enabled'])) {
     $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
     if (empty($reversalResult['allowed'])) {
-        sr_render_error(409, (string) ($reversalResult['message'] ?? '댓글 적립 회수에 실패해 삭제할 수 없습니다.'));
+        sr_render_error(409, (string) ($reversalResult['message'] ?? sr_t('community::action.error.comment_reward_reversal_failed')));
     }
 }
 sr_community_update_comment_status($pdo, $commentId, 'deleted');

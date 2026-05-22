@@ -10,11 +10,11 @@ $postIdValue = sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $post = sr_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
 if (!sr_community_account_can_edit_post($post, $account)) {
-    sr_render_error(403, '이 게시글을 수정할 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.post_edit_forbidden'));
 }
 
 $board = sr_community_board_by_id($pdo, (int) $post['board_id']);
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $submittedPostIdValue = sr_post_string('post_id', 20);
     $submittedPostId = preg_match('/\A[1-9][0-9]*\z/', $submittedPostIdValue) === 1 ? (int) $submittedPostIdValue : 0;
     if ($submittedPostId !== $postId) {
-        sr_render_error(400, '요청한 게시글 값이 올바르지 않습니다.');
+        sr_render_error(400, sr_t('community::action.error.post_value_invalid'));
     }
 
     $values = sr_community_post_input_values();

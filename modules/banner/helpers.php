@@ -555,7 +555,7 @@ function sr_banner_redirect_to_link(string $url): void
 {
     $url = sr_banner_clean_url($url);
     if ($url === '') {
-        sr_render_error(404, '배너 링크를 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('banner::action.error.link_not_found'));
     }
 
     if (sr_is_safe_relative_url($url)) {
@@ -614,7 +614,7 @@ function sr_banner_skin_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => '기본',
+            'label' => sr_t('banner::skin.basic'),
             'supports' => ['public', 'inline'],
             'views' => [
                 'item' => SR_ROOT . '/modules/banner/skins/basic/item.php',

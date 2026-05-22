@@ -162,7 +162,7 @@ function sr_popup_layer_skin_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => '기본',
+            'label' => sr_t('popup_layer::skin.basic'),
             'views' => [
                 'layer' => SR_ROOT . '/modules/popup_layer/skins/basic/layer.php',
             ],

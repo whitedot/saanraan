@@ -3,18 +3,18 @@
 return [
     [
         'point_key' => 'page.view',
-        'label' => '페이지 보기',
+        'label' => sr_t('page::contract.extension.page_view'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_content',
-                'label' => '본문 위',
+                'label' => sr_t('page::contract.slot.before_content'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_content',
-                'label' => '본문 아래',
+                'label' => sr_t('page::contract.slot.after_content'),
                 'kind' => 'content',
             ],
         ],

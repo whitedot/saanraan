@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 $reference = sr_get_string('file', 180);
 $storage = sr_member_avatar_storage_reference($reference);
 if (!is_array($storage)) {
-    sr_render_error(404, '아바타 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('member::action.avatar.not_found'));
 }
 
 $driver = (string) $storage['driver'];
@@ -19,7 +19,7 @@ if ($driver === 's3') {
     }
 
     if ($url === '') {
-        sr_render_error(404, '아바타 이미지를 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('member::action.avatar.not_found'));
     }
 
     header('Cache-Control: private, max-age=300');
@@ -28,13 +28,13 @@ if ($driver === 's3') {
 
 $imagePath = sr_storage_local_path($key);
 if (!is_string($imagePath)) {
-    sr_render_error(404, '아바타 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('member::action.avatar.not_found'));
 }
 
 $mimeType = sr_upload_detect_mime($imagePath);
 $sizeBytes = filesize($imagePath);
 if (!sr_member_avatar_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
-    sr_render_error(404, '아바타 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('member::action.avatar.not_found'));
 }
 
 header('Content-Type: ' . $mimeType);

@@ -12,18 +12,18 @@ $postIdValue = sr_post_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $post = sr_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
 if (!sr_community_account_can_delete_post($post, $account)) {
-    sr_render_error(403, '이 게시글을 삭제할 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.post_delete_forbidden'));
 }
 
 $settings = sr_community_settings($pdo);
 if (!empty($settings['post_reward_reversal_enabled'])) {
     $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
     if (empty($reversalResult['allowed'])) {
-        sr_render_error(409, (string) ($reversalResult['message'] ?? '게시글 적립 회수에 실패해 삭제할 수 없습니다.'));
+        sr_render_error(409, (string) ($reversalResult['message'] ?? sr_t('community::action.error.post_reward_reversal_failed')));
     }
 }
 sr_community_update_post_status($pdo, $postId, 'deleted');

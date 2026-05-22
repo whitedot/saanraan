@@ -1,6 +1,19 @@
 <?php
 
 return [
+    'action.admin.amount_integer' => '예치금 금액은 정수로 입력하세요.',
+    'action.admin.amount_nonzero' => '예치금 금액은 0일 수 없습니다.',
+    'action.admin.amount_sign_invalid' => '예치와 환불은 양수, 사용과 출금은 음수로 입력하세요. 조정은 양수와 음수를 모두 사용할 수 있습니다.',
+    'action.admin.amount_sign_mismatch' => '거래 유형과 예치금 금액의 부호가 맞지 않습니다.',
+    'action.admin.balance_negative' => '예치금 잔액은 음수가 될 수 없습니다.',
+    'action.admin.member_hash_required' => '회원 공개 해시를 입력하세요.',
+    'action.admin.member_not_found' => '회원을 찾을 수 없습니다.',
+    'action.admin.reason_required' => '사유를 입력하세요.',
+    'action.admin.refund_again_disallowed' => '환불 거래는 다시 환불할 수 없습니다.',
+    'action.admin.refund_original_not_found' => '환불할 원거래를 찾을 수 없습니다.',
+    'action.admin.transaction_save_failed' => '예치금 거래 저장 중 오류가 발생했습니다.',
+    'action.admin.transaction_saved' => '예치금 거래를 저장했습니다.',
+    'action.admin.transaction_type_invalid' => '거래 유형이 올바르지 않습니다.',
     'ui.active.2db1fd9d' => '예치/환불은 양수, 사용/출금은 음수, 조정은 양수 또는 음수로 입력합니다.',
     'ui.all.a4b69faf' => '전체',
     'ui.close.1e8c1020' => '닫기',

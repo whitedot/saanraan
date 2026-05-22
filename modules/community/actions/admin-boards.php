@@ -726,7 +726,7 @@ if ($communityBoardsPage === 'edit') {
     }
 
     if (!is_array($editBoard)) {
-        sr_render_error(404, '게시판을 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('community::action.error.board_not_found'));
     }
 }
 

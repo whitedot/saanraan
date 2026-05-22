@@ -10,12 +10,12 @@ $account = sr_member_require_login($pdo);
 $boardKey = sr_get_string('key', 60);
 $board = sr_community_board_by_key($pdo, $boardKey);
 if (!is_array($board) || (string) $board['status'] !== 'enabled') {
-    sr_render_error(404, '게시판을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 
 $isAdminWriter = sr_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)) {
-    sr_render_error(403, '이 게시판에 글을 작성할 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.board_write_forbidden'));
 }
 
 $settings = sr_community_settings($pdo);
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : ['allowed' => true, 'processed' => false];
         if (empty($writeChargeResult['allowed'])) {
             sr_community_update_post_status($pdo, $postId, 'deleted');
-            sr_render_error(403, (string) ($writeChargeResult['message'] ?? '회원 자산 차감에 실패해 글을 작성할 수 없습니다.'));
+            sr_render_error(403, (string) ($writeChargeResult['message'] ?? sr_t('community::action.error.write_charge_failed')));
         }
         $postRewardResult = sr_community_asset_event_required($postRewardConfig)
             ? sr_community_run_asset_event($pdo, $postRewardConfig, (int) $account['id'], 'post_reward', 'community.post', $postId, 'grant', '커뮤니티 게시글 적립')

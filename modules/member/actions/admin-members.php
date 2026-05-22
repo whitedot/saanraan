@@ -56,7 +56,7 @@ if ($memberAdminPage === 'edit_form') {
         $memberEditValues = $editMember;
     }
     if (!is_array($editMember) && $errors === []) {
-        $errors[] = '수정할 회원을 찾을 수 없습니다.';
+        $errors[] = sr_t('member::action.admin.member_edit_not_found');
     }
 }
 

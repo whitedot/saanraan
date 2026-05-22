@@ -66,7 +66,7 @@ function sr_member_settings(PDO $pdo): array
 function sr_member_login_identifier_options(): array
 {
     return [
-        'both' => '이메일 + 로그인 아이디',
+        'both' => sr_t('member::settings.login_identifier.both'),
     ];
 }
 
@@ -89,7 +89,7 @@ function sr_member_skin_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => '기본',
+            'label' => sr_t('member::settings.skin.basic'),
             'views' => [
                 'login' => SR_ROOT . '/modules/member/skins/basic/login.php',
                 'register' => SR_ROOT . '/modules/member/skins/basic/register.php',
@@ -139,7 +139,7 @@ function sr_member_skin_view(string $skinKey, string $viewKey): string
         return $fallback;
     }
 
-    throw new RuntimeException('기본 회원 스킨 view 파일이 누락되었습니다.');
+    throw new RuntimeException(sr_t('member::settings.skin.default_missing'));
 }
 
 function sr_member_integer_setting_keys(): array
@@ -188,27 +188,27 @@ function sr_member_profile_field_definitions(): array
 {
     return [
         'nickname' => [
-            'label' => '닉네임',
+            'label' => sr_t('member::settings.profile.nickname'),
             'enabled_key' => 'profile_nickname_enabled',
             'required_key' => 'profile_nickname_required',
         ],
         'phone' => [
-            'label' => '전화번호',
+            'label' => sr_t('member::settings.profile.phone'),
             'enabled_key' => 'profile_phone_enabled',
             'required_key' => 'profile_phone_required',
         ],
         'birth_date' => [
-            'label' => '생년월일',
+            'label' => sr_t('member::settings.profile.birth_date'),
             'enabled_key' => 'profile_birth_date_enabled',
             'required_key' => 'profile_birth_date_required',
         ],
         'avatar_path' => [
-            'label' => '아바타',
+            'label' => sr_t('member::settings.profile.avatar'),
             'enabled_key' => 'profile_avatar_enabled',
             'required_key' => 'profile_avatar_required',
         ],
         'profile_text' => [
-            'label' => '소개',
+            'label' => sr_t('member::settings.profile.profile_text'),
             'enabled_key' => 'profile_text_enabled',
             'required_key' => 'profile_text_required',
         ],

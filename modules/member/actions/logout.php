@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 
 if (sr_request_method() !== 'POST') {
-    sr_render_error(405, '허용되지 않는 요청입니다.');
+    sr_render_error(405, sr_t('member::action.request.method_not_allowed'));
 }
 
 sr_require_csrf();

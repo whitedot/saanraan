@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'action.error.image_not_found' => '배너 이미지를 찾을 수 없습니다.',
+    'action.error.link_not_found' => '배너 링크를 찾을 수 없습니다.',
+    'skin.basic' => '기본',
     'ui.active.93c558d7' => '사용',
     'ui.active.b452ffcd' => '사용자 화면 미노출',
     'ui.active.status.active.6c539bd1' => '사용 상태이고 기간 조건에 맞을 때만 사용자 화면에 노출됩니다.',

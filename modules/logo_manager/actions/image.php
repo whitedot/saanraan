@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/logo_manager/helpers.php';
 $storageKey = sr_get_string('file', 220);
 $storage = sr_logo_manager_image_storage_reference($storageKey);
 if (!is_array($storage)) {
-    sr_render_error(404, '로고 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('logo_manager::action.error.image_not_found'));
 }
 
 $driver = (string) $storage['driver'];
@@ -19,7 +19,7 @@ if ($driver === 's3') {
     }
 
     if ($url === '') {
-        sr_render_error(404, '로고 이미지를 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('logo_manager::action.error.image_not_found'));
     }
 
     header('Cache-Control: private, max-age=300');
@@ -28,13 +28,13 @@ if ($driver === 's3') {
 
 $imagePath = sr_storage_local_path($key);
 if (!is_string($imagePath)) {
-    sr_render_error(404, '로고 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('logo_manager::action.error.image_not_found'));
 }
 
 $mimeType = sr_upload_detect_mime($imagePath);
 $sizeBytes = filesize($imagePath);
 if (!sr_logo_manager_image_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
-    sr_render_error(404, '로고 이미지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('logo_manager::action.error.image_not_found'));
 }
 
 header('Content-Type: ' . $mimeType);

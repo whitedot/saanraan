@@ -23,15 +23,15 @@ if (sr_request_method() === 'POST') {
 
     $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
     if (!empty($reauthThrottle['limited'])) {
-        $errors[] = '비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.';
+        $errors[] = sr_t('member::action.reauth.throttled');
         sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
     } elseif (!password_verify($password, (string) $account['password_hash'])) {
-        $errors[] = '비밀번호가 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.reauth.password_invalid');
         sr_member_log_auth($pdo, (int) $account['id'], 'withdraw_reauth', 'failure');
     }
 
-    if ($confirmText !== '탈퇴') {
-        $errors[] = '확인 문구를 입력하세요.';
+    if ($confirmText !== sr_t('member::action.withdraw.confirm_text')) {
+        $errors[] = sr_t('member::action.withdraw.confirm_required');
     }
 
     if (isset($withdrawalAssets['deposit'])) {

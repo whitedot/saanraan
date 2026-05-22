@@ -3,82 +3,82 @@
 return [
     [
         'point_key' => 'community.home',
-        'label' => '커뮤니티 홈',
+        'label' => sr_t('community::contract.extension.community_home'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_content',
-                'label' => '본문 위',
+                'label' => sr_t('community::contract.slot.before_content'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_content',
-                'label' => '본문 아래',
+                'label' => sr_t('community::contract.slot.after_content'),
                 'kind' => 'content',
             ],
         ],
     ],
     [
         'point_key' => 'community.board.list',
-        'label' => '커뮤니티 게시판 목록',
+        'label' => sr_t('community::contract.extension.board_list'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_list',
-                'label' => '목록 위',
+                'label' => sr_t('community::contract.slot.before_list'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_list',
-                'label' => '목록 아래',
+                'label' => sr_t('community::contract.slot.after_list'),
                 'kind' => 'content',
             ],
         ],
     ],
     [
         'point_key' => 'community.post.view',
-        'label' => '커뮤니티 게시글 보기',
+        'label' => sr_t('community::contract.extension.post_view'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_content',
-                'label' => '본문 위',
+                'label' => sr_t('community::contract.slot.before_content'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_content',
-                'label' => '본문 아래',
+                'label' => sr_t('community::contract.slot.after_content'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'before_comments',
-                'label' => '댓글 위',
+                'label' => sr_t('community::contract.slot.before_comments'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_comments',
-                'label' => '댓글 아래',
+                'label' => sr_t('community::contract.slot.after_comments'),
                 'kind' => 'content',
             ],
         ],
     ],
     [
         'point_key' => 'community.post.form',
-        'label' => '커뮤니티 게시글 작성 폼',
+        'label' => sr_t('community::contract.extension.post_form'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_form',
-                'label' => '폼 위',
+                'label' => sr_t('community::contract.slot.before_form'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_form',
-                'label' => '폼 아래',
+                'label' => sr_t('community::contract.slot.after_form'),
                 'kind' => 'content',
             ],
         ],

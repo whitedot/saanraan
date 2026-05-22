@@ -44,33 +44,33 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($targetAccountId <= 0) {
-        $errors[] = '회원 공개 해시를 입력하세요.';
+        $errors[] = sr_t('reward::action.admin.member_hash_required');
     }
 
     if (preg_match('/\A-?\d+\z/', $amountInput) !== 1) {
-        $errors[] = '적립금 금액은 정수로 입력하세요.';
+        $errors[] = sr_t('reward::action.admin.amount_integer');
     }
 
     $amount = (int) $amountInput;
     if ($amount === 0) {
-        $errors[] = '적립금 금액은 0일 수 없습니다.';
+        $errors[] = sr_t('reward::action.admin.amount_nonzero');
     }
 
     if (!in_array($transactionType, $allowedTransactionTypes, true)) {
-        $errors[] = '거래 유형이 올바르지 않습니다.';
+        $errors[] = sr_t('reward::action.admin.transaction_type_invalid');
     } elseif (!sr_reward_transaction_type_allows_amount($transactionType, $amount)) {
-        $errors[] = '지급과 환불은 양수, 사용과 만료는 음수로 입력하세요. 조정은 양수와 음수를 모두 사용할 수 있습니다.';
+        $errors[] = sr_t('reward::action.admin.amount_sign_invalid');
     }
 
     if ($reason === '') {
-        $errors[] = '사유를 입력하세요.';
+        $errors[] = sr_t('reward::action.admin.reason_required');
     }
 
     if ($errors === []) {
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $targetAccountId]);
         if (!is_array($stmt->fetch())) {
-            $errors[] = '회원을 찾을 수 없습니다.';
+            $errors[] = sr_t('reward::action.admin.member_not_found');
         }
     }
 
@@ -82,9 +82,9 @@ if (sr_request_method() === 'POST') {
         ]);
         $row = $stmt->fetch();
         if (!is_array($row)) {
-            $errors[] = '환불할 원거래를 찾을 수 없습니다.';
+            $errors[] = sr_t('reward::action.admin.refund_original_not_found');
         } elseif ((string) ($row['transaction_type'] ?? '') === 'refund') {
-            $errors[] = '환불 거래는 다시 환불할 수 없습니다.';
+            $errors[] = sr_t('reward::action.admin.refund_again_disallowed');
         }
     }
 
@@ -115,17 +115,17 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '적립금 거래를 저장했습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], sr_t('reward::action.admin.transaction_saved')));
             $redirectIdentifier = sr_admin_member_public_hash($runtimeConfig, $targetAccountId);
             $redirectPath = $rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : '/admin/rewards/balances';
             sr_redirect($redirectPath . '?account_identifier=' . rawurlencode($redirectIdentifier));
         } catch (Throwable $exception) {
             if ($exception->getMessage() === 'Reward balance cannot be negative.') {
-                $errors[] = '적립금 잔액은 음수가 될 수 없습니다.';
+                $errors[] = sr_t('reward::action.admin.balance_negative');
             } elseif ($exception->getMessage() === 'Reward transaction amount sign is invalid for type.') {
-                $errors[] = '거래 유형과 적립금 금액의 부호가 맞지 않습니다.';
+                $errors[] = sr_t('reward::action.admin.amount_sign_mismatch');
             } else {
-                $errors[] = '적립금 거래 저장 중 오류가 발생했습니다.';
+                $errors[] = sr_t('reward::action.admin.transaction_save_failed');
             }
         }
     }

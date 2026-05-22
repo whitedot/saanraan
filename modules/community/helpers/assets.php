@@ -6,7 +6,7 @@ function sr_community_asset_modules(): array
 {
     return [
         'point' => [
-            'label' => '포인트',
+            'label' => sr_t('community::asset.point'),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -16,7 +16,7 @@ function sr_community_asset_modules(): array
             'refund_type' => 'refund',
         ],
         'reward' => [
-            'label' => '적립금',
+            'label' => sr_t('community::asset.reward'),
             'module_key' => 'reward',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
             'balance_function' => 'sr_reward_balance',
@@ -26,7 +26,7 @@ function sr_community_asset_modules(): array
             'refund_type' => 'refund',
         ],
         'deposit' => [
-            'label' => '예치금',
+            'label' => sr_t('community::asset.deposit'),
             'module_key' => 'deposit',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
             'balance_function' => 'sr_deposit_balance',

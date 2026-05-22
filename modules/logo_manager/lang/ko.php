@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'action.error.image_not_found' => '로고 이미지를 찾을 수 없습니다.',
+    'usage.admin_sidebar.hint' => '관리자 좌측 상단 브랜드 영역에 표시합니다.',
+    'usage.admin_sidebar.label' => '관리자 사이드바 로고',
+    'usage.favicon.hint' => '공개/관리자 레이아웃의 icon link 후보로 사용합니다.',
+    'usage.favicon.label' => '파비콘/앱 아이콘 후보',
+    'usage.mobile.hint' => '작은 화면 또는 향후 소형 브랜드 영역에서 사용할 후보입니다.',
+    'usage.mobile.label' => '모바일/소형 로고',
+    'usage.og_image.hint' => 'SEO/공유 이미지 연동을 위한 후보 자산입니다.',
+    'usage.og_image.label' => 'OG 이미지 후보',
+    'usage.public_header.hint' => '기본 공개 레이아웃의 헤더 브랜드에 표시합니다.',
+    'usage.public_header.label' => '공개 헤더 로고',
     'ui.1.save.save.cfcc4930' => '용도별 최대 용량은 1-5MB입니다. 가능하면 재인코딩 후 저장하고, 서버 확장이 없으면 검증된 원본을 저장합니다.',
     'ui.active.93c558d7' => '사용',
     'ui.active.status.99c1cd06' => '사용 상태이고 현재 시각이 시작/종료 조건에 맞는 항목 중 정렬값이 가장 앞선 로고가 적용됩니다.',

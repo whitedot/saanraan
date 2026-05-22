@@ -106,13 +106,13 @@ if (sr_request_method() === 'POST') {
         $status = sr_post_string('status', 30);
 
         if ($menuKey === '') {
-            $errors[] = '메뉴 key는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해야 합니다.';
+            $errors[] = sr_t('site_menu::action.admin.menu_key_invalid');
         }
         if ($label === '') {
-            $errors[] = '메뉴 이름을 입력하세요.';
+            $errors[] = sr_t('site_menu::action.admin.menu_name_required');
         }
         if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = '메뉴 상태가 올바르지 않습니다.';
+            $errors[] = sr_t('site_menu::action.admin.menu_status_invalid');
         }
 
         if ($errors === []) {
@@ -121,14 +121,14 @@ if (sr_request_method() === 'POST') {
                 $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE menu_key = :menu_key LIMIT 1');
                 $stmt->execute(['menu_key' => $originalMenuKey]);
                 if (!is_array($stmt->fetch())) {
-                    $errors[] = '수정할 메뉴를 찾을 수 없습니다.';
+                    $errors[] = sr_t('site_menu::action.admin.menu_edit_not_found');
                 }
 
                 if ($originalMenuKey !== $menuKey) {
                     $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE menu_key = :menu_key LIMIT 1');
                     $stmt->execute(['menu_key' => $menuKey]);
                     if (is_array($stmt->fetch())) {
-                        $errors[] = '변경하려는 메뉴 key가 이미 사용 중입니다.';
+                        $errors[] = sr_t('site_menu::action.admin.menu_key_duplicate');
                     }
                 }
 
@@ -173,7 +173,7 @@ if (sr_request_method() === 'POST') {
                     'metadata' => ['original_menu_key' => $originalMenuKey],
                 ]);
 
-                $notice = '메뉴를 저장했습니다.';
+                $notice = sr_t('site_menu::action.admin.menu_saved');
             }
         }
     } elseif ($intent === 'save_item') {
@@ -185,37 +185,37 @@ if (sr_request_method() === 'POST') {
         $parentId = (int) sr_post_string('parent_id', 20);
 
         if ($menuId <= 0) {
-            $errors[] = '메뉴를 선택하세요.';
+            $errors[] = sr_t('site_menu::action.admin.menu_required');
         }
         if ($label === '') {
-            $errors[] = '항목 이름을 입력하세요.';
+            $errors[] = sr_t('site_menu::action.admin.item_name_required');
         }
         if ($url === '') {
-            $errors[] = '항목 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
+            $errors[] = sr_t('site_menu::action.admin.item_url_invalid');
         }
         if (!in_array($target, $allowedTargets, true)) {
-            $errors[] = '링크 target 값이 올바르지 않습니다.';
+            $errors[] = sr_t('site_menu::action.admin.link_target_invalid');
         }
         if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = '항목 상태가 올바르지 않습니다.';
+            $errors[] = sr_t('site_menu::action.admin.item_status_invalid');
         }
 
         if ($errors === []) {
             $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $menuId]);
             if (!is_array($stmt->fetch())) {
-                $errors[] = '메뉴를 찾을 수 없습니다.';
+                $errors[] = sr_t('site_menu::action.admin.menu_not_found');
             }
         }
 
         if ($errors === [] && $parentId > 0) {
             $parentDepth = sr_site_menu_admin_parent_depth($pdo, $menuId, $parentId, $itemId);
             if ($parentDepth === null) {
-                $errors[] = '상위 항목을 찾을 수 없거나 순환 구조가 됩니다.';
+                $errors[] = sr_t('site_menu::action.admin.parent_invalid');
             } elseif ($parentDepth >= 3) {
-                $errors[] = '사이트 메뉴 항목은 최대 3단계까지만 구성할 수 있습니다.';
+                $errors[] = sr_t('site_menu::action.admin.depth_limit');
             } elseif ($itemId > 0 && $parentDepth + sr_site_menu_admin_subtree_max_relative_depth($pdo, $itemId) > 3) {
-                $errors[] = '하위 항목을 포함하면 최대 3단계를 초과합니다.';
+                $errors[] = sr_t('site_menu::action.admin.descendant_depth_limit');
             }
         }
 
@@ -231,7 +231,7 @@ if (sr_request_method() === 'POST') {
                 'id' => $itemId > 0 ? $itemId : 0,
             ]);
             if (is_array($stmt->fetch())) {
-                $errors[] = '같은 메뉴에 동일한 URL 항목이 이미 있습니다.';
+                $errors[] = sr_t('site_menu::action.admin.item_url_duplicate');
             }
         }
 
@@ -286,12 +286,12 @@ if (sr_request_method() === 'POST') {
                 'metadata' => ['menu_id' => $menuId, 'parent_id' => $parentId > 0 ? $parentId : null],
             ]);
 
-            $notice = '메뉴 항목을 저장했습니다.';
+            $notice = sr_t('site_menu::action.admin.item_saved');
         }
     } elseif ($intent === 'save_item_order') {
         $sortOrders = $_POST['item_sort_order'] ?? [];
         if (!is_array($sortOrders)) {
-            $errors[] = '정렬값 형식이 올바르지 않습니다.';
+            $errors[] = sr_t('site_menu::action.admin.sort_order_invalid');
         }
 
         if ($errors === []) {
@@ -316,11 +316,11 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Site menu item order saved.',
             ]);
 
-            $notice = '메뉴 항목 순서를 저장했습니다.';
+            $notice = sr_t('site_menu::action.admin.item_order_saved');
         }
     } elseif ($intent === 'delete_item') {
         if ($itemId <= 0) {
-            $errors[] = '삭제할 항목을 찾을 수 없습니다.';
+            $errors[] = sr_t('site_menu::action.admin.item_delete_not_found');
         }
 
         if ($errors === []) {
@@ -339,11 +339,11 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Site menu item deleted.',
             ]);
 
-            $notice = '메뉴 항목을 삭제했습니다.';
+            $notice = sr_t('site_menu::action.admin.item_deleted');
         }
     } elseif ($intent === 'delete_menu') {
         if ($menuId <= 0) {
-            $errors[] = '삭제할 메뉴를 찾을 수 없습니다.';
+            $errors[] = sr_t('site_menu::action.admin.menu_delete_not_found');
         }
 
         if ($errors === []) {
@@ -351,7 +351,7 @@ if (sr_request_method() === 'POST') {
             $stmt->execute(['id' => $menuId]);
             $menu = $stmt->fetch();
             if (!is_array($menu)) {
-                $errors[] = '삭제할 메뉴를 찾을 수 없습니다.';
+                $errors[] = sr_t('site_menu::action.admin.menu_delete_not_found');
             }
         }
 
@@ -377,17 +377,17 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Site menu deleted.',
                 ]);
 
-                $notice = '메뉴를 삭제했습니다.';
+                $notice = sr_t('site_menu::action.admin.menu_deleted');
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
 
-                $errors[] = '메뉴 삭제 중 오류가 발생했습니다.';
+                $errors[] = sr_t('site_menu::action.admin.menu_delete_failed');
             }
         }
     } else {
-        $errors[] = '요청한 작업을 처리할 수 없습니다.';
+        $errors[] = sr_t('site_menu::action.admin.intent_invalid');
     }
 }
 

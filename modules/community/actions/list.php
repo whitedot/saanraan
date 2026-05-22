@@ -9,14 +9,14 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $boardKey = sr_get_string('key', 60);
 $board = sr_community_board_by_key($pdo, $boardKey);
 if (!is_array($board) || (string) $board['status'] !== 'enabled') {
-    sr_render_error(404, '게시판을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 $account = sr_member_current_account($pdo);
 if (!is_array($account) && sr_community_board_requires_login($board)) {
     $account = sr_member_require_login($pdo);
 }
 if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
-    sr_render_error(403, '이 게시판을 볼 수 없습니다.');
+    sr_render_error(403, sr_t('community::action.error.board_view_forbidden'));
 }
 $isAdminWriter = is_array($account) && sr_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);

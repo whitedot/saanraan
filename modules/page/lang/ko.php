@@ -1,6 +1,21 @@
 <?php
 
 return [
+    'action.error.download_file_not_found' => '다운로드할 파일을 찾을 수 없습니다.',
+    'action.error.download_forbidden' => '파일을 다운로드할 수 없습니다.',
+    'action.error.page_complete_not_found' => '완료 처리할 페이지를 찾을 수 없습니다.',
+    'action.error.page_edit_not_found' => '수정할 페이지를 찾을 수 없습니다.',
+    'action.error.page_group_edit_not_found' => '수정할 페이지 그룹을 찾을 수 없습니다.',
+    'action.error.page_group_not_found' => '요청한 페이지 그룹을 찾을 수 없습니다.',
+    'action.error.page_hide_not_found' => '숨김 처리할 페이지를 찾을 수 없습니다.',
+    'action.error.page_not_found' => '요청한 페이지를 찾을 수 없습니다.',
+    'asset.deposit' => '예치금',
+    'asset.point' => '포인트',
+    'asset.reward' => '적립금',
+    'contract.extension.page_view' => '페이지 보기',
+    'contract.slot.after_content' => '본문 아래',
+    'contract.slot.before_content' => '본문 위',
+    'homepage.candidate_label' => '페이지: {title}',
     'ui.active.4add3230' => '사용 안 함',
     'ui.active.8bcecbe7' => '액션 사용',
     'ui.active.904d506b' => '완료 액션 사용',

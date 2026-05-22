@@ -24,12 +24,12 @@ if (!is_array($post)) {
             && (string) $board['status'] === 'enabled'
             && !sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)
         ) {
-            sr_render_error(403, '이 게시글을 볼 수 없습니다.');
+            sr_render_error(403, sr_t('community::action.error.post_view_forbidden'));
         }
     }
 }
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 $postBoard = sr_community_board_by_id($pdo, (int) $post['board_id']);
 if (is_array($postBoard)) {
@@ -62,7 +62,7 @@ if (is_array($postBoard)) {
             '커뮤니티 게시글 열람'
         );
         if (empty($paidReadResult['allowed'])) {
-            sr_render_error(403, (string) ($paidReadResult['message'] ?? '회원 자산이 부족해 게시글을 볼 수 없습니다.'));
+            sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));
         }
         sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         if (!empty($paidReadResult['processed'])) {

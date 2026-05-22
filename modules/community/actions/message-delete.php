@@ -12,7 +12,7 @@ $messageIdValue = sr_post_string('message_id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;
 $message = sr_community_message_participants_for_account($pdo, $messageId, (int) $account['id']);
 if (!is_array($message)) {
-    sr_render_error(404, '쪽지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.message_not_found'));
 }
 
 sr_community_soft_delete_message($pdo, $message, (int) $account['id']);

@@ -314,7 +314,7 @@ function sr_admin_skin_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => '기본',
+            'label' => sr_t('admin::settings.skin.basic'),
             'views' => [
                 'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php',
                 'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php',

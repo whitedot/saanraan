@@ -47,7 +47,7 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
     if ($notice !== '') {
         $items[] = [
             'type' => 'success',
-            'title' => '완료',
+            'title' => sr_t('admin::feedback.success_title'),
             'message' => $notice,
         ];
     }
@@ -60,7 +60,7 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
 
         $items[] = [
             'type' => 'error',
-            'title' => '확인 필요',
+            'title' => sr_t('admin::feedback.error_title'),
             'message' => $message,
         ];
     }
@@ -76,7 +76,7 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
             <div class="admin-flash-message admin-flash-message-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
                 <strong><?php echo sr_e((string) $item['title']); ?></strong>
                 <span><?php echo sr_e((string) $item['message']); ?></span>
-                <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="알림 닫기">
+                <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="<?php echo sr_e(sr_t('admin::feedback.close_label')); ?>">
                     <?php echo sr_material_icon_html('close', 'admin-toast-close-icon'); ?>
                 </button>
             </div>

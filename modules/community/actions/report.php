@@ -15,7 +15,7 @@ $reasonKey = sr_post_string('reason_key', 40);
 $memoText = sr_post_string_without_truncation('memo_text', 1000);
 $target = sr_community_report_target($pdo, $targetType, $targetId, (int) $account['id']);
 if (!is_array($target)) {
-    sr_render_error(404, '신고 대상을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.report_target_not_found'));
 }
 
 $redirectPath = (string) $target['redirect_path'];

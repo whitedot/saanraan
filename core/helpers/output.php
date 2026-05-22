@@ -318,9 +318,9 @@ function sr_public_layout_options(?PDO $pdo = null): array
     $options = [
         sr_public_layout_default_key() => [
             'key' => sr_public_layout_default_key(),
-            'label' => '공통 레이아웃',
+            'label' => sr_t('public_layout.common.label'),
             'provider_module_key' => 'core',
-            'provider_label' => '공통',
+            'provider_label' => sr_t('public_layout.common.provider'),
             'supports' => ['site'],
             'views' => [
                 'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
@@ -623,7 +623,7 @@ function sr_seo_tags(array $seo = [], ?array $site = null): string
 function sr_redirect(string $url): void
 {
     if (!sr_is_safe_relative_url($url)) {
-        sr_render_error(500, '리다이렉트 URL이 올바르지 않습니다.');
+        sr_render_error(500, sr_t('error.redirect_invalid'));
     }
 
     sr_enforce_request_contract('before_redirect');
@@ -635,7 +635,7 @@ function sr_redirect(string $url): void
 function sr_redirect_external(string $url): void
 {
     if (!sr_is_http_url($url)) {
-        sr_render_error(500, '외부 리다이렉트 URL이 올바르지 않습니다.');
+        sr_render_error(500, sr_t('error.external_redirect_invalid'));
     }
 
     sr_enforce_request_contract('before_redirect');
@@ -673,7 +673,7 @@ function sr_require_csrf(): void
 
     if (!is_string($expected) || !is_string($actual) || $expected === '' || !hash_equals($expected, $actual)) {
         sr_request_contract_guard_blocked('csrf');
-        sr_render_error(400, '요청 보안 토큰이 올바르지 않습니다.');
+        sr_render_error(400, sr_t('error.csrf_invalid'));
     }
 }
 

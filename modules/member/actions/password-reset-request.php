@@ -16,12 +16,12 @@ if (sr_request_method() === 'POST') {
 
     $email = sr_post_string_without_truncation('email', 255);
     if ($email === null) {
-        $errors[] = '이메일은 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.email_too_long');
         $email = '';
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = '이메일 형식이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.register.email_invalid');
     }
 
     if ($errors === []) {
@@ -47,8 +47,8 @@ if (sr_request_method() === 'POST') {
             $mailSent = sr_send_mail(
                 $site,
                 (string) $activeAccount['email'],
-                '비밀번호 재설정 안내',
-                "아래 링크를 열어 비밀번호를 재설정하세요.\n\n" . $resetUrl
+                sr_t('member::action.password_reset.subject'),
+                sr_t('member::action.password_reset.body', ['url' => $resetUrl])
             );
             if (!$mailSent) {
                 sr_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_mail_failed', 'failure');
@@ -70,7 +70,7 @@ if (sr_request_method() === 'POST') {
             sr_member_log_auth($pdo, null, 'password_reset_request', 'failure');
         }
 
-        $notice = '입력한 이메일로 비밀번호 재설정 안내를 보냈습니다.';
+        $notice = sr_t('member::action.password_reset.sent_notice');
     }
 }
 

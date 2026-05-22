@@ -6,34 +6,34 @@ function sr_member_withdrawal_asset_definitions(): array
 {
     return [
         'point' => [
-            'label' => '포인트',
+            'label' => sr_t('member::asset.point'),
             'balance_table' => 'sr_point_balances',
             'transaction_table' => 'sr_point_transactions',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
             'transaction_function' => 'sr_point_create_transaction',
             'transaction_type' => 'expire',
-            'process_label' => '소멸',
+            'process_label' => sr_t('member::asset.process.expire'),
         ],
         'reward' => [
-            'label' => '적립금',
+            'label' => sr_t('member::asset.reward'),
             'balance_table' => 'sr_reward_balances',
             'transaction_table' => 'sr_reward_transactions',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
             'balance_function' => 'sr_reward_balance',
             'transaction_function' => 'sr_reward_create_transaction',
             'transaction_type' => 'expire',
-            'process_label' => '소멸',
+            'process_label' => sr_t('member::asset.process.expire'),
         ],
         'deposit' => [
-            'label' => '예치금',
+            'label' => sr_t('member::asset.deposit'),
             'balance_table' => 'sr_deposit_balances',
             'transaction_table' => 'sr_deposit_transactions',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
             'balance_function' => 'sr_deposit_balance',
             'transaction_function' => 'sr_deposit_create_transaction',
             'transaction_type' => 'withdraw',
-            'process_label' => '환불',
+            'process_label' => sr_t('member::asset.process.refund'),
         ],
     ];
 }
@@ -122,13 +122,13 @@ function sr_member_withdrawal_refund_account_errors(array $refundAccount): array
 {
     $errors = [];
     if ((string) ($refundAccount['bank'] ?? '') === '') {
-        $errors[] = '예치금 환불 은행을 입력하세요.';
+        $errors[] = sr_t('member::action.withdraw.refund_bank_required');
     }
     if ((string) ($refundAccount['holder'] ?? '') === '') {
-        $errors[] = '예치금 환불 예금주를 입력하세요.';
+        $errors[] = sr_t('member::action.withdraw.refund_holder_required');
     }
     if ((string) ($refundAccount['number'] ?? '') === '') {
-        $errors[] = '예치금 환불 계좌번호를 입력하세요.';
+        $errors[] = sr_t('member::action.withdraw.refund_number_required');
     }
 
     return $errors;
@@ -155,9 +155,14 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
             continue;
         }
 
-        $reason = (string) $definition['label'] . ' 회원 탈퇴 ' . (string) $definition['process_label'];
+        $reason = sr_t('member::action.withdraw.asset_reason', [
+            'asset' => (string) $definition['label'],
+            'process' => (string) $definition['process_label'],
+        ]);
         if ($assetKey === 'deposit') {
-            $reason .= ' 요청: ' . sr_member_withdrawal_refund_account_summary($refundAccount);
+            $reason .= sr_t('member::action.withdraw.refund_request_suffix', [
+                'summary' => sr_member_withdrawal_refund_account_summary($refundAccount),
+            ]);
         }
 
         $transactionFunction = (string) $definition['transaction_function'];

@@ -52,7 +52,7 @@ if ($pageGroupsPage === 'edit') {
     $groupId = (int) sr_get_string('id', 20);
     $editPageGroup = sr_page_group_by_id($pdo, $groupId);
     if (!is_array($editPageGroup)) {
-        sr_render_error(404, '수정할 페이지 그룹을 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('page::action.error.page_group_edit_not_found'));
     }
 }
 

@@ -732,11 +732,11 @@ function sr_member_group_call_evaluator(array $definition, PDO $pdo, int $accoun
         $result = $evaluator($pdo, $accountId, $params);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'member_group_evaluator_' . (string) $definition['rule_key']);
-        return ['matched' => false, 'metric' => null, 'summary' => '평가 실패'];
+        return ['matched' => false, 'metric' => null, 'summary' => sr_t('member::group.evaluation.failed')];
     }
 
     if (!is_array($result)) {
-        return ['matched' => false, 'metric' => null, 'summary' => '평가 결과 없음'];
+        return ['matched' => false, 'metric' => null, 'summary' => sr_t('member::group.evaluation.empty')];
     }
 
     return [

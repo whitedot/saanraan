@@ -27,7 +27,7 @@ if ($method === 'GET' && ($tokenInputInvalid || $token !== '')) {
     $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
         sr_member_clear_password_reset_session_hash();
-        sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+        sr_render_error(400, sr_t('member::action.password_reset.link_invalid'));
     }
 
     sr_member_store_password_reset_session_hash($tokenHash);
@@ -38,7 +38,7 @@ $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenH
 
 if ($reset === null) {
     sr_member_clear_password_reset_session_hash();
-    sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+    sr_render_error(400, sr_t('member::action.password_reset.link_invalid'));
 }
 
 if ($method === 'POST') {
@@ -47,28 +47,28 @@ if ($method === 'POST') {
     $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {
         sr_member_clear_password_reset_session_hash();
-        sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+        sr_render_error(400, sr_t('member::action.password_reset.link_invalid'));
     }
 
     $password = sr_post_string_without_truncation('password', 255);
     $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
 
     if ($password === null || $passwordConfirm === null) {
-        $errors[] = '새 비밀번호는 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.password.new_too_long');
         $password = '';
         $passwordConfirm = '';
     }
 
     if (strlen($password) < 8) {
-        $errors[] = '새 비밀번호는 8자 이상이어야 합니다.';
+        $errors[] = sr_t('member::action.password.new_too_short');
     }
 
     if ($password !== $passwordConfirm) {
-        $errors[] = '새 비밀번호 확인이 일치하지 않습니다.';
+        $errors[] = sr_t('member::action.password.new_confirm_mismatch');
     }
 
     if ($reset['status'] !== 'active') {
-        $errors[] = '활성 계정만 비밀번호를 재설정할 수 있습니다.';
+        $errors[] = sr_t('member::action.password_reset.active_only');
     }
 
     if ($errors === []) {
@@ -77,7 +77,7 @@ if ($method === 'POST') {
 
             if (!sr_member_mark_password_reset_used($pdo, (int) $reset['id'])) {
                 $pdo->rollBack();
-                sr_render_error(400, '비밀번호 재설정 링크가 올바르지 않거나 만료되었습니다.');
+                sr_render_error(400, sr_t('member::action.password_reset.link_invalid'));
             }
 
             sr_member_update_password($pdo, (int) $reset['account_id'], $password);

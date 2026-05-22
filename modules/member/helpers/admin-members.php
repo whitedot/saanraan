@@ -331,45 +331,45 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
     $values['display_name'] = $displayName;
 
     if ($emailInput === null) {
-        $errors[] = '이메일은 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.email_too_long');
     }
 
     if ($loginIdInput === null) {
-        $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.login_id_too_long');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = '이메일 형식이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.register.email_invalid');
     }
 
     if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
-        $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+        $errors[] = sr_t('member::action.register.login_id_invalid');
     }
 
     if ($displayName === '') {
-        $errors[] = '이름을 입력하세요.';
+        $errors[] = sr_t('member::action.admin.name_required');
     }
 
     if ($password === null || $passwordConfirm === null) {
-        $errors[] = '비밀번호는 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.password_too_long');
         $password = '';
         $passwordConfirm = '';
     }
 
     if (strlen((string) $password) < 8) {
-        $errors[] = '비밀번호는 8자 이상이어야 합니다.';
+        $errors[] = sr_t('member::action.register.password_too_short');
     }
 
     if ($password !== $passwordConfirm) {
-        $errors[] = '비밀번호 확인이 일치하지 않습니다.';
+        $errors[] = sr_t('member::action.register.password_confirm_mismatch');
     }
 
     if (!in_array($locale, $supportedLocales, true)) {
-        $errors[] = '선호 locale 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.account.locale_invalid');
     }
 
     if (!in_array($status, $allowedCreateStatuses, true)) {
-        $errors[] = '회원 상태 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.admin.status_invalid');
     }
 
     if ($errors === []) {
@@ -377,7 +377,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash LIMIT 1');
         $stmt->execute(['email_hash' => $emailHash]);
         if (is_array($stmt->fetch())) {
-            $errors[] = '이미 사용 중인 이메일입니다.';
+            $errors[] = sr_t('member::action.admin.email_duplicate');
         }
     }
 
@@ -386,7 +386,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE account_identifier_hash = :login_id_hash OR login_id_hash = :login_id_hash LIMIT 1');
         $stmt->execute(['login_id_hash' => $loginIdHash]);
         if (is_array($stmt->fetch())) {
-            $errors[] = '이미 사용 중인 로그인 아이디입니다.';
+            $errors[] = sr_t('member::action.admin.login_id_duplicate');
         }
     }
 
@@ -404,7 +404,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
             ]);
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'admin_member_create');
-            $errors[] = '이미 사용 중인 계정 정보이거나 회원을 추가할 수 없습니다.';
+            $errors[] = sr_t('member::action.admin.create_failed');
         }
     }
 
@@ -424,7 +424,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
             ],
         ]);
 
-        $notice = '회원을 추가했습니다.';
+        $notice = sr_t('member::action.admin.created');
         $values = sr_admin_member_create_default_values($site);
     }
 
@@ -449,19 +449,19 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     $status = sr_post_string('status', 30);
 
     if ($targetAccountId <= 0) {
-        $errors[] = '회원을 선택하세요.';
+        $errors[] = sr_t('member::action.admin.member_required');
     }
 
     if (!in_array($intent, ['status', 'edit', 'revoke_sessions'], true)) {
-        $errors[] = '회원 작업 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.admin.intent_invalid');
     }
 
     if ($intent !== 'revoke_sessions' && !in_array($status, $allowedStatuses, true)) {
-        $errors[] = '회원 상태 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.admin.status_invalid');
     }
 
     if ($intent !== 'revoke_sessions' && $targetAccountId === (int) $account['id'] && $status !== 'active') {
-        $errors[] = '현재 로그인한 관리자 계정은 비활성화할 수 없습니다.';
+        $errors[] = sr_t('member::action.admin.current_admin_disable_disallowed');
     }
 
     if ($errors === []) {
@@ -470,7 +470,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $targetAccount = $stmt->fetch();
 
         if (!is_array($targetAccount)) {
-            $errors[] = '회원을 찾을 수 없습니다.';
+            $errors[] = sr_t('member::action.admin.member_not_found');
         }
     }
 
@@ -480,7 +480,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $actorIsOwner = sr_admin_has_role($pdo, (int) $account['id'], ['owner']);
 
         if ($targetIsOwner && !$actorIsOwner) {
-            $errors[] = '소유자 계정 상태와 세션은 소유자만 변경할 수 있습니다.';
+            $errors[] = sr_t('member::action.admin.owner_only');
         }
 
         if (
@@ -490,17 +490,17 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             && (string) $targetAccount['status'] === 'active'
             && sr_admin_active_owner_count($pdo) <= 1
         ) {
-            $errors[] = '마지막 활성 소유자 계정은 비활성화할 수 없습니다.';
+            $errors[] = sr_t('member::action.admin.last_owner_disable_disallowed');
         }
     }
 
     if ($errors === [] && $intent === 'revoke_sessions') {
         if ($targetAccountId === (int) $account['id']) {
-            $errors[] = '현재 로그인한 관리자 계정의 세션은 여기서 폐기할 수 없습니다.';
+            $errors[] = sr_t('member::action.admin.current_session_revoke_disallowed');
         } else {
             $revokedCount = sr_member_revoke_account_sessions($pdo, $targetAccountId);
             if ($revokedCount < 0) {
-                $errors[] = '회원 세션을 폐기할 수 없습니다.';
+                $errors[] = sr_t('member::action.admin.session_revoke_failed');
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
@@ -524,7 +524,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     ],
                 ]);
 
-                $notice = '회원 세션을 폐기했습니다.';
+                $notice = sr_t('member::action.admin.session_revoked');
             }
         }
     } elseif ($errors === [] && $intent === 'edit') {
@@ -548,27 +548,27 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         ];
 
         if ($emailInput === null) {
-            $errors[] = '이메일은 255자 이하로 입력하세요.';
+            $errors[] = sr_t('member::action.register.email_too_long');
         }
 
         if ($loginIdInput === null) {
-            $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+            $errors[] = sr_t('member::action.register.login_id_too_long');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = '이메일 형식이 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.register.email_invalid');
         }
 
         if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
-            $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+            $errors[] = sr_t('member::action.register.login_id_invalid');
         }
 
         if ($displayName === '') {
-            $errors[] = '이름을 입력하세요.';
+            $errors[] = sr_t('member::action.admin.name_required');
         }
 
         if (!in_array($locale, $supportedLocales, true)) {
-            $errors[] = '선호 locale 값이 올바르지 않습니다.';
+            $errors[] = sr_t('member::action.account.locale_invalid');
         }
 
         $emailHash = $errors === [] ? sr_hmac_hash($email, $runtimeConfig) : '';
@@ -579,7 +579,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 'id' => $targetAccountId,
             ]);
             if (is_array($stmt->fetch())) {
-                $errors[] = '이미 사용 중인 이메일입니다.';
+                $errors[] = sr_t('member::action.admin.email_duplicate');
             }
         }
 
@@ -592,7 +592,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 'id' => $targetAccountId,
             ]);
             if (is_array($stmt->fetch())) {
-                $errors[] = '이미 사용 중인 로그인 아이디입니다.';
+                $errors[] = sr_t('member::action.admin.login_id_duplicate');
             }
         }
 
@@ -655,7 +655,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                $errors[] = '회원 정보를 저장할 수 없습니다.';
+                $errors[] = sr_t('member::action.admin.update_failed');
             }
         }
 
@@ -676,7 +676,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'login_id_set' => $nextLoginIdHash !== null,
                 ],
             ]);
-            $notice = '회원 정보를 저장했습니다.';
+            $notice = sr_t('member::action.admin.updated');
         }
     } elseif ($errors === []) {
         $pdo->beginTransaction();
@@ -701,7 +701,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 $pdo->rollBack();
             }
 
-            $errors[] = '회원 상태를 저장할 수 없습니다.';
+            $errors[] = sr_t('member::action.admin.status_save_failed');
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -734,7 +734,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 ],
             ]);
 
-            $notice = '회원 상태를 저장했습니다.';
+            $notice = sr_t('member::action.admin.status_saved');
         }
     }
 

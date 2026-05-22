@@ -57,7 +57,7 @@ function sr_community_theme_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => '기본',
+            'label' => sr_t('community::theme.basic'),
             'views' => [
                 'home' => SR_ROOT . '/modules/community/themes/basic/home.php',
             ],

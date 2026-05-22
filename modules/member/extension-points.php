@@ -3,36 +3,36 @@
 return [
     [
         'point_key' => 'member.login',
-        'label' => '로그인',
+        'label' => sr_t('member::contract.extension.member_login'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_form',
-                'label' => '폼 위',
+                'label' => sr_t('member::contract.slot.before_form'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_form',
-                'label' => '폼 아래',
+                'label' => sr_t('member::contract.slot.after_form'),
                 'kind' => 'content',
             ],
         ],
     ],
     [
         'point_key' => 'member.register',
-        'label' => '회원가입',
+        'label' => sr_t('member::contract.extension.member_register'),
         'surface' => 'public',
         'output' => true,
         'slots' => [
             [
                 'slot_key' => 'before_form',
-                'label' => '폼 위',
+                'label' => sr_t('member::contract.slot.before_form'),
                 'kind' => 'content',
             ],
             [
                 'slot_key' => 'after_form',
-                'label' => '폼 아래',
+                'label' => sr_t('member::contract.slot.after_form'),
                 'kind' => 'content',
             ],
         ],

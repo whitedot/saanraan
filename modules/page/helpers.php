@@ -142,7 +142,7 @@ function sr_page_asset_modules(): array
 {
     return [
         'point' => [
-            'label' => '포인트',
+            'label' => sr_t('page::asset.point'),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -153,7 +153,7 @@ function sr_page_asset_modules(): array
             'refund_type' => 'refund',
         ],
         'reward' => [
-            'label' => '적립금',
+            'label' => sr_t('page::asset.reward'),
             'module_key' => 'reward',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
             'balance_function' => 'sr_reward_balance',
@@ -164,7 +164,7 @@ function sr_page_asset_modules(): array
             'refund_type' => 'refund',
         ],
         'deposit' => [
-            'label' => '예치금',
+            'label' => sr_t('page::asset.deposit'),
             'module_key' => 'deposit',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
             'balance_function' => 'sr_deposit_balance',
@@ -1008,7 +1008,7 @@ function sr_page_homepage_candidates(PDO $pdo): array
         $path = sr_page_path($slug);
         $candidates[] = [
             'module_key' => 'page',
-            'label' => '페이지: ' . (string) ($page['title'] ?? $slug),
+            'label' => sr_t('page::homepage.candidate_label', ['title' => (string) ($page['title'] ?? $slug)]),
             'path' => $path,
             'detail' => $path,
             'available' => true,

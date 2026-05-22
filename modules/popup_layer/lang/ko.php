@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'skin.basic' => '기본',
     'ui.active.93c558d7' => '사용',
     'ui.all.a4b69faf' => '전체',
     'ui.all.e078b14a' => '전체 보기',

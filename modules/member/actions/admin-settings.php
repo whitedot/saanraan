@@ -20,7 +20,7 @@ if (sr_request_method() === 'POST') {
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
     $memberSkinKey = sr_post_string('member_skin_key', 40);
     if (!isset(sr_member_skin_options()[$memberSkinKey])) {
-        $errors[] = '회원 스킨 값이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.admin_settings.skin_invalid');
     } else {
         $settings['member_skin_key'] = $memberSkinKey;
     }
@@ -30,14 +30,18 @@ if (sr_request_method() === 'POST') {
         $settings[$enabledKey] = ($_POST[$enabledKey] ?? '') === '1';
         $settings[$requiredKey] = ($_POST[$requiredKey] ?? '') === '1';
         if ($settings[$requiredKey] && !$settings[$enabledKey]) {
-            $errors[] = (string) $definition['label'] . ' 필수입력은 보이기와 함께 선택해야 합니다.';
+            $errors[] = sr_t('member::action.admin_settings.required_needs_visible', ['label' => (string) $definition['label']]);
         }
     }
 
     foreach ($integerSettingKeys as $key => $limits) {
         $integerValue = sr_admin_post_int_in_range($key, (int) $limits['min'], (int) $limits['max']);
         if ($integerValue === null) {
-            $errors[] = $key . ' 값은 ' . (int) $limits['min'] . ' 이상 ' . (int) $limits['max'] . ' 이하의 정수여야 합니다.';
+            $errors[] = sr_t('member::action.admin_settings.integer_range', [
+                'key' => $key,
+                'min' => (string) $limits['min'],
+                'max' => (string) $limits['max'],
+            ]);
             continue;
         }
 
@@ -48,7 +52,7 @@ if (sr_request_method() === 'POST') {
     $stmt->execute();
     $memberModule = $stmt->fetch();
     if (!is_array($memberModule)) {
-        $errors[] = '회원 모듈이 등록되어 있지 않습니다.';
+        $errors[] = sr_t('member::action.admin_settings.module_missing');
     }
 
     if ($errors === []) {
@@ -108,7 +112,7 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
 
-        $notice = '회원 설정을 저장했습니다.';
+    $notice = sr_t('member::action.admin_settings.saved');
     }
 }
 

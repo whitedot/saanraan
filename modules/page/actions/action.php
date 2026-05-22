@@ -14,7 +14,7 @@ if (is_array($page)) {
     $page = sr_page_with_effective_settings($pdo, $page);
 }
 if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
-    sr_render_error(404, '완료 처리할 페이지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('page::action.error.page_complete_not_found'));
 }
 
 $result = sr_page_run_asset_action($pdo, $page, (int) $account['id']);

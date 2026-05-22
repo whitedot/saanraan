@@ -49,7 +49,7 @@ function sr_admin_require_role(PDO $pdo, int $accountId, array $allowedRoles): v
 
     if (!sr_admin_has_role($pdo, $accountId, $allowedRoles)) {
         sr_request_contract_guard_blocked('role');
-        sr_render_error(403, '관리자 권한이 필요합니다.');
+        sr_render_error(403, sr_t('admin::auth.role_required'));
     }
 }
 

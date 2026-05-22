@@ -6,28 +6,28 @@ function sr_logo_manager_usage_options(): array
 {
     return [
         'admin_sidebar' => [
-            'label' => '관리자 사이드바 로고',
-            'hint' => '관리자 좌측 상단 브랜드 영역에 표시합니다.',
+            'label' => sr_t('logo_manager::usage.admin_sidebar.label'),
+            'hint' => sr_t('logo_manager::usage.admin_sidebar.hint'),
             'max_bytes' => 2097152,
         ],
         'public_header' => [
-            'label' => '공개 헤더 로고',
-            'hint' => '기본 공개 레이아웃의 헤더 브랜드에 표시합니다.',
+            'label' => sr_t('logo_manager::usage.public_header.label'),
+            'hint' => sr_t('logo_manager::usage.public_header.hint'),
             'max_bytes' => 3145728,
         ],
         'mobile' => [
-            'label' => '모바일/소형 로고',
-            'hint' => '작은 화면 또는 향후 소형 브랜드 영역에서 사용할 후보입니다.',
+            'label' => sr_t('logo_manager::usage.mobile.label'),
+            'hint' => sr_t('logo_manager::usage.mobile.hint'),
             'max_bytes' => 2097152,
         ],
         'favicon' => [
-            'label' => '파비콘/앱 아이콘 후보',
-            'hint' => '공개/관리자 레이아웃의 icon link 후보로 사용합니다.',
+            'label' => sr_t('logo_manager::usage.favicon.label'),
+            'hint' => sr_t('logo_manager::usage.favicon.hint'),
             'max_bytes' => 1048576,
         ],
         'og_image' => [
-            'label' => 'OG 이미지 후보',
-            'hint' => 'SEO/공유 이미지 연동을 위한 후보 자산입니다.',
+            'label' => sr_t('logo_manager::usage.og_image.label'),
+            'hint' => sr_t('logo_manager::usage.og_image.hint'),
             'max_bytes' => 5242880,
         ],
     ];

@@ -37,7 +37,7 @@ if ($intent === 'remove') {
 
 $post = sr_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
-    sr_render_error(404, '게시글을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.post_not_found'));
 } else {
     $added = sr_community_add_scrap($pdo, (int) $account['id'], $postId);
     if ($added) {

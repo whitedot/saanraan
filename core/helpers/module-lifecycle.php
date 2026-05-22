@@ -1161,7 +1161,7 @@ function sr_module_code_older_errors(PDO $pdo, string $moduleKey): array
         && preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $codeVersion) === 1
         && strcmp($codeVersion, $installedVersion) < 0
     ) {
-        return ['모듈 코드 버전이 설치 버전보다 낮습니다. 파일을 현재 설치 버전 이상으로 다시 배치한 뒤 활성화하세요.'];
+        return [sr_t('module.lifecycle.error.code_older')];
     }
 
     return [];
@@ -1177,47 +1177,47 @@ function sr_module_lifecycle_state(array $module): array
     if (in_array($status, ['failed', 'installing'], true)) {
         return [
             'state' => 'install_incomplete',
-            'label' => '설치 미완료',
-            'action' => '재설치 필요',
+            'label' => sr_t('module.lifecycle.install_incomplete.label'),
+            'action' => sr_t('module.lifecycle.install_incomplete.action'),
         ];
     }
 
     if ($metadataErrors !== []) {
         return [
             'state' => 'contract_error',
-            'label' => '계약 오류',
-            'action' => '모듈 파일 확인',
+            'label' => sr_t('module.lifecycle.contract_error.label'),
+            'action' => sr_t('module.lifecycle.contract_error.action'),
         ];
     }
 
     if ($versionState === 'code_older') {
         return [
             'state' => 'code_older',
-            'label' => '코드 버전 낮음',
-            'action' => '파일 재배치 필요',
+            'label' => sr_t('module.lifecycle.code_older.label'),
+            'action' => sr_t('module.lifecycle.code_older.action'),
         ];
     }
 
     if ($pendingUpdateCount > 0) {
         return [
             'state' => 'sql_pending',
-            'label' => 'SQL 적용 필요',
-            'action' => '/admin/updates에서 업데이트',
+            'label' => sr_t('module.lifecycle.sql_pending.label'),
+            'action' => sr_t('module.lifecycle.sql_pending.action'),
         ];
     }
 
     if ($versionState === 'code_newer') {
         return [
             'state' => 'file_only_update',
-            'label' => '파일 전용 업데이트 가능',
-            'action' => '설치 버전 반영',
+            'label' => sr_t('module.lifecycle.file_only_update.label'),
+            'action' => sr_t('module.lifecycle.file_only_update.action'),
         ];
     }
 
     if ($status === 'enabled') {
         return [
             'state' => 'enabled_current',
-            'label' => '활성 최신',
+            'label' => sr_t('module.lifecycle.enabled_current.label'),
             'action' => '-',
         ];
     }
@@ -1225,15 +1225,15 @@ function sr_module_lifecycle_state(array $module): array
     if ($status === 'disabled') {
         return [
             'state' => 'disabled_current',
-            'label' => '비활성 최신',
-            'action' => '활성화 가능',
+            'label' => sr_t('module.lifecycle.disabled_current.label'),
+            'action' => sr_t('module.lifecycle.disabled_current.action'),
         ];
     }
 
     return [
         'state' => 'unknown',
-        'label' => '상태 확인 필요',
-        'action' => '모듈 상태 확인',
+        'label' => sr_t('module.lifecycle.unknown.label'),
+        'action' => sr_t('module.lifecycle.unknown.action'),
     ];
 }
 

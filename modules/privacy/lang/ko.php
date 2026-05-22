@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'action.error.account_export_failed' => '개인정보 사본 파일을 생성할 수 없습니다.',
+    'action.error.method_not_allowed' => '허용되지 않는 요청입니다.',
+    'action.error.request_export_failed' => '개인정보 처리 자료 파일을 생성할 수 없습니다.',
+    'action.error.request_not_found' => '개인정보 처리 요청을 찾을 수 없습니다.',
+    'action.error.request_required' => '개인정보 처리 요청을 선택하세요.',
     'ui.admin.35568056' => '관리자 메모',
     'ui.admin.5a81e50f' => '관리자 메모에 처리 내용 기록',
     'ui.admin.79636dee' => '새 관리자 메모',

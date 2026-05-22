@@ -9,19 +9,19 @@ $requiredModules = [
     'member' => [
         'name' => '회원',
         'version' => '2026.05.003',
-        'label' => '회원',
+        'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
     'admin' => [
         'name' => '관리자',
         'version' => '2026.05.001',
-        'label' => '관리자',
+        'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
     'privacy' => [
         'name' => '개인정보',
         'version' => '2026.05.001',
-        'label' => '개인정보',
+        'label' => sr_t('install.module.privacy.label'),
         'description' => '개인정보 처리 요청과 개인정보 사본 제공 조정 기능을 제공합니다.',
     ],
 ];
@@ -35,61 +35,61 @@ $optionalModules = [
     'site_menu' => [
         'name' => '사이트 메뉴',
         'version' => '2026.04.003',
-        'label' => '사이트 메뉴',
+        'label' => sr_t('install.module.site_menu.label'),
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
     'logo_manager' => [
         'name' => '로고매니저',
         'version' => '2026.05.001',
-        'label' => '로고매니저',
+        'label' => sr_t('install.module.logo_manager.label'),
         'description' => '관리자/공개 화면 로고와 기간별 대체 적용을 관리합니다.',
     ],
     'banner' => [
         'name' => '배너',
         'version' => '2026.05.003',
-        'label' => '배너',
+        'label' => sr_t('install.module.banner.label'),
         'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
         'name' => '팝업레이어',
         'version' => '2026.05.002',
-        'label' => '팝업레이어',
+        'label' => sr_t('install.module.popup_layer.label'),
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
     'point' => [
         'name' => '포인트',
         'version' => '2026.04.001',
-        'label' => '포인트',
+        'label' => sr_t('install.module.point.label'),
         'description' => '회원별 포인트 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'deposit' => [
         'name' => '예치금',
         'version' => '2026.04.001',
-        'label' => '예치금',
+        'label' => sr_t('install.module.deposit.label'),
         'description' => '회원별 예치금 잔액과 입금/사용/환불/출금 원장을 설치합니다.',
     ],
     'reward' => [
         'name' => '적립금',
         'version' => '2026.04.001',
-        'label' => '적립금',
+        'label' => sr_t('install.module.reward.label'),
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'notification' => [
         'name' => '알림',
         'version' => '2026.04.001',
-        'label' => '알림',
+        'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
     'page' => [
         'name' => '페이지',
         'version' => '2026.05.005',
-        'label' => '페이지',
+        'label' => sr_t('install.module.page.label'),
         'description' => '단일 페이지 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
         'version' => '2026.05.010',
-        'label' => '커뮤니티',
+        'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
 ];
@@ -199,7 +199,7 @@ if ($values['base_url'] === '' && sr_is_site_base_url($currentBaseUrl)) {
 $mainPageOptions = [
     '/' => [
         'module_key' => 'core',
-        'label' => '기본 홈',
+        'label' => sr_t('install.home.default.label'),
         'path' => '/',
     ],
 ];
@@ -253,19 +253,19 @@ $installChecks = [
         'guide' => extension_loaded('pdo_mysql') ? 'MySQL 연결에 필요한 PHP 확장이 활성화되어 있습니다.' : '호스팅 관리자에서 pdo_mysql 확장을 켜거나, PHP MySQL 확장을 지원하는 환경으로 변경하세요.',
     ],
     [
-        'label' => '설정 파일',
+        'label' => sr_t('install.check.config.label'),
         'status' => $configWritable ? 'ok' : 'error',
         'message' => $configWritable ? 'config/config.php 생성 가능' : 'config/config.php를 만들 수 없습니다.',
         'guide' => $configWritable ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다. 설치 후에는 이 파일이 웹에서 직접 열리지 않도록 차단하세요.' : 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 공유호스팅에서 계속 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.',
     ],
     [
-        'label' => '저장소',
+        'label' => sr_t('install.check.storage.label'),
         'status' => $storageWritable ? 'ok' : 'error',
         'message' => $storageWritable ? 'storage 디렉터리 쓰기 가능' : 'storage 디렉터리에 파일을 쓸 수 없습니다.',
         'guide' => $storageWritable ? '설치 잠금 파일, 실패 기록, 운영 로그를 storage 디렉터리에 저장할 수 있습니다. storage도 웹에서 직접 열리지 않도록 차단하세요.' : 'FTP 또는 호스팅 파일 관리자에서 storage 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.',
     ],
     [
-        'label' => '현재 URL',
+        'label' => sr_t('install.check.current_url.label'),
         'status' => $currentBaseUrl === '' ? 'warning' : (sr_is_local_host($currentBaseUrl) || parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? 'ok' : 'warning'),
         'message' => $currentBaseUrl === '' ? '요청 host를 확인할 수 없습니다.' : $currentBaseUrl,
         'guide' => $currentBaseUrl === '' ? '공개 기준 URL을 직접 입력하고, 운영 전 실제 접속 URL이 맞는지 확인하세요.' : (sr_is_local_host($currentBaseUrl) ? '로컬 테스트 설치로 인식했습니다.' : (parse_url($currentBaseUrl, PHP_URL_SCHEME) === 'https' ? '운영에 적합한 HTTPS URL입니다.' : 'HTTP 테스트 설치는 가능하지만, 운영 전에는 HTTPS로 전환하세요.')),

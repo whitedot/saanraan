@@ -14,7 +14,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 $slug = sr_page_slug_from_request_path();
 $page = $slug !== '' ? sr_page_published_by_slug($pdo, $slug) : null;
 if (!is_array($page)) {
-    sr_render_error(404, '요청한 페이지를 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('page::action.error.page_not_found'));
 }
 $page = sr_page_with_effective_settings($pdo, $page);
 

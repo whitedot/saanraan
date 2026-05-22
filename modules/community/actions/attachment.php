@@ -19,30 +19,30 @@ if (!is_array($attachment)) {
         && is_array($board)
         && !sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)
     ) {
-        sr_render_error(403, '첨부 파일을 볼 수 없습니다.');
+        sr_render_error(403, sr_t('community::action.error.attachment_view_forbidden'));
     }
 }
 if (!is_array($attachment)) {
-    sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 $mimeType = (string) $attachment['mime_type'];
 $driver = sr_community_attachment_storage_driver($attachment);
 $storageKey = sr_community_attachment_storage_key($attachment);
 if (!sr_community_attachment_mime_is_allowed($mimeType) || $storageKey === '') {
-    sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 $recordedSize = (int) ($attachment['size_bytes'] ?? 0);
 $recordedChecksum = (string) ($attachment['checksum_sha256'] ?? '');
 $head = sr_storage_head($driver, $storageKey);
 if (!is_array($head) || $recordedSize < 1 || (int) ($head['content_length'] ?? 0) !== $recordedSize) {
-    sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 $actualChecksum = (string) (($head['metadata']['sha256'] ?? '') ?: '');
 if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum === '' || !hash_equals($recordedChecksum, $actualChecksum)) {
-    sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
@@ -71,7 +71,7 @@ if (is_array($board)) {
                 '커뮤니티 게시글 열람'
             );
             if (empty($paidReadResult['allowed'])) {
-                sr_render_error(403, (string) ($paidReadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 볼 수 없습니다.'));
+                sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed')));
             }
             sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         }
@@ -97,7 +97,7 @@ if ($disposition === 'attachment' && is_array($board)) {
             '커뮤니티 첨부 다운로드'
         );
         if (empty($downloadResult['allowed'])) {
-            sr_render_error(403, (string) ($downloadResult['message'] ?? '회원 자산이 부족해 첨부 파일을 다운로드할 수 없습니다.'));
+            sr_render_error(403, (string) ($downloadResult['message'] ?? sr_t('community::action.error.download_attachment_failed')));
         }
     }
 }
@@ -107,7 +107,7 @@ if ($driver === 's3') {
         'response-content-disposition' => $disposition . '; filename="' . sr_download_filename((string) $attachment['original_name']) . '"',
     ]);
     if ($downloadUrl === '') {
-        sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
     }
 
     header('Cache-Control: private, max-age=300');
@@ -116,7 +116,7 @@ if ($driver === 's3') {
 
 $filePath = sr_community_attachment_file_path($attachment);
 if (!is_string($filePath)) {
-    sr_render_error(404, '첨부 파일을 찾을 수 없습니다.');
+    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 header('Content-Type: ' . sr_download_content_type($mimeType));

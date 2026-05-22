@@ -37,7 +37,7 @@ if ($pageAdminPage === 'form') {
     if ($pageId > 0) {
         $editPage = sr_page_by_id($pdo, $pageId);
         if (!is_array($editPage)) {
-            sr_render_error(404, '수정할 페이지를 찾을 수 없습니다.');
+            sr_render_error(404, sr_t('page::action.error.page_edit_not_found'));
         }
         $editPage['setting_sources'] = sr_page_setting_sources($pdo, $pageId);
         $pageFiles = sr_page_files_for_page($pdo, $pageId);

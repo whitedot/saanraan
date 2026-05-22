@@ -432,7 +432,7 @@ if ($communityBoardGroupsPage === 'edit') {
     }
 
     if (!is_array($editBoardGroup)) {
-        sr_render_error(404, '게시판 그룹을 찾을 수 없습니다.');
+        sr_render_error(404, sr_t('community::action.error.board_group_not_found'));
     }
 }
 

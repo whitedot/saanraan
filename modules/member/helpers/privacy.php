@@ -139,7 +139,7 @@ function sr_member_privacy_export_reauth_errors(PDO $pdo, array $account): array
     $password = sr_post_string('current_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
-        return ['재인증 계정을 확인할 수 없습니다.'];
+        return [sr_t('member::action.privacy_export.account_missing')];
     }
 
     $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
@@ -154,7 +154,7 @@ function sr_member_privacy_export_reauth_errors(PDO $pdo, array $account): array
             'result' => 'failure',
             'message' => 'Member privacy export reauthentication blocked by throttle.',
         ]);
-        return ['비밀번호 확인 시도가 많습니다. 잠시 후 다시 시도하세요.'];
+        return [sr_t('member::action.reauth.throttled')];
     }
 
     if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
@@ -168,7 +168,7 @@ function sr_member_privacy_export_reauth_errors(PDO $pdo, array $account): array
             'result' => 'failure',
             'message' => 'Member privacy export reauthentication failed.',
         ]);
-        return ['개인정보 사본을 내려받기 전 현재 비밀번호를 다시 입력하세요.'];
+        return [sr_t('member::action.privacy_export.reauth_required')];
     }
 
     sr_member_log_auth($pdo, $accountId, 'privacy_export_reauth', 'success');
