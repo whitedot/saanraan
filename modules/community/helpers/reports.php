@@ -25,10 +25,10 @@ function sr_community_report_statuses(): array
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
-function sr_community_report_account_label(?string $displayName, int $accountId): string
+function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null): string
 {
     $label = trim((string) $displayName);
-    if ($label === 'withdrawn') {
+    if ((string) $accountStatus === 'anonymized' && $label === 'withdrawn') {
         return sr_t('member::account.withdrawn_display_name');
     }
 
@@ -260,8 +260,11 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): 
     $sql = 'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
                    r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
                    reporter.display_name AS reporter_display_name,
+                   reporter.status AS reporter_account_status,
                    reported.display_name AS reported_display_name,
-                   reviewer.display_name AS reviewer_display_name
+                   reported.status AS reported_account_status,
+                   reviewer.display_name AS reviewer_display_name,
+                   reviewer.status AS reviewer_account_status
             FROM sr_community_reports r
             LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
             LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id

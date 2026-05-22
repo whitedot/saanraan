@@ -288,6 +288,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     $sql = 'SELECT p.id, p.board_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
+                   a.status AS author_account_status,
                    (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                    (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
             FROM sr_community_posts p
@@ -317,7 +318,8 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
-                a.display_name AS author_display_name
+                a.display_name AS author_display_name,
+                a.status AS author_account_status
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
@@ -426,7 +428,8 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     $sql = 'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
-                   a.display_name AS author_display_name
+                   a.display_name AS author_display_name,
+                   a.status AS author_account_status
             FROM sr_community_comments c
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id

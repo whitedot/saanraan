@@ -140,11 +140,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
                         <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
                             is_string($report['reporter_display_name'] ?? null) ? $report['reporter_display_name'] : null,
-                            (int) $report['reporter_account_id']
+                            (int) $report['reporter_account_id'],
+                            is_string($report['reporter_account_status'] ?? null) ? $report['reporter_account_status'] : null
                         )); ?></td>
                         <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
                             is_string($report['reported_display_name'] ?? null) ? $report['reported_display_name'] : null,
-                            (int) $report['reported_account_id']
+                            (int) $report['reported_account_id'],
+                            is_string($report['reported_account_status'] ?? null) ? $report['reported_account_status'] : null
                         )); ?></td>
                         <td class="admin-table-break admin-community-report-memo-cell"><?php echo sr_e((string) ($report['memo_text'] ?? '')); ?></td>
                         <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_e((string) $report['created_at']); ?></td>
@@ -152,7 +154,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
                                 <?php echo sr_e(sr_community_report_account_label(
                                     is_string($report['reviewer_display_name'] ?? null) ? $report['reviewer_display_name'] : null,
-                                    (int) $report['reviewer_account_id']
+                                    (int) $report['reviewer_account_id'],
+                                    is_string($report['reviewer_account_status'] ?? null) ? $report['reviewer_account_status'] : null
                                 )); ?>
                             <?php } ?>
                         </td>

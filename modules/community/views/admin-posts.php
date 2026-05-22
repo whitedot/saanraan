@@ -121,7 +121,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-break admin-community-post-author-cell"><?php echo sr_e(sr_community_report_account_label(
                             is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : null,
-                            (int) $post['author_account_id']
+                            (int) $post['author_account_id'],
+                            is_string($post['author_account_status'] ?? null) ? $post['author_account_status'] : null
                         )); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
@@ -248,7 +249,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-break admin-community-comment-author-cell"><?php echo sr_e(sr_community_report_account_label(
                             is_string($comment['author_display_name'] ?? null) ? $comment['author_display_name'] : null,
-                            (int) $comment['author_account_id']
+                            (int) $comment['author_account_id'],
+                            is_string($comment['author_account_status'] ?? null) ? $comment['author_account_status'] : null
                         )); ?></td>
                         <td class="admin-table-break admin-community-comment-body-cell"><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>

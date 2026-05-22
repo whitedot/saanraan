@@ -22,7 +22,8 @@ function sr_admin_member_email_display(array $member): string
 
 function sr_admin_member_display_name_preview(array $member): string
 {
-    if ((string) ($member['status'] ?? '') === 'anonymized' || (string) ($member['display_name'] ?? '') === 'withdrawn') {
+    $status = (string) ($member['status'] ?? ($member['account_status'] ?? ''));
+    if ($status === 'anonymized') {
         return sr_t('member::account.withdrawn_display_name');
     }
 
@@ -825,6 +826,7 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
     $accountId = (int) ($searchFilter['account_id'] ?? 0);
     if ($keyword !== '') {
         $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        $matchesWithdrawnLabel = $keyword === sr_t('member::account.withdrawn_display_name');
         if ($field === 'hash' || $field === 'login_id') {
             $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
             if ($accountId > 0) {
@@ -834,7 +836,11 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
             $where[] = 'a.email LIKE :keyword_like';
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $where[] = 'a.display_name LIKE :keyword_like';
+            $nameClauses = ['a.display_name LIKE :keyword_like'];
+            if ($matchesWithdrawnLabel) {
+                $nameClauses[] = "a.status = 'anonymized'";
+            }
+            $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_like'] = $like;
         } else {
             $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like'];
@@ -843,6 +849,9 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
             if ($accountId > 0) {
                 $clauses[] = 'a.id = :account_id';
                 $params['account_id'] = $accountId;
+            }
+            if ($matchesWithdrawnLabel) {
+                $clauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }

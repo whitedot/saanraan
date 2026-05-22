@@ -11,7 +11,8 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     $limit = max(1, min(100, $limit));
     if ($box === 'sent') {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
-                       recipient.display_name AS other_display_name
+                       recipient.display_name AS other_display_name,
+                       recipient.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
                 WHERE m.sender_account_id = :account_id
@@ -20,7 +21,8 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
                 LIMIT :limit_value';
     } else {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
-                       sender.display_name AS other_display_name
+                       sender.display_name AS other_display_name,
+                       sender.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
                 WHERE m.recipient_account_id = :account_id
@@ -37,10 +39,10 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     return $stmt->fetchAll();
 }
 
-function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null): string
+function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null): string
 {
     $label = trim((string) $displayName);
-    if ($label === 'withdrawn') {
+    if ((string) $accountStatus === 'anonymized' && $label === 'withdrawn') {
         $label = sr_t('member::account.withdrawn_display_name');
     }
 
@@ -66,7 +68,9 @@ function sr_community_message_by_id_for_account(PDO $pdo, int $messageId, int $a
     $stmt = $pdo->prepare(
         'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                 sender.display_name AS sender_display_name,
-                recipient.display_name AS recipient_display_name
+                sender.status AS sender_account_status,
+                recipient.display_name AS recipient_display_name,
+                recipient.status AS recipient_account_status
          FROM sr_community_messages m
          LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
          LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
