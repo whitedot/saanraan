@@ -520,7 +520,11 @@ function sr_page_admin_filters(): array
 
 function sr_page_group_apply_scope(string $scope): string
 {
-    return in_array($scope, ['group', 'all'], true) ? $scope : 'all';
+    if ($scope === 'board') {
+        return 'here_only';
+    }
+
+    return in_array($scope, ['group', 'all', 'here_only'], true) ? $scope : 'here_only';
 }
 
 function sr_page_admin_status_counts(PDO $pdo): array
@@ -752,7 +756,7 @@ function sr_page_input_values(): array
 {
     $pageGroupScope = sr_page_group_apply_scope(sr_post_string('page_group_scope', 20));
     $pageGroupId = (int) sr_post_string('page_group_id', 20);
-    if ($pageGroupScope === 'all') {
+    if ($pageGroupScope !== 'group') {
         $pageGroupId = 0;
     }
 
@@ -798,7 +802,7 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     if ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_page_group_by_id($pdo, $pageGroupId)))) {
         $errors[] = '페이지 그룹 값이 올바르지 않습니다.';
     }
-    if (sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? 'all')) === 'group' && $pageGroupId < 1) {
+    if (sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
         $errors[] = '그룹적용을 선택하려면 페이지 그룹을 선택하세요.';
     }
 

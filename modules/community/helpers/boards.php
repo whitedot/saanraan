@@ -68,11 +68,15 @@ function sr_community_board_group_column_setting_keys(): array
 
 function sr_community_board_setting_source_values(): array
 {
-    return ['board', 'group'];
+    return ['board', 'group', 'all'];
 }
 
 function sr_community_normalize_board_setting_source(string $source): string
 {
+    if ($source === 'here_only') {
+        return 'board';
+    }
+
     return in_array($source, sr_community_board_setting_source_values(), true) ? $source : 'board';
 }
 

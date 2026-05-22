@@ -13,7 +13,7 @@ $editing = is_array($editPage);
 if ($values === []) {
     $values = $editing ? $editPage : [
         'title' => '',
-        'page_group_scope' => 'all',
+        'page_group_scope' => 'here_only',
         'page_group_id' => 0,
         'slug' => '',
         'summary' => '',
@@ -59,10 +59,11 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     : '활성 자산 모듈 없음';
 $pageGroupScopeLabels = [
     'group' => '그룹적용',
-    'all' => '개별적용',
+    'all' => '전체적용',
+    'here_only' => '여기만적용',
 ];
 $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels): string {
-    $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'all';
+    $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'here_only';
     $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="페이지 그룹 적용 범위">';
     foreach ($pageGroupScopeLabels as $scope => $label) {
         $id = 'page_group_scope_' . $scope;
@@ -74,7 +75,7 @@ $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope)
 
     return $html . '</div>';
 };
-$values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'all')));
+$values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'here_only')));
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -119,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    <?php echo $pageGroupScopeRadioHtml('page_group_scope', (string) ($values['page_group_scope'] ?? 'all')); ?>
+                    <?php echo $pageGroupScopeRadioHtml('page_group_scope', (string) ($values['page_group_scope'] ?? 'here_only')); ?>
                     <p class="admin-form-help">그룹을 선택하면 그룹별 공개 목록과 사이트 메뉴 연결 자산에서 함께 묶입니다.</p>
                 </div>
             </div>

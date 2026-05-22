@@ -19,7 +19,8 @@ $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 
 $settingSourceLabels = [
     'group' => '그룹적용',
-    'board' => '개별적용',
+    'all' => '전체적용',
+    'board' => '여기만적용',
 ];
 $boardSettingSource = static function (array $board, string $key): string {
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
