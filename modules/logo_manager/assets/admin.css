@@ -37,12 +37,15 @@
     border-radius: var(--radius-sm);
     display: inline-block;
     height: 2.5rem;
-    margin-right: .5rem;
     max-width: 7rem;
     object-fit: contain;
     padding: .25rem;
     vertical-align: middle;
     width: auto;
+}
+
+.admin-table-break .logo-manager-thumb {
+    margin-right: .5rem;
 }
 
 .logo-manager-assets-table {

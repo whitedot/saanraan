@@ -12,6 +12,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 $usageOptions = sr_logo_manager_usage_options();
 $assetStatuses = ['active', 'archived'];
 $assignmentStatuses = ['active', 'disabled'];
+$logoManagerDefaultAltText = is_array($site ?? null) ? trim((string) (($site['site_name'] ?? '') !== '' ? $site['site_name'] : ($site['name'] ?? ''))) : '';
 $errors = [];
 $notice = '';
 
@@ -144,7 +145,7 @@ if (sr_request_method() === 'POST') {
         $altText = sr_logo_manager_clean_single_line(sr_post_string('alt_text', 160), 160);
         $linkUrlRaw = sr_post_string('link_url', 255);
         $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
-        $status = sr_post_string('status', 30);
+        $status = sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
         $startsAtInput = sr_post_string('starts_at', 30);
         $endsAtInput = sr_post_string('ends_at', 30);
         $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
