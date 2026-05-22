@@ -703,7 +703,7 @@ window.AdminShell = {
         }
 
         if (dashboardSectionsRoot) {
-            const orderStorageKey = 'sr_admin_dashboard_section_order';
+            const orderStorageKey = 'sr_admin_dashboard_section_order_v2';
             const visibilityStorageKey = 'sr_admin_dashboard_section_visibility';
             const managerToggle = document.querySelector('[data-admin-dashboard-manager-toggle]');
             const managerPanel = document.querySelector('[data-admin-dashboard-manager]');
@@ -739,6 +739,8 @@ window.AdminShell = {
                     section.dataset.adminDashboardSpan = 'full';
                 } else if (span === 'half') {
                     section.dataset.adminDashboardSpan = 'half';
+                } else if (span === 'third') {
+                    section.dataset.adminDashboardSpan = 'third';
                 } else {
                     delete section.dataset.adminDashboardSpan;
                 }
@@ -754,7 +756,7 @@ window.AdminShell = {
                     localStorage.setItem(orderStorageKey, JSON.stringify({
                         items: sections().map(section => ({
                             key: sectionKey(section),
-                            span: ['full', 'half'].includes(section.dataset.adminDashboardSpan || '')
+                            span: ['full', 'half', 'third'].includes(section.dataset.adminDashboardSpan || '')
                                 ? section.dataset.adminDashboardSpan
                                 : '',
                             auto_span: section.dataset.adminDashboardAutoSpan === '1'
@@ -771,7 +773,7 @@ window.AdminShell = {
                     return 2;
                 }
 
-                return 3;
+                return 4;
             };
             const normalizeSectionRun = (run, columnCount) => {
                 if (run.length === 0 || columnCount <= 1) {
@@ -782,7 +784,9 @@ window.AdminShell = {
                     const chunk = run.slice(index, index + columnCount);
                     const span = chunk.length === 1
                         ? 'full'
-                        : (chunk.length === 2 && columnCount >= 3 ? 'half' : '');
+                        : (chunk.length === 2 && columnCount >= 3
+                            ? 'half'
+                            : (chunk.length === 3 && columnCount >= 4 ? 'third' : ''));
 
                     chunk.forEach(section => {
                         applySectionSpan(section, span, true);
@@ -1164,7 +1168,7 @@ window.AdminShell = {
                             return;
                         }
 
-                        applySectionSpan(section, ['full', 'half'].includes(item.span || '') ? item.span : '', item.auto_span === true);
+                        applySectionSpan(section, ['full', 'half', 'third'].includes(item.span || '') ? item.span : '', item.auto_span === true);
                         dashboardSectionsRoot.appendChild(section);
                     });
                 }
