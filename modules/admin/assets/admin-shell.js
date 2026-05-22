@@ -116,6 +116,10 @@ window.AdminShell = {
             syncDesktopSidebarState();
         };
 
+        const clearSidebarRestoring = () => {
+            body.classList.remove('admin-sidebar-restoring');
+        };
+
         const setMobileSidebar = opened => {
             if (!isMobileViewport()) {
                 return;
@@ -1244,12 +1248,18 @@ window.AdminShell = {
             });
         }
 
+        try {
+            if (!isMobileViewport() && localStorage.getItem(menuStorageKey) === '1' && gnb) {
+                gnb.classList.add('gnb_small');
+            }
+        } catch (err) {}
         syncDesktopSidebarState();
         try {
             if (!isMobileViewport() && localStorage.getItem(menuStorageKey) === '1') {
                 setDesktopCollapsed(true);
             }
         } catch (err) {}
+        window.requestAnimationFrame(clearSidebarRestoring);
         syncThemeUI();
         updateMenuScrollbar();
         window.requestAnimationFrame(updateMenuScrollbar);

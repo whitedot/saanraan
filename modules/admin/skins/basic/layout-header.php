@@ -60,6 +60,15 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
     <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
 <body>
+    <script>
+    (function () {
+        try {
+            if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches && localStorage.getItem('sr_admin_sidebar_collapsed') === '1') {
+                document.body.classList.add('admin-sidebar-condensed', 'admin-sidebar-restoring');
+            }
+        } catch (error) {}
+    })();
+    </script>
     <div id="to_content" class="admin-skip-link"><a href="#container">본문 바로가기</a></div>
 
     <header id="hd" class="admin-sidebar-frame">
