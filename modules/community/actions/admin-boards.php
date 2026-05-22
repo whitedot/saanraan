@@ -177,10 +177,16 @@ if (sr_request_method() === 'POST') {
         $legacyAssetSettingSource = $legacyAssetPolicySource === 'global' ? 'all' : $legacyAssetPolicySource;
         $assetSettingSources = [];
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
-            $postedSource = sr_post_string('source_' . $assetPrefix, 20);
-            $assetSettingSources[$assetPrefix] = $postedSource !== ''
-                ? sr_community_normalize_board_setting_source($postedSource)
-                : sr_community_normalize_board_setting_source($legacyAssetSettingSource);
+            $legacyPrefixSource = sr_post_string('source_' . $assetPrefix, 20);
+            if ($legacyPrefixSource === '') {
+                $legacyPrefixSource = $legacyAssetSettingSource;
+            }
+            foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
+                $postedSource = sr_post_string('source_' . $settingKey, 20);
+                $assetSettingSources[$settingKey] = $postedSource !== ''
+                    ? sr_community_normalize_board_setting_source($postedSource)
+                    : sr_community_normalize_board_setting_source($legacyPrefixSource);
+            }
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
@@ -313,9 +319,10 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        foreach ($assetSettingSources as $assetPrefix => $source) {
+        foreach ($assetSettingSources as $settingKey => $source) {
             if ($source === 'group' && $boardGroupId < 1) {
-                $assetLabel = (string) ($assetSettingLabels[$assetPrefix] ?? $assetPrefix);
+                $assetPrefix = sr_community_asset_prefix_from_setting_key((string) $settingKey);
+                $assetLabel = (string) ($assetSettingLabels[$assetPrefix] ?? $settingKey);
                 $errors[] = $assetLabel . ' 자산 설정은 게시판 그룹이 있어야 그룹 적용할 수 있습니다.';
             }
         }
@@ -469,10 +476,8 @@ if (sr_request_method() === 'POST') {
             foreach ($boardSettingValues as $settingKey => $settingValue) {
                 sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
             }
-            foreach ($assetSettingSources as $assetPrefix => $source) {
-                foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
-                    sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, $settingKey, $source, $assetSettings[$settingKey] ?? '');
-                }
+            foreach ($assetSettingSources as $settingKey => $source) {
+                sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
             }
 
             $notice = '게시판을 만들었습니다.';
@@ -504,8 +509,8 @@ if (sr_request_method() === 'POST') {
                 $beforeCommentMinLevel = sr_community_board_min_level($pdo, $boardId, 'comment_min_level');
                 $beforeSkinKey = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
                 $beforeAssetSettingSources = [];
-                foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
-                    $beforeAssetSettingSources[$assetPrefix] = sr_community_board_asset_setting_source($pdo, $boardId, $assetPrefix);
+                foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
+                    $beforeAssetSettingSources[$assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, $boardId, (string) $assetSettingKey);
                 }
                 $beforeAssetSettings = [];
                 foreach ($assetSettings as $assetSettingKey => $assetSettingValue) {
@@ -542,10 +547,8 @@ if (sr_request_method() === 'POST') {
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
                     sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
                 }
-                foreach ($assetSettingSources as $assetPrefix => $source) {
-                    foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
-                        sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, $settingKey, $source, $assetSettings[$settingKey] ?? '');
-                    }
+                foreach ($assetSettingSources as $settingKey => $source) {
+                    sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
                 }
 
                 $publicDisplayMetadata = [];
@@ -643,8 +646,10 @@ foreach ($boards as &$board) {
     $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
+    foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
+        $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
+    }
     foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
-        $board['source_' . $assetPrefix] = sr_community_board_asset_setting_source($pdo, (int) $board['id'], $assetPrefix);
         $board[$assetPrefix . '_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_enabled', !empty($settings[$assetPrefix . '_enabled']) ? '1' : '0');
         $board[$assetPrefix . '_asset_module'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));
         $board[$assetPrefix . '_amount'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0));

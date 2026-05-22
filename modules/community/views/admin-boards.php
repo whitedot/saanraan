@@ -26,8 +26,12 @@ $settingSourceLabelHtml = static function (array $label): string {
     return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
 };
 $boardSettingSource = static function (array $board, string $key): string {
+    if (array_key_exists('source_' . $key, $board)) {
+        return sr_community_normalize_board_setting_source((string) $board['source_' . $key]);
+    }
+
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
-    return (string) ($sources[$key] ?? 'board');
+    return sr_community_normalize_board_setting_source((string) ($sources[$key] ?? 'board'));
 };
 $settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
@@ -107,12 +111,6 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'write_min_level' => 0,
     'comment_min_level' => 0,
     'skin_key' => 'basic',
-    'source_post_reward' => 'all',
-    'source_comment_reward' => 'all',
-    'source_write_charge' => 'all',
-    'source_comment_charge' => 'all',
-    'source_paid_read' => 'all',
-    'source_paid_attachment_download' => 'all',
     'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
     'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
@@ -134,6 +132,11 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'paid_attachment_download_amount' => (string) ($settings['paid_attachment_download_amount'] ?? 0),
     'paid_attachment_download_charge_policy' => (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'),
 ];
+if ($communityBoardsPage !== 'edit') {
+    foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
+        $formBoard['source_' . $assetSettingKey] = 'all';
+    }
+}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -580,9 +583,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                     <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
                                 </label>
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_enabled', $boardSettingSource($formBoard, (string) $assetPrefix . '_enabled')); ?>
                                 <div class="admin-asset-setting-target">
                                     <?php if ($usesCompositeAsset) { ?>
                                         <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
+                                            <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                     <?php } else { ?>
                                         <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
@@ -595,22 +600,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
+                                            <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                                     <?php } ?>
                                 </div>
                                 <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount">
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_amount', $boardSettingSource($formBoard, (string) $assetPrefix . '_amount')); ?>
                                 <?php if ($assetPrefix === 'paid_read') { ?>
                                     <select name="paid_read_charge_policy" class="form-select">
                                         <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
                                         <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
                                     </select>
+                                    <?php echo $settingSourceRadioHtml('source_paid_read_charge_policy', $boardSettingSource($formBoard, 'paid_read_charge_policy')); ?>
                                 <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
                                     <select name="paid_attachment_download_charge_policy" class="form-select">
                                         <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
                                         <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
                                     </select>
+                                    <?php echo $settingSourceRadioHtml('source_paid_attachment_download_charge_policy', $boardSettingSource($formBoard, 'paid_attachment_download_charge_policy')); ?>
                                 <?php } ?>
-                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix, $boardField($formBoard, 'source_' . (string) $assetPrefix, 'all')); ?>
-                            </div>
+	                            </div>
                         </div>
                     </div>
                 <?php } ?>

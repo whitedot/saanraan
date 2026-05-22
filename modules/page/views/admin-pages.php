@@ -15,9 +15,6 @@ if ($values === []) {
         'title' => '',
         'page_group_scope' => 'here_only',
         'page_group_id' => 0,
-        'asset_access_policy_source' => 'page',
-        'asset_action_policy_source' => 'page',
-        'file_asset_policy_source' => 'page',
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -110,9 +107,28 @@ $pageSettingSourceRadioHtml = static function (string $name, string $selectedSou
 };
 $values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'here_only')));
 $legacyAssetPolicySource = sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page'));
-$values['asset_access_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_access_policy_source'] ?? $legacyAssetPolicySource));
-$values['asset_action_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_action_policy_source'] ?? $legacyAssetPolicySource));
-$values['file_asset_policy_source'] = sr_page_normalize_setting_source((string) ($values['file_asset_policy_source'] ?? 'page'));
+foreach (sr_page_group_asset_access_setting_keys() as $settingKey) {
+    $values['source_' . $settingKey] = $pageSettingSource($values, (string) $settingKey);
+    if ($values['source_' . $settingKey] === 'page' && isset($values['asset_access_policy_source'])) {
+        $values['source_' . $settingKey] = sr_page_normalize_setting_source((string) $values['asset_access_policy_source']);
+    } elseif ($values['source_' . $settingKey] === 'page' && $legacyAssetPolicySource !== 'page') {
+        $values['source_' . $settingKey] = $legacyAssetPolicySource;
+    }
+}
+foreach (sr_page_group_asset_action_setting_keys() as $settingKey) {
+    $values['source_' . $settingKey] = $pageSettingSource($values, (string) $settingKey);
+    if ($values['source_' . $settingKey] === 'page' && isset($values['asset_action_policy_source'])) {
+        $values['source_' . $settingKey] = sr_page_normalize_setting_source((string) $values['asset_action_policy_source']);
+    } elseif ($values['source_' . $settingKey] === 'page' && $legacyAssetPolicySource !== 'page') {
+        $values['source_' . $settingKey] = $legacyAssetPolicySource;
+    }
+}
+foreach (sr_page_group_file_asset_setting_keys() as $settingKey) {
+    $values['source_' . $settingKey] = $pageSettingSource($values, (string) $settingKey);
+    if ($values['source_' . $settingKey] === 'page' && isset($values['file_asset_policy_source'])) {
+        $values['source_' . $settingKey] = sr_page_normalize_setting_source((string) $values['file_asset_policy_source']);
+    }
+}
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -218,18 +234,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>유료 열람</h2>
             <div class="admin-form-row">
-                <span class="form-label">적용 방식</span>
-                <div class="admin-form-field">
-                    <?php echo $pageSettingSourceRadioHtml('asset_access_policy_source', (string) ($values['asset_access_policy_source'] ?? 'page')); ?>
-                </div>
-            </div>
-            <div class="admin-form-row">
                 <span class="form-label">유료 열람 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_page_admin_pages_asset_access_enabled">
                                             <input id="modules_page_admin_pages_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html('유료 열람 사용'); ?>
                                         </label>
+                                        <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
                                         <p class="admin-form-help">선택한 회원 자산을 차감한 뒤 페이지 본문을 보여줍니다.</p>
                 </div>
             </div>
@@ -238,6 +249,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, '활성 자산 모듈 없음'); ?>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module')); ?>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
@@ -245,6 +257,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="page_admin_pages_asset_access_amount">차감 금액</label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_asset_access_amount" type="number" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_access_amount', $pageSettingSource($values, 'asset_access_amount')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -257,17 +270,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_charge_policy', $pageSettingSource($values, 'asset_charge_policy')); ?>
                 </div>
             </div>
         </section>
         <section class="admin-card card">
             <h2>완료 액션</h2>
-            <div class="admin-form-row">
-                <span class="form-label">적용 방식</span>
-                <div class="admin-form-field">
-                    <?php echo $pageSettingSourceRadioHtml('asset_action_policy_source', (string) ($values['asset_action_policy_source'] ?? 'page')); ?>
-                </div>
-            </div>
             <div class="admin-form-row">
                 <span class="form-label">액션 사용</span>
                 <div class="admin-form-field">
@@ -275,6 +283,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_page_admin_pages_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html('완료 액션 사용'); ?>
                                         </label>
+                                        <?php echo $pageSettingSourceRadioHtml('source_asset_action_enabled', $pageSettingSource($values, 'asset_action_enabled')); ?>
                                         <p class="admin-form-help">회원이 공개 페이지에서 버튼을 누르면 선택한 자산을 1회 지급하거나 차감합니다.</p>
                 </div>
             </div>
@@ -282,6 +291,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="page_admin_pages_asset_action_label">버튼 문구</label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? '완료')); ?>" class="form-input" maxlength="80">
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_label', $pageSettingSource($values, 'asset_action_label')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -294,6 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_direction', $pageSettingSource($values, 'asset_action_direction')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -301,12 +312,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php $selectedActionAssetModules = sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, '활성 자산 모듈 없음'); ?>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_asset_action_amount">금액</label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_asset_action_amount" type="number" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_amount', $pageSettingSource($values, 'asset_action_amount')); ?>
                 </div>
             </div>
         </section>
@@ -479,17 +492,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                             </div>
                             <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
-                            <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
-                                <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                    <option value="<?php echo sr_e((string) $policyKey); ?>">
-                                        <?php echo sr_e((string) $policyLabel); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <?php echo $pageSettingSourceRadioHtml('file_asset_policy_source', (string) ($values['file_asset_policy_source'] ?? 'page')); ?>
-                        </div>
-                    </div>
-                </div>
+	                            <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
+	                                <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+	                                    <option value="<?php echo sr_e((string) $policyKey); ?>">
+	                                        <?php echo sr_e((string) $policyLabel); ?>
+	                                    </option>
+	                                <?php } ?>
+	                            </select>
+	                        </div>
+	                    </div>
+	                </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">

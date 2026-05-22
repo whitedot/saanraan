@@ -253,7 +253,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-policy{width:auto}
 .admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
-.admin-asset-setting-line>.admin-setting-source-options{margin-left:auto}
+.admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
 .admin-asset-setting-target{min-width:0}
 .admin-asset-setting-target>.admin-check-list{margin-top:0}
 .admin-asset-setting-target>.admin-form-help{margin-top:calc(var(--spacing) * 1)}

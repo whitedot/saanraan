@@ -254,6 +254,32 @@ function sr_community_board_asset_setting_source(PDO $pdo, int $boardId, string 
     return sr_community_normalize_board_setting_source($legacySource);
 }
 
+function sr_community_board_asset_setting_key_source(PDO $pdo, int $boardId, string $settingKey): string
+{
+    $prefix = sr_community_asset_prefix_from_setting_key($settingKey);
+    if ($boardId < 1 || $prefix === '') {
+        return 'all';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT source
+         FROM sr_community_board_setting_sources
+         WHERE board_id = :board_id
+           AND setting_key = :setting_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'setting_key' => $settingKey,
+    ]);
+    $source = $stmt->fetchColumn();
+    if (is_string($source) && $source !== '') {
+        return sr_community_normalize_board_setting_source($source);
+    }
+
+    return sr_community_board_asset_setting_source($pdo, $boardId, $prefix);
+}
+
 function sr_community_asset_setting_keys(): array
 {
     $keys = [];
@@ -333,9 +359,9 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
     $prefix = sr_community_asset_prefix_from_setting_key($key);
     $source = 'all';
     if ($boardId > 0 && $prefix !== '') {
-        $source = is_string($board['source_' . $prefix] ?? null)
-            ? sr_community_normalize_board_setting_source((string) $board['source_' . $prefix])
-            : sr_community_board_asset_setting_source($pdo, $boardId, $prefix);
+        $source = is_string($board['source_' . $key] ?? null)
+            ? sr_community_normalize_board_setting_source((string) $board['source_' . $key])
+            : sr_community_board_asset_setting_key_source($pdo, $boardId, $key);
     }
     if ($source === 'group') {
         $groupId = (int) ($board['board_group_id'] ?? 0);

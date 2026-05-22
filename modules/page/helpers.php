@@ -1094,9 +1094,6 @@ function sr_page_input_values(): array
         'page_group_id' => $pageGroupId,
         'source_status' => sr_page_normalize_setting_source(sr_post_string('source_status', 20)),
         'source_layout_key' => sr_page_normalize_setting_source(sr_post_string('source_layout_key', 20)),
-        'asset_access_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_access_policy_source', 20)),
-        'asset_action_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_action_policy_source', 20)),
-        'file_asset_policy_source' => sr_page_normalize_setting_source(sr_post_string('file_asset_policy_source', 20)),
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -1123,11 +1120,33 @@ function sr_page_input_values(): array
         $values['source_' . $settingKey] = sr_page_normalize_setting_source(sr_post_string('source_' . $settingKey, 20));
     }
 
-    if ($values['asset_access_policy_source'] === 'page' && sr_post_string('asset_policy_source', 20) !== '') {
-        $values['asset_access_policy_source'] = sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20));
+    $legacyAssetSource = sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20));
+    $legacyAccessSource = sr_page_normalize_setting_source(sr_post_string('asset_access_policy_source', 20));
+    if (sr_post_string('asset_access_policy_source', 20) === '') {
+        $legacyAccessSource = $legacyAssetSource;
     }
-    if ($values['asset_action_policy_source'] === 'page' && sr_post_string('asset_policy_source', 20) !== '') {
-        $values['asset_action_policy_source'] = sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20));
+    $legacyActionSource = sr_page_normalize_setting_source(sr_post_string('asset_action_policy_source', 20));
+    if (sr_post_string('asset_action_policy_source', 20) === '') {
+        $legacyActionSource = $legacyAssetSource;
+    }
+    $legacyFileSource = sr_page_normalize_setting_source(sr_post_string('file_asset_policy_source', 20));
+    foreach (sr_page_group_asset_access_setting_keys() as $settingKey) {
+        $postedSource = sr_post_string('source_' . $settingKey, 20);
+        $values['source_' . $settingKey] = $postedSource !== ''
+            ? sr_page_normalize_setting_source($postedSource)
+            : $legacyAccessSource;
+    }
+    foreach (sr_page_group_asset_action_setting_keys() as $settingKey) {
+        $postedSource = sr_post_string('source_' . $settingKey, 20);
+        $values['source_' . $settingKey] = $postedSource !== ''
+            ? sr_page_normalize_setting_source($postedSource)
+            : $legacyActionSource;
+    }
+    foreach (sr_page_group_file_asset_setting_keys() as $settingKey) {
+        $postedSource = sr_post_string('source_' . $settingKey, 20);
+        $values['source_' . $settingKey] = $postedSource !== ''
+            ? sr_page_normalize_setting_source($postedSource)
+            : $legacyFileSource;
     }
 
     return sr_page_normalize_asset_values($values, false);
@@ -1148,13 +1167,24 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
         $errors[] = '그룹적용을 선택하려면 페이지 그룹을 선택하세요.';
     }
 
-    foreach ([
+    $sourceLabels = [
         'source_status' => '상태',
         'source_layout_key' => '페이지 레이아웃',
-        'asset_access_policy_source' => '유료 열람',
-        'asset_action_policy_source' => '완료 액션',
-        'file_asset_policy_source' => '새 파일 과금',
-    ] as $sourceKey => $sourceLabel) {
+    ];
+    foreach ([
+        'asset_access_enabled' => '유료 열람 사용',
+        'asset_module' => '차감 자산',
+        'asset_access_amount' => '차감 금액',
+        'asset_charge_policy' => '과금 방식',
+        'asset_action_enabled' => '완료 액션 사용',
+        'asset_action_module' => '완료 액션 대상 자산',
+        'asset_action_amount' => '완료 액션 금액',
+        'asset_action_direction' => '완료 액션 처리 방향',
+        'asset_action_label' => '완료 액션 버튼 문구',
+    ] as $settingKey => $sourceLabel) {
+        $sourceLabels['source_' . $settingKey] = $sourceLabel;
+    }
+    foreach ($sourceLabels as $sourceKey => $sourceLabel) {
         if (sr_page_normalize_setting_source((string) ($values[$sourceKey] ?? 'page')) === 'group' && $pageGroupId < 1) {
             $errors[] = $sourceLabel . ' 설정은 페이지 그룹이 있어야 그룹 적용할 수 있습니다.';
         }
@@ -1354,13 +1384,13 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
             sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_asset_access_setting_keys() as $settingKey) {
-            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['asset_access_policy_source'] ?? 'page'), $values, $accountId, $now);
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_asset_action_setting_keys() as $settingKey) {
-            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['asset_action_policy_source'] ?? 'page'), $values, $accountId, $now);
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_file_asset_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, 'page');
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
         }
 
         sr_page_record_revision($pdo, $pageId, $values, $accountId, $now);
