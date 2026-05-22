@@ -481,24 +481,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label">새 파일 과금</span>
                 <div class="admin-form-field">
-                    <div class="admin-page-file-charge-control">
-                        <div class="admin-page-file-charge-main">
-                            <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
-                                <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
-                                <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
-                            </label>
-                            <div class="admin-page-file-charge-assets">
-                                <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
-                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                            </div>
-                            <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
-	                            <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
-	                                <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-	                                    <option value="<?php echo sr_e((string) $policyKey); ?>">
-	                                        <?php echo sr_e((string) $policyLabel); ?>
-	                                    </option>
-	                                <?php } ?>
-	                            </select>
+	                    <div class="admin-page-file-charge-control">
+	                        <div class="admin-page-file-charge-main">
+                                <div class="admin-setting-unit">
+	                                <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
+	                                    <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
+	                                    <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
+	                                </label>
+                                </div>
+	                            <div class="admin-page-file-charge-assets admin-setting-unit admin-setting-unit-wide">
+	                                <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
+	                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+	                            </div>
+                                <div class="admin-setting-unit">
+	                                <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
+                                </div>
+                                <div class="admin-setting-unit">
+	                                <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
+	                                    <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+	                                        <option value="<?php echo sr_e((string) $policyKey); ?>">
+	                                            <?php echo sr_e((string) $policyLabel); ?>
+	                                        </option>
+	                                    <?php } ?>
+	                                </select>
+                                </div>
 	                        </div>
 	                    </div>
 	                </div>

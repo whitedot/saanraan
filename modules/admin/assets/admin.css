@@ -258,6 +258,15 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-setting-target>.admin-check-list{margin-top:0}
 .admin-asset-setting-target>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
 .admin-asset-setting-amount{width:10rem}
+.admin-setting-unit{align-items:flex-start;display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1);min-width:10rem}
+.admin-setting-unit-wide{min-width:16rem}
+.admin-setting-unit>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-setting-unit>.admin-check-list{margin-top:0}
+.admin-setting-unit>.admin-setting-source-options{gap:calc(var(--spacing) * 1.75);justify-content:flex-start;margin-left:0}
+.admin-setting-unit>.admin-setting-source-options>.admin-form-check{min-height:auto}
+.admin-setting-unit>.admin-form-help{margin-top:0}
+.admin-setting-unit>.form-input,
+.admin-setting-unit>.form-select{width:100%}
 .admin-role-choice-list{border:0;display:grid;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-role-choice{min-height:calc(var(--spacing) * 9);border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
 .admin-role-choice:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent)}
