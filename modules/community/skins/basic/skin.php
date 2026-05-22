@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => '기본',
+    'label' => sr_t('community::ui.text.3603b458'),
     'views' => [
         'list' => __DIR__ . '/list.php',
         'post' => __DIR__ . '/view.php',

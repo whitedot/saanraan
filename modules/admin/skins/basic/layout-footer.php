@@ -2,12 +2,12 @@
         </div>
 
         <noscript>
-            <p>이 페이지는 JavaScript가 활성화되어야 일부 기능이 정상 동작합니다.</p>
+            <p><?php echo sr_e(sr_t('admin::ui.page.24650d53')); ?></p>
         </noscript>
 
         <footer id="ft" class="admin-footer">
             <p class="admin-footer-inner">
-                <span class="admin-footer-copy">Copyright &copy; <?php echo sr_e((string) date('Y')); ?> <?php echo sr_e((string) ($adminShell['site_title'] ?? '산란')); ?>. All rights reserved.</span>
+                <span class="admin-footer-copy">Copyright &copy; <?php echo sr_e((string) date('Y')); ?> <?php echo sr_e((string) ($adminShell['site_title'] ?? sr_t('admin::ui.text.7f03504e'))); ?>. All rights reserved.</span>
                 <button type="button" class="admin-footer-scroll-top scroll_top"><span>TOP</span></button>
             </p>
         </footer>
@@ -19,7 +19,7 @@
                 <div class="admin-popup-header">
                     <strong id="popupTitle" class="admin-popup-title"></strong>
                     <button type="button" class="admin-popup-close popup-close-btn" data-popup-close="popupOverlay">
-                        <span>팝업 닫기</span>
+                        <span><?php echo sr_e(sr_t('admin::ui.close.5eb0f352')); ?></span>
                     </button>
                 </div>
                 <div id="popupBody" class="admin-popup-body"></div>

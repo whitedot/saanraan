@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'label' => '포인트',
+    'label' => sr_t('point::ui.point.e5f25ab0'),
     'order' => 40,
     'items' => [
         [
-            'label' => '잔액',
+            'label' => sr_t('point::ui.text.b099377c'),
             'path' => '/admin/points/balances',
             'order' => 10,
         ],
         [
-            'label' => '거래 내역',
+            'label' => sr_t('point::ui.text.754ef98b'),
             'path' => '/admin/points/transactions',
             'order' => 30,
         ],

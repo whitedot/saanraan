@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = 'SEO 설정';
+$adminPageTitle = sr_t('seo::ui.seo.settings.604d83e6');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -10,21 +10,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
 
     <section class="admin-card card">
-        <h2>기본 메타</h2>
+        <h2><?php echo sr_e(sr_t('seo::ui.text.c8ef75e9')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="seo_admin_settings_title_suffix">제목 접미사</label>
+            <label class="form-label" for="seo_admin_settings_title_suffix"><?php echo sr_e(sr_t('seo::ui.text.0404a3fe')); ?></label>
             <div class="admin-form-field">
                 <input id="seo_admin_settings_title_suffix" type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" class="form-input" maxlength="80">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="seo_admin_settings_default_description">기본 설명</label>
+            <label class="form-label" for="seo_admin_settings_default_description"><?php echo sr_e(sr_t('seo::ui.text.dbf432cb')); ?></label>
             <div class="admin-form-field">
                 <input id="seo_admin_settings_default_description" type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input form-control-full" maxlength="255">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="seo_admin_settings_default_og_image">기본 OG 이미지 URL</label>
+            <label class="form-label" for="seo_admin_settings_default_og_image"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
             <div class="admin-form-field">
                 <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input form-control-full" maxlength="255">
             </div>
@@ -32,38 +32,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2>사이트맵</h2>
+        <h2><?php echo sr_e(sr_t('seo::ui.text.0c082164')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <span class="form-label">홈 URL 포함</span>
+                <span class="form-label"><?php echo sr_e(sr_t('seo::ui.url.51ecf74b')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_seo_admin_settings_sitemap_include_home">
                                             <input id="modules_seo_admin_settings_sitemap_include_home" type="checkbox" name="sitemap_include_home" value="1" class="form-checkbox"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('홈 URL 포함'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('seo::ui.url.51ecf74b')); ?>
                                         </label>
                 </div>
             </div>
         </div>
         <?php if ($sitemapUrl !== '') { ?>
             <div class="admin-form-row">
-                <span class="form-label">사이트맵 파일</span>
+                <span class="form-label"><?php echo sr_e(sr_t('seo::ui.text.2a5fd734')); ?></span>
                 <div class="admin-form-field">
-                    <a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>">sitemap.xml 확인</a>
+                    <a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
                 </div>
             </div>
         <?php } ?>
     </section>
 
     <section class="admin-card card">
-        <h2>로봇 설정</h2>
+        <h2><?php echo sr_e(sr_t('seo::ui.settings.7ce8a229')); ?></h2>
         <div class="seo-robots-table">
             <div class="seo-robots-name">
                 <strong>robots.txt</strong>
-                <a href="<?php echo sr_e(sr_url('/robots.txt')); ?>">파일 확인</a>
+                <a href="<?php echo sr_e(sr_url('/robots.txt')); ?>"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
             </div>
             <div class="seo-robots-content">
                 <div class="admin-form-row">
-                    <label class="form-label" for="seo_admin_settings_robots_disallow_paths">차단 경로</label>
+                    <label class="form-label" for="seo_admin_settings_robots_disallow_paths"><?php echo sr_e(sr_t('seo::ui.text.553ea40a')); ?></label>
                     <div class="admin-form-field">
                         <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
                     </div>
@@ -74,7 +74,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('seo::ui.save.5fb92622')); ?></button>
     </div>
 </form>
 

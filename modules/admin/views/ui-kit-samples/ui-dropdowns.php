@@ -4,25 +4,24 @@
                         <!-- Single Button Dropdowns -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">단일 버튼 드롭다운</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.a7542165')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">적절한 토글 클래스와 메뉴 구조를 사용하여 최소한의 마크업 변경으로 모든 버튼이나 링크를 드롭다운
-                                    토글로 전환할 수 있습니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.active.99b41e46')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            옵션 선택
+                                            <?php echo sr_e(sr_t('admin::ui.select.aedc2eb7')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">프로필 설정</a>
-                                            <a class="dropdown-item" href="#">알림</a>
-                                            <a class="dropdown-item" href="#">로그아웃</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.0dc82bb5')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.notification.12ddd6ca')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></a>
                                         </div>
                                     </div>
 
@@ -30,28 +29,28 @@
                                         <a class="dropdown-toggle btn btn-solid-primary"
                                             href="#" role="button" id="dropdownMenuLink" aria-haspopup="true"
                                             aria-expanded="false">
-                                            빠른 작업
+                                            <?php echo sr_e(sr_t('admin::ui.text.553c43c9')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </a>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">새로 만들기</a>
-                                            <a class="dropdown-item" href="#">파일 업로드</a>
-                                            <a class="dropdown-item" href="#">보고서 보기</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.61cbfb01')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.36b3f9a0')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.55e86e37')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown" data-dropdown-trigger="hover">
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            마우스 올리기
+                                            <?php echo sr_e(sr_t('admin::ui.text.106f8e82')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="hover-dropdown">
-                                            <a class="dropdown-item" href="#">프로필 설정</a>
-                                            <a class="dropdown-item" href="#">알림</a>
-                                            <a class="dropdown-item" href="#">로그아웃</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.0dc82bb5')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.notification.12ddd6ca')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -61,26 +60,26 @@
                         <!-- Menu Alignment -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">메뉴 정렬</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.menu.caec9fc5')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>data-dropdown-placement="bottom-right"</code>
-                                    속성을 사용하여 드롭다운 메뉴를 요소의 오른쪽에 배치하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.8cf273b0')); ?>
                                 </p>
 
                                 <div class="dropdown" data-dropdown-placement="bottom-right">
                                     <button type="button" class="dropdown-toggle btn btn-soft-default"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                        오른쪽 정렬 메뉴
+                                        <?php echo sr_e(sr_t('admin::ui.menu.250808dc')); ?>
                                         <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                        <a class="dropdown-item" href="#">작업</a>
-                                        <a class="dropdown-item" href="#">다른 작업</a>
-                                        <a class="dropdown-item" href="#">기타 작업</a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                     </div>
                                 </div>
                             </div>
@@ -89,24 +88,22 @@
                         <!-- Custom Dropdown Arrow -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">커스텀 드롭다운 화살표</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.62c91826')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 버튼은 아이콘을 포함하거나 제외하도록 커스텀할 수 있어, 깔끔한 텍스트 전용 토글이나
-                                    커스텀 아이콘으로 시각적으로 향상된 토글을 만들 수 있습니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.eab18637')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-primary"
-                                            aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">화살표
-                                            없음</button>
+                                            aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown"><?php echo sr_e(sr_t('admin::ui.text.95dd914e')); ?></button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">보고서 다운로드</a>
-                                            <a class="dropdown-item" href="#">분석 보기</a>
-                                            <a class="dropdown-item" href="#">데이터 내보내기</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.e094fe4f')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.bde16b30')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.91ea82c1')); ?></a>
                                         </div>
                                     </div>
 
@@ -114,14 +111,14 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-outline-primary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            커스텀 아이콘
-                                            <span class="ui-kit-icon-text">수정</span>
+                                            <?php echo sr_e(sr_t('admin::ui.text.13351e0b')); ?>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">프로필 수정</a>
-                                            <a class="dropdown-item" href="#">계정 설정</a>
-                                            <a class="dropdown-item" href="#">로그아웃</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.edit.9034544e')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.64c15812')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -131,17 +128,16 @@
                         <!-- Split Button Dropdowns -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">분할 버튼 드롭다운</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.20ba4976')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">일반 버튼과 별도의 토글을 결합하여 분할 버튼 드롭다운을 만드세요. 이 레이아웃은 메인 버튼에서
-                                    빠른 작업을 제공하고 드롭다운에서 추가 옵션을 제공합니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.4aa7ed8f')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-solid-primary dropdown-split-main">기본(Primary)</button>
+                                            class="btn btn-solid-primary dropdown-split-main"><?php echo sr_e(sr_t('admin::ui.primary.5c1b8e5f')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -150,18 +146,18 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-default dropdown-split-main">보조(Secondary)</button>
+                                            class="btn btn-soft-default dropdown-split-main"><?php echo sr_e(sr_t('admin::ui.secondary.1d6f4945')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -170,18 +166,18 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-success dropdown-split-main">성공(Success)</button>
+                                            class="btn btn-soft-success dropdown-split-main"><?php echo sr_e(sr_t('admin::ui.success.54159b7c')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -190,18 +186,18 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-solid-info dropdown-split-main">정보(Info)</button>
+                                            class="btn btn-solid-info dropdown-split-main"><?php echo sr_e(sr_t('admin::ui.info.26ff73fa')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -210,11 +206,11 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -225,44 +221,43 @@
                         <!-- Variant -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">변형</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.27a9c9e1')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴는 모든 버튼 변형과 함께 사용할 수 있으므로 기본, 보조 또는 성공 버튼과 같은
-                                    다양한 색상이나 스타일에 맞출 수 있습니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.active.3ed4e224')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-primary is-disabled-look"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            기본(Primary)
+                                            <?php echo sr_e(sr_t('admin::ui.primary.5c1b8e5f')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">새로 만들기</a>
-                                            <a class="dropdown-item" href="#">변경 사항 저장</a>
-                                            <a class="dropdown-item" href="#">지금 게시</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.61cbfb01')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.save.7f1fb44d')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.31d45e1d')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">초안 보기</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.a2c0ef22')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown">
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            보조(Secondary)
+                                            <?php echo sr_e(sr_t('admin::ui.secondary.1d6f4945')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">설정</a>
-                                            <a class="dropdown-item" href="#">환경 설정</a>
-                                            <a class="dropdown-item" href="#">계정 정보</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.115bced4')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.f5bf4963')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">로그아웃</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></a>
                                         </div>
                                     </div>
 
@@ -270,16 +265,16 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-success-contrast"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            성공(Success)
+                                            <?php echo sr_e(sr_t('admin::ui.success.54159b7c')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">완료로 표시</a>
-                                            <a class="dropdown-item" href="#">보고서 다운로드</a>
-                                            <a class="dropdown-item" href="#">리뷰 제출</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.0f5bcfc2')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.e094fe4f')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.36f07297')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">작업 아카이브</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.6d4795cf')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -289,35 +284,33 @@
                         <!-- Sizing -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">크기 조절</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.e89c2291')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴는 유연한 디자인 옵션을 위해 크고 작은 버튼 또는 분할 버튼 변형을 포함한 모든
-                                    크기의 버튼과 결합할 수 있습니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.5548d650')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
                                         <button type="button"
                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-lg"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            큰 버튼
+                                            <?php echo sr_e(sr_t('admin::ui.text.0ba54b43')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">다른 작업</a>
-                                            <a class="dropdown-item" href="#">기타 작업</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">분리된 링크</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-soft-default dropdown-split-main dropdown-toggle-lg">큰
-                                            버튼</button>
+                                            class="btn btn-soft-default dropdown-split-main dropdown-toggle-lg"><?php echo sr_e(sr_t('admin::ui.text.91285b5a')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -326,11 +319,11 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -339,23 +332,22 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-sm btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            작은 버튼
+                                            <?php echo sr_e(sr_t('admin::ui.text.7b8bcce7')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">다른 작업</a>
-                                            <a class="dropdown-item" href="#">기타 작업</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">분리된 링크</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-sm btn-group-start btn-soft-default">작은
-                                            버튼</button>
+                                            class="btn btn-sm btn-group-start btn-soft-default"><?php echo sr_e(sr_t('admin::ui.text.be41fd02')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="bottom-left">
                                             <button type="button"
@@ -364,11 +356,11 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -379,39 +371,38 @@
                         <!-- 드롭업 Variation -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">드롭업 변형</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.eb00a816')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    부모 요소에
+                                    <?php echo sr_e(sr_t('admin::ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="top"</code>
-                                    또는
+                                    <?php echo sr_e(sr_t('admin::ui.text.82d047b9')); ?>
                                     <code>data-dropdown-placement="top-left"</code>
-                                    속성을 사용하여 토글 버튼 위에 드롭다운 메뉴를 표시하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.3b57a848')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown" data-dropdown-placement="top">
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            드롭업
-                                            <span class="ui-kit-icon-text">접기</span>
+                                            <?php echo sr_e(sr_t('admin::ui.text.c34e13c9')); ?>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.aba08853')); ?></span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">다른 작업</a>
-                                            <a class="dropdown-item" href="#">기타 작업</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">분리된 링크</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-group-start btn-soft-default">분할
-                                            드롭업</button>
+                                            class="btn btn-group-start btn-soft-default"><?php echo sr_e(sr_t('admin::ui.text.2b5c6d74')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="top-left">
                                             <button type="button"
@@ -420,11 +411,11 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">새 작업</a>
-                                                <a class="dropdown-item" href="#">사용자 배정</a>
-                                                <a class="dropdown-item" href="#">마감일 설정</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.158d042f')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.active.085d511c')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.settings.d6806693')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">Project 설정</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.project.settings.9d31f37f')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -435,14 +426,14 @@
                         <!-- 드롭스타트 Variation -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">드롭스타트 변형</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1c977f4a')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    부모 요소에
+                                    <?php echo sr_e(sr_t('admin::ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="left-start"</code>
-                                    속성을 사용하여 토글 버튼의 왼쪽에 드롭다운 메뉴를 배치하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.a4009a70')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -451,15 +442,15 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             <?php echo sr_ui_arrow_icon_html('left', 'dropdown-icon'); ?>
-                                            드롭스타트
+                                            <?php echo sr_e(sr_t('admin::ui.text.7fa847c5')); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">다른 작업</a>
-                                            <a class="dropdown-item" href="#">기타 작업</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">분리된 링크</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                         </div>
                                     </div>
 
@@ -471,17 +462,16 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
 
                                         <button type="button"
-                                            class="btn btn-group-end btn-solid-secondary">분할
-                                            드롭스타트</button>
+                                            class="btn btn-group-end btn-solid-secondary"><?php echo sr_e(sr_t('admin::ui.text.38c005cc')); ?></button>
                                     </div>
                                 </div>
                             </div>
@@ -490,14 +480,14 @@
                         <!-- Dropend Variation -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">드롭엔드 변형</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.9615eba3')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    부모 요소에
+                                    <?php echo sr_e(sr_t('admin::ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="right-end"</code>
-                                    속성을 사용하여 토글 버튼의 오른쪽에 드롭다운 메뉴를 표시하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.6049a1ab')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -510,18 +500,17 @@
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">프로필 보기</a>
-                                            <a class="dropdown-item" href="#">메시지 보내기</a>
-                                            <a class="dropdown-item" href="#">문제 보고</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.24470b61')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.67156903')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.fb8ebabd')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">사용자 차단</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.active.91c30fe8')); ?></a>
                                         </div>
                                     </div>
 
                                     <div class="dropdown-split">
                                         <button type="button"
-                                            class="btn btn-solid-primary dropdown-split-main">분할
-                                            드롭스타트</button>
+                                            class="btn btn-solid-primary dropdown-split-main"><?php echo sr_e(sr_t('admin::ui.text.38c005cc')); ?></button>
 
                                         <div class="dropdown" data-dropdown-placement="right-end">
                                             <button type="button"
@@ -530,11 +519,11 @@
                                             </button>
 
                                             <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">다른 작업</a>
-                                                <a class="dropdown-item" href="#">기타 작업</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.84a7bf51')); ?></a>
                                                 <hr class="dropdown-divider" />
-                                                <a class="dropdown-item" href="#">분리된 링크</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.1b4019bd')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -545,28 +534,28 @@
                         <!-- Active Item -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">활성 항목</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.e31486b9')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    드롭다운 항목에
+                                    <?php echo sr_e(sr_t('admin::ui.text.fb7e1c75')); ?>
                                     <code>.active</code>
-                                    속성을 사용하여 현재 선택되었거나 활성화된 옵션으로 강조하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.select.42d6d19e')); ?>
                                 </p>
 
                                 <div class="dropdown" data-dropdown-placement="bottom-end">
                                     <button type="button"
                                         class="dropdown-toggle btn btn-solid-secondary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                        활성화된 항목
+                                        <?php echo sr_e(sr_t('admin::ui.text.91258d4f')); ?>
                                         <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                        <a class="dropdown-item" href="#">일반 링크</a>
-                                        <a class="dropdown-item active" href="#">활성 링크</a>
-                                        <a class="dropdown-item" href="#">다른 링크</a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.2f8d87ff')); ?></a>
+                                        <a class="dropdown-item active" href="#"><?php echo sr_e(sr_t('admin::ui.text.137b8114')); ?></a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.815ab7a1')); ?></a>
                                     </div>
                                 </div>
                             </div>
@@ -575,28 +564,28 @@
                         <!-- 비활성화됨 Item -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">비활성 항목</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.253c2a1a')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    드롭다운 항목에
+                                    <?php echo sr_e(sr_t('admin::ui.text.fb7e1c75')); ?>
                                     <code>.disabled</code>
-                                    속성을 사용하여 메뉴 내에서 사용할 수 없거나 비활성화된 옵션을 나타내십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.active.4ac36575')); ?>
                                 </p>
 
                                 <div class="dropdown" data-dropdown-placement="bottom-end">
                                     <button type="button"
                                         class="dropdown-toggle btn btn-solid-primary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                        비활성화됨
+                                        <?php echo sr_e(sr_t('admin::ui.text.cb0f8c54')); ?>
                                         <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                     </button>
 
                                     <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                        <a class="dropdown-item" href="#">일반 링크</a>
-                                        <a class="dropdown-item active" href="#" disabled>비활성 링크</a>
-                                        <a class="dropdown-item" href="#">다른 링크</a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.2f8d87ff')); ?></a>
+                                        <a class="dropdown-item active" href="#" disabled><?php echo sr_e(sr_t('admin::ui.text.ecccfb25')); ?></a>
+                                        <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.815ab7a1')); ?></a>
                                     </div>
                                 </div>
                             </div>
@@ -605,11 +594,11 @@
                         <!-- 헤더s -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">헤더</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.999150ec')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴 내부에 헤더를 추가하여 관련 메뉴 항목을 명확하게 그룹화하거나 레이블을 지정하십시오.
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.menu.8e3b133d')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -617,14 +606,14 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary-contrast"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            헤더
+                                            <?php echo sr_e(sr_t('admin::ui.text.999150ec')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <h6 class="dropdown-header">드롭다운 헤더</h6>
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">다른 작업</a>
+                                            <h6 class="dropdown-header"><?php echo sr_e(sr_t('admin::ui.text.0611ad02')); ?></h6>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.47a7f13d')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -634,31 +623,31 @@
                         <!-- 다크 드롭다운s -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">다크 드롭다운</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.0b557e35')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    메뉴 요소에
+                                    <?php echo sr_e(sr_t('admin::ui.menu.1a2ccc44')); ?>
                                     <code>data-theme="dark"</code>
-                                    를 추가하여 드롭다운 메뉴에 다크 테마를 적용하십시오. 이를 통해 개별 항목을 변경하지 않고도 어두운 내비게이션 바나 레이아웃에 맞출 수 있습니다.
+                                    <?php echo sr_e(sr_t('admin::ui.menu.69b294ff')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown" data-dropdown-placement="bottom-end">
                                         <button type="button" class="dropdown-toggle btn btn-solid-dark"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            다크 드롭다운
+                                            <?php echo sr_e(sr_t('admin::ui.text.0b557e35')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div data-theme="dark" class="dropdown-menu" role="menu"
                                             aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">대시보드</a>
-                                            <a class="dropdown-item" href="#">내 주문</a>
-                                            <a class="dropdown-item" href="#">Billing 설정</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.dashboard.2b1a8070')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.c1d865a7')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.billing.settings.bb7531de')); ?></a>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">로그아웃</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -668,15 +657,15 @@
                         <!-- Centered Dropdowns -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">중앙 정렬 드롭다운</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.b6ea5e2c')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
                                     <code>data-dropdown-placement="bottom"</code>
-                                    또는
+                                    <?php echo sr_e(sr_t('admin::ui.text.82d047b9')); ?>
                                     <code>data-dropdown-placement="top"</code>
-                                    속성을 사용하여 드롭다운 메뉴를 토글 버튼의 아래나 위 중앙에 배치하십시오.
+                                    <?php echo sr_e(sr_t('admin::ui.active.menu.00a89ae5')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -684,15 +673,15 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            중앙 드롭다운
+                                            <?php echo sr_e(sr_t('admin::ui.text.617d1288')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
                                             <div class="ui-kit-stack-0-5">
-                                                <a class="dropdown-item" href="#">작업</a>
-                                                <a class="dropdown-item" href="#">작업 2</a>
-                                                <a class="dropdown-item" href="#">작업 3</a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.2.f882a558')); ?></a>
+                                                <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.3.cbdf3320')); ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -701,14 +690,14 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            중앙 드롭업
-                                            <span class="ui-kit-icon-text">접기</span>
+                                            <?php echo sr_e(sr_t('admin::ui.text.88a39bb6')); ?>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.aba08853')); ?></span>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">작업</a>
-                                            <a class="dropdown-item" href="#">작업 2</a>
-                                            <a class="dropdown-item" href="#">작업 3</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.2.f882a558')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.3.cbdf3320')); ?></a>
                                         </div>
                                     </div>
                                 </div>
@@ -718,12 +707,12 @@
                         <!-- Auto Close Behavior -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">자동 닫기 동작</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.close.5f3ace98')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    기본적으로 드롭다운 메뉴는 내부 또는 외부를 클릭할 때 닫힙니다. autoClose 옵션을 사용하여 드롭다운의 이 동작을 변경할 수 있습니다.
+                                    <?php echo sr_e(sr_t('admin::ui.menu.autoclose.active.ebf30f94')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -731,14 +720,14 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            기본 드롭다운
+                                            <?php echo sr_e(sr_t('admin::ui.text.9802a140')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
-                                            <a class="dropdown-item" href="#">메뉴 항목</a>
-                                            <a class="dropdown-item" href="#">메뉴 항목</a>
-                                            <a class="dropdown-item" href="#">메뉴 항목</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.menu.c3a52c01')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.menu.c3a52c01')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.menu.c3a52c01')); ?></a>
                                         </div>
                                     </div>
 
@@ -746,7 +735,7 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            내부 클릭 가능
+                                            <?php echo sr_e(sr_t('admin::ui.text.54c5ba29')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
@@ -761,7 +750,7 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            외부 클릭 가능
+                                            <?php echo sr_e(sr_t('admin::ui.text.a5d2c5f2')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
@@ -776,7 +765,7 @@
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            수동 닫기
+                                            <?php echo sr_e(sr_t('admin::ui.close.42ab9687')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
@@ -793,23 +782,22 @@
                         <!-- Text -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">텍스트</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.258ad4b0')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴 내에 자유로운 형식의 텍스트를 배치하고 간격 유틸리티를 사용하세요. 메뉴 너비를
-                                    제한하기 위해 추가적인 크기 조정 스타일이 필요할 수 있습니다.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.active.menu.d08ffdf3')); ?></p>
                                 <div class="dropdown" data-dropdown-placement="bottom-end">
                                     <button type="button"
                                         class="dropdown-toggle btn btn-solid-primary"
                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                        텍스트 드롭다운
+                                        <?php echo sr_e(sr_t('admin::ui.text.5785447b')); ?>
                                         <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                     </button>
 
                                     <div class="dropdown-menu dropdown-menu-wide dropdown-menu-padded" role="menu" aria-orientation="vertical">
-                                        <span class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴 내에서 자유롭게 흐르는 예시 텍스트입니다.</span>
-                                        <p class="ui-kit-ink-default-400">그리고 이것은 추가 예시 텍스트입니다.</p>
+                                        <span class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.ab99a84e')); ?></span>
+                                        <p class="ui-kit-ink-default-400"><?php echo sr_e(sr_t('admin::ui.text.f96634d5')); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -818,19 +806,18 @@
                         <!-- Forms -->
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">폼</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.90a8402c')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">드롭다운 메뉴 내에 폼을 넣거나 드롭다운 메뉴로 만들고, 마진 또는 패딩 유틸리티를 사용하여 필요한
-                                    여백을 주십시오.</p>
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.menu.menu.active.deecc2cd')); ?></p>
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div
                                         class="dropdown" data-dropdown-placement="bottom-end" data-dropdown-auto-close="inside">
                                         <button type="button"
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            폼
+                                            <?php echo sr_e(sr_t('admin::ui.text.90a8402c')); ?>
                                             <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                         </button>
 
@@ -838,30 +825,29 @@
                                             aria-orientation="forms-dropdown-menu">
                                             <form class="dropdown-form">
                                                 <div class="ui-kit-space-after-5">
-                                                    <label class="form-label" for="dropdown-form-email">이메일 주소</label>
+                                                    <label class="form-label" for="dropdown-form-email"><?php echo sr_e(sr_t('admin::ui.email.e9abda44')); ?></label>
                                                     <input id="dropdown-form-email" class="form-input form-input-sm" type="email"
                                                         placeholder="email@example.com" />
                                                 </div>
 
                                                 <div class="ui-kit-space-after-5">
-                                                    <label class="form-label" for="dropdown-form-password">비밀번호</label>
+                                                    <label class="form-label" for="dropdown-form-password"><?php echo sr_e(sr_t('admin::ui.password.4fa210a0')); ?></label>
                                                     <input id="dropdown-form-password" class="form-input form-input-sm" type="password"
-                                                        placeholder="비밀번호" />
+                                                        placeholder="<?php echo sr_e(sr_t('admin::ui.password.4fa210a0')); ?>" />
                                                 </div>
 
                                                 <div class="ui-kit-space-after-4 ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2-5">
                                                     <input type="checkbox" class="form-checkbox"
                                                         id="dropdownCheck" />
-                                                    <label for="dropdownCheck" class="dropdown-note">로그인
-                                                        상태 유지</label>
+                                                    <label for="dropdownCheck" class="dropdown-note"><?php echo sr_e(sr_t('admin::ui.login.status.29a71548')); ?></label>
                                                 </div>
 
                                                 <button type="submit"
-                                                    class="btn btn-solid-primary">로그인</button>
+                                                    class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.login.6d253673')); ?></button>
                                             </form>
                                             <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#">처음이신가요? 회원가입</a>
-                                            <a class="dropdown-item" href="#">비밀번호를 잊으셨나요?</a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.member.295b31c3')); ?></a>
+                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('admin::ui.password.93b93e29')); ?></a>
                                         </div>
                                     </div>
                                 </div>

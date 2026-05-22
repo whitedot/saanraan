@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'label' => '로고매니저',
+    'label' => sr_t('logo_manager::ui.text.e046e24f'),
     'order' => 25,
     'items' => [
         [
-            'label' => '로고 관리',
+            'label' => sr_t('logo_manager::ui.text.483a63e2'),
             'path' => '/admin/logo-manager',
             'order' => 10,
         ],

@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'label' => '배너',
+    'label' => sr_t('banner::ui.banner.63182d60'),
     'order' => 26,
     'items' => [
         [
-            'label' => '배너 목록',
+            'label' => sr_t('banner::ui.banner.list.f989d740'),
             'path' => '/admin/banners',
             'order' => 10,
         ],
         [
-            'label' => '배너 설정',
+            'label' => sr_t('banner::ui.banner.settings.cc368bd0'),
             'path' => '/admin/banners/settings',
             'order' => 20,
         ],

@@ -1,7 +1,7 @@
 <?php
 
-$adminPageTitle = '관리자 UI-KIT';
-$adminPageSubtitle = '실제 관리자 CSS와 공용 JS로 중앙 UI-KIT 예시를 확인합니다.';
+$adminPageTitle = sr_t('admin::ui.admin.ui.kit.e8bf017c');
+$adminPageSubtitle = sr_t('admin::ui.admin.ui.kit.6edaa059');
 $adminContainerClass = 'admin-page-ui-kit';
 
 $uiKitSamples = [
@@ -24,12 +24,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card card">
     <div class="card-header">
-        <h2 class="card-title">조회 범위</h2>
-        <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-solid-primary">Public UI-KIT 보기</a>
+        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1f36938c')); ?></h2>
+        <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.public.ui.kit.cba054e6')); ?></a>
     </div>
     <div class="card-body">
-        <p class="admin-card-subtitle">관리자 런타임에서 공통 UI-KIT의 모든 카테고리 예시를 확인하는 화면입니다.</p>
-        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="관리자 UI-KIT 섹션">
+        <p class="admin-card-subtitle"><?php echo sr_e(sr_t('admin::ui.admin.ui.49666d14')); ?></p>
+        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.ui.kit.03cf9fea')); ?>">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                 <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
             <?php } ?>

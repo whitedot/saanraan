@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '업데이트';
+$adminPageTitle = sr_t('admin::ui.text.9ea9bd59');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -8,40 +8,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($previousUpdateFailure !== null) { ?>
     <section>
-        <h2>이전 업데이트 실패 기록</h2>
+        <h2><?php echo sr_e(sr_t('admin::ui.text.76d88be0')); ?></h2>
         <dl>
-            <dt>단계</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.29ee1bb7')); ?></dt>
             <dd><?php echo sr_e((string) $previousUpdateFailure['stage']); ?></dd>
-            <dt>범위</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['scope'] !== '' ? $previousUpdateFailure['scope'] : '-')); ?></dd>
-            <dt>모듈</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
-            <dt>버전</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.002f73c3')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
-            <dt>체크섬</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.374c62d4')); ?></dt>
             <dd><code><?php echo sr_e(substr((string) $previousUpdateFailure['checksum'], 0, 16)); ?></code></dd>
-            <dt>기록 시각</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.90dcdf19')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['recorded_at'] !== '' ? $previousUpdateFailure['recorded_at'] : '-')); ?></dd>
-            <dt>오류 요약</dt>
+            <dt><?php echo sr_e(sr_t('admin::ui.text.22a68c78')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['message'] !== '' ? $previousUpdateFailure['message'] : '-')); ?></dd>
         </dl>
-        <p>실패 원인과 백업 상태를 확인한 뒤 다시 업데이트를 실행하세요. 성공하면 이 기록은 자동으로 삭제됩니다.</p>
+        <p><?php echo sr_e(sr_t('admin::ui.status.delete.d862522f')); ?></p>
     </section>
 <?php } ?>
 
 <?php if ($moduleVersionDrifts !== []) { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">모듈 버전 차이</h2>
+            <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.5fec9b05')); ?></h2>
         </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th scope="col">모듈</th>
-                    <th scope="col">설치 버전</th>
-                    <th scope="col">코드 버전</th>
-                    <th scope="col">상태</th>
+                    <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></th>
+                    <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.364d60db')); ?></th>
+                    <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.cf4479f3')); ?></th>
+                    <th scope="col"><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -52,11 +52,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $drift['code_version']); ?></td>
                         <td>
                             <?php if ((int) $drift['pending_update_count'] > 0) { ?>
-                                <?php echo sr_e((string) $drift['pending_update_count']); ?>개 SQL 적용 필요
+                                <?php echo sr_e((string) $drift['pending_update_count']); ?><?php echo sr_e(sr_t('admin::ui.sql.49c88d1c')); ?>
                             <?php } elseif ((string) $drift['state'] === 'code_newer') { ?>
-                                파일 전용 업데이트 반영 가능
+                                <?php echo sr_e(sr_t('admin::ui.text.710ee67a')); ?>
                             <?php } else { ?>
-                                코드 버전이 설치 버전보다 낮음
+                                <?php echo sr_e(sr_t('admin::ui.text.b9f30bfb')); ?>
                             <?php } ?>
                         </td>
                     </tr>
@@ -68,9 +68,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e(sr_url('/admin/updates')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="sync_file_only_versions">
-                <p>DB 변경이 없는 파일 업데이트입니다. SQL은 실행하지 않고, 설치 버전 기록만 현재 코드 버전에 맞춥니다.</p>
+                <p><?php echo sr_e(sr_t('admin::ui.db.74be7570')); ?></p>
                 <div class="admin-list-actions">
-                    <button type="submit" class="btn btn-solid-primary">파일 전용 업데이트 반영</button>
+                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.55c2fb85')); ?></button>
                 </div>
             </form>
         <?php } ?>
@@ -79,22 +79,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">대기 중인 업데이트</h2>
+        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.6b574fee')); ?></h2>
     </div>
     <div class="table-wrapper">
     <table class="table">
         <thead class="ui-table-head">
             <tr>
-                <th scope="col">범위</th>
-                <th scope="col">버전</th>
-                <th scope="col">SQL 문</th>
-                <th scope="col">파일</th>
-                <th scope="col">체크섬</th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.002f73c3')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.sql.566cef5d')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.0c8354d0')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.374c62d4')); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if ($pendingUpdates === []) { ?>
-                <tr><td colspan="5" class="admin-empty-state">적용할 업데이트가 없습니다.</td></tr>
+                <tr><td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.text.ed61c015')); ?></td></tr>
             <?php } else { ?>
                 <?php foreach ($pendingUpdates as $update) { ?>
                     <tr>
@@ -103,7 +103,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td>
                             <?php echo ((int) ($update['statements'] ?? 0) > 0)
                                 ? sr_e((string) $update['statements'])
-                                : '기록만'; ?>
+                                : sr_t('admin::ui.text.03f022d3'); ?>
                         </td>
                         <td><?php echo sr_e(str_replace(SR_ROOT . '/', '', (string) $update['path'])); ?></td>
                         <td><code><?php echo sr_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
@@ -121,11 +121,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <p>
                 <label class="admin-form-check form-label" for="modules_admin_updates_backup_confirmed">
                     <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-checkbox" required>
-                    <?php echo sr_admin_choice_label_html('DB와 파일 백업을 확인했습니다.'); ?> <span class="sr-required-label">(필수)</span>
+                    <?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.863749e6')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span>
                 </label>
             </p>
             <div class="admin-list-actions">
-                <button type="submit" class="btn btn-solid-primary">업데이트 적용</button>
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.3da662af')); ?></button>
             </div>
         </form>
     <?php } ?>
@@ -133,21 +133,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">적용된 스키마 버전</h2>
+        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.488e2350')); ?></h2>
     </div>
     <div class="table-wrapper">
     <table class="table">
         <thead class="ui-table-head">
             <tr>
-                <th scope="col">범위</th>
-                <th scope="col">모듈</th>
-                <th scope="col">버전</th>
-                <th scope="col">적용 시각</th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.002f73c3')); ?></th>
+                <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.aacb8392')); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if ($schemaVersions === []) { ?>
-                <tr><td colspan="4" class="admin-empty-state">기록된 스키마 버전이 없습니다.</td></tr>
+                <tr><td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.text.e4626e28')); ?></td></tr>
             <?php } else { ?>
                 <?php foreach ($schemaVersions as $version) { ?>
                     <tr>
@@ -165,7 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($appliedUpdates !== []) { ?>
     <section>
-        <h2>적용한 업데이트</h2>
+        <h2><?php echo sr_e(sr_t('admin::ui.text.3ac6c97f')); ?></h2>
         <ul>
             <?php foreach ($appliedUpdates as $update) { ?>
                 <li>

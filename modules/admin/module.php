@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => '관리자',
+    'name' => sr_t('admin::ui.admin.78496a61'),
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => '관리자 대시보드 모듈입니다.',
+    'description' => sr_t('admin::ui.admin.dashboard.84c5309f'),
     'admin' => [
         'category' => 'system',
-        'category_label' => '시스템',
+        'category_label' => sr_t('admin::ui.text.3e1b8796'),
         'category_order' => 0,
         'menu_order' => 0,
     ],

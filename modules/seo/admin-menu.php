@@ -5,7 +5,7 @@ return [
     'order' => 20,
     'items' => [
         [
-            'label' => 'SEO 설정',
+            'label' => sr_t('seo::ui.seo.settings.604d83e6'),
             'path' => '/admin/seo',
             'order' => 10,
         ],

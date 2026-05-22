@@ -3,7 +3,7 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">기본 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.a65ae09c')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -11,53 +11,53 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th>작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">무선 헤드폰</td>
-                                                <td>전자제품</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.fdbfbd65')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.3c34d590')); ?></td>
                                                 <td>$99.00</td>
                                                 <td>120</td>
                                                 <td>4.5 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
-                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                        class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></button>
                                                     <button
-                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                        class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></button>
                                                 </td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">러닝화</td>
-                                                <td>신발</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.933b33da')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.514d3c6f')); ?></td>
                                                 <td>$59.99</td>
                                                 <td>80</td>
                                                 <td>4.2 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
-                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                        class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></button>
                                                     <button
-                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                        class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></button>
                                                 </td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">스마트워치</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.e593251c')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$129.00</td>
                                                 <td>0</td>
                                                 <td>4.0 ★</td>
@@ -67,43 +67,43 @@
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
-                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                        class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></button>
                                                     <button
-                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                        class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></button>
                                                 </td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">게이밍 마우스</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.5d0b5579')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$39.50</td>
                                                 <td>250</td>
                                                 <td>4.7 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
-                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                        class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></button>
                                                     <button
-                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                        class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></button>
                                                 </td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">사무용 의자</td>
-                                                <td>가구</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f83d3085')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.7cd1a55d')); ?></td>
                                                 <td>$149.00</td>
                                                 <td>35</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-cluster ui-kit-gap-1-5">
                                                     <button
-                                                        class="btn btn-sm btn-solid-primary">수정</button>
+                                                        class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></button>
                                                     <button
-                                                        class="btn btn-sm btn-solid-danger">삭제</button>
+                                                        class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -116,7 +116,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">커스텀 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.03734242')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -124,45 +124,45 @@
                                     <table class="table">
                                     <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
                                         <tr>
-                                            <th>상품명</th>
-                                            <th>카테고리</th>
-                                            <th>가격</th>
-                                            <th>재고</th>
-                                            <th>평점</th>
-                                            <th>상태</th>
-                                            <th class="ui-kit-text-end">작업</th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                            <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                            <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                            <td>오디오</td>
+                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                            <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                             <td>$49.00</td>
                                             <td>200</td>
                                             <td>4.6 ★</td>
                                             <td>
-                                                <span class="badge badge-label badge-soft-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                             </td>
                                             <td class="ui-kit-text-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text">더보기</span>
+                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <a class="dropdown-item" href="#">
-                                                            <span class="ui-kit-icon-text">보기</span>
-                                                            개요
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                            <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                         </a>
                                                         <a class="dropdown-item" href="#">
-                                                            <span class="ui-kit-icon-text">수정</span>
-                                                            수정
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                            <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                         </a>
                                                         <a class="dropdown-item dropdown-item-danger" href="#">
-                                                            <span class="ui-kit-icon-text">삭제</span>
-                                                            삭제
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                            <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                         </a>
                                                     </div>
                                                 </div>
@@ -170,35 +170,35 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                            <td>액세서리</td>
+                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                            <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                             <td>$29.99</td>
                                             <td>150</td>
                                             <td>4.3 ★</td>
                                             <td>
-                                                <span class="badge badge-label badge-soft-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                             </td>
                                             <td class="ui-kit-text-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text">더보기</span>
+                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">보기</span>
-                                                                개요
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">수정</span>
-                                                                수정
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text">삭제</span>
-                                                                삭제
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
                                                     </div>
@@ -207,8 +207,8 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                            <td>웨어러블</td>
+                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                            <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                             <td>$89.00</td>
                                             <td>60</td>
                                             <td>4.1 ★</td>
@@ -221,22 +221,22 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text">더보기</span>
+                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">보기</span>
-                                                                개요
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">수정</span>
-                                                                수정
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text">삭제</span>
-                                                                삭제
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
                                                     </div>
@@ -245,35 +245,35 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium">4K 모니터</td>
-                                            <td>전자제품</td>
+                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.4k.86c66776')); ?></td>
+                                            <td><?php echo sr_e(sr_t('admin::ui.text.3c34d590')); ?></td>
                                             <td>$349.00</td>
                                             <td>30</td>
                                             <td>4.8 ★</td>
                                             <td>
-                                                <span class="badge badge-label badge-soft-success">활성</span>
+                                                <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                             </td>
                                             <td class="ui-kit-text-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text">더보기</span>
+                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">보기</span>
-                                                                개요
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">수정</span>
-                                                                수정
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text">삭제</span>
-                                                                삭제
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
                                                     </div>
@@ -282,35 +282,35 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium">스탠딩 데스크</td>
-                                            <td>가구</td>
+                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9a13d293')); ?></td>
+                                            <td><?php echo sr_e(sr_t('admin::ui.text.7cd1a55d')); ?></td>
                                             <td>$499.00</td>
                                             <td>10</td>
                                             <td>4.4 ★</td>
                                             <td>
-                                                <span class="badge badge-label badge-soft-info">신규</span>
+                                                <span class="badge badge-label badge-soft-info"><?php echo sr_e(sr_t('admin::ui.text.113ce174')); ?></span>
                                             </td>
                                             <td class="ui-kit-text-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text">더보기</span>
+                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">보기</span>
-                                                                개요
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text">수정</span>
-                                                                수정
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text">삭제</span>
-                                                                삭제
+                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
                                                     </div>
@@ -326,7 +326,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테이블 변형</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.3e073cde')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -334,24 +334,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end ui-kit-action-width">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="ui-kit-line-default-300 ui-kit-surface-primary-soft ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -359,22 +359,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -383,13 +383,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td class="ui-kit-surface-warning-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -397,22 +397,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -421,8 +421,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td class="ui-kit-surface-info-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -436,22 +436,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -460,13 +460,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">4K 모니터</td>
-                                                <td>전자제품</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.4k.86c66776')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.3c34d590')); ?></td>
                                                 <td>$349.00</td>
                                                 <td class="ui-kit-surface-danger-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">30</td>
                                                 <td>4.8 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -474,22 +474,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -498,14 +498,14 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-surface-dark ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-weight-medium ui-kit-ink-inverse">스탠딩 데스크
+                                                <td class="ui-kit-surface-dark ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-weight-medium ui-kit-ink-inverse"><?php echo sr_e(sr_t('admin::ui.text.9a13d293')); ?>
                                                 </td>
-                                                <td>가구</td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.7cd1a55d')); ?></td>
                                                 <td>$499.00</td>
                                                 <td>10</td>
                                                 <td>4.4 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-info">신규</span>
+                                                    <span class="badge badge-label badge-soft-info"><?php echo sr_e(sr_t('admin::ui.text.113ce174')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -513,22 +513,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -544,7 +544,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">줄무늬 행</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.c03a261b')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -552,24 +552,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end ui-kit-action-width">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -577,22 +577,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -601,13 +601,13 @@
                                             </tr>
 
                                             <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -615,22 +615,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -639,8 +639,8 @@
                                             </tr>
 
                                             <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -654,22 +654,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -685,7 +685,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">줄무늬 열</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1416116b')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -693,24 +693,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start">카테고리</td>
-                                                <th>가격</th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start">재고</td>
-                                                <th>평점</th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start">상태</td>
-                                                <th class="ui-kit-text-end ui-kit-action-width">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></td>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></td>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></td>
+                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">200</td>
                                                 <td>4.6 ★</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -718,22 +718,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -742,13 +742,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">150</td>
                                                 <td>4.3 ★</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -756,22 +756,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -780,8 +780,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">60</td>
                                                 <td>4.1 ★</td>
@@ -795,22 +795,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -826,7 +826,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">마우스 오버 행</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.76d9ec1f')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -834,24 +834,24 @@
                                     <table class="table table-hover">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -859,22 +859,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -883,13 +883,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -897,22 +897,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -921,8 +921,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -936,22 +936,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -967,7 +967,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">활성 Tables</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.tables.a25bf37d')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -975,24 +975,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1000,22 +1000,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1024,13 +1024,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1038,22 +1038,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1062,8 +1062,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2 ui-kit-block-pad-3">$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1077,22 +1077,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1108,7 +1108,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테두리가 있는 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.a25016a5')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1116,24 +1116,24 @@
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end" style="width: 1%">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end" style="width: 1%"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1141,22 +1141,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1165,13 +1165,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1179,22 +1179,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1203,8 +1203,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1218,22 +1218,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1249,7 +1249,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테두리 없는 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.7054ab20')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1257,24 +1257,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end" style="width: 1%">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end" style="width: 1%"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1282,22 +1282,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1306,13 +1306,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1320,22 +1320,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1344,8 +1344,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1359,22 +1359,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1390,7 +1390,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">작은 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.4b3a6a39')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1398,33 +1398,33 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td class="ui-kit-pad-2">오디오</td>
+                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td class="ui-kit-pad-2">$49.00</td>
                                                 <td class="ui-kit-pad-2">200</td>
                                                 <td class="ui-kit-pad-2">4.6 ★</td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium">가죽 지갑</td>
-                                                <td class="ui-kit-pad-2">액세서리</td>
+                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td class="ui-kit-pad-2">$29.99</td>
                                                 <td class="ui-kit-pad-2">150</td>
                                                 <td class="ui-kit-pad-2">4.3 ★</td>
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td class="ui-kit-pad-2">웨어러블</td>
+                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td class="ui-kit-pad-2">$89.00</td>
                                                 <td class="ui-kit-pad-2">60</td>
                                                 <td class="ui-kit-pad-2">4.1 ★</td>
@@ -1438,7 +1438,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테이블 그룹 구분선</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.275fe85b')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1446,24 +1446,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-line-default-600 ui-kit-divider-bottom-strong ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1471,22 +1471,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1495,13 +1495,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1509,22 +1509,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1533,8 +1533,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1548,22 +1548,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1579,7 +1579,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">중첩 테이블</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.c4346384')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1587,24 +1587,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1612,22 +1612,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1643,7 +1643,7 @@
                                                                 <th>Variant</th>
                                                                 <th>Color</th>
                                                                 <th>SKU</th>
-                                                                <th>재고</th>
+                                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -1666,13 +1666,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1680,22 +1680,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1704,8 +1704,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1719,22 +1719,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1750,7 +1750,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테이블 헤더</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.5d31ed25')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -1758,24 +1758,24 @@
                                     <table class="table">
                                         <thead class="ui-kit-surface-dark">
                                             <tr class="ui-kit-children-ink-inverse">
-                                                <th class="ui-kit-text-start">상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-text-end">작업</th>
+                                                <th class="ui-kit-text-start"><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1783,22 +1783,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1807,13 +1807,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1821,22 +1821,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1845,8 +1845,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -1860,22 +1860,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1891,35 +1891,35 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">캡션</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.ca5170ca')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table table-hover">
                                         <caption class="ui-kit-ink-default-400 ui-kit-caption-below ui-kit-block-pad-3 ui-kit-text-start">
-                                            이커머스 상품 목록
+                                            <?php echo sr_e(sr_t('admin::ui.list.a1f1cbca')); ?>
                                         </caption>
                                         <thead class="ui-kit-weight-semibold ui-kit-type-xs">
                                             <tr>
-                                                <th>상품명</th>
-                                                <th>카테고리</th>
-                                                <th>가격</th>
-                                                <th>재고</th>
-                                                <th>평점</th>
-                                                <th>상태</th>
-                                                <th class="ui-kit-pad-2 ui-kit-text-end">작업</th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.cf71a62a')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.b68c7d1b')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.38c1b407')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.6e1b9aec')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.text.f6b350f7')); ?></th>
+                                                <th><?php echo sr_e(sr_t('admin::ui.status.e10195a1')); ?></th>
+                                                <th class="ui-kit-pad-2 ui-kit-text-end"><?php echo sr_e(sr_t('admin::ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium">블루투스 스피커</td>
-                                                <td>오디오</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.f34403ae')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
                                                 <td>4.6 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1927,22 +1927,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1951,13 +1951,13 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">가죽 지갑</td>
-                                                <td>액세서리</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.ddc3cc33')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
                                                 <td>4.3 ★</td>
                                                 <td>
-                                                    <span class="badge badge-label badge-soft-success">활성</span>
+                                                    <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></span>
                                                 </td>
                                                 <td class="ui-kit-text-end">
                                                     <div class="dropdown">
@@ -1965,22 +1965,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>
@@ -1989,8 +1989,8 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium">피트니스 트래커</td>
-                                                <td>웨어러블</td>
+                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.9e59e6ef')); ?></td>
+                                                <td><?php echo sr_e(sr_t('admin::ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
@@ -2004,22 +2004,22 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text">더보기</span>
+                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6e50bef7')); ?></span>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">보기</span>
-                                                                    개요
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text">수정</span>
-                                                                    수정
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text">삭제</span>
-                                                                    삭제
+                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_e(sr_t('admin::ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
                                                         </div>

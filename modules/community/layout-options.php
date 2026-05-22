@@ -2,9 +2,9 @@
 
 return [
     'community.basic' => [
-        'label' => '커뮤니티 레이아웃',
+        'label' => sr_t('community::ui.community.8f453af4'),
         'provider_module_key' => 'community',
-        'provider_label' => '커뮤니티',
+        'provider_label' => sr_t('community::ui.community.4a285775'),
         'supports' => ['site', 'community.home', 'page.view'],
         'views' => [
             'layout' => SR_ROOT . '/layouts/public/basic/layout.php',

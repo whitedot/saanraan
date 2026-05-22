@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = $adminPageTitle ?? '관리자';
+$adminPageTitle = $adminPageTitle ?? sr_t('admin::ui.admin.78496a61');
 $adminPageSubtitle = $adminPageSubtitle ?? '';
 $adminContainerClass = $adminContainerClass ?? '';
 $seo = [
@@ -69,12 +69,12 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
         } catch (error) {}
     })();
     </script>
-    <div id="to_content" class="admin-skip-link"><a href="#container">본문 바로가기</a></div>
+    <div id="to_content" class="admin-skip-link"><a href="#container"><?php echo sr_e(sr_t('admin::ui.text.04eb17f4')); ?></a></div>
 
     <header id="hd" class="admin-sidebar-frame">
         <h1 class="sr-only"><?php echo sr_e((string) $adminShell['site_title']); ?></h1>
 
-        <nav id="gnb" class="admin-sidebar" aria-label="관리자 메뉴">
+        <nav id="gnb" class="admin-sidebar" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
             <h2 class="admin-sidebar-brand">
                 <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>" aria-label="<?php echo sr_e((string) $adminShell['site_title']); ?>">
                     <span class="<?php echo sr_e($adminBrandMarkClass); ?>">
@@ -93,7 +93,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                     </span>
                     <span class="admin-sidebar-brand-name"><?php echo sr_e((string) $adminShell['site_title']); ?></span>
                 </a>
-                <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="사이드바 축소/확장" aria-pressed="false">
+                <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="<?php echo sr_e(sr_t('admin::ui.text.076c3ee0')); ?>" aria-pressed="false">
                     <span aria-hidden="true">
                         <?php echo sr_material_icon_html('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
                     </span>
@@ -166,7 +166,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                         <?php } ?>
                     </ul>
                     <?php if (!empty($adminShell['auxiliary_links']) && is_array($adminShell['auxiliary_links'])) { ?>
-                        <div class="admin-sidebar-auxiliary" aria-label="보조 링크">
+                        <div class="admin-sidebar-auxiliary" aria-label="<?php echo sr_e(sr_t('admin::ui.text.9c5432b6')); ?>">
                             <ul class="admin-sidebar-auxiliary-list">
                                 <?php foreach ($adminShell['auxiliary_links'] as $auxiliaryLink) { ?>
                                     <?php if (!is_array($auxiliaryLink)) { continue; } ?>
@@ -192,11 +192,11 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
     <div id="wrapper" class="admin-wrapper">
         <div id="hd_top" class="admin-topbar">
             <div class="hd_top_left admin-topbar-left">
-                <button type="button" id="btn_gnb_mobile" class="admin-mobile-menu-button" aria-controls="gnb" aria-expanded="false" aria-label="메뉴 열기">
+                <button type="button" id="btn_gnb_mobile" class="admin-mobile-menu-button" aria-controls="gnb" aria-expanded="false" aria-label="<?php echo sr_e(sr_t('admin::ui.menu.ff7070c7')); ?>">
                     <?php echo sr_material_icon_html('menu', 'admin-shell-control-icon'); ?>
                 </button>
                 <div class="hd_breadcrumb admin-breadcrumb">
-                    <span>대시보드</span>
+                    <span><?php echo sr_e(sr_t('admin::ui.dashboard.2b1a8070')); ?></span>
                     <span>/</span>
                     <strong><?php echo sr_e((string) $adminShell['page_title']); ?></strong>
                 </div>
@@ -206,25 +206,25 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                 <div id="tnb" class="admin-toolbar">
                     <ul>
                         <li class="tnb_li admin-toolbar-item">
-                            <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="다크 모드 전환" title="다크 모드 전환" data-admin-theme-url="<?php echo sr_e(sr_url('/admin/color-scheme')); ?>" data-admin-theme-csrf="<?php echo sr_e(sr_csrf_token()); ?>">
+                            <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="<?php echo sr_e(sr_t('admin::ui.text.3d1bf22c')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.3d1bf22c')); ?>" data-admin-theme-url="<?php echo sr_e(sr_url('/admin/color-scheme')); ?>" data-admin-theme-csrf="<?php echo sr_e(sr_csrf_token()); ?>">
                                 <?php echo sr_material_icon_html('dark_mode', 'admin-shell-control-icon', '', 'admin_theme_toggle_icon'); ?>
                             </button>
                         </li>
                         <li class="tnb_li admin-toolbar-item">
-                            <a class="tnb_icon_btn admin-toolbar-icon-button" href="<?php echo sr_e((string) $adminShell['site_home_url']); ?>" target="_blank" title="메인" aria-label="메인">
+                            <a class="tnb_icon_btn admin-toolbar-icon-button" href="<?php echo sr_e((string) $adminShell['site_home_url']); ?>" target="_blank" title="<?php echo sr_e(sr_t('admin::ui.text.0b39b6a4')); ?>" aria-label="<?php echo sr_e(sr_t('admin::ui.text.0b39b6a4')); ?>">
                                 <?php echo sr_material_icon_html('home', 'admin-shell-control-icon'); ?>
                             </a>
                         </li>
                         <li class="tnb_li admin-toolbar-item relative">
-                            <button type="button" class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="관리자 메뉴" title="관리자 메뉴">
+                            <button type="button" class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
                                 <?php echo sr_material_icon_html('person', 'admin-shell-control-icon'); ?>
                             </button>
                             <ul class="tnb_mb_area admin-toolbar-menu hidden">
-                                <li><a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">계정 정보</a></li>
+                                <li><a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>"><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></a></li>
                                 <li>
                                     <form method="post" action="<?php echo sr_e((string) $adminShell['logout_url']); ?>">
                                         <?php echo sr_csrf_field(); ?>
-                                        <button type="submit">로그아웃</button>
+                                        <button type="submit"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></button>
                                     </form>
                                 </li>
                             </ul>

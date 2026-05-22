@@ -7,12 +7,12 @@ require_once __DIR__ . '/helpers.php';
 return [
     [
         'rule_key' => 'community.post_count_at_least',
-        'label' => '전체 게시글 수 이상',
-        'description' => '모든 게시판의 공개 게시글 작성 수가 지정 수 이상인 회원입니다.',
+        'label' => sr_t('community::ui.all.3f3ee356'),
+        'description' => sr_t('community::ui.member.8e3972ec'),
         'params' => [
             [
                 'key' => 'min_count',
-                'label' => '최소 게시글 수',
+                'label' => sr_t('community::ui.text.5df51859'),
                 'type' => 'int',
                 'min' => 1,
                 'max' => 10000,
@@ -23,12 +23,12 @@ return [
     ],
     [
         'rule_key' => 'community.comment_count_at_least',
-        'label' => '전체 댓글 수 이상',
-        'description' => '공개 댓글 작성 수가 지정 수 이상인 회원입니다.',
+        'label' => sr_t('community::ui.all.38e92242'),
+        'description' => sr_t('community::ui.member.a4ab0568'),
         'params' => [
             [
                 'key' => 'min_count',
-                'label' => '최소 댓글 수',
+                'label' => sr_t('community::ui.text.697632bb'),
                 'type' => 'int',
                 'min' => 1,
                 'max' => 10000,
@@ -39,12 +39,12 @@ return [
     ],
     [
         'rule_key' => 'community.level_at_least',
-        'label' => '커뮤니티 레벨 이상',
-        'description' => '현재 커뮤니티 레벨이 지정 레벨 이상인 회원입니다.',
+        'label' => sr_t('community::ui.community.ff797a5c'),
+        'description' => sr_t('community::ui.community.member.2083be7f'),
         'params' => [
             [
                 'key' => 'min_level',
-                'label' => '최소 레벨',
+                'label' => sr_t('community::ui.text.42f1836e'),
                 'type' => 'int',
                 'min' => 0,
                 'max' => 10,
@@ -55,18 +55,18 @@ return [
     ],
     [
         'rule_key' => 'community.board.post_count_at_least',
-        'label' => '특정 게시판 게시글 수 이상',
-        'description' => '선택한 게시판에 공개 게시글을 지정 수 이상 작성한 회원입니다.',
+        'label' => sr_t('community::ui.text.2bb5c00c'),
+        'description' => sr_t('community::ui.select.member.48ac4189'),
         'params' => [
             [
                 'key' => 'board_id',
-                'label' => '게시판',
+                'label' => sr_t('community::ui.text.4732a58f'),
                 'type' => 'subject',
                 'default' => 0,
             ],
             [
                 'key' => 'min_count',
-                'label' => '최소 게시글 수',
+                'label' => sr_t('community::ui.text.5df51859'),
                 'type' => 'int',
                 'min' => 1,
                 'max' => 1000,

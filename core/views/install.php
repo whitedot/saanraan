@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = 'Saanraan 설치';
+$pageTitle = sr_t('ui.saanraan.878daf3c');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -20,49 +20,48 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
     <main class="sr-install-shell">
         <section class="sr-install-intro">
             <div>
-                <p class="sr-install-kicker">초기 설정</p>
+                <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.settings.7abc12e1')); ?></p>
                 <h1><?php echo sr_e($pageTitle); ?></h1>
-                <p>Saanraan 실행에 필요한 DB 연결, 사이트 기본값, 최초 관리자 계정, 기본 제공 모듈을 한 번에 설정합니다.</p>
+                <p><?php echo sr_e(sr_t('ui.saanraan.db.admin.settings.c039e13f')); ?></p>
             </div>
-            <ol class="sr-install-steps" aria-label="설치 단계">
-                <li>환경 확인</li>
-                <li>DB 연결</li>
-                <li>사이트 설정</li>
-                <li>관리자 생성</li>
-                <li>모듈 설치</li>
+            <ol class="sr-install-steps" aria-label="<?php echo sr_e(sr_t('ui.text.4421f64e')); ?>">
+                <li><?php echo sr_e(sr_t('ui.text.3971a7b8')); ?></li>
+                <li><?php echo sr_e(sr_t('ui.db.bdaa9695')); ?></li>
+                <li><?php echo sr_e(sr_t('ui.settings.4738c9b6')); ?></li>
+                <li><?php echo sr_e(sr_t('ui.admin.07f66a66')); ?></li>
+                <li><?php echo sr_e(sr_t('ui.text.50c8b5b0')); ?></li>
             </ol>
         </section>
 
         <?php if ($previousInstallFailure !== null) { ?>
             <section class="sr-install-alert sr-install-alert-warning">
-                <h2>이전 설치 시도 기록</h2>
+                <h2><?php echo sr_e(sr_t('ui.text.68ef21c9')); ?></h2>
                 <p>
-                    단계:
+                    <?php echo sr_e(sr_t('ui.text.33ba7430')); ?>
                     <code><?php echo sr_e($previousInstallFailure['stage']); ?></code>
                     <?php if ($previousInstallFailure['recorded_at'] !== '') { ?>
-                        <span>기록 시각: <?php echo sr_e($previousInstallFailure['recorded_at']); ?></span>
+                        <span><?php echo sr_e(sr_t('ui.text.2ca70229')); ?> <?php echo sr_e($previousInstallFailure['recorded_at']); ?></span>
                     <?php } ?>
                 </p>
                 <p>
-                    config 생성:
-                    <?php echo $previousInstallFailure['config_written'] ? '예' : '아니오'; ?>,
-                    설치 잠금:
-                    <?php echo $previousInstallFailure['installed_lock_written'] ? '예' : '아니오'; ?>
+                    <?php echo sr_e(sr_t('ui.config.afa3ac1d')); ?>
+                    <?php echo $previousInstallFailure['config_written'] ? sr_t('ui.text.2eb73fba') : sr_t('ui.text.4c490f1c'); ?><?php echo sr_e(sr_t('ui.text.43d039ec')); ?>
+                    <?php echo $previousInstallFailure['installed_lock_written'] ? sr_t('ui.text.2eb73fba') : sr_t('ui.text.4c490f1c'); ?>
                 </p>
                 <?php if ((string) ($previousInstallFailure['message'] ?? '') !== '') { ?>
-                    <p>오류 요약: <?php echo sr_e((string) $previousInstallFailure['message']); ?></p>
+                    <p><?php echo sr_e(sr_t('ui.text.1d0c7eec')); ?> <?php echo sr_e((string) $previousInstallFailure['message']); ?></p>
                 <?php } ?>
                 <ul>
-                    <li><code>storage/install-failed.json</code>의 stage와 message를 확인하세요.</li>
-                    <li>DB 접속 정보, 쓰기 권한, 이미 생성된 테이블 상태를 확인한 뒤 다시 설치하세요.</li>
-                    <li><code>storage/installed.lock</code>이 없으면 아직 설치 완료 상태가 아닙니다.</li>
+                    <li><code>storage/install-failed.json</code><?php echo sr_e(sr_t('ui.text.474a3734')); ?></li>
+                    <li><?php echo sr_e(sr_t('ui.db.status.ebbe75db')); ?></li>
+                    <li><code>storage/installed.lock</code><?php echo sr_e(sr_t('ui.status.2ed4011b')); ?></li>
                 </ul>
             </section>
         <?php } ?>
 
         <?php if ($errors !== []) { ?>
             <section class="sr-install-alert sr-install-alert-error">
-                <h2>확인 필요</h2>
+                <h2><?php echo sr_e(sr_t('ui.text.84dd6e38')); ?></h2>
                 <ul>
                     <?php foreach ($errors as $error) { ?>
                         <li><?php echo sr_e($error); ?></li>
@@ -73,7 +72,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
         <?php if ($installWarnings !== []) { ?>
             <section class="sr-install-alert sr-install-alert-warning">
-                <h2>주의 안내</h2>
+                <h2><?php echo sr_e(sr_t('ui.text.7aad277c')); ?></h2>
                 <ul>
                     <?php foreach ($installWarnings as $warning) { ?>
                         <li><?php echo sr_e($warning); ?></li>
@@ -85,22 +84,22 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
         <section class="sr-install-panel">
             <div class="sr-install-panel-head">
                 <div>
-                    <p class="sr-install-kicker">환경 확인</p>
-                    <h2>설치 전 상태</h2>
+                    <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.3971a7b8')); ?></p>
+                    <h2><?php echo sr_e(sr_t('ui.status.8ec133e8')); ?></h2>
                 </div>
-                <p>테스트 설치는 HTTP로 진행할 수 있지만, 운영 전에는 HTTPS와 내부 파일 직접 접근 차단을 확인하세요.</p>
+                <p><?php echo sr_e(sr_t('ui.text.c754b4d6')); ?></p>
             </div>
             <div class="sr-install-check-grid">
                 <?php foreach ($installChecks as $check) { ?>
                     <div class="sr-install-check">
                         <span class="sr-install-status sr-install-status-<?php echo sr_e((string) $check['status']); ?>">
-                            <?php echo ((string) $check['status'] === 'ok') ? '확인됨' : (((string) $check['status'] === 'warning') ? '주의' : '필요'); ?>
+                            <?php echo ((string) $check['status'] === 'ok') ? sr_t('ui.text.f2c10bf5') : (((string) $check['status'] === 'warning') ? sr_t('ui.text.acc90fbf') : sr_t('ui.text.3ceb8b2c')); ?>
                         </span>
                         <strong><?php echo sr_e((string) $check['label']); ?></strong>
                         <p><?php echo sr_e((string) $check['message']); ?></p>
                         <?php if ((string) ($check['guide'] ?? '') !== '') { ?>
                             <p class="sr-install-check-guide">
-                                <span>조치</span>
+                                <span><?php echo sr_e(sr_t('ui.text.6530a534')); ?></span>
                                 <?php echo sr_e((string) $check['guide']); ?>
                             </p>
                         <?php } ?>
@@ -108,18 +107,15 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <?php } ?>
             </div>
             <div class="sr-install-permission-guide">
-                <h3>쓰기 권한 설정 방법</h3>
+                <h3><?php echo sr_e(sr_t('ui.settings.848e94fa')); ?></h3>
                 <p>
-                    설치 전에 <code>config</code>와 <code>storage</code> 디렉터리가 있어야 하며, PHP가 이 두 디렉터리에 파일을 만들 수 있어야 합니다.
-                    보통 호스팅 파일 관리자나 FTP에서 권한을 <code>755</code>로 설정하면 됩니다.
+                    <?php echo sr_e(sr_t('ui.text.91850b91')); ?> <code>config</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>storage</code> <?php echo sr_e(sr_t('ui.admin.09db1e62')); ?> <code>755</code><?php echo sr_e(sr_t('ui.settings.9a99606d')); ?>
                 </p>
                 <p>
-                    계속 실패하면 설치하는 동안만 <code>775</code> 또는 <code>777</code>을 임시로 적용한 뒤,
-                    설치가 끝나면 다시 <code>755</code>로 되돌리세요. 설치 후 생성되는 <code>config/config.php</code>는 <code>644</code> 권한을 권장합니다.
+                    <?php echo sr_e(sr_t('ui.text.6b72e57d')); ?> <code>775</code> <?php echo sr_e(sr_t('ui.text.82d047b9')); ?> <code>777</code><?php echo sr_e(sr_t('ui.text.df2c2877')); ?> <code>755</code><?php echo sr_e(sr_t('ui.text.9083af79')); ?> <code>config/config.php</code><?php echo sr_e(sr_t('ui.text.6ef5924e')); ?> <code>644</code> <?php echo sr_e(sr_t('ui.text.2f925894')); ?>
                 </p>
                 <p>
-                    <code>config</code>에는 DB 비밀번호가 저장되고 <code>storage</code>에는 로그와 설치 잠금 파일이 저장됩니다.
-                    두 디렉터리는 웹 주소로 직접 열리지 않도록 호스팅 패널이나 서버 설정에서 접근을 차단하세요.
+                    <code>config</code><?php echo sr_e(sr_t('ui.db.password.save.1dd78ffa')); ?> <code>storage</code><?php echo sr_e(sr_t('ui.save.settings.98d5defa')); ?>
                 </p>
             </div>
         </section>
@@ -130,35 +126,35 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             <section class="sr-install-panel">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker">데이터베이스</p>
-                        <h2>DB 연결 정보</h2>
+                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.cb53ca6f')); ?></p>
+                        <h2><?php echo sr_e(sr_t('ui.db.1ec96d5d')); ?></h2>
                     </div>
-                    <p>빈 DB 또는 Saanraan 전용 DB를 사용하세요. 테이블 prefix는 기본값 <code>sr_</code>를 권장합니다.</p>
+                    <p><?php echo sr_e(sr_t('ui.db.saanraan.active.af3cd57e')); ?> <code>sr_</code><?php echo sr_e(sr_t('ui.text.66341384')); ?></p>
                 </div>
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <label for="db_host">DB host <span class="sr-required-label">(필수)</span></label>
+                        <label for="db_host">DB host <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required>
-                        <span class="sr-install-help">일반 웹호스팅은 보통 localhost를 사용합니다.</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.active.d13269d0')); ?></span>
                     </p>
                     <p>
-                        <label for="db_name">DB name <span class="sr-required-label">(필수)</span></label>
+                        <label for="db_name">DB name <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required>
                     </p>
                     <p>
-                        <label for="db_user">DB user <span class="sr-required-label">(필수)</span></label>
+                        <label for="db_user">DB user <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required>
                     </p>
                     <p>
                         <label for="db_password">DB password</label>
                         <input id="db_password" type="password" name="db_password" autocomplete="new-password">
-                        <span class="sr-install-help">보안을 위해 오류 후에도 비밀번호는 다시 표시하지 않습니다.</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.password.215ab9d4')); ?></span>
                     </p>
                     <p>
-                        <label for="db_table_prefix">테이블 prefix <span class="sr-required-label">(필수)</span></label>
+                        <label for="db_table_prefix"><?php echo sr_e(sr_t('ui.prefix.49bc3888')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
-                        <span class="sr-install-help">기본값은 sr_입니다. 예: sr_, site1_</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.sr.sr.site1.c9aaa2e0')); ?></span>
                     </p>
                 </div>
             </section>
@@ -166,24 +162,24 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             <section class="sr-install-panel">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker">사이트</p>
-                        <h2>기본 정보</h2>
+                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.b2c8d45c')); ?></p>
+                        <h2><?php echo sr_e(sr_t('ui.text.601b9971')); ?></h2>
                     </div>
-                    <p>설치 후 일반 사이트 정보는 관리자 설정에서 다시 변경할 수 있습니다.</p>
+                    <p><?php echo sr_e(sr_t('ui.admin.settings.ca628f95')); ?></p>
                 </div>
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <label for="site_name">사이트 이름 <span class="sr-required-label">(필수)</span></label>
+                        <label for="site_name"><?php echo sr_e(sr_t('ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required>
                     </p>
                     <p>
-                        <label for="base_url">공개 기준 URL</label>
+                        <label for="base_url"><?php echo sr_e(sr_t('ui.url.3f618a18')); ?></label>
                         <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com">
-                        <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 운영 사이트는 HTTPS URL을 권장합니다.</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.canonical.og.url.https.e51da311')); ?></span>
                     </p>
                     <p>
-                        <label for="timezone">timezone <span class="sr-required-label">(필수)</span></label>
+                        <label for="timezone">timezone <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <select id="timezone" name="timezone" required>
                             <?php foreach ($timezoneOptions as $timezoneOption) { ?>
                                 <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
@@ -193,7 +189,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         </select>
                     </p>
                     <p>
-                        <label for="default_locale">기본 locale <span class="sr-required-label">(필수)</span></label>
+                        <label for="default_locale"><?php echo sr_e(sr_t('ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <select id="default_locale" name="default_locale" required>
                             <?php foreach ($localeOptions as $localeOption) { ?>
                                 <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
@@ -203,10 +199,10 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         </select>
                     </p>
                     <p>
-                        <span class="sr-install-field-label">초기화면</span>
+                        <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.text.214b5fb8')); ?></span>
                         <input type="hidden" name="main_page_path" value="/">
-                        <span class="sr-install-home-default">기본 홈페이지</span>
-                        <span class="sr-install-help">커뮤니티 같은 서비스 도메인 모듈은 아래 모듈 카드에서 초기화면으로 설정할 수 있습니다.</span>
+                        <span class="sr-install-home-default"><?php echo sr_e(sr_t('ui.page.018d240a')); ?></span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.community.settings.12c9fe17')); ?></span>
                     </p>
                 </div>
             </section>
@@ -214,39 +210,39 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             <section class="sr-install-panel">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker">관리자</p>
-                        <h2>최초 관리자 계정</h2>
+                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.admin.78496a61')); ?></p>
+                        <h2><?php echo sr_e(sr_t('ui.admin.7954926f')); ?></h2>
                     </div>
-                    <p>이 계정에 소유자 권한이 부여됩니다.</p>
+                    <p><?php echo sr_e(sr_t('ui.text.f039b723')); ?></p>
                 </div>
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <span class="sr-install-field-label">로그인 정책</span>
-                        <strong>이메일 + 로그인 아이디</strong>
+                        <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.login.2a15bdbd')); ?></span>
+                        <strong><?php echo sr_e(sr_t('ui.email.login.d1f22b60')); ?></strong>
                         <input type="hidden" name="member_login_identifier" value="both">
-                        <span class="sr-install-help">이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.email.login.login.login.44f3662f')); ?></span>
                     </p>
                     <p>
-                        <label for="admin_email">이메일 <span class="sr-required-label">(필수)</span></label>
+                        <label for="admin_email"><?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required>
                     </p>
                     <p>
-                        <label for="admin_login_id">로그인 아이디</label>
+                        <label for="admin_login_id"><?php echo sr_e(sr_t('ui.login.0cdb28b5')); ?></label>
                         <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                        <span class="sr-install-help">선택 입력입니다. 입력하면 이메일과 아이디를 모두 로그인에 사용할 수 있습니다. 예: admin, site_admin</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.select.email.login.active.admin.9a22f604')); ?></span>
                     </p>
                     <p>
-                        <label for="admin_password">비밀번호 <span class="sr-required-label">(필수)</span></label>
+                        <label for="admin_password"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
-                        <span class="sr-install-help">8자 이상 입력하세요.</span>
+                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.text.1e3d8fb2')); ?></span>
                     </p>
                     <p>
-                        <label for="admin_password_confirm">비밀번호 확인 <span class="sr-required-label">(필수)</span></label>
+                        <label for="admin_password_confirm"><?php echo sr_e(sr_t('ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
                     </p>
                     <p>
-                        <label for="admin_display_name">표시 이름 <span class="sr-required-label">(필수)</span></label>
+                        <label for="admin_display_name"><?php echo sr_e(sr_t('ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                         <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required>
                     </p>
                 </div>
@@ -255,18 +251,18 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             <section class="sr-install-panel">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker">모듈</p>
-                        <h2>설치할 기능</h2>
+                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.6d2d8bf4')); ?></p>
+                        <h2><?php echo sr_e(sr_t('ui.text.e58a52d0')); ?></h2>
                     </div>
-                    <p>선택하지 않은 기본 제공 모듈은 설치 후 관리자 모듈 화면에서 추가할 수 있습니다.</p>
+                    <p><?php echo sr_e(sr_t('ui.select.admin.b336c7a1')); ?></p>
                 </div>
 
-                <h3>필수 모듈</h3>
+                <h3><?php echo sr_e(sr_t('ui.required.9b1c157b')); ?></h3>
                 <div class="sr-install-module-grid">
                     <?php foreach ($requiredModules as $moduleKey => $module) { ?>
                         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                         <div class="sr-install-module">
-                            <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '필수' : '확인 필요'; ?></span>
+                            <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? sr_t('ui.required.9825053d') : sr_t('ui.text.84dd6e38'); ?></span>
                             <strong><?php echo sr_e((string) $module['label']); ?></strong>
                             <code><?php echo sr_e((string) $moduleKey); ?></code>
                             <p><?php echo sr_e((string) $module['description']); ?></p>
@@ -281,9 +277,9 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <?php } ?>
                 </div>
 
-                <h3>선택 모듈</h3>
+                <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
                 <?php if ($optionalModules === []) { ?>
-                    <p>현재 코드에는 설치 화면에서 선택할 수 있는 선택 모듈이 없습니다. 설치 후 필요한 모듈 zip을 <code>modules/{module_key}</code>에 업로드하고 관리자 모듈 화면에서 설치하세요.</p>
+                    <p><?php echo sr_e(sr_t('ui.select.select.feaab9be')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('ui.admin.2253b218')); ?></p>
                 <?php } else { ?>
                     <div class="sr-install-module-grid">
                         <?php foreach ($optionalModules as $moduleKey => $module) { ?>
@@ -305,7 +301,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                     <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
                                 </span>
                                 <?php if ($moduleErrors !== []) { ?>
-                                    <span class="sr-install-status sr-install-status-error">설치 불가</span>
+                                    <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
                                 <?php } ?>
                                 <code><?php echo sr_e((string) $moduleKey); ?></code>
                                 <p><?php echo sr_e((string) $module['description']); ?></p>
@@ -322,7 +318,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                                             <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
                                         >
                                         <span>
-                                            초기화면으로 설정
+                                            <?php echo sr_e(sr_t('ui.settings.a81574ca')); ?>
                                             <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
                                         </span>
                                     </label>
@@ -341,8 +337,8 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </section>
 
             <div class="sr-install-actions">
-                <p>설치하면 설정 파일과 DB 테이블을 생성하고, 완료 후 관리자 로그인 화면으로 이동합니다.</p>
-                <button type="submit">설치 시작</button>
+                <p><?php echo sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
+                <button type="submit"><?php echo sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
             </div>
         </form>
     </main>

@@ -4,10 +4,10 @@ return [
     'name' => 'SEO',
     'version' => '2026.04.002',
     'type' => 'module',
-    'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
+    'description' => sr_t('seo::ui.seo.point.ea9a7371'),
     'admin' => [
         'category' => 'site',
-        'category_label' => '사이트',
+        'category_label' => sr_t('seo::ui.text.b2c8d45c'),
         'category_order' => 20,
         'menu_order' => 50,
         'icon' => ['type' => 'symbol', 'name' => 'search'],

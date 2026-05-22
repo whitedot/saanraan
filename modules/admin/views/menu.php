@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '관리자 메뉴';
+$adminPageTitle = sr_t('admin::ui.admin.menu.c4a18693');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -10,18 +10,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="reset_confirmed" value="0" data-admin-menu-reset-confirmed>
     <div class="card-header">
-        <h2 class="card-title">관리자 메뉴 표시 설정</h2>
+        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.admin.menu.settings.80f94b6f')); ?></h2>
     </div>
     <div class="table-wrapper">
     <table class="table">
         <thead class="ui-table-head">
             <tr>
-                <th>이동</th>
-                <th>범위</th>
-                <th>대상</th>
-                <th>기본 순서</th>
-                <th>표시 순서 <span class="sr-required-label">(필수)</span></th>
-                <th>숨김</th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.83b651b8')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.a9e7497f')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.ff0e602e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.0eeb676f')); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $hiddenInputId = 'modules_admin_menu_is_hidden_' . preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $row['form_key']);
                 ?>
                 <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
-                    <td><span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
+                    <td><span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
                     <td>
                         <span class="admin-menu-scope-badge admin-menu-scope-<?php echo sr_e((string) $row['scope']); ?>">
                             <?php echo sr_e(sr_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?>
@@ -76,10 +76,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     class="form-checkbox"
                                     <?php echo !empty($row['is_hidden']) ? 'checked' : ''; ?>
                                 >
-                                숨김
+                                <?php echo sr_e(sr_t('admin::ui.text.0eeb676f')); ?>
                             </label>
                         <?php } else { ?>
-                            <span class="text-muted">숨김 불가</span>
+                            <span class="text-muted"><?php echo sr_e(sr_t('admin::ui.text.dee6ce99')); ?></span>
                         <?php } ?>
                     </td>
                 </tr>
@@ -88,8 +88,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
     <div class="admin-form-actions admin-form-sticky-actions admin-menu-form-actions">
-        <button type="submit" name="intent" value="reset_menu_overrides" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="관리자 메뉴 표시 순서와 숨김 설정이 모두 기본값으로 초기화됩니다. 계속 진행할까요?">기본값으로 초기화</button>
-        <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary">메뉴 표시 설정 저장</button>
+        <button type="submit" name="intent" value="reset_menu_overrides" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>"><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
+        <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.menu.settings.save.914d293b')); ?></button>
     </div>
 </form>
 

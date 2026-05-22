@@ -28,7 +28,7 @@ if ($values === []) {
         'asset_action_module' => 'point',
         'asset_action_amount' => 0,
         'asset_action_direction' => 'grant',
-        'asset_action_label' => '완료',
+        'asset_action_label' => sr_t('page::ui.text.727333ab'),
         'banner_before_content_id' => 0,
         'banner_after_content_id' => 0,
         'popup_layer_id' => 0,
@@ -37,8 +37,8 @@ if ($values === []) {
     ];
 }
 
-$adminPageTitle = $pageAdminPage === 'form' ? ($editing ? '페이지 수정' : '페이지 추가') : '페이지';
-$adminPageSubtitle = $pageAdminPage === 'form' ? '공개 페이지의 본문, 노출 상태, 자산 정책을 관리합니다.' : '페이지 상태를 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('page::ui.page.edit.9fdd9b62') : sr_t('page::ui.page.62a2bf90')) : sr_t('page::ui.page.6c84a1b3');
+$adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('page::ui.page.status.85bf8a35') : sr_t('page::ui.page.status.search.29f7335b');
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-page-content-form admin-ui-scope' : 'admin-page-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'page_group_id' => 0, 'field' => 'all', 'q' => ''];
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
@@ -55,19 +55,19 @@ foreach (sr_page_asset_deduction_order() as $assetModule) {
     }
 }
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
-    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
-    : '활성 자산 모듈 없음';
+    ? sr_t('page::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
+    : sr_t('page::ui.text.3e195cdd');
 $pageGroupScopeLabels = [
-    'group' => ['visible' => '그룹', 'sr' => '적용'],
-    'all' => ['visible' => '전체', 'sr' => '적용'],
-    'here_only' => ['visible' => '여기만', 'sr' => '적용'],
+    'group' => ['visible' => sr_t('page::ui.text.5d908ddd'), 'sr' => sr_t('page::ui.text.6a1c963d')],
+    'all' => ['visible' => sr_t('page::ui.all.a4b69faf'), 'sr' => sr_t('page::ui.text.6a1c963d')],
+    'here_only' => ['visible' => sr_t('page::ui.text.c0e39cdd'), 'sr' => sr_t('page::ui.text.6a1c963d')],
 ];
 $pageScopeLabelHtml = static function (array $label): string {
     return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
 };
 $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels, $pageScopeLabelHtml): string {
     $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'here_only';
-    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="페이지 그룹 적용 범위">';
+    $html = sr_t('page::ui.div.class.admin.setting.source.01280cd8');
     foreach ($pageGroupScopeLabels as $scope => $label) {
         $id = 'page_group_scope_' . $scope;
         $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
@@ -94,7 +94,7 @@ $pageSettingSource = static function (array $values, string $key): string {
 $pageSettingSourceRadioHtml = static function (string $name, string $selectedSource) use ($pageSettingSourceLabels, $pageScopeLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $pageSettingSourceLabels) ? $selectedSource : 'page';
     $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
-    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="설정 적용 범위">';
+    $html = sr_t('page::ui.div.class.admin.setting.source.67eda3ac');
     foreach ($pageSettingSourceLabels as $source => $label) {
         $id = 'page_setting_source_' . $baseId . '_' . $source;
         $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
@@ -142,28 +142,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($pageAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/pages/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
         <section class="admin-card card">
-            <h2><?php echo $editing ? '페이지 수정' : '페이지 추가'; ?></h2>
+            <h2><?php echo $editing ? sr_t('page::ui.page.edit.9fdd9b62') : sr_t('page::ui.page.62a2bf90'); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="page_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_title">제목 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="page_admin_pages_title"><?php echo sr_e(sr_t('page::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_slug">Slug <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="page_admin_pages_slug">Slug <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     <br>
-                                        <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
+                                        <small><?php echo sr_e(sr_t('page::ui.pages.slug.active.359891c0')); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_page_group_id">페이지 그룹</label>
+                <label class="form-label" for="page_admin_pages_page_group_id"><?php echo sr_e(sr_t('page::ui.page.5875c5b3')); ?></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_page_group_id" name="page_group_id" class="form-select" data-page-group-select>
-                        <option value="0"<?php echo (int) ($values['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>그룹 없음</option>
+                        <option value="0"<?php echo (int) ($values['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.text.d435d292')); ?></option>
                         <?php foreach ($pageGroups as $pageGroup) { ?>
                             <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($values['page_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
@@ -174,37 +174,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $pageGroupScopeRadioHtml('page_group_scope', (string) ($values['page_group_scope'] ?? 'here_only')); ?>
-                    <p class="admin-form-help">그룹을 선택하면 그룹별 공개 목록과 사이트 메뉴 연결 자산에서 함께 묶입니다.</p>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('page::ui.select.list.menu.10a1aa2a')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_summary">요약</label>
+                <label class="form-label" for="page_admin_pages_summary"><?php echo sr_e(sr_t('page::ui.text.50f30154')); ?></label>
                 <div class="admin-form-field">
                     <textarea id="page_admin_pages_summary" name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_body_text">본문</label>
+                <label class="form-label" for="page_admin_pages_body_text"><?php echo sr_e(sr_t('page::ui.text.9118bb57')); ?></label>
                 <div class="admin-form-field">
                     <textarea id="page_admin_pages_body_text" name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
-                                        <small>1차 페이지 본문은 plain text로 저장하고 출력 시 escape합니다.</small>
+                                        <small><?php echo sr_e(sr_t('page::ui.page.plain.save.723dab58')); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_seo_title">SEO 제목</label>
+                <label class="form-label" for="page_admin_pages_seo_title"><?php echo sr_e(sr_t('page::ui.seo.f66e126a')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_seo_description">SEO 설명</label>
+                <label class="form-label" for="page_admin_pages_seo_description"><?php echo sr_e(sr_t('page::ui.seo.b6187d8d')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_status">상태</label>
+                <label class="form-label" for="page_admin_pages_status"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_status" name="status" class="form-select">
                                                 <?php foreach (sr_page_allowed_statuses() as $status) { ?>
@@ -217,7 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_layout_key">페이지 레이아웃</label>
+                <label class="form-label" for="page_admin_pages_layout_key"><?php echo sr_e(sr_t('page::ui.page.fa985852')); ?></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_layout_key" name="layout_key" class="form-select">
                                                 <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -227,41 +227,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php } ?>
                                             </select>
                     <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
-                    <p class="admin-form-help">이 공개 페이지에 적용할 문서 레이아웃입니다.</p>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('page::ui.page.05b39bf1')); ?></p>
                 </div>
             </div>
         </section>
         <section class="admin-card card">
-            <h2>유료 열람</h2>
+            <h2><?php echo sr_e(sr_t('page::ui.text.c9b3e6f0')); ?></h2>
             <div class="admin-form-row">
-                <span class="form-label">유료 열람 사용</span>
+                <span class="form-label"><?php echo sr_e(sr_t('page::ui.active.923da40e')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_page_admin_pages_asset_access_enabled">
                                             <input id="modules_page_admin_pages_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('유료 열람 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('page::ui.active.923da40e')); ?>
                                         </label>
                                         <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
-                                        <p class="admin-form-help">선택한 회원 자산을 차감한 뒤 페이지 본문을 보여줍니다.</p>
+                                        <p class="admin-form-help"><?php echo sr_e(sr_t('page::ui.select.member.page.42c8795b')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_module">차감 자산</label>
+                <label class="form-label" for="page_admin_pages_asset_module"><?php echo sr_e(sr_t('page::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
-                    <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, '활성 자산 모듈 없음'); ?>
+                    <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, sr_t('page::ui.text.3e195cdd')); ?>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module')); ?>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_access_amount">차감 금액</label>
+                <label class="form-label" for="page_admin_pages_asset_access_amount"><?php echo sr_e(sr_t('page::ui.text.a9f15a8b')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_asset_access_amount" type="number" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_amount', $pageSettingSource($values, 'asset_access_amount')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_charge_policy">과금 방식</label>
+                <label class="form-label" for="page_admin_pages_asset_charge_policy"><?php echo sr_e(sr_t('page::ui.text.86803f52')); ?></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_asset_charge_policy" name="asset_charge_policy" class="form-select">
                                                 <?php foreach (sr_page_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
@@ -275,27 +275,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
-            <h2>완료 액션</h2>
+            <h2><?php echo sr_e(sr_t('page::ui.text.76faa117')); ?></h2>
             <div class="admin-form-row">
-                <span class="form-label">액션 사용</span>
+                <span class="form-label"><?php echo sr_e(sr_t('page::ui.active.8bcecbe7')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_page_admin_pages_asset_action_enabled">
                                             <input id="modules_page_admin_pages_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('완료 액션 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('page::ui.active.904d506b')); ?>
                                         </label>
                                         <?php echo $pageSettingSourceRadioHtml('source_asset_action_enabled', $pageSettingSource($values, 'asset_action_enabled')); ?>
-                                        <p class="admin-form-help">회원이 공개 페이지에서 버튼을 누르면 선택한 자산을 1회 지급하거나 차감합니다.</p>
+                                        <p class="admin-form-help"><?php echo sr_e(sr_t('page::ui.member.page.select.02996bc9')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_action_label">버튼 문구</label>
+                <label class="form-label" for="page_admin_pages_asset_action_label"><?php echo sr_e(sr_t('page::ui.text.98fb4605')); ?></label>
                 <div class="admin-form-field">
-                    <input id="page_admin_pages_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? '완료')); ?>" class="form-input" maxlength="80">
+                    <input id="page_admin_pages_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? sr_t('page::ui.text.727333ab'))); ?>" class="form-input" maxlength="80">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_label', $pageSettingSource($values, 'asset_action_label')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_action_direction">처리 방향</label>
+                <label class="form-label" for="page_admin_pages_asset_action_direction"><?php echo sr_e(sr_t('page::ui.text.af7873a8')); ?></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_asset_action_direction" name="asset_action_direction" class="form-select">
                                                 <?php foreach (sr_page_asset_action_directions() as $directionKey => $directionLabel) { ?>
@@ -308,15 +308,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_action_module">대상 자산</label>
+                <label class="form-label" for="page_admin_pages_asset_action_module"><?php echo sr_e(sr_t('page::ui.text.2f2b6193')); ?></label>
                 <div class="admin-form-field">
                     <?php $selectedActionAssetModules = sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'); ?>
-                    <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, '활성 자산 모듈 없음'); ?>
+                    <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, sr_t('page::ui.text.3e195cdd')); ?>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_asset_action_amount">금액</label>
+                <label class="form-label" for="page_admin_pages_asset_action_amount"><?php echo sr_e(sr_t('page::ui.text.5c705e1a')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_asset_action_amount" type="number" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_amount', $pageSettingSource($values, 'asset_action_amount')); ?>
@@ -325,22 +325,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <section class="admin-card card">
             <h2>
-                <span>공개 표시</span>
+                <span><?php echo sr_e(sr_t('page::ui.text.a052b2f6')); ?></span>
                 <span class="admin-form-actions">
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
-                        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light">배너 관리</a>
+                        <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.banner.42c18eb4')); ?></a>
                     <?php } ?>
                     <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
-                        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light">팝업레이어 관리</a>
+                        <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.text.f789aad9')); ?></a>
                     <?php } ?>
                 </span>
             </h2>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_banner_before_content_id">본문 상단 배너</label>
+                <label class="form-label" for="page_admin_pages_banner_before_content_id"><?php echo sr_e(sr_t('page::ui.banner.042ab3f3')); ?></label>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
-                            <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.active.4add3230')); ?></option>
                             <?php foreach ($publicBanners as $banner) { ?>
                                 <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
                                     <?php echo sr_e((string) $banner['title']); ?>
@@ -352,11 +352,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_banner_after_content_id">본문 하단 배너</label>
+                <label class="form-label" for="page_admin_pages_banner_after_content_id"><?php echo sr_e(sr_t('page::ui.banner.5818427a')); ?></label>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
-                            <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.active.4add3230')); ?></option>
                             <?php foreach ($publicBanners as $banner) { ?>
                                 <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
                                     <?php echo sr_e((string) $banner['title']); ?>
@@ -365,15 +365,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                         <?php echo $pageSettingSourceRadioHtml('source_banner_after_content_id', $pageSettingSource($values, 'banner_after_content_id')); ?>
                     </div>
-                    <small class="admin-form-help">공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                    <small class="admin-form-help"><?php echo sr_e(sr_t('page::ui.banner.select.banner.settings.f34a92f2')); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_popup_layer_id">팝업레이어</label>
+                <label class="form-label" for="page_admin_pages_popup_layer_id"><?php echo sr_e(sr_t('page::ui.text.1063d585')); ?></label>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
-                            <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.active.4add3230')); ?></option>
                             <?php foreach ($publicPopupLayers as $popupLayer) { ?>
                                 <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
                                     <?php echo sr_e((string) $popupLayer['title']); ?>
@@ -382,12 +382,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                         <?php echo $pageSettingSourceRadioHtml('source_popup_layer_id', $pageSettingSource($values, 'popup_layer_id')); ?>
                     </div>
-                    <small class="admin-form-help">공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                    <small class="admin-form-help"><?php echo sr_e(sr_t('page::ui.select.page.all.settings.bed25394')); ?></small>
                 </div>
             </div>
             <?php if ($editing) { ?>
                 <div class="admin-form-row">
-                    <span class="form-label">공개 URL</span>
+                    <span class="form-label"><?php echo sr_e(sr_t('page::ui.url.644c2e7a')); ?></span>
                     <div class="admin-form-field">
                         <a href="<?php echo sr_e(sr_url(sr_page_path((string) $editPage['slug']))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_page_path((string) $editPage['slug'])); ?></a>
                     </div>
@@ -395,15 +395,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
         <section class="admin-card card">
-            <h2>다운로드 파일</h2>
+            <h2><?php echo sr_e(sr_t('page::ui.text.c7c88adc')); ?></h2>
             <?php if ($editing && $pageFiles !== []) { ?>
                 <div class="table-wrapper">
                     <table class="table">
                         <thead class="ui-table-head">
                             <tr>
-                                <th>파일</th>
-                                <th>다운로드 과금</th>
-                                <th>삭제</th>
+                                <th><?php echo sr_e(sr_t('page::ui.text.0c8354d0')); ?></th>
+                                <th><?php echo sr_e(sr_t('page::ui.text.d07eab27')); ?></th>
+                                <th><?php echo sr_e(sr_t('page::ui.delete.6139b6c3')); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -419,7 +419,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <td>
                                         <input type="hidden" name="page_file_ids[]" value="<?php echo sr_e((string) $fileId); ?>">
                                         <label for="<?php echo sr_e($pageFileTitleId); ?>">
-                                            <span class="sr-only">파일 제목</span>
+                                            <span class="sr-only"><?php echo sr_e(sr_t('page::ui.text.c6713aae')); ?></span>
                                             <input id="<?php echo sr_e($pageFileTitleId); ?>" type="text" name="page_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $pageFile['title']); ?>" class="form-input form-control-full" maxlength="160">
                                         </label>
                                         <br>
@@ -428,17 +428,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <td>
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($pageFileChargeEnabledId); ?>">
                                             <input id="<?php echo sr_e($pageFileChargeEnabledId); ?>" type="checkbox" name="page_file_asset_download_enabled[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox"<?php echo (int) ($pageFile['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('과금'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('page::ui.text.31833f06')); ?>
                                         </label>
-                                        <span class="sr-only">파일 차감 자산</span>
+                                        <span class="sr-only"><?php echo sr_e(sr_t('page::ui.text.30430e12')); ?></span>
                                         <?php $selectedFileAssetModules = sr_page_asset_module_keys_from_value($pageFile['asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html($pageFileAssetModuleId, 'page_file_asset_module[' . (string) $fileId . ']', $assetModuleChoiceOptions, $selectedFileAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html($pageFileAssetModuleId, 'page_file_asset_module[' . (string) $fileId . ']', $assetModuleChoiceOptions, $selectedFileAssetModules, sr_t('page::ui.text.3e195cdd')); ?>
                                         <label for="<?php echo sr_e($pageFileAmountId); ?>">
-                                            <span class="sr-only">파일 차감 금액</span>
+                                            <span class="sr-only"><?php echo sr_e(sr_t('page::ui.text.c871de35')); ?></span>
                                             <input id="<?php echo sr_e($pageFileAmountId); ?>" type="number" name="page_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($pageFile['asset_download_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                                         </label>
                                         <label for="<?php echo sr_e($pageFileChargePolicyId); ?>">
-                                            <span class="sr-only">파일 과금 방식</span>
+                                            <span class="sr-only"><?php echo sr_e(sr_t('page::ui.text.51a83be4')); ?></span>
                                             <select id="<?php echo sr_e($pageFileChargePolicyId); ?>" name="page_file_asset_charge_policy[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
                                                 <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
                                                     <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($pageFile['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
@@ -451,7 +451,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <td>
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($pageFileDeleteId); ?>">
                                             <input id="<?php echo sr_e($pageFileDeleteId); ?>" type="checkbox" name="page_file_delete[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox">
-                                            <?php echo sr_admin_choice_label_html('삭제'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('page::ui.delete.6139b6c3')); ?>
                                         </label>
                                     </td>
                                 </tr>
@@ -460,44 +460,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </table>
                 </div>
             <?php } elseif ($editing) { ?>
-                <p>등록된 다운로드 파일이 없습니다.</p>
+                <p><?php echo sr_e(sr_t('page::ui.create.c0af4d1f')); ?></p>
             <?php } else { ?>
-                <p>새 페이지 저장과 함께 파일을 추가할 수 있습니다.</p>
+                <p><?php echo sr_e(sr_t('page::ui.page.save.136c7ad6')); ?></p>
             <?php } ?>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_page_file_upload">새 파일</label>
+                <label class="form-label" for="page_admin_pages_page_file_upload"><?php echo sr_e(sr_t('page::ui.text.45a992ee')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_page_file_upload" type="file" name="page_file_upload" class="form-input">
                     <br>
-                                        <small>PDF, 문서, 표, 압축 파일, 이미지 / 최대 <?php echo sr_e(sr_page_format_bytes(sr_page_file_upload_max_bytes())); ?></small>
+                                        <small><?php echo sr_e(sr_t('page::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_page_format_bytes(sr_page_file_upload_max_bytes())); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_new_page_file_title">새 파일 제목</label>
+                <label class="form-label" for="page_admin_pages_new_page_file_title"><?php echo sr_e(sr_t('page::ui.text.8d3d9268')); ?></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_new_page_file_title" type="text" name="new_page_file_title" value="" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">새 파일 과금</span>
+                <span class="form-label"><?php echo sr_e(sr_t('page::ui.text.b065b16b')); ?></span>
                 <div class="admin-form-field">
 	                    <div class="admin-page-file-charge-control">
 	                        <div class="admin-page-file-charge-main">
                                 <div class="admin-setting-unit">
 	                                <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
 	                                    <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
-	                                    <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
+	                                    <?php echo sr_admin_choice_label_html(sr_t('page::ui.text.d07eab27')); ?>
 	                                </label>
                                 </div>
 	                            <div class="admin-page-file-charge-assets admin-setting-unit admin-setting-unit-wide">
-	                                <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
+	                                <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], sr_t('page::ui.text.3e195cdd')); ?>
 	                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
 	                            </div>
                                 <div class="admin-setting-unit">
-	                                <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
+	                                <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="<?php echo sr_e(sr_t('page::ui.text.63526029')); ?>">
                                 </div>
                                 <div class="admin-setting-unit">
-	                                <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
+	                                <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="<?php echo sr_e(sr_t('page::ui.text.153a0e9d')); ?>">
 	                                    <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
 	                                        <option value="<?php echo sr_e((string) $policyKey); ?>">
 	                                            <?php echo sr_e((string) $policyLabel); ?>
@@ -511,29 +511,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light">목록</a>
-            <button type="submit" class="btn btn-solid-primary">저장</button>
+            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('page::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('page::ui.save.5fb92622')); ?></button>
         </div>
     </form>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('page::ui.all.e078b14a')); ?></a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">총페이지 <strong><?php echo sr_e((string) $totalPages); ?>개</strong></span>
-            <a href="<?php echo sr_e(sr_url('/admin/pages?status=published')); ?>" class="admin-summary-meta">공개 <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/pages?status=draft')); ?>" class="admin-summary-meta">초안 <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/pages?status=hidden')); ?>" class="admin-summary-meta">숨김 <?php echo sr_e((string) ($pageStatusCounts['hidden'] ?? 0)); ?>개</a>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('page::ui.page.fc61037b')); ?> <strong><?php echo sr_e((string) $totalPages); ?><?php echo sr_e(sr_t('page::ui.text.a57ab057')); ?></strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('page::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('page::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=draft')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('page::ui.text.145b2413')); ?> <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?><?php echo sr_e(sr_t('page::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages?status=hidden')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('page::ui.text.0eeb676f')); ?> <?php echo sr_e((string) ($pageStatusCounts['hidden'] ?? 0)); ?><?php echo sr_e(sr_t('page::ui.text.a57ab057')); ?></a>
         </div>
     </div>
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="admin-filter admin-page-filter ui-form-theme">
         <div class="admin-filter-grid admin-page-search-grid">
             <div class="admin-filter-field admin-page-filter-status">
-                <label for="modules_page_admin_pages_status" class="admin-filter-label">상태</label>
+                <label for="modules_page_admin_pages_status" class="admin-filter-label"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?></label>
                 <select id="modules_page_admin_pages_status" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.all.a4b69faf')); ?></option>
                     <?php foreach (sr_page_allowed_statuses() as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -542,9 +542,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-page-filter-group">
-                <label for="modules_page_admin_pages_page_group_id" class="admin-filter-label">그룹</label>
+                <label for="modules_page_admin_pages_page_group_id" class="admin-filter-label"><?php echo sr_e(sr_t('page::ui.text.5d908ddd')); ?></label>
                 <select id="modules_page_admin_pages_page_group_id" name="page_group_id" class="form-select admin-filter-input">
-                    <option value="0"<?php echo (int) ($filters['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>전체</option>
+                    <option value="0"<?php echo (int) ($filters['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($pageGroups as $pageGroup) { ?>
                         <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($filters['page_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
@@ -553,9 +553,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-page-filter-field">
-                <label for="modules_page_admin_pages_field" class="admin-filter-label">검색 조건</label>
+                <label for="modules_page_admin_pages_field" class="admin-filter-label"><?php echo sr_e(sr_t('page::ui.search.b79bc9c8')); ?></label>
                 <select id="modules_page_admin_pages_field" name="field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'title' => '제목', 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('page::ui.all.a4b69faf'), 'title' => sr_t('page::ui.text.08b17e43'), 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -563,41 +563,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-page-filter-keyword">
-                <label for="modules_page_admin_pages_q" class="admin-filter-label">검색어</label>
-                <input id="modules_page_admin_pages_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="제목, Slug">
+                <label for="modules_page_admin_pages_q" class="admin-filter-label"><?php echo sr_e(sr_t('page::ui.search.bda397fc')); ?></label>
+                <input id="modules_page_admin_pages_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('page::ui.slug.afd81de7')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('page::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>
-                <h2 class="card-title">페이지 목록</h2>
-                <p class="admin-dashboard-meta">공개 상태인 페이지는 /pages/slug URL로 노출됩니다.</p>
+                <h2 class="card-title"><?php echo sr_e(sr_t('page::ui.page.list.771ca9aa')); ?></h2>
+                <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('page::ui.status.page.pages.slug.d9329b0b')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-solid-light">새 페이지 추가</a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.page.530929bb')); ?></a>
         </div>
         <div class="table-wrapper">
             <table class="table admin-page-table">
-                <caption class="sr-only">페이지 목록</caption>
+                <caption class="sr-only"><?php echo sr_e(sr_t('page::ui.page.list.771ca9aa')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th>제목</th>
-                        <th>그룹</th>
+                        <th><?php echo sr_e(sr_t('page::ui.text.08b17e43')); ?></th>
+                        <th><?php echo sr_e(sr_t('page::ui.text.5d908ddd')); ?></th>
                         <th>Slug</th>
-                        <th>상태</th>
-                        <th>유료 열람</th>
-                        <th>작성자</th>
-                        <th>수정일</th>
-                        <th>공개일</th>
-                        <th class="text-end">관리</th>
+                        <th><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?></th>
+                        <th><?php echo sr_e(sr_t('page::ui.text.c9b3e6f0')); ?></th>
+                        <th><?php echo sr_e(sr_t('page::ui.text.f2ee20a7')); ?></th>
+                        <th><?php echo sr_e(sr_t('page::ui.edit.d3a98476')); ?></th>
+                        <th><?php echo sr_e(sr_t('page::ui.text.84b7c221')); ?></th>
+                        <th class="text-end"><?php echo sr_e(sr_t('page::ui.text.29ae8f30')); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($pages === []) { ?>
                         <tr>
-                            <td colspan="9" class="admin-empty-state">등록된 페이지가 없습니다.</td>
+                            <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('page::ui.create.page.8994ccd1')); ?></td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
@@ -620,7 +620,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_e(number_format((int) ($page['asset_access_amount'] ?? 0))); ?>
                                         · <?php echo sr_e(sr_page_asset_charge_policies()[(string) ($page['asset_charge_policy'] ?? 'once')] ?? ''); ?>
                                     <?php } else { ?>
-                                        무료
+                                        <?php echo sr_e(sr_t('page::ui.text.b8fb5347')); ?>
                                     <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['created_by_name'] ?? '')); ?></td>
@@ -629,14 +629,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <?php if ((string) $page['status'] === 'published') { ?>
-                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer">보기</a>
+                                            <a href="<?php echo sr_e(sr_url(sr_page_path((string) $page['slug']))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('page::ui.text.ac5b575f')); ?></a>
                                         <?php } ?>
-                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
+                                        <a href="<?php echo sr_e(sr_url('/admin/pages/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.edit.3537f0cc')); ?></a>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/pages/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="page_id" value="<?php echo sr_e((string) $page['id']); ?>">
-                                                <button type="submit" class="btn btn-sm btn-soft-danger">숨김</button>
+                                                <button type="submit" class="btn btn-sm btn-soft-danger"><?php echo sr_e(sr_t('page::ui.text.0eeb676f')); ?></button>
                                             </form>
                                         <?php } ?>
                                     </div>

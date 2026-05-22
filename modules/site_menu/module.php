@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => '사이트 메뉴',
+    'name' => sr_t('site_menu::ui.menu.a14f2522'),
     'version' => '2026.04.003',
     'type' => 'module',
-    'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
+    'description' => sr_t('site_menu::ui.menu.d47587ec'),
     'admin' => [
         'category' => 'site',
-        'category_label' => '사이트',
+        'category_label' => sr_t('site_menu::ui.text.b2c8d45c'),
         'category_order' => 20,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'menu-list'],

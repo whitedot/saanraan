@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '회원가입';
+$pageTitle = sr_t('member::ui.member.e668cc2b');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -25,27 +25,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_register_email">
-                    <span>이메일 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_register_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_login_id">
-                    <span>로그인 아이디</span>
+                    <span><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></span>
                         <input id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
                     </label>
-                    <small>비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.</small>
+                    <small><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </p>
                 <p>
                     <label for="modules_member_register_display_name">
-                    <span>표시 이름 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_register_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
                 <?php if (!empty($profilePolicies['nickname']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_nickname">
-                    <span>닉네임<?php echo !empty($profilePolicies['nickname']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
+                    <span><?php echo sr_e(sr_t('member::ui.text.6211d967')); ?><?php echo !empty($profilePolicies['nickname']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
                             <input id="modules_member_register_nickname" type="text" name="nickname" value="<?php echo sr_e((string) $profileValues['nickname']); ?>" maxlength="80"<?php echo !empty($profilePolicies['nickname']['required']) ? ' required' : ''; ?>>
                         </label>
                     </p>
@@ -53,7 +53,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_phone">
-                    <span>전화번호<?php echo !empty($profilePolicies['phone']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
+                    <span><?php echo sr_e(sr_t('member::ui.text.4edc9439')); ?><?php echo !empty($profilePolicies['phone']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
                             <input id="modules_member_register_phone" type="text" name="phone" value="<?php echo sr_e((string) $profileValues['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
                         </label>
                     </p>
@@ -61,7 +61,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_birth_date">
-                    <span>생년월일<?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
+                    <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
                             <input id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
                         </label>
                     </p>
@@ -69,57 +69,57 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php if (!empty($profilePolicies['avatar_path']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_avatar_file">
-                    <span>아바타<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
+                    <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
                             <input id="modules_member_register_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' required' : ''; ?>>
                         </label>
-                        <small>JPG, PNG, WebP / 최대 <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
+                        <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
                     </p>
                 <?php } ?>
                 <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_profile_text">
-                    <span>소개<?php echo !empty($profilePolicies['profile_text']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
+                    <span><?php echo sr_e(sr_t('member::ui.text.7367283c')); ?><?php echo !empty($profilePolicies['profile_text']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
                             <textarea id="modules_member_register_profile_text" name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e((string) $profileValues['profile_text']); ?></textarea>
                         </label>
                     </p>
                 <?php } ?>
                 <p>
                     <label for="modules_member_register_password">
-                    <span>비밀번호 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_register_password" type="password" name="password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_password_confirm">
-                    <span>비밀번호 확인 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_register_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_terms_consent">
                         <input id="modules_member_register_terms_consent" type="checkbox" name="terms_consent" value="1" class="form-checkbox" required>
-                        필수 약관에 동의합니다. <span class="sr-required-label">(필수)</span>
+                        <?php echo sr_e(sr_t('member::ui.required.057abc7f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_privacy_consent">
                         <input id="modules_member_register_privacy_consent" type="checkbox" name="privacy_consent" value="1" class="form-checkbox" required>
-                        개인정보 처리방침에 동의합니다. <span class="sr-required-label">(필수)</span>
+                        <?php echo sr_e(sr_t('member::ui.privacy.ae1af6ad')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_marketing_consent">
                         <input id="modules_member_register_marketing_consent" type="checkbox" name="marketing_consent" value="1" class="form-checkbox"<?php echo $marketingConsent ? ' checked' : ''; ?>>
-                        마케팅 수신에 동의합니다.
+                        <?php echo sr_e(sr_t('member::ui.text.be6df05e')); ?>
                     </label>
                 </p>
-                <button type="submit">가입</button>
+                <button type="submit"><?php echo sr_e(sr_t('member::ui.text.ac31175f')); ?></button>
             </form>
         <?php } else { ?>
-            <p>현재 회원가입을 사용할 수 없습니다.</p>
+            <p><?php echo sr_e(sr_t('member::ui.member.active.7c7e897d')); ?></p>
         <?php } ?>
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'after_form']); ?>
 
-        <p><a href="<?php echo sr_e(sr_url('/login')); ?>">로그인</a></p>
+        <p><a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
     </main>
 <?php sr_public_layout_end(); ?>

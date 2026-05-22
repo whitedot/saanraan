@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '새 비밀번호 설정';
+$pageTitle = sr_t('member::ui.password.settings.a3d420e5');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -12,7 +12,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 
         <?php if ($notice !== '') { ?>
             <p><?php echo sr_e($notice); ?></p>
-            <p><a href="<?php echo sr_e(sr_url('/login')); ?>">로그인</a></p>
+            <p><a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
         <?php } else { ?>
             <?php if ($errors !== []) { ?>
                 <ul>
@@ -26,17 +26,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_password_reset_password">
-                    <span>새 비밀번호 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.password.04ea6283')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_password_reset_password" type="password" name="password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_password_reset_password_confirm">
-                    <span>새 비밀번호 확인 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.password.b1d91625')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_member_password_reset_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>
-                <button type="submit">비밀번호 재설정</button>
+                <button type="submit"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></button>
             </form>
         <?php } ?>
     </main>

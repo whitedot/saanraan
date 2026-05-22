@@ -44,7 +44,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         </header>
         <?php if (empty($pageAccess['allowed'])) { ?>
             <div class="page-body">
-                <p><?php echo sr_e((string) ($pageAccess['message'] ?? '페이지를 열람할 수 없습니다.')); ?></p>
+                <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('page::ui.page.7d2dd480'))); ?></p>
             </div>
         <?php } else { ?>
             <?php if ((string) ($pageActionNotice ?? '') !== '') { ?>
@@ -57,8 +57,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
             <?php if (!empty($pageAccess['charged'])) { ?>
                 <p class="page-access-notice">
-                    <?php echo sr_e((string) ($pageAccess['asset_label'] ?? '회원 자산')); ?>
-                    <?php echo sr_e(number_format((int) ($pageAccess['amount'] ?? 0))); ?> 차감 후 열람했습니다.
+                    <?php echo sr_e((string) ($pageAccess['asset_label'] ?? sr_t('page::ui.member.415a098e'))); ?>
+                    <?php echo sr_e(number_format((int) ($pageAccess['amount'] ?? 0))); ?> <?php echo sr_e(sr_t('page::ui.text.375151be')); ?>
                 </p>
             <?php } ?>
             <div class="page-body">
@@ -66,7 +66,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             </div>
             <?php if (is_array($pageFiles ?? null) && $pageFiles !== []) { ?>
                 <section class="page-downloads">
-                    <h2>다운로드</h2>
+                    <h2><?php echo sr_e(sr_t('page::ui.text.0a4ca9bc')); ?></h2>
                     <ul>
                         <?php foreach ($pageFiles as $pageFile) { ?>
                             <li>
@@ -91,7 +91,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="page_id" value="<?php echo sr_e((string) $page['id']); ?>">
                     <button type="submit" class="btn btn-solid-primary">
-                        <?php echo sr_e((string) ($page['asset_action_label'] ?? '완료')); ?>
+                        <?php echo sr_e((string) ($page['asset_action_label'] ?? sr_t('page::ui.text.727333ab'))); ?>
                     </button>
                 </form>
             <?php } ?>

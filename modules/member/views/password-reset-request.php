@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '비밀번호 재설정';
+$pageTitle = sr_t('member::ui.password.settings.2e9da95f');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -15,7 +15,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } ?>
 
         <?php if ($resetUrl !== '' && $showResetUrl) { ?>
-            <p><a href="<?php echo sr_e($resetUrl); ?>">재설정 링크</a></p>
+            <p><a href="<?php echo sr_e($resetUrl); ?>"><?php echo sr_e(sr_t('member::ui.settings.44dd1586')); ?></a></p>
         <?php } ?>
 
         <?php if ($errors !== []) { ?>
@@ -30,12 +30,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label for="modules_member_password_reset_request_email">
-                    <span>이메일 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                     <input id="modules_member_password_reset_request_email" type="email" name="email" value="<?php echo sr_e($email); ?>" required>
                 </label>
             </p>
-            <button type="submit">재설정 요청</button>
+            <button type="submit"><?php echo sr_e(sr_t('member::ui.settings.845064c7')); ?></button>
         </form>
-        <p><a href="<?php echo sr_e(sr_url('/login')); ?>">로그인</a></p>
+        <p><a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
     </main>
 <?php sr_public_layout_end(); ?>

@@ -3,21 +3,23 @@
 return [
     [
         'key' => 'community',
-        'title' => '커뮤니티',
+        'title' => sr_t('community::ui.community.4a285775'),
         'order' => 50,
         'view' => 'views/dashboard-summary.php',
         'items' => [
             [
-                'label' => '게시글',
+                'label' => sr_t('community::ui.text.0b138cfe'),
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_community_posts WHERE status = 'published'",
-                'detail_sql' => "SELECT CONCAT('댓글 ', COUNT(*)) AS detail FROM sr_community_comments WHERE status = 'published'",
+                'detail_prefix' => sr_t('community::ui.text.c9fff683') . ' ',
+                'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_community_comments WHERE status = 'published'",
                 'state' => 'info',
                 'emphasis' => 'primary',
             ],
             [
-                'label' => '신고',
+                'label' => sr_t('community::ui.text.bbb56c63'),
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_community_reports WHERE status = 'open'",
-                'detail_sql' => "SELECT CONCAT('게시판 ', COUNT(*)) AS detail FROM sr_community_boards WHERE status = 'enabled'",
+                'detail_prefix' => sr_t('community::ui.text.4732a58f') . ' ',
+                'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_community_boards WHERE status = 'enabled'",
                 'state' => 'warning',
             ],
         ],

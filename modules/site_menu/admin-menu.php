@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'label' => '사이트 메뉴',
+    'label' => sr_t('site_menu::ui.menu.a14f2522'),
     'order' => 25,
     'items' => [
         [
-            'label' => '메뉴 관리',
+            'label' => sr_t('site_menu::ui.menu.766fbd09'),
             'path' => '/admin/site-menus',
             'order' => 10,
         ],

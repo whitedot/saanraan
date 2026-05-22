@@ -3,15 +3,16 @@
 return [
     [
         'key' => 'popup_layer',
-        'title' => '팝업레이어',
+        'title' => sr_t('popup_layer::ui.text.1063d585'),
         'order' => 30,
         'default_visible' => false,
         'view' => 'views/dashboard-summary.php',
         'rows' => [
             [
-                'label' => '활성 팝업',
+                'label' => sr_t('popup_layer::ui.text.903a4275'),
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_popup_layers WHERE status = 'enabled'",
-                'detail_sql' => "SELECT CONCAT('임시저장 ', COUNT(*)) AS detail FROM sr_popup_layers WHERE status = 'draft'",
+                'detail_prefix' => sr_t('popup_layer::ui.save.prefix.674b6ae2'),
+                'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_popup_layers WHERE status = 'draft'",
             ],
         ],
     ],

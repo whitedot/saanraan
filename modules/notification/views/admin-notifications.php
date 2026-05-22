@@ -1,10 +1,10 @@
 <?php
 
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
-$adminPageTitle = '알림';
+$adminPageTitle = sr_t('notification::ui.notification.12ddd6ca');
 $adminContainerClass = 'admin-page-notification-list admin-ui-scope';
 if ($notificationAdminPage === 'deliveries') {
-    $adminPageTitle = '알림 발송 대기열';
+    $adminPageTitle = sr_t('notification::ui.notification.56c30db0');
     $adminContainerClass = 'admin-page-notification-delivery-list admin-ui-scope';
 }
 $notificationListFilters = isset($notificationListFilters) && is_array($notificationListFilters) ? $notificationListFilters : ['audience' => '', 'status' => '', 'field' => 'all', 'q' => ''];
@@ -37,13 +37,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($notificationAdminPage === 'deliveries') { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('notification::ui.all.e078b14a')); ?></a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">총발송 <strong><?php echo sr_e((string) $totalDeliveries); ?>개</strong></span>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('notification::ui.text.34c94df2')); ?> <strong><?php echo sr_e((string) $totalDeliveries); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?></strong></span>
             <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                 <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries?delivery_status=' . rawurlencode((string) $status))); ?>" class="admin-summary-meta">
-                    <?php echo sr_e(sr_admin_code_label((string) $status, 'delivery_status')); ?> <?php echo sr_e((string) ($deliveryStatusCounts[$status] ?? 0)); ?>개
+                    <?php echo sr_e(sr_admin_code_label((string) $status, 'delivery_status')); ?> <?php echo sr_e((string) ($deliveryStatusCounts[$status] ?? 0)); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?>
                 </a>
             <?php } ?>
         </div>
@@ -52,9 +52,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter admin-notification-delivery-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-delivery-search-grid">
             <div class="admin-filter-field admin-notification-delivery-filter-channel">
-                <label for="notification_admin_delivery_channel_filter" class="admin-filter-label">발송 채널</label>
+                <label for="notification_admin_delivery_channel_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
                 <select name="delivery_channel" id="notification_admin_delivery_channel_filter" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedChannels as $channel) { ?>
                         <option value="<?php echo sr_e($channel); ?>"<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === $channel ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
@@ -63,9 +63,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-delivery-filter-status">
-                <label for="notification_admin_delivery_status_filter" class="admin-filter-label">발송 상태</label>
+                <label for="notification_admin_delivery_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></label>
                 <select name="delivery_status" id="notification_admin_delivery_status_filter" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($deliveryListFilters['delivery_status'] ?? '') === $status ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
@@ -74,9 +74,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-delivery-filter-field">
-                <label for="notification_admin_delivery_search_field" class="admin-filter-label">검색 조건</label>
+                <label for="notification_admin_delivery_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
                 <select name="field" id="notification_admin_delivery_search_field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'id' => '발송 ID', 'notification' => '알림 ID', 'title' => '알림 제목', 'recipient' => '수신자'] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('notification::ui.all.a4b69faf'), 'id' => sr_t('notification::ui.id.14dddbba'), 'notification' => sr_t('notification::ui.notification.id.ccc3eb79'), 'title' => sr_t('notification::ui.notification.b99c9635'), 'recipient' => sr_t('notification::ui.text.fb3853ea')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($deliveryListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -84,34 +84,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-delivery-filter-keyword">
-                <label for="notification_admin_delivery_search_keyword" class="admin-filter-label">검색어</label>
-                <input type="search" id="notification_admin_delivery_search_keyword" name="q" value="<?php echo sr_e((string) ($deliveryListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="발송 ID, 알림 ID, 제목, 수신자">
+                <label for="notification_admin_delivery_search_keyword" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
+                <input type="search" id="notification_admin_delivery_search_keyword" name="q" value="<?php echo sr_e((string) ($deliveryListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.notification.id.f7f271dc')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">발송 대기열</h2>
+            <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.077631f5')); ?></h2>
         </div>
         <div class="table-wrapper">
         <table class="table admin-notification-delivery-table">
-            <caption class="sr-only">알림 발송 대기열</caption>
+            <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.56c30db0')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
-                    <th>알림</th>
-                    <th>채널</th>
-                    <th>수신자</th>
-                    <th>상태</th>
-                    <th>수정일</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.text.fb3853ea')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.edit.d3a98476')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('notification::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($deliveries === []) { ?>
-                    <tr><td colspan="7" class="admin-empty-state">발송 대기열이 비어 있습니다.</td></tr>
+                    <tr><td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.text.4ecdd323')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($deliveries as $delivery) { ?>
                         <?php
@@ -137,7 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="delivery_id" value="<?php echo sr_e((string) $delivery['id']); ?>">
-                                    <label class="sr-only" for="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>">상태</label>
+                                    <label class="sr-only" for="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
                                     <select name="status" id="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>" class="form-select">
                                                 <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) $delivery['status'] === $status ? ' selected' : ''; ?>>
@@ -145,7 +145,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-solid-light">저장</button>
+                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('notification::ui.save.5fb92622')); ?></button>
                                 </form>
                                 </div>
                             </td>
@@ -159,13 +159,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('notification::ui.all.e078b14a')); ?></a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">총알림 <strong><?php echo sr_e((string) $totalNotifications); ?>개</strong></span>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('notification::ui.notification.bf2c2182')); ?> <strong><?php echo sr_e((string) $totalNotifications); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?></strong></span>
             <?php foreach ($allowedNotificationStatuses as $status) { ?>
                 <a href="<?php echo sr_e(sr_url('/admin/notifications?status=' . rawurlencode((string) $status))); ?>" class="admin-summary-meta">
-                    <?php echo sr_e(sr_admin_code_label((string) $status, 'notification_status')); ?> <?php echo sr_e((string) ($notificationStatusCounts[$status] ?? 0)); ?>개
+                    <?php echo sr_e(sr_admin_code_label((string) $status, 'notification_status')); ?> <?php echo sr_e((string) ($notificationStatusCounts[$status] ?? 0)); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?>
                 </a>
             <?php } ?>
         </div>
@@ -174,9 +174,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter admin-notification-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-search-grid">
             <div class="admin-filter-field admin-notification-filter-audience">
-                <label for="notification_admin_audience_filter" class="admin-filter-label">대상</label>
+                <label for="notification_admin_audience_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
                 <select name="audience" id="notification_admin_audience_filter" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($notificationListFilters['audience'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($notificationListFilters['audience'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedAudiences as $audience) { ?>
                         <option value="<?php echo sr_e($audience); ?>"<?php echo (string) ($notificationListFilters['audience'] ?? '') === $audience ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?>
@@ -185,9 +185,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-filter-status">
-                <label for="notification_admin_status_filter" class="admin-filter-label">상태</label>
+                <label for="notification_admin_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
                 <select name="status" id="notification_admin_status_filter" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($notificationListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($notificationListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedNotificationStatuses as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($notificationListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'notification_status')); ?>
@@ -196,9 +196,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-filter-field">
-                <label for="notification_admin_search_field" class="admin-filter-label">검색 조건</label>
+                <label for="notification_admin_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
                 <select name="field" id="notification_admin_search_field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'title' => '제목', 'body' => '내용', 'link' => '링크', 'account' => '회원 ID', 'id' => '알림 ID'] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('notification::ui.all.a4b69faf'), 'title' => sr_t('notification::ui.text.08b17e43'), 'body' => sr_t('notification::ui.text.cb0f2404'), 'link' => sr_t('notification::ui.text.3d54da9c'), 'account' => sr_t('notification::ui.member.id.07083483'), 'id' => sr_t('notification::ui.notification.id.ccc3eb79')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($notificationListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -206,34 +206,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-notification-filter-keyword">
-                <label for="notification_admin_search_keyword" class="admin-filter-label">검색어</label>
-                <input type="search" id="notification_admin_search_keyword" name="q" value="<?php echo sr_e((string) ($notificationListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="제목, 내용, 링크, ID">
+                <label for="notification_admin_search_keyword" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
+                <input type="search" id="notification_admin_search_keyword" name="q" value="<?php echo sr_e((string) ($notificationListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.c7b74a34')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">알림 목록</h2>
-            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">새 알림 등록</button>
+            <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></h2>
+            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
         </div>
         <div class="table-wrapper">
         <table class="table admin-notification-table">
-            <caption class="sr-only">알림 목록</caption>
+            <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
-                    <th>제목</th>
-                    <th>대상</th>
-                    <th>상태</th>
-                    <th>생성일</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('notification::ui.text.5efd3ddd')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('notification::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($notifications === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state">등록된 알림이 없습니다.</td></tr>
+                    <tr><td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.create.notification.f92f6fb2')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($notifications as $notification) { ?>
                         <?php
@@ -255,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('notification::ui.delete.6139b6c3')); ?></button>
                                     </form>
                                 </div>
                             </td>
@@ -271,8 +271,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="modal-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="modal-content ui-form-theme">
                 <div class="modal-header">
-                    <h3 id="<?php echo sr_e($notificationCreateModalId); ?>_title" class="modal-title">알림 등록</h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">
+                    <h3 id="<?php echo sr_e($notificationCreateModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('notification::ui.notification.create.079d0758')); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('notification::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>
@@ -280,7 +280,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="create">
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_audience">대상</label>
+                        <label class="form-label" for="notification_admin_notifications_audience"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
                         <div class="admin-form-field">
                             <select id="notification_admin_notifications_audience" name="audience" class="form-select" data-overlay-focus>
                                 <?php foreach ($allowedAudiences as $audience) { ?>
@@ -290,40 +290,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>">회원 공개 해시</label>
+                        <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.900e04a5')); ?></label>
                         <div class="admin-form-field">
                             <div class="admin-lookup-control">
                                 <input id="<?php echo sr_e($notificationCreateAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input">
-                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($notificationCreateAccountInputId); ?>">회원 검색</button>
+                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.search.f7a330b0')); ?></button>
                             </div>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_title">제목 <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="notification_admin_notifications_title"><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="notification_admin_notifications_title" type="text" name="title" value="<?php echo sr_e((string) ($notificationCreateValues['title'] ?? '')); ?>" maxlength="160" required class="form-input form-control-full">
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_body_text">내용</label>
+                        <label class="form-label" for="notification_admin_notifications_body_text"><?php echo sr_e(sr_t('notification::ui.text.cb0f2404')); ?></label>
                         <div class="admin-form-field">
                             <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_link_url">링크 URL</label>
+                        <label class="form-label" for="notification_admin_notifications_link_url"><?php echo sr_e(sr_t('notification::ui.url.f7ca9b13')); ?></label>
                         <div class="admin-form-field">
-                            <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="/path 또는 https://example.com">
+                            <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="<?php echo sr_e(sr_t('notification::ui.path.https.example.com.a67f0fa1')); ?>">
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_recipient">외부 수신자</label>
+                        <label class="form-label" for="notification_admin_notifications_recipient"><?php echo sr_e(sr_t('notification::ui.text.2ab1c735')); ?></label>
                         <div class="admin-form-field">
                             <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="<?php echo sr_e((string) ($notificationCreateValues['recipient'] ?? '')); ?>" maxlength="255" class="form-input form-control-full">
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <span class="form-label">채널</span>
+                        <span class="form-label"><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?></span>
                         <div class="admin-form-field">
                             <div class="admin-check-list">
                                 <?php foreach ($allowedCreateChannels as $channel) { ?>
@@ -334,13 +334,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </label>
                                 <?php } ?>
                             </div>
-                            <small class="admin-form-help">알림 등록 채널은 사이트 알림과 이메일만 사용합니다.</small>
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('notification::ui.notification.create.notification.email.active.d3635deb')); ?></small>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">닫기</button>
-                    <button type="submit" class="btn btn-solid-primary modal-action">알림 등록</button>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('notification::ui.notification.create.079d0758')); ?></button>
                 </div>
             </form>
         </div>
@@ -350,7 +350,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'field_prefix' => $notificationCreateMemberLookupPrefix,
         'member_input_id' => $notificationCreateAccountInputId,
         'return_overlay_id' => $notificationCreateModalId,
-        'return_label' => '알림 등록으로 돌아가기',
+        'return_label' => sr_t('notification::ui.notification.create.f8cc68db'),
         'member_search_url' => sr_url('/admin/members/search'),
     ];
     include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';

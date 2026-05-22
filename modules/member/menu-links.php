@@ -2,15 +2,15 @@
 
 return [
     [
-        'label' => '로그인',
+        'label' => sr_t('member::ui.login.6d253673'),
         'url' => '/login',
     ],
     [
-        'label' => '회원가입',
+        'label' => sr_t('member::ui.member.e668cc2b'),
         'url' => '/register',
     ],
     [
-        'label' => '내 계정',
+        'label' => sr_t('member::ui.text.13b28045'),
         'url' => '/account',
     ],
 ];

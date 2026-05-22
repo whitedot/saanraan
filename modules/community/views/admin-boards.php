@@ -1,16 +1,16 @@
 <?php
 
 $communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPage : 'list';
-$adminPageTitle = '커뮤니티 게시판';
-$adminPageSubtitle = '게시판 상태와 그룹을 확인하고 조건 검색과 관리 작업을 이어가세요.';
+$adminPageTitle = sr_t('community::ui.community.22fe030e');
+$adminPageSubtitle = sr_t('community::ui.status.search.d3951518');
 $adminContainerClass = 'admin-page-community-board-list admin-ui-scope';
 if ($communityBoardsPage === 'new') {
-    $adminPageTitle = '게시판 생성';
-    $adminPageSubtitle = '커뮤니티에서 사용할 게시판과 접근 정책을 생성합니다.';
+    $adminPageTitle = sr_t('community::ui.text.713b7a18');
+    $adminPageSubtitle = sr_t('community::ui.community.active.c7c009c1');
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 } elseif ($communityBoardsPage === 'edit') {
-    $adminPageTitle = '게시판 수정';
-    $adminPageSubtitle = '게시판 기본 정보와 접근, 표시, 자산 정책을 수정합니다.';
+    $adminPageTitle = sr_t('community::ui.edit.e92ca332');
+    $adminPageSubtitle = sr_t('community::ui.edit.d3b31e46');
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 }
 $boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => '', 'group_id' => 0, 'field' => 'all', 'q' => ''];
@@ -18,9 +18,9 @@ $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ?
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 
 $settingSourceLabels = [
-    'group' => ['visible' => '그룹', 'sr' => '적용'],
-    'all' => ['visible' => '전체', 'sr' => '적용'],
-    'board' => ['visible' => '여기만', 'sr' => '적용'],
+    'group' => ['visible' => sr_t('community::ui.text.5d908ddd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
+    'all' => ['visible' => sr_t('community::ui.all.a4b69faf'), 'sr' => sr_t('community::ui.text.6a1c963d')],
+    'board' => ['visible' => sr_t('community::ui.text.c0e39cdd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
 ];
 $settingSourceLabelHtml = static function (array $label): string {
     return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
@@ -36,7 +36,7 @@ $boardSettingSource = static function (array $board, string $key): string {
 $settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
     $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
-    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="설정 적용 범위">';
+    $html = sr_t('community::ui.div.class.admin.setting.source.67eda3ac');
     foreach ($settingSourceLabels as $source => $label) {
         $id = 'setting_source_' . $baseId . '_' . $source;
         $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
@@ -64,8 +64,8 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
     }
 }
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
-    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
-    : '활성 자산 모듈 없음';
+    ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
+    : sr_t('community::ui.text.3e195cdd');
 $communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
     $selectedLevel = sr_community_normalize_level_value($selectedLevel);
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
@@ -146,22 +146,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($communityBoardsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">총게시판 <strong><?php echo sr_e((string) $totalBoards); ?>개</strong></span>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($boardStatusCounts['enabled'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=disabled')); ?>" class="admin-summary-meta">중지 <?php echo sr_e((string) ($boardStatusCounts['disabled'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=archived')); ?>" class="admin-summary-meta">보관 <?php echo sr_e((string) ($boardStatusCounts['archived'] ?? 0)); ?>개</a>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.97d9bd67')); ?> <strong><?php echo sr_e((string) $totalBoards); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($boardStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=disabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.92cdef3c')); ?> <?php echo sr_e((string) ($boardStatusCounts['disabled'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=archived')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.2e4099ba')); ?> <?php echo sr_e((string) ($boardStatusCounts['archived'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
         </div>
     </div>
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-filter admin-community-board-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-search-grid">
             <div class="admin-filter-field admin-community-board-filter-status">
-                <label for="community_admin_boards_status_filter" class="admin-filter-label">상태</label>
+                <label for="community_admin_boards_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                 <select id="community_admin_boards_status_filter" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($boardListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                    <option value=""<?php echo (string) ($boardListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedStatuses as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($boardListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -170,9 +170,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-community-board-filter-group">
-                <label for="community_admin_boards_group_filter" class="admin-filter-label">게시판 그룹</label>
+                <label for="community_admin_boards_group_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
                 <select id="community_admin_boards_group_filter" name="group_id" class="form-select admin-filter-input">
-                    <option value="0"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>전체</option>
+                    <option value="0"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($boardGroups as $boardGroup) { ?>
                         <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === (int) $boardGroup['id'] ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $boardGroup['title']); ?>
@@ -181,9 +181,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-community-board-filter-field">
-                <label for="community_admin_boards_field" class="admin-filter-label">검색 조건</label>
+                <label for="community_admin_boards_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
                 <select id="community_admin_boards_field" name="field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'key' => 'key', 'title' => '이름', 'group' => '그룹'] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => 'key', 'title' => sr_t('community::ui.name.253d1510'), 'group' => sr_t('community::ui.text.5d908ddd')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($boardListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -191,36 +191,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-filter-field admin-community-board-filter-keyword">
-                <label for="community_admin_boards_q" class="admin-filter-label">검색어</label>
-                <input id="community_admin_boards_q" type="search" name="q" value="<?php echo sr_e((string) ($boardListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="key, 이름, 그룹">
+                <label for="community_admin_boards_q" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
+                <input id="community_admin_boards_q" type="search" name="q" value="<?php echo sr_e((string) ($boardListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.key.name.9f150e7e')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">게시판 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-solid-light">새 게시판 추가</a>
+            <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-community-board-table">
-            <caption class="sr-only">커뮤니티 게시판 목록</caption>
+            <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
-                    <th>이름</th>
-                    <th>그룹</th>
-                    <th>상태</th>
-                    <th>스킨</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.text.5d908ddd')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.text.776b723f')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($boards === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">게시판이 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.112bc2dd')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
@@ -250,13 +250,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                                 </select>
-                                <button type="submit" class="btn btn-sm btn-solid-light">저장</button>
+                                <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.save.5fb92622')); ?></button>
                             </form>
                         </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-solid-light">바로가기</a>
-                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?></a>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></a>
                             </div>
                         </td>
                     </tr>
@@ -268,29 +268,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo $communityBoardsPage === 'edit' ? '게시판 수정' : '게시판 생성'; ?></h2>
+            <h2><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18'); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                 <div class="admin-form-row">
-                    <span class="form-label">게시판 key</span>
+                    <span class="form-label"><?php echo sr_e(sr_t('community::ui.key.cf056766')); ?></span>
                     <div class="admin-form-field">
                         <code><?php echo sr_e((string) $formBoard['board_key']); ?></code>
                     </div>
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_boards_board_key">게시판 key <span class="sr-required-label">(필수)</span></label>
+                    <label class="form-label" for="community_admin_boards_board_key"><?php echo sr_e(sr_t('community::ui.key.cf056766')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <input id="community_admin_boards_board_key" type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" required>
                     </div>
                 </div>
             <?php } ?>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_board_group_id">게시판 그룹</label>
+                <label class="form-label" for="community_admin_boards_board_group_id"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_board_group_id" name="board_group_id" class="form-select">
-                                            <option value="0">없음</option>
+                                            <option value="0"><?php echo sr_e(sr_t('community::ui.text.72ea3d64')); ?></option>
                                             <?php foreach ($boardGroups as $boardGroup) { ?>
                                                 <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
                                             <?php } ?>
@@ -298,19 +298,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_title">이름 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_boards_title"><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_description">설명</label>
+                <label class="form-label" for="community_admin_boards_description"><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></label>
                 <div class="admin-form-field">
                     <textarea id="community_admin_boards_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_status">상태</label>
+                <label class="form-label" for="community_admin_boards_status"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_status" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -320,7 +320,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_skin_key">게시판 스킨</label>
+                <label class="form-label" for="community_admin_boards_skin_key"><?php echo sr_e(sr_t('community::ui.text.83d35075')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_skin_key" name="skin_key" class="form-select">
                                             <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
@@ -340,9 +340,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>접근 정책</h2>
+            <h2><?php echo sr_e(sr_t('community::ui.text.533748da')); ?></h2>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_policy">읽기 정책</label>
+                <label class="form-label" for="community_admin_boards_read_policy"><?php echo sr_e(sr_t('community::ui.text.0b6c5dfd')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_read_policy" name="read_policy" class="form-select">
                                             <?php foreach ($allowedReadPolicies as $policy) { ?>
@@ -355,7 +355,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_group_keys">읽기 회원 그룹</label>
+                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -364,7 +364,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_min_level">읽기 최소 레벨</label>
+                <label class="form-label" for="community_admin_boards_read_min_level"><?php echo sr_e(sr_t('community::ui.text.a783617f')); ?></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_read_min_level', 'read_min_level', (int) $boardField($formBoard, 'read_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -373,7 +373,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_policy">쓰기 정책</label>
+                <label class="form-label" for="community_admin_boards_write_policy"><?php echo sr_e(sr_t('community::ui.text.4f05f6a8')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_write_policy" name="write_policy" class="form-select">
                                             <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -386,7 +386,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_group_keys">쓰기 회원 그룹</label>
+                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -395,7 +395,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_min_level">쓰기 최소 레벨</label>
+                <label class="form-label" for="community_admin_boards_write_min_level"><?php echo sr_e(sr_t('community::ui.text.82530158')); ?></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_write_min_level', 'write_min_level', (int) $boardField($formBoard, 'write_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -404,7 +404,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_policy">댓글 정책</label>
+                <label class="form-label" for="community_admin_boards_comment_policy"><?php echo sr_e(sr_t('community::ui.text.0550e13c')); ?></label>
                 <div class="admin-form-field">
                     <select id="community_admin_boards_comment_policy" name="comment_policy" class="form-select">
                                             <?php foreach ($allowedCommentPolicies as $policy) { ?>
@@ -417,7 +417,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_group_keys">댓글 회원 그룹</label>
+                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -426,7 +426,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_min_level">댓글 최소 레벨</label>
+                <label class="form-label" for="community_admin_boards_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_comment_min_level', 'comment_min_level', (int) $boardField($formBoard, 'comment_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -435,11 +435,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">이미지 첨부 허용</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_boards_image_uploads_enabled">
                                             <input id="modules_community_admin_boards_image_uploads_enabled" type="checkbox" name="image_uploads_enabled" value="1" class="form-checkbox"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.c3bd14cb')); ?>
                                         </label>
                                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_image_uploads_enabled', $boardSettingSource($formBoard, 'image_uploads_enabled')); ?>
@@ -447,7 +447,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_attachment_max_bytes">이미지 최대 용량(bytes)</label>
+                <label class="form-label" for="community_admin_boards_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.e28899ac')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -456,7 +456,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_attachment_max_count">이미지 최대 개수</label>
+                <label class="form-label" for="community_admin_boards_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.bf61ba9f')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_count" type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -465,11 +465,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">파일 첨부 허용</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.fe95ead0')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_boards_file_uploads_enabled">
                                             <input id="modules_community_admin_boards_file_uploads_enabled" type="checkbox" name="file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.fe95ead0')); ?>
                                         </label>
                                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_file_uploads_enabled', $boardSettingSource($formBoard, 'file_uploads_enabled')); ?>
@@ -477,7 +477,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_file_attachment_max_bytes">파일 최대 용량(bytes)</label>
+                <label class="form-label" for="community_admin_boards_file_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.9055a3dc')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -486,7 +486,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_file_attachment_max_count">파일 최대 개수</label>
+                <label class="form-label" for="community_admin_boards_file_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.593790e4')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_count" type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -495,7 +495,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_file_allowed_extensions">파일 허용 확장자</label>
+                <label class="form-label" for="community_admin_boards_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -507,18 +507,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2>
-                <span>배너</span>
+                <span><?php echo sr_e(sr_t('community::ui.banner.63182d60')); ?></span>
                 <?php if (sr_module_enabled($pdo, 'banner')) { ?>
-                    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light">배너 관리</a>
+                    <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.banner.42c18eb4')); ?></a>
                 <?php } ?>
             </h2>
-                <p>배너 관리에서 출력 위치를 공용 배너로 저장한 항목만 선택할 수 있습니다.</p>
+                <p><?php echo sr_e(sr_t('community::ui.banner.banner.save.select.b4ee12be')); ?></p>
                 <?php foreach ($publicBannerSettingLabels as $bannerSettingKey => $bannerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e('community_board_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e((string) $bannerSettingKey); ?>" class="form-select form-control-full">
-                                                                <option value="0">사용 안 함</option>
+                                                                <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
                                                                 <?php foreach ($publicBanners as $publicBanner) { ?>
                                                                     <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
                                                                         <?php echo sr_e((string) $publicBanner['title']); ?>
@@ -535,18 +535,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2>
-                <span>팝업레이어</span>
+                <span><?php echo sr_e(sr_t('community::ui.text.1063d585')); ?></span>
                 <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
-                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light">팝업레이어 관리</a>
+                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.f789aad9')); ?></a>
                 <?php } ?>
             </h2>
-                <p>팝업레이어 관리에서 노출 대상을 공용 팝업레이어로 저장한 항목만 선택할 수 있습니다.</p>
+                <p><?php echo sr_e(sr_t('community::ui.save.select.59a0fe09')); ?></p>
                 <?php foreach ($publicPopupLayerSettingLabels as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e('community_board_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e((string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
-                                                                <option value="0">사용 안 함</option>
+                                                                <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
                                                                 <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
                                                                     <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $boardField($formBoard, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
                                                                         <?php echo sr_e((string) $publicPopupLayer['title']); ?>
@@ -562,15 +562,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>회원 자산</h2>
+            <h2><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></h2>
             <div class="admin-form-grid">
                 <?php foreach ([
-                    'post_reward' => '게시글 적립',
-                    'comment_reward' => '댓글 적립',
-                    'write_charge' => '글쓰기 차감',
-                    'comment_charge' => '댓글 차감',
-                    'paid_read' => '유료 열람',
-                    'paid_attachment_download' => '첨부 다운로드 차감',
+                    'post_reward' => sr_t('community::ui.text.a3cc976c'),
+                    'comment_reward' => sr_t('community::ui.text.bb39df0e'),
+                    'write_charge' => sr_t('community::ui.text.ce1392a2'),
+                    'comment_charge' => sr_t('community::ui.text.629c5136'),
+                    'paid_read' => sr_t('community::ui.text.c9b3e6f0'),
+                    'paid_attachment_download' => sr_t('community::ui.text.5b864b9e'),
                 ] as $assetPrefix => $assetLabel) { ?>
                     <?php $assetEnabledId = 'community_board_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                     <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
@@ -582,19 +582,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-setting-unit">
                                     <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                         <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                        <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
+                                        <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
                                     <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_enabled', $boardSettingSource($formBoard, (string) $assetPrefix . '_enabled')); ?>
                                 </div>
                                 <div class="admin-asset-setting-target admin-setting-unit admin-setting-unit-wide">
                                     <?php if ($usesCompositeAsset) { ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                     <?php } else { ?>
                                         <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
                                             <?php if ($assetModuleOptions === []) { ?>
-                                                <option value="">활성 자산 모듈 없음</option>
+                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                             <?php } ?>
                                             <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                 <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
@@ -606,22 +606,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } ?>
                                 </div>
                                 <div class="admin-setting-unit">
-                                    <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e($assetLabel); ?> 금액">
+                                    <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e(sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>">
                                     <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_amount', $boardSettingSource($formBoard, (string) $assetPrefix . '_amount')); ?>
                                 </div>
                                 <?php if ($assetPrefix === 'paid_read') { ?>
                                     <div class="admin-setting-unit">
-                                        <select name="paid_read_charge_policy" class="form-select" aria-label="유료 열람 과금 방식">
-                                            <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                            <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                        <select name="paid_read_charge_policy" class="form-select" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
+                                            <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
                                         </select>
                                         <?php echo $settingSourceRadioHtml('source_paid_read_charge_policy', $boardSettingSource($formBoard, 'paid_read_charge_policy')); ?>
                                     </div>
                                 <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
                                     <div class="admin-setting-unit">
-                                        <select name="paid_attachment_download_charge_policy" class="form-select" aria-label="첨부 다운로드 과금 방식">
-                                            <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                            <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                        <select name="paid_attachment_download_charge_policy" class="form-select" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
+                                            <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
                                         </select>
                                         <?php echo $settingSourceRadioHtml('source_paid_attachment_download_charge_policy', $boardSettingSource($formBoard, 'paid_attachment_download_charge_policy')); ?>
                                     </div>
@@ -634,17 +634,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>정렬</h2>
+            <h2><?php echo sr_e(sr_t('community::ui.text.3788952d')); ?></h2>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_sort_order">정렬 순서</label>
+                <label class="form-label" for="community_admin_boards_sort_order"><?php echo sr_e(sr_t('community::ui.text.7d2dc215')); ?></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'sort_order', '0')); ?>" class="form-input">
                 </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light">목록</a>
-            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? '변경' : '생성'; ?></button>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27'); ?></button>
         </div>
     </form>
 <?php } ?>

@@ -14,7 +14,7 @@ return static function (PDO $pdo): array {
 
         $links[] = [
             'asset_type' => 'board_group',
-            'asset_type_label' => '게시판 그룹',
+            'asset_type_label' => sr_t('community::ui.text.ec060706'),
             'label' => (string) ($group['title'] ?? $groupKey),
             'url' => '/community#group-' . rawurlencode($groupKey),
         ];
@@ -28,7 +28,7 @@ return static function (PDO $pdo): array {
 
         $links[] = [
             'asset_type' => 'board',
-            'asset_type_label' => '게시판',
+            'asset_type_label' => sr_t('community::ui.text.4732a58f'),
             'label' => (string) ($board['title'] ?? $boardKey),
             'url' => '/community/board?key=' . rawurlencode($boardKey),
         ];

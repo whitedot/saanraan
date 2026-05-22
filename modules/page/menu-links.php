@@ -15,7 +15,7 @@ return static function (PDO $pdo): array {
 
         $links[] = [
             'asset_type' => 'page_group',
-            'asset_type_label' => '페이지 그룹',
+            'asset_type_label' => sr_t('page::ui.page.5875c5b3'),
             'label' => (string) ($group['title'] ?? $groupKey),
             'url' => sr_page_group_path($groupKey),
         ];
@@ -37,7 +37,7 @@ return static function (PDO $pdo): array {
 
         $links[] = [
             'asset_type' => 'page',
-            'asset_type_label' => '페이지',
+            'asset_type_label' => sr_t('page::ui.page.6c84a1b3'),
             'label' => (string) $page['title'],
             'url' => sr_page_path($slug),
         ];

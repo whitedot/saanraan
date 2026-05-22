@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => '적립금',
+    'name' => sr_t('reward::ui.text.d20e87cb'),
     'version' => '2026.04.001',
     'type' => 'module',
-    'description' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
+    'description' => sr_t('reward::ui.member.1391f876'),
     'admin' => [
         'category' => 'member',
-        'category_label' => '회원',
+        'category_label' => sr_t('reward::ui.member.e335b899'),
         'category_order' => 10,
         'menu_order' => 40,
         'icon' => ['type' => 'symbol', 'name' => 'gift'],

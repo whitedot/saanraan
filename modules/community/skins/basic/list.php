@@ -35,7 +35,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_before_list_id'] ?? 0)); ?>
         <?php } ?>
 
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
+        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
             <p><?php echo sr_e((string) $board['description']); ?></p>
@@ -47,7 +47,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
         <?php if ($canWriteBoard) { ?>
             <p>
-                <a href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
+                <a href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.1f1955dd')); ?></a>
             </p>
         <?php } ?>
 
@@ -55,28 +55,28 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <input type="hidden" name="key" value="<?php echo sr_e((string) $board['board_key']); ?>">
             <p>
                 <label for="modules_community_list_q">
-                    <span>검색</span>
+                    <span><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></span>
                     <input id="modules_community_list_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>">
                 </label>
-                <button type="submit">검색</button>
+                <button type="submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
                 <?php if ($keyword !== '') { ?>
-                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">초기화</a>
+                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
                 <?php } ?>
             </p>
         </form>
 
         <?php if ($posts === []) { ?>
-            <p><?php echo $keyword !== '' ? '검색 결과가 없습니다.' : '게시글이 없습니다.'; ?></p>
+            <p><?php echo $keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd'); ?></p>
         <?php } else { ?>
             <table>
                 <thead>
                     <tr>
-                        <th>제목</th>
-                        <th>작성자</th>
-                        <th>작성일</th>
-                        <th>댓글</th>
-                        <th>첨부</th>
-                        <th>조회</th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.353b76cf')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.f8d240bf')); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,14 +99,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php } ?>
 
         <?php if ($totalPages > 1) { ?>
-            <nav aria-label="게시글 페이지">
+            <nav aria-label="<?php echo sr_e(sr_t('community::ui.page.13726597')); ?>">
                 <p>
                     <?php if ($page > 1) { ?>
-                        <a href="<?php echo sr_e(sr_url($baseListPath . '&page=' . (string) ($page - 1))); ?>">이전</a>
+                        <a href="<?php echo sr_e(sr_url($baseListPath . '&page=' . (string) ($page - 1))); ?>"><?php echo sr_e(sr_t('community::ui.text.da7e61c6')); ?></a>
                     <?php } ?>
                     <?php echo sr_e((string) $page); ?> / <?php echo sr_e((string) $totalPages); ?>
                     <?php if ($page < $totalPages) { ?>
-                        <a href="<?php echo sr_e(sr_url($baseListPath . '&page=' . (string) ($page + 1))); ?>">다음</a>
+                        <a href="<?php echo sr_e(sr_url($baseListPath . '&page=' . (string) ($page + 1))); ?>"><?php echo sr_e(sr_t('community::ui.text.aef613c6')); ?></a>
                     <?php } ?>
                 </p>
             </nav>

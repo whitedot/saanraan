@@ -28,7 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php } ?>
 
         <p>
-            <a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a>
+            <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
             /
             <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']))); ?>">
                 <?php echo sr_e((string) $post['board_title']); ?>
@@ -38,28 +38,26 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <article>
             <h1><?php echo sr_e($pageTitle); ?></h1>
             <p>
-                작성자: <?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
-                /
-                작성일: <?php echo sr_e((string) $post['created_at']); ?>
-                /
-                조회: <?php echo sr_e((string) $post['view_count']); ?>
+                <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
+                <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_e((string) $post['created_at']); ?>
+                <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
             </p>
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
-                    <p><a href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>">게시글 수정</a></p>
+                    <p><a href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a></p>
                 <?php } ?>
                 <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit">게시글 삭제</button>
+                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
-                    <button type="submit"><?php echo $isScrapped ? '스크랩 해제' : '스크랩'; ?></button>
+                    <button type="submit"><?php echo $isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a'); ?></button>
                 </form>
                 <?php if ($canReportPost) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
@@ -68,7 +66,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $post['id']); ?>">
                         <p>
                             <label for="modules_community_view_reason_key">
-                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                 <select id="modules_community_view_reason_key" name="reason_key" required>
                                     <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                                         <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
@@ -78,11 +76,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         </p>
                         <p>
                             <label for="modules_community_view_memo_text">
-                    <span>신고 메모</span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.54791a8b')); ?></span>
                                 <textarea id="modules_community_view_memo_text" name="memo_text" rows="3" cols="60"></textarea>
                             </label>
                         </p>
-                        <button type="submit">게시글 신고</button>
+                        <button type="submit"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
                     </form>
                 <?php } ?>
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
@@ -123,7 +121,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
             <?php if ($imageAttachments !== []) { ?>
                 <section>
-                    <h2>첨부 이미지</h2>
+                    <h2><?php echo sr_e(sr_t('community::ui.text.01dd6a36')); ?></h2>
                     <ul>
                         <?php foreach ($imageAttachments as $attachment) { ?>
                             <li>
@@ -141,7 +139,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
             <?php if ($fileAttachments !== []) { ?>
                 <section>
-                    <h2>첨부파일</h2>
+                    <h2><?php echo sr_e(sr_t('community::ui.text.0e89a5d4')); ?></h2>
                     <ul>
                         <?php foreach ($fileAttachments as $attachment) { ?>
                             <li>
@@ -176,13 +174,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 'subject_id' => (string) $post['id'],
             ]); ?>
 
-            <h2>댓글</h2>
+            <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
             <?php if ($commentNotice !== '') { ?>
                 <p><?php echo sr_e($commentNotice); ?></p>
             <?php } ?>
 
             <?php if ($comments === []) { ?>
-                <p>댓글이 없습니다.</p>
+                <p><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></p>
             <?php } else { ?>
                 <ul>
                     <?php foreach ($comments as $comment) { ?>
@@ -200,18 +198,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                         <p>
                                             <label for="modules_community_view_body_text">
-                    <span>댓글 수정 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                                 <textarea id="modules_community_view_body_text" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                             </label>
                                         </p>
-                                        <button type="submit">댓글 수정</button>
+                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
                                     </form>
                                 <?php } ?>
                                 <?php if (sr_community_account_can_delete_comment($comment, $account)) { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                        <button type="submit">댓글 삭제</button>
+                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                     </form>
                                 <?php } ?>
                                 <?php if ((int) $comment['author_account_id'] !== (int) $account['id']) { ?>
@@ -221,7 +219,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                         <p>
                                             <label for="modules_community_view_reason_key_2">
-                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                                 <select id="modules_community_view_reason_key_2" name="reason_key" required>
                                                     <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                                                         <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
@@ -231,11 +229,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         </p>
                                         <p>
                                             <label for="modules_community_view_memo_text_2">
-                    <span>신고 메모</span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.54791a8b')); ?></span>
                                                 <textarea id="modules_community_view_memo_text_2" name="memo_text" rows="3" cols="60"></textarea>
                                             </label>
                                         </p>
-                                        <button type="submit">댓글 신고</button>
+                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
                                     </form>
                                 <?php } ?>
                             <?php } ?>
@@ -258,11 +256,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <p>
                         <label for="modules_community_view_body_text_2">
-                    <span>댓글 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                             <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required><?php echo sr_e($commentBody); ?></textarea>
                         </label>
                     </p>
-                    <button type="submit">댓글 등록</button>
+                    <button type="submit"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>
                 <p><?php echo sr_e($commentUnavailableMessage); ?></p>

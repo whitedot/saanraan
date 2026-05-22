@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'label' => '적립금',
+    'label' => sr_t('reward::ui.text.d20e87cb'),
     'order' => 60,
     'items' => [
         [
-            'label' => '잔액',
+            'label' => sr_t('reward::ui.text.b099377c'),
             'path' => '/admin/rewards/balances',
             'order' => 10,
         ],
         [
-            'label' => '거래 내역',
+            'label' => sr_t('reward::ui.text.754ef98b'),
             'path' => '/admin/rewards/transactions',
             'order' => 30,
         ],

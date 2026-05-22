@@ -3,7 +3,7 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card ui-kit-column-xl-2">
                             <div class="card-header">
-                                <h4 class="card-title">기본 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.4ade38d6')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -11,10 +11,10 @@
                         <!-- 기본 카드 -->
                         <div class="card">
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.7ba351cf')); ?></p>
 
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -23,10 +23,10 @@
                         <!-- 기본 카드 -->
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">제목이 있는 기본 카드</h5>
-                                <p class="ui-kit-space-after-4">카드 제목을 기반으로 하고 카드의 주요 내용을 구성하는 간단한 예시 텍스트입니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.70c54fc0')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.7ba351cf')); ?></p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -35,11 +35,10 @@
                         <!-- 기본 카드 -->
                         <div class="card card-solid-primary card-inverse">
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">배경색이 있는 카드</h5>
-                                <p class="ui-kit-space-after-4">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
-                                    카드의 핵심 내용을 빠르게 보여줍니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.2d879867')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.eee7408d')); ?></p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-light">버튼</a>
+                                    class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -48,11 +47,10 @@
                         <!-- 기본 카드 -->
                         <div class="card card-solid-success card-inverse">
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">배경 그라데이션이 있는 카드</h5>
-                                <p class="ui-kit-space-after-4">카드 제목을 바탕으로 콘텐츠를 구성하는 간단한 예시 문구입니다.
-                                    카드의 핵심 내용을 빠르게 보여줍니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.2d871c9c')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.eee7408d')); ?></p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-light">버튼</a>
+                                    class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -62,15 +60,15 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-3 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">헤더가 있는 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.51f44d20')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">특별한 제목 처리</h5>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.576b084e')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -78,28 +76,28 @@
 
                         <div class="card">
                             <div class="card-header ui-kit-block-flow ui-kit-line-dashed">
-                                <h4 class="card-title ui-kit-space-after-1-25">서브 헤더가 있는 카드</h4>
-                                <h6 class="ui-kit-ink-default-400 ui-kit-type-2xs">카드 부제목</h6>
+                                <h4 class="card-title ui-kit-space-after-1-25"><?php echo sr_e(sr_t('ui.text.a3a9bd41')); ?></h4>
+                                <h6 class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.751ad3df')); ?></h6>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4">로렘 입숨은 전통적인 라틴어 텍스트로, 디자인의 레이아웃을 보여주기 위해 사용됩니다.</p>
-                                <p>출처 제목의 유명한 누군가</p>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.active.3fe0c8fa')); ?></p>
+                                <p><?php echo sr_e(sr_t('ui.text.2d361639')); ?></p>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
                         <!-- 카드 끝-->
 
                         <div class="card">
-                            <div class="card-header">주요 카드 제목</div>
+                            <div class="card-header"><?php echo sr_e(sr_t('ui.text.4d36295e')); ?></div>
 
                             <div class="card-body">
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
 
-                            <div class="card-footer ui-kit-ink-default-400">2일 전</div>
+                            <div class="card-footer ui-kit-ink-default-400"><?php echo sr_e(sr_t('ui.text.5c4a7dbd')); ?></div>
                         </div>
                         <!-- 카드 끝-->
                                 </div>
@@ -108,24 +106,24 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">고급 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.95fef11e')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">작업 도구가 있는 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.1ead5386')); ?></h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
 
                                 </div>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -133,26 +131,25 @@
 
                         <div class="card card-solid-primary card-inverse">
                             <div class="card-header card-inverse-header">
-                                <h4 class="card-title">작업 도구 및 배경색이 있는 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.74477bd9')); ?></h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text">접기</span>
+                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.aba08853')); ?></span>
                                     </button>
 
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text">새로고침</span>
+                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.8259f9d3')); ?></span>
                                     </button>
 
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text">닫기</span>
+                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                     </button>
                                 </div>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4">아래 보조 텍스트는 추가 콘텐츠로 자연스럽게 이어집니다.</p>
-                                <a href="javascript: void(0);" class="btn btn-sm btn-solid-light">어딘가로
-                                    이동</a>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.214f3518')); ?></p>
+                                <a href="javascript: void(0);" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('ui.text.37de216a')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -160,17 +157,17 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">작업 도구가 있는 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.1ead5386')); ?></h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
 
                                 </div>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">어딘가로 이동</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -181,18 +178,18 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">테두리가 있는 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.e4e1145f')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-line-primary ui-kit-frame">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-space-after-2-5">유색 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.3fd450cb')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -200,11 +197,11 @@
 
                         <div class="card ui-kit-line-primary ui-kit-frame ui-kit-line-dashed">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3">심플한 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.8192e13f')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -212,11 +209,11 @@
 
                         <div class="card ui-kit-line-primary ui-kit-frame-strong">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3">이중 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.d7742378')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -224,11 +221,11 @@
 
                         <div class="card ui-kit-line-dark ui-kit-accent-line">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-dark ui-kit-space-after-3">이중 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-ink-dark ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.d7742378')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-dark">버튼</a>
+                                    class="btn btn-sm btn-solid-dark"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -236,11 +233,11 @@
 
                         <div class="card ui-kit-line-primary ui-kit-accent-line">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3">유색 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.3fd450cb')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-primary">버튼</a>
+                                    class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -248,11 +245,11 @@
 
                         <div class="card ui-kit-line-info ui-kit-accent-line">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-space-after-2-5">유색 테두리가 있는 카드</h4>
-                                <p class="ui-kit-space-after-4">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.
+                                <h4 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.3fd450cb')); ?></h4>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
-                                    class="btn btn-sm btn-solid-info">버튼</a>
+                                    class="btn btn-sm btn-solid-info"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -263,7 +260,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">수평 카드</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.c031fc05')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -271,16 +268,16 @@
                         <div class="card">
                             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-align-items-center ui-kit-grid-md-3">
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-s-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-s-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
 
                                 <div class="ui-kit-column-2">
                                     <div class="card-body">
-                                        <h5 class="card-title ui-kit-space-after-2-5">수평 모드 카드</h5>
-                                        <p class="ui-kit-space-after-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 내용은 조금 더 깁니다.
+                                        <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.dbc79f50')); ?></h5>
+                                        <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.054dbe3e')); ?>
                                         </p>
                                         <p>
-                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                         </p>
                                     </div>
                                 </div>
@@ -291,17 +288,17 @@
                             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-align-items-center ui-kit-grid-md-3">
                                 <div class="ui-kit-column-2">
                                     <div class="card-body">
-                                        <h5 class="card-title ui-kit-space-after-2-5">수평 모드 카드</h5>
-                                        <p class="ui-kit-space-after-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 내용은 조금 더 깁니다.
+                                        <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.dbc79f50')); ?></h5>
+                                        <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.054dbe3e')); ?>
                                         </p>
                                         <p>
-                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                         </p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-e-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-e-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
                             </div>
                         </div>
@@ -311,30 +308,30 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">확장된 링크</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.a5c65a09')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
-                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
+                                    <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.bbd50f61')); ?></h5>
                                 </a>
                                 <a href="#"
-                                    class="btn btn-sm btn-solid-primary btn-space-before">버튼</a>
+                                    class="btn btn-sm btn-solid-primary btn-space-before"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                         </div>
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
-                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3">확장 링크가 있는 카드</h5>
-                                    <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
+                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.bbd50f61')); ?></h5>
+                                    <p><?php echo sr_e(sr_t('ui.text.b82ab5cc')); ?>
                                     </p>
                                 </div>
                             </a>
@@ -342,23 +339,23 @@
 
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
-                                    <h5 class="card-title ui-kit-space-after-2-5">확장 링크가 있는 카드</h5>
+                                    <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.bbd50f61')); ?></h5>
                                 </a>
                                 <a href="#"
-                                    class="btn btn-sm btn-solid-primary btn-space-before">버튼</a>
+                                    class="btn btn-sm btn-solid-primary btn-space-before"><?php echo sr_e(sr_t('ui.text.60563203')); ?></a>
                             </div>
                         </div>
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
-                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3">확장 링크가 있는 카드</h5>
-                                    <p>카드 제목을 기반으로 내용을 구성하는 간단한 예시 텍스트입니다.
+                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('ui.text.bbd50f61')); ?></h5>
+                                    <p><?php echo sr_e(sr_t('ui.text.b82ab5cc')); ?>
                                     </p>
                                 </div>
                             </a>
@@ -369,42 +366,40 @@
 
                         <div class="card ui-kit-column-xl-2">
                             <div class="card-header">
-                                <h4 class="card-title">카드 그룹</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.1f03d3ef')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-3 ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p class="ui-kit-space-after-4">이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
-                                    내용이 조금 더 깁니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.868e2369')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-none">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p class="ui-kit-space-after-4">이 카드는 추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트를 포함하고 있습니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.993e1da7')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-none ui-kit-radius-md-e-sm">
-                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="팝아트 색상 예제 이미지" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                            <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p class="ui-kit-space-after-4">이것은 자연스럽게 추가 콘텐츠로 이어지는 보조 텍스트가 있는 더 넓은 카드입니다. 이 카드는 동일한 높이 동작을 보여주기 위해 첫
-                                    번째 카드보다 더 긴 내용을 가지고 있습니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.bfa30283')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
@@ -413,41 +408,39 @@
                                 <div class="ui-kit-grid ui-kit-gap-3 ui-kit-radius-base ui-kit-grid-md-3 ui-kit-gap-md-0">
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
                             <div class="card-body ui-kit-flex-fill">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
-                                    내용이 조금 더 깁니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p><?php echo sr_e(sr_t('ui.text.868e2369')); ?></p>
                             </div>
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-none">
                             <div class="card-body ui-kit-flex-fill">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어집니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p><?php echo sr_e(sr_t('ui.text.5b233465')); ?></p>
                             </div>
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
                         <div class="card ui-kit-fill-height ui-kit-radius-md-s-none ui-kit-radius-md-e-sm">
                             <div class="card-body ui-kit-flex-fill">
-                                <h5 class="card-title ui-kit-space-after-2-5">카드 제목</h5>
-                                <p>이 카드는 아래 보조 텍스트가 추가 콘텐츠로 자연스럽게 이어지는 더 넓은 카드입니다.
-                                    동일한 높이 동작을 보여주기 위해 첫 번째 카드보다 내용이 더 깁니다.</p>
+                                <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('ui.text.92ab0fdd')); ?></h5>
+                                <p><?php echo sr_e(sr_t('ui.text.a1740815')); ?></p>
                             </div>
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs">최근 업데이트: 3분 전</small>
+                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
@@ -457,7 +450,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">카드가 있는 내비게이션</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.e5455d80')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -466,20 +459,19 @@
                             <div class="card-header ui-kit-line-dashed ui-kit-pad-after-0">
                                 <nav class="ui-kit-cluster">
                                     <a href="#"
-                                        class="ui-kit-ink-primary ui-kit-line-default-300 ui-kit-radius-t-lg ui-kit-frame ui-kit-divider-bottom-none ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-text-center ui-kit-type-sm ui-kit-weight-medium">활성</a>
+                                        class="ui-kit-ink-primary ui-kit-line-default-300 ui-kit-radius-t-lg ui-kit-frame ui-kit-divider-bottom-none ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-text-center ui-kit-type-sm ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></a>
 
-                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium">링크</a>
+                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.3d54da9c')); ?></a>
 
-                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled>비활성화됨</a>
+                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled><?php echo sr_e(sr_t('ui.text.cb0f8c54')); ?></a>
                                 </nav>
                             </div>
 
                             <div class="card-body">
-                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center">특별한 제목 처리</h5>
-                                <p class="ui-kit-space-after-4 ui-kit-text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
+                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center"><?php echo sr_e(sr_t('ui.text.576b084e')); ?></h5>
+                                <p class="ui-kit-space-after-4 ui-kit-text-center"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?></p>
                                 <div class="ui-kit-text-center">
-                                    <a href="#" class="btn btn-sm btn-solid-primary">어딘가로
-                                        이동</a>
+                                    <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.a63b0796')); ?></a>
                                 </div>
                             </div>
                         </div>
@@ -487,19 +479,18 @@
                         <div class="card">
                             <div class="card-header">
                                 <nav class="ui-kit-cluster">
-                                    <a href="#" class="btn btn-sm btn-solid-primary">활성</a>
-                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium">링크</a>
-                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled>비활성화됨</a>
+                                    <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></a>
+                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.3d54da9c')); ?></a>
+                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled><?php echo sr_e(sr_t('ui.text.cb0f8c54')); ?></a>
                                 </nav>
                             </div>
 
                             <div class="card-body">
-                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center">특별한 제목 처리</h5>
-                                <p class="ui-kit-space-after-4 ui-kit-text-center">추가 콘텐츠로 자연스럽게 이어지는 아래의 보조 텍스트와 함께 제공됩니다.</p>
+                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center"><?php echo sr_e(sr_t('ui.text.576b084e')); ?></h5>
+                                <p class="ui-kit-space-after-4 ui-kit-text-center"><?php echo sr_e(sr_t('ui.text.702b1a50')); ?></p>
 
                                 <div class="ui-kit-text-center">
-                                    <a href="#" class="btn btn-sm btn-solid-primary">어딘가로
-                                        이동</a>
+                                    <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('ui.text.a63b0796')); ?></a>
                                 </div>
                             </div>
                         </div>

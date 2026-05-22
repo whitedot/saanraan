@@ -1,16 +1,16 @@
 <?php
 
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
-$adminPageTitle = $communitySettingsPage === 'levels' ? '커뮤니티 레벨 정의' : '커뮤니티 설정';
+$adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
 $accessConditionPriorityLabels = [
-    'both_required' => '그룹과 레벨 모두 필요',
-    'group_first' => '그룹 우선',
-    'level_first' => '레벨 우선',
+    'both_required' => sr_t('community::ui.text.e11baa69'),
+    'group_first' => sr_t('community::ui.text.eeebd1cf'),
+    'level_first' => sr_t('community::ui.text.e6e726db'),
 ];
 $accessConditionPriorityDescriptions = [
-    'both_required' => '그룹 조건과 레벨 조건이 함께 설정된 경우 두 조건을 모두 만족해야 허용합니다.',
-    'group_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 그룹 조건으로 통과한 것으로 기록합니다.',
-    'level_first' => '그룹 또는 레벨 중 하나만 만족해도 허용하며, 둘 다 만족하면 레벨 조건으로 통과한 것으로 기록합니다.',
+    'both_required' => sr_t('community::ui.settings.c2fb86ae'),
+    'group_first' => sr_t('community::ui.text.e111bd78'),
+    'level_first' => sr_t('community::ui.text.dce86ee3'),
 ];
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
@@ -23,8 +23,8 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
     }
 }
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
-    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
-    : '활성 자산 모듈 없음';
+    ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
+    : sr_t('community::ui.text.3e195cdd');
 $accessConditionPriorityInputId = 'community_admin_settings_access_condition_priority';
 $currentAccessConditionPriority = (string) $settings['access_condition_priority'];
 $accessConditionPriorityHelpModalId = 'community_access_condition_priority_help_modal';
@@ -39,56 +39,56 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <input type="hidden" name="intent" value="save_settings">
 
     <section class="admin-card card">
-        <h2>레벨</h2>
+        <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <span class="form-label">커뮤니티 레벨 사용</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.community.active.9b707ae1')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_enabled">
                                             <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('커뮤니티 레벨 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.community.active.9b707ae1')); ?>
                                         </label>
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">게시글/댓글 활동 후 레벨 자동 재계산</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
                                             <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('게시글/댓글 활동 후 레벨 자동 재계산'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.f9447e05')); ?>
                                         </label>
                 </div>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_post_score">게시글 점수</label>
+            <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_comment_score">댓글 점수</label>
+            <label class="form-label" for="community_admin_settings_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></label>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
             </div>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html($accessConditionPriorityInputId, '그룹+레벨 판정', $accessConditionPriorityHelpModalId, '판정 방식 보기'); ?>
+            <?php echo sr_admin_form_label_help_html($accessConditionPriorityInputId, sr_t('community::ui.text.98a7801d'), $accessConditionPriorityHelpModalId, sr_t('community::ui.text.60c97100')); ?>
             <div class="admin-form-field">
                 <select id="<?php echo sr_e($accessConditionPriorityInputId); ?>" name="access_condition_priority" class="form-select">
                                     <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
                                         <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></option>
                                     <?php } ?>
                                 </select>
-                                <small class="admin-form-help">현재: <?php echo sr_e((string) ($accessConditionPriorityLabels[$currentAccessConditionPriority] ?? $currentAccessConditionPriority)); ?>. 그룹 key와 최소 레벨을 함께 설정한 접근 조건에 적용됩니다.</small>
+                                <small class="admin-form-help"><?php echo sr_e(sr_t('community::ui.text.b64f0562')); ?> <?php echo sr_e((string) ($accessConditionPriorityLabels[$currentAccessConditionPriority] ?? $currentAccessConditionPriority)); ?><?php echo sr_e(sr_t('community::ui.settings.999d80a0')); ?></small>
             </div>
         </div>
     </section>
 
     <section class="admin-card card">
-        <h2>쪽지</h2>
+        <h2><?php echo sr_e(sr_t('community::ui.text.919bd592')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_policy">발송 정책</label>
+            <label class="form-label" for="community_admin_settings_message_write_policy"><?php echo sr_e(sr_t('community::ui.text.31edcf4a')); ?></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select">
                                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
@@ -98,13 +98,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_group_keys">발송 회원 그룹</label>
+            <label class="form-label" for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?></label>
             <div class="admin-form-field">
                 <?php echo sr_admin_member_group_key_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_min_level">발송 최소 레벨</label>
+            <label class="form-label" for="community_admin_settings_message_write_min_level"><?php echo sr_e(sr_t('community::ui.text.c96c86df')); ?></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
@@ -118,18 +118,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2>회원 자산</h2>
+        <h2><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <span class="form-label">게시글 적립</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.a3cc976c')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_post_reward_enabled">
                                             <input id="modules_community_admin_settings_post_reward_enabled" type="checkbox" name="post_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['post_reward_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('게시글 작성 적립 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                                         </label>
                                         <select name="post_reward_asset_module" class="form-select">
                                             <?php if ($assetModuleOptions === []) { ?>
-                                                <option value="">활성 자산 모듈 없음</option>
+                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                             <?php } ?>
                                             <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                 <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['post_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
@@ -138,20 +138,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="number" name="post_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['post_reward_amount']); ?>" class="form-input">
                                         <label class="admin-form-check form-label" for="modules_community_admin_settings_post_reward_reversal_enabled">
                                             <input id="modules_community_admin_settings_post_reward_reversal_enabled" type="checkbox" name="post_reward_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['post_reward_reversal_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('숨김/삭제 시 적립 회수'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
                                         </label>
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">댓글 적립</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.bb39df0e')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_comment_reward_enabled">
                                             <input id="modules_community_admin_settings_comment_reward_enabled" type="checkbox" name="comment_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_reward_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('댓글 작성 적립 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.1549f7df')); ?>
                                         </label>
                                         <select name="comment_reward_asset_module" class="form-select">
                                             <?php if ($assetModuleOptions === []) { ?>
-                                                <option value="">활성 자산 모듈 없음</option>
+                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                             <?php } ?>
                                             <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                 <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) $settings['comment_reward_asset_module'] === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
@@ -160,67 +160,67 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="number" name="comment_reward_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_reward_amount']); ?>" class="form-input">
                                         <label class="admin-form-check form-label" for="modules_community_admin_settings_comment_reward_reversal_enabled">
                                             <input id="modules_community_admin_settings_comment_reward_reversal_enabled" type="checkbox" name="comment_reward_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_reward_reversal_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('숨김/삭제 시 적립 회수'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
                                         </label>
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">글쓰기 차감</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.ce1392a2')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_write_charge_enabled">
                                             <input id="modules_community_admin_settings_write_charge_enabled" type="checkbox" name="write_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['write_charge_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('글쓰기 차감 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.98b7dd61')); ?>
                                         </label>
                                         <?php $writeChargeAssetModules = sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="write_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">댓글 차감</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.629c5136')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_comment_charge_enabled">
                                             <input id="modules_community_admin_settings_comment_charge_enabled" type="checkbox" name="comment_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_charge_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('댓글 차감 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.5f0ef7af')); ?>
                                         </label>
                                         <?php $commentChargeAssetModules = sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="comment_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">유료 열람</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.c9b3e6f0')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_read_enabled">
                                             <input id="modules_community_admin_settings_paid_read_enabled" type="checkbox" name="paid_read_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_read_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('게시글 유료 열람 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.11ad75bb')); ?>
                                         </label>
                                         <?php $paidReadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="paid_read_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>" class="form-input">
                                         <select name="paid_read_charge_policy" class="form-select">
-                                            <option value="once"<?php echo (string) $settings['paid_read_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                            <option value="every_view"<?php echo (string) $settings['paid_read_charge_policy'] === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                            <option value="once"<?php echo (string) $settings['paid_read_charge_policy'] === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_view"<?php echo (string) $settings['paid_read_charge_policy'] === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
                                         </select>
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">첨부 다운로드 차감</span>
+                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.5b864b9e')); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_attachment_download_enabled">
                                             <input id="modules_community_admin_settings_paid_attachment_download_enabled" type="checkbox" name="paid_attachment_download_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 사용'); ?>
+                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.ac757b6f')); ?>
                                         </label>
                                         <?php $paidAttachmentDownloadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="paid_attachment_download_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>" class="form-input">
                                         <select name="paid_attachment_download_charge_policy" class="form-select">
-                                            <option value="once"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                            <option value="every_download"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                            <option value="once"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_download"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
                                         </select>
                 </div>
             </div>
@@ -228,9 +228,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2>화면</h2>
+        <h2><?php echo sr_e(sr_t('community::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>
+            <label class="form-label" for="community_admin_settings_layout_key"><?php echo sr_e(sr_t('community::ui.community.8f453af4')); ?></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
                                     <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -244,18 +244,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">설정 저장</button>
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.settings.save.59aa86cd')); ?></button>
     </div>
 </form>
 
 <?php ob_start(); ?>
-<p class="admin-form-help">게시판 접근 조건에서 그룹 key와 최소 레벨이 함께 설정된 경우에만 적용됩니다.</p>
+<p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.settings.c4dcf2ad')); ?></p>
 <div class="table-wrapper">
     <table class="table">
         <thead class="ui-table-head">
             <tr>
-                <th>방식</th>
-                <th>설명</th>
+                <th><?php echo sr_e(sr_t('community::ui.text.3f5e5497')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -268,13 +268,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
 </div>
-<?php echo sr_admin_help_modal_html($accessConditionPriorityHelpModalId, '그룹+레벨 판정 방식', (string) ob_get_clean()); ?>
+<?php echo sr_admin_help_modal_html($accessConditionPriorityHelpModalId, sr_t('community::ui.text.fd2ad6a5'), (string) ob_get_clean()); ?>
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">레벨 정의</h2>
+        <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
     </div>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php if ($levels !== []) { ?>
@@ -285,15 +285,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>레벨</th>
-                    <th>이름</th>
-                    <th>최소 점수</th>
-                    <th>상태</th>
+                    <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($levels === []) { ?>
-                    <tr><td colspan="4" class="admin-empty-state">레벨 테이블이 없거나 정의된 레벨이 없습니다.</td></tr>
+                    <tr><td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.b4915f04')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($levels as $level) { ?>
                         <tr>
@@ -318,7 +318,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php if ($levels !== []) { ?>
             <div class="admin-list-actions">
-                <button type="submit" class="btn btn-solid-primary">레벨 정의 저장</button>
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
             </div>
         <?php } ?>
     </form>
@@ -327,7 +327,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
         <div class="admin-list-actions">
-            <button type="submit" class="btn btn-solid-light">최근 회원 레벨 재계산</button>
+            <button type="submit" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
         </div>
     </form>
 </section>

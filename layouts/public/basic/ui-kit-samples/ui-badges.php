@@ -3,24 +3,24 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">기본 배지 (Default Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.default.badges.d3febc83')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge</code>와 <code>.badge-solid-*</code> 클래스를 사용하여 배지를 만듭니다.
+                                    <code>.badge</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>.badge-solid-*</code> <?php echo sr_e(sr_t('ui.active.91786a1a')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-outline-default">기본</span>
-                                    <span class="badge badge-solid-primary">프라이머리</span>
-                                    <span class="badge badge-solid-secondary">세컨더리</span>
-                                    <span class="badge badge-solid-success">성공</span>
-                                    <span class="badge badge-solid-danger">위험</span>
-                                    <span class="badge badge-solid-warning">경고</span>
-                                    <span class="badge badge-solid-info">정보</span>
-                                    <span class="badge badge-solid-light">라이트</span>
-                                    <span class="badge badge-solid-dark">다크</span>
+                                    <span class="badge badge-outline-default"><?php echo sr_e(sr_t('ui.text.3603b458')); ?></span>
+                                    <span class="badge badge-solid-primary"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-solid-secondary"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-solid-success"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-solid-danger"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-solid-warning"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-solid-info"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-solid-light"><?php echo sr_e(sr_t('ui.text.5fe991c6')); ?></span>
+                                    <span class="badge badge-solid-dark"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -29,24 +29,24 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">알약 형태 배지 (Pill Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.pill.badges.1152e3af')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-pill</code> 클래스를 사용하여 배지를 더 둥글게 만듭니다.
+                                    <code>.badge-pill</code> <?php echo sr_e(sr_t('ui.active.8bac75ab')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-outline-default badge-pill">기본</span>
-                                    <span class="badge badge-solid-primary badge-pill">프라이머리</span>
-                                    <span class="badge badge-solid-secondary badge-pill">세컨더리</span>
-                                    <span class="badge badge-solid-success badge-pill">성공</span>
-                                    <span class="badge badge-solid-danger badge-pill">위험</span>
-                                    <span class="badge badge-solid-warning badge-pill">경고</span>
-                                    <span class="badge badge-solid-info badge-pill">정보</span>
-                                    <span class="badge badge-solid-light badge-pill">라이트</span>
-                                    <span class="badge badge-solid-dark badge-pill">다크</span>
+                                    <span class="badge badge-outline-default badge-pill"><?php echo sr_e(sr_t('ui.text.3603b458')); ?></span>
+                                    <span class="badge badge-solid-primary badge-pill"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-solid-secondary badge-pill"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-solid-success badge-pill"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-solid-danger badge-pill"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-solid-warning badge-pill"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-solid-info badge-pill"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-solid-light badge-pill"><?php echo sr_e(sr_t('ui.text.5fe991c6')); ?></span>
+                                    <span class="badge badge-solid-dark badge-pill"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -55,22 +55,22 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">아웃라인 배지 (Outline Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.outline.badges.f7f935ce')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-outline-*</code> 클래스를 사용하여 테두리가 있는 배지를 빠르게 생성합니다.
+                                    <code>.badge-outline-*</code> <?php echo sr_e(sr_t('ui.active.a93e18ae')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-outline-primary">프라이머리</span>
-                                    <span class="badge badge-outline-secondary">세컨더리</span>
-                                    <span class="badge badge-outline-success">성공</span>
-                                    <span class="badge badge-outline-danger">위험</span>
-                                    <span class="badge badge-outline-warning">경고</span>
-                                    <span class="badge badge-outline-info">정보</span>
-                                    <span class="badge badge-outline-dark">다크</span>
+                                    <span class="badge badge-outline-primary"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-outline-secondary"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-outline-success"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-outline-danger"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-outline-warning"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-outline-info"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-outline-dark"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -79,22 +79,22 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">아웃라인 알약 형태 배지 (Outline Pill Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.outline.pill.badges.2f0390ce')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    배지를 더 둥글게 만들려면 <code>.badge-pill</code> 수정자 클래스를 사용하세요.
+                                    <?php echo sr_e(sr_t('ui.text.26da7bc5')); ?> <code>.badge-pill</code> <?php echo sr_e(sr_t('ui.edit.active.88cd7e44')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-outline-primary badge-pill">프라이머리</span>
-                                    <span class="badge badge-outline-secondary badge-pill">세컨더리</span>
-                                    <span class="badge badge-outline-success badge-pill">성공</span>
-                                    <span class="badge badge-outline-danger badge-pill">위험</span>
-                                    <span class="badge badge-outline-warning badge-pill">경고</span>
-                                    <span class="badge badge-outline-info badge-pill">정보</span>
-                                    <span class="badge badge-outline-dark badge-pill">다크</span>
+                                    <span class="badge badge-outline-primary badge-pill"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-outline-secondary badge-pill"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-outline-success badge-pill"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-outline-danger badge-pill"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-outline-warning badge-pill"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-outline-info badge-pill"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-outline-dark badge-pill"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -103,22 +103,22 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">밝은 색상 배지 (Light Color Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.light.color.badges.6ac1c60d')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-soft-*</code> 클래스를 사용하여 밝은 색상의 배지를 만듭니다.
+                                    <code>.badge-soft-*</code> <?php echo sr_e(sr_t('ui.active.e8538452')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-soft-primary">프라이머리</span>
-                                    <span class="badge badge-soft-secondary">세컨더리</span>
-                                    <span class="badge badge-soft-success">성공</span>
-                                    <span class="badge badge-soft-danger">위험</span>
-                                    <span class="badge badge-soft-warning">경고</span>
-                                    <span class="badge badge-soft-info">정보</span>
-                                    <span class="badge badge-soft-dark">다크</span>
+                                    <span class="badge badge-soft-primary"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-soft-secondary"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-soft-success"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-soft-danger"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-soft-warning"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-soft-info"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-soft-dark"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -127,22 +127,22 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">밝은 색상 알약 형태 배지 (Light Color Pill Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.light.color.pill.badges.b1cf11f3')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    배지를 밝게 만들려면 <code>.badge-soft-*</code> 수정자 클래스를 사용하세요.
+                                    <?php echo sr_e(sr_t('ui.text.13a3c408')); ?> <code>.badge-soft-*</code> <?php echo sr_e(sr_t('ui.edit.active.88cd7e44')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-soft-primary badge-pill">프라이머리</span>
-                                    <span class="badge badge-soft-secondary badge-pill">세컨더리</span>
-                                    <span class="badge badge-soft-success badge-pill">성공</span>
-                                    <span class="badge badge-soft-danger badge-pill">위험</span>
-                                    <span class="badge badge-soft-warning badge-pill">경고</span>
-                                    <span class="badge badge-soft-info badge-pill">정보</span>
-                                    <span class="badge badge-soft-dark badge-pill">다크</span>
+                                    <span class="badge badge-soft-primary badge-pill"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-soft-secondary badge-pill"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-soft-success badge-pill"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-soft-danger badge-pill"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-soft-warning badge-pill"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-soft-info badge-pill"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-soft-dark badge-pill"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -151,24 +151,24 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">라벨 배지 (Label Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.label.badges.5c8bc6f6')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-label</code> 을 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
+                                    <code>.badge-label</code> <?php echo sr_e(sr_t('ui.active.5a4954a6')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
-                                    <span class="badge badge-label badge-outline-default">기본</span>
-                                    <span class="badge badge-label badge-solid-primary">프라이머리</span>
-                                    <span class="badge badge-label badge-solid-secondary">세컨더리</span>
-                                    <span class="badge badge-label badge-solid-success">성공</span>
-                                    <span class="badge badge-label badge-solid-danger">위험</span>
-                                    <span class="badge badge-label badge-solid-warning">경고</span>
-                                    <span class="badge badge-label badge-solid-info">정보</span>
-                                    <span class="badge badge-label badge-solid-light">라이트</span>
-                                    <span class="badge badge-label badge-solid-dark">다크</span>
+                                    <span class="badge badge-label badge-outline-default"><?php echo sr_e(sr_t('ui.text.3603b458')); ?></span>
+                                    <span class="badge badge-label badge-solid-primary"><?php echo sr_e(sr_t('ui.text.305abc26')); ?></span>
+                                    <span class="badge badge-label badge-solid-secondary"><?php echo sr_e(sr_t('ui.text.56d7c14e')); ?></span>
+                                    <span class="badge badge-label badge-solid-success"><?php echo sr_e(sr_t('ui.text.b4f76a33')); ?></span>
+                                    <span class="badge badge-label badge-solid-danger"><?php echo sr_e(sr_t('ui.text.baaff05e')); ?></span>
+                                    <span class="badge badge-label badge-solid-warning"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                    <span class="badge badge-label badge-solid-info"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                    <span class="badge badge-label badge-solid-light"><?php echo sr_e(sr_t('ui.text.5fe991c6')); ?></span>
+                                    <span class="badge badge-label badge-solid-dark"><?php echo sr_e(sr_t('ui.text.f1c3b573')); ?></span>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -177,12 +177,12 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">사각형 배지 (Square Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.square.badges.625e1311')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-square</code> 클래스를 사용하여 사각형 기반의 배지를 빠르게 생성합니다.
+                                    <code>.badge-square</code> <?php echo sr_e(sr_t('ui.active.8bf7ee1c')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
@@ -203,12 +203,12 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">원형 배지 (Rounded Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.rounded.badges.f8dbd2c4')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
-                                    <code>.badge-square</code>와 <code>.badge-pill</code>을 사용하여 원형 기반의 배지를 빠르게 생성합니다.
+                                    <code>.badge-square</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>.badge-pill</code><?php echo sr_e(sr_t('ui.active.f9a4c7c8')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
@@ -231,31 +231,31 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">위치 지정 배지 (Position Badges)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.position.badges.649f3562')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4">
-                                    <code>.badge-corner</code> 보조 클래스로 링크나 버튼의 모서리에 배치합니다.
+                                    <code>.badge-corner</code> <?php echo sr_e(sr_t('ui.text.5ae4aedf')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-4">
                                     <button type="button"
                                         class="btn btn-solid-primary badge-anchor">
-                                        수신함
+                                        <?php echo sr_e(sr_t('ui.text.f2de9a4a')); ?>
                                         <span class="badge badge-solid-danger badge-pill badge-corner">99+</span>
                                     </button>
 
                                     <button type="button"
                                         class="btn btn-solid-primary badge-anchor">
-                                        프로필
+                                        <?php echo sr_e(sr_t('ui.text.4a784986')); ?>
                                         <span
                                             class="badge-dot badge-corner-dot"></span>
                                     </button>
 
                                     <button type="button"
                                         class="btn btn-solid-success">
-                                        알림
+                                        <?php echo sr_e(sr_t('ui.notification.12ddd6ca')); ?>
                                         <span class="badge badge-solid-white">4</span>
                                     </button>
                                 </div>

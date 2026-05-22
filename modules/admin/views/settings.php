@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '사이트 설정';
+$adminPageTitle = sr_t('admin::ui.settings.4738c9b6');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -10,8 +10,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-notice">
         <span class="admin-notice-icon">!</span>
         <div class="admin-notice-copy">
-            <strong>현재 저장된 초기화면을 사용할 수 없습니다.</strong>
-            <p>방문자는 기본 홈페이지를 보게 됩니다. 사용할 수 있는 후보를 다시 선택해 저장하세요.</p>
+            <strong><?php echo sr_e(sr_t('admin::ui.save.active.794b5bfc')); ?></strong>
+            <p><?php echo sr_e(sr_t('admin::ui.page.active.select.save.8a7dbcc6')); ?></p>
         </div>
     </div>
 <?php } ?>
@@ -20,26 +20,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
     <section class="admin-card card">
-        <h2>사이트 기본값</h2>
+        <h2><?php echo sr_e(sr_t('admin::ui.text.f6fc85bc')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_name">사이트 이름 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="admin_settings_name"><?php echo sr_e(sr_t('admin::ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="admin_settings_name" type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
             </div>
         </div>
         <div class="admin-form-row">
-            <span class="form-label">외부 공개 URL</span>
+            <span class="form-label"><?php echo sr_e(sr_t('admin::ui.url.09f44187')); ?></span>
             <div class="admin-form-field">
                 <?php if ($values['base_url'] !== '') { ?>
                     <code><?php echo sr_e($values['base_url']); ?></code>
                 <?php } else { ?>
-                    <span>설정되지 않음</span>
+                    <span><?php echo sr_e(sr_t('admin::ui.settings.9182f8fe')); ?></span>
                 <?php } ?>
-                <p class="admin-form-help">검색 결과, 공유 미리보기, 인증 메일 링크에 사용할 사이트 대표 주소입니다. 관리자 설정에서는 변경하지 않습니다.</p>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.search.active.admin.settings.7aedc357')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_timezone">시간대 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="admin_settings_timezone"><?php echo sr_e(sr_t('admin::ui.text.26e997a5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_timezone" name="timezone" class="form-select" required>
                     <?php foreach ($timezoneOptions as $timezoneOption) { ?>
@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_default_locale">기본 locale <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="admin_settings_default_locale"><?php echo sr_e(sr_t('admin::ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_default_locale" name="default_locale" class="form-select" required>
                     <?php foreach ($localeOptions as $localeOption) { ?>
@@ -63,26 +63,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_supported_locales">지원 locale 목록</label>
+            <label class="form-label" for="admin_settings_supported_locales"><?php echo sr_e(sr_t('admin::ui.locale.list.51d8e798')); ?></label>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
-                <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, '지원 locale 없음'); ?>
+                <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, sr_t('admin::ui.locale.9d745a6e')); ?>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_status">운영 상태</label>
+            <label class="form-label" for="admin_settings_status"><?php echo sr_e(sr_t('admin::ui.status.e4163930')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_status" name="status" class="form-select">
-                                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>>운영</option>
-                                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>>점검</option>
+                                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.0928a1b8')); ?></option>
+                                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.4fd02e48')); ?></option>
                                 </select>
             </div>
         </div>
     </section>
     <section class="admin-card card">
-        <h2>화면</h2>
+        <h2><?php echo sr_e(sr_t('admin::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_public_layout_key">공통 레이아웃</label>
+            <label class="form-label" for="admin_settings_public_layout_key"><?php echo sr_e(sr_t('admin::ui.text.974e65f4')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
                                     <?php foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption) { ?>
@@ -94,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_home_path">초기화면</label>
+            <label class="form-label" for="admin_settings_home_path"><?php echo sr_e(sr_t('admin::ui.text.214b5fb8')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_home_path" name="home_path" class="form-select form-control-full">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
@@ -103,15 +103,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="<?php echo sr_e($candidatePath); ?>"<?php echo $candidateSelected ? ' selected' : ''; ?><?php echo empty($candidate['available']) && !$candidateSelected ? ' disabled' : ''; ?>>
                             <?php echo sr_e((string) ($candidate['label'] ?? $candidatePath)); ?>
                             <?php echo $candidatePath !== '/' ? ' - ' . sr_e($candidatePath) : ''; ?>
-                            <?php echo empty($candidate['available']) ? ' (사용 불가)' : ''; ?>
+                            <?php echo empty($candidate['available']) ? sr_t('admin::ui.active.6e2fcb45') : ''; ?>
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">페이지 모듈의 공개 페이지와 커뮤니티 홈은 활성 상태일 때 초기화면 후보로 사용할 수 있습니다.</p>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_ui_color_scheme">UI 색상 모드</label>
+            <label class="form-label" for="admin_settings_ui_color_scheme"><?php echo sr_e(sr_t('admin::ui.ui.cf6c41c6')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
                                     <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
@@ -123,7 +123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_admin_skin_key">관리자 스킨</label>
+            <label class="form-label" for="admin_settings_admin_skin_key"><?php echo sr_e(sr_t('admin::ui.admin.1465c5b7')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
                                     <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
@@ -136,8 +136,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-        <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer">홈 보기</a>
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('admin::ui.text.b47e1675')); ?></a>
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
     </div>
 </form>
 

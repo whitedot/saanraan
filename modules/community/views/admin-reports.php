@@ -1,7 +1,7 @@
 <?php
 
-$adminPageTitle = '커뮤니티 신고';
-$adminPageSubtitle = '신고 상태와 대상을 확인하고 조건 검색과 처리 작업을 이어가세요.';
+$adminPageTitle = sr_t('community::ui.community.451bb85e');
+$adminPageSubtitle = sr_t('community::ui.status.search.9842179b');
 $adminContainerClass = 'admin-page-community-report-list admin-ui-scope';
 $reportListFilters = isset($reportListFilters) && is_array($reportListFilters) ? $reportListFilters : ['status' => '', 'target_type' => '', 'reason_key' => '', 'field' => 'all', 'q' => ''];
 $reportStatusCounts = isset($reportStatusCounts) && is_array($reportStatusCounts) ? $reportStatusCounts : [];
@@ -9,9 +9,9 @@ $allowedStatuses = isset($allowedStatuses) && is_array($allowedStatuses) ? $allo
 $allowedReasonKeys = isset($allowedReasonKeys) && is_array($allowedReasonKeys) ? $allowedReasonKeys : [];
 $allowedTargetTypes = isset($allowedTargetTypes) && is_array($allowedTargetTypes) ? $allowedTargetTypes : ['post', 'comment', 'message'];
 $reportTargetLabels = [
-    'post' => '게시글',
-    'comment' => '댓글',
-    'message' => '쪽지',
+    'post' => sr_t('community::ui.text.0b138cfe'),
+    'comment' => sr_t('community::ui.text.c9fff683'),
+    'message' => sr_t('community::ui.text.919bd592'),
 ];
 $totalReports = (int) ($reportStatusCounts['total'] ?? count($reports ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -31,23 +31,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="btn btn-solid-light">전체 보기</a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
     </div>
     <div class="admin-summary-stats">
-        <span class="admin-summary-meta">총신고 <strong><?php echo sr_e((string) $totalReports); ?>개</strong></span>
-        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=open')); ?>" class="admin-summary-meta">접수 <?php echo sr_e((string) ($reportStatusCounts['open'] ?? 0)); ?>개</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=reviewing')); ?>" class="admin-summary-meta">검토 <?php echo sr_e((string) ($reportStatusCounts['reviewing'] ?? 0)); ?>개</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=resolved')); ?>" class="admin-summary-meta">처리 <?php echo sr_e((string) ($reportStatusCounts['resolved'] ?? 0)); ?>개</a>
-        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=dismissed')); ?>" class="admin-summary-meta">기각 <?php echo sr_e((string) ($reportStatusCounts['dismissed'] ?? 0)); ?>개</a>
+        <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.5648e366')); ?> <strong><?php echo sr_e((string) $totalReports); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=open')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.d995d6ab')); ?> <?php echo sr_e((string) ($reportStatusCounts['open'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=reviewing')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.7e0e2126')); ?> <?php echo sr_e((string) ($reportStatusCounts['reviewing'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=resolved')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?> <?php echo sr_e((string) ($reportStatusCounts['resolved'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=dismissed')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.0d655420')); ?> <?php echo sr_e((string) ($reportStatusCounts['dismissed'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
     </div>
 </div>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="admin-filter admin-community-report-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-report-search-grid">
         <div class="admin-filter-field admin-community-report-filter-status">
-            <label for="community_admin_reports_status_filter" class="admin-filter-label">상태</label>
+            <label for="community_admin_reports_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
             <select id="community_admin_reports_status_filter" name="status" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                <option value=""<?php echo (string) ($reportListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                 <?php foreach ($allowedStatuses as $status) { ?>
                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($reportListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
                         <?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>
@@ -56,9 +56,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </div>
         <div class="admin-filter-field admin-community-report-filter-target">
-            <label for="community_admin_reports_target_type_filter" class="admin-filter-label">대상</label>
+            <label for="community_admin_reports_target_type_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></label>
             <select id="community_admin_reports_target_type_filter" name="target_type" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['target_type'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                <option value=""<?php echo (string) ($reportListFilters['target_type'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                 <?php foreach ($allowedTargetTypes as $targetType) { ?>
                     <option value="<?php echo sr_e($targetType); ?>"<?php echo (string) ($reportListFilters['target_type'] ?? '') === $targetType ? ' selected' : ''; ?>>
                         <?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?>
@@ -67,9 +67,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </div>
         <div class="admin-filter-field admin-community-report-filter-reason">
-            <label for="community_admin_reports_reason_filter" class="admin-filter-label">사유</label>
+            <label for="community_admin_reports_reason_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></label>
             <select id="community_admin_reports_reason_filter" name="reason_key" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['reason_key'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                <option value=""<?php echo (string) ($reportListFilters['reason_key'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                 <?php foreach ($allowedReasonKeys as $reasonKey) { ?>
                     <option value="<?php echo sr_e($reasonKey); ?>"<?php echo (string) ($reportListFilters['reason_key'] ?? '') === $reasonKey ? ' selected' : ''; ?>>
                         <?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?>
@@ -78,9 +78,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </div>
         <div class="admin-filter-field admin-community-report-filter-field">
-            <label for="community_admin_reports_field" class="admin-filter-label">검색 조건</label>
+            <label for="community_admin_reports_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
             <select id="community_admin_reports_field" name="field" class="form-select admin-filter-input">
-                <?php foreach (['all' => '전체', 'target' => '대상', 'reporter' => '신고자', 'reported' => '대상 회원', 'reviewer' => '처리자', 'memo' => '메모'] as $fieldValue => $fieldLabel) { ?>
+                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'target' => sr_t('community::ui.text.8c609deb'), 'reporter' => sr_t('community::ui.text.84780e6f'), 'reported' => sr_t('community::ui.member.7a284377'), 'reviewer' => sr_t('community::ui.text.750086e9'), 'memo' => sr_t('community::ui.text.c8a14bcd')] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($reportListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
                     </option>
@@ -88,37 +88,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </select>
         </div>
         <div class="admin-filter-field admin-community-report-filter-keyword">
-            <label for="community_admin_reports_q" class="admin-filter-label">검색어</label>
-            <input id="community_admin_reports_q" type="search" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="대상, 회원, 메모">
+            <label for="community_admin_reports_q" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
+            <input id="community_admin_reports_q" type="search" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.member.fbbe7c33')); ?>">
         </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
     </div>
 </form>
 
 <section class="admin-card admin-list-card card admin-list-form">
-    <div class="card-header"><h2 class="card-title">신고 목록</h2></div>
+    <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.27da9d14')); ?></h2></div>
     <div class="table-wrapper">
     <table class="table admin-community-report-table">
-        <caption class="sr-only">커뮤니티 신고 목록</caption>
+        <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
         <thead class="ui-table-head">
             <tr>
                 <th>ID</th>
-                <th>대상</th>
-                <th>사유</th>
-                <th>상태</th>
-                <th>신고자</th>
-                <th>대상 회원</th>
-                <th>메모</th>
-                <th>접수일</th>
-                <th>처리자</th>
-                <th>처리일</th>
-                <th class="text-end">처리</th>
+                <th><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.84780e6f')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.member.7a284377')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.c8a14bcd')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.ebc9b96e')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.750086e9')); ?></th>
+                <th><?php echo sr_e(sr_t('community::ui.text.73bb6cce')); ?></th>
+                <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if ($reports === []) { ?>
                 <tr>
-                    <td colspan="11" class="admin-empty-state">접수된 신고가 없습니다.</td>
+                    <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.7efff05f')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($reports as $report) { ?>
@@ -162,15 +162,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
-                                    <label for="<?php echo sr_e($reportStatusSelectId); ?>" class="sr-only">상태</label>
+                                    <label for="<?php echo sr_e($reportStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                                     <select id="<?php echo sr_e($reportStatusSelectId); ?>" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
                                             <?php } ?>
                                         </select>
-                                    <label for="<?php echo sr_e($reportReviewNoteId); ?>" class="sr-only">처리 메모</label>
-                                    <textarea id="<?php echo sr_e($reportReviewNoteId); ?>" name="review_note" rows="2" cols="24" class="form-textarea" placeholder="처리 메모"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
-                                    <button type="submit" class="btn btn-sm btn-solid-light">변경</button>
+                                    <label for="<?php echo sr_e($reportReviewNoteId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?></label>
+                                    <textarea id="<?php echo sr_e($reportReviewNoteId); ?>" name="review_note" rows="2" cols="24" class="form-textarea" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
+                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
                                 </form>
                             </div>
                         </td>

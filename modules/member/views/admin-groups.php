@@ -2,17 +2,17 @@
 
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
 $adminContainerClass = 'admin-page-member-groups admin-ui-scope';
-$adminPageTitle = '회원 그룹';
+$adminPageTitle = sr_t('member::ui.member.7482bebf');
 if ($memberGroupsPage === 'group_form') {
-    $adminPageTitle = is_array($editGroup) ? '회원 그룹 수정' : '회원 그룹 생성';
+    $adminPageTitle = is_array($editGroup) ? sr_t('member::ui.member.edit.c267c25d') : sr_t('member::ui.member.c879c4be');
 } elseif ($memberGroupsPage === 'rules') {
-    $adminPageTitle = '회원 그룹 자동 규칙';
+    $adminPageTitle = sr_t('member::ui.member.bc3daeb8');
 } elseif ($memberGroupsPage === 'rule_form') {
-    $adminPageTitle = is_array($editRule) ? '회원 그룹 자동 규칙 수정' : '회원 그룹 자동 규칙 생성';
+    $adminPageTitle = is_array($editRule) ? sr_t('member::ui.member.edit.8fa5d9e5') : sr_t('member::ui.member.ac78ee3c');
 } elseif ($memberGroupsPage === 'evaluations') {
-    $adminPageTitle = '회원 그룹 자동 재평가';
+    $adminPageTitle = sr_t('member::ui.member.ec737c00');
 } elseif ($memberGroupsPage === 'assignments') {
-    $adminPageTitle = '회원 그룹 수동 배정';
+    $adminPageTitle = sr_t('member::ui.member.d6407be3');
 }
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -26,20 +26,20 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 <?php if ($memberGroupsPage === 'group_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo is_array($editGroup) ? '그룹 수정' : '그룹 생성'; ?></h2>
+            <h2><?php echo is_array($editGroup) ? sr_t('member::ui.edit.5784f889') : sr_t('member::ui.text.22129319'); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="group_id" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['id'] : ''); ?>">
 
             <?php if (is_array($editGroup)) { ?>
                 <div class="admin-form-row">
-                    <span class="form-label">그룹 key</span>
+                    <span class="form-label"><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?></span>
                     <div class="admin-form-field">
                         <code><?php echo sr_e((string) $editGroup['group_key']); ?></code>
                     </div>
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_groups_group_key">그룹 key <span class="sr-required-label">(필수)</span></label>
+                    <label class="form-label" for="member_admin_groups_group_key"><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" required class="form-input">
                     </div>
@@ -47,19 +47,19 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <?php } ?>
 
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_title">그룹명 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="member_admin_groups_title"><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_description">설명</label>
+                <label class="form-label" for="member_admin_groups_description"><?php echo sr_e(sr_t('member::ui.text.8c3f651d')); ?></label>
                 <div class="admin-form-field">
                     <textarea id="member_admin_groups_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e(is_array($editGroup) ? (string) ($editGroup['description'] ?? '') : ''); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status">상태</label>
+                <label class="form-label" for="member_admin_groups_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_status" name="status" class="form-select">
                                             <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
@@ -72,36 +72,36 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_sort_order">정렬 순서</label>
+                <label class="form-label" for="member_admin_groups_sort_order"><?php echo sr_e(sr_t('member::ui.text.7d2dc215')); ?></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>" class="form-input">
                 </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light">목록</a>
-            <button type="submit" class="btn btn-solid-primary">저장</button>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light">전체 보기</a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.all.e078b14a')); ?></a>
         </div>
         <div class="admin-summary-stats">
-            <span class="admin-summary-meta">총그룹 <strong><?php echo sr_e((string) $totalGroups); ?>개</strong></span>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=enabled')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) ($groupStatusCounts['enabled'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=disabled')); ?>" class="admin-summary-meta">미사용 <?php echo sr_e((string) ($groupStatusCounts['disabled'] ?? 0)); ?>개</a>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=archived')); ?>" class="admin-summary-meta">보관 <?php echo sr_e((string) ($groupStatusCounts['archived'] ?? 0)); ?>개</a>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.text.ca286213')); ?> <strong><?php echo sr_e((string) $totalGroups); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></strong></span>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($groupStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=disabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.active.f54a7542')); ?> <?php echo sr_e((string) ($groupStatusCounts['disabled'] ?? 0)); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=archived')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.text.2e4099ba')); ?> <?php echo sr_e((string) ($groupStatusCounts['archived'] ?? 0)); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></a>
         </div>
     </div>
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter admin-member-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-search-grid">
             <div class="admin-filter-field">
-                <label for="member-group-status-filter" class="admin-filter-label">상태</label>
+                <label for="member-group-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
                 <select name="status" id="member-group-status-filter" class="form-select admin-filter-input">
-                    <option value="">전체</option>
+                    <option value=""><?php echo sr_e(sr_t('member::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedStatuses as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($groupListFilter['status'] ?? '') === $status ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -110,9 +110,9 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </select>
             </div>
             <div class="admin-filter-field">
-                <label for="member-group-search-field" class="admin-filter-label">검색 조건</label>
+                <label for="member-group-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
                 <select name="field" id="member-group-search-field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'key' => '그룹 key', 'title' => '그룹명', 'description' => '설명'] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -120,36 +120,36 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </select>
             </div>
             <div class="admin-filter-field admin-member-group-filter-keyword">
-                <label for="member-group-search-keyword" class="admin-filter-label">검색어</label>
-                <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="그룹 key, 그룹명, 설명">
+                <label for="member-group-search-keyword" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">그룹 목록</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light">새 그룹 추가</a>
+            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.list.c78d8209')); ?></h2>
+            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-member-group-table">
-            <caption class="sr-only">회원 그룹 목록</caption>
+            <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>key</th>
-                    <th>그룹명</th>
-                    <th>상태</th>
-                    <th>회원 수</th>
-                    <th>정렬</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.member.984c7e2b')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.3788952d')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($groups === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">회원 그룹이 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.4ef35a24')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
@@ -170,7 +170,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></a>
                             </div>
                         </td>
                     </tr>
@@ -182,22 +182,22 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 <?php } elseif ($memberGroupsPage === 'rules') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">자동 조건 후보</h2>
+            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.1f9a70dc')); ?></h2>
         </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>모듈</th>
-                    <th>조건</th>
-                    <th>설명</th>
-                    <th>파라미터</th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.6d2d8bf4')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.8c3f651d')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.bf705e51')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($ruleDefinitions === []) { ?>
                     <tr>
-                        <td colspan="4" class="admin-empty-state">설치된 활성 모듈이 제공하는 회원 그룹 조건 후보가 없습니다.</td>
+                        <td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.93ca7cdf')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($ruleDefinitions as $definition) { ?>
@@ -210,7 +210,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td><?php echo sr_e((string) $definition['description']); ?></td>
                         <td>
                             <?php if ($definition['params'] === []) { ?>
-                                없음
+                                <?php echo sr_e(sr_t('member::ui.text.72ea3d64')); ?>
                             <?php } else { ?>
                                 <ul>
                                     <?php foreach ($definition['params'] as $param) { ?>
@@ -232,26 +232,26 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">저장된 자동 규칙</h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-solid-light">새 자동 규칙 추가</a>
+            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
-                    <th>그룹</th>
-                    <th>조건</th>
-                    <th>정책</th>
-                    <th>상태</th>
-                    <th>최근 평가</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.4c544b45')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($groupRules === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">자동 규칙이 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.1998c6cf')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groupRules as $rule) { ?>
@@ -267,7 +267,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td><?php echo sr_e((string) ($rule['last_evaluated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-solid-light">수정</a>
+                                <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/edit?id=' . rawurlencode((string) $rule['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></a>
                             </div>
                         </td>
                     </tr>
@@ -279,11 +279,11 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo is_array($editRule) ? '자동 규칙 수정' : '자동 규칙 생성'; ?></h2>
+            <h2><?php echo is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae'); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($editRule) ? (string) $editRule['id'] : ''); ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id">대상 그룹 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="member_admin_groups_group_id"><?php echo sr_e(sr_t('member::ui.text.5034bb32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_group_id" name="group_id" required class="form-select">
                                             <?php foreach ($groups as $group) { ?>
@@ -295,7 +295,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_definition_key">조건 후보 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="member_admin_groups_definition_key"><?php echo sr_e(sr_t('member::ui.text.7a1e6434')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_definition_key" name="definition_key" required data-member-rule-definition class="form-select">
                                             <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
@@ -308,7 +308,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">조건 설정</span>
+                <span class="form-label"><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span>
                 <div class="admin-form-field">
                     <?php
                     $currentRuleParams = [];
@@ -325,7 +325,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                                     <p><?php echo sr_e((string) $definition['description']); ?></p>
                                 <?php } ?>
                                 <?php if (($definition['params'] ?? []) === []) { ?>
-                                    <p>추가 조건 설정이 필요하지 않습니다.</p>
+                                    <p><?php echo sr_e(sr_t('member::ui.settings.1ca7d0dd')); ?></p>
                                 <?php } ?>
                                 <?php foreach ((array) ($definition['params'] ?? []) as $param) { ?>
                                     <?php
@@ -338,8 +338,8 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                                         <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
                                         <?php if ($paramType === 'bool') { ?>
                                             <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
-                                                <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>>예</option>
-                                                <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>>아니오</option>
+                                                <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.2eb73fba')); ?></option>
+                                                <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.4c490f1c')); ?></option>
                                             </select>
                                         <?php } elseif ($paramType === 'int' || $paramType === 'subject') { ?>
                                             <input id="<?php echo sr_e($paramFieldId); ?>" type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
@@ -352,13 +352,13 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <?php } ?>
                     </div>
                     <details class="admin-advanced-details">
-                        <summary>JSON 직접 입력</summary>
+                        <summary><?php echo sr_e(sr_t('member::ui.json.663601a1')); ?></summary>
                         <textarea name="rule_params_json" rows="4" cols="70" class="form-textarea"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
                     </details>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_evaluation_policy">평가 정책</label>
+                <label class="form-label" for="member_admin_groups_evaluation_policy"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_evaluation_policy" name="evaluation_policy" class="form-select">
                                             <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
@@ -368,7 +368,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status_2">상태</label>
+                <label class="form-label" for="member_admin_groups_status_2"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_status_2" name="status" class="form-select">
                                             <?php foreach ($allowedRuleStatuses as $status) { ?>
@@ -379,79 +379,79 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light">목록</a>
-            <button type="submit" class="btn btn-solid-primary">자동 규칙 저장</button>
+            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.95d3fea1')); ?></button>
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'evaluations') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2>자동 규칙 재평가</h2>
+            <h2><?php echo sr_e(sr_t('member::ui.text.32fa0afb')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <span class="form-label">회원 조회 <span class="sr-required-label">(필수)</span></span>
+                <span class="form-label"><?php echo sr_e(sr_t('member::ui.member.9d5adfda')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                 <div class="admin-form-field">
-                    <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
-                        <option value="hash">해시 아이디</option>
-                        <option value="email">이메일</option>
-                        <option value="login_id">로그인 아이디</option>
-                        <option value="name">이름</option>
+                    <select name="account_identifier_field" class="form-select" aria-label="<?php echo sr_e(sr_t('member::ui.member.a4cdf8ad')); ?>">
+                        <option value="hash"><?php echo sr_e(sr_t('member::ui.text.93971787')); ?></option>
+                        <option value="email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></option>
+                        <option value="login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></option>
+                        <option value="name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></option>
                     </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="<?php echo sr_e(sr_t('member::ui.member.4806b16f')); ?>" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_source_module_key">모듈 key</label>
+                <label class="form-label" for="member_admin_groups_source_module_key"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_source_module_key" type="text" name="source_module_key" maxlength="60" class="form-input">
                 </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary">재평가</button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
         </div>
     </form>
 
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/batch')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2>일괄 재평가</h2>
+            <h2><?php echo sr_e(sr_t('member::ui.text.fdbee63b')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_source_module_key_2">모듈 key</label>
+                <label class="form-label" for="member_admin_groups_source_module_key_2"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_source_module_key_2" type="text" name="source_module_key" maxlength="60" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_limit">최대 회원 수</label>
+                <label class="form-label" for="member_admin_groups_limit"><?php echo sr_e(sr_t('member::ui.member.5138655c')); ?></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_limit" type="number" name="limit" min="1" max="200" value="50" class="form-input">
                 </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary">일괄 재평가</button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.fdbee63b')); ?></button>
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'assignments') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2>수동 배정</h2>
+            <h2><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <span class="form-label">회원 조회 <span class="sr-required-label">(필수)</span></span>
+                <span class="form-label"><?php echo sr_e(sr_t('member::ui.member.9d5adfda')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                 <div class="admin-form-field">
-                    <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
-                        <option value="hash">해시 아이디</option>
-                        <option value="email">이메일</option>
-                        <option value="login_id">로그인 아이디</option>
-                        <option value="name">이름</option>
+                    <select name="account_identifier_field" class="form-select" aria-label="<?php echo sr_e(sr_t('member::ui.member.a4cdf8ad')); ?>">
+                        <option value="hash"><?php echo sr_e(sr_t('member::ui.text.93971787')); ?></option>
+                        <option value="email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></option>
+                        <option value="login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></option>
+                        <option value="name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></option>
                     </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="회원 조회어" placeholder="해시 아이디, 이메일, 로그인 아이디, 이름">
+                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="<?php echo sr_e(sr_t('member::ui.member.4806b16f')); ?>" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id_2">그룹 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="member_admin_groups_group_id_2"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_group_id_2" name="group_id" required class="form-select">
                                             <?php foreach ($groups as $group) { ?>
@@ -464,31 +464,31 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary">배정</button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.41172d90')); ?></button>
         </div>
     </form>
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">최근 배정</h2>
+            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.561bac1a')); ?></h2>
         </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
-                    <th>회원</th>
-                    <th>그룹</th>
-                    <th>유형</th>
-                    <th>상태</th>
-                    <th>부여</th>
-                    <th class="text-end">회수</th>
+                    <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.5cf2792b')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.095ffbfb')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.8b179161')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($memberships === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">배정 이력이 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.6bfe04ee')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($memberships as $membership) { ?>
@@ -509,7 +509,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
                                     <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">해제</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('member::ui.text.293182ec')); ?></button>
                                 </form>
                             <?php } else { ?>
                                 <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
@@ -525,24 +525,24 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">배정 이력</h2>
+            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h2>
         </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
-                    <th>회원</th>
-                    <th>그룹</th>
-                    <th>이벤트</th>
-                    <th>메시지</th>
-                    <th>시간</th>
+                    <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.46b289bb')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.4cd44bae')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.4692cef5')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($membershipLogs === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state">이력이 없습니다.</td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.537aa44f')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($membershipLogs as $log) { ?>

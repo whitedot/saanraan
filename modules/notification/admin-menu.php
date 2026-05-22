@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'label' => '알림',
+    'label' => sr_t('notification::ui.notification.12ddd6ca'),
     'order' => 27,
     'items' => [
         [
-            'label' => '알림 목록',
+            'label' => sr_t('notification::ui.notification.list.7475cac1'),
             'path' => '/admin/notifications',
             'order' => 10,
         ],
         [
-            'label' => '발송 대기열',
+            'label' => sr_t('notification::ui.text.077631f5'),
             'path' => '/admin/notification-deliveries',
             'order' => 20,
         ],

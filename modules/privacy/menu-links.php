@@ -2,7 +2,7 @@
 
 return [
     [
-        'label' => '개인정보 처리 요청',
+        'label' => sr_t('privacy::ui.privacy.216d449a'),
         'url' => '/account/privacy-requests',
         'order' => 80,
     ],

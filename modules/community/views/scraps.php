@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '내 스크랩';
+$pageTitle = sr_t('community::ui.text.b255d86c');
 $seo = [
     'title' => $pageTitle,
     'canonical' => '/community/scraps',
@@ -9,7 +9,7 @@ $seo = [
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
+        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
 
         <?php if ($notice !== '') { ?>
@@ -17,15 +17,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } ?>
 
         <?php if ($scraps === []) { ?>
-            <p>스크랩한 게시글이 없습니다.</p>
+            <p><?php echo sr_e(sr_t('community::ui.text.78d4e2f7')); ?></p>
         <?php } else { ?>
             <table>
                 <thead>
                     <tr>
-                        <th>게시판</th>
-                        <th>제목</th>
-                        <th>스크랩일</th>
-                        <th>관리</th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.4bd3d310')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                         <?php echo sr_e((string) ($scrap['board_title'] ?? '')); ?>
                                     </a>
                                 <?php } else { ?>
-                                    비공개 또는 삭제된 게시판
+                                    <?php echo sr_e(sr_t('community::ui.delete.7df929b7')); ?>
                                 <?php } ?>
                             </td>
                             <td>
@@ -46,7 +46,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                         <?php echo sr_e((string) $scrap['title']); ?>
                                     </a>
                                 <?php } else { ?>
-                                    비공개 또는 삭제된 게시글
+                                    <?php echo sr_e(sr_t('community::ui.delete.029fd110')); ?>
                                 <?php } ?>
                             </td>
                             <td><?php echo sr_e((string) $scrap['created_at']); ?></td>
@@ -55,7 +55,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $scrap['post_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
-                                    <button type="submit">해제</button>
+                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
                                 </form>
                             </td>
                         </tr>

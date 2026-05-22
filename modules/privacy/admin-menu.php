@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'label' => '개인정보',
+    'label' => sr_t('privacy::ui.privacy.5cdfba05'),
     'order' => 10,
     'items' => [
         [
-            'label' => '처리 요청',
+            'label' => sr_t('privacy::ui.text.0173dc3e'),
             'path' => '/admin/privacy-requests',
             'order' => 10,
         ],

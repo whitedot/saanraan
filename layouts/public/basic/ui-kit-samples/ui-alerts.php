@@ -3,27 +3,27 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">기본 알림</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.notification.1757460e')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
-                                        role="alert">이것은 프라이머리 알림입니다. 중요한 내용을 확인하세요!</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.notification.d580c4ec')); ?></div>
                                     <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
-                                        role="alert">이것은 세컨더리 알림입니다. 추가적인 맥락을 제공합니다.</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.notification.35f492d6')); ?></div>
                                     <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
-                                        role="alert">성공! 작업이 성공적으로 완료되었습니다.</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.text.11ddc0f7')); ?></div>
                                     <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
-                                        role="alert">오류! 문제가 발생했습니다. 다시 시도해 주세요.</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.text.33aeda90')); ?></div>
                                     <div class="ui-kit-surface-warning-soft ui-kit-ink-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
-                                        role="alert">경고! 입력 내용을 다시 확인해 주세요.</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.text.f4527ae1')); ?></div>
                                     <div class="ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
-                                        정보: 유용한 정보를 확인해 보세요.</div>
+                                        <?php echo sr_e(sr_t('ui.text.5e7d9c8d')); ?></div>
                                     <div class="ui-kit-surface-light-muted ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
-                                        라이트 알림: 미묘한 알림입니다.</div>
+                                        <?php echo sr_e(sr_t('ui.notification.notification.2691ea90')); ?></div>
                                     <div class="ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
-                                        다크 알림: 일반적인 용도의 메시지에 사용하세요.</div>
+                                        <?php echo sr_e(sr_t('ui.notification.active.3ad3f954')); ?></div>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -32,27 +32,27 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">단색 배경의 제거 가능한 알림</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.notification.2ebf3cad')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        주의! 이것은 중요한 정보가 포함된 프라이머리 알림입니다.</div>
+                                        <?php echo sr_e(sr_t('ui.notification.24d8286c')); ?></div>
                                     <div class="ui-kit-surface-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse"
-                                        role="alert">알림: 이것은 지원 세부 정보가 포함된 세컨더리 알림입니다.</div>
+                                        role="alert"><?php echo sr_e(sr_t('ui.notification.notification.8e06bbc8')); ?></div>
                                     <div class="ui-kit-surface-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        성공! 작업이 성공적으로 완료되었습니다.</div>
+                                        <?php echo sr_e(sr_t('ui.text.11ddc0f7')); ?></div>
                                     <div class="ui-kit-surface-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        오류! 문제가 발생했습니다. 나중에 다시 시도해 주세요.</div>
+                                        <?php echo sr_e(sr_t('ui.text.3fed08ed')); ?></div>
                                     <div class="ui-kit-surface-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        경고! 진행하기 전에 입력 내용을 검토해 주세요.</div>
+                                        <?php echo sr_e(sr_t('ui.text.b09653ed')); ?></div>
                                     <div class="ui-kit-surface-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        정보: 여기에 도움이 될 만한 정보가 있습니다.</div>
+                                        <?php echo sr_e(sr_t('ui.text.16aedd3a')); ?></div>
                                     <div class="ui-kit-surface-light ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
-                                        참고: 이것은 미묘한 메시지가 포함된 라이트 알림입니다.</div>
+                                        <?php echo sr_e(sr_t('ui.notification.d3b9ac61')); ?></div>
                                     <div class="ui-kit-surface-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
-                                        알림: 이 다크 알림은 일반적인 메시지에 적합합니다.</div>
+                                        <?php echo sr_e(sr_t('ui.notification.notification.658000c0')); ?></div>
                                 </div>
                             </div>
                             <!-- end card-body-->
@@ -61,57 +61,57 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">링크 색상</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.8154ac3c')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        추가 정보가 필요하신가요? 중요한 세부 사항은
-                                        <a href="#" class="ui-kit-weight-bold">이 프라이머리 링크</a>
-                                        를 확인하세요.
+                                        <?php echo sr_e(sr_t('ui.text.f07cf6a0')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.5c2efd36')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.text.4b939808')); ?>
                                     </div>
 
                                     <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        추가적인 맥락을 위한
-                                        <a href="#" class="ui-kit-weight-bold">도움이 되는 링크</a>
-                                        가 포함된 세컨더리 메시지입니다.
+                                        <?php echo sr_e(sr_t('ui.text.72e9f01e')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.3823379a')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.text.52d8ddad')); ?>
                                     </div>
 
                                     <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        작업 성공! 결과를 확인하려면
-                                        <a href="#" class="ui-kit-weight-bold">여기를 클릭하세요.</a>
+                                        <?php echo sr_e(sr_t('ui.text.4817d465')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.a0eef836')); ?></a>
                                     </div>
 
                                     <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        문제가 발생했습니다.
-                                        <a href="#" class="ui-kit-weight-bold">이 알림 링크</a>
-                                        를 통해 자세히 알아보세요.
+                                        <?php echo sr_e(sr_t('ui.text.b15c56a2')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.notification.e3884fc0')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.text.51fe477f')); ?>
                                     </div>
 
                                     <div class="ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        도움이 될 수 있는 정보가 있습니다. 자세히 보려면
-                                        <a href="#" class="ui-kit-weight-bold">이 링크</a>
-                                        를 클릭하세요.
+                                        <?php echo sr_e(sr_t('ui.text.c0d1dbd0')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.e33399f2')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.text.80fc4c0d')); ?>
                                     </div>
 
                                     <div class="ui-kit-surface-light ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        둘러볼 수 있는
-                                        <a href="#" class="ui-kit-weight-bold">부드러운 링크</a>
-                                        와 함께 제공되는 가벼운 알림입니다.
+                                        <?php echo sr_e(sr_t('ui.text.dd6189c1')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.5a7e51f7')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.notification.7aac0421')); ?>
                                     </div>
 
                                     <div class="ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        일반적인 다크 알림입니다. 자세한 내용은
-                                        <a href="#" class="ui-kit-weight-bold">여기를 클릭하여</a>
-                                        확인하세요.
+                                        <?php echo sr_e(sr_t('ui.notification.048c4ad7')); ?>
+                                        <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('ui.text.40950d5b')); ?></a>
+                                        <?php echo sr_e(sr_t('ui.text.c098a1af')); ?>
                                     </div>
                                 </div>
                             </div>
@@ -121,37 +121,35 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">추가 콘텐츠</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.ce35a43d')); ?></h4>
                             </div>
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-radius-base ui-kit-pad-6" role="alert">
-                                        <h4 class="ui-kit-ink-success ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">잘 하셨습니다!</h4>
-                                        <p class="ui-kit-space-after-4">이 중요한 알림 메시지를 성공적으로 읽으셨습니다. 이 텍스트는 이러한 유형의 레이아웃에서 간격이 어떻게 작동하는지
-                                            보여주기 위해 의도적으로 약간 더 길게 작성되었습니다.</p>
+                                        <h4 class="ui-kit-ink-success ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.9e47abeb')); ?></h4>
+                                        <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.notification.46327dc4')); ?></p>
                                         <hr class="ui-kit-line-success-soft ui-kit-block-space-4" />
-                                        <p>콘텐츠를 깔끔하고 체계적으로 유지하려면 여백 유틸리티를 사용하세요.</p>
+                                        <p><?php echo sr_e(sr_t('ui.active.af1b6fe3')); ?></p>
                                     </div>
 
                                     <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
                                         <span class="ui-kit-icon-text">alarm-snooze</span>
                                         <div>
-                                            <h4 class="ui-kit-ink-secondary ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">주의하세요!</h4>
-                                            <p class="ui-kit-space-after-4">이 알림 메시지는 알림 내에서 콘텐츠 간격을 보여주기 위해 더 긴 메시지와 함께 추가 정보를 제공합니다.
+                                            <h4 class="ui-kit-ink-secondary ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.812eeb2e')); ?></h4>
+                                            <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.notification.notification.d20ce911')); ?>
                                             </p>
                                             <hr class="ui-kit-line-secondary-soft ui-kit-block-space-4" />
-                                            <p>구조와 명확성을 유지하려면 간격 클래스를 현명하게 적용하세요.</p>
+                                            <p><?php echo sr_e(sr_t('ui.text.27a2ae36')); ?></p>
                                         </div>
                                     </div>
 
                                     <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
                                         <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div>
-                                            <h4 class="ui-kit-ink-danger ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">알림!</h4>
-                                            <p class="ui-kit-space-after-4">방금 프라이머리 알림 메시지를 모두 읽으셨습니다. 긴 텍스트는 레이아웃이 콘텐츠 간격을 얼마나 잘 처리하는지
-                                                보여주는 데 도움이 됩니다.</p>
-                                            <button type="button" class="btn btn-sm btn-solid-danger">확인함</button>
+                                            <h4 class="ui-kit-ink-danger ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.notification.2526ab43')); ?></h4>
+                                            <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.notification.b7747274')); ?></p>
+                                            <button type="button" class="btn btn-sm btn-solid-danger"><?php echo sr_e(sr_t('ui.text.b2380324')); ?></button>
                                         </div>
                                     </div>
                                 </div>
@@ -162,7 +160,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">커스텀 알림</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.notification.4044b674')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -170,42 +168,42 @@
                                     <div id="dark-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-divider-bottom-strong ui-kit-line-dark ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        하단 테두리가 있는 다크 알림!
+                                        <?php echo sr_e(sr_t('ui.notification.08d4de3e')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dark-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
 
                                     <div id="success-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-dashed ui-kit-line-success ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        점선 테두리가 있는 성공 알림!
+                                        <?php echo sr_e(sr_t('ui.notification.6ed99ebf')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#success-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
 
                                     <div id="danger-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-danger ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        두꺼운 테두리가 있는 위험 알림!
+                                        <?php echo sr_e(sr_t('ui.notification.0a99c4bf')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#danger-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
 
                                     <div id="warning-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-surface-warning-soft ui-kit-ink-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        커스텀 닫기 버튼이 있는 경고 알림!
+                                        <?php echo sr_e(sr_t('ui.close.notification.8d72e773')); ?>
 
                                         <button
                                             class="ui-kit-leading-auto ui-kit-icon-size-7-5 ui-kit-cluster ui-kit-distribute-center ui-kit-align-items-center ui-kit-radius-full ui-kit-surface-warning ui-kit-ink-inverse"
                                             data-remove-element="#warning-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
 
@@ -213,12 +211,12 @@
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
                                         <div class="ui-kit-cluster ui-kit-gap-3 ui-kit-align-items-center">
-                                            <span class="ui-kit-icon-text">경고</span>
-                                            커스텀 아이콘이 있는 정보 알림!
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                            <?php echo sr_e(sr_t('ui.notification.fd938fc5')); ?>
                                         </div>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#info-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
 
@@ -226,9 +224,8 @@
                                         role="alert">
                                         <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div class="ui-kit-ink-default-400">
-                                            <h4 class="ui-kit-ink-default-400 ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold">공지!</h4>
-                                            <p>방금 프라이머리 알림 메시지를 모두 읽으셨습니다. 긴 텍스트는 레이아웃이 콘텐츠 간격을 얼마나 잘 처리하는지 보여주는 데 도움이
-                                                됩니다.</p>
+                                            <h4 class="ui-kit-ink-default-400 ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.9f4b63f6')); ?></h4>
+                                            <p><?php echo sr_e(sr_t('ui.notification.96e82fe6')); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +236,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">알림 닫기</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.notification.close.f4c4e17e')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -247,10 +244,10 @@
                                     <div id="dismiss-alert"
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-line-primary ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-frame ui-kit-inline-pad-4 ui-kit-block-pad-3"
                                         role="alert">
-                                        알림 닫기 기능이 있는 프라이머리 알림입니다!
+                                        <?php echo sr_e(sr_t('ui.notification.close.notification.e9cfda1f')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dismiss-alert">
-                                            <span class="ui-kit-icon-text">닫기</span>
+                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                         </button>
                                     </div>
                                 </div>

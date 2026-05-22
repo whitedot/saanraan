@@ -3,7 +3,7 @@
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">입력 텍스트 필드 유형 (Input Textfield Type)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.input.textfield.type.694d460d')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -12,8 +12,7 @@
                                         <!-- Simple Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="simpleinput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">기본 입력 (Simple
-                                                    Input)</label>
+                                                <label for="simpleinput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.simple.input.cb0b2f70')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -26,7 +25,7 @@
                                         <!-- Floating Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">플로팅 입력 (Floating Input)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.floating.input.cba11e12')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -34,7 +33,7 @@
                                                     <input type="text" id="floatingInput" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingInput"
-                                                        class="form-floating-label">이름</label>
+                                                        class="form-floating-label"><?php echo sr_e(sr_t('ui.name.253d1510')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -44,8 +43,7 @@
                                         <!-- Validation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="validInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">유효한 입력 (Valid
-                                                    Input) <span class="sr-required-label">(필수)</span></label>
+                                                <label for="validInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.valid.input.da64ada7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -55,7 +53,7 @@
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                        <?php echo sr_material_icon_html('check', 'ui-kit-ink-success', '정상'); ?>
+                                                        <?php echo sr_material_icon_html('check', 'ui-kit-ink-success', sr_t('ui.text.35688a85')); ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -66,13 +64,12 @@
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-rounded" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">둥근 입력
-                                                    (Rounded Input)</label>
+                                                <label for="example-rounded" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.rounded.input.f0ad333f')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-rounded" class="form-input form-input-rounded"
-                                                    placeholder="둥근 입력창" />
+                                                    placeholder="<?php echo sr_e(sr_t('ui.text.be606da9')); ?>" />
                                             </div>
                                         </div>
 
@@ -81,8 +78,7 @@
                                         <!-- Text Area -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-textarea" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">텍스트 영역 (Text
-                                                    area)</label>
+                                                <label for="example-textarea" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.text.area.2dbabf8d')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -95,12 +91,11 @@
                                         <!-- Disabled -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-disable" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">비활성화
-                                                    (Disabled)</label>
+                                                <label for="example-disable" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.disabled.54612c16')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <input type="text" id="example-disable" value="비활성화된 값" disabled
+                                                <input type="text" id="example-disable" value="<?php echo sr_e(sr_t('ui.text.78462e3a')); ?>" disabled
                                                     class="form-input" />
                                             </div>
                                         </div>
@@ -110,15 +105,13 @@
                                         <!-- Helping Text -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-helping" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">도움말 텍스트
-                                                    (Helping text)</label>
+                                                <label for="example-helping" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.helping.text.e77e662a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <input type="text" id="example-helping" placeholder="도움말 텍스트"
+                                                <input type="text" id="example-helping" placeholder="<?php echo sr_e(sr_t('ui.text.318b9368')); ?>"
                                                     class="form-input" />
-                                                <small class="ui-kit-hint">새 줄로 나뉘며 한 줄 이상 확장될 수
-                                                    있는 도움말 텍스트 블록입니다.</small>
+                                                <small class="ui-kit-hint"><?php echo sr_e(sr_t('ui.text.b02e5a63')); ?></small>
                                             </div>
                                         </div>
 
@@ -127,18 +120,17 @@
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="discount" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">아이콘이 있는 선택 (Select
-                                                    with Icon)</label>
+                                                <label for="discount" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.select.select.with.icon.623ff179')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
                                                     <?php echo sr_material_icon_html('discount', 'input-icon'); ?>
                                                     <select id="discount" class="form-select">
-                                                        <option selected>할인 선택</option>
-                                                        <option>할인 없음</option>
-                                                        <option>정액 할인</option>
-                                                        <option>백분율 할인</option>
+                                                        <option selected><?php echo sr_e(sr_t('ui.select.80a8056b')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.123a955e')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.b1e694eb')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.dbdf550f')); ?></option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -149,12 +141,12 @@
                                         <!-- with Label Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">라벨 입력 (Label Input)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.label.input.5bde99cc')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div>
-                                                    <label for="labelInputInput1" class="form-label">라벨 입력</label>
+                                                    <label for="labelInputInput1" class="form-label"><?php echo sr_e(sr_t('ui.text.89d2f38f')); ?></label>
                                                     <input type="email" class="form-input" id="labelInputInput1"
                                                         placeholder="name@example.com" />
                                                 </div>
@@ -166,14 +158,13 @@
                                         <!-- Search Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="SearchInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">검색 스타일 (Search
-                                                    Style)</label>
+                                                <label for="SearchInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.search.search.style.ca458659')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
                                                     <?php echo sr_material_icon_html('search', 'input-icon'); ?>
-                                                    <input type="search" id="SearchInput" placeholder="검색어 입력..."
+                                                    <input type="search" id="SearchInput" placeholder="<?php echo sr_e(sr_t('ui.search.09b42aed')); ?>"
                                                         class="form-input" />
                                                 </div>
                                             </div>
@@ -184,8 +175,7 @@
                                         <!-- Invalidation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="inValidationInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">잘못된 입력
-                                                    (Invalid Input) <span class="sr-required-label">(필수)</span></label>
+                                                <label for="inValidationInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.invalid.input.97005652')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -194,7 +184,7 @@
                                                         name="validation-name-success"
                                                         class="form-input form-input-invalid" required=""
                                                         aria-describedby="validation-name-success-helper" />
-                                                    <?php echo sr_material_icon_html('info', 'input-icon ui-kit-ink-danger ui-kit-type-base', '오류'); ?>
+                                                    <?php echo sr_material_icon_html('info', 'input-icon ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -204,13 +194,12 @@
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-placeholder" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">플레이스홀더
-                                                    (Placeholder)</label>
+                                                <label for="example-placeholder" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.placeholder.37969de3')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-placeholder" class="form-input"
-                                                    placeholder="플레이스홀더" />
+                                                    placeholder="<?php echo sr_e(sr_t('ui.text.4b1c62ac')); ?>" />
                                             </div>
                                         </div>
 
@@ -219,12 +208,11 @@
                                         <!-- Readonly -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-readonly" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">읽기 전용
-                                                    (Readonly)</label>
+                                                <label for="example-readonly" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.readonly.664fd112')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <input type="text" id="example-readonly" value="읽기 전용 값" readonly
+                                                <input type="text" id="example-readonly" value="<?php echo sr_e(sr_t('ui.text.3e05543f')); ?>" readonly
                                                     class="form-input" />
                                             </div>
                                         </div>
@@ -234,8 +222,7 @@
                                         <!-- Static Control -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-static" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">정적 컨트롤 (Static
-                                                    control)</label>
+                                                <label for="example-static" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.static.control.e9099e05')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -249,15 +236,15 @@
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">기본 선택 (Default Select)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.select.default.select.861b0eab')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <select class="form-select">
-                                                    <option selected>이 선택 메뉴를 여세요</option>
-                                                    <option>하나</option>
-                                                    <option>둘</option>
-                                                    <option>셋</option>
+                                                    <option selected><?php echo sr_e(sr_t('ui.select.menu.0c8ad3cb')); ?></option>
+                                                    <option><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></option>
+                                                    <option><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></option>
+                                                    <option><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -267,8 +254,7 @@
                                         <!-- Checkbox List -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <span class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 목록
-                                                    (Checkbox List)</span>
+                                                <span class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.list.checkbox.list.d31f7ae8')); ?></span>
                                             </div>
 
                                             <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-x-4 ui-kit-column-lg-2">
@@ -301,7 +287,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">입력 유형 (Input Types)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.input.types.a2a7e61f')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -310,12 +296,11 @@
                                         <!-- Email Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-email" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">이메일
-                                                    (Email)</label>
+                                                <label for="example-email" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.email.email.8b8a829e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <input type="email" id="example-email" placeholder="이메일"
+                                                <input type="email" id="example-email" placeholder="<?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?>"
                                                     class="form-input" />
                                             </div>
                                         </div>
@@ -325,19 +310,18 @@
                                         <!-- Show/Hide Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">비밀번호 표시/숨기기
-                                                    (Show/Hide Password)</label>
+                                                <label for="password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.password.show.hide.password.bffe9d7a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="ui-kit-position-context ui-kit-cluster ui-kit-align-items-center">
                                                     <input id="password" type="password" class="form-input form-control-icon-end"
-                                                        placeholder="비밀번호 입력" />
+                                                        placeholder="<?php echo sr_e(sr_t('ui.password.9e396000')); ?>" />
                                                     <button type="button"
                                                         data-toggle-password='{"target":"#password"}'
-                                                        data-toggle-password-show-label="비밀번호 표시"
-                                                        data-toggle-password-hide-label="비밀번호 숨기기"
-                                                        aria-label="비밀번호 표시"
+                                                        data-toggle-password-show-label="<?php echo sr_e(sr_t('ui.password.ad78e4b8')); ?>"
+                                                        data-toggle-password-hide-label="<?php echo sr_e(sr_t('ui.password.52dc26ff')); ?>"
+                                                        aria-label="<?php echo sr_e(sr_t('ui.password.ad78e4b8')); ?>"
                                                         aria-pressed="false"
                                                         class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
                                                         <?php echo sr_material_icon_html('visibility', 'password-active-hide'); ?>
@@ -352,8 +336,7 @@
                                         <!-- Time -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-time" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">시간
-                                                    (Time)</label>
+                                                <label for="example-time" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.time.a85f0011')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -366,8 +349,7 @@
                                         <!-- Number -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-number" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">숫자
-                                                    (Number)</label>
+                                                <label for="example-number" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.number.7e569561')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -381,8 +363,7 @@
                                         <!-- Range -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-range" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">범위
-                                                    (Range)</label>
+                                                <label for="example-range" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.range.c39250e4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -396,8 +377,7 @@
                                         <!-- Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">비밀번호
-                                                    (Password)</label>
+                                                <label for="example-password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.password.password.22c84385')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -411,8 +391,7 @@
                                         <!-- Month -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-month" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">월
-                                                    (Month)</label>
+                                                <label for="example-month" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.month.b274c0c9')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -425,7 +404,7 @@
                                         <!-- Week -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-week" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">주 (Week)</label>
+                                                <label for="example-week" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.week.aab53b22')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -438,8 +417,7 @@
                                         <!-- Color -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-color" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">색상
-                                                    (Color)</label>
+                                                <label for="example-color" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.color.aa8ae7a1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -454,7 +432,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">입력 그룹 (Input Group)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.input.group.0e2ff079')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -463,13 +441,13 @@
                                         <!-- Basic Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">사용자 이름 (Username)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.active.name.username.b19d3d5e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
                                                     <span class="input-group-text">@</span>
-                                                    <input type="text" placeholder="사용자 이름" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.active.name.f82a5457')); ?>" class="form-input" />
                                                 </div>
                                             </div>
                                         </div>
@@ -479,7 +457,7 @@
                                         <!-- Currency Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">금액 (Amount)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.amount.f78975a2')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -496,12 +474,12 @@
                                         <!-- Textarea with Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">텍스트 영역 (Textarea)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.textarea.9cbf1bae')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <span class="input-group-text">텍스트 영역 포함</span>
+                                                    <span class="input-group-text"><?php echo sr_e(sr_t('ui.text.c2eeb6c2')); ?></span>
                                                     <textarea rows="2" class="form-textarea"></textarea>
                                                 </div>
                                             </div>
@@ -512,13 +490,13 @@
                                         <!-- Flex-nowrap Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold">줄 바꿈 (Wrapping)</label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.wrapping.4812dc30')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
                                                     <span class="input-group-text">@</span>
-                                                    <input type="text" placeholder="사용자 이름" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.active.name.f82a5457')); ?>" class="form-input" />
                                                 </div>
                                             </div>
                                         </div>
@@ -528,14 +506,14 @@
                                         <!-- Input group with text input and button -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">입력 + 버튼 (Input + Button)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.input.button.f4339c75')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <input type="text" placeholder="수신자 이름" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.name.5ed209e6')); ?>" class="form-input" />
                                                     <button type="button"
-                                                        class="btn btn-solid-dark">버튼</button>
+                                                        class="btn btn-solid-dark"><?php echo sr_e(sr_t('ui.text.60563203')); ?></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -545,8 +523,7 @@
                                         <!-- Multiple Files  -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="formFileMultiple01" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">다중 파일
-                                                    (Multiple Files)</label>
+                                                <label for="formFileMultiple01" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.multiple.files.48167df8')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -560,12 +537,12 @@
                                         <!-- Email-like Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">수신자 (Recipient)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.recipient.2c64ddc4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <input type="text" placeholder="수신자 이름" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.name.5ed209e6')); ?>" class="form-input" />
                                                     <span class="input-group-text">@example.com</span>
                                                 </div>
                                             </div>
@@ -576,14 +553,14 @@
                                         <!-- Multi-field Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">이메일 로그인 (Email Login)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.email.login.email.login.62fef2c1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <input type="text" placeholder="사용자 이름" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.active.name.f82a5457')); ?>" class="form-input" />
                                                     <span class="input-group-text">@</span>
-                                                    <input type="text" placeholder="서버" class="form-input" />
+                                                    <input type="text" placeholder="<?php echo sr_e(sr_t('ui.text.7d585c38')); ?>" class="form-input" />
                                                 </div>
                                             </div>
                                         </div>
@@ -593,7 +570,7 @@
                                         <!-- Vanity URL Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">맞춤 URL (Vanity URL)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.url.vanity.url.3e033a6a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -610,8 +587,7 @@
                                         <!-- Input group with dropdown and text input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold">드롭다운 + 입력 (Dropdown +
-                                                    Input)</label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.dropdown.input.ffa2ab72')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -621,17 +597,17 @@
                                                             class="dropdown-toggle btn btn-group-start btn-solid-primary"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown">
-                                                            드롭다운 <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
+                                                            <?php echo sr_e(sr_t('ui.text.a1631f46')); ?> <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
                                                         </button>
 
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div class="ui-kit-stack-0-5">
-                                                                <a class="dropdown-item" href="#!">작업</a>
+                                                                <a class="dropdown-item" href="#!"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></a>
 
-                                                                <a class="dropdown-item active" href="#!">다른 작업</a>
+                                                                <a class="dropdown-item active" href="#!"><?php echo sr_e(sr_t('ui.text.47a7f13d')); ?></a>
 
-                                                                <a class="dropdown-item" href="#!">기타 사항</a>
+                                                                <a class="dropdown-item" href="#!"><?php echo sr_e(sr_t('ui.text.baf7b1bd')); ?></a>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -645,8 +621,7 @@
                                         <!-- File input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="inputGroupFile04" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">파일 입력 (File
-                                                    Input)</label>
+                                                <label for="inputGroupFile04" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.file.input.c956dabe')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -659,18 +634,17 @@
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">입력 그룹 선택 (Input Group
-                                                    Select)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.select.input.group.select.ab4404f1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
-                                                    <span class="input-group-text">옵션</span>
+                                                    <span class="input-group-text"><?php echo sr_e(sr_t('ui.text.cb076d97')); ?></span>
                                                     <select class="form-select form-control-group-end">
-                                                        <option selected>선택...</option>
-                                                        <option>하나</option>
-                                                        <option>둘</option>
-                                                        <option>셋</option>
+                                                        <option selected><?php echo sr_e(sr_t('ui.select.5b1efda0')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></option>
+                                                        <option><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -682,7 +656,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">플로팅 라벨 (Floating Labels)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.floating.labels.ec65b9da')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -691,7 +665,7 @@
                                         <!-- Floating Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">이메일 주소</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.email.e9abda44')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -701,7 +675,7 @@
                                                         class="form-floating-control form-input"
                                                         placeholder="you@email.com" />
                                                     <label for="floating-input-email"
-                                                        class="form-floating-label">이메일</label>
+                                                        class="form-floating-label"><?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?></label>
                                                 </div>
                                                 <!-- End Floating Input -->
                                             </div>
@@ -712,7 +686,7 @@
                                         <!-- Floating Textarea -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">의견 (Comments)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.comments.8eea4e12')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -720,7 +694,7 @@
                                                     <textarea id="floatingTextarea" rows="4" placeholder=""
                                                         class="form-floating-control form-textarea"></textarea>
                                                     <label for="floatingTextarea"
-                                                        class="form-floating-label">의견</label>
+                                                        class="form-floating-label"><?php echo sr_e(sr_t('ui.text.1eaed37a')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -730,7 +704,7 @@
                                         <!-- Floating Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">비밀번호</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -738,7 +712,7 @@
                                                     <input type="password" id="floatingPassword" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingPassword"
-                                                        class="form-floating-label">비밀번호</label>
+                                                        class="form-floating-label"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -750,7 +724,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">입력 크기 (Input Sizes)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.input.sizes.c4e3d441')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -759,8 +733,7 @@
                                         <!-- Small Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-small" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">작게
-                                                    (Small)</label>
+                                                <label for="input-small" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.small.32265979')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -774,8 +747,7 @@
                                         <!-- Large Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-large" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">크게
-                                                    (Large)</label>
+                                                <label for="input-large" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.large.865b14fe')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -789,15 +761,15 @@
                                         <!-- Large Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">큰 선택 메뉴</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.select.menu.9633940e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <select class="form-select form-select-lg">
-                                                    <option selected>이 선택 메뉴를 여세요</option>
-                                                    <option value="1">하나</option>
-                                                    <option value="2">둘</option>
-                                                    <option value="3">셋</option>
+                                                    <option selected><?php echo sr_e(sr_t('ui.select.menu.0c8ad3cb')); ?></option>
+                                                    <option value="1"><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></option>
+                                                    <option value="2"><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></option>
+                                                    <option value="3"><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -807,8 +779,7 @@
                                         <!-- Normal Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-normal" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">보통
-                                                    (Normal)</label>
+                                                <label for="input-normal" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.normal.339d3ab4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -822,8 +793,7 @@
                                         <!-- Grid Size Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-gridsize" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">그리드 크기 (Grid
-                                                    Sizes)</label>
+                                                <label for="input-gridsize" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.grid.sizes.dcc4d2ee')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -841,15 +811,15 @@
                                         <!-- Small Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">작은 선택 메뉴</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.select.menu.c84a7b65')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <select class="form-select form-select-sm">
-                                                    <option selected>이 선택 메뉴를 여세요</option>
-                                                    <option value="1">하나</option>
-                                                    <option value="2">둘</option>
-                                                    <option value="3">셋</option>
+                                                    <option selected><?php echo sr_e(sr_t('ui.select.menu.0c8ad3cb')); ?></option>
+                                                    <option value="1"><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></option>
+                                                    <option value="2"><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></option>
+                                                    <option value="3"><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></option>
                                                 </select>
                                             </div>
                                         </div>
@@ -860,7 +830,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">체크박스, 라디오 및 스위치 (Checks, Radios and Switches)</h4>
+                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.checks.radios.and.switches.2bcc4c3e')); ?></h4>
                             </div>
 
                             <div class="card-body">
@@ -869,21 +839,21 @@
                                         <!-- Default Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 (Checkboxes)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.checkboxes.3f234b18')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <!-- Default Checkbox -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkDefault" class="form-checkbox" />
-                                                    <label for="checkDefault">기본 체크박스</label>
+                                                    <label for="checkDefault"><?php echo sr_e(sr_t('ui.text.518c8759')); ?></label>
                                                 </div>
 
                                                 <!-- Light Checkbox -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkLight"
                                                         class="form-checkbox form-choice-muted form-choice-primary" />
-                                                    <label for="checkLight">연한 체크박스</label>
+                                                    <label for="checkLight"><?php echo sr_e(sr_t('ui.text.bc13d1f4')); ?></label>
                                                 </div>
 
                                                 <!-- Inline Checkboxes -->
@@ -891,12 +861,12 @@
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkInline1" class="form-checkbox"
                                                             checked />
-                                                        <label for="checkInline1">인라인 1</label>
+                                                        <label for="checkInline1"><?php echo sr_e(sr_t('ui.1.5716fb16')); ?></label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkInline2"
                                                             class="form-checkbox" />
-                                                        <label for="checkInline2">인라인 2</label>
+                                                        <label for="checkInline2"><?php echo sr_e(sr_t('ui.2.2ca8baed')); ?></label>
                                                     </div>
                                                 </div>
 
@@ -904,29 +874,29 @@
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkIndeterminate"
                                                         class="form-checkbox" />
-                                                    <label for="checkIndeterminate">비활성화된 중간 상태 체크박스</label>
+                                                    <label for="checkIndeterminate"><?php echo sr_e(sr_t('ui.status.396c827b')); ?></label>
                                                 </div>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkCheckedDisabled"
                                                         class="form-checkbox" checked disabled />
-                                                    <label for="checkCheckedDisabled">비활성화된 체크 상태 체크박스</label>
+                                                    <label for="checkCheckedDisabled"><?php echo sr_e(sr_t('ui.status.afd1aabe')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold">크기</h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkSize1" class="form-checkbox form-choice-md"
                                                         checked />
-                                                    <label for="checkSize1">16px 체크박스</label>
+                                                    <label for="checkSize1"><?php echo sr_e(sr_t('ui.16px.41c433a0')); ?></label>
                                                 </div>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkSize2"
                                                         class="form-checkbox form-choice-secondary form-choice-lg"
                                                         checked />
-                                                    <label for="checkSize2">20px 체크박스</label>
+                                                    <label for="checkSize2"><?php echo sr_e(sr_t('ui.20px.1a2fc945')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -936,30 +906,30 @@
                                         <!-- Switches -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">스위치 (Switches)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.switches.86b5bc92')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <!-- Enabled Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="switch1" class="form-switch" checked />
-                                                    <label for="switch1">활성화된 스위치</label>
+                                                    <label for="switch1"><?php echo sr_e(sr_t('ui.text.81d6e435')); ?></label>
                                                 </div>
 
                                                 <!-- Disabled Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="switch2" class="form-switch" disabled />
-                                                    <label for="switch2" class="ui-kit-ink-default-400">비활성화된 스위치</label>
+                                                    <label for="switch2" class="ui-kit-ink-default-400"><?php echo sr_e(sr_t('ui.text.b9af9dc0')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold">크기</h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkboxSize16" class="form-switch"
                                                         checked />
-                                                    <label for="checkboxSize16">16px 스위치</label>
+                                                    <label for="checkboxSize16"><?php echo sr_e(sr_t('ui.16px.bdbcfc48')); ?></label>
                                                 </div>
 
                                                 <!-- 20px Switch -->
@@ -967,7 +937,7 @@
                                                     <input type="checkbox" id="checkboxSize20"
                                                         class="form-switch form-switch-lg form-choice-secondary"
                                                         checked />
-                                                    <label for="checkboxSize20">20px 스위치</label>
+                                                    <label for="checkboxSize20"><?php echo sr_e(sr_t('ui.20px.8661da39')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -977,7 +947,7 @@
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">색상이 있는 체크박스</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.text.1855fe4d')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -1029,7 +999,7 @@
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">색상이 있는 스위치</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.text.1942c077')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -1081,20 +1051,20 @@
                                         <!-- Default Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">라디오 (Radios)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.radios.a8e1ef53')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="radio" name="gridRadio" id="radio1"
                                                         class="form-radio" checked />
-                                                    <label for="radio1">옵션 1</label>
+                                                    <label for="radio1"><?php echo sr_e(sr_t('ui.1.fbbaca81')); ?></label>
                                                 </div>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="radio" name="gridRadio" id="radio2"
                                                         class="form-radio" />
-                                                    <label for="radio2">옵션 2</label>
+                                                    <label for="radio2"><?php echo sr_e(sr_t('ui.2.6ebdb471')); ?></label>
                                                 </div>
 
                                                 <!-- Inline Radios -->
@@ -1102,12 +1072,12 @@
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="inlineRadioOptions" id="inlineRadio1"
                                                             value="option1" class="form-radio" checked />
-                                                        <label for="inlineRadio1">인라인 1</label>
+                                                        <label for="inlineRadio1"><?php echo sr_e(sr_t('ui.1.5716fb16')); ?></label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="inlineRadioOptions" id="inlineRadio2"
                                                             value="option2" class="form-radio" />
-                                                        <label for="inlineRadio2">인라인 2</label>
+                                                        <label for="inlineRadio2"><?php echo sr_e(sr_t('ui.2.2ca8baed')); ?></label>
                                                     </div>
                                                 </div>
 
@@ -1116,12 +1086,11 @@
                                                     <input type="radio" name="disabledRadioOptions" id="inlineRadio3"
                                                         value="option3" class="form-radio" checked
                                                         disabled />
-                                                    <label for="inlineRadio3" class="ui-kit-ink-default-400">비활성화된 체크 상태
-                                                        라디오</label>
+                                                    <label for="inlineRadio3" class="ui-kit-ink-default-400"><?php echo sr_e(sr_t('ui.status.457b2a9e')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 ui-kit-weight-semibold">크기</h5>
+                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Radios -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-4">
@@ -1129,12 +1098,12 @@
                                                         <input type="radio" name="paymentMethod" id="radioCash"
                                                             value="cash" class="form-radio form-choice-md"
                                                             checked />
-                                                        <label for="radioCash">현금</label>
+                                                        <label for="radioCash"><?php echo sr_e(sr_t('ui.text.95b487c6')); ?></label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="paymentMethod" id="radioCard"
                                                             value="card" class="form-radio form-choice-md" />
-                                                        <label for="radioCard">카드</label>
+                                                        <label for="radioCard"><?php echo sr_e(sr_t('ui.text.62b41b5a')); ?></label>
                                                     </div>
                                                 </div>
 
@@ -1144,12 +1113,12 @@
                                                         <input type="radio" name="deliveryOption" id="radioPickup"
                                                             value="pickup" class="form-radio form-choice-lg"
                                                             checked />
-                                                        <label for="radioPickup">픽업</label>
+                                                        <label for="radioPickup"><?php echo sr_e(sr_t('ui.text.a53ed118')); ?></label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="radio" name="deliveryOption" id="radioHome"
                                                             value="home" class="form-radio form-choice-lg" />
-                                                        <label for="radioHome">택배 배송</label>
+                                                        <label for="radioHome"><?php echo sr_e(sr_t('ui.text.cd87310d')); ?></label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1160,7 +1129,7 @@
                                         <!-- Reverse -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">반대 방향 (Reverse)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.reverse.dfe78742')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-fill-width ui-kit-stack-3 ui-kit-column-lg-2 ui-kit-width-lg-half">
@@ -1168,21 +1137,21 @@
                                                 <div class="ui-kit-cluster ui-kit-cluster-reverse ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="reverseCheck1" class="form-checkbox"
                                                         checked />
-                                                    <label for="reverseCheck1">반대 방향 체크박스</label>
+                                                    <label for="reverseCheck1"><?php echo sr_e(sr_t('ui.text.5eb3f52e')); ?></label>
                                                 </div>
 
                                                 <!-- Reverse Radio -->
                                                 <div class="ui-kit-cluster ui-kit-cluster-reverse ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="radio" id="reverseCheck2" name="reverseRadio"
                                                         class="form-radio" disabled />
-                                                    <label for="reverseCheck2">비활성화된 반대 방향 라디오</label>
+                                                    <label for="reverseCheck2"><?php echo sr_e(sr_t('ui.text.b268eb23')); ?></label>
                                                 </div>
 
                                                 <!-- Reverse Switch -->
                                                 <div class="ui-kit-cluster ui-kit-cluster-reverse ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="switchCheckReverse" class="form-switch"
                                                         checked />
-                                                    <label for="switchCheckReverse">반대 방향 스위치 체크박스 입력</label>
+                                                    <label for="switchCheckReverse"><?php echo sr_e(sr_t('ui.text.cb66827c')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1192,7 +1161,7 @@
                                         <!-- Colored Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">색상이 있는 라디오</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.text.a133349e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -1245,7 +1214,7 @@
                                         <!-- Toggle Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 토글 (Checkbox Toggle)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.checkbox.toggle.50291b0c')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
@@ -1253,8 +1222,7 @@
                                                 <div>
                                                     <input type="checkbox" id="toggleSingle" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="toggleSingle"
-                                                        class="btn btn-choice-primary">단일
-                                                        토글</label>
+                                                        class="btn btn-choice-primary"><?php echo sr_e(sr_t('ui.text.07a1a20f')); ?></label>
                                                 </div>
 
                                                 <!-- Group Toggle -->
@@ -1262,17 +1230,17 @@
                                                     <div>
                                                         <input type="checkbox" id="toggle1" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle1"
-                                                            class="btn btn-choice-primary btn-group-start">하나</label>
+                                                            class="btn btn-choice-primary btn-group-start"><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></label>
                                                     </div>
                                                     <div>
                                                         <input type="checkbox" id="toggle2" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle2"
-                                                            class="btn btn-choice-primary btn-group-middle">둘</label>
+                                                            class="btn btn-choice-primary btn-group-middle"><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></label>
                                                     </div>
                                                     <div>
                                                         <input type="checkbox" id="toggle3" class="form-choice-toggle-input ui-kit-state-hidden" />
                                                         <label for="toggle3"
-                                                            class="btn btn-choice-primary btn-group-end">셋</label>
+                                                            class="btn btn-choice-primary btn-group-end"><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1283,7 +1251,7 @@
                                         <!-- Toggle Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">라디오 토글 (Radio Toggle)</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('ui.radio.toggle.1512d5a1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-column-lg-2">
@@ -1291,21 +1259,21 @@
                                                     <input type="radio" name="radiotoggle" id="radioLeft"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" checked />
                                                     <label for="radioLeft"
-                                                        class="btn btn-choice-secondary btn-group-start">왼쪽</label>
+                                                        class="btn btn-choice-secondary btn-group-start"><?php echo sr_e(sr_t('ui.text.dc0103c1')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioMiddle"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioMiddle"
-                                                        class="btn btn-choice-secondary btn-group-middle">가운데</label>
+                                                        class="btn btn-choice-secondary btn-group-middle"><?php echo sr_e(sr_t('ui.text.d41ad4fc')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioRight"
                                                         class="form-choice-toggle-input ui-kit-state-hidden" />
                                                     <label for="radioRight"
-                                                        class="btn btn-choice-secondary btn-group-end">오른쪽</label>
+                                                        class="btn btn-choice-secondary btn-group-end"><?php echo sr_e(sr_t('ui.text.f594aa6a')); ?></label>
                                                 </div>
                                             </div>
                                         </div>

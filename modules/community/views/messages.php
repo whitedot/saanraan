@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = $box === 'sent' ? '보낸 쪽지함' : '받은 쪽지함';
+$pageTitle = $box === 'sent' ? sr_t('community::ui.text.add34931') : sr_t('community::ui.text.1df1e319');
 $seo = [
     'title' => $pageTitle,
     'canonical' => $box === 'sent' ? '/community/messages?box=sent' : '/community/messages',
@@ -9,14 +9,14 @@ $seo = [
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
+        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <p>
-            <a href="<?php echo sr_e(sr_url('/community/messages')); ?>">받은 쪽지함</a>
+            <a href="<?php echo sr_e(sr_url('/community/messages')); ?>"><?php echo sr_e(sr_t('community::ui.text.1df1e319')); ?></a>
             /
-            <a href="<?php echo sr_e(sr_url('/community/messages?box=sent')); ?>">보낸 쪽지함</a>
+            <a href="<?php echo sr_e(sr_url('/community/messages?box=sent')); ?>"><?php echo sr_e(sr_t('community::ui.text.add34931')); ?></a>
             /
-            <a href="<?php echo sr_e(sr_url('/community/message/write')); ?>">쪽지 쓰기</a>
+            <a href="<?php echo sr_e(sr_url('/community/message/write')); ?>"><?php echo sr_e(sr_t('community::ui.text.288b8b7e')); ?></a>
         </p>
 
         <?php if ($notice !== '') { ?>
@@ -24,16 +24,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <?php } ?>
 
         <?php if ($messages === []) { ?>
-            <p>쪽지가 없습니다.</p>
+            <p><?php echo sr_e(sr_t('community::ui.text.f3e1cf06')); ?></p>
         <?php } else { ?>
             <table>
                 <thead>
                     <tr>
-                        <th><?php echo $box === 'sent' ? '받는 회원' : '보낸 회원'; ?></th>
-                        <th>상태</th>
-                        <th>일시</th>
-                        <th>보기</th>
-                        <th>관리</th>
+                        <th><?php echo $box === 'sent' ? sr_t('community::ui.member.a8116cfc') : sr_t('community::ui.member.2d301cb0'); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.ed5e184f')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,14 +47,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                     $config
                                 )); ?>
                             </td>
-                            <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음'); ?></td>
+                            <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.62808119') : sr_t('community::ui.text.3fe5701c')) : ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.eacc746d') : sr_t('community::ui.text.3fe5701c')); ?></td>
                             <td><?php echo sr_e((string) $message['created_at']); ?></td>
-                            <td><a href="<?php echo sr_e(sr_url('/community/message?id=' . (string) $message['id'])); ?>">보기</a></td>
+                            <td><a href="<?php echo sr_e(sr_url('/community/message?id=' . (string) $message['id'])); ?>"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></a></td>
                             <td>
                                 <form method="post" action="<?php echo sr_e(sr_url('/community/message/delete')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
-                                    <button type="submit">삭제</button>
+                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                 </form>
                             </td>
                         </tr>

@@ -637,6 +637,7 @@ return [
 - locale 파일명은 `ko`, `en-US` 같은 locale 값과 맞춘다.
 - 최소 기본 locale 파일을 제공한다.
 - 번역 값도 화면에 출력할 때는 `sr_e()`로 escape한다.
+- `module.php`, `admin-menu.php`, `menu-links.php`, `dashboard.php`, `layout-options.php`, `member-group-rules.php`처럼 화면에 표시될 라벨을 제공하는 계약 파일도 하드코딩 문구 대신 `sr_t('{module_key}::...')` 값을 반환한다.
 - 게시글 제목, 상품명 같은 사용자 콘텐츠 번역 테이블을 코어가 대신 만들지 않는다.
 
 ## 10. DB 접근
@@ -930,9 +931,9 @@ return [
 - `layout`은 기존 모듈 호환용 fallback이며 `table` 또는 `stats`만 지원한다. 생략하거나 알 수 없는 값이면 `table`로 처리한다.
 - `table` layout은 기존 `rows`를 사용하고 `항목 / 주요 수치 / 상세` 표로 표시한다.
 - `stats` layout은 `items`를 우선 사용하고, 없으면 `rows`를 사용한다. 각 item은 지표 카드로 표시한다.
-- 각 row는 `label`과 `value_sql` 또는 `value`, 선택 `detail_sql` 또는 `detail`을 가진다.
+- 각 row는 `label`과 `value_sql` 또는 `value`, 선택 `detail_sql` 또는 `detail`, 선택 `detail_prefix`, 선택 `detail_suffix`를 가진다.
 - `stats` item은 선택 `state`와 선택 `emphasis`를 가질 수 있다. `state` 허용 값은 `default`, `success`, `warning`, `danger`, `info`이고, `emphasis` 허용 값은 `default`, `primary`이다. 알 수 없는 값은 각각 `default`로 처리한다.
-- SQL은 단일 `SELECT`만 사용하고 `value_sql`은 `value`, `detail_sql`은 `detail` 컬럼을 반환한다.
+- SQL은 단일 `SELECT`만 사용하고 `value_sql`은 `value`, `detail_sql`은 `detail` 컬럼을 반환한다. locale 전환이 필요한 화면 문구는 SQL 문자열 안에 넣지 않고, `label`, `detail_prefix`, `detail_suffix`에서 번역 값을 조합한다.
 - admin 모듈은 SQL 실행 실패를 해당 row의 빈 값으로 처리하므로, 모듈은 자기 테이블이 없거나 비활성 상태인 경우에도 전체 대시보드를 깨지 않게 작성한다.
 - `view`가 없으면 admin 모듈의 fallback renderer가 `layout`과 `rows`/`items`를 사용해 표시한다.
 

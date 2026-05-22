@@ -1,10 +1,10 @@
 <?php
 
-$pageTitle = isset($pageTitle) && is_string($pageTitle) ? $pageTitle : (string) $board['title'] . ' 글쓰기';
+$pageTitle = isset($pageTitle) && is_string($pageTitle) ? $pageTitle : (string) $board['title'] . sr_t('community::ui.text.b542075c');
 $formAction = isset($formAction) && is_string($formAction)
     ? $formAction
     : '/community/write?key=' . rawurlencode((string) $board['board_key']);
-$submitLabel = isset($submitLabel) && is_string($submitLabel) ? $submitLabel : '등록';
+$submitLabel = isset($submitLabel) && is_string($submitLabel) ? $submitLabel : sr_t('community::ui.create.bb216f10');
 $attachmentMaxBytes = min(10485760, max(1, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
 $fileAttachmentMaxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
 $fileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
@@ -32,7 +32,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php } ?>
 
         <p>
-            <a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a>
+            <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
             /
             <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
                 <?php echo sr_e((string) $board['title']); ?>
@@ -66,37 +66,35 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
             <p>
                 <label for="modules_community_form_title">
-                    <span>제목 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                     <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
                 </label>
             </p>
             <p>
                 <label for="modules_community_form_body_text">
-                    <span>본문 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                     <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
                     <label for="modules_community_form_image_attachment">
-                    <span>이미지 첨부</span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.42bb44a5')); ?></span>
                         <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp">
                     </label>
                     <br>
-                    <small>JPEG, PNG, WebP / 파일당 최대 <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
+                    <small><?php echo sr_e(sr_t('community::ui.jpeg.png.webp.eefc7fda')); ?> <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
                 </p>
             <?php } ?>
             <?php if ($fileUploadEnabled) { ?>
                 <p>
                     <label for="modules_community_form_file_attachments">
-                    <span>파일 첨부</span>
+                    <span><?php echo sr_e(sr_t('community::ui.text.1fe3755c')); ?></span>
                         <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple>
                     </label>
                     <br>
                     <small>
-                        최대 <?php echo sr_e((string) $fileAttachmentMaxCount); ?>개 /
-                        파일당 최대 <?php echo sr_e(sr_community_format_bytes($fileAttachmentMaxBytes)); ?> /
-                        허용: <?php echo sr_e(implode(', ', $fileAllowedExtensions)); ?>
+                        <?php echo sr_e(sr_t('community::ui.text.ee3b70e7')); ?> <?php echo sr_e((string) $fileAttachmentMaxCount); ?><?php echo sr_e(sr_t('community::ui.text.2254e4c9')); ?> <?php echo sr_e(sr_community_format_bytes($fileAttachmentMaxBytes)); ?> <?php echo sr_e(sr_t('community::ui.text.3cf0ac82')); ?> <?php echo sr_e(implode(', ', $fileAllowedExtensions)); ?>
                     </small>
                 </p>
             <?php } ?>

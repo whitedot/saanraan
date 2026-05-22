@@ -1,12 +1,12 @@
 <?php
 
-$adminPageTitle = '사이트 메뉴';
+$adminPageTitle = sr_t('site_menu::ui.menu.a14f2522');
 $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 $siteMenuParentOptions = static function (int $menuId, int $selectedParentId = 0, int $excludeItemId = 0) use ($items, $itemDepths): void {
     ?>
-    <option value="0"<?php echo $selectedParentId <= 0 ? ' selected' : ''; ?>>최상위</option>
+    <option value="0"<?php echo $selectedParentId <= 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('site_menu::ui.text.d8b14d7a')); ?></option>
     <?php foreach ($items as $parentOption) { ?>
         <?php
         $parentOptionMenuId = (int) ($parentOption['menu_id'] ?? 0);
@@ -44,7 +44,7 @@ foreach (sr_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu'])
 foreach ($menuLinkSuggestions as $asset) {
     $moduleKey = (string) ($asset['module_key'] ?? '');
     $assetType = (string) ($asset['asset_type'] ?? 'link');
-    $assetTypeLabel = (string) ($asset['asset_type_label'] ?? '링크');
+    $assetTypeLabel = (string) ($asset['asset_type_label'] ?? sr_t('site_menu::ui.text.3d54da9c'));
     $assetLabel = (string) ($asset['label'] ?? '');
     $assetUrl = (string) ($asset['url'] ?? '');
     if ($moduleKey === '' || $assetType === '' || $assetTypeLabel === '' || $assetLabel === '' || $assetUrl === '') {
@@ -89,7 +89,7 @@ $siteMenuSelectedAssetKeys = static function (string $selectedUrl) use ($siteMen
 
 $siteMenuModuleOptions = static function (string $selectedModuleKey = '') use ($siteMenuModuleAssetGroups): void {
     ?>
-    <option value=""<?php echo $selectedModuleKey === '' ? ' selected' : ''; ?>>직접 입력</option>
+    <option value=""<?php echo $selectedModuleKey === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('site_menu::ui.text.eb613054')); ?></option>
     <?php foreach ($siteMenuModuleAssetGroups as $moduleKey => $moduleData) { ?>
         <?php $moduleLabel = (string) ($moduleData['label'] ?? $moduleKey); ?>
         <option value="<?php echo sr_e((string) $moduleKey); ?>"<?php echo $selectedModuleKey === (string) $moduleKey ? ' selected' : ''; ?>>
@@ -101,7 +101,7 @@ $siteMenuModuleOptions = static function (string $selectedModuleKey = '') use ($
 
 $siteMenuAssetTypeOptions = static function (string $selectedModuleKey = '', string $selectedAssetType = '') use ($siteMenuModuleAssetGroups): void {
     ?>
-    <option value="">종류 선택</option>
+    <option value=""><?php echo sr_e(sr_t('site_menu::ui.select.635a3c01')); ?></option>
     <?php foreach ($siteMenuModuleAssetGroups as $moduleKey => $moduleData) { ?>
         <?php $assetTypes = is_array($moduleData['types'] ?? null) ? $moduleData['types'] : []; ?>
         <?php foreach ($assetTypes as $assetType => $assetTypeData) { ?>
@@ -120,7 +120,7 @@ $siteMenuAssetTypeOptions = static function (string $selectedModuleKey = '', str
 $siteMenuAssetOptions = static function (string $selectedModuleKey = '', string $selectedAssetType = '', string $selectedUrl = '') use ($siteMenuModuleAssetGroups): void {
     $selectedAssigned = false;
     ?>
-    <option value="">자산 선택</option>
+    <option value=""><?php echo sr_e(sr_t('site_menu::ui.select.a33d6c70')); ?></option>
     <?php foreach ($siteMenuModuleAssetGroups as $moduleKey => $moduleData) { ?>
         <?php $assetTypes = is_array($moduleData['types'] ?? null) ? $moduleData['types'] : []; ?>
         <?php foreach ($assetTypes as $assetType => $assetTypeData) { ?>
@@ -154,8 +154,8 @@ $siteMenuAssetOptions = static function (string $selectedModuleKey = '', string 
 
 $siteMenuModalCloseButton = static function (string $modalId): void {
     ?>
-    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($modalId); ?>">
-        <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>">
+        <?php echo sr_material_icon_html('close', '', sr_t('site_menu::ui.close.1e8c1020')); ?>
     </button>
     <?php
 };
@@ -163,7 +163,7 @@ $siteMenuModalCloseButton = static function (string $modalId): void {
 $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuModalCloseButton): void {
     $editingMenu = is_array($menu);
     $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : 'header';
-    $label = $editingMenu ? (string) ($menu['label'] ?? '') : '헤더 메뉴';
+    $label = $editingMenu ? (string) ($menu['label'] ?? '') : sr_t('site_menu::ui.menu.8b97d7f8');
     $statusValue = $editingMenu ? (string) ($menu['status'] ?? 'enabled') : 'enabled';
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>
@@ -178,19 +178,19 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <input type="hidden" name="intent" value="save_menu">
                     <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key">메뉴 key <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" required data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">메뉴 이름 <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label"><?php echo sr_e(sr_t('site_menu::ui.menu.name.0615c5f4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status">상태</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -203,8 +203,8 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">닫기</button>
-                    <button type="submit" class="btn btn-solid-primary modal-action">메뉴 저장</button>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.menu.save.f55aafc2')); ?></button>
                 </div>
             </form>
         </div>
@@ -237,7 +237,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_module">서비스</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_module"><?php echo sr_e(sr_t('site_menu::ui.text.06aff97f')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_module" class="form-select" data-site-menu-module-select data-overlay-focus>
                                 <?php $siteMenuModuleOptions($selectedModuleKey); ?>
@@ -245,7 +245,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_asset_type">대상 종류</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_asset_type"><?php echo sr_e(sr_t('site_menu::ui.text.75c3bd09')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_asset_type" class="form-select" data-site-menu-asset-type-select>
                                 <?php $siteMenuAssetTypeOptions($selectedModuleKey, $selectedAssetType); ?>
@@ -253,7 +253,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_asset">연결 자산</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_asset"><?php echo sr_e(sr_t('site_menu::ui.text.ea61edcb')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_asset" class="form-select" data-site-menu-asset-select>
                                 <?php $siteMenuAssetOptions($selectedModuleKey, $selectedAssetType, $url); ?>
@@ -261,7 +261,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_parent_id">상위 항목</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_parent_id"><?php echo sr_e(sr_t('site_menu::ui.text.6ab1927c')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_parent_id" name="parent_id" class="form-select">
                                 <?php $siteMenuParentOptions($itemMenuId, $itemParentId, $itemId); ?>
@@ -269,19 +269,19 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">항목 이름 <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label"><?php echo sr_e(sr_t('site_menu::ui.name.661e423c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-site-menu-label-input>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-site-menu-url-input>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_target">링크 대상</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_target"><?php echo sr_e(sr_t('site_menu::ui.text.5235ffd9')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select">
                                 <?php foreach ($allowedTargets as $target) { ?>
@@ -293,7 +293,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status">상태</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -305,15 +305,15 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_sort_order">정렬</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_sort_order"><?php echo sr_e(sr_t('site_menu::ui.text.3788952d')); ?></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_sort_order" type="number" name="sort_order" value="<?php echo sr_e((string) $sortOrder); ?>" class="form-input">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">닫기</button>
-                    <button type="submit" class="btn btn-solid-primary modal-action">항목 저장</button>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.save.964f6f83')); ?></button>
                 </div>
             </form>
         </div>
@@ -327,28 +327,28 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
 <section class="admin-card admin-list-card card admin-list-form admin-site-menu-form">
     <div class="card-header">
         <div>
-            <h2 class="card-title">사이트 메뉴 구성</h2>
-            <p class="admin-dashboard-meta">메뉴 묶음과 항목을 한 화면에서 관리합니다. 항목은 최대 3단계까지 구성할 수 있습니다.</p>
+            <h2 class="card-title"><?php echo sr_e(sr_t('site_menu::ui.menu.5b2bf65a')); ?></h2>
+            <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('site_menu::ui.menu.3ddcbf35')); ?></p>
         </div>
-        <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal">메뉴 추가</button>
+        <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal"><?php echo sr_e(sr_t('site_menu::ui.menu.ba050327')); ?></button>
     </div>
     <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>이동</th>
-                    <th>범위</th>
-                    <th>대상</th>
+                    <th><?php echo sr_e(sr_t('site_menu::ui.text.83b651b8')); ?></th>
+                    <th><?php echo sr_e(sr_t('site_menu::ui.text.2281025b')); ?></th>
+                    <th><?php echo sr_e(sr_t('site_menu::ui.text.8c609deb')); ?></th>
                     <th>URL</th>
-                    <th>상태</th>
-                    <th>표시 순서</th>
-                    <th class="text-end">관리</th>
+                    <th><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></th>
+                    <th><?php echo sr_e(sr_t('site_menu::ui.text.ff0e602e')); ?></th>
+                    <th class="text-end"><?php echo sr_e(sr_t('site_menu::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($menuRows === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">등록된 메뉴가 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('site_menu::ui.create.menu.12031c65')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($menuRows as $row) { ?>
@@ -360,7 +360,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-0">
                                 <td></td>
-                                <td><span class="admin-menu-scope-badge admin-menu-scope-category">메뉴</span></td>
+                                <td><span class="admin-menu-scope-badge admin-menu-scope-category"><?php echo sr_e(sr_t('site_menu::ui.menu.13b36d6d')); ?></span></td>
                                 <td class="admin-menu-target-cell">
                                     <div class="admin-menu-target admin-menu-target-depth-0">
                                         <span class="admin-menu-target-copy">
@@ -374,13 +374,13 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 <td></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($addItemModalId); ?>" data-overlay="#<?php echo sr_e($addItemModalId); ?>">항목 추가</button>
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($menuModalId); ?>" data-overlay="#<?php echo sr_e($menuModalId); ?>">수정</button>
+                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($addItemModalId); ?>" data-overlay="#<?php echo sr_e($addItemModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.2c54ca2d')); ?></button>
+                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($menuModalId); ?>" data-overlay="#<?php echo sr_e($menuModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></button>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_menu">
                                             <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $menuId); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -393,8 +393,8 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             $childAddModalId = 'site_menu_add_child_' . $itemId;
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="site_menu_<?php echo sr_e((string) $row['menu_id']); ?>" data-sort-parent="<?php echo sr_e((string) ((int) ($row['parent_id'] ?? 0))); ?>" data-sort-key="<?php echo sr_e((string) $itemId); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
-                                <td><span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
-                                <td><span class="admin-menu-scope-badge admin-menu-scope-item"><?php echo sr_e((string) $rowDepth); ?>단계</span></td>
+                                <td><span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
+                                <td><span class="admin-menu-scope-badge admin-menu-scope-item"><?php echo sr_e((string) $rowDepth); ?><?php echo sr_e(sr_t('site_menu::ui.text.29ee1bb7')); ?></span></td>
                                 <td class="admin-menu-target-cell">
                                     <div class="admin-menu-target admin-menu-target-depth-<?php echo sr_e((string) $rowDepth); ?>">
                                         <span class="admin-menu-tree-branch" aria-hidden="true"></span>
@@ -412,14 +412,14 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <?php if ($rowDepth < 3) { ?>
-                                            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($childAddModalId); ?>" data-overlay="#<?php echo sr_e($childAddModalId); ?>">하위 추가</button>
+                                            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($childAddModalId); ?>" data-overlay="#<?php echo sr_e($childAddModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.8d136d31')); ?></button>
                                         <?php } ?>
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>">수정</button>
+                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></button>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_item">
                                             <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -433,25 +433,25 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="admin-form-actions admin-form-sticky-actions admin-site-menu-form-actions">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_item_order">
-        <button type="submit" class="btn btn-solid-primary">표시 순서 저장</button>
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('site_menu::ui.save.cc86610d')); ?></button>
     </form>
 </section>
 
-<?php $siteMenuRenderMenuModal('site_menu_add_menu_modal', '메뉴 추가'); ?>
+<?php $siteMenuRenderMenuModal('site_menu_add_menu_modal', sr_t('site_menu::ui.menu.ba050327')); ?>
 <?php foreach ($menus as $menu) { ?>
     <?php
     $menuId = (int) $menu['id'];
-    $siteMenuRenderMenuModal('site_menu_edit_menu_' . $menuId, '메뉴 수정', $menu);
-    $siteMenuRenderItemModal('site_menu_add_item_menu_' . $menuId, '항목 추가', $menuId, 0, null, (int) ($menuParentNextSortOrders[$menuId][0] ?? 100));
+    $siteMenuRenderMenuModal('site_menu_edit_menu_' . $menuId, sr_t('site_menu::ui.menu.edit.c61bd0a4'), $menu);
+    $siteMenuRenderItemModal('site_menu_add_item_menu_' . $menuId, sr_t('site_menu::ui.text.2c54ca2d'), $menuId, 0, null, (int) ($menuParentNextSortOrders[$menuId][0] ?? 100));
     ?>
 <?php } ?>
 <?php foreach ($items as $item) { ?>
     <?php
     $itemId = (int) $item['id'];
     $itemDepth = (int) ($itemDepths[$itemId] ?? 1);
-    $siteMenuRenderItemModal('site_menu_edit_item_' . $itemId, '항목 수정', (int) $item['menu_id'], (int) ($item['parent_id'] ?? 0), $item);
+    $siteMenuRenderItemModal('site_menu_edit_item_' . $itemId, sr_t('site_menu::ui.edit.e6e14581'), (int) $item['menu_id'], (int) ($item['parent_id'] ?? 0), $item);
     if ($itemDepth < 3) {
-        $siteMenuRenderItemModal('site_menu_add_child_' . $itemId, '하위 항목 추가', (int) $item['menu_id'], $itemId, null, (int) ($menuParentNextSortOrders[(int) $item['menu_id']][$itemId] ?? 100));
+        $siteMenuRenderItemModal('site_menu_add_child_' . $itemId, sr_t('site_menu::ui.text.56b2723f'), (int) $item['menu_id'], $itemId, null, (int) ($menuParentNextSortOrders[(int) $item['menu_id']][$itemId] ?? 100));
     }
     ?>
 <?php } ?>

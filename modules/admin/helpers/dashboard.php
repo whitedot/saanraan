@@ -44,25 +44,25 @@ function sr_admin_dashboard_operation_summary(PDO $pdo): array
 
     if (sr_admin_dashboard_table_exists($pdo, 'sr_site_menus') && sr_admin_dashboard_table_exists($pdo, 'sr_site_menu_items')) {
         $operationSummary[] = [
-            'label' => '사이트 메뉴',
+            'label' => sr_t('admin::ui.menu.a14f2522'),
             'value' => (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_site_menus WHERE status = 'enabled'"),
-            'detail' => '활성 메뉴 / 항목 ' . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_site_menu_items WHERE status = 'enabled'"),
+            'detail' => sr_t('admin::ui.menu.140391a7') . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_site_menu_items WHERE status = 'enabled'"),
         ];
     }
 
     if (sr_admin_dashboard_table_exists($pdo, 'sr_banners')) {
         $operationSummary[] = [
-            'label' => '배너',
+            'label' => sr_t('admin::ui.banner.63182d60'),
             'value' => (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_banners WHERE status = 'enabled'"),
-            'detail' => '활성 배너 / 임시저장 ' . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_banners WHERE status = 'draft'"),
+            'detail' => sr_t('admin::ui.banner.save.31179583') . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_banners WHERE status = 'draft'"),
         ];
     }
 
     if (sr_admin_dashboard_table_exists($pdo, 'sr_notifications') && sr_admin_dashboard_table_exists($pdo, 'sr_notification_deliveries')) {
         $operationSummary[] = [
-            'label' => '알림',
+            'label' => sr_t('admin::ui.notification.12ddd6ca'),
             'value' => (string) sr_admin_dashboard_count($pdo, 'SELECT COUNT(*) AS count_value FROM sr_notifications'),
-            'detail' => '전체 알림 / 발송 대기 ' . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_notification_deliveries WHERE status = 'queued'"),
+            'detail' => sr_t('admin::ui.all.notification.e9b364cb') . (string) sr_admin_dashboard_count($pdo, "SELECT COUNT(*) AS count_value FROM sr_notification_deliveries WHERE status = 'queued'"),
         ];
     }
 
@@ -209,10 +209,15 @@ function sr_admin_dashboard_metric_rows(PDO $pdo, array $rows): array
             continue;
         }
 
+        $detail = sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? ''));
+        if ($detail !== '') {
+            $detail = (string) ($row['detail_prefix'] ?? '') . $detail . (string) ($row['detail_suffix'] ?? '');
+        }
+
         $metrics[] = [
             'label' => $label,
             'value' => sr_admin_dashboard_scalar($pdo, (string) ($row['value_sql'] ?? ''), 'value', (string) ($row['value'] ?? '')),
-            'detail' => sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? '')),
+            'detail' => $detail,
             'state' => sr_admin_dashboard_state((string) ($row['state'] ?? 'default')),
             'emphasis' => sr_admin_dashboard_emphasis((string) ($row['emphasis'] ?? 'default')),
         ];
@@ -282,30 +287,30 @@ function sr_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array
     $sessionHandler = (string) ($session['handler'] ?? 'database');
     $hasRuntimeSessionsTable = sr_admin_dashboard_table_exists($pdo, 'sr_sessions');
     $summary[] = [
-        'label' => 'PHP 세션 저장소',
-        'value' => $sessionHandler === 'database' ? 'DB' : '파일',
-        'state' => $sessionHandler === 'database' && $hasRuntimeSessionsTable ? '정상' : '주의',
+        'label' => sr_t('admin::ui.php.save.196310ee'),
+        'value' => $sessionHandler === 'database' ? 'DB' : sr_t('admin::ui.text.0c8354d0'),
+        'state' => $sessionHandler === 'database' && $hasRuntimeSessionsTable ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
         'detail' => $sessionHandler === 'database'
-            ? ($hasRuntimeSessionsTable ? 'sr_sessions 사용 가능' : 'sr_sessions 테이블이 없어 파일 세션으로 fallback')
-            : '다중 인스턴스에서는 공유 세션 저장소가 필요',
+            ? ($hasRuntimeSessionsTable ? sr_t('admin::ui.sr.sessions.active.32618cfc') : sr_t('admin::ui.sr.sessions.fallback.9c3959ff'))
+            : sr_t('admin::ui.save.eb8b7352'),
     ];
 
     $hasRateLimitsTable = sr_admin_dashboard_table_exists($pdo, 'sr_rate_limits');
     $summary[] = [
-        'label' => '인증 제한 저장소',
-        'value' => $hasRateLimitsTable ? '전용 테이블' : '인증 로그 fallback',
-        'state' => $hasRateLimitsTable ? '정상' : '주의',
-        'detail' => $hasRateLimitsTable ? 'sr_rate_limits 사용 가능' : '업데이트 SQL 적용 전에는 인증 로그 COUNT를 사용',
+        'label' => sr_t('admin::ui.save.41015027'),
+        'value' => $hasRateLimitsTable ? sr_t('admin::ui.text.4544383f') : sr_t('admin::ui.fallback.627497a6'),
+        'state' => $hasRateLimitsTable ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => $hasRateLimitsTable ? sr_t('admin::ui.sr.rate.limits.active.167521ed') : sr_t('admin::ui.sql.active.534f6761'),
     ];
 
     $secureCookie = sr_session_cookie_secure($config);
     $summary[] = [
-        'label' => '세션 쿠키 Secure',
-        'value' => $secureCookie ? '적용' : '미적용',
-        'state' => $secureCookie ? '정상' : ((string) ($config['env'] ?? 'production') === 'production' ? '주의' : '확인'),
+        'label' => sr_t('admin::ui.secure.f6ac91db'),
+        'value' => $secureCookie ? sr_t('admin::ui.text.6a1c963d') : sr_t('admin::ui.text.37e22e45'),
+        'state' => $secureCookie ? sr_t('admin::ui.text.35688a85') : ((string) ($config['env'] ?? 'production') === 'production' ? sr_t('admin::ui.text.acc90fbf') : sr_t('admin::ui.text.1aacb54c')),
         'detail' => !empty($security['force_https'])
-            ? 'force_https 설정으로 강제'
-            : (sr_is_https_request($config) ? '현재 요청을 HTTPS로 인식' : '현재 요청을 HTTPS로 인식하지 않음'),
+            ? sr_t('admin::ui.force.https.settings.8f6fed27')
+            : (sr_is_https_request($config) ? sr_t('admin::ui.text.1fdbd8c1') : sr_t('admin::ui.text.775d4227')),
     ];
 
     $trustedProxies = sr_trusted_proxy_entries($config);
@@ -316,73 +321,73 @@ function sr_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array
     $summary[] = [
         'label' => 'Trusted proxy',
         'value' => (string) count($trustedProxies),
-        'state' => $trustedProxyErrors === [] && $trustedProxies !== [] ? '정상' : ($hasForwardedHeaders || $trustedProxyErrors !== [] ? '주의' : '확인'),
+        'state' => $trustedProxyErrors === [] && $trustedProxies !== [] ? sr_t('admin::ui.text.35688a85') : ($hasForwardedHeaders || $trustedProxyErrors !== [] ? sr_t('admin::ui.text.acc90fbf') : sr_t('admin::ui.text.1aacb54c')),
         'detail' => $trustedProxyErrors !== []
-            ? 'trusted_proxies에 올바르지 않은 IP/CIDR 값이 있음'
+            ? sr_t('admin::ui.trusted.ip.cidr.e62ee7e3')
             : ($trustedProxies !== []
-            ? '프록시 헤더 신뢰 범위가 설정됨'
-            : ($hasForwardedHeaders ? '전달 헤더가 있지만 trusted_proxies가 비어 있음' : '프록시 없이 직접 요청으로 판단')),
+            ? sr_t('admin::ui.settings.c1617075')
+            : ($hasForwardedHeaders ? sr_t('admin::ui.trusted.652f752f') : sr_t('admin::ui.text.5024f634'))),
     ];
 
     $summary[] = [
-        'label' => '클라이언트 IP 판정',
-        'value' => $clientIp !== '' ? $clientIp : '확인 불가',
-        'state' => $clientIp !== '' ? '정상' : '주의',
-        'detail' => $forwardedClientIp !== '' ? 'trusted proxy의 X-Forwarded-For 사용' : 'REMOTE_ADDR 기준',
+        'label' => sr_t('admin::ui.ip.5c2a95fd'),
+        'value' => $clientIp !== '' ? $clientIp : sr_t('admin::ui.text.298859a0'),
+        'state' => $clientIp !== '' ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => $forwardedClientIp !== '' ? sr_t('admin::ui.trusted.x.forwarded.for.active.28c96b76') : sr_t('admin::ui.remote.addr.948a80cd'),
     ];
 
     $memberSettings = sr_member_settings($pdo);
     $summary[] = [
-        'label' => '로그인 제한',
+        'label' => sr_t('admin::ui.login.42a3a98c'),
         'value' => (string) $memberSettings['login_throttle_account_limit'] . '/' . (string) $memberSettings['login_throttle_ip_limit'],
-        'state' => '정상',
-        'detail' => (string) $memberSettings['login_throttle_window_seconds'] . '초 창 / 계정 기준, IP 기준',
+        'state' => sr_t('admin::ui.text.35688a85'),
+        'detail' => (string) $memberSettings['login_throttle_window_seconds'] . sr_t('admin::ui.ip.647b5bb4'),
     ];
 
     $summary[] = [
-        'label' => '비밀번호 재설정 제한',
+        'label' => sr_t('admin::ui.password.settings.be683f9d'),
         'value' => (string) $memberSettings['password_reset_throttle_account_limit'] . '/' . (string) $memberSettings['password_reset_throttle_ip_limit'],
-        'state' => '정상',
-        'detail' => (string) $memberSettings['password_reset_throttle_window_seconds'] . '초 창 / 계정 기준, IP 기준',
+        'state' => sr_t('admin::ui.text.35688a85'),
+        'detail' => (string) $memberSettings['password_reset_throttle_window_seconds'] . sr_t('admin::ui.ip.647b5bb4'),
     ];
 
     $appKeyEnv = (string) ($secrets['app_key_env'] ?? '');
     $appKeyFromEnv = $appKeyEnv !== '' && getenv($appKeyEnv) !== false && (string) getenv($appKeyEnv) !== '';
     $summary[] = [
-        'label' => 'App key 출처',
-        'value' => $appKeyFromEnv ? '환경변수' : 'config 파일',
-        'state' => sr_app_key($config) !== '' ? '정상' : '주의',
-        'detail' => $appKeyFromEnv ? $appKeyEnv . ' 값을 사용 중' : '환경변수 주입이 없으면 config/app_key를 사용',
+        'label' => sr_t('admin::ui.app.key.493861d7'),
+        'value' => $appKeyFromEnv ? sr_t('admin::ui.text.5ab2221f') : sr_t('admin::ui.config.e322417f'),
+        'state' => sr_app_key($config) !== '' ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => $appKeyFromEnv ? $appKeyEnv . sr_t('admin::ui.active.fa5dac61') : sr_t('admin::ui.config.app.active.623bc6f7'),
     ];
 
     $transport = (string) ($mail['transport'] ?? 'php_mail');
     $mailReady = sr_admin_dashboard_mail_transport_ready($transport, $mail);
     $summary[] = [
-        'label' => '메일 transport',
+        'label' => sr_t('admin::ui.transport.10a29a19'),
         'value' => $transport,
-        'state' => $mailReady ? '정상' : '주의',
-        'detail' => $mailReady ? '인증 메일 발송 설정 확인됨' : '인증 메일 발송 설정 보완 필요',
+        'state' => $mailReady ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => $mailReady ? sr_t('admin::ui.settings.fb4a1ed2') : sr_t('admin::ui.settings.f4cd9d47'),
     ];
 
     $moduleSourcesEnabled = sr_module_sources_enabled($pdo, $config);
     $summary[] = [
-        'label' => '모듈 소스 반영',
-        'value' => $moduleSourcesEnabled ? '허용' : '비활성화',
-        'state' => $moduleSourcesEnabled && sr_runtime_is_production($config) ? '주의' : '정상',
+        'label' => sr_t('admin::ui.text.c89ee3b7'),
+        'value' => $moduleSourcesEnabled ? sr_t('admin::ui.text.688200c4') : sr_t('admin::ui.text.9fd8413e'),
+        'state' => $moduleSourcesEnabled && sr_runtime_is_production($config) ? sr_t('admin::ui.text.acc90fbf') : sr_t('admin::ui.text.35688a85'),
         'detail' => $moduleSourcesEnabled
-            ? '소유자 재인증 후 모듈 zip 업로드 가능'
-            : 'zip 업로드는 소유자 재인증 요청에서만 일시 허용',
+            ? sr_t('admin::ui.zip.d96d97ff')
+            : sr_t('admin::ui.zip.928843d9'),
     ];
 
     $storageDriver = sr_storage_default_driver($config);
     $s3ConfigErrors = sr_storage_s3_config_errors($config);
     $summary[] = [
-        'label' => '파일 저장소',
-        'value' => $storageDriver === 's3' ? 'S3' : '로컬',
-        'state' => $storageDriver === 's3' ? (sr_storage_s3_ready($config) ? '정상' : '주의') : ($s3ConfigErrors === [] ? '정상' : '확인'),
+        'label' => sr_t('admin::ui.save.2fe7ca23'),
+        'value' => $storageDriver === 's3' ? 'S3' : sr_t('admin::ui.text.0f61584c'),
+        'state' => $storageDriver === 's3' ? (sr_storage_s3_ready($config) ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf')) : ($s3ConfigErrors === [] ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.1aacb54c')),
         'detail' => $storageDriver === 's3'
-            ? (sr_storage_s3_ready($config) ? 'S3 설정 확인됨' : 'S3 설정 확인 필요: ' . implode(' ', $s3ConfigErrors))
-            : ($s3ConfigErrors === [] ? 'storage/ 로컬 파일 저장 사용' : '로컬 저장 사용 중. S3 예비 설정 확인 필요: ' . implode(' ', $s3ConfigErrors)),
+            ? (sr_storage_s3_ready($config) ? sr_t('admin::ui.s3.settings.8c226869') : sr_t('admin::ui.s3.settings.0aee6cda') . implode(' ', $s3ConfigErrors))
+            : ($s3ConfigErrors === [] ? sr_t('admin::ui.storage.save.active.4182a267') : sr_t('admin::ui.save.active.s3.settings.f145035e') . implode(' ', $s3ConfigErrors)),
     ];
 
     return $summary;
@@ -395,15 +400,15 @@ function sr_admin_dashboard_install_protection_summary(array $config): array
     $summary = [];
 
     $summary[] = [
-        'label' => '설정 파일',
-        'value' => is_file($configPath) ? '존재' : '없음',
-        'state' => is_file($configPath) && is_readable($configPath) ? '정상' : '주의',
-        'detail' => is_file($configPath) ? 'config/config.php 확인됨' : '설치 완료 상태를 판단할 설정 파일이 없음',
+        'label' => sr_t('admin::ui.settings.845f5c6c'),
+        'value' => is_file($configPath) ? sr_t('admin::ui.text.d73ba417') : sr_t('admin::ui.text.72ea3d64'),
+        'state' => is_file($configPath) && is_readable($configPath) ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => is_file($configPath) ? sr_t('admin::ui.config.config.php.7742bcb4') : sr_t('admin::ui.status.settings.c663cd87'),
     ];
 
-    $lockDetail = 'storage/installed.lock 확인됨';
-    $lockState = is_file($lockPath) && is_readable($lockPath) ? '정상' : '주의';
-    $lockValue = is_file($lockPath) ? '존재' : '없음';
+    $lockDetail = sr_t('admin::ui.storage.installed.lock.90254df3');
+    $lockState = is_file($lockPath) && is_readable($lockPath) ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf');
+    $lockValue = is_file($lockPath) ? sr_t('admin::ui.text.d73ba417') : sr_t('admin::ui.text.72ea3d64');
     if (is_file($lockPath) && is_readable($lockPath)) {
         $content = file_get_contents($lockPath);
         $decoded = is_string($content) ? json_decode($content, true) : null;
@@ -412,33 +417,33 @@ function sr_admin_dashboard_install_protection_summary(array $config): array
             $fingerprint = (string) ($decoded['app_fingerprint'] ?? '');
             $expectedFingerprint = substr(hash('sha256', sr_app_key($config)), 0, 16);
             if ($fingerprint !== '' && !hash_equals($expectedFingerprint, $fingerprint)) {
-                $lockState = '주의';
-                $lockDetail = 'app fingerprint가 현재 설정과 일치하지 않음';
+                $lockState = sr_t('admin::ui.text.acc90fbf');
+                $lockDetail = sr_t('admin::ui.app.settings.4392d04f');
             } else {
-                $lockDetail = '설치 시각 ' . ($installedAt !== '' ? $installedAt : '미기록') . ($fingerprint !== '' ? ' / fingerprint 확인' : '');
+                $lockDetail = sr_t('admin::ui.text.67812880') . ($installedAt !== '' ? $installedAt : sr_t('admin::ui.text.6907dab2')) . ($fingerprint !== '' ? sr_t('admin::ui.fingerprint.09329453') : '');
             }
         } else {
-            $lockState = '확인';
-            $lockDetail = '이전 형식의 설치 lock 파일 사용 중';
+            $lockState = sr_t('admin::ui.text.1aacb54c');
+            $lockDetail = sr_t('admin::ui.lock.active.7b974e84');
         }
     } elseif (!is_file($lockPath)) {
-        $lockDetail = '설치 lock 파일이 없어 설치 흐름 재진입 위험이 있음';
+        $lockDetail = sr_t('admin::ui.lock.41ea1c4a');
     } else {
-        $lockDetail = '설치 lock 파일을 읽을 수 없음';
+        $lockDetail = sr_t('admin::ui.lock.56ddd913');
     }
 
     $summary[] = [
-        'label' => '설치 lock',
+        'label' => sr_t('admin::ui.lock.96be2723'),
         'value' => $lockValue,
         'state' => $lockState,
         'detail' => $lockDetail,
     ];
 
     $summary[] = [
-        'label' => '설치 판정',
-        'value' => sr_is_installed() ? '완료' : '미완료',
-        'state' => sr_is_installed() ? '정상' : '주의',
-        'detail' => 'config/config.php와 storage/installed.lock가 모두 있어야 설치 완료로 판단',
+        'label' => sr_t('admin::ui.text.c7888f6d'),
+        'value' => sr_is_installed() ? sr_t('admin::ui.text.727333ab') : sr_t('admin::ui.text.987c6c1e'),
+        'state' => sr_is_installed() ? sr_t('admin::ui.text.35688a85') : sr_t('admin::ui.text.acc90fbf'),
+        'detail' => sr_t('admin::ui.config.config.storage.installed.cd679b8f'),
     ];
 
     return $summary;
@@ -447,7 +452,7 @@ function sr_admin_dashboard_install_protection_summary(array $config): array
 function sr_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config): array
 {
     $labels = [
-        'admin.module_sources_enabled' => '모듈 소스 반영',
+        'admin.module_sources_enabled' => sr_t('admin::ui.text.c89ee3b7'),
     ];
     $settings = [];
     $stmt = $pdo->query(
@@ -467,22 +472,22 @@ function sr_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config): 
         $enabled = is_array($row) && $valueType === 'bool'
             ? (bool) sr_cast_setting_value($row['setting_value'] ?? '', $valueType)
             : false;
-        $state = $enabled ? '주의' : '정상';
-        $detail = '기본값 또는 비활성 상태';
+        $state = $enabled ? sr_t('admin::ui.text.acc90fbf') : sr_t('admin::ui.text.35688a85');
+        $detail = sr_t('admin::ui.status.a37b0235');
 
         if ($settingKey === 'admin.module_sources_enabled' && $enabled) {
             $detail = sr_admin_runtime_is_production($config)
-                ? '운영 환경에서 모듈 파일 반영 경로가 열려 있음'
-                : '개발/스테이징에서 모듈 파일 반영 경로가 열려 있음';
+                ? sr_t('admin::ui.text.c0ad1b1e')
+                : sr_t('admin::ui.text.f1259957');
         } elseif (is_array($row) && $valueType !== 'bool') {
-            $state = '주의';
-            $detail = '고위험 설정은 bool 타입으로 다시 저장해야 함';
+            $state = sr_t('admin::ui.text.acc90fbf');
+            $detail = sr_t('admin::ui.settings.bool.save.678349be');
         }
 
         $summary[] = [
             'label' => (string) ($labels[$settingKey] ?? $settingKey),
             'setting_key' => $settingKey,
-            'value' => $enabled ? '활성' : '비활성',
+            'value' => $enabled ? sr_t('admin::ui.text.d9ba6551') : sr_t('admin::ui.text.ffdbb50e'),
             'state' => $state,
             'updated_at' => is_array($row) ? (string) ($row['updated_at'] ?? '') : '',
             'detail' => $detail,
@@ -533,7 +538,7 @@ function sr_admin_dashboard_recovery_marker(string $filename, string $label): ?a
             'filename' => $filename,
             'recorded_at' => '',
             'stage' => '',
-            'message' => '복구 marker를 읽을 수 없습니다.',
+            'message' => sr_t('admin::ui.text.fcd200cb'),
         ];
     }
 
@@ -553,8 +558,8 @@ function sr_admin_dashboard_recovery_markers(): array
 {
     $recoveryMarkers = [];
     foreach ([
-        'install-failed.json' => '설치 실패',
-        'update-failed.json' => '업데이트 실패',
+        'install-failed.json' => sr_t('admin::ui.text.19d12d29'),
+        'update-failed.json' => sr_t('admin::ui.text.dcf9d8bc'),
     ] as $filename => $label) {
         $marker = sr_admin_dashboard_recovery_marker($filename, $label);
         if (is_array($marker)) {

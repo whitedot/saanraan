@@ -1,17 +1,17 @@
 <?php
 
-$pageTitle = '로그인';
+$pageTitle = sr_t('member::ui.login.6d253673');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$identifierLabel = '이메일 또는 아이디';
+$identifierLabel = sr_t('member::ui.email.95b727cb');
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main class="public-ui-scope member-login-public">
         <section class="public-ui-form-panel">
             <h1 class="public-ui-title"><?php echo sr_e($pageTitle); ?></h1>
-            <p class="public-ui-copy">Saanraan 계정으로 계속 진행합니다.</p>
+            <p class="public-ui-copy"><?php echo sr_e(sr_t('member::ui.saanraan.cad4cd41')); ?></p>
 
             <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 
@@ -31,20 +31,20 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
                 <label class="public-ui-field" for="modules_member_login_identifier">
-                    <span><?php echo sr_e($identifierLabel); ?> <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e($identifierLabel); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                     <input id="modules_member_login_identifier" type="text" name="identifier" value="<?php echo sr_e($identifier); ?>" autocomplete="username" required class="public-ui-input">
                 </label>
                 <label class="public-ui-field" for="modules_member_login_password">
-                    <span>비밀번호 <span class="sr-required-label">(필수)</span></span>
+                    <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                     <input id="modules_member_login_password" type="password" name="password" required class="public-ui-input">
                 </label>
-                <button type="submit" class="public-ui-button">로그인</button>
+                <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></button>
             </form>
             <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'after_form']); ?>
 
             <div class="public-ui-link-row">
-                <a href="<?php echo sr_e(sr_url('/register')); ?>">회원가입</a>
-                <a href="<?php echo sr_e(sr_url('/password/reset')); ?>">비밀번호 재설정</a>
+                <a href="<?php echo sr_e(sr_url('/register')); ?>"><?php echo sr_e(sr_t('member::ui.member.e668cc2b')); ?></a>
+                <a href="<?php echo sr_e(sr_url('/password/reset')); ?>"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></a>
             </div>
         </section>
     </main>

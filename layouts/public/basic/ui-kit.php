@@ -30,8 +30,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <h1 class="card-title">Public UI-KIT</h1>
             </div>
             <div class="card-body">
-                <p class="public-ui-kit-subtitle">사이트 기본 public layout 런타임에서 공통 UI 원형을 확인하는 화면입니다.</p>
-                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="Public UI-KIT 섹션">
+                <p class="public-ui-kit-subtitle"><?php echo sr_e(sr_t('ui.public.layout.ui.85d967fa')); ?></p>
+                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="<?php echo sr_e(sr_t('ui.public.ui.kit.6c2248dd')); ?>">
                     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                         <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
                     <?php } ?>

@@ -31,8 +31,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
     <main>
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo sr_e($pageTitle); ?></h1>
-        <p>Saanraan MVP가 설치되었습니다.</p>
-        <p><a href="<?php echo sr_e(sr_url('/admin')); ?>">관리자 화면</a></p>
+        <p><?php echo sr_e(sr_t('ui.saanraan.d60361f1')); ?></p>
+        <p><a href="<?php echo sr_e(sr_url('/admin')); ?>"><?php echo sr_e(sr_t('ui.admin.c68cbc05')); ?></a></p>
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
     </main>
 <?php sr_public_layout_end(); ?>

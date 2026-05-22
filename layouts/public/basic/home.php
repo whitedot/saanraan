@@ -3,7 +3,7 @@
 $homeSite = is_array($site ?? null) ? $site : [];
 $homePdo = $pdo instanceof PDO ? $pdo : null;
 $homeSiteName = (string) ($homeSite['name'] ?? 'Saanraan');
-$homeDescription = '새 홈페이지를 준비하고 있습니다.';
+$homeDescription = sr_t('ui.page.2a0a8b79');
 $seo = [
     'title' => $homeSiteName,
     'description' => $homeDescription,
