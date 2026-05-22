@@ -58,7 +58,6 @@ if ($pointAdminPage === 'balances') {
         }
     }
 }
-$pointRefundModalAccounts = $pointAdjustModalAccounts;
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -115,12 +114,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>사유</th>
                     <th>참조</th>
                     <th>생성일</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state">포인트 거래가 없습니다.</td>
+                        <td colspan="9" class="admin-empty-state">포인트 거래가 없습니다.</td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
@@ -137,6 +137,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e((string) $transaction['reference_type'] . ((string) $transaction['reference_id'] !== '' ? ':' . (string) $transaction['reference_id'] : '')); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
+                                    <?php if ((string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
+                                        <?php $pointTransactionRefundModalId = 'point-refund-modal-' . (int) ($transaction['id'] ?? 0); ?>
+                                        <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $transaction['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointTransactionRefundModalId); ?>" data-overlay="#<?php echo sr_e($pointTransactionRefundModalId); ?>">환불</a>
+                                    <?php } else { ?>
+                                        <span class="text-muted">-</span>
+                                    <?php } ?>
+                                </div>
+                            </td>
                         </tr>
                     <?php } ?>
                 <?php } ?>
@@ -149,10 +159,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title">최근 잔액</h2>
             <?php $pointHeaderAdjustModalId = is_array($selectedAccount) ? 'point-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'point-adjust-modal-0'; ?>
-            <?php $pointHeaderRefundModalId = is_array($selectedAccount) ? 'point-refund-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'point-refund-modal-0'; ?>
             <?php $pointHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/points/balances'; ?>
             <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderAdjustModalId); ?>">조정하기</a>
-            <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderRefundModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderRefundModalId); ?>">환불 처리</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -183,9 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역</a>
                                     <?php $pointBalanceAdjustModalId = 'point-adjust-modal-' . (int) ($balance['account_id'] ?? 0); ?>
-                                    <?php $pointBalanceRefundModalId = 'point-refund-modal-' . (int) ($balance['account_id'] ?? 0); ?>
                                     <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointBalanceAdjustModalId); ?>">조정</a>
-                                    <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointBalanceRefundModalId); ?>" data-overlay="#<?php echo sr_e($pointBalanceRefundModalId); ?>">환불</a>
                                 </div>
                             </td>
                         </tr>
@@ -303,17 +309,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } ?>
 
-<?php if ($pointAdminPage === 'balances' && $pointRefundModalAccounts !== []) { ?>
-    <?php foreach ($pointRefundModalAccounts as $pointRefundModalAccount) { ?>
+<?php if ($pointAdminPage === 'transactions' && $transactions !== []) { ?>
+    <?php foreach ($transactions as $pointRefundTransaction) { ?>
+        <?php if ((string) ($pointRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
+            <?php continue; ?>
+        <?php } ?>
         <?php
-        $pointRefundModalId = 'point-refund-modal-' . (int) $pointRefundModalAccount['id'];
-        $pointRefundFieldPrefix = 'point_refund_' . (int) $pointRefundModalAccount['id'];
-        $pointRefundAccountInputId = $pointRefundFieldPrefix . '_account_identifier';
-        $pointRefundMemberLookupModalId = $pointRefundFieldPrefix . '_member_lookup_modal';
+        $pointRefundTransactionId = (int) ($pointRefundTransaction['id'] ?? 0);
+        $pointRefundModalId = 'point-refund-modal-' . $pointRefundTransactionId;
+        $pointRefundFieldPrefix = 'point_refund_' . $pointRefundTransactionId;
+        $pointRefundReferenceId = 'point_transaction:' . $pointRefundTransactionId;
+        $pointRefundDefaultAmount = abs((int) ($pointRefundTransaction['amount'] ?? 0));
         ?>
         <div id="<?php echo sr_e($pointRefundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($pointRefundFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointRefundModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointRefundModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $pointRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($pointRefundFieldPrefix); ?>_title" class="modal-title">포인트 환불 처리</h3>
                         <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($pointRefundModalId); ?>">
@@ -324,41 +334,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="transaction_type" value="refund">
                         <input type="hidden" name="reference_type" value="refund">
-                        <?php if ((string) $pointRefundModalAccount['account_public_hash'] !== '') { ?>
-                            <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $pointRefundModalAccount['account_public_hash']); ?>">
-                            <div class="admin-summary-stats">
-                                <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointRefundModalAccount)); ?></strong></span>
-                                <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointRefundModalAccount)); ?></span>
-                                <span class="admin-summary-meta">현재 잔액 <strong><?php echo sr_e(number_format((int) $pointRefundModalAccount['balance'])); ?> P</strong></span>
-                            </div>
-                        <?php } else { ?>
-                            <div class="admin-form-row">
-                                <label class="form-label" for="<?php echo sr_e($pointRefundAccountInputId); ?>">회원 공개 해시 <span class="sr-required-label">(필수)</span></label>
-                                <div class="admin-form-field">
-                                    <div class="admin-lookup-control">
-                                        <input id="<?php echo sr_e($pointRefundAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
-                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointRefundMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointRefundMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($pointRefundAccountInputId); ?>">회원 검색</button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php } ?>
+                        <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $pointRefundTransaction['account_public_hash']); ?>">
+                        <input type="hidden" name="reference_id" value="<?php echo sr_e($pointRefundReferenceId); ?>">
+                        <div class="admin-summary-stats">
+                            <span class="admin-summary-meta">원거래 <strong>#<?php echo sr_e((string) $pointRefundTransactionId); ?></strong></span>
+                            <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointRefundTransaction)); ?></strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointRefundTransaction)); ?></span>
+                            <span class="admin-summary-meta">원거래 수량 <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> P</strong></span>
+                        </div>
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount">환불 수량 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount" type="number" name="amount" step="1" min="1" required class="form-input" data-overlay-focus>
+                                <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $pointRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
                                 <p class="admin-form-help">환불 거래는 양수 포인트로 저장됩니다.</p>
                             </div>
                         </div>
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason">사유 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_reference_id">환불 참조 ID</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
+                                <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e('거래 #' . (string) $pointRefundTransactionId . ' 환불'); ?>" maxlength="255" required class="form-input form-control-full">
+                                <p class="admin-form-help">환불 참조 ID: <?php echo sr_e($pointRefundReferenceId); ?></p>
                             </div>
                         </div>
                     </div>
@@ -369,16 +364,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </form>
             </div>
         </div>
-        <?php
-        $assetAdjustLookup = [
-            'field_prefix' => $pointRefundFieldPrefix,
-            'member_input_id' => (string) $pointRefundModalAccount['account_public_hash'] === '' ? $pointRefundAccountInputId : '',
-            'return_overlay_id' => $pointRefundModalId,
-            'return_label' => '환불 모달로 돌아가기',
-            'member_search_url' => sr_url('/admin/members/search'),
-        ];
-        include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
-        ?>
     <?php } ?>
 <?php } ?>
 

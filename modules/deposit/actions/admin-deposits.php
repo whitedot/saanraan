@@ -15,8 +15,9 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedTransactionTypes = ['adjustment', 'deposit', 'use', 'refund', 'withdraw'];
 $allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];
-$errors = [];
-$notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $depositAdminPage = isset($depositAdminPage) ? (string) $depositAdminPage : 'balances';
 if (!in_array($depositAdminPage, ['balances', 'transactions'], true)) {
     $depositAdminPage = 'balances';
@@ -73,6 +74,20 @@ if (sr_request_method() === 'POST') {
         }
     }
 
+    if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Adeposit_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
+        $stmt = $pdo->prepare('SELECT transaction_type FROM sr_deposit_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
+        $stmt->execute([
+            'id' => (int) $matches[1],
+            'account_id' => $targetAccountId,
+        ]);
+        $row = $stmt->fetch();
+        if (!is_array($row)) {
+            $errors[] = '환불할 원거래를 찾을 수 없습니다.';
+        } elseif ((string) ($row['transaction_type'] ?? '') === 'refund') {
+            $errors[] = '환불 거래는 다시 환불할 수 없습니다.';
+        }
+    }
+
     if ($errors === []) {
         try {
             $transactionId = sr_deposit_create_transaction($pdo, [
@@ -100,7 +115,10 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = '예치금 거래를 저장했습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], '예치금 거래를 저장했습니다.'));
+            $redirectIdentifier = sr_admin_member_public_hash($runtimeConfig, $targetAccountId);
+            $redirectPath = $depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : '/admin/deposits/balances';
+            sr_redirect($redirectPath . '?account_identifier=' . rawurlencode($redirectIdentifier));
         } catch (Throwable $exception) {
             if ($exception->getMessage() === 'Deposit balance cannot be negative.') {
                 $errors[] = '예치금 잔액은 음수가 될 수 없습니다.';

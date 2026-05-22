@@ -58,7 +58,6 @@ if ($depositAdminPage === 'balances') {
         }
     }
 }
-$depositRefundModalAccounts = $depositAdjustModalAccounts;
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -115,12 +114,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>사유</th>
                     <th>참조</th>
                     <th>생성일</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state">예치금 거래가 없습니다.</td>
+                        <td colspan="9" class="admin-empty-state">예치금 거래가 없습니다.</td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
@@ -137,6 +137,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e((string) $transaction['reference_type'] . ((string) $transaction['reference_id'] !== '' ? ':' . (string) $transaction['reference_id'] : '')); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
+                                    <?php if ((string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
+                                        <?php $depositTransactionRefundModalId = 'deposit-refund-modal-' . (int) ($transaction['id'] ?? 0); ?>
+                                        <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $transaction['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositTransactionRefundModalId); ?>" data-overlay="#<?php echo sr_e($depositTransactionRefundModalId); ?>">환불</a>
+                                    <?php } else { ?>
+                                        <span class="text-muted">-</span>
+                                    <?php } ?>
+                                </div>
+                            </td>
                         </tr>
                     <?php } ?>
                 <?php } ?>
@@ -149,10 +159,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title">최근 잔액</h2>
             <?php $depositHeaderAdjustModalId = is_array($selectedAccount) ? 'deposit-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'deposit-adjust-modal-0'; ?>
-            <?php $depositHeaderRefundModalId = is_array($selectedAccount) ? 'deposit-refund-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'deposit-refund-modal-0'; ?>
             <?php $depositHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/deposits/balances'; ?>
             <a href="<?php echo sr_e(sr_url($depositHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositHeaderAdjustModalId); ?>">조정하기</a>
-            <a href="<?php echo sr_e(sr_url($depositHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositHeaderRefundModalId); ?>" data-overlay="#<?php echo sr_e($depositHeaderRefundModalId); ?>">환불 처리</a>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -183,9 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light">거래 내역</a>
                                     <?php $depositBalanceAdjustModalId = 'deposit-adjust-modal-' . (int) ($balance['account_id'] ?? 0); ?>
-                                    <?php $depositBalanceRefundModalId = 'deposit-refund-modal-' . (int) ($balance['account_id'] ?? 0); ?>
                                     <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositBalanceAdjustModalId); ?>">조정</a>
-                                    <a href="<?php echo sr_e(sr_url('/admin/deposits/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositBalanceRefundModalId); ?>" data-overlay="#<?php echo sr_e($depositBalanceRefundModalId); ?>">환불</a>
                                 </div>
                             </td>
                         </tr>
@@ -303,17 +309,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } ?>
 
-<?php if ($depositAdminPage === 'balances' && $depositRefundModalAccounts !== []) { ?>
-    <?php foreach ($depositRefundModalAccounts as $depositRefundModalAccount) { ?>
+<?php if ($depositAdminPage === 'transactions' && $transactions !== []) { ?>
+    <?php foreach ($transactions as $depositRefundTransaction) { ?>
+        <?php if ((string) ($depositRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
+            <?php continue; ?>
+        <?php } ?>
         <?php
-        $depositRefundModalId = 'deposit-refund-modal-' . (int) $depositRefundModalAccount['id'];
-        $depositRefundFieldPrefix = 'deposit_refund_' . (int) $depositRefundModalAccount['id'];
-        $depositRefundAccountInputId = $depositRefundFieldPrefix . '_account_identifier';
-        $depositRefundMemberLookupModalId = $depositRefundFieldPrefix . '_member_lookup_modal';
+        $depositRefundTransactionId = (int) ($depositRefundTransaction['id'] ?? 0);
+        $depositRefundModalId = 'deposit-refund-modal-' . $depositRefundTransactionId;
+        $depositRefundFieldPrefix = 'deposit_refund_' . $depositRefundTransactionId;
+        $depositRefundReferenceId = 'deposit_transaction:' . $depositRefundTransactionId;
+        $depositRefundDefaultAmount = abs((int) ($depositRefundTransaction['amount'] ?? 0));
         ?>
         <div id="<?php echo sr_e($depositRefundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($depositRefundFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/balances' . ((string) $depositRefundModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $depositRefundModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $depositRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($depositRefundFieldPrefix); ?>_title" class="modal-title">예치금 환불 처리</h3>
                         <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($depositRefundModalId); ?>">
@@ -324,41 +334,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="transaction_type" value="refund">
                         <input type="hidden" name="reference_type" value="refund">
-                        <?php if ((string) $depositRefundModalAccount['account_public_hash'] !== '') { ?>
-                            <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $depositRefundModalAccount['account_public_hash']); ?>">
-                            <div class="admin-summary-stats">
-                                <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($depositRefundModalAccount)); ?></strong></span>
-                                <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($depositRefundModalAccount)); ?></span>
-                                <span class="admin-summary-meta">현재 잔액 <strong><?php echo sr_e(number_format((int) $depositRefundModalAccount['balance'])); ?> 원</strong></span>
-                            </div>
-                        <?php } else { ?>
-                            <div class="admin-form-row">
-                                <label class="form-label" for="<?php echo sr_e($depositRefundAccountInputId); ?>">회원 공개 해시 <span class="sr-required-label">(필수)</span></label>
-                                <div class="admin-form-field">
-                                    <div class="admin-lookup-control">
-                                        <input id="<?php echo sr_e($depositRefundAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
-                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositRefundMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($depositRefundMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($depositRefundAccountInputId); ?>">회원 검색</button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php } ?>
+                        <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $depositRefundTransaction['account_public_hash']); ?>">
+                        <input type="hidden" name="reference_id" value="<?php echo sr_e($depositRefundReferenceId); ?>">
+                        <div class="admin-summary-stats">
+                            <span class="admin-summary-meta">원거래 <strong>#<?php echo sr_e((string) $depositRefundTransactionId); ?></strong></span>
+                            <span class="admin-summary-meta">회원 <strong><?php echo sr_e(sr_admin_member_display_name_preview($depositRefundTransaction)); ?></strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($depositRefundTransaction)); ?></span>
+                            <span class="admin-summary-meta">원거래 금액 <strong><?php echo sr_e(number_format((int) $depositRefundTransaction['amount'])); ?> 원</strong></span>
+                        </div>
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($depositRefundFieldPrefix); ?>_amount">환불 금액 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_amount" type="number" name="amount" step="1" min="1" required class="form-input" data-overlay-focus>
+                                <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $depositRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
                                 <p class="admin-form-help">환불 거래는 양수 예치금으로 저장됩니다.</p>
                             </div>
                         </div>
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($depositRefundFieldPrefix); ?>_reason">사유 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($depositRefundFieldPrefix); ?>_reference_id">환불 참조 ID</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_reference_id" type="text" name="reference_id" maxlength="120" class="form-input">
+                                <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e('거래 #' . (string) $depositRefundTransactionId . ' 환불'); ?>" maxlength="255" required class="form-input form-control-full">
+                                <p class="admin-form-help">환불 참조 ID: <?php echo sr_e($depositRefundReferenceId); ?></p>
                             </div>
                         </div>
                     </div>
@@ -369,16 +364,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </form>
             </div>
         </div>
-        <?php
-        $assetAdjustLookup = [
-            'field_prefix' => $depositRefundFieldPrefix,
-            'member_input_id' => (string) $depositRefundModalAccount['account_public_hash'] === '' ? $depositRefundAccountInputId : '',
-            'return_overlay_id' => $depositRefundModalId,
-            'return_label' => '환불 모달로 돌아가기',
-            'member_search_url' => sr_url('/admin/members/search'),
-        ];
-        include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
-        ?>
     <?php } ?>
 <?php } ?>
 
