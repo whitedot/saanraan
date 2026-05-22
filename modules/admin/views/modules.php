@@ -26,7 +26,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p>설치 가능한 새 모듈이 없습니다.</p>
     </section>
 <?php } else { ?>
-    <div class="admin-module-card-grid">
+    <div class="admin-module-card-grid admin-module-installable-grid">
         <?php foreach ($installableModules as $module) { ?>
             <?php $moduleKey = (string) $module['module_key']; ?>
             <?php $moduleModalId = 'installable-module-detail-' . $moduleKey; ?>
