@@ -10,6 +10,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedStatuses = sr_admin_privacy_request_statuses();
+$allowedTypes = sr_privacy_request_types();
 $errors = [];
 $notice = '';
 
@@ -21,8 +22,9 @@ if (sr_request_method() === 'POST') {
     $notice = (string) $postResult['notice'];
 }
 
-$statusFilter = sr_admin_privacy_request_status_filter($allowedStatuses);
-$requests = sr_admin_privacy_requests($pdo, $statusFilter);
+$privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);
+$privacyRequestStatusCounts = sr_admin_privacy_request_status_counts($pdo, $allowedStatuses);
+$requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters);
 
 if (sr_request_method() === 'GET') {
     sr_audit_log($pdo, [
@@ -34,7 +36,7 @@ if (sr_request_method() === 'GET') {
         'result' => 'success',
         'message' => 'Privacy request list viewed.',
         'metadata' => [
-            'status_filter' => $statusFilter,
+            'filters' => $privacyRequestListFilters,
             'result_count' => count($requests),
         ],
     ]);

@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/privacy/helpers.php';
 
 $account = sr_member_require_login($pdo);
-$allowedTypes = ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
+$allowedTypes = sr_privacy_request_types();
 $errors = [];
 $notice = '';
 $values = [

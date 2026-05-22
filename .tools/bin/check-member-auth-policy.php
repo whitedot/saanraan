@@ -455,7 +455,7 @@ if ($adminPrivacyRequestsAction !== '') {
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsAction, "if (sr_request_method() === 'GET')") !== false
             && strpos($adminPrivacyRequestsAction, "'event_type' => 'privacy.request.list.viewed'") !== false
-            && strpos($adminPrivacyRequestsAction, "'status_filter' => \$statusFilter") !== false
+            && strpos($adminPrivacyRequestsAction, "'filters' => \$privacyRequestListFilters") !== false
             && strpos($adminPrivacyRequestsAction, "'result_count' => count(\$requests)") !== false,
         'Admin privacy request list views should be audited without logging raw request contents.'
     );

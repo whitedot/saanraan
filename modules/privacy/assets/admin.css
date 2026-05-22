@@ -1,3 +1,15 @@
+.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));justify-content:stretch;width:100%}
+.admin-page-privacy-request-list .admin-privacy-request-filter .admin-filter-field{min-width:0}
+.admin-page-privacy-request-list .admin-filter-input{width:100%}
+.admin-page-privacy-request-list .admin-filter-submit{justify-content:center;min-width:0}
+.admin-page-privacy-request-list .admin-privacy-request-table{min-width:78rem;table-layout:fixed}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(1){width:5rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(2){width:7rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(3){width:8rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(4){width:8rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(5){width:13rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(7){width:11rem}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(8){width:20rem}
 .privacy-request-edit-form .admin-form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
 .privacy-request-edit-form .admin-form-check input{width:1rem;min-height:1rem}
 .admin-list-form .privacy-request-manage,
@@ -7,3 +19,4 @@
 .admin-list-form .privacy-request-manage .form-select,
 .admin-list-form .privacy-request-manage .form-textarea{width:100%}
 .admin-list-form .privacy-request-manage .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
+@media (max-width:1023px){.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:1fr}.admin-page-privacy-request-list .admin-filter-submit{justify-content:center;width:100%}}

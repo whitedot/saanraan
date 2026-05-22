@@ -7,6 +7,11 @@ function sr_admin_privacy_request_statuses(): array
     return ['requested', 'reviewing', 'completed', 'rejected', 'cancelled'];
 }
 
+function sr_privacy_request_types(): array
+{
+    return ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
+}
+
 function sr_admin_privacy_request_terminal_statuses(): array
 {
     return ['completed', 'rejected', 'cancelled'];
@@ -143,37 +148,109 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
     return sr_admin_action_result($errors, $notice);
 }
 
-function sr_admin_privacy_request_status_filter(array $allowedStatuses): string
+function sr_admin_privacy_request_filters(array $allowedStatuses, array $allowedTypes): array
 {
-    $statusFilter = sr_get_string('status', 30);
-    if ($statusFilter !== '' && !in_array($statusFilter, $allowedStatuses, true)) {
-        return '';
+    $filters = [
+        'status' => sr_get_string('status', 30),
+        'request_type' => sr_get_string('request_type', 40),
+        'field' => sr_get_string('field', 20),
+        'q' => trim(sr_get_string('q', 120)),
+    ];
+
+    if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
+        $filters['status'] = '';
     }
 
-    return $statusFilter;
+    if ($filters['request_type'] !== '' && !in_array($filters['request_type'], $allowedTypes, true)) {
+        $filters['request_type'] = '';
+    }
+
+    if (!in_array($filters['field'], ['all', 'id', 'account', 'requester', 'message', 'note'], true)) {
+        $filters['field'] = 'all';
+    }
+
+    return $filters;
 }
 
-function sr_admin_privacy_requests(PDO $pdo, string $statusFilter): array
+function sr_admin_privacy_request_status_counts(PDO $pdo, array $allowedStatuses): array
 {
-    $requests = [];
-    if ($statusFilter !== '') {
-        $stmt = $pdo->prepare(
-            'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
-             FROM sr_privacy_requests
-             WHERE status = :status
-             ORDER BY id DESC
-             LIMIT 100'
-        );
-        $stmt->execute(['status' => $statusFilter]);
-    } else {
-        $stmt = $pdo->query(
-            'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
-             FROM sr_privacy_requests
-             ORDER BY id DESC
-             LIMIT 100'
-        );
+    $counts = ['total' => 0];
+    foreach ($allowedStatuses as $status) {
+        $counts[$status] = 0;
     }
 
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_privacy_requests GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        $counts['total'] += $count;
+        if (in_array($status, $allowedStatuses, true)) {
+            $counts[$status] = $count;
+        }
+    }
+
+    return $counts;
+}
+
+function sr_admin_privacy_requests(PDO $pdo, array $filters): array
+{
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 'status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((string) ($filters['request_type'] ?? '') !== '') {
+        $where[] = 'request_type = :request_type';
+        $params['request_type'] = (string) $filters['request_type'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'id') {
+            $where[] = "CAST(id AS CHAR) LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } elseif ($field === 'account') {
+            $where[] = "CAST(account_id AS CHAR) LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } elseif ($field === 'requester') {
+            $where[] = "requester_snapshot LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } elseif ($field === 'message') {
+            $where[] = "request_message LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } elseif ($field === 'note') {
+            $where[] = "admin_note LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } else {
+            $where[] = "(CAST(id AS CHAR) LIKE :id_keyword ESCAPE '\\\\' OR CAST(account_id AS CHAR) LIKE :account_keyword ESCAPE '\\\\' OR requester_snapshot LIKE :requester_keyword ESCAPE '\\\\' OR request_message LIKE :message_keyword ESCAPE '\\\\' OR admin_note LIKE :note_keyword ESCAPE '\\\\')";
+            $params['id_keyword'] = $like;
+            $params['account_keyword'] = $like;
+            $params['requester_keyword'] = $like;
+            $params['message_keyword'] = $like;
+            $params['note_keyword'] = $like;
+        }
+    }
+
+    $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    $sql = 'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
+            FROM sr_privacy_requests
+            ' . $whereSql . '
+            ORDER BY id DESC
+            LIMIT 100';
+
+    if ($params === []) {
+        $stmt = $pdo->query($sql);
+    } else {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    $requests = [];
     foreach ($stmt->fetchAll() as $row) {
         $requests[] = $row;
     }

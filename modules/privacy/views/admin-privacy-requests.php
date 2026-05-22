@@ -1,25 +1,75 @@
 <?php
 
 $adminPageTitle = '개인정보 처리 요청';
+$adminPageSubtitle = '접수된 개인정보 처리 요청을 확인하고 처리 상태를 관리합니다.';
+$adminContainerClass = 'admin-page-privacy-request-list admin-ui-scope';
+$privacyRequestListFilters = isset($privacyRequestListFilters) && is_array($privacyRequestListFilters) ? $privacyRequestListFilters : [
+    'status' => '',
+    'request_type' => '',
+    'field' => 'all',
+    'q' => '',
+];
+$privacyRequestStatusCounts = isset($privacyRequestStatusCounts) && is_array($privacyRequestStatusCounts) ? $privacyRequestStatusCounts : [];
+$allowedTypes = isset($allowedTypes) && is_array($allowedTypes) ? $allowedTypes : [];
+$totalPrivacyRequests = (int) ($privacyRequestStatusCounts['total'] ?? count($requests ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter ui-form-theme">
-    <div class="admin-filter-grid admin-filter-grid-compact">
-        <label class="admin-filter-field" for="privacy_request_status">
-            <span class="admin-filter-label">상태</span>
-            <select name="status" id="privacy_request_status" class="form-select">
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
+        <a href="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="btn btn-solid-light">전체 보기</a>
+    </div>
+    <div class="admin-summary-stats">
+        <span class="admin-summary-meta">총요청 <strong><?php echo sr_e((string) $totalPrivacyRequests); ?>건</strong></span>
+        <?php foreach ($allowedStatuses as $status) { ?>
+            <a href="<?php echo sr_e(sr_url('/admin/privacy-requests?status=' . rawurlencode($status))); ?>" class="admin-summary-meta">
+                <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?> <?php echo sr_e((string) ($privacyRequestStatusCounts[$status] ?? 0)); ?>건
+            </a>
+        <?php } ?>
+    </div>
+</div>
+
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter admin-privacy-request-filter ui-form-theme">
+    <div class="admin-filter-grid admin-privacy-request-search-grid">
+        <div class="admin-filter-field">
+            <label for="privacy_request_status" class="admin-filter-label">상태</label>
+            <select name="status" id="privacy_request_status" class="form-select admin-filter-input">
                 <option value="">전체</option>
                 <?php foreach ($allowedStatuses as $status) { ?>
-                    <option value="<?php echo sr_e($status); ?>"<?php echo $statusFilter === $status ? ' selected' : ''; ?>>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($privacyRequestListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
                         <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
                     </option>
                 <?php } ?>
             </select>
-        </label>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
+        </div>
+        <div class="admin-filter-field">
+            <label for="privacy_request_type" class="admin-filter-label">요청 유형</label>
+            <select name="request_type" id="privacy_request_type" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($allowedTypes as $requestType) { ?>
+                    <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestListFilters['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>>
+                        <?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="privacy_request_search_field" class="admin-filter-label">검색 조건</label>
+            <select name="field" id="privacy_request_search_field" class="form-select admin-filter-input">
+                <?php foreach (['all' => '전체', 'id' => '요청 ID', 'account' => '계정 ID', 'requester' => '요청자', 'message' => '요청 내용', 'note' => '관리자 메모'] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($privacyRequestListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                        <?php echo sr_e($fieldLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="privacy_request_search_keyword" class="admin-filter-label">검색어</label>
+            <input type="text" name="q" id="privacy_request_search_keyword" value="<?php echo sr_e((string) ($privacyRequestListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="ID, 요청자, 요청 내용, 메모">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 
@@ -28,7 +78,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title">개인정보 처리 요청 목록</h2>
     </div>
     <div class="table-wrapper">
-    <table class="table">
+    <table class="table admin-privacy-request-table">
+        <caption class="sr-only">개인정보 처리 요청 목록</caption>
         <thead class="ui-table-head">
             <tr>
                 <th>ID</th>
@@ -48,11 +99,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tr>
             <?php } ?>
             <?php foreach ($requests as $request) { ?>
+                <?php
+                $requestStatus = (string) $request['status'];
+                $statusClass = 'is-blocked';
+                if ($requestStatus === 'completed') {
+                    $statusClass = 'is-normal';
+                } elseif (in_array($requestStatus, ['rejected', 'cancelled'], true)) {
+                    $statusClass = 'is-left';
+                }
+                ?>
                 <tr>
                     <td><?php echo sr_e((string) $request['id']); ?></td>
                     <td><?php echo sr_e((string) ($request['account_id'] ?? '')); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
+                    <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($requestStatus, 'privacy_request_status')); ?></span></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_requester_display($request)); ?></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
                     <td><?php echo sr_e((string) ($request['handled_at'] ?? '')); ?></td>
