@@ -718,12 +718,37 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     margin-top: calc(var(--spacing) * 4);
 }
 
-.admin-audit-filter .admin-filter-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.admin-filter-grid.admin-audit-search-grid {
+    gap: .875rem;
+    grid-template-columns:
+        max-content
+        minmax(7rem, 8rem)
+        minmax(8.5rem, 9.5rem)
+        minmax(8.5rem, 9.5rem)
+        minmax(16rem, 1fr)
+        max-content;
+    justify-content: stretch;
 }
 
-.admin-audit-filter .admin-filter-submit {
-    justify-content: center;
+.admin-audit-search-grid .admin-filter-field {
+    min-width: 0;
+}
+
+.admin-audit-search-grid .admin-filter-input,
+.admin-audit-search-grid .form-input,
+.admin-audit-search-grid .form-select {
+    width: 100%;
+}
+
+.admin-audit-filter-keyword {
+    margin-left: calc(var(--spacing) * 2);
+}
+
+.admin-audit-search-grid .admin-filter-submit {
+    min-height: calc(var(--spacing) * 9.25);
+    min-width: 5rem;
+    white-space: nowrap;
+    width: fit-content;
 }
 
 .admin-page-member-list .admin-member-search-grid {
@@ -1095,6 +1120,10 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1279px) {
+    .admin-filter-grid.admin-audit-search-grid {
+        grid-template-columns: max-content minmax(7rem, 8rem) minmax(0, 1fr) max-content;
+    }
+
     .admin-dashboard-sections {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
@@ -1122,13 +1151,22 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 @media (max-width: 1023px) {
     .admin-page-member-list .admin-member-search-grid,
     .admin-filter-grid,
-    .admin-audit-filter .admin-filter-grid {
+    .admin-filter-grid.admin-audit-search-grid {
         grid-template-columns: 1fr;
     }
 
     .admin-filter-submit {
         justify-content: center;
         width: 100%;
+    }
+
+    .admin-audit-search-grid .admin-filter-submit {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .admin-audit-filter-keyword {
+        margin-left: 0;
     }
 
     .admin-role-search-grid .admin-filter-field:nth-child(-n+3) .admin-filter-input {

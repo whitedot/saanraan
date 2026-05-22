@@ -8,22 +8,19 @@ $auditMetadataModals = [];
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
     <div class="admin-filter-header">
         <strong>로그 검색</strong>
-        <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="btn btn-sm btn-solid-light">초기화</a>
     </div>
-    <div class="admin-filter-grid">
-        <label class="admin-filter-field" for="modules_admin_audit_logs_event_type">
-            <span class="admin-filter-label">이벤트 유형</span>
-            <input id="modules_admin_audit_logs_event_type" type="text" name="event_type" value="<?php echo sr_e($filters['event_type']); ?>" class="form-input" maxlength="80">
+    <div class="admin-filter-grid admin-audit-search-grid">
+        <label class="admin-filter-field admin-audit-filter-field" for="modules_admin_audit_logs_field">
+            <span class="admin-filter-label">검색 조건</span>
+            <select id="modules_admin_audit_logs_field" name="field" class="form-select">
+                <?php foreach (['event_type' => '이벤트 유형', 'target_type' => '대상 유형', 'actor_account_id' => '처리자 계정 ID'] as $value => $label) { ?>
+                    <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
+                        <?php echo sr_e($label); ?>
+                    </option>
+                <?php } ?>
+            </select>
         </label>
-        <label class="admin-filter-field" for="modules_admin_audit_logs_target_type">
-            <span class="admin-filter-label">대상 유형</span>
-            <input id="modules_admin_audit_logs_target_type" type="text" name="target_type" value="<?php echo sr_e($filters['target_type']); ?>" class="form-input" maxlength="60">
-        </label>
-        <label class="admin-filter-field" for="modules_admin_audit_logs_actor_account_id">
-            <span class="admin-filter-label">처리자 계정 ID</span>
-            <input id="modules_admin_audit_logs_actor_account_id" type="text" name="actor_account_id" value="<?php echo sr_e($filters['actor_account_id']); ?>" class="form-input" maxlength="20" inputmode="numeric" pattern="[0-9]*">
-        </label>
-        <label class="admin-filter-field" for="modules_admin_audit_logs_result">
+        <label class="admin-filter-field admin-audit-filter-result" for="modules_admin_audit_logs_result">
             <span class="admin-filter-label">결과</span>
             <select id="modules_admin_audit_logs_result" name="result" class="form-select">
                 <?php foreach (['' => '전체', 'success' => '성공', 'failure' => '실패'] as $value => $label) { ?>
@@ -33,13 +30,17 @@ $auditMetadataModals = [];
                 <?php } ?>
             </select>
         </label>
-        <label class="admin-filter-field" for="modules_admin_audit_logs_date_from">
+        <label class="admin-filter-field admin-audit-filter-date" for="modules_admin_audit_logs_date_from">
             <span class="admin-filter-label">시작일</span>
             <input id="modules_admin_audit_logs_date_from" type="date" name="date_from" value="<?php echo sr_e($filters['date_from']); ?>" class="form-input">
         </label>
-        <label class="admin-filter-field" for="modules_admin_audit_logs_date_to">
+        <label class="admin-filter-field admin-audit-filter-date" for="modules_admin_audit_logs_date_to">
             <span class="admin-filter-label">종료일</span>
             <input id="modules_admin_audit_logs_date_to" type="date" name="date_to" value="<?php echo sr_e($filters['date_to']); ?>" class="form-input">
+        </label>
+        <label class="admin-filter-field admin-audit-filter-keyword" for="modules_admin_audit_logs_keyword">
+            <span class="admin-filter-label">검색어</span>
+            <input id="modules_admin_audit_logs_keyword" type="text" name="q" value="<?php echo sr_e($filters['q']); ?>" class="form-input" maxlength="80" placeholder="이벤트 유형, 대상 유형, 처리자 계정 ID">
         </label>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">조회</button>
     </div>

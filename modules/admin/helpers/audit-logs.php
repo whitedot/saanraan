@@ -4,14 +4,38 @@ declare(strict_types=1);
 
 function sr_admin_audit_log_filters(): array
 {
+    $field = sr_admin_audit_log_search_field(sr_get_string('field', 30));
+    $keyword = sr_get_string('q', 80);
+
+    if ($keyword === '') {
+        $legacyEventType = sr_get_string('event_type', 80);
+        $legacyTargetType = sr_get_string('target_type', 60);
+        $legacyActorAccountId = sr_get_string('actor_account_id', 20);
+
+        if ($legacyEventType !== '') {
+            $field = 'event_type';
+            $keyword = $legacyEventType;
+        } elseif ($legacyTargetType !== '') {
+            $field = 'target_type';
+            $keyword = $legacyTargetType;
+        } elseif ($legacyActorAccountId !== '') {
+            $field = 'actor_account_id';
+            $keyword = $legacyActorAccountId;
+        }
+    }
+
     return [
-        'event_type' => sr_get_string('event_type', 80),
-        'target_type' => sr_get_string('target_type', 60),
-        'actor_account_id' => sr_get_string('actor_account_id', 20),
+        'field' => $field,
+        'q' => $keyword,
         'result' => sr_get_string('result', 30),
         'date_from' => sr_get_string('date_from', 30),
         'date_to' => sr_get_string('date_to', 30),
     ];
+}
+
+function sr_admin_audit_log_search_field(string $value): string
+{
+    return in_array($value, ['event_type', 'target_type', 'actor_account_id'], true) ? $value : 'event_type';
 }
 
 function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): string
@@ -164,28 +188,30 @@ function sr_admin_audit_log_query_parts(array &$filters): array
 {
     $where = [];
     $params = [];
-    $filters['event_type'] = sr_admin_audit_log_identifier_filter($filters['event_type'], 80);
-    $filters['target_type'] = sr_admin_audit_log_identifier_filter($filters['target_type'], 60);
+    $filters['field'] = sr_admin_audit_log_search_field((string) ($filters['field'] ?? 'event_type'));
+    $filters['q'] = trim((string) ($filters['q'] ?? ''));
     $filters['result'] = sr_admin_audit_log_result_filter($filters['result']);
     $filters['date_from'] = sr_admin_audit_log_date_filter($filters['date_from']);
     $filters['date_to'] = sr_admin_audit_log_date_filter($filters['date_to']);
 
-    if ($filters['event_type'] !== '') {
-        $where[] = 'event_type = :event_type';
-        $params['event_type'] = $filters['event_type'];
-    }
-
-    if ($filters['target_type'] !== '') {
-        $where[] = 'target_type = :target_type';
-        $params['target_type'] = $filters['target_type'];
-    }
-
-    if ($filters['actor_account_id'] !== '') {
-        if (ctype_digit($filters['actor_account_id'])) {
+    if ($filters['q'] !== '') {
+        if ($filters['field'] === 'event_type') {
+            $filters['q'] = sr_admin_audit_log_identifier_filter($filters['q'], 80);
+            if ($filters['q'] !== '') {
+                $where[] = 'event_type = :audit_keyword';
+                $params['audit_keyword'] = $filters['q'];
+            }
+        } elseif ($filters['field'] === 'target_type') {
+            $filters['q'] = sr_admin_audit_log_identifier_filter($filters['q'], 60);
+            if ($filters['q'] !== '') {
+                $where[] = 'target_type = :audit_keyword';
+                $params['audit_keyword'] = $filters['q'];
+            }
+        } elseif (ctype_digit($filters['q'])) {
             $where[] = 'actor_account_id = :actor_account_id';
-            $params['actor_account_id'] = (int) $filters['actor_account_id'];
+            $params['actor_account_id'] = (int) $filters['q'];
         } else {
-            $filters['actor_account_id'] = '';
+            $filters['q'] = '';
         }
     }
 
