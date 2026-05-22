@@ -518,6 +518,11 @@ function sr_page_admin_filters(): array
     ];
 }
 
+function sr_page_group_apply_scope(string $scope): string
+{
+    return in_array($scope, ['group', 'all'], true) ? $scope : 'all';
+}
+
 function sr_page_admin_status_counts(PDO $pdo): array
 {
     $counts = [
@@ -745,8 +750,15 @@ function sr_page_normalize_asset_values(array $values, bool $coerceInvalid = tru
 
 function sr_page_input_values(): array
 {
+    $pageGroupScope = sr_page_group_apply_scope(sr_post_string('page_group_scope', 20));
+    $pageGroupId = (int) sr_post_string('page_group_id', 20);
+    if ($pageGroupScope === 'all') {
+        $pageGroupId = 0;
+    }
+
     $values = [
-        'page_group_id' => (int) sr_post_string('page_group_id', 20),
+        'page_group_scope' => $pageGroupScope,
+        'page_group_id' => $pageGroupId,
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -785,6 +797,9 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     $pageGroupId = (int) ($values['page_group_id'] ?? 0);
     if ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_page_group_by_id($pdo, $pageGroupId)))) {
         $errors[] = '페이지 그룹 값이 올바르지 않습니다.';
+    }
+    if (sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? 'all')) === 'group' && $pageGroupId < 1) {
+        $errors[] = '그룹적용을 선택하려면 페이지 그룹을 선택하세요.';
     }
 
     $slug = (string) ($values['slug'] ?? '');

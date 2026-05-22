@@ -17,13 +17,27 @@ $boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $b
 $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ? $boardStatusCounts : [];
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 
-$sourceLabels = [
-    'board' => '개별 설정',
-    'group' => '그룹 기본값',
+$settingSourceLabels = [
+    'group' => '그룹적용',
+    'board' => '개별적용',
 ];
 $boardSettingSource = static function (array $board, string $key): string {
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
     return (string) ($sources[$key] ?? 'board');
+};
+$settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels): string {
+    $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
+    $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
+    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="설정 적용 범위">';
+    foreach ($settingSourceLabels as $source => $label) {
+        $id = 'setting_source_' . $baseId . '_' . $source;
+        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($selectedSource === $source ? ' checked' : '') . '>';
+        $html .= sr_admin_choice_label_html($label);
+        $html .= '</label>';
+    }
+
+    return $html . '</div>';
 };
 $boardArrayValue = static function (array $board, string $key): string {
     return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
@@ -322,14 +336,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php foreach ($allowedReadPolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
-                                        </select>
+                    </select>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_read_policy" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_read_policy'] ?? $formBoard['read_policy']), 'policy')); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_read_policy', $boardSettingSource($formBoard, 'read_policy')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -338,11 +347,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_read_group_keys" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
+                                        <?php echo $settingSourceRadioHtml('source_read_group_keys', $boardSettingSource($formBoard, 'read_group_keys')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -351,12 +356,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_read_min_level', 'read_min_level', (int) $boardField($formBoard, 'read_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_read_min_level" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'read_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_read_min_level'] ?? $formBoard['read_min_level'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_read_min_level', $boardSettingSource($formBoard, 'read_min_level')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -367,14 +367,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php foreach ($allowedWritePolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
-                                        </select>
+                    </select>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_write_policy" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_write_policy'] ?? $formBoard['write_policy']), 'policy')); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_write_policy', $boardSettingSource($formBoard, 'write_policy')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -383,11 +378,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_write_group_keys" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
+                                        <?php echo $settingSourceRadioHtml('source_write_group_keys', $boardSettingSource($formBoard, 'write_group_keys')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -396,12 +387,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_write_min_level', 'write_min_level', (int) $boardField($formBoard, 'write_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_write_min_level" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'write_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_write_min_level'] ?? $formBoard['write_min_level'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_write_min_level', $boardSettingSource($formBoard, 'write_min_level')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -412,14 +398,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php foreach ($allowedCommentPolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
-                                        </select>
+                    </select>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_comment_policy" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_policy') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e(sr_admin_code_label((string) ($formBoard['effective_comment_policy'] ?? $formBoard['comment_policy']), 'policy')); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_comment_policy', $boardSettingSource($formBoard, 'comment_policy')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -428,11 +409,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_comment_group_keys" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_group_keys') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
+                                        <?php echo $settingSourceRadioHtml('source_comment_group_keys', $boardSettingSource($formBoard, 'comment_group_keys')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -441,12 +418,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_comment_min_level', 'comment_min_level', (int) $boardField($formBoard, 'comment_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_comment_min_level" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'comment_min_level') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_comment_min_level'] ?? $formBoard['comment_min_level'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_comment_min_level', $boardSettingSource($formBoard, 'comment_min_level')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -458,12 +430,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html('이미지 첨부 허용'); ?>
                                         </label>
                                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_image_uploads_enabled" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'image_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo !empty($formBoard['effective_image_uploads_enabled']) ? '허용' : '차단'; ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_image_uploads_enabled', $boardSettingSource($formBoard, 'image_uploads_enabled')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -472,12 +439,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_attachment_max_bytes" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_bytes'] ?? $formBoard['attachment_max_bytes'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_attachment_max_bytes', $boardSettingSource($formBoard, 'attachment_max_bytes')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -486,12 +448,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_count" type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_attachment_max_count" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_attachment_max_count'] ?? $formBoard['attachment_max_count'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_attachment_max_count', $boardSettingSource($formBoard, 'attachment_max_count')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -503,12 +460,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html('파일 첨부 허용'); ?>
                                         </label>
                                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_file_uploads_enabled" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_uploads_enabled') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo !empty($formBoard['effective_file_uploads_enabled']) ? '허용' : '차단'; ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_file_uploads_enabled', $boardSettingSource($formBoard, 'file_uploads_enabled')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -517,12 +469,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_file_attachment_max_bytes" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_bytes') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_bytes'] ?? $formBoard['file_attachment_max_bytes'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_file_attachment_max_bytes', $boardSettingSource($formBoard, 'file_attachment_max_bytes')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -531,12 +478,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_count" type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>" class="form-input">
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_file_attachment_max_count" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_attachment_max_count') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e((string) ($formBoard['effective_file_attachment_max_count'] ?? $formBoard['file_attachment_max_count'])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_file_attachment_max_count', $boardSettingSource($formBoard, 'file_attachment_max_count')); ?>
                                     <?php } ?>
                 </div>
             </div>
@@ -545,12 +487,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
                     <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <select name="source_file_allowed_extensions" class="form-select">
-                                            <?php foreach ($sourceLabels as $source => $label) { ?>
-                                                <option value="<?php echo sr_e($source); ?>"<?php echo $boardSettingSource($formBoard, 'file_allowed_extensions') === $source ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <small>적용값: <?php echo sr_e(implode(', ', is_array($formBoard['effective_file_allowed_extensions'] ?? null) ? $formBoard['effective_file_allowed_extensions'] : [])); ?></small>
+                                        <?php echo $settingSourceRadioHtml('source_file_allowed_extensions', $boardSettingSource($formBoard, 'file_allowed_extensions')); ?>
                                     <?php } ?>
                 </div>
             </div>

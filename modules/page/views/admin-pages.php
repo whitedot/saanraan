@@ -13,6 +13,7 @@ $editing = is_array($editPage);
 if ($values === []) {
     $values = $editing ? $editPage : [
         'title' => '',
+        'page_group_scope' => 'all',
         'page_group_id' => 0,
         'slug' => '',
         'summary' => '',
@@ -56,6 +57,24 @@ foreach (sr_page_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
     : '활성 자산 모듈 없음';
+$pageGroupScopeLabels = [
+    'group' => '그룹적용',
+    'all' => '개별적용',
+];
+$pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels): string {
+    $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'all';
+    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="페이지 그룹 적용 범위">';
+    foreach ($pageGroupScopeLabels as $scope => $label) {
+        $id = 'page_group_scope_' . $scope;
+        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($scope) . '" class="form-radio" data-page-group-scope-option' . ($selectedScope === $scope ? ' checked' : '') . '>';
+        $html .= sr_admin_choice_label_html($label);
+        $html .= '</label>';
+    }
+
+    return $html . '</div>';
+};
+$values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'all')));
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -89,7 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_page_group_id">페이지 그룹</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_page_group_id" name="page_group_id" class="form-select">
+                    <select id="page_admin_pages_page_group_id" name="page_group_id" class="form-select" data-page-group-select>
                         <option value="0"<?php echo (int) ($values['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>그룹 없음</option>
                         <?php foreach ($pageGroups as $pageGroup) { ?>
                             <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($values['page_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
@@ -100,6 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
+                    <?php echo $pageGroupScopeRadioHtml('page_group_scope', (string) ($values['page_group_scope'] ?? 'all')); ?>
                     <p class="admin-form-help">그룹을 선택하면 그룹별 공개 목록과 사이트 메뉴 연결 자산에서 함께 묶입니다.</p>
                 </div>
             </div>
@@ -543,6 +563,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
+<?php } ?>
+
+<?php if ($pageAdminPage === 'form') { ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var groupSelect = document.querySelector('[data-page-group-select]');
+        var scopeOptions = document.querySelectorAll('[data-page-group-scope-option]');
+        if (!groupSelect || scopeOptions.length === 0) {
+            return;
+        }
+
+        var syncGroupScope = function () {
+            var selectedScope = document.querySelector('[data-page-group-scope-option]:checked');
+            var useGroup = selectedScope && selectedScope.value === 'group';
+            groupSelect.disabled = !useGroup;
+            if (!useGroup) {
+                groupSelect.value = '0';
+            }
+        };
+
+        scopeOptions.forEach(function (option) {
+            option.addEventListener('change', syncGroupScope);
+        });
+        syncGroupScope();
+    });
+    </script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
