@@ -13,9 +13,21 @@ function sr_execute_sql_file(PDO $pdo, string $file): void
         throw new RuntimeException('SQL file cannot be read: ' . $file);
     }
 
+    $sql = sr_sql_replace_runtime_placeholders($pdo, $sql);
+
     foreach (sr_split_sql_statements($sql) as $statement) {
         $pdo->exec($statement);
     }
+}
+
+function sr_sql_replace_runtime_placeholders(PDO $pdo, string $sql): string
+{
+    $tablePrefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+    if (!sr_is_safe_table_prefix($tablePrefix)) {
+        $tablePrefix = 'sr_';
+    }
+
+    return str_replace('{{SR_TABLE_PREFIX}}', $tablePrefix, $sql);
 }
 
 function sr_split_sql_statements(string $sql): array

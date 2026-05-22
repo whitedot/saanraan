@@ -901,6 +901,11 @@ class SrPrefixedPDO extends PDO
         parent::__construct($dsn, $username, $password, $options);
     }
 
+    public function srTablePrefix(): string
+    {
+        return $this->srTablePrefix;
+    }
+
     public function prepare(string $query, array $options = []): PDOStatement|false
     {
         return parent::prepare(sr_prefix_sql_identifiers($query, $this->srTablePrefix), $options);

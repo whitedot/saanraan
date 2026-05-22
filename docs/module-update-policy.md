@@ -164,6 +164,7 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 - `/admin/updates`는 현재 배치된 `database/core/updates/*.sql`과 설치된 모듈의 `updates/*.sql`만 읽는다.
 - SQL 적용 전 백업 확인을 요구한다.
 - SQL 적용 전후 checksum을 확인하고, 허용된 update 경로만 실행한다.
+- 업데이트 SQL에서 `INFORMATION_SCHEMA.TABLES/COLUMNS/STATISTICS`를 조회하거나 `PREPARE`용 동적 SQL 문자열 안에 테이블명을 넣을 때는 실제 설치 prefix를 반영할 수 있도록 `{{SR_TABLE_PREFIX}}member_accounts`처럼 `{{SR_TABLE_PREFIX}}` placeholder를 사용한다. 일반 SQL 식별자 위치의 `sr_member_accounts`는 런타임 PDO가 설치 prefix로 변환한다.
 - 업데이트 실행 중 DB lock을 잡아 중복 실행을 막는다.
 - 실패 시 감사 로그와 `storage/update-failed.json` 운영 marker를 남긴다.
 - 성공 후 pending SQL이 없는 모듈만 파일 전용 버전 반영을 수행한다.

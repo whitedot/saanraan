@@ -90,6 +90,27 @@ function sr_check_sql_files(): void
     }
 }
 
+function sr_check_sql_runtime_table_prefix_placeholders(): void
+{
+    foreach (['database', 'modules', 'examples'] as $root) {
+        foreach (sr_check_files($root, 'sql') as $file) {
+            $sql = file_get_contents($file);
+            if (!is_string($sql)) {
+                sr_check_add_error('SQL file cannot be read: ' . $file);
+                continue;
+            }
+
+            if (preg_match("/TABLE_NAME\\s*=\\s*'sr_[a-z0-9_]+'/i", $sql) === 1) {
+                sr_check_add_error('SQL update must use {{SR_TABLE_PREFIX}} inside INFORMATION_SCHEMA TABLE_NAME checks: ' . $file);
+            }
+
+            if (preg_match("/'\\s*(?:ALTER\\s+TABLE|INSERT\\s+INTO|UPDATE|FROM|JOIN|CREATE\\s+TABLE|DROP\\s+TABLE)\\s+sr_[a-z0-9_]+/i", $sql) === 1) {
+                sr_check_add_error('SQL dynamic statement must use {{SR_TABLE_PREFIX}} for table names inside string literals: ' . $file);
+            }
+        }
+    }
+}
+
 function sr_check_version_format(string $version): string
 {
     if (preg_match('/\Av?\d+\.\d+\.\d+\z/', $version) === 1) {
@@ -525,6 +546,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));
 sr_check_sql_files();
+sr_check_sql_runtime_table_prefix_placeholders();
 sr_check_module_lifecycle_metadata();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();

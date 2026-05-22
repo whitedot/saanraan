@@ -2,13 +2,13 @@ SET @schema_has_banner_click_count = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'sr_banners'
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}banners'
       AND COLUMN_NAME = 'click_count'
 );
 
 SET @schema_sql = IF(
     @schema_has_banner_click_count = 0,
-    'ALTER TABLE sr_banners ADD COLUMN click_count BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER sort_order',
+    'ALTER TABLE {{SR_TABLE_PREFIX}}banners ADD COLUMN click_count BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER sort_order',
     'DO 0'
 );
 PREPARE schema_stmt FROM @schema_sql;

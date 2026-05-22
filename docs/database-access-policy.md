@@ -59,3 +59,4 @@ $pdo->exec("DELETE FROM " . $_GET['table']);
 - 다른 모듈의 내부 테이블을 직접 조인해야 한다면 먼저 해당 모듈의 공개 helper나 계약 파일로 대체할 수 있는지 검토합니다.
 - 회원 연계 데이터는 `account_id` 같은 안정적인 식별자로 연결하되, 코어나 `member` 테이블에 도메인 컬럼을 추가하지 않습니다.
 - 설치/업데이트 SQL은 각 모듈이 소유한 테이블과 인덱스를 다루고, 다른 모듈의 도메인 테이블 변경은 피합니다.
+- 설치 prefix가 `sr_`가 아닐 수 있으므로 업데이트 SQL의 일반 식별자 위치에는 논리 테이블명 `sr_*`를 쓰고, 문자열 리터럴 안의 테이블명이나 `INFORMATION_SCHEMA`의 `TABLE_NAME` 비교에는 `{{SR_TABLE_PREFIX}}` placeholder를 사용합니다.
