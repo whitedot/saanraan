@@ -26,7 +26,7 @@ if (!sr_community_account_can_delete_comment($comment, $account)) {
 
 $settings = sr_community_settings($pdo);
 if (!empty($settings['comment_reward_reversal_enabled'])) {
-    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal');
     if (empty($reversalResult['allowed'])) {
         sr_render_error(409, (string) ($reversalResult['message'] ?? sr_t('community::action.error.comment_reward_reversal_failed')));
     }
@@ -52,5 +52,5 @@ sr_audit_log($pdo, [
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
-$_SESSION['sr_community_comment_notice'] = '댓글을 삭제했습니다.';
+$_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_deleted');
 sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

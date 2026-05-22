@@ -7,6 +7,7 @@ function sr_member_withdrawal_asset_definitions(): array
     return [
         'point' => [
             'label' => sr_t('member::asset.point'),
+            'ledger_label' => 'point',
             'balance_table' => 'sr_point_balances',
             'transaction_table' => 'sr_point_transactions',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
@@ -14,9 +15,11 @@ function sr_member_withdrawal_asset_definitions(): array
             'transaction_function' => 'sr_point_create_transaction',
             'transaction_type' => 'expire',
             'process_label' => sr_t('member::asset.process.expire'),
+            'ledger_process_label' => 'expire',
         ],
         'reward' => [
             'label' => sr_t('member::asset.reward'),
+            'ledger_label' => 'reward',
             'balance_table' => 'sr_reward_balances',
             'transaction_table' => 'sr_reward_transactions',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
@@ -24,9 +27,11 @@ function sr_member_withdrawal_asset_definitions(): array
             'transaction_function' => 'sr_reward_create_transaction',
             'transaction_type' => 'expire',
             'process_label' => sr_t('member::asset.process.expire'),
+            'ledger_process_label' => 'expire',
         ],
         'deposit' => [
             'label' => sr_t('member::asset.deposit'),
+            'ledger_label' => 'deposit',
             'balance_table' => 'sr_deposit_balances',
             'transaction_table' => 'sr_deposit_transactions',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
@@ -34,6 +39,7 @@ function sr_member_withdrawal_asset_definitions(): array
             'transaction_function' => 'sr_deposit_create_transaction',
             'transaction_type' => 'withdraw',
             'process_label' => sr_t('member::asset.process.refund'),
+            'ledger_process_label' => 'refund',
         ],
     ];
 }
@@ -155,14 +161,9 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
             continue;
         }
 
-        $reason = sr_t('member::action.withdraw.asset_reason', [
-            'asset' => (string) $definition['label'],
-            'process' => (string) $definition['process_label'],
-        ]);
+        $reason = 'member.withdrawal.' . (string) $definition['ledger_label'] . '.' . (string) $definition['ledger_process_label'];
         if ($assetKey === 'deposit') {
-            $reason .= sr_t('member::action.withdraw.refund_request_suffix', [
-                'summary' => sr_member_withdrawal_refund_account_summary($refundAccount),
-            ]);
+            $reason .= ' refund=' . sr_member_withdrawal_refund_account_summary($refundAccount);
         }
 
         $transactionFunction = (string) $definition['transaction_function'];

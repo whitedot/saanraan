@@ -715,15 +715,15 @@ function sr_community_validate_post_input(array $values): array
     $bodyText = $values['body_text'];
 
     if (!is_string($title)) {
-        $errors[] = '제목은 160자 이내로 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.post_title_too_long');
     } elseif (trim($title) === '') {
-        $errors[] = '제목을 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.post_title_required');
     }
 
     if (!is_string($bodyText)) {
-        $errors[] = '본문은 20000자 이내로 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.post_body_too_long');
     } elseif (trim($bodyText) === '') {
-        $errors[] = '본문을 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.post_body_required');
     }
 
     return $errors;
@@ -815,11 +815,11 @@ function sr_community_validate_comment_input(array $values): array
 {
     $bodyText = $values['body_text'];
     if (!is_string($bodyText)) {
-        return ['댓글은 5000자 이내로 입력해 주세요.'];
+        return [sr_t('community::action.error.comment_body_too_long')];
     }
 
     if (trim($bodyText) === '') {
-        return ['댓글을 입력해 주세요.'];
+        return [sr_t('community::action.error.comment_body_required')];
     }
 
     return [];
@@ -899,11 +899,11 @@ function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showId
 {
     $summary = sr_member_public_account_summary($pdo, $accountId);
     if (!is_array($summary) || (string) $summary['status'] === 'anonymized') {
-        return '탈퇴 회원';
+        return sr_t('member::account.withdrawn_display_name');
     }
 
     $displayName = trim((string) $summary['display_name']);
-    $label = $displayName !== '' ? $displayName : '회원';
+    $label = $displayName !== '' ? $displayName : sr_t('community::report.account.member');
     $runtimeConfig = is_array($config) ? $config : sr_runtime_config();
 
     return sr_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);

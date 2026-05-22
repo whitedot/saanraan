@@ -44,19 +44,8 @@ $publicPopupLayerIds = [];
 foreach ($publicPopupLayers as $publicPopupLayer) {
     $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
 }
-$publicBannerSettingLabels = [
-    'banner_before_list_id' => '목록 상단 배너',
-    'banner_after_list_id' => '목록 하단 배너',
-    'banner_before_view_id' => '글보기 상단 배너',
-    'banner_after_view_id' => '글보기 하단 배너',
-    'banner_before_form_id' => '글쓰기 폼 상단 배너',
-    'banner_after_form_id' => '글쓰기 폼 하단 배너',
-];
-$publicPopupLayerSettingLabels = [
-    'popup_layer_list_id' => '목록 팝업레이어',
-    'popup_layer_view_id' => '글보기 팝업레이어',
-    'popup_layer_form_id' => '글쓰기 폼 팝업레이어',
-];
+$publicBannerSettingLabels = sr_community_public_banner_setting_labels();
+$publicPopupLayerSettingLabels = sr_community_public_popup_layer_setting_labels();
 $publicDisplaySettingLabels = $publicBannerSettingLabels + $publicPopupLayerSettingLabels;
 $memberGroups = sr_member_groups($pdo);
 $enabledMemberGroups = [];
@@ -105,10 +94,10 @@ if (sr_request_method() === 'POST') {
         $skinKey = sr_post_string('skin_key', 40);
         $board = sr_community_board_by_id($pdo, $boardId);
         if (!is_array($board)) {
-            $errors[] = '게시판을 찾을 수 없습니다.';
+            $errors[] = sr_t('community::action.error.board_not_found');
         }
         if (!isset($communitySkinOptions[$skinKey])) {
-            $errors[] = '게시판 스킨 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.board_skin_invalid');
             $skinKey = 'basic';
         }
 
@@ -130,7 +119,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = '게시판 스킨을 저장했습니다.';
+            $notice = sr_t('community::action.admin.board_skin_saved');
         }
     } elseif (in_array($intent, ['create', 'update'], true)) {
         $boardKey = sr_post_string('board_key', 60);
@@ -190,14 +179,10 @@ if (sr_request_method() === 'POST') {
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
-        $assetSettingLabels = [
-            'post_reward' => '게시글 적립',
-            'comment_reward' => '댓글 적립',
-            'write_charge' => '글쓰기 차감',
-            'comment_charge' => '댓글 차감',
-            'paid_read' => '유료 열람',
-            'paid_attachment_download' => '첨부 다운로드 차감',
-        ];
+        $assetSettingLabels = [];
+        foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
+            $assetSettingLabels[$assetPrefix] = sr_community_asset_setting_label($assetPrefix);
+        }
         $settingSources = [];
         foreach (sr_community_board_group_setting_keys() as $settingKey) {
             $settingSources[$settingKey] = sr_community_normalize_board_setting_source(sr_post_string('source_' . $settingKey, 20));
@@ -205,117 +190,117 @@ if (sr_request_method() === 'POST') {
         $boardSettingValues = [];
 
         if ($intent === 'create' && !sr_community_board_key_is_valid($boardKey)) {
-            $errors[] = '게시판 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+            $errors[] = sr_t('community::action.admin.board_key_invalid');
         }
 
         if ($title === '') {
-            $errors[] = '게시판 이름을 입력하세요.';
+            $errors[] = sr_t('community::action.admin.board_title_required');
         }
 
         if ($description === null) {
-            $errors[] = '설명은 2000자 이하로 입력하세요.';
+            $errors[] = sr_t('community::action.admin.description_too_long');
             $description = '';
         }
 
         if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = '게시판 상태 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.board_status_invalid');
         }
 
         if (!in_array($readPolicy, $allowedReadPolicies, true)) {
-            $errors[] = '읽기 정책 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.read_policy_invalid');
         }
 
         if (!in_array($writePolicy, $allowedWritePolicies, true)) {
-            $errors[] = '쓰기 정책 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.write_policy_invalid');
         }
 
         if (!in_array($commentPolicy, $allowedCommentPolicies, true)) {
-            $errors[] = '댓글 정책 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.comment_policy_invalid');
         }
 
         if (!isset($communitySkinOptions[$skinKey])) {
-            $errors[] = '게시판 스킨 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.board_skin_invalid');
             $skinKey = 'basic';
         }
 
         if ($sortOrder === null) {
-            $errors[] = '정렬 순서는 0 이상의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.sort_order_invalid');
             $sortOrder = 0;
         }
 
         if ($attachmentMaxBytes === null) {
-            $errors[] = '이미지 최대 용량은 1024 이상 10485760 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.image_max_bytes_invalid');
             $attachmentMaxBytes = 2097152;
         }
 
         if ($attachmentMaxCount === null) {
-            $errors[] = '이미지 최대 개수는 0 이상 10 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.image_max_count_invalid');
             $attachmentMaxCount = 1;
         }
 
         foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
             $displaySettingLabel = (string) ($publicDisplaySettingLabels[$displaySettingKey] ?? $displaySettingKey);
             if ($displaySettingValue === null) {
-                $errors[] = $displaySettingLabel . ' 값이 올바르지 않습니다.';
+                $errors[] = sr_t('community::action.admin.display_value_invalid', ['label' => $displaySettingLabel]);
                 $publicDisplaySettingValues[$displaySettingKey] = 0;
                 continue;
             }
 
             if (isset($publicBannerSettingLabels[$displaySettingKey]) && $displaySettingValue > 0 && !isset($publicBannerIds[$displaySettingValue])) {
-                $errors[] = $displaySettingLabel . '는 공용 배너 중에서 선택하세요.';
+                $errors[] = sr_t('community::action.admin.display_banner_invalid', ['label' => $displaySettingLabel]);
             }
 
             if (isset($publicPopupLayerSettingLabels[$displaySettingKey]) && $displaySettingValue > 0 && !isset($publicPopupLayerIds[$displaySettingValue])) {
-                $errors[] = $displaySettingLabel . '는 공용 팝업레이어 중에서 선택하세요.';
+                $errors[] = sr_t('community::action.admin.display_popup_invalid', ['label' => $displaySettingLabel]);
             }
         }
 
         if ($fileAttachmentMaxBytes === null) {
-            $errors[] = '파일 최대 용량은 1024 이상 20971520 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.file_max_bytes_invalid');
             $fileAttachmentMaxBytes = 5242880;
         }
 
         if ($fileAttachmentMaxCount === null) {
-            $errors[] = '파일 최대 개수는 0 이상 5 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.file_max_count_invalid');
             $fileAttachmentMaxCount = 3;
         }
 
         if (!is_string($fileAllowedExtensionsInput)) {
-            $errors[] = '허용 파일 확장자는 1000자 이하로 입력하세요.';
+            $errors[] = sr_t('community::action.admin.file_extensions_too_long');
             $fileAllowedExtensions = [];
         } else {
             $invalidFileExtensions = sr_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput);
             if ($invalidFileExtensions !== []) {
-                $errors[] = '허용할 수 없는 파일 확장자입니다: ' . implode(', ', $invalidFileExtensions);
+                $errors[] = sr_t('community::action.admin.file_extensions_invalid', ['extensions' => implode(', ', $invalidFileExtensions)]);
             }
         }
 
         if ($fileUploadsEnabled && $fileAllowedExtensions === []) {
-            $errors[] = '파일 첨부를 허용하려면 확장자를 하나 이상 입력하세요.';
+            $errors[] = sr_t('community::action.admin.file_extensions_required');
         }
 
         if ($readMinLevel === null) {
-            $errors[] = '읽기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.read_min_level_invalid', ['max' => (string) $maxLevel]);
             $readMinLevel = 0;
         }
 
         if ($writeMinLevel === null) {
-            $errors[] = '쓰기 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.write_min_level_invalid', ['max' => (string) $maxLevel]);
             $writeMinLevel = 0;
         }
 
         if ($commentMinLevel === null) {
-            $errors[] = '댓글 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.comment_min_level_invalid', ['max' => (string) $maxLevel]);
             $commentMinLevel = 0;
         }
 
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
-            $errors[] = '게시판 그룹 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
 
         foreach ($settingSources as $settingKey => $source) {
             if ($source === 'group' && $boardGroupId < 1) {
-                $errors[] = $settingKey . ' 설정은 게시판 그룹이 있어야 그룹 적용할 수 있습니다.';
+                $errors[] = sr_t('community::action.admin.setting_group_source_requires_group', ['setting' => $settingKey]);
             }
         }
 
@@ -323,50 +308,50 @@ if (sr_request_method() === 'POST') {
             if ($source === 'group' && $boardGroupId < 1) {
                 $assetPrefix = sr_community_asset_prefix_from_setting_key((string) $settingKey);
                 $assetLabel = (string) ($assetSettingLabels[$assetPrefix] ?? $settingKey);
-                $errors[] = $assetLabel . ' 자산 설정은 게시판 그룹이 있어야 그룹 적용할 수 있습니다.';
+                $errors[] = sr_t('community::action.admin.asset_group_source_requires_group', ['label' => $assetLabel]);
             }
         }
 
         foreach ([
-            '읽기 그룹' => $readGroupKeysInput,
-            '쓰기 그룹' => $writeGroupKeysInput,
-            '댓글 그룹' => $commentGroupKeysInput,
+            sr_t('community::action.admin.label.read_group') => $readGroupKeysInput,
+            sr_t('community::action.admin.label.write_group') => $writeGroupKeysInput,
+            sr_t('community::action.admin.label.comment_group') => $commentGroupKeysInput,
         ] as $label => $groupKeysInput) {
             if (sr_community_board_group_keys_input_too_long($groupKeysInput)) {
-                $errors[] = $label . ' 목록은 1000자 이하로 선택하세요.';
+                $errors[] = sr_t('community::action.admin.group_list_too_long', ['label' => $label]);
                 continue;
             }
 
             $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input_value($groupKeysInput);
             if ($invalidGroupKeys !== []) {
-                $errors[] = $label . ' 값이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+                $errors[] = sr_t('community::action.admin.group_keys_invalid', ['label' => $label, 'keys' => implode(', ', $invalidGroupKeys)]);
             }
         }
 
         foreach ([
-            '읽기 그룹' => $readGroupKeys,
-            '쓰기 그룹' => $writeGroupKeys,
-            '댓글 그룹' => $commentGroupKeys,
+            sr_t('community::action.admin.label.read_group') => $readGroupKeys,
+            sr_t('community::action.admin.label.write_group') => $writeGroupKeys,
+            sr_t('community::action.admin.label.comment_group') => $commentGroupKeys,
         ] as $label => $groupKeys) {
             $unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys));
             if ($unknownGroupKeys !== []) {
-                $errors[] = $label . '은 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
+                $errors[] = sr_t('community::action.admin.group_keys_inactive', ['label' => $label, 'keys' => implode(', ', $unknownGroupKeys)]);
             }
         }
 
         foreach ([
-            '읽기' => [$readPolicy, $readGroupKeys, $settingSources['read_policy']],
-            '쓰기' => [$writePolicy, $writeGroupKeys, $settingSources['write_policy']],
-            '댓글' => [$commentPolicy, $commentGroupKeys, $settingSources['comment_policy']],
+            sr_t('community::action.admin.label.read') => [$readPolicy, $readGroupKeys, $settingSources['read_policy']],
+            sr_t('community::action.admin.label.write') => [$writePolicy, $writeGroupKeys, $settingSources['write_policy']],
+            sr_t('community::action.admin.label.comment') => [$commentPolicy, $commentGroupKeys, $settingSources['comment_policy']],
         ] as $label => $policyGroupKeys) {
             if ((string) $policyGroupKeys[2] === 'board' && (string) $policyGroupKeys[0] === 'group' && $policyGroupKeys[1] === []) {
-                $errors[] = $label . ' 정책을 group으로 선택하려면 회원 그룹을 하나 이상 선택하세요.';
+                $errors[] = sr_t('community::action.admin.policy_group_requires_group', ['label' => $label]);
             }
         }
 
         foreach ($assetSettingLabels as $assetPrefix => $assetLabel) {
             if ($assetSettings[$assetPrefix . '_amount'] === null) {
-                $errors[] = $assetLabel . ' 금액은 0 이상 999999999 이하의 정수여야 합니다.';
+                $errors[] = sr_t('community::action.admin.asset_amount_invalid', ['label' => $assetLabel]);
                 $assetSettings[$assetPrefix . '_amount'] = 0;
             }
 
@@ -375,16 +360,19 @@ if (sr_request_method() === 'POST') {
                 if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
-                        $errors[] = $assetLabel . '에 사용할 자산 모듈이 모두 활성 상태여야 합니다.';
+                        $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
                     }
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
-                    $errors[] = $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+                    $errors[] = sr_t('community::action.admin.asset_module_inactive', [
+                        'label' => $assetLabel,
+                        'module' => sr_community_asset_module_label($assetModule),
+                    ]);
                 }
             }
         }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
-            $errors[] = '이미 사용 중인 게시판 key입니다.';
+            $errors[] = sr_t('community::action.admin.board_key_duplicate');
         }
 
         if ($errors === []) {
@@ -480,7 +468,7 @@ if (sr_request_method() === 'POST') {
                 sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
             }
 
-            $notice = '게시판을 만들었습니다.';
+            $notice = sr_t('community::action.admin.board_created');
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/community/boards');
         } elseif ($intent === 'update' && $errors === []) {
@@ -488,7 +476,7 @@ if (sr_request_method() === 'POST') {
             $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
             $board = sr_community_board_by_id($pdo, $boardId);
             if (!is_array($board)) {
-                $errors[] = '게시판을 찾을 수 없습니다.';
+                $errors[] = sr_t('community::action.error.board_not_found');
             }
 
             if ($errors === [] && is_array($board)) {
@@ -606,11 +594,11 @@ if (sr_request_method() === 'POST') {
                     ], $publicDisplayMetadata),
                 ]);
 
-                $notice = '게시판 설정을 변경했습니다.';
+                $notice = sr_t('community::action.admin.board_updated');
             }
         }
     } else {
-        $errors[] = '작업 값이 올바르지 않습니다.';
+        $errors[] = sr_t('community::action.error.intent_invalid');
     }
 }
 

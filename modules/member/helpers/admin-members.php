@@ -22,6 +22,10 @@ function sr_admin_member_email_display(array $member): string
 
 function sr_admin_member_display_name_preview(array $member): string
 {
+    if ((string) ($member['status'] ?? '') === 'anonymized' || (string) ($member['display_name'] ?? '') === 'withdrawn') {
+        return sr_t('member::account.withdrawn_display_name');
+    }
+
     return sr_log_line_value((string) ($member['display_name'] ?? ''), 80);
 }
 

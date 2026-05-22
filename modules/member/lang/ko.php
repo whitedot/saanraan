@@ -102,6 +102,7 @@ return [
     'action.request.method_not_allowed' => '허용되지 않는 요청입니다.',
     'action.withdraw.asset_reason' => '{asset} 회원 탈퇴 {process}',
     'action.withdraw.confirm_required' => '확인 문구를 입력하세요.',
+    'action.withdraw.confirm_help' => '계속하려면 "{phrase}"를 입력하세요.',
     'action.withdraw.confirm_text' => '탈퇴',
     'action.withdraw.refund_bank_required' => '예치금 환불 은행을 입력하세요.',
     'action.withdraw.refund_holder_required' => '예치금 환불 예금주를 입력하세요.',

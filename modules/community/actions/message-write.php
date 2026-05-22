@@ -23,7 +23,7 @@ $values = [
     'recipient_identifier' => '',
     'body_text' => '',
 ];
-$recipientPresetNotice = $values['recipient_account_hash'] !== '' ? '받는 회원이 미리 입력되었습니다.' : '';
+$recipientPresetNotice = $values['recipient_account_hash'] !== '' ? sr_t('community::action.notice.recipient_preset') : '';
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
     ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config)
     : '';
@@ -47,9 +47,9 @@ if (sr_request_method() === 'POST') {
             $recipient = sr_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
         }
         if (!is_array($recipient) || (string) $recipient['status'] !== 'active') {
-            $errors[] = '받는 회원을 찾을 수 없습니다.';
+            $errors[] = sr_t('community::action.error.recipient_not_found');
         } elseif ((int) $recipient['id'] === (int) $account['id']) {
-            $errors[] = '본인에게는 쪽지를 보낼 수 없습니다.';
+            $errors[] = sr_t('community::action.error.message_self_forbidden');
         }
     }
     if (is_array($recipient)) {
@@ -57,7 +57,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && sr_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
-        $errors[] = '짧은 시간에 쪽지를 너무 많이 보냈습니다. 잠시 후 다시 시도해 주세요.';
+        $errors[] = sr_t('community::action.rate_limit.message');
     }
 
     if ($errors === [] && is_array($recipient)) {
@@ -78,12 +78,14 @@ if (sr_request_method() === 'POST') {
         sr_community_create_account_notification(
             $pdo,
             (int) $recipient['id'],
-            '새 쪽지가 도착했습니다.',
-            sr_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']) . '님이 쪽지를 보냈습니다.',
+            sr_t('community::notification.message.title'),
+            sr_t('community::notification.message.body', [
+                'account' => sr_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']),
+            ]),
             '/community/message?id=' . (string) $messageId,
             (int) $account['id']
         );
-        $_SESSION['sr_community_message_notice'] = '쪽지를 보냈습니다.';
+        $_SESSION['sr_community_message_notice'] = sr_t('community::action.notice.message_sent');
         sr_redirect('/community/messages?box=sent');
     }
 }

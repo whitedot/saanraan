@@ -572,7 +572,7 @@ function sr_member_anonymize_account(PDO $pdo, array $config, int $accountId): v
         'email' => $anonymizedEmail,
         'email_hash' => sr_hmac_hash($anonymizedEmail, $config),
         'password_hash' => $passwordHash,
-        'display_name' => sr_t('member::account.withdrawn_display_name'),
+        'display_name' => 'withdrawn',
         'status' => 'anonymized',
         'updated_at' => sr_now(),
         'id' => $accountId,

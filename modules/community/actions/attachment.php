@@ -68,7 +68,7 @@ if (is_array($board)) {
                 'community.post',
                 (int) $post['id'],
                 'use',
-                '커뮤니티 게시글 열람'
+                'community.post.read'
             );
             if (empty($paidReadResult['allowed'])) {
                 sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed')));
@@ -94,7 +94,7 @@ if ($disposition === 'attachment' && is_array($board)) {
             'community.attachment',
             (int) $attachment['id'],
             'use',
-            '커뮤니티 첨부 다운로드'
+            'community.attachment.download'
         );
         if (empty($downloadResult['allowed'])) {
             sr_render_error(403, (string) ($downloadResult['message'] ?? sr_t('community::action.error.download_attachment_failed')));

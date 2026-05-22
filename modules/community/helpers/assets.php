@@ -41,10 +41,10 @@ function sr_community_asset_modules(): array
 function sr_community_asset_charge_policies(): array
 {
     return [
-        'once' => '최초 1회',
-        'every_view' => '매 열람',
-        'every_download' => '매 다운로드',
-        'every_action' => '매 활동',
+        'once' => sr_t('community::asset_charge.once'),
+        'every_view' => sr_t('community::asset_charge.every_view'),
+        'every_download' => sr_t('community::asset_charge.every_download'),
+        'every_action' => sr_t('community::asset_charge.every_action'),
     ];
 }
 
@@ -82,7 +82,7 @@ function sr_community_asset_module_options(PDO $pdo): array
 function sr_community_asset_module_label(string $assetModule): string
 {
     $modules = sr_community_asset_modules();
-    return isset($modules[$assetModule]) ? (string) $modules[$assetModule]['label'] : '회원 자산';
+    return isset($modules[$assetModule]) ? sr_t('community::asset.' . $assetModule) : sr_t('community::asset.member_asset');
 }
 
 function sr_community_asset_module_key(string $value): string
@@ -138,7 +138,7 @@ function sr_community_asset_module_labels(string $assetModuleValue): string
         $labels[] = sr_community_asset_module_label($assetModule);
     }
 
-    return $labels !== [] ? implode(', ', $labels) : '회원 자산';
+    return $labels !== [] ? implode(', ', $labels) : sr_t('community::asset.member_asset');
 }
 
 function sr_community_asset_modules_available(PDO $pdo, array $assetModules): bool
@@ -556,7 +556,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '선택한 자산 모듈을 모두 사용할 수 없습니다.',
+            'message' => sr_t('community::action.error.asset_modules_unavailable'),
         ];
     }
 
@@ -583,7 +583,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '선택한 자산의 합산 잔액이 부족합니다.',
+            'message' => sr_t('community::action.error.asset_balance_low'),
         ];
     }
 
@@ -644,7 +644,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '회원 자산 처리에 실패했습니다.',
+            'message' => sr_t('community::action.error.asset_processing_failed'),
         ];
     }
 

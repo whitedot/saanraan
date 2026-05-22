@@ -91,12 +91,12 @@ function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcco
 
     $targetFormat = sr_community_attachment_format_for_mime((string) $validated['mime_type']);
     if ($targetFormat === '') {
-        throw new RuntimeException('허용되지 않은 이미지 형식입니다.');
+        throw new RuntimeException(sr_t('community::runtime.image_type_forbidden'));
     }
 
     $directory = SR_ROOT . '/storage/tmp/community-attachments/' . date('Y/m');
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-        throw new RuntimeException('첨부 저장 디렉터리를 만들 수 없습니다.');
+        throw new RuntimeException(sr_t('community::runtime.attachment_directory_failed'));
     }
 
     $storedName = sr_upload_random_filename($targetFormat);
@@ -107,7 +107,7 @@ function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcco
         'max_pixels' => 25000000,
         'quality' => 85,
     ])) {
-        throw new RuntimeException('이미지 재인코딩에 실패했습니다.');
+        throw new RuntimeException(sr_t('community::runtime.image_reencode_failed'));
     }
 
     $imageInfo = getimagesize($targetPath);
@@ -116,7 +116,7 @@ function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAcco
     $sizeBytes = filesize($targetPath);
     if (!is_array($imageInfo) || !sr_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
         @unlink($targetPath);
-        throw new RuntimeException('저장된 이미지 metadata를 확인할 수 없습니다.');
+        throw new RuntimeException(sr_t('community::runtime.image_metadata_invalid'));
     }
 
     $storageKey = 'community/attachments/' . date('Y/m') . '/' . $storedName;
@@ -164,7 +164,7 @@ function sr_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAcco
     }
 
     if (count($selectedFiles) > $maxCount) {
-        throw new RuntimeException('첨부 파일 개수가 허용 범위를 초과했습니다.');
+        throw new RuntimeException(sr_t('community::runtime.attachment_count_exceeded'));
     }
 
     foreach ($selectedFiles as $file) {
@@ -177,13 +177,13 @@ function sr_community_upload_post_files(PDO $pdo, int $postId, int $uploaderAcco
 function sr_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): int
 {
     if ($postId < 1 || $uploaderAccountId < 1) {
-        throw new RuntimeException('첨부 대상이 올바르지 않습니다.');
+        throw new RuntimeException(sr_t('community::runtime.attachment_target_invalid'));
     }
 
     $maxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
     $allowedExtensions = sr_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
     if ($allowedExtensions === []) {
-        throw new RuntimeException('허용된 첨부 파일 확장자가 없습니다.');
+        throw new RuntimeException(sr_t('community::runtime.attachment_extension_missing'));
     }
 
     $validated = sr_upload_validate_file($file, [
@@ -197,7 +197,7 @@ function sr_community_upload_post_file(PDO $pdo, int $postId, int $uploaderAccou
     $checksum = (string) $validated['checksum'];
     $sizeBytes = filesize((string) $validated['tmp_name']);
     if (!sr_community_attachment_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
-        throw new RuntimeException('저장된 첨부 파일 metadata를 확인할 수 없습니다.');
+        throw new RuntimeException(sr_t('community::runtime.attachment_metadata_invalid'));
     }
 
     $storageKey = 'community/attachments/' . date('Y/m') . '/' . $storedName;

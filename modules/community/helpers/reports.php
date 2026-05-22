@@ -10,11 +10,11 @@ function sr_community_report_reason_keys(): array
 function sr_community_report_reason_label(string $reasonKey): string
 {
     $labels = [
-        'spam' => '스팸',
-        'abuse' => '욕설/괴롭힘',
-        'personal_info' => '개인정보 노출',
-        'illegal' => '불법 정보',
-        'other' => '기타',
+        'spam' => sr_t('community::report.reason.spam'),
+        'abuse' => sr_t('community::report.reason.abuse'),
+        'personal_info' => sr_t('community::report.reason.personal_info'),
+        'illegal' => sr_t('community::report.reason.illegal'),
+        'other' => sr_t('community::report.reason.other'),
     ];
 
     return (string) ($labels[$reasonKey] ?? $reasonKey);
@@ -32,7 +32,7 @@ function sr_community_report_account_label(?string $displayName, int $accountId)
         return $label;
     }
 
-    return $accountId > 0 ? '회원' : '알 수 없는 회원';
+    return $accountId > 0 ? sr_t('community::report.account.member') : sr_t('community::report.account.unknown');
 }
 
 function sr_community_report_target(PDO $pdo, string $targetType, int $targetId, ?int $actorAccountId = null): ?array

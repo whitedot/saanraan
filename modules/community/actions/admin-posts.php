@@ -68,18 +68,18 @@ if (sr_request_method() === 'POST') {
         $post = sr_community_admin_post_by_id($pdo, $postId);
 
         if (!is_array($post)) {
-            $errors[] = '게시글을 찾을 수 없습니다.';
+            $errors[] = sr_t('community::action.error.post_not_found');
         }
 
         if (!in_array($status, $allowedPostStatuses, true)) {
-            $errors[] = '게시글 상태 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.post_status_invalid');
         }
 
         if ($errors === [] && is_array($post)) {
             if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
-                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
                 if (empty($reversalResult['allowed'])) {
-                    $errors[] = (string) ($reversalResult['message'] ?? '게시글 적립 회수에 실패해 상태를 변경할 수 없습니다.');
+                    $errors[] = (string) ($reversalResult['message'] ?? sr_t('community::action.admin.post_reward_reversal_status_failed'));
                 }
             }
 
@@ -111,7 +111,7 @@ if (sr_request_method() === 'POST') {
                         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
                     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
                 ]);
-                $notice = '게시글 상태를 변경했습니다.';
+                $notice = sr_t('community::action.admin.post_status_updated');
             }
         }
     } elseif ($intent === 'comment_status') {
@@ -120,18 +120,18 @@ if (sr_request_method() === 'POST') {
         $comment = sr_community_admin_comment_by_id($pdo, $commentId);
 
         if (!is_array($comment)) {
-            $errors[] = '댓글을 찾을 수 없습니다.';
+            $errors[] = sr_t('community::action.error.comment_not_found');
         }
 
         if (!in_array($status, $allowedCommentStatuses, true)) {
-            $errors[] = '댓글 상태 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.comment_status_invalid');
         }
 
         if ($errors === [] && is_array($comment)) {
             if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
-                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', '커뮤니티 댓글 적립 회수');
+                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal');
                 if (empty($reversalResult['allowed'])) {
-                    $errors[] = (string) ($reversalResult['message'] ?? '댓글 적립 회수에 실패해 상태를 변경할 수 없습니다.');
+                    $errors[] = (string) ($reversalResult['message'] ?? sr_t('community::action.admin.comment_reward_reversal_status_failed'));
                 }
             }
 
@@ -157,11 +157,11 @@ if (sr_request_method() === 'POST') {
                         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
                     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
                 ]);
-                $notice = '댓글 상태를 변경했습니다.';
+                $notice = sr_t('community::action.admin.comment_status_updated');
             }
         }
     } else {
-        $errors[] = '작업 값이 올바르지 않습니다.';
+        $errors[] = sr_t('community::action.error.intent_invalid');
     }
 }
 

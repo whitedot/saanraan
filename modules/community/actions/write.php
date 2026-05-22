@@ -42,33 +42,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = sr_community_validate_post_input($values);
 
     if ($errors === [] && sr_community_post_rate_limited($pdo, (int) $account['id'], $settings)) {
-        $errors[] = '짧은 시간에 글을 너무 많이 작성했습니다. 잠시 후 다시 시도해 주세요.';
+        $errors[] = sr_t('community::action.rate_limit.post');
     }
 
     if ($errors === [] && sr_community_asset_event_required($writeChargeConfig)) {
         $assetModules = sr_community_asset_module_keys_from_value($writeChargeConfig['asset_module'] ?? 'point');
         $amount = (int) $writeChargeConfig['amount'];
         if (!sr_community_asset_modules_available($pdo, $assetModules)) {
-            $errors[] = '선택한 자산 모듈을 모두 사용할 수 없어 글을 작성할 수 없습니다.';
+            $errors[] = sr_t('community::action.error.write_asset_modules_unavailable');
         } elseif (sr_community_asset_combined_balance($pdo, $assetModules, (int) $account['id']) < $amount) {
-            $errors[] = '선택한 자산의 합산 잔액이 부족해 글을 작성할 수 없습니다.';
+            $errors[] = sr_t('community::action.error.write_asset_balance_low');
         }
     }
 
     if ($errors === []) {
         $postId = sr_community_create_post($pdo, (int) $board['id'], (int) $account['id'], $values);
         $writeChargeResult = sr_community_asset_event_required($writeChargeConfig)
-            ? sr_community_run_asset_event($pdo, $writeChargeConfig, (int) $account['id'], 'post_write_charge', 'community.post', $postId, 'use', '커뮤니티 글쓰기')
+            ? sr_community_run_asset_event($pdo, $writeChargeConfig, (int) $account['id'], 'post_write_charge', 'community.post', $postId, 'use', 'community.post.write')
             : ['allowed' => true, 'processed' => false];
         if (empty($writeChargeResult['allowed'])) {
             sr_community_update_post_status($pdo, $postId, 'deleted');
             sr_render_error(403, (string) ($writeChargeResult['message'] ?? sr_t('community::action.error.write_charge_failed')));
         }
         $postRewardResult = sr_community_asset_event_required($postRewardConfig)
-            ? sr_community_run_asset_event($pdo, $postRewardConfig, (int) $account['id'], 'post_reward', 'community.post', $postId, 'grant', '커뮤니티 게시글 적립')
+            ? sr_community_run_asset_event($pdo, $postRewardConfig, (int) $account['id'], 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')
             : ['allowed' => true, 'processed' => false];
         if (!empty($postRewardResult['processed'])) {
-            $_SESSION['sr_community_post_notice'] = sr_community_asset_module_label((string) $postRewardConfig['asset_module']) . ' ' . number_format((int) $postRewardConfig['amount']) . '을(를) 적립했습니다.';
+            $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.asset_granted', [
+                'asset' => sr_community_asset_module_label((string) $postRewardConfig['asset_module']),
+                'amount' => number_format((int) $postRewardConfig['amount']),
+            ]);
         }
         sr_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
         $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
@@ -84,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (is_int($attachmentId) && $attachmentId > 0) {
                     $attachmentIds[] = $attachmentId;
                     $attachmentResults[] = 'image_attached';
-                    $_SESSION['sr_community_post_notice'] = '이미지를 첨부했습니다.';
+                    $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.image_attached');
                     sr_audit_log($pdo, [
                         'actor_account_id' => (int) $account['id'],
                         'actor_type' => 'member',
@@ -104,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'community_post_image_upload');
                 $attachmentResults[] = 'image_failed';
-                $_SESSION['sr_community_post_notice'] = '게시글은 등록했지만 이미지 첨부는 처리하지 못했습니다.';
+                $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.image_attach_failed_after_post');
             }
         }
         if ((int) $board['file_uploads_enabled'] === 1 && isset($_FILES['file_attachments']) && is_array($_FILES['file_attachments'])) {
@@ -129,12 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $attachmentResults[] = $fileAttachmentIds === [] ? 'file_none' : 'file_attached';
                 if ($fileAttachmentIds !== []) {
-                    $_SESSION['sr_community_post_notice'] = '첨부파일을 등록했습니다.';
+                    $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.file_attached');
                 }
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'community_post_file_upload');
                 $attachmentResults[] = 'file_failed';
-                $_SESSION['sr_community_post_notice'] = '게시글은 등록했지만 첨부파일은 처리하지 못했습니다.';
+                $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.file_attach_failed_after_post');
             }
         }
         sr_audit_log($pdo, [

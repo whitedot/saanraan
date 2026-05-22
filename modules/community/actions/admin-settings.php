@@ -59,28 +59,29 @@ if (sr_request_method() === 'POST') {
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
 
         if ($levelPostScore === null) {
-            $errors[] = '게시글 점수는 0 이상 10000 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.post_score_invalid');
             $levelPostScore = (int) $settings['level_post_score'];
         }
 
         if ($levelCommentScore === null) {
-            $errors[] = '댓글 점수는 0 이상 10000 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.comment_score_invalid');
             $levelCommentScore = (int) $settings['level_comment_score'];
         }
 
         if ($messageWriteMinLevel === null) {
-            $errors[] = '쪽지 최소 레벨은 0 이상 ' . (string) $maxLevel . ' 이하의 정수여야 합니다.';
+            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $maxLevel]);
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
         }
 
         if (!isset($communityLayoutOptions[$layoutKey])) {
-            $errors[] = '커뮤니티 레이아웃 값이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.layout_invalid');
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
         }
 
-        foreach (['post_reward' => '게시글 적립', 'comment_reward' => '댓글 적립', 'write_charge' => '글쓰기 차감', 'comment_charge' => '댓글 차감', 'paid_read' => '유료 열람', 'paid_attachment_download' => '첨부 다운로드 차감'] as $assetPrefix => $assetLabel) {
+        foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
+            $assetLabel = sr_community_asset_setting_label($assetPrefix);
             if ($assetSettings[$assetPrefix . '_amount'] === null) {
-                $errors[] = $assetLabel . ' 금액은 0 이상 999999999 이하의 정수여야 합니다.';
+                $errors[] = sr_t('community::action.admin.asset_amount_invalid', ['label' => $assetLabel]);
                 $assetSettings[$assetPrefix . '_amount'] = 0;
             }
 
@@ -89,30 +90,33 @@ if (sr_request_method() === 'POST') {
                 if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
-                        $errors[] = $assetLabel . '에 사용할 자산 모듈이 모두 활성 상태여야 합니다.';
+                        $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
                     }
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
-                    $errors[] = $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+                    $errors[] = sr_t('community::action.admin.asset_module_inactive', [
+                        'label' => $assetLabel,
+                        'module' => sr_community_asset_module_label($assetModule),
+                    ]);
                 }
             }
         }
 
         if (sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
-            $errors[] = '쪽지 회원 그룹 목록은 1000자 이하로 선택하세요.';
+            $errors[] = sr_t('community::action.admin.message_group_list_too_long');
         } else {
             $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input_value($messageWriteGroupKeysInput);
             if ($invalidGroupKeys !== []) {
-                $errors[] = '쪽지 회원 그룹 값이 올바르지 않습니다: ' . implode(', ', $invalidGroupKeys);
+                $errors[] = sr_t('community::action.admin.message_group_keys_invalid', ['keys' => implode(', ', $invalidGroupKeys)]);
             }
         }
 
         $unknownGroupKeys = array_values(array_diff($messageWriteGroupKeys, $enabledMemberGroupKeys));
         if ($unknownGroupKeys !== []) {
-            $errors[] = '쪽지 회원 그룹은 활성 회원 그룹이어야 합니다: ' . implode(', ', $unknownGroupKeys);
+            $errors[] = sr_t('community::action.admin.message_group_keys_inactive', ['keys' => implode(', ', $unknownGroupKeys)]);
         }
 
         if ($messageWritePolicy === 'group' && $messageWriteGroupKeys === []) {
-            $errors[] = '쪽지 발송 정책을 group으로 선택하려면 회원 그룹을 하나 이상 선택하세요.';
+            $errors[] = sr_t('community::action.admin.message_group_policy_requires_group');
         }
 
         if ($errors === []) {
@@ -120,7 +124,7 @@ if (sr_request_method() === 'POST') {
             $stmt->execute();
             $communityModule = $stmt->fetch();
             if (!is_array($communityModule)) {
-                $errors[] = '커뮤니티 모듈이 등록되어 있지 않습니다.';
+                $errors[] = sr_t('community::action.admin.module_missing');
             }
         }
 
@@ -201,12 +205,12 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = '커뮤니티 설정을 저장했습니다.';
+            $notice = sr_t('community::action.admin.settings_saved');
         }
     } elseif ($intent === 'save_level_definitions') {
         $rawMinScores = $_POST['level_min_score'] ?? [];
         if (!is_array($rawMinScores)) {
-            $errors[] = '레벨 최소 점수 입력이 올바르지 않습니다.';
+            $errors[] = sr_t('community::action.admin.level_min_score_input_invalid');
         }
 
         $minScoresById = [];
@@ -218,19 +222,19 @@ if (sr_request_method() === 'POST') {
 
             $rawValue = is_array($rawMinScores) ? ($rawMinScores[(string) $levelId] ?? '') : '';
             if (is_array($rawValue)) {
-                $errors[] = '레벨 최소 점수 입력이 올바르지 않습니다.';
+                $errors[] = sr_t('community::action.admin.level_min_score_input_invalid');
                 continue;
             }
 
             $value = trim((string) $rawValue);
             if ($value === '' || strlen($value) > 10 || preg_match('/\A\d+\z/', $value) !== 1) {
-                $errors[] = '레벨 ' . (string) $level['level_value'] . ' 최소 점수는 0 이상 1000000000 이하의 정수여야 합니다.';
+                $errors[] = sr_t('community::action.admin.level_min_score_invalid', ['level' => (string) $level['level_value']]);
                 continue;
             }
 
             $minScore = (int) $value;
             if ($minScore < 0 || $minScore > 1000000000) {
-                $errors[] = '레벨 ' . (string) $level['level_value'] . ' 최소 점수는 0 이상 1000000000 이하의 정수여야 합니다.';
+                $errors[] = sr_t('community::action.admin.level_min_score_invalid', ['level' => (string) $level['level_value']]);
                 continue;
             }
 
@@ -252,7 +256,7 @@ if (sr_request_method() === 'POST') {
                         'updated_count' => $updatedCount,
                     ],
                 ]);
-                $notice = $updatedCount > 0 ? '레벨 정의를 저장했습니다.' : '변경된 레벨 정의가 없습니다.';
+                $notice = $updatedCount > 0 ? sr_t('community::action.admin.level_definitions_saved') : sr_t('community::action.admin.level_definitions_no_changes');
             } catch (InvalidArgumentException $exception) {
                 $errors[] = $exception->getMessage();
             }
@@ -269,9 +273,9 @@ if (sr_request_method() === 'POST') {
             'message' => 'Community levels recalculated.',
             'metadata' => $summary,
         ]);
-        $notice = '커뮤니티 레벨을 재계산했습니다. 대상 회원: ' . (string) ($summary['accounts'] ?? 0);
+        $notice = sr_t('community::action.admin.levels_recalculated', ['accounts' => (string) ($summary['accounts'] ?? 0)]);
     } else {
-        $errors[] = '작업 값이 올바르지 않습니다.';
+        $errors[] = sr_t('community::action.error.intent_invalid');
     }
 
     $levels = sr_community_levels($pdo);

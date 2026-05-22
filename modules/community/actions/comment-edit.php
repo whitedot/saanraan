@@ -44,5 +44,5 @@ sr_audit_log($pdo, [
         'post_id' => (int) $comment['post_id'],
     ],
 ]);
-$_SESSION['sr_community_comment_notice'] = '댓글을 수정했습니다.';
+$_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_updated');
 sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

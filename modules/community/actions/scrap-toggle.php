@@ -15,7 +15,7 @@ $intent = sr_post_string('intent', 20);
 if ($intent === 'remove') {
     $removed = sr_community_remove_scrap($pdo, (int) $account['id'], $postId);
     if ($removed) {
-        $_SESSION['sr_community_scrap_notice'] = '스크랩을 해제했습니다.';
+        $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.scrap_removed');
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -26,7 +26,7 @@ if ($intent === 'remove') {
             'message' => 'Community scrap removed.',
         ]);
     } else {
-        $_SESSION['sr_community_scrap_notice'] = '이미 해제된 스크랩입니다.';
+        $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.scrap_already_removed');
     }
     $post = sr_community_post_for_read($pdo, $postId, $account);
     if (!is_array($post)) {
@@ -41,7 +41,7 @@ if (!is_array($post)) {
 } else {
     $added = sr_community_add_scrap($pdo, (int) $account['id'], $postId);
     if ($added) {
-        $_SESSION['sr_community_scrap_notice'] = '게시글을 스크랩했습니다.';
+        $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.scrap_added');
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -55,7 +55,7 @@ if (!is_array($post)) {
             ],
         ]);
     } else {
-        $_SESSION['sr_community_scrap_notice'] = '이미 스크랩한 게시글입니다.';
+        $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.scrap_already_added');
     }
 }
 

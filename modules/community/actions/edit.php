@@ -60,14 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'board_key' => (string) $post['board_key'],
             ],
         ]);
-        $_SESSION['sr_community_post_notice'] = '게시글을 수정했습니다.';
+        $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.post_updated');
         sr_redirect('/community/post?id=' . (string) $postId);
     }
 }
 
-$pageTitle = '게시글 수정';
+$pageTitle = sr_t('community::action.title.post_edit');
 $formAction = '/community/edit?id=' . (string) $postId;
-$submitLabel = '수정';
+$submitLabel = sr_t('community::action.submit.edit');
 $postIdField = $postId;
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'form');

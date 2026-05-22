@@ -21,7 +21,7 @@ if (!sr_community_account_can_delete_post($post, $account)) {
 
 $settings = sr_community_settings($pdo);
 if (!empty($settings['post_reward_reversal_enabled'])) {
-    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', '커뮤니티 게시글 적립 회수');
+    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
     if (empty($reversalResult['allowed'])) {
         sr_render_error(409, (string) ($reversalResult['message'] ?? sr_t('community::action.error.post_reward_reversal_failed')));
     }
@@ -49,5 +49,5 @@ sr_audit_log($pdo, [
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
-$_SESSION['sr_community_board_notice'] = '게시글을 삭제했습니다.';
+$_SESSION['sr_community_board_notice'] = sr_t('community::action.notice.post_deleted');
 sr_redirect('/community/board?key=' . rawurlencode((string) $post['board_key']));

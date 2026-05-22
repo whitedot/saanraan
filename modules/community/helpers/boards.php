@@ -100,22 +100,36 @@ function sr_community_board_group_all_setting_keys(): array
 function sr_community_public_banner_setting_labels(): array
 {
     return [
-        'banner_before_list_id' => '목록 상단 배너',
-        'banner_after_list_id' => '목록 하단 배너',
-        'banner_before_view_id' => '글보기 상단 배너',
-        'banner_after_view_id' => '글보기 하단 배너',
-        'banner_before_form_id' => '글쓰기 폼 상단 배너',
-        'banner_after_form_id' => '글쓰기 폼 하단 배너',
+        'banner_before_list_id' => sr_t('community::display.banner_before_list'),
+        'banner_after_list_id' => sr_t('community::display.banner_after_list'),
+        'banner_before_view_id' => sr_t('community::display.banner_before_view'),
+        'banner_after_view_id' => sr_t('community::display.banner_after_view'),
+        'banner_before_form_id' => sr_t('community::display.banner_before_form'),
+        'banner_after_form_id' => sr_t('community::display.banner_after_form'),
     ];
 }
 
 function sr_community_public_popup_layer_setting_labels(): array
 {
     return [
-        'popup_layer_list_id' => '목록 팝업레이어',
-        'popup_layer_view_id' => '글보기 팝업레이어',
-        'popup_layer_form_id' => '글쓰기 폼 팝업레이어',
+        'popup_layer_list_id' => sr_t('community::display.popup_layer_list'),
+        'popup_layer_view_id' => sr_t('community::display.popup_layer_view'),
+        'popup_layer_form_id' => sr_t('community::display.popup_layer_form'),
     ];
+}
+
+function sr_community_asset_setting_label(string $assetPrefix): string
+{
+    $labels = [
+        'post_reward' => sr_t('community::asset_setting.post_reward'),
+        'comment_reward' => sr_t('community::asset_setting.comment_reward'),
+        'write_charge' => sr_t('community::asset_setting.write_charge'),
+        'comment_charge' => sr_t('community::asset_setting.comment_charge'),
+        'paid_read' => sr_t('community::asset_setting.paid_read'),
+        'paid_attachment_download' => sr_t('community::asset_setting.paid_attachment_download'),
+    ];
+
+    return (string) ($labels[$assetPrefix] ?? $assetPrefix);
 }
 
 function sr_community_public_display_setting_labels(): array

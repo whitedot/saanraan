@@ -19,10 +19,13 @@ function sr_community_member_identifier_suffix(array $config, int $accountId, bo
 
     $publicHash = sr_member_public_account_hash($config, $accountId);
     if ($publicHash === '') {
-        return ' (회원 ID #' . (string) $accountId . ')';
+        return sr_t('community::member.identifier.id_suffix', ['id' => (string) $accountId]);
     }
 
-    return ' (회원 ID #' . (string) $accountId . ' / 해시 ' . $publicHash . ')';
+    return sr_t('community::member.identifier.id_hash_suffix', [
+        'id' => (string) $accountId,
+        'hash' => $publicHash,
+    ]);
 }
 
 function sr_community_member_label_with_identifier(string $label, array $config, int $accountId, bool $showIdentifier): string

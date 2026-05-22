@@ -182,20 +182,20 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
     $selectedRoles = sr_admin_post_role_keys($allowedRoles);
 
     if ($targetAccountId <= 0) {
-        $errors[] = '계정을 선택하세요.';
+        $errors[] = sr_t('admin::action.roles.account_required');
     }
 
     if ($intent === 'sync_roles') {
         if (!sr_admin_post_role_keys_valid($allowedRoles)) {
-            $errors[] = '역할 값이 올바르지 않습니다.';
+            $errors[] = sr_t('admin::action.roles.role_invalid');
         }
     } else {
         if (!in_array($roleKey, $allowedRoles, true)) {
-            $errors[] = '역할 값이 올바르지 않습니다.';
+            $errors[] = sr_t('admin::action.roles.role_invalid');
         }
 
         if (!in_array($roleAction, $allowedActions, true)) {
-            $errors[] = '역할 작업 값이 올바르지 않습니다.';
+            $errors[] = sr_t('admin::action.roles.action_invalid');
         }
     }
 
@@ -205,7 +205,7 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
         $targetAccount = $stmt->fetch();
 
         if (!is_array($targetAccount)) {
-            $errors[] = '계정을 찾을 수 없습니다.';
+            $errors[] = sr_t('admin::action.roles.account_not_found');
         }
     }
 
@@ -215,21 +215,21 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
 
     if ($errors === [] && $intent === 'sync_roles' && in_array('owner', $targetRoles, true) && !in_array('owner', $selectedRoles, true)) {
         if (sr_admin_owner_count($pdo) <= 1) {
-            $errors[] = '마지막 소유자 권한은 회수할 수 없습니다.';
+            $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
         } elseif ((string) $targetAccount['status'] === 'active' && sr_admin_active_owner_count($pdo) <= 1) {
-            $errors[] = '마지막 활성 소유자 권한은 회수할 수 없습니다.';
+            $errors[] = sr_t('admin::action.roles.last_active_owner_revoke_disallowed');
         }
     }
 
     if ($errors === [] && $intent !== 'sync_roles' && $roleAction === 'revoke' && $roleKey === 'owner') {
         if (in_array('owner', $targetRoles, true) && sr_admin_owner_count($pdo) <= 1) {
-            $errors[] = '마지막 소유자 권한은 회수할 수 없습니다.';
+            $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
         } elseif (
             in_array('owner', $targetRoles, true)
             && (string) $targetAccount['status'] === 'active'
             && sr_admin_active_owner_count($pdo) <= 1
         ) {
-            $errors[] = '마지막 활성 소유자 권한은 회수할 수 없습니다.';
+            $errors[] = sr_t('admin::action.roles.last_active_owner_revoke_disallowed');
         }
     }
 
@@ -247,7 +247,7 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
         }
 
         if ($grantedRoles === [] && $revokedRoles === []) {
-            $notice = '관리자 역할 변경 사항이 없습니다.';
+            $notice = sr_t('admin::action.roles.no_changes');
         } else {
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -265,17 +265,17 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
                 ],
             ]);
 
-            $notice = '관리자 역할을 저장했습니다.';
+            $notice = sr_t('admin::action.roles.saved');
         }
     } elseif ($errors === []) {
         if ($roleAction === 'grant') {
             sr_admin_grant_role($pdo, $targetAccountId, $roleKey);
             $eventType = 'admin.role.granted';
-            $notice = '관리자 역할을 부여했습니다.';
+            $notice = sr_t('admin::action.roles.granted');
         } else {
             sr_admin_revoke_role($pdo, $targetAccountId, $roleKey);
             $eventType = 'admin.role.revoked';
-            $notice = '관리자 역할을 회수했습니다.';
+            $notice = sr_t('admin::action.roles.revoked');
         }
 
         sr_audit_log($pdo, [

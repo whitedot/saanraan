@@ -379,13 +379,13 @@ function sr_admin_menu_category_order(array $group): int
 function sr_admin_default_menu_category_label(string $category): string
 {
     $labels = [
-        'system' => '시스템',
-        'member' => '회원',
-        'site' => '사이트',
-        'system_asset' => '사이트',
-        'content' => '사이트',
-        'operation' => '운영',
-        'other' => '기타',
+        'system' => sr_t('admin::nav.category.system'),
+        'member' => sr_t('admin::nav.category.member'),
+        'site' => sr_t('admin::nav.category.site'),
+        'system_asset' => sr_t('admin::nav.category.site'),
+        'content' => sr_t('admin::nav.category.site'),
+        'operation' => sr_t('admin::nav.category.operation'),
+        'other' => sr_t('admin::nav.category.other'),
     ];
 
     return (string) ($labels[$category] ?? $category);
@@ -712,18 +712,18 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
 {
     $intent = sr_post_string('intent', 40);
     if (!in_array($intent, ['save_menu_overrides', 'reset_menu_overrides'], true)) {
-        return sr_admin_action_result(['메뉴 작업 값이 올바르지 않습니다.'], '');
+        return sr_admin_action_result([sr_t('admin::action.menu.intent_invalid')], '');
     }
 
     if ($intent === 'reset_menu_overrides') {
         if (sr_post_string('reset_confirmed', 1) !== '1') {
-            return sr_admin_action_result(['관리자 메뉴 표시 설정 초기화에 동의해야 합니다.'], '');
+            return sr_admin_action_result([sr_t('admin::action.menu.reset_confirm_required')], '');
         }
 
         sr_admin_ensure_menu_overrides_table($pdo);
         $pdo->exec('DELETE FROM sr_admin_menu_overrides');
         sr_admin_log_menu_override_change($pdo, $account, 'reset');
-        return sr_admin_action_result([], '관리자 메뉴 표시 설정을 초기화했습니다.');
+        return sr_admin_action_result([], sr_t('admin::action.menu.reset'));
     }
 
     $allowedTargets = [];
@@ -733,7 +733,7 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
 
     $postedOrders = $_POST['sort_order'] ?? [];
     if (!is_array($postedOrders)) {
-        return sr_admin_action_result(['메뉴 순서 값이 올바르지 않습니다.'], '');
+        return sr_admin_action_result([sr_t('admin::action.menu.sort_value_invalid')], '');
     }
 
     $postedHidden = $_POST['is_hidden'] ?? [];
@@ -751,13 +751,13 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
     foreach ($allowedTargets as $formKey => $row) {
         $rawOrder = $postedOrders[$formKey] ?? '';
         if (!is_string($rawOrder) && !is_int($rawOrder)) {
-            $errors[] = '메뉴 순서 값이 올바르지 않습니다.';
+            $errors[] = sr_t('admin::action.menu.sort_value_invalid');
             continue;
         }
 
         $rawOrder = trim((string) $rawOrder);
         if (preg_match('/\A-?[0-9]{1,6}\z/', $rawOrder) !== 1) {
-            $errors[] = '메뉴 순서는 숫자로 입력하세요.';
+            $errors[] = sr_t('admin::action.menu.sort_number_required');
             continue;
         }
 
@@ -795,7 +795,7 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
     }
 
     sr_admin_log_menu_override_change($pdo, $account, 'save');
-    return sr_admin_action_result([], '관리자 메뉴 표시 설정을 저장했습니다.');
+    return sr_admin_action_result([], sr_t('admin::action.menu.saved'));
 }
 
 function sr_admin_save_menu_override(PDO $pdo, string $scope, string $targetKey, int $sortOrder, bool $isHidden, string $now): void

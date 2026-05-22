@@ -41,7 +41,7 @@ function sr_community_message_account_label(?string $displayName, int $accountId
 {
     $label = trim((string) $displayName);
     if ($label === '') {
-        $label = $accountId > 0 ? '회원' : '알 수 없는 회원';
+        $label = $accountId > 0 ? sr_t('community::report.account.member') : sr_t('community::report.account.unknown');
     }
 
     if (!$showIdentifier || $accountId < 1) {
@@ -140,13 +140,13 @@ function sr_community_validate_message_input(array $values): array
     $errors = [];
     $recipientAccountHash = is_string($values['recipient_account_hash'] ?? null) ? (string) $values['recipient_account_hash'] : '';
     if ($recipientAccountHash === '' && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
-        $errors[] = '받는 회원을 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.recipient_required');
     }
 
     if (!is_string($values['body_text'])) {
-        $errors[] = '쪽지 내용은 5000자 이내로 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.message_body_too_long');
     } elseif (trim($values['body_text']) === '') {
-        $errors[] = '쪽지 내용을 입력해 주세요.';
+        $errors[] = sr_t('community::action.error.message_body_required');
     }
 
     return $errors;

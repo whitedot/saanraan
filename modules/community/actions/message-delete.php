@@ -31,7 +31,7 @@ sr_audit_log($pdo, [
         'recipient_account_id' => (int) $message['recipient_account_id'],
     ],
 ]);
-$_SESSION['sr_community_message_notice'] = '쪽지를 삭제했습니다.';
+$_SESSION['sr_community_message_notice'] = sr_t('community::action.notice.message_deleted');
 
 if ($box === 'sent') {
     sr_redirect('/community/messages?box=sent');

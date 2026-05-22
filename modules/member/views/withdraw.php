@@ -66,6 +66,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <span><?php echo sr_e(sr_t('member::ui.text.82e63a67')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                     <input id="modules_member_withdraw_confirm_text" type="text" name="confirm_text" required>
                 </label>
+                <small><?php echo sr_e(sr_t('member::action.withdraw.confirm_help', ['phrase' => sr_t('member::action.withdraw.confirm_text')])); ?></small>
             </p>
             <button type="submit"><?php echo sr_e(sr_t('member::ui.text.871d2076')); ?></button>
         </form>

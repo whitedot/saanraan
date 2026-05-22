@@ -451,7 +451,7 @@ function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById): i
 
         $minScore = (int) $minScoresById[$levelId];
         if ($minScore < $lastMinScore) {
-            throw new InvalidArgumentException('레벨 최소 점수는 낮은 레벨부터 같거나 커야 합니다.');
+            throw new InvalidArgumentException(sr_t('community::action.admin.level_min_score_order_invalid'));
         }
 
         $lastMinScore = $minScore;

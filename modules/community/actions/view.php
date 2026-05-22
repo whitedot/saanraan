@@ -59,14 +59,17 @@ if (is_array($postBoard)) {
             'community.post',
             (int) $post['id'],
             'use',
-            '커뮤니티 게시글 열람'
+            'community.post.read'
         );
         if (empty($paidReadResult['allowed'])) {
             sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));
         }
         sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         if (!empty($paidReadResult['processed'])) {
-            $assetReadNotices[] = sr_community_asset_module_labels((string) $paidReadConfig['asset_module']) . ' ' . number_format((int) $paidReadConfig['amount']) . '을(를) 차감했습니다.';
+            $assetReadNotices[] = sr_t('community::action.notice.asset_used', [
+                'asset' => sr_community_asset_module_labels((string) $paidReadConfig['asset_module']),
+                'amount' => number_format((int) $paidReadConfig['amount']),
+            ]);
         }
     }
 }
@@ -89,12 +92,12 @@ foreach ($attachments as $attachment) {
 $canComment = is_array($account) && sr_community_account_can_comment_post($pdo, $post, $account);
 $commentUnavailableMessage = '';
 if (!is_array($account)) {
-    $commentUnavailableMessage = '로그인하면 댓글을 작성할 수 있습니다.';
+    $commentUnavailableMessage = sr_t('community::action.notice.login_required_to_comment');
 } elseif (!$canComment) {
-    $commentUnavailableMessage = '이 게시글에는 댓글을 작성할 수 없습니다.';
+    $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');
 }
 $isScrapped = is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
-$postActionUnavailableMessage = is_array($account) ? '' : '로그인하면 스크랩과 신고를 사용할 수 있습니다.';
+$postActionUnavailableMessage = is_array($account) ? '' : sr_t('community::action.notice.login_required_to_post_actions');
 $canReportPost = is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();
 $postNotices = $assetReadNotices;

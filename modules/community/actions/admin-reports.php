@@ -45,15 +45,15 @@ if (sr_request_method() === 'POST') {
     $report = sr_community_report_by_id($pdo, $reportId);
 
     if (!is_array($report)) {
-        $errors[] = '신고 항목을 찾을 수 없습니다.';
+        $errors[] = sr_t('community::action.admin.report_not_found');
     }
 
     if (!in_array($status, $allowedStatuses, true)) {
-        $errors[] = '신고 상태 값이 올바르지 않습니다.';
+        $errors[] = sr_t('community::action.admin.report_status_invalid');
     }
 
     if ($reviewNote === null) {
-        $errors[] = '처리 메모는 1000자 이하로 입력해 주세요.';
+        $errors[] = sr_t('community::action.admin.review_note_too_long');
         $reviewNote = '';
     }
 
@@ -76,7 +76,7 @@ if (sr_request_method() === 'POST') {
                 'reported_account_id' => (int) $report['reported_account_id'],
             ],
         ]);
-        $notice = '신고 상태를 변경했습니다.';
+        $notice = sr_t('community::action.admin.report_status_updated');
     }
 }
 

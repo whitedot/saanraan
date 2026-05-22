@@ -21,25 +21,25 @@ if (!is_array($target)) {
 $redirectPath = (string) $target['redirect_path'];
 $errors = [];
 if (!in_array($reasonKey, sr_community_report_reason_keys(), true)) {
-    $errors[] = '신고 사유를 선택해 주세요.';
+    $errors[] = sr_t('community::action.error.report_reason_required');
 }
 
 if ($memoText === null) {
-    $errors[] = '신고 메모는 1000자 이하로 입력해 주세요.';
+    $errors[] = sr_t('community::action.error.report_memo_too_long');
     $memoText = '';
 }
 
 if ((int) $target['reported_account_id'] === (int) $account['id']) {
-    $errors[] = '본인이 작성한 대상은 신고할 수 없습니다.';
+    $errors[] = sr_t('community::action.error.report_self_forbidden');
 }
 
 $settings = sr_community_settings($pdo);
 if ($errors === [] && sr_community_report_rate_limited($pdo, (int) $account['id'], $settings)) {
-    $errors[] = '짧은 시간에 신고를 너무 많이 접수했습니다. 잠시 후 다시 시도해 주세요.';
+    $errors[] = sr_t('community::action.rate_limit.report');
 }
 
 if ($errors === [] && sr_community_report_exists($pdo, (int) $account['id'], (string) $target['target_type'], (int) $target['target_id'])) {
-    $errors[] = '이미 신고한 대상입니다.';
+    $errors[] = sr_t('community::action.error.report_duplicate');
 }
 
 if ($errors !== []) {
@@ -79,6 +79,6 @@ sr_community_create_admin_report_notifications(
     $reasonKey,
     (int) $account['id']
 );
-$_SESSION['sr_community_report_notice'] = '신고를 접수했습니다.';
+$_SESSION['sr_community_report_notice'] = sr_t('community::action.notice.report_created');
 
 sr_redirect($redirectPath);

@@ -29,7 +29,7 @@ function sr_community_member_group_rule_post_count_at_least(PDO $pdo, int $accou
     $boardId = (int) ($params['board_id'] ?? 0);
     $minCount = max(1, (int) ($params['min_count'] ?? 1));
     if ($accountId < 1 || $boardId < 1) {
-        return ['matched' => false, 'metric' => 0, 'summary' => '게시글 0개'];
+        return ['matched' => false, 'metric' => 0, 'summary' => sr_t('community::member_group.summary.posts', ['count' => '0'])];
     }
 
     $stmt = $pdo->prepare(
@@ -49,7 +49,7 @@ function sr_community_member_group_rule_post_count_at_least(PDO $pdo, int $accou
     return [
         'matched' => $count >= $minCount,
         'metric' => $count,
-        'summary' => '게시글 ' . (string) $count . '개',
+        'summary' => sr_t('community::member_group.summary.posts', ['count' => (string) $count]),
     ];
 }
 
@@ -57,7 +57,7 @@ function sr_community_member_group_rule_total_post_count_at_least(PDO $pdo, int 
 {
     $minCount = max(1, (int) ($params['min_count'] ?? 1));
     if ($accountId < 1) {
-        return ['matched' => false, 'metric' => 0, 'summary' => '게시글 0개'];
+        return ['matched' => false, 'metric' => 0, 'summary' => sr_t('community::member_group.summary.posts', ['count' => '0'])];
     }
 
     $stmt = $pdo->prepare(
@@ -73,7 +73,7 @@ function sr_community_member_group_rule_total_post_count_at_least(PDO $pdo, int 
     return [
         'matched' => $count >= $minCount,
         'metric' => $count,
-        'summary' => '게시글 ' . (string) $count . '개',
+        'summary' => sr_t('community::member_group.summary.posts', ['count' => (string) $count]),
     ];
 }
 
@@ -81,7 +81,7 @@ function sr_community_member_group_rule_comment_count_at_least(PDO $pdo, int $ac
 {
     $minCount = max(1, (int) ($params['min_count'] ?? 1));
     if ($accountId < 1) {
-        return ['matched' => false, 'metric' => 0, 'summary' => '댓글 0개'];
+        return ['matched' => false, 'metric' => 0, 'summary' => sr_t('community::member_group.summary.comments', ['count' => '0'])];
     }
 
     $stmt = $pdo->prepare(
@@ -97,7 +97,7 @@ function sr_community_member_group_rule_comment_count_at_least(PDO $pdo, int $ac
     return [
         'matched' => $count >= $minCount,
         'metric' => $count,
-        'summary' => '댓글 ' . (string) $count . '개',
+        'summary' => sr_t('community::member_group.summary.comments', ['count' => (string) $count]),
     ];
 }
 
@@ -110,6 +110,6 @@ function sr_community_member_group_rule_level_at_least(PDO $pdo, int $accountId,
     return [
         'matched' => $level >= $minLevel,
         'metric' => $level,
-        'summary' => '레벨 ' . (string) $level,
+        'summary' => sr_t('community::member_group.summary.level', ['level' => (string) $level]),
     ];
 }

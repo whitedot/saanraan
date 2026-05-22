@@ -100,13 +100,16 @@ function sr_community_create_admin_report_notifications(
         return;
     }
 
-    $bodyText = '신고 대상: ' . $targetType . ' #' . (string) $targetId
-        . ' / 사유: ' . sr_community_report_reason_label($reasonKey);
+    $bodyText = sr_t('community::notification.report.body', [
+        'target_type' => $targetType,
+        'target_id' => (string) $targetId,
+        'reason' => sr_community_report_reason_label($reasonKey),
+    ]);
     foreach (sr_community_notification_admin_account_ids($pdo) as $accountId) {
         sr_community_create_account_notification(
             $pdo,
             $accountId,
-            '새 커뮤니티 신고가 접수되었습니다.',
+            sr_t('community::notification.report.title'),
             $bodyText,
             '/admin/community/reports',
             $createdByAccountId

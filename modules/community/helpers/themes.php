@@ -79,7 +79,7 @@ function sr_community_theme_view(string $themeKey, string $viewKey): string
         return $fallback;
     }
 
-    throw new RuntimeException('기본 커뮤니티 테마 view 파일이 누락되었습니다.');
+    throw new RuntimeException(sr_t('community::runtime.theme_view_missing'));
 }
 
 function sr_community_skin_key(array $boardSettings = []): string
@@ -131,7 +131,7 @@ function sr_community_skin_view(string $skinKey, string $viewKey): string
         return $fallback;
     }
 
-    throw new RuntimeException('커뮤니티 기본 스킨 view 파일이 누락되었습니다.');
+    throw new RuntimeException(sr_t('community::runtime.skin_view_missing'));
 }
 
 function sr_community_skin_definition(string $skinKey): array
