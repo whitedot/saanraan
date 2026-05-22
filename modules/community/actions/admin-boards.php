@@ -289,6 +289,10 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시판 그룹 값이 올바르지 않습니다.';
         }
 
+        if ($assetPolicySource === 'group' && $boardGroupId < 1) {
+            $errors[] = '회원 자산 설정은 게시판 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+        }
+
         foreach ($settingSources as $settingKey => $source) {
             if ($source === 'group' && $boardGroupId < 1) {
                 $errors[] = $settingKey . ' 설정은 게시판 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
@@ -338,7 +342,7 @@ if (sr_request_method() === 'POST') {
                 $assetSettings[$assetPrefix . '_amount'] = 0;
             }
 
-            if ($assetPolicySource === 'board' && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
+            if (in_array($assetPolicySource, ['board', 'group'], true) && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
                 $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
                 if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);

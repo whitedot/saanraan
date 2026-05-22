@@ -5,6 +5,12 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+    require_once SR_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
@@ -20,6 +26,25 @@ $allowedReadPolicies = sr_community_policy_values('read');
 $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $maxLevel = sr_community_max_level_value();
+$settings = sr_community_settings($pdo);
+$assetModuleOptions = sr_community_asset_module_options($pdo);
+$publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
+    ? sr_banner_public_banners($pdo)
+    : [];
+$publicBannerIds = [];
+foreach ($publicBanners as $publicBanner) {
+    $publicBannerIds[(int) $publicBanner['id']] = true;
+}
+$publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
+    ? sr_popup_layer_public_layers($pdo)
+    : [];
+$publicPopupLayerIds = [];
+foreach ($publicPopupLayers as $publicPopupLayer) {
+    $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
+}
+$publicBannerSettingLabels = sr_community_public_banner_setting_labels();
+$publicPopupLayerSettingLabels = sr_community_public_popup_layer_setting_labels();
+$publicDisplaySettingLabels = sr_community_public_display_setting_labels();
 $boardGroupListFilters = [
     'status' => sr_get_string('status', 30),
     'field' => sr_get_string('field', 20),
@@ -78,6 +103,20 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('group_read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('group_write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
+        $publicDisplaySettingValues = [];
+        foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
+            $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range('group_' . $displaySettingKey, 0, 999999999);
+        }
+        $assetSettings = [];
+        foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+            $assetSettings[$assetPrefix . '_enabled'] = ($_POST['group_' . $assetPrefix . '_enabled'] ?? '') === '1';
+            $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
+                ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST['group_' . $assetPrefix . '_asset_module'] ?? ''))
+                : sr_community_asset_module_key(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
+            $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_amount', 0, 999999999);
+        }
+        $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('group_paid_read_charge_policy', 20), 'once');
+        $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('group_paid_attachment_download_charge_policy', 20), 'once');
         $readGroupKeysInput = $_POST['group_read_group_keys'] ?? [];
         $writeGroupKeysInput = $_POST['group_write_group_keys'] ?? [];
         $commentGroupKeysInput = $_POST['group_comment_group_keys'] ?? [];
@@ -166,6 +205,23 @@ if (sr_request_method() === 'POST') {
             $commentMinLevel = 0;
         }
 
+        foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
+            $displaySettingLabel = (string) ($publicDisplaySettingLabels[$displaySettingKey] ?? $displaySettingKey);
+            if ($displaySettingValue === null) {
+                $errors[] = '그룹 ' . $displaySettingLabel . ' 값이 올바르지 않습니다.';
+                $publicDisplaySettingValues[$displaySettingKey] = 0;
+                continue;
+            }
+
+            if (isset($publicBannerSettingLabels[$displaySettingKey]) && $displaySettingValue > 0 && !isset($publicBannerIds[$displaySettingValue])) {
+                $errors[] = '그룹 ' . $displaySettingLabel . '는 공용 배너 중에서 선택하세요.';
+            }
+
+            if (isset($publicPopupLayerSettingLabels[$displaySettingKey]) && $displaySettingValue > 0 && !isset($publicPopupLayerIds[$displaySettingValue])) {
+                $errors[] = '그룹 ' . $displaySettingLabel . '는 공용 팝업레이어 중에서 선택하세요.';
+            }
+        }
+
         foreach ([
             '그룹 읽기 회원 그룹' => $readGroupKeysInput,
             '그룹 쓰기 회원 그룹' => $writeGroupKeysInput,
@@ -200,6 +256,25 @@ if (sr_request_method() === 'POST') {
         ] as $label => $policyGroupKeys) {
             if ((string) $policyGroupKeys[0] === 'group' && $policyGroupKeys[1] === []) {
                 $errors[] = '그룹 ' . $label . ' 정책을 group으로 선택하려면 회원 그룹을 하나 이상 선택하세요.';
+            }
+        }
+
+        foreach (['post_reward' => '게시글 적립', 'comment_reward' => '댓글 적립', 'write_charge' => '글쓰기 차감', 'comment_charge' => '댓글 차감', 'paid_read' => '유료 열람', 'paid_attachment_download' => '첨부 다운로드 차감'] as $assetPrefix => $assetLabel) {
+            if ($assetSettings[$assetPrefix . '_amount'] === null) {
+                $errors[] = '그룹 ' . $assetLabel . ' 금액은 0 이상 999999999 이하의 정수여야 합니다.';
+                $assetSettings[$assetPrefix . '_amount'] = 0;
+            }
+
+            if (!empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
+                $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
+                if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                    $assetModules = sr_community_asset_module_keys_from_value($assetModule);
+                    if (!sr_community_asset_modules_available($pdo, $assetModules)) {
+                        $errors[] = '그룹 ' . $assetLabel . '에 사용할 자산 모듈이 모두 활성 상태여야 합니다.';
+                    }
+                } elseif (!isset($assetModuleOptions[$assetModule])) {
+                    $errors[] = '그룹 ' . $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+                }
             }
         }
 
@@ -245,12 +320,20 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'read_min_level', (string) $readMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'comment_min_level', (string) $commentMinLevel, 'int');
+            foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
+                sr_community_set_board_group_setting($pdo, $groupId, (string) $displaySettingKey, (string) $displaySettingValue, 'int');
+            }
+            foreach ($assetSettings as $assetSettingKey => $assetSettingValue) {
+                $valueType = is_bool($assetSettingValue) ? 'bool' : (is_int($assetSettingValue) ? 'int' : 'string');
+                $settingValue = is_bool($assetSettingValue) ? ($assetSettingValue ? '1' : '0') : (string) $assetSettingValue;
+                sr_community_set_board_group_setting($pdo, $groupId, (string) $assetSettingKey, $settingValue, $valueType);
+            }
 
             $applySettingKeys = [];
             if (isset($_POST['apply_setting_keys']) && is_array($_POST['apply_setting_keys'])) {
                 foreach ($_POST['apply_setting_keys'] as $settingKey) {
                     $settingKey = (string) $settingKey;
-                    if (in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+                    if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
                         $applySettingKeys[] = $settingKey;
                     }
                 }

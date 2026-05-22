@@ -16,6 +16,7 @@ $page = $slug !== '' ? sr_page_published_by_slug($pdo, $slug) : null;
 if (!is_array($page)) {
     sr_render_error(404, '요청한 페이지를 찾을 수 없습니다.');
 }
+$page = sr_page_with_effective_settings($pdo, $page);
 
 $pageAccess = ['allowed' => true, 'charged' => false, 'message' => ''];
 if (sr_page_asset_access_required($page)) {

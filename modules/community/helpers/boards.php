@@ -58,7 +58,64 @@ function sr_community_board_group_setting_keys(): array
         'file_attachment_max_bytes',
         'file_attachment_max_count',
         'file_allowed_extensions',
+        'banner_before_list_id',
+        'banner_after_list_id',
+        'banner_before_view_id',
+        'banner_after_view_id',
+        'banner_before_form_id',
+        'banner_after_form_id',
+        'popup_layer_list_id',
+        'popup_layer_view_id',
+        'popup_layer_form_id',
     ];
+}
+
+function sr_community_board_group_asset_setting_keys(): array
+{
+    $keys = [];
+    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $prefix) {
+        $keys[] = $prefix . '_enabled';
+        $keys[] = $prefix . '_asset_module';
+        $keys[] = $prefix . '_amount';
+    }
+    $keys[] = 'paid_read_charge_policy';
+    $keys[] = 'paid_attachment_download_charge_policy';
+
+    return $keys;
+}
+
+function sr_community_board_group_all_setting_keys(): array
+{
+    return array_values(array_unique(array_merge(
+        sr_community_board_group_setting_keys(),
+        sr_community_board_group_asset_setting_keys()
+    )));
+}
+
+function sr_community_public_banner_setting_labels(): array
+{
+    return [
+        'banner_before_list_id' => '목록 상단 배너',
+        'banner_after_list_id' => '목록 하단 배너',
+        'banner_before_view_id' => '글보기 상단 배너',
+        'banner_after_view_id' => '글보기 하단 배너',
+        'banner_before_form_id' => '글쓰기 폼 상단 배너',
+        'banner_after_form_id' => '글쓰기 폼 하단 배너',
+    ];
+}
+
+function sr_community_public_popup_layer_setting_labels(): array
+{
+    return [
+        'popup_layer_list_id' => '목록 팝업레이어',
+        'popup_layer_view_id' => '글보기 팝업레이어',
+        'popup_layer_form_id' => '글쓰기 폼 팝업레이어',
+    ];
+}
+
+function sr_community_public_display_setting_labels(): array
+{
+    return sr_community_public_banner_setting_labels() + sr_community_public_popup_layer_setting_labels();
 }
 
 function sr_community_board_group_column_setting_keys(): array
@@ -185,15 +242,9 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     $board['effective_write_policy'] = sr_community_effective_board_policy($pdo, $board, 'write_policy');
     $board['effective_comment_policy'] = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     $board['effective_image_uploads_enabled'] = sr_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
-    $board['banner_before_list_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_list_id') ?? 0);
-    $board['banner_after_list_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_list_id') ?? 0);
-    $board['popup_layer_list_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_list_id') ?? 0);
-    $board['banner_before_view_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_view_id') ?? 0);
-    $board['banner_after_view_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_view_id') ?? 0);
-    $board['popup_layer_view_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_view_id') ?? 0);
-    $board['banner_before_form_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_before_form_id') ?? 0);
-    $board['banner_after_form_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'banner_after_form_id') ?? 0);
-    $board['popup_layer_form_id'] = (int) (sr_community_board_setting_value($pdo, (int) ($board['id'] ?? 0), 'popup_layer_form_id') ?? 0);
+    foreach (sr_community_public_display_setting_labels() as $settingKey => $settingLabel) {
+        $board[$settingKey] = (int) sr_community_effective_board_setting($pdo, $board, (string) $settingKey, '0');
+    }
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
     return $board;
@@ -403,7 +454,7 @@ function sr_community_set_board_setting(PDO $pdo, int $boardId, string $settingK
 
 function sr_community_board_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
 {
-    if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+    if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
         return null;
     }
 
@@ -425,7 +476,7 @@ function sr_community_board_group_setting_value(PDO $pdo, int $groupId, string $
 
 function sr_community_set_board_group_setting(PDO $pdo, int $groupId, string $settingKey, string $settingValue, string $valueType = 'string'): void
 {
-    if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+    if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
         return;
     }
 
@@ -773,7 +824,7 @@ function sr_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupI
         return 0;
     }
 
-    $settingKeys = array_values(array_intersect(sr_community_board_group_setting_keys(), $settingKeys));
+    $settingKeys = array_values(array_intersect(sr_community_board_group_all_setting_keys(), $settingKeys));
     if ($settingKeys === []) {
         return 0;
     }
@@ -812,11 +863,30 @@ function sr_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupI
         foreach (array_diff($settingKeys, sr_community_board_group_column_setting_keys()) as $settingKey) {
             $value = sr_community_board_group_setting_value($pdo, $groupId, $settingKey);
             if (is_string($value)) {
-                if (in_array($settingKey, ['attachment_max_bytes', 'attachment_max_count', 'file_attachment_max_bytes', 'file_attachment_max_count', 'read_min_level', 'write_min_level', 'comment_min_level'], true)) {
+                if (in_array($settingKey, [
+                    'attachment_max_bytes',
+                    'attachment_max_count',
+                    'file_attachment_max_bytes',
+                    'file_attachment_max_count',
+                    'read_min_level',
+                    'write_min_level',
+                    'comment_min_level',
+                    'banner_before_list_id',
+                    'banner_after_list_id',
+                    'banner_before_view_id',
+                    'banner_after_view_id',
+                    'banner_before_form_id',
+                    'banner_after_form_id',
+                    'popup_layer_list_id',
+                    'popup_layer_view_id',
+                    'popup_layer_form_id',
+                ], true)) {
                     $valueType = 'int';
-                } elseif (in_array($settingKey, ['file_uploads_enabled'], true)) {
+                } elseif (str_ends_with($settingKey, '_amount')) {
+                    $valueType = 'int';
+                } elseif (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled')) {
                     $valueType = 'bool';
-                } elseif ($settingKey === 'file_allowed_extensions') {
+                } elseif (in_array($settingKey, ['file_allowed_extensions'], true) || in_array($settingKey, sr_community_board_group_asset_setting_keys(), true)) {
                     $valueType = 'string';
                 } else {
                     $valueType = 'json';
@@ -827,6 +897,9 @@ function sr_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupI
 
         foreach ($settingKeys as $settingKey) {
             sr_community_set_board_setting_source($pdo, $boardId, $settingKey, 'board');
+        }
+        if (array_intersect($settingKeys, sr_community_board_group_asset_setting_keys()) !== []) {
+            sr_community_set_board_setting($pdo, $boardId, 'asset_policy_source', 'board', 'string');
         }
     }
 

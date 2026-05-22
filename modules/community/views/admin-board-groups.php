@@ -34,6 +34,35 @@ $settingLabels = [
     'file_attachment_max_bytes' => '파일 최대 용량',
     'file_attachment_max_count' => '파일 최대 개수',
     'file_allowed_extensions' => '파일 허용 확장자',
+    'banner_before_list_id' => '목록 상단 배너',
+    'banner_after_list_id' => '목록 하단 배너',
+    'banner_before_view_id' => '글보기 상단 배너',
+    'banner_after_view_id' => '글보기 하단 배너',
+    'banner_before_form_id' => '글쓰기 폼 상단 배너',
+    'banner_after_form_id' => '글쓰기 폼 하단 배너',
+    'popup_layer_list_id' => '목록 팝업레이어',
+    'popup_layer_view_id' => '글보기 팝업레이어',
+    'popup_layer_form_id' => '글쓰기 폼 팝업레이어',
+    'post_reward_enabled' => '게시글 적립 사용',
+    'post_reward_asset_module' => '게시글 적립 자산',
+    'post_reward_amount' => '게시글 적립 금액',
+    'comment_reward_enabled' => '댓글 적립 사용',
+    'comment_reward_asset_module' => '댓글 적립 자산',
+    'comment_reward_amount' => '댓글 적립 금액',
+    'write_charge_enabled' => '글쓰기 차감 사용',
+    'write_charge_asset_module' => '글쓰기 차감 자산',
+    'write_charge_amount' => '글쓰기 차감 금액',
+    'comment_charge_enabled' => '댓글 차감 사용',
+    'comment_charge_asset_module' => '댓글 차감 자산',
+    'comment_charge_amount' => '댓글 차감 금액',
+    'paid_read_enabled' => '유료 열람 사용',
+    'paid_read_asset_module' => '유료 열람 자산',
+    'paid_read_amount' => '유료 열람 금액',
+    'paid_read_charge_policy' => '유료 열람 과금 방식',
+    'paid_attachment_download_enabled' => '첨부 다운로드 차감 사용',
+    'paid_attachment_download_asset_module' => '첨부 다운로드 차감 자산',
+    'paid_attachment_download_amount' => '첨부 다운로드 차감 금액',
+    'paid_attachment_download_charge_policy' => '첨부 다운로드 과금 방식',
 ];
 $groupSettingValue = static function (array $settings, string $key, string $default): string {
     return (string) ($settings[$key] ?? $default);
@@ -62,6 +91,20 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
 
     return $html . '</select>';
 };
+$assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
+$assetModuleChoiceOptions = [];
+foreach ($assetModuleOptions as $assetModule => $assetOption) {
+    $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
+}
+$assetDeductionPriorityLabels = [];
+foreach (sr_community_asset_deduction_order() as $assetModule) {
+    if (isset($assetModuleChoiceOptions[$assetModule])) {
+        $assetDeductionPriorityLabels[] = $assetModuleChoiceOptions[$assetModule];
+    }
+}
+$assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
+    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
+    : '활성 자산 모듈 없음';
 $selectedBoardGroup = is_array($editBoardGroup ?? null) ? $editBoardGroup : [];
 $formBoardGroup = $communityBoardGroupsPage === 'edit' ? $selectedBoardGroup : [
     'group_key' => '',
@@ -344,6 +387,89 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
                     </div>
+                </div>
+                <h3>그룹 기본 배너</h3>
+                <?php foreach (sr_community_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
+                        <div class="admin-form-field">
+                            <select id="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $bannerSettingKey); ?>" class="form-select form-control-full">
+                                <option value="0">사용 안 함</option>
+                                <?php foreach ($publicBanners as $publicBanner) { ?>
+                                    <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $publicBanner['title']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                <?php } ?>
+                <h3>그룹 기본 팝업레이어</h3>
+                <?php foreach (sr_community_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
+                        <div class="admin-form-field">
+                            <select id="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
+                                <option value="0">사용 안 함</option>
+                                <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                                    <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $publicPopupLayer['title']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                <?php } ?>
+                <h3>그룹 기본 회원 자산</h3>
+                <div class="admin-form-grid">
+                    <?php foreach ([
+                        'post_reward' => '게시글 적립',
+                        'comment_reward' => '댓글 적립',
+                        'write_charge' => '글쓰기 차감',
+                        'comment_charge' => '댓글 차감',
+                        'paid_read' => '유료 열람',
+                        'paid_attachment_download' => '첨부 다운로드 차감',
+                    ] as $assetPrefix => $assetLabel) { ?>
+                        <?php $assetEnabledId = 'community_board_group_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
+                        <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
+                        <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', 'point')); ?>
+                        <div class="admin-form-row">
+                            <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
+                            <div class="admin-form-field">
+                                <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                    <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
+                                </label>
+                                <?php if ($usesCompositeAsset) { ?>
+                                    <?php echo sr_admin_checkbox_list_html('community_board_group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
+                                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                                <?php } else { ?>
+                                    <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
+                                        <?php if ($assetModuleOptions === []) { ?>
+                                            <option value="">활성 자산 모듈 없음</option>
+                                        <?php } ?>
+                                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
+                                                <?php echo sr_e((string) $assetOption['label']); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                <?php } ?>
+                                <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
+                                <?php if ($assetPrefix === 'paid_read') { ?>
+                                    <select name="group_paid_read_charge_policy" class="form-select">
+                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                        <option value="every_view"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                    </select>
+                                <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                    <select name="group_paid_attachment_download_charge_policy" class="form-select">
+                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                        <option value="every_download"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                    </select>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    <?php } ?>
                 </div>
         </section>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>

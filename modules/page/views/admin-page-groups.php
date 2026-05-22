@@ -16,6 +16,26 @@ if (!is_array($values ?? null) || $values === []) {
         'sort_order' => 0,
     ];
 }
+$groupSettings = is_array($values['group_settings'] ?? null)
+    ? $values['group_settings']
+    : (is_array($pageGroupSettings ?? null) ? $pageGroupSettings : []);
+$groupSettingValue = static function (array $settings, string $key, string $default): string {
+    return (string) ($settings[$key] ?? $default);
+};
+$assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
+$assetModuleChoiceOptions = [];
+foreach ($assetModuleOptions as $assetModule => $assetOption) {
+    $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
+}
+$assetDeductionPriorityLabels = [];
+foreach (sr_page_asset_deduction_order() as $assetModule) {
+    if (isset($assetModuleChoiceOptions[$assetModule])) {
+        $assetDeductionPriorityLabels[] = $assetModuleChoiceOptions[$assetModule];
+    }
+}
+$assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
+    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
+    : '활성 자산 모듈 없음';
 $totalPageGroups = (int) ($pageGroupStatusCounts['total'] ?? count($pageGroups ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -171,6 +191,115 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="page_admin_groups_sort_order">정렬 순서</label>
                 <div class="admin-form-field">
                     <input id="page_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($values['sort_order'] ?? 0)); ?>" class="form-input">
+                </div>
+            </div>
+        </section>
+        <section class="admin-card card">
+            <h2>그룹 기본 공개 표시</h2>
+            <?php foreach (sr_page_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('page_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
+                    <div class="admin-form-field">
+                        <select id="<?php echo sr_e('page_group_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $bannerSettingKey); ?>" class="form-select form-control-full">
+                            <option value="0">사용 안 함</option>
+                            <?php foreach ($publicBanners as $banner) { ?>
+                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) $groupSettingValue($groupSettings, (string) $bannerSettingKey, '0') === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $banner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+            <?php } ?>
+            <?php foreach (sr_page_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('page_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
+                    <div class="admin-form-field">
+                        <select id="<?php echo sr_e('page_group_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
+                            <option value="0">사용 안 함</option>
+                            <?php foreach ($publicPopupLayers as $popupLayer) { ?>
+                                <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) $groupSettingValue($groupSettings, (string) $popupLayerSettingKey, '0') === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $popupLayer['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+            <?php } ?>
+        </section>
+        <section class="admin-card card">
+            <h2>그룹 기본 회원 자산</h2>
+            <div class="admin-form-row">
+                <span class="form-label">유료 열람 사용</span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="page_group_asset_access_enabled">
+                        <input id="page_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('유료 열람 사용'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_module">차감 자산</label>
+                <div class="admin-form-field">
+                    <?php echo sr_admin_checkbox_list_html('page_group_asset_module', 'group_asset_module', $assetModuleChoiceOptions, sr_page_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', 'point')), '활성 자산 모듈 없음'); ?>
+                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_access_amount">차감 금액</label>
+                <div class="admin-form-field">
+                    <input id="page_group_asset_access_amount" type="number" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_charge_policy">과금 방식</label>
+                <div class="admin-form-field">
+                    <select id="page_group_asset_charge_policy" name="group_asset_charge_policy" class="form-select">
+                        <?php foreach (sr_page_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
+                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $policyLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label">완료 액션 사용</span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="page_group_asset_action_enabled">
+                        <input id="page_group_asset_action_enabled" type="checkbox" name="group_asset_action_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_action_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('완료 액션 사용'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_action_label">버튼 문구</label>
+                <div class="admin-form-field">
+                    <input id="page_group_asset_action_label" type="text" name="group_asset_action_label" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_action_label', '완료')); ?>" class="form-input" maxlength="80">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_action_direction">처리 방향</label>
+                <div class="admin-form-field">
+                    <select id="page_group_asset_action_direction" name="group_asset_action_direction" class="form-select">
+                        <?php foreach (sr_page_asset_action_directions() as $directionKey => $directionLabel) { ?>
+                            <option value="<?php echo sr_e((string) $directionKey); ?>"<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === (string) $directionKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $directionLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_action_module">대상 자산</label>
+                <div class="admin-form-field">
+                    <?php echo sr_admin_checkbox_list_html('page_group_asset_action_module', 'group_asset_action_module', $assetModuleChoiceOptions, sr_page_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', 'point')), '활성 자산 모듈 없음'); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_asset_action_amount">금액</label>
+                <div class="admin-form-field">
+                    <input id="page_group_asset_action_amount" type="number" name="group_asset_action_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_action_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1">
                 </div>
             </div>
         </section>

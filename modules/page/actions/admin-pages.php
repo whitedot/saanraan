@@ -39,6 +39,8 @@ if ($pageAdminPage === 'form') {
         if (!is_array($editPage)) {
             sr_render_error(404, '수정할 페이지를 찾을 수 없습니다.');
         }
+        $editPage['setting_sources'] = sr_page_setting_sources($pdo, $pageId);
+        $editPage['asset_policy_source'] = sr_page_setting_source($pdo, $pageId, 'asset_access_enabled');
         $pageFiles = sr_page_files_for_page($pdo, $pageId);
     }
 } else {

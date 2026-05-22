@@ -159,11 +159,19 @@ function sr_community_asset_charge_policy(string $value, string $fallback = 'onc
 
 function sr_community_asset_policy_source_values(): array
 {
-    return ['global', 'board'];
+    return ['global', 'group', 'board'];
 }
 
 function sr_community_asset_policy_source(string $value): string
 {
+    if ($value === 'all') {
+        return 'global';
+    }
+
+    if ($value === 'here_only') {
+        return 'board';
+    }
+
     return in_array($value, sr_community_asset_policy_source_values(), true) ? $value : 'global';
 }
 
@@ -262,7 +270,18 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
 function sr_community_asset_board_setting(PDO $pdo, array $board, array $settings, string $key, mixed $default): string
 {
     $boardId = (int) ($board['id'] ?? 0);
-    if ($boardId > 0 && sr_community_board_asset_policy_source($pdo, $boardId) === 'board') {
+    $source = $boardId > 0 ? sr_community_board_asset_policy_source($pdo, $boardId) : 'global';
+    if ($source === 'group') {
+        $groupId = (int) ($board['board_group_id'] ?? 0);
+        if ($groupId > 0) {
+            $value = sr_community_board_group_setting_value($pdo, $groupId, $key);
+            if (is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+    }
+
+    if ($boardId > 0 && $source === 'board') {
         $value = sr_community_board_setting_value($pdo, $boardId, $key);
         if (is_string($value) && $value !== '') {
             return $value;

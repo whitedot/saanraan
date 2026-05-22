@@ -15,6 +15,7 @@ if ($values === []) {
         'title' => '',
         'page_group_scope' => 'here_only',
         'page_group_id' => 0,
+        'asset_policy_source' => 'page',
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -58,24 +59,55 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
     : '활성 자산 모듈 없음';
 $pageGroupScopeLabels = [
-    'group' => '그룹적용',
-    'all' => '전체적용',
-    'here_only' => '여기만적용',
+    'group' => ['visible' => '그룹', 'sr' => '적용'],
+    'all' => ['visible' => '전체', 'sr' => '적용'],
+    'here_only' => ['visible' => '여기만', 'sr' => '적용'],
 ];
-$pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels): string {
+$pageScopeLabelHtml = static function (array $label): string {
+    return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
+};
+$pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels, $pageScopeLabelHtml): string {
     $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'here_only';
     $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="페이지 그룹 적용 범위">';
     foreach ($pageGroupScopeLabels as $scope => $label) {
         $id = 'page_group_scope_' . $scope;
         $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
         $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($scope) . '" class="form-radio" data-page-group-scope-option' . ($selectedScope === $scope ? ' checked' : '') . '>';
-        $html .= sr_admin_choice_label_html($label);
+        $html .= $pageScopeLabelHtml($label);
+        $html .= '</label>';
+    }
+
+    return $html . '</div>';
+};
+$pageSettingSourceLabels = [
+    'group' => $pageGroupScopeLabels['group'],
+    'all' => $pageGroupScopeLabels['all'],
+    'page' => $pageGroupScopeLabels['here_only'],
+];
+$pageSettingSource = static function (array $values, string $key): string {
+    if (array_key_exists('source_' . $key, $values)) {
+        return sr_page_normalize_setting_source((string) $values['source_' . $key]);
+    }
+
+    $sources = is_array($values['setting_sources'] ?? null) ? $values['setting_sources'] : [];
+    return sr_page_normalize_setting_source((string) ($sources[$key] ?? 'page'));
+};
+$pageSettingSourceRadioHtml = static function (string $name, string $selectedSource) use ($pageSettingSourceLabels, $pageScopeLabelHtml): string {
+    $selectedSource = array_key_exists($selectedSource, $pageSettingSourceLabels) ? $selectedSource : 'page';
+    $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
+    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="설정 적용 범위">';
+    foreach ($pageSettingSourceLabels as $source => $label) {
+        $id = 'page_setting_source_' . $baseId . '_' . $source;
+        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($selectedSource === $source ? ' checked' : '') . '>';
+        $html .= $pageScopeLabelHtml($label);
         $html .= '</label>';
     }
 
     return $html . '</div>';
 };
 $values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'here_only')));
+$values['asset_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page'));
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -166,6 +198,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <section class="admin-card card">
             <h2>유료 열람</h2>
+            <div class="admin-form-row">
+                <span class="form-label">적용 방식</span>
+                <div class="admin-form-field">
+                    <?php echo $pageSettingSourceRadioHtml('asset_policy_source', (string) ($values['asset_policy_source'] ?? 'page')); ?>
+                </div>
+            </div>
             <div class="admin-form-row">
                 <span class="form-label">유료 열람 사용</span>
                 <div class="admin-form-field">
@@ -270,6 +308,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_banner_before_content_id', $pageSettingSource($values, 'banner_before_content_id')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -283,6 +322,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_banner_after_content_id', $pageSettingSource($values, 'banner_after_content_id')); ?>
                     <br>
                                         <small>공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
@@ -298,6 +338,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_popup_layer_id', $pageSettingSource($values, 'popup_layer_id')); ?>
                     <br>
                                         <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>

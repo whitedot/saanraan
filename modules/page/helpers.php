@@ -34,9 +34,80 @@ function sr_page_groups_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_page_group_settings_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_page_group_settings LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_page_setting_sources_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_page_setting_sources LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
 function sr_page_group_path(string $groupKey): string
 {
     return '/pages/group?key=' . rawurlencode($groupKey);
+}
+
+function sr_page_group_asset_setting_keys(): array
+{
+    return [
+        'asset_access_enabled',
+        'asset_module',
+        'asset_access_amount',
+        'asset_charge_policy',
+        'asset_action_enabled',
+        'asset_action_module',
+        'asset_action_amount',
+        'asset_action_direction',
+        'asset_action_label',
+    ];
+}
+
+function sr_page_group_setting_keys(): array
+{
+    return array_values(array_unique(array_merge(
+        array_keys(sr_page_public_display_setting_labels()),
+        sr_page_group_asset_setting_keys()
+    )));
+}
+
+function sr_page_setting_source_values(): array
+{
+    return ['page', 'group', 'all'];
+}
+
+function sr_page_normalize_setting_source(string $source): string
+{
+    if ($source === 'here_only') {
+        return 'page';
+    }
+
+    return in_array($source, sr_page_setting_source_values(), true) ? $source : 'page';
 }
 
 function sr_page_asset_modules(): array
@@ -656,6 +727,178 @@ function sr_page_update_group(PDO $pdo, int $groupId, array $data): void
     ]);
 }
 
+function sr_page_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
+{
+    if ($groupId < 1 || !in_array($settingKey, sr_page_group_setting_keys(), true) || !sr_page_group_settings_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_value
+         FROM sr_page_group_settings
+         WHERE group_id = :group_id
+           AND setting_key = :setting_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'group_id' => $groupId,
+        'setting_key' => $settingKey,
+    ]);
+    $value = $stmt->fetchColumn();
+
+    return is_string($value) ? $value : null;
+}
+
+function sr_page_set_group_setting(PDO $pdo, int $groupId, string $settingKey, string $settingValue, string $valueType = 'string'): void
+{
+    if ($groupId < 1 || !in_array($settingKey, sr_page_group_setting_keys(), true) || !sr_page_group_settings_table_exists($pdo)) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_page_group_settings
+            (group_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:group_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'group_id' => $groupId,
+        'setting_key' => $settingKey,
+        'setting_value' => $settingValue,
+        'value_type' => $valueType,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+
+function sr_page_group_settings(PDO $pdo, int $groupId): array
+{
+    if ($groupId < 1 || !sr_page_group_settings_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_key, setting_value
+         FROM sr_page_group_settings
+         WHERE group_id = :group_id'
+    );
+    $stmt->execute(['group_id' => $groupId]);
+
+    $settings = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $settingKey = (string) ($row['setting_key'] ?? '');
+        if (in_array($settingKey, sr_page_group_setting_keys(), true)) {
+            $settings[$settingKey] = (string) ($row['setting_value'] ?? '');
+        }
+    }
+
+    return $settings;
+}
+
+function sr_page_setting_source(PDO $pdo, int $pageId, string $settingKey): string
+{
+    if ($pageId < 1 || !in_array($settingKey, sr_page_group_setting_keys(), true) || !sr_page_setting_sources_table_exists($pdo)) {
+        return 'page';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT source
+         FROM sr_page_setting_sources
+         WHERE page_id = :page_id
+           AND setting_key = :setting_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'page_id' => $pageId,
+        'setting_key' => $settingKey,
+    ]);
+    $source = $stmt->fetchColumn();
+
+    return sr_page_normalize_setting_source(is_string($source) ? $source : 'page');
+}
+
+function sr_page_setting_sources(PDO $pdo, int $pageId): array
+{
+    if ($pageId < 1 || !sr_page_setting_sources_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_key, source
+         FROM sr_page_setting_sources
+         WHERE page_id = :page_id'
+    );
+    $stmt->execute(['page_id' => $pageId]);
+
+    $sources = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $settingKey = (string) ($row['setting_key'] ?? '');
+        if (in_array($settingKey, sr_page_group_setting_keys(), true)) {
+            $sources[$settingKey] = sr_page_normalize_setting_source((string) ($row['source'] ?? 'page'));
+        }
+    }
+
+    return $sources;
+}
+
+function sr_page_set_setting_source(PDO $pdo, int $pageId, string $settingKey, string $source): void
+{
+    if ($pageId < 1 || !in_array($settingKey, sr_page_group_setting_keys(), true) || !sr_page_setting_sources_table_exists($pdo)) {
+        return;
+    }
+
+    $source = sr_page_normalize_setting_source($source);
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_page_setting_sources
+            (page_id, setting_key, source, created_at, updated_at)
+         VALUES
+            (:page_id, :setting_key, :source, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            source = VALUES(source),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'page_id' => $pageId,
+        'setting_key' => $settingKey,
+        'source' => $source,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+
+function sr_page_effective_setting(PDO $pdo, array $page, string $settingKey, mixed $default = ''): string
+{
+    if (!in_array($settingKey, sr_page_group_setting_keys(), true)) {
+        return (string) $default;
+    }
+
+    $pageId = (int) ($page['id'] ?? 0);
+    $groupId = (int) ($page['page_group_id'] ?? 0);
+    if ($pageId > 0 && $groupId > 0 && sr_page_setting_source($pdo, $pageId, $settingKey) === 'group') {
+        $groupValue = sr_page_group_setting_value($pdo, $groupId, $settingKey);
+        if (is_string($groupValue) && $groupValue !== '') {
+            return $groupValue;
+        }
+    }
+
+    return (string) ($page[$settingKey] ?? $default);
+}
+
+function sr_page_with_effective_settings(PDO $pdo, array $page): array
+{
+    foreach (sr_page_group_setting_keys() as $settingKey) {
+        $page[$settingKey] = sr_page_effective_setting($pdo, $page, $settingKey, (string) ($page[$settingKey] ?? ''));
+    }
+
+    return sr_page_normalize_asset_values($page);
+}
+
 function sr_page_homepage_candidates(PDO $pdo): array
 {
     $stmt = $pdo->query(
@@ -763,6 +1006,7 @@ function sr_page_input_values(): array
     $values = [
         'page_group_scope' => $pageGroupScope,
         'page_group_id' => $pageGroupId,
+        'asset_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20)),
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -786,6 +1030,7 @@ function sr_page_input_values(): array
     foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
         $rawValue = sr_post_string($settingKey, 20);
         $values[$settingKey] = preg_match('/\A[0-9]{1,9}\z/', $rawValue) === 1 ? (int) $rawValue : -1;
+        $values['source_' . $settingKey] = sr_page_normalize_setting_source(sr_post_string('source_' . $settingKey, 20));
     }
 
     return sr_page_normalize_asset_values($values, false);
@@ -804,6 +1049,10 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     }
     if (sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
         $errors[] = '그룹적용을 선택하려면 페이지 그룹을 선택하세요.';
+    }
+
+    if (sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page')) === 'group' && $pageGroupId < 1) {
+        $errors[] = '회원 자산 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
     }
 
     $slug = (string) ($values['slug'] ?? '');
@@ -868,6 +1117,10 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
 
     foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
         $displayId = (int) ($values[$settingKey] ?? 0);
+        if (sr_page_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'page')) === 'group' && $pageGroupId < 1) {
+            $errors[] = $settingLabel . ' 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+        }
+
         if ($displayId < 0) {
             $errors[] = $settingLabel . ' 값이 올바르지 않습니다.';
             continue;
@@ -987,6 +1240,13 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'updated_at' => $now,
             ]);
             $pageId = (int) $pdo->lastInsertId();
+        }
+
+        foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
+        }
+        foreach (sr_page_group_asset_setting_keys() as $settingKey) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_policy_source'] ?? 'page'));
         }
 
         sr_page_record_revision($pdo, $pageId, $values, $accountId, $now);

@@ -5,6 +5,12 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/page/helpers.php';
+if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+    require_once SR_ROOT . '/modules/banner/helpers.php';
+}
+if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
@@ -25,6 +31,21 @@ if (!in_array($pageGroupsPage, ['list', 'new', 'edit'], true)) {
 }
 
 $allowedGroupStatuses = sr_page_group_statuses();
+$assetModuleOptions = sr_page_asset_module_options($pdo);
+$publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
+    ? sr_banner_public_banners($pdo)
+    : [];
+$publicBannerIds = [];
+foreach ($publicBanners as $publicBanner) {
+    $publicBannerIds[(int) $publicBanner['id']] = true;
+}
+$publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
+    ? sr_popup_layer_public_layers($pdo)
+    : [];
+$publicPopupLayerIds = [];
+foreach ($publicPopupLayers as $publicPopupLayer) {
+    $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
+}
 $editPageGroup = null;
 if ($pageGroupsPage === 'edit') {
     $groupId = (int) sr_get_string('id', 20);
@@ -54,6 +75,22 @@ if (sr_request_method() === 'POST') {
     $description = sr_page_clean_text(sr_post_string('description', 2000), 2000);
     $status = sr_post_string('status', 30);
     $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
+    $groupSettings = [
+        'asset_access_enabled' => sr_post_string('group_asset_access_enabled', 1) === '1' ? 1 : 0,
+        'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['group_asset_module'] ?? '')),
+        'asset_access_amount' => (int) sr_post_string('group_asset_access_amount', 20),
+        'asset_charge_policy' => sr_page_clean_slug(sr_post_string('group_asset_charge_policy', 20)),
+        'asset_action_enabled' => sr_post_string('group_asset_action_enabled', 1) === '1' ? 1 : 0,
+        'asset_action_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['group_asset_action_module'] ?? '')),
+        'asset_action_amount' => (int) sr_post_string('group_asset_action_amount', 20),
+        'asset_action_direction' => sr_page_clean_slug(sr_post_string('group_asset_action_direction', 20)),
+        'asset_action_label' => sr_page_clean_single_line(sr_post_string('group_asset_action_label', 80), 80),
+    ];
+    foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
+        $rawValue = sr_post_string('group_' . $settingKey, 20);
+        $groupSettings[$settingKey] = preg_match('/\A[0-9]{1,9}\z/', $rawValue) === 1 ? (int) $rawValue : -1;
+    }
+    $groupSettings = sr_page_normalize_asset_values($groupSettings, false);
 
     if (!$isUpdate && !sr_page_group_key_is_valid($groupKey)) {
         $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -74,6 +111,32 @@ if (sr_request_method() === 'POST') {
         $sortOrder = 0;
     }
 
+    $settingErrors = sr_page_validate_input(
+        $pdo,
+        array_merge([
+            'title' => 'group-setting',
+            'page_group_id' => 0,
+            'page_group_scope' => 'here_only',
+            'slug' => 'group-setting',
+            'status' => 'draft',
+            'layout_key' => '',
+            'body_format' => 'plain',
+            'body_text' => '',
+            'summary' => '',
+            'seo_title' => '',
+            'seo_description' => '',
+        ], $groupSettings),
+        0,
+        $publicBannerIds,
+        $publicPopupLayerIds
+    );
+    foreach ($settingErrors as $settingError) {
+        if (str_contains($settingError, 'slug')) {
+            continue;
+        }
+        $errors[] = '그룹 기본 설정: ' . $settingError;
+    }
+
     $values = [
         'id' => $groupId,
         'group_key' => $groupKey,
@@ -81,6 +144,7 @@ if (sr_request_method() === 'POST') {
         'description' => $description,
         'status' => $status,
         'sort_order' => (int) $sortOrder,
+        'group_settings' => $groupSettings,
     ];
 
     if ($errors !== []) {
@@ -94,6 +158,15 @@ if (sr_request_method() === 'POST') {
         $savedGroupId = $groupId;
     } else {
         $savedGroupId = sr_page_create_group($pdo, $values);
+    }
+
+    foreach ($groupSettings as $settingKey => $settingValue) {
+        if (!in_array((string) $settingKey, sr_page_group_setting_keys(), true)) {
+            continue;
+        }
+
+        $valueType = is_int($settingValue) ? 'int' : 'string';
+        sr_page_set_group_setting($pdo, $savedGroupId, (string) $settingKey, (string) $settingValue, $valueType);
     }
 
     sr_audit_log($pdo, [
@@ -118,5 +191,9 @@ $pageGroupFilters = sr_page_admin_group_filters();
 $pageGroupStatusCounts = sr_page_admin_group_status_counts($pdo);
 $pageGroups = $pageGroupsPage === 'list' ? sr_page_admin_group_list($pdo, $pageGroupFilters) : [];
 $values = is_array($sessionValues) ? $sessionValues : [];
+$pageGroupSettings = [];
+if ($pageGroupsPage === 'edit' && is_array($editPageGroup)) {
+    $pageGroupSettings = sr_page_group_settings($pdo, (int) $editPageGroup['id']);
+}
 
 include SR_ROOT . '/modules/page/views/admin-page-groups.php';

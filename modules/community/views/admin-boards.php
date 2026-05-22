@@ -18,15 +18,18 @@ $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ?
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 
 $settingSourceLabels = [
-    'group' => '그룹적용',
-    'all' => '전체적용',
-    'board' => '여기만적용',
+    'group' => ['visible' => '그룹', 'sr' => '적용'],
+    'all' => ['visible' => '전체', 'sr' => '적용'],
+    'board' => ['visible' => '여기만', 'sr' => '적용'],
 ];
+$settingSourceLabelHtml = static function (array $label): string {
+    return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
+};
 $boardSettingSource = static function (array $board, string $key): string {
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
     return (string) ($sources[$key] ?? 'board');
 };
-$settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels): string {
+$settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
     $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
     $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="설정 적용 범위">';
@@ -34,7 +37,21 @@ $settingSourceRadioHtml = static function (string $name, string $selectedSource)
         $id = 'setting_source_' . $baseId . '_' . $source;
         $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
         $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($selectedSource === $source ? ' checked' : '') . '>';
-        $html .= sr_admin_choice_label_html($label);
+        $html .= $settingSourceLabelHtml($label);
+        $html .= '</label>';
+    }
+
+    return $html . '</div>';
+};
+$assetSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
+    $sourceMap = ['group' => 'group', 'global' => 'all', 'board' => 'board'];
+    $selectedSource = isset($sourceMap[$selectedSource]) ? $selectedSource : 'global';
+    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="회원 자산 적용 범위">';
+    foreach ($sourceMap as $source => $labelKey) {
+        $id = 'asset_policy_source_' . $source;
+        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($selectedSource === $source ? ' checked' : '') . '>';
+        $html .= $settingSourceLabelHtml($settingSourceLabels[$labelKey]);
         $html .= '</label>';
     }
 
@@ -514,6 +531,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                     </option>
                                                                 <?php } ?>
                                                             </select>
+                            <?php if ($communityBoardsPage === 'edit') { ?>
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $bannerSettingKey, $boardSettingSource($formBoard, (string) $bannerSettingKey)); ?>
+                            <?php } ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -539,6 +559,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                     </option>
                                                                 <?php } ?>
                                                             </select>
+                            <?php if ($communityBoardsPage === 'edit') { ?>
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $popupLayerSettingKey, $boardSettingSource($formBoard, (string) $popupLayerSettingKey)); ?>
+                            <?php } ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -547,12 +570,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>회원 자산</h2>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_asset_policy_source">적용 방식</label>
+                <span class="form-label">적용 방식</span>
                 <div class="admin-form-field">
-                    <select id="community_admin_boards_asset_policy_source" name="asset_policy_source" class="form-select">
-                        <option value="global"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'global' ? ' selected' : ''; ?>>커뮤니티 전역 설정</option>
-                        <option value="board"<?php echo $boardField($formBoard, 'asset_policy_source', 'global') === 'board' ? ' selected' : ''; ?>>게시판 개별 설정</option>
-                    </select>
+                    <?php echo $assetSourceRadioHtml('asset_policy_source', $boardField($formBoard, 'asset_policy_source', 'global')); ?>
                 </div>
             </div>
             <div class="admin-form-grid">
