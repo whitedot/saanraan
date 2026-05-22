@@ -47,6 +47,15 @@ $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
 }
+$assetDeductionPriorityLabels = [];
+foreach (sr_page_asset_deduction_order() as $assetModule) {
+    if (isset($assetModuleChoiceOptions[$assetModule])) {
+        $assetDeductionPriorityLabels[] = $assetModuleChoiceOptions[$assetModule];
+    }
+}
+$assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
+    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
+    : '활성 자산 모듈 없음';
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -151,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, '활성 자산 모듈 없음'); ?>
-                    <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
+                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">

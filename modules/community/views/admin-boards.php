@@ -35,6 +35,15 @@ $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
 }
+$assetDeductionPriorityLabels = [];
+foreach (sr_community_asset_deduction_order() as $assetModule) {
+    if (isset($assetModuleChoiceOptions[$assetModule])) {
+        $assetDeductionPriorityLabels[] = $assetModuleChoiceOptions[$assetModule];
+    }
+}
+$assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
+    ? '차감 우선순위: ' . implode(' > ', $assetDeductionPriorityLabels)
+    : '활성 자산 모듈 없음';
 $communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
     $selectedLevel = sr_community_normalize_level_value($selectedLevel);
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
@@ -642,7 +651,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                             </select>
                                                         <?php } ?>
                                                         <?php if ($usesCompositeAsset) { ?>
-                                                            <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
+                                                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                                         <?php } ?>
                                                         <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
                                                         <?php if ($assetPrefix === 'paid_read') { ?>
