@@ -7,6 +7,21 @@ function sr_page_allowed_statuses(): array
     return ['draft', 'published', 'hidden'];
 }
 
+function sr_page_group_statuses(): array
+{
+    return ['enabled', 'disabled', 'archived'];
+}
+
+function sr_page_group_key_is_valid(string $groupKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1;
+}
+
+function sr_page_group_path(string $groupKey): string
+{
+    return '/pages/group?key=' . rawurlencode($groupKey);
+}
+
 function sr_page_asset_modules(): array
 {
     return [
@@ -183,6 +198,59 @@ function sr_page_by_id(PDO $pdo, int $pageId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_page_group_by_id(PDO $pdo, int $groupId): ?array
+{
+    if ($groupId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_page_groups WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $groupId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_page_group_by_key(PDO $pdo, string $groupKey): ?array
+{
+    if (!sr_page_group_key_is_valid($groupKey)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_page_groups WHERE group_key = :group_key LIMIT 1');
+    $stmt->execute(['group_key' => $groupKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_page_enabled_group_by_key(PDO $pdo, string $groupKey): ?array
+{
+    $group = sr_page_group_by_key($pdo, $groupKey);
+    if (!is_array($group) || (string) ($group['status'] ?? '') !== 'enabled') {
+        return null;
+    }
+
+    return $group;
+}
+
+function sr_page_group_key_exists(PDO $pdo, string $groupKey, int $exceptGroupId = 0): bool
+{
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_page_groups
+         WHERE group_key = :group_key
+           AND id <> :except_id
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'group_key' => $groupKey,
+        'except_id' => $exceptGroupId,
+    ]);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_page_published_by_slug(PDO $pdo, string $slug): ?array
 {
     if (!sr_page_slug_is_valid($slug)) {
@@ -219,6 +287,114 @@ function sr_page_slug_exists(PDO $pdo, string $slug, int $exceptPageId = 0): boo
     return is_array($stmt->fetch());
 }
 
+function sr_page_groups(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        'SELECT g.*,
+                COUNT(p.id) AS page_count
+         FROM sr_page_groups g
+         LEFT JOIN sr_pages p ON p.page_group_id = g.id
+         GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
+         ORDER BY g.sort_order ASC, g.id ASC'
+    );
+
+    return $stmt->fetchAll();
+}
+
+function sr_page_enabled_groups(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        "SELECT *
+         FROM sr_page_groups
+         WHERE status = 'enabled'
+         ORDER BY sort_order ASC, id ASC"
+    );
+
+    return $stmt->fetchAll();
+}
+
+function sr_page_admin_group_filters(): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, sr_page_group_statuses(), true)) {
+        $status = '';
+    }
+
+    $field = sr_get_string('field', 20);
+    if (!in_array($field, ['all', 'key', 'title'], true)) {
+        $field = 'all';
+    }
+
+    return [
+        'status' => $status,
+        'field' => $field,
+        'q' => sr_page_clean_single_line(sr_get_string('q', 120), 120),
+    ];
+}
+
+function sr_page_admin_group_status_counts(PDO $pdo): array
+{
+    $counts = [
+        'total' => 0,
+        'enabled' => 0,
+        'disabled' => 0,
+        'archived' => 0,
+    ];
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_page_groups GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
+function sr_page_admin_group_list(PDO $pdo, array $filters): array
+{
+    $where = [];
+    $params = [];
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 'g.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((string) ($filters['q'] ?? '') !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'key') {
+            $where[] = 'g.group_key LIKE :keyword';
+            $params['keyword'] = '%' . (string) $filters['q'] . '%';
+        } elseif ($field === 'title') {
+            $where[] = 'g.title LIKE :keyword';
+            $params['keyword'] = '%' . (string) $filters['q'] . '%';
+        } else {
+            $where[] = '(g.group_key LIKE :key_keyword OR g.title LIKE :title_keyword)';
+            $params['key_keyword'] = '%' . (string) $filters['q'] . '%';
+            $params['title_keyword'] = '%' . (string) $filters['q'] . '%';
+        }
+    }
+
+    $sql = 'SELECT g.*,
+                   COUNT(p.id) AS page_count
+            FROM sr_page_groups g
+            LEFT JOIN sr_pages p ON p.page_group_id = g.id';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
+              ORDER BY g.sort_order ASC, g.id ASC
+              LIMIT 200';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
 function sr_page_admin_filters(): array
 {
     $status = sr_get_string('status', 30);
@@ -233,6 +409,7 @@ function sr_page_admin_filters(): array
 
     return [
         'status' => $status,
+        'page_group_id' => (int) sr_get_string('page_group_id', 20),
         'field' => $field,
         'q' => sr_page_clean_single_line(sr_get_string('q', 120), 120),
     ];
@@ -269,6 +446,11 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
         $params['status'] = (string) $filters['status'];
     }
 
+    if ((int) ($filters['page_group_id'] ?? 0) > 0) {
+        $where[] = 'p.page_group_id = :page_group_id';
+        $params['page_group_id'] = (int) $filters['page_group_id'];
+    }
+
     if ((string) ($filters['q'] ?? '') !== '') {
         $field = (string) ($filters['field'] ?? 'all');
         if ($field === 'title') {
@@ -284,8 +466,10 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
         }
     }
 
-    $sql = 'SELECT p.*, creator.display_name AS created_by_name, updater.display_name AS updated_by_name
+    $sql = 'SELECT p.*, g.group_key AS page_group_key, g.title AS page_group_title,
+                   creator.display_name AS created_by_name, updater.display_name AS updated_by_name
             FROM sr_pages p
+            LEFT JOIN sr_page_groups g ON g.id = p.page_group_id
             LEFT JOIN sr_member_accounts creator ON creator.id = p.created_by
             LEFT JOIN sr_member_accounts updater ON updater.id = p.updated_by';
     if ($where !== []) {
@@ -297,6 +481,67 @@ function sr_page_admin_list(PDO $pdo, array $filters): array
     $stmt->execute($params);
 
     return $stmt->fetchAll();
+}
+
+function sr_page_published_pages_for_group(PDO $pdo, int $groupId): array
+{
+    if ($groupId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, slug, title, summary, updated_at, published_at
+         FROM sr_pages
+         WHERE page_group_id = :group_id
+           AND status = 'published'
+         ORDER BY published_at DESC, updated_at DESC, id DESC"
+    );
+    $stmt->execute(['group_id' => $groupId]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_page_create_group(PDO $pdo, array $data): int
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_page_groups
+            (group_key, title, description, status, sort_order, created_at, updated_at)
+         VALUES
+            (:group_key, :title, :description, :status, :sort_order, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'group_key' => (string) $data['group_key'],
+        'title' => (string) $data['title'],
+        'description' => (string) ($data['description'] ?? ''),
+        'status' => (string) $data['status'],
+        'sort_order' => (int) ($data['sort_order'] ?? 0),
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_page_update_group(PDO $pdo, int $groupId, array $data): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_page_groups
+         SET title = :title,
+             description = :description,
+             status = :status,
+             sort_order = :sort_order,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'title' => (string) $data['title'],
+        'description' => (string) ($data['description'] ?? ''),
+        'status' => (string) $data['status'],
+        'sort_order' => (int) ($data['sort_order'] ?? 0),
+        'updated_at' => sr_now(),
+        'id' => $groupId,
+    ]);
 }
 
 function sr_page_homepage_candidates(PDO $pdo): array
@@ -404,6 +649,7 @@ function sr_page_normalize_asset_values(array $values, bool $coerceInvalid = tru
 function sr_page_input_values(): array
 {
     $values = [
+        'page_group_id' => (int) sr_post_string('page_group_id', 20),
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -437,6 +683,11 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     $errors = [];
     if ((string) ($values['title'] ?? '') === '') {
         $errors[] = '제목을 입력하세요.';
+    }
+
+    $pageGroupId = (int) ($values['page_group_id'] ?? 0);
+    if ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_page_group_by_id($pdo, $pageGroupId)))) {
+        $errors[] = '페이지 그룹 값이 올바르지 않습니다.';
     }
 
     $slug = (string) ($values['slug'] ?? '');
@@ -534,7 +785,8 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         if (is_array($existing)) {
             $stmt = $pdo->prepare(
                 'UPDATE sr_pages
-                 SET slug = :slug, title = :title, summary = :summary, body_text = :body_text,
+                 SET page_group_id = :page_group_id,
+                     slug = :slug, title = :title, summary = :summary, body_text = :body_text,
                      body_format = :body_format, status = :status,
                      layout_key = :layout_key,
                      asset_access_enabled = :asset_access_enabled,
@@ -555,6 +807,7 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                  WHERE id = :id'
             );
             $stmt->execute([
+                'page_group_id' => (int) ($values['page_group_id'] ?? 0) > 0 ? (int) $values['page_group_id'] : null,
                 'slug' => (string) $values['slug'],
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
@@ -584,11 +837,12 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_pages
-                    (slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (page_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:page_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
+                'page_group_id' => (int) ($values['page_group_id'] ?? 0) > 0 ? (int) $values['page_group_id'] : null,
                 'slug' => (string) $values['slug'],
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
@@ -636,12 +890,13 @@ function sr_page_record_revision(PDO $pdo, int $pageId, array $values, int $acco
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_page_revisions
-            (page_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (page_id, page_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:page_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:page_id, :page_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'page_id' => $pageId,
+        'page_group_id' => (int) ($values['page_group_id'] ?? 0) > 0 ? (int) $values['page_group_id'] : null,
         'title' => (string) $values['title'],
         'summary' => (string) $values['summary'],
         'body_text' => (string) $values['body_text'],

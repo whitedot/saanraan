@@ -13,6 +13,7 @@ $editing = is_array($editPage);
 if ($values === []) {
     $values = $editing ? $editPage : [
         'title' => '',
+        'page_group_id' => 0,
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -38,8 +39,9 @@ if ($values === []) {
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? '페이지 수정' : '페이지 추가') : '페이지';
 $adminPageSubtitle = $pageAdminPage === 'form' ? '공개 페이지의 본문, 노출 상태, 자산 정책을 관리합니다.' : '페이지 상태를 확인하고 조건 검색과 관리 작업을 이어가세요.';
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-page-content-form admin-ui-scope' : 'admin-page-content-list admin-ui-scope';
-$filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'field' => 'all', 'q' => ''];
+$filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'page_group_id' => 0, 'field' => 'all', 'q' => ''];
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
+$pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
@@ -69,6 +71,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     <br>
                                         <small>공개 URL은 /pages/slug 형식입니다. 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.</small>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_admin_pages_page_group_id">페이지 그룹</label>
+                <div class="admin-form-field">
+                    <select id="page_admin_pages_page_group_id" name="page_group_id" class="form-select">
+                        <option value="0"<?php echo (int) ($values['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>그룹 없음</option>
+                        <?php foreach ($pageGroups as $pageGroup) { ?>
+                            <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($values['page_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
+                                <?php if ((string) ($pageGroup['status'] ?? '') !== 'enabled') { ?>
+                                    (<?php echo sr_e(sr_admin_code_label((string) $pageGroup['status'], 'content_status')); ?>)
+                                <?php } ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">그룹을 선택하면 그룹별 공개 목록과 사이트 메뉴 연결 자산에서 함께 묶입니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -439,6 +458,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
             </div>
+            <div class="admin-filter-field admin-page-filter-group">
+                <label for="modules_page_admin_pages_page_group_id" class="admin-filter-label">그룹</label>
+                <select id="modules_page_admin_pages_page_group_id" name="page_group_id" class="form-select admin-filter-input">
+                    <option value="0"<?php echo (int) ($filters['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>>전체</option>
+                    <?php foreach ($pageGroups as $pageGroup) { ?>
+                        <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($filters['page_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
             <div class="admin-filter-field admin-page-filter-field">
                 <label for="modules_page_admin_pages_field" class="admin-filter-label">검색 조건</label>
                 <select id="modules_page_admin_pages_field" name="field" class="form-select admin-filter-input">
@@ -471,6 +501,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <thead class="ui-table-head">
                     <tr>
                         <th>제목</th>
+                        <th>그룹</th>
                         <th>Slug</th>
                         <th>상태</th>
                         <th>유료 열람</th>
@@ -483,7 +514,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($pages === []) { ?>
                         <tr>
-                            <td colspan="8" class="admin-empty-state">등록된 페이지가 없습니다.</td>
+                            <td colspan="9" class="admin-empty-state">등록된 페이지가 없습니다.</td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
@@ -497,6 +528,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             ?>
                             <tr>
                                 <td class="admin-table-break admin-page-title-cell"><?php echo sr_e((string) $page['title']); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['page_group_title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap admin-page-slug-cell"><code><?php echo sr_e((string) $page['slug']); ?></code></td>
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>

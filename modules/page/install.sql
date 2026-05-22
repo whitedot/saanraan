@@ -1,5 +1,20 @@
+CREATE TABLE IF NOT EXISTS sr_page_groups (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    group_key VARCHAR(60) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'enabled',
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_page_groups_group_key (group_key),
+    KEY idx_sr_page_groups_status_sort (status, sort_order, id)
+);
+
 CREATE TABLE IF NOT EXISTS sr_pages (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    page_group_id BIGINT UNSIGNED NULL,
     slug VARCHAR(120) NOT NULL,
     title VARCHAR(160) NOT NULL,
     summary TEXT NULL,
@@ -27,6 +42,7 @@ CREATE TABLE IF NOT EXISTS sr_pages (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
+    KEY idx_sr_pages_group_status (page_group_id, status, updated_at),
     UNIQUE KEY uq_sr_pages_slug (slug),
     KEY idx_sr_pages_status_slug (status, slug),
     KEY idx_sr_pages_status_updated (status, updated_at),
@@ -39,6 +55,7 @@ CREATE TABLE IF NOT EXISTS sr_pages (
 CREATE TABLE IF NOT EXISTS sr_page_revisions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     page_id BIGINT UNSIGNED NOT NULL,
+    page_group_id BIGINT UNSIGNED NULL,
     title VARCHAR(160) NOT NULL,
     summary TEXT NULL,
     body_text MEDIUMTEXT NOT NULL,

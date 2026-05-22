@@ -30,6 +30,7 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
     : [];
 $assetModuleOptions = sr_page_asset_module_options($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
+$pageGroups = sr_page_groups($pdo);
 
 if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);
@@ -42,6 +43,9 @@ if ($pageAdminPage === 'form') {
     }
 } else {
     $filters = sr_page_admin_filters();
+    if ((int) ($filters['page_group_id'] ?? 0) > 0 && !is_array(sr_page_group_by_id($pdo, (int) $filters['page_group_id']))) {
+        $filters['page_group_id'] = 0;
+    }
     $pageStatusCounts = sr_page_admin_status_counts($pdo);
     $pages = sr_page_admin_list($pdo, $filters);
 }

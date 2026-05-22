@@ -7,9 +7,11 @@
 GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 - 관리자 페이지 목록, 생성, 수정, 숨김 처리
+- 관리자 페이지 그룹 목록, 생성, 수정
 - 관리자 페이지 목록의 상태/검색 조건/검색어 필터와 상태 요약
 - `draft`, `published`, `hidden` 상태
 - `/pages/{slug}` 기반 공개 URL
+- `/pages/group?key={group_key}` 기반 페이지 그룹 공개 목록
 - 제목, 요약, plain text 본문, SEO 제목/설명
 - plain text 본문 저장과 escape 출력
 - `menu-links.php` 기반 사이트 메뉴 후보
@@ -29,6 +31,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - `draft`, `hidden` 공개 접근 차단
 - `published` 공개 접근과 SEO title/description 출력
 - 사이트 메뉴 후보와 sitemap 후보 포함
+- 페이지 그룹이 사이트 메뉴 연결 자산과 sitemap 후보에 포함
 - 관리자 POST action의 로그인, 권한, CSRF 검증
 - 페이지 생성, 수정, 숨김 감사 로그
 - 공용 배너/팝업레이어 직접 선택 출력
