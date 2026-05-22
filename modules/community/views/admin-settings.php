@@ -237,12 +237,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2>화면</h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_theme_key">커뮤니티 테마</label>
+            <label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>
             <div class="admin-form-field">
-                <select id="community_admin_settings_theme_key" name="theme_key" class="form-select">
-                                    <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
-                                        <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) $settings['theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
+                                    <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
+                                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
                                         </option>
                                     <?php } ?>
                                 </select>

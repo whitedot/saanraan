@@ -35,7 +35,7 @@ foreach ($boards as $board) {
     }
 }
 $settings = sr_community_settings($pdo);
-$themeKey = sr_community_theme_key($settings);
-$themeView = sr_community_theme_view($themeKey, 'home');
+$communityLayoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
+$themeView = sr_community_layout_home_view($communityLayoutKey, $pdo);
 
 include $themeView;

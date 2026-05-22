@@ -76,13 +76,13 @@ $optionalModules = [
     ],
     'page' => [
         'name' => '페이지',
-        'version' => '2026.05.001',
+        'version' => '2026.05.005',
         'label' => '페이지',
         'description' => '단일 페이지 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.05.008',
+        'version' => '2026.05.010',
         'label' => '커뮤니티',
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
@@ -519,7 +519,7 @@ if (sr_request_method() === 'POST') {
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],
-                'public_layout_key' => ['value' => 'basic', 'type' => 'string'],
+                'public_layout_key' => ['value' => sr_public_layout_default_key(), 'type' => 'string'],
                 'ui_color_scheme' => ['value' => 'light', 'type' => 'string'],
             ]);
 

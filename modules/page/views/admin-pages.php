@@ -17,6 +17,7 @@ if ($values === []) {
         'summary' => '',
         'body_text' => '',
         'status' => 'draft',
+        'layout_key' => sr_public_layout_key($site ?? null, $pdo ?? null),
         'asset_access_enabled' => 0,
         'asset_module' => 'point',
         'asset_access_amount' => 0,
@@ -39,6 +40,11 @@ $adminPageSubtitle = $pageAdminPage === 'form' ? '공개 페이지의 본문, �
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-page-content-form admin-ui-scope' : 'admin-page-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'field' => 'all', 'q' => ''];
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
+$publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
+$values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
+if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
+    $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
+}
 $totalPages = (int) ($pageStatusCounts['total'] ?? count($pages ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -89,6 +95,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_admin_pages_layout_key">페이지 레이아웃</label>
+                <div class="admin-form-field">
+                    <select id="page_admin_pages_layout_key" name="layout_key" class="form-select">
+                                                <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
+                                                    <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($values['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                    <p class="admin-form-help">이 공개 페이지에 적용할 문서 레이아웃입니다.</p>
                 </div>
             </div>
         </section>

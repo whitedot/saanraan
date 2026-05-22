@@ -293,36 +293,85 @@ function sr_color_scheme(?array $site = null): string
     return isset(sr_color_scheme_options()[$colorScheme]) ? $colorScheme : 'light';
 }
 
-function sr_public_layout_options(): array
+function sr_public_layout_default_key(): string
 {
-    return sr_filter_view_options([
-        'basic' => [
-            'label' => '기본 레이아웃',
+    return 'common.basic';
+}
+
+function sr_public_layout_legacy_key_map(): array
+{
+    return [
+        'basic' => sr_public_layout_default_key(),
+    ];
+}
+
+function sr_public_layout_normalize_key(string $layoutKey): string
+{
+    $layoutKey = trim($layoutKey);
+    $legacyMap = sr_public_layout_legacy_key_map();
+
+    return (string) ($legacyMap[$layoutKey] ?? $layoutKey);
+}
+
+function sr_public_layout_options(?PDO $pdo = null): array
+{
+    $options = [
+        sr_public_layout_default_key() => [
+            'key' => sr_public_layout_default_key(),
+            'label' => '공통 레이아웃',
+            'provider_module_key' => 'core',
+            'provider_label' => '공통',
+            'supports' => ['site'],
             'views' => [
                 'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
                 'home' => SR_ROOT . '/layouts/public/basic/home.php',
                 'ui_kit' => SR_ROOT . '/layouts/public/basic/ui-kit.php',
             ],
         ],
-    ], ['layout'], 'public layout');
+    ];
+
+    if ($pdo instanceof PDO) {
+        foreach (sr_enabled_module_contract_files($pdo, 'layout-options.php') as $moduleKey => $file) {
+            $moduleOptions = sr_load_module_contract_file($moduleKey, $file);
+            if (!is_array($moduleOptions)) {
+                continue;
+            }
+
+            foreach ($moduleOptions as $layoutKey => $layoutOption) {
+                $layoutKey = is_string($layoutKey) ? sr_public_layout_normalize_key($layoutKey) : '';
+                if (preg_match('/\A[a-z0-9][a-z0-9_]{0,39}\.[a-z0-9][a-z0-9_]{0,39}\z/', $layoutKey) !== 1 || !is_array($layoutOption)) {
+                    continue;
+                }
+
+                $layoutOption['key'] = $layoutKey;
+                $layoutOption['provider_module_key'] = (string) ($layoutOption['provider_module_key'] ?? $moduleKey);
+                $options[$layoutKey] = $layoutOption;
+            }
+        }
+    }
+
+    return sr_filter_view_options($options, ['layout'], 'public layout');
 }
 
-function sr_public_layout_key(?array $site = null): string
+function sr_public_layout_key(?array $site = null, ?PDO $pdo = null): string
 {
-    $layoutKey = is_array($site) ? (string) ($site['public_layout_key'] ?? 'basic') : 'basic';
-    return isset(sr_public_layout_options()[$layoutKey]) ? $layoutKey : 'basic';
+    $layoutKey = is_array($site) ? (string) ($site['public_layout_key'] ?? sr_public_layout_default_key()) : sr_public_layout_default_key();
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+
+    return isset(sr_public_layout_options($pdo)[$layoutKey]) ? $layoutKey : sr_public_layout_default_key();
 }
 
-function sr_public_layout_file(string $layoutKey): string
+function sr_public_layout_file(string $layoutKey, ?PDO $pdo = null): string
 {
-    $options = sr_public_layout_options();
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    $options = sr_public_layout_options($pdo);
     if (!isset($options[$layoutKey])) {
-        $layoutKey = 'basic';
+        $layoutKey = sr_public_layout_default_key();
     }
 
     $layoutFile = (string) ($options[$layoutKey]['views']['layout'] ?? '');
     if ($layoutFile === '' || !is_file($layoutFile)) {
-        $layoutFile = (string) ($options['basic']['views']['layout'] ?? '');
+        $layoutFile = (string) ($options[sr_public_layout_default_key()]['views']['layout'] ?? '');
     }
 
     if ($layoutFile === '' || !is_file($layoutFile)) {
@@ -338,9 +387,10 @@ function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey)
         return null;
     }
 
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
     $options = sr_public_layout_options();
     if (!isset($options[$layoutKey])) {
-        $layoutKey = 'basic';
+        $layoutKey = sr_public_layout_default_key();
     }
 
     $viewFile = (string) ($options[$layoutKey]['views'][$viewKey] ?? '');
@@ -348,7 +398,7 @@ function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey)
         return $viewFile;
     }
 
-    $fallbackFile = (string) ($options['basic']['views'][$viewKey] ?? '');
+    $fallbackFile = (string) ($options[sr_public_layout_default_key()]['views'][$viewKey] ?? '');
     return $fallbackFile !== '' && is_file($fallbackFile) ? $fallbackFile : null;
 }
 
@@ -420,7 +470,13 @@ function sr_public_layout_end(): void
     $site = is_array($layoutState['site'] ?? null) ? $layoutState['site'] : null;
     $seo = is_array($layoutState['seo'] ?? null) ? $layoutState['seo'] : [];
     $layoutContext = is_array($layoutState['layout_context'] ?? null) ? $layoutState['layout_context'] : [];
-    $layoutFile = sr_public_layout_file(sr_public_layout_key($site));
+    $layoutKey = (string) ($layoutContext['layout_key'] ?? '');
+    if ($layoutKey === '') {
+        $layoutKey = sr_public_layout_key($site, $pdo instanceof PDO ? $pdo : null);
+    } else {
+        $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    }
+    $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null);
 
     include $layoutFile;
 }

@@ -5,7 +5,9 @@ $seo = [
     'title' => $pageTitle,
     'canonical' => '/community',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'layout_key' => (string) ($communityLayoutKey ?? ''),
+]);
 ?>
     <main>
         <?php echo sr_render_output_slot($pdo, [

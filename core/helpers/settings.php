@@ -5,6 +5,10 @@ declare(strict_types=1);
 function sr_load_site(PDO $pdo): ?array
 {
     $settings = sr_site_settings($pdo);
+    $publicLayoutKey = (string) ($settings['public_layout_key'] ?? 'common.basic');
+    if ($publicLayoutKey === 'basic') {
+        $publicLayoutKey = 'common.basic';
+    }
 
     return [
         'name' => (string) ($settings['site.name'] ?? 'Saanraan'),
@@ -14,7 +18,7 @@ function sr_load_site(PDO $pdo): ?array
         'supported_locales' => (string) ($settings['site.supported_locales'] ?? (string) ($settings['site.default_locale'] ?? 'ko')),
         'status' => (string) ($settings['site.status'] ?? 'active'),
         'home_path' => (string) ($settings['site.home_path'] ?? '/'),
-        'public_layout_key' => (string) ($settings['public_layout_key'] ?? 'basic'),
+        'public_layout_key' => $publicLayoutKey,
         'ui_color_scheme' => (string) ($settings['ui_color_scheme'] ?? 'light'),
     ];
 }
@@ -465,6 +469,7 @@ function sr_module_known_contract_files(): array
         'menu-links.php',
         'member-group-rules.php',
         'dashboard.php',
+        'layout-options.php',
     ];
 }
 

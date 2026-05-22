@@ -1,6 +1,6 @@
 <?php
 
-$homeViewFile = sr_public_layout_optional_view_file(sr_public_layout_key($site ?? null), 'home');
+$homeViewFile = sr_public_layout_optional_view_file(sr_public_layout_key($site ?? null, $pdo instanceof PDO ? $pdo : null), 'home');
 if ($homeViewFile !== null && realpath($homeViewFile) !== realpath(__FILE__)) {
     include $homeViewFile;
     return;

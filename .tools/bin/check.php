@@ -127,6 +127,7 @@ function sr_check_module_lifecycle_metadata(): void
         'extension-points.php' => true,
         'dashboard.php' => true,
         'member-group-rules.php' => true,
+        'layout-options.php' => true,
         'menu-links.php' => true,
         'output-slots.php' => true,
         'paths.php' => true,

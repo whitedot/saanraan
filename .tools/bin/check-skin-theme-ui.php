@@ -290,13 +290,15 @@ $targets = [
         ],
     ],
     [
-        'label' => 'Community theme',
+        'label' => 'Community layout',
         'helper' => 'modules/community/helpers/themes.php',
         'action' => 'modules/community/actions/admin-settings.php',
         'view' => 'modules/community/views/admin-settings.php',
         'render_views' => ['modules/community/actions/home.php'],
-        'files' => ['modules/community/themes/basic/home.php'],
+        'files' => ['modules/community/themes/basic/home.php', 'modules/community/layout-options.php'],
         'helper_needles' => [
+            'function sr_community_layout_key(array $settings',
+            'function sr_community_layout_home_view(string $layoutKey',
             'function sr_community_theme_options(): array',
             'sr_filter_view_options([',
             "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
@@ -304,19 +306,19 @@ $targets = [
             '기본 커뮤니티 테마 view 파일이 누락되었습니다.',
         ],
         'action_needles' => [
-            '$communityThemeOptions = sr_community_theme_options()',
-            "sr_post_string('theme_key', 40)",
-            'if (!isset($communityThemeOptions[$themeKey]))',
-            "['theme_key', \$themeKey, 'string']",
+            '$communityLayoutOptions = sr_public_layout_options($pdo)',
+            "sr_post_string('layout_key', 80)",
+            'if (!isset($communityLayoutOptions[$layoutKey]))',
+            "['layout_key', \$layoutKey, 'string']",
         ],
         'view_needles' => [
-            '<span class="form-label">커뮤니티 테마</span>',
-            '<select name="theme_key" class="form-select">',
-            'foreach ($communityThemeOptions as $themeKey => $themeOption)',
+            '<label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>',
+            '<select id="community_admin_settings_layout_key" name="layout_key" class="form-select">',
+            'foreach ($communityLayoutOptions as $layoutKey => $layoutOption)',
         ],
         'render_needles' => [
-            '$themeKey = sr_community_theme_key($settings)',
-            'sr_community_theme_view($themeKey, \'home\')',
+            '$communityLayoutKey = sr_community_layout_key($settings',
+            'sr_community_layout_home_view($communityLayoutKey',
         ],
     ],
     [
@@ -408,8 +410,8 @@ foreach (['modules', 'core'] as $viewRoot) {
 }
 
 sr_skin_theme_check_contains('modules/admin/views/settings.php', [
-    '<select name="public_layout_key" class="form-select">',
-    'foreach (sr_public_layout_options() as $layoutKey => $layoutOption)',
+    '<select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">',
+    'foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
 
 sr_skin_theme_check_contains('core/helpers/output.php', [

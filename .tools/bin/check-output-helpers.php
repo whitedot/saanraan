@@ -115,16 +115,17 @@ sr_output_helper_assert(
     'Download filename should fall back when no safe characters remain.'
 );
 sr_output_helper_assert(
-    sr_public_layout_key(['public_layout_key' => 'basic']) === 'basic',
-    'Known public layout key should be accepted.'
+    sr_public_layout_key(['public_layout_key' => 'basic']) === 'common.basic',
+    'Legacy public layout key should normalize to the namespaced common layout key.'
 );
 sr_output_helper_assert(
-    sr_public_layout_key(['public_layout_key' => '../basic']) === 'basic',
-    'Unknown public layout key should fall back to basic.'
+    sr_public_layout_key(['public_layout_key' => '../basic']) === 'common.basic',
+    'Unknown public layout key should fall back to the common layout.'
 );
 sr_output_helper_assert(
-    sr_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
-    'Basic public layout should resolve to the layouts directory.'
+    sr_public_layout_file('common.basic') === $root . '/layouts/public/basic/layout.php'
+        && sr_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
+    'Common public layout and legacy key should resolve to the layouts directory.'
 );
 sr_output_helper_assert(
     sr_color_scheme(['ui_color_scheme' => 'dark']) === 'dark',

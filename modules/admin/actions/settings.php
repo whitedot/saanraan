@@ -10,7 +10,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $errors = [];
 $notice = '';
-$values = sr_admin_site_setting_values($site ?? null);
+$values = sr_admin_site_setting_values($site ?? null, $pdo);
 $adminSettings = sr_admin_settings($pdo);
 $adminSkinOptions = sr_admin_skin_options();
 $adminSkinKey = sr_admin_skin_key($adminSettings);

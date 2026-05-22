@@ -126,8 +126,8 @@ $memberGroupRules = sr_community_release_array_file('modules/community/member-gr
 $privacyExport = sr_community_release_value_file('modules/community/privacy-export.php');
 $sitemap = sr_community_release_value_file('modules/community/sitemap.php');
 
-if ((string) ($module['version'] ?? '') !== '2026.05.008') {
-    sr_community_release_error('Community module version must be 2026.05.008.');
+if ((string) ($module['version'] ?? '') !== '2026.05.010') {
+    sr_community_release_error('Community module version must be 2026.05.010.');
 }
 
 sr_community_release_file_contains('index.php', [
@@ -135,7 +135,7 @@ sr_community_release_file_contains('index.php', [
 ], 'Front controller route loading');
 sr_community_release_file_contains('core/actions/install.php', [
     "'community' => [",
-    "'version' => '2026.05.008'",
+    "'version' => '2026.05.010'",
     "'label' => '커뮤니티'",
     "'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.'",
 ], 'Install optional community module');
@@ -155,6 +155,7 @@ $requiredPackageEntries = [
     'helpers',
     'helpers.php',
     'install.sql',
+    'layout-options.php',
     'member-group-rules.php',
     'menu-links.php',
     'module.php',
@@ -768,6 +769,8 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     "'event_type' => 'community.board.updated'",
 ], 'Community admin board policy');
 sr_community_release_file_contains('modules/community/helpers/themes.php', [
+    'function sr_community_layout_key(array $settings',
+    'function sr_community_layout_home_view(string $layoutKey',
     'function sr_community_theme_options(): array',
     "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
     'function sr_community_skin_options(): array',
@@ -782,16 +785,16 @@ sr_community_release_file_contains('modules/community/helpers/themes.php', [
     'function sr_community_skin_action(string $skinKey, string $actionKey, string $method): ?array',
 ], 'Community skin allowlist');
 sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
-    '$communityThemeOptions = sr_community_theme_options()',
-    'if (!isset($communityThemeOptions[$themeKey]))',
-    '커뮤니티 테마 값이 올바르지 않습니다.',
-    "['theme_key', \$themeKey, 'string']",
-], 'Community admin theme setting policy');
+    '$communityLayoutOptions = sr_public_layout_options($pdo)',
+    'if (!isset($communityLayoutOptions[$layoutKey]))',
+    '커뮤니티 레이아웃 값이 올바르지 않습니다.',
+    "['layout_key', \$layoutKey, 'string']",
+], 'Community admin layout setting policy');
 sr_community_release_file_contains('modules/community/views/admin-settings.php', [
-    '<span class="form-label">커뮤니티 테마</span>',
-    '<select name="theme_key" class="form-select">',
-    'foreach ($communityThemeOptions as $themeKey => $themeOption)',
-], 'Community admin theme field');
+    '<label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>',
+    '<select id="community_admin_settings_layout_key" name="layout_key" class="form-select">',
+    'foreach ($communityLayoutOptions as $layoutKey => $layoutOption)',
+], 'Community admin layout field');
 sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     '<input type="hidden" name="intent" value="update_skin">',
     '<span class="form-label">게시판 스킨</span>',

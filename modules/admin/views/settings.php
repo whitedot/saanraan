@@ -91,7 +91,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="admin_settings_public_layout_key">공통 레이아웃</label>
             <div class="admin-form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
-                                    <?php foreach (sr_public_layout_options() as $layoutKey => $layoutOption) { ?>
+                                    <?php foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
                                         </option>

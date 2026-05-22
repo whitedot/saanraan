@@ -12,7 +12,13 @@ $seo = [
         'type' => 'article',
     ],
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$pageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ?? ''));
+if ($pageLayoutKey === '' || !isset(sr_public_layout_options($pdo ?? null)[$pageLayoutKey])) {
+    $pageLayoutKey = sr_public_layout_key($site ?? null, $pdo ?? null);
+}
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'layout_key' => $pageLayoutKey,
+]);
 ?>
 <main class="page-public page-public-basic">
     <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>

@@ -410,6 +410,7 @@ function sr_page_input_values(): array
         'body_text' => sr_page_clean_text(sr_post_string('body_text', 100000), 100000),
         'body_format' => 'plain',
         'status' => sr_post_string('status', 30),
+        'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_page_clean_slug(sr_post_string('asset_module', 20)),
         'asset_access_amount' => (int) sr_post_string('asset_access_amount', 20),
@@ -447,6 +448,11 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
 
     if (!in_array((string) ($values['status'] ?? ''), sr_page_allowed_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
+    }
+
+    $layoutKey = (string) ($values['layout_key'] ?? '');
+    if ($layoutKey !== '' && !isset(sr_public_layout_options($pdo)[$layoutKey])) {
+        $errors[] = '페이지 레이아웃 값이 올바르지 않습니다.';
     }
 
     if ((string) ($values['body_format'] ?? 'plain') !== 'plain') {
@@ -530,6 +536,7 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'UPDATE sr_pages
                  SET slug = :slug, title = :title, summary = :summary, body_text = :body_text,
                      body_format = :body_format, status = :status,
+                     layout_key = :layout_key,
                      asset_access_enabled = :asset_access_enabled,
                      asset_module = :asset_module,
                      asset_access_amount = :asset_access_amount,
@@ -554,6 +561,7 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'body_text' => (string) $values['body_text'],
                 'body_format' => 'plain',
                 'status' => (string) $values['status'],
+                'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? 'point'),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
@@ -576,9 +584,9 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_pages
-                    (slug, title, summary, body_text, body_format, status, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:slug, :title, :summary, :body_text, :body_format, :status, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'slug' => (string) $values['slug'],
@@ -587,6 +595,7 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
                 'body_text' => (string) $values['body_text'],
                 'body_format' => 'plain',
                 'status' => (string) $values['status'],
+                'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? 'point'),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
@@ -627,9 +636,9 @@ function sr_page_record_revision(PDO $pdo, int $pageId, array $values, int $acco
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_page_revisions
-            (page_id, title, summary, body_text, body_format, status, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (page_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:page_id, :title, :summary, :body_text, :body_format, :status, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:page_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'page_id' => $pageId,
@@ -638,6 +647,7 @@ function sr_page_record_revision(PDO $pdo, int $pageId, array $values, int $acco
         'body_text' => (string) $values['body_text'],
         'body_format' => 'plain',
         'status' => (string) $values['status'],
+        'layout_key' => (string) ($values['layout_key'] ?? ''),
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
         'asset_module' => (string) ($values['asset_module'] ?? 'point'),
         'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),

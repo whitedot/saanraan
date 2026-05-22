@@ -436,7 +436,7 @@ function sr_admin_normalize_setting_value(string $settingValue, string $valueTyp
     return $settingValue;
 }
 
-function sr_admin_site_setting_values(?array $site): array
+function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
 {
     return [
         'name' => (string) ($site['name'] ?? ''),
@@ -445,13 +445,13 @@ function sr_admin_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
         'status' => (string) ($site['status'] ?? 'active'),
-        'public_layout_key' => sr_public_layout_key($site),
+        'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
         'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
 
-function sr_admin_previous_site_setting_values(?array $site): array
+function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): array
 {
     return [
         'name' => (string) ($site['name'] ?? ''),
@@ -460,7 +460,7 @@ function sr_admin_previous_site_setting_values(?array $site): array
         'default_locale' => (string) ($site['default_locale'] ?? ''),
         'supported_locales' => (string) ($site['supported_locales'] ?? ''),
         'status' => (string) ($site['status'] ?? ''),
-        'public_layout_key' => sr_public_layout_key($site),
+        'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
         'ui_color_scheme' => sr_color_scheme($site),
     ];
@@ -475,7 +475,7 @@ function sr_admin_post_site_setting_values(?array $site): array
         'default_locale' => sr_post_string('default_locale', 20),
         'supported_locales' => sr_admin_post_supported_locales(),
         'status' => sr_post_string('status', 30),
-        'public_layout_key' => sr_post_string('public_layout_key', 60),
+        'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
         'ui_color_scheme' => sr_post_string('ui_color_scheme', 20),
     ];
@@ -534,7 +534,7 @@ function sr_admin_handle_settings_post(
 ): array {
     $errors = [];
     $notice = '';
-    $values = sr_admin_site_setting_values($site);
+    $values = sr_admin_site_setting_values($site, $pdo);
     $intent = sr_post_string('intent', 40);
 
     if ($intent !== 'site') {
@@ -571,7 +571,7 @@ function sr_admin_handle_settings_post(
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
 
-        if (!isset(sr_public_layout_options()[$values['public_layout_key']])) {
+        if (!isset(sr_public_layout_options($pdo)[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
 
@@ -585,7 +585,7 @@ function sr_admin_handle_settings_post(
         }
 
         if ($errors === []) {
-            $previousValues = sr_admin_previous_site_setting_values($site);
+            $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
 
             sr_save_site_settings($pdo, [
                 'site.name' => ['value' => $values['name'], 'type' => 'string'],
@@ -614,7 +614,7 @@ function sr_admin_handle_settings_post(
             ]);
 
             $site = sr_load_site($pdo);
-            $values = sr_admin_site_setting_values(is_array($site) ? $site : null);
+            $values = sr_admin_site_setting_values(is_array($site) ? $site : null, $pdo);
             $notice = '사이트 설정을 저장했습니다.';
         }
     }

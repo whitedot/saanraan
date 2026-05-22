@@ -125,15 +125,16 @@ modules/board/
 - updates/2026.05.002.sql
 ```
 
-공개 화면 디자인 책임은 전역 public layout, 모듈 theme, 모듈 skin을 구분한다.
+공개 화면 디자인 책임은 public layout, 모듈 theme, 모듈 skin을 구분한다.
 
-- 전역 public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
-- 전역 public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
+- public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
+- public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
+- 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
 - 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
 - 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.
 
-모듈은 DB에 view 파일 경로를 저장하지 않는다. `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist에서 결정한다. 알 수 없는 key는 `basic`으로 fallback한다.
+모듈은 DB에 view 파일 경로를 저장하지 않는다. `public_layout_key`, `layout_key`, `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist나 `layout-options.php` 계약에서 결정한다. 기존 공개 레이아웃 `basic` 값은 `common.basic`으로 정규화하고, 알 수 없는 레이아웃 key는 기본 공통 레이아웃으로 fallback한다.
 
 CSS class는 범위를 드러내는 이름을 사용한다. 모듈 전용 class는 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용 class는 `{module_key}-skin-{skin_key}-*` 형식을 우선한다. 모듈 skin은 전역 `body`, `a`, `.container`, `.btn`처럼 넓은 선택자를 직접 재정의하지 않고, 필요한 경우 자기 wrapper 아래에서만 스타일을 제한한다.
 
@@ -186,7 +187,7 @@ return [
 
 `list`, `post`, `form`은 필수 view다. 필수 view 파일이 없거나 스킨 폴더 밖을 가리키면 그 스킨은 선택 가능한 스킨 목록에서 제외된다. 이미 DB에 저장된 스킨 key가 더 이상 유효하지 않으면 `basic`으로 fallback한다. `basic`의 필수 view가 누락되면 복구가 필요한 설치 오류로 보고 예외를 발생시킨다.
 
-커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 스킨, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 테마는 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 `basic`으로 fallback한다. `basic` 필수 view가 없으면 설치 오류로 본다.
+커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 스킨, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 레이아웃은 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 기본 option으로 fallback한다. 기본 필수 view가 없으면 설치 오류로 본다.
 
 ## 3. 이름 규칙
 
@@ -848,6 +849,7 @@ return [
 - `sitemap.php`: SEO sitemap URL 확장
 - `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보
 - `dashboard.php`: 관리자 대시보드 모듈 섹션 후보
+- `layout-options.php`: 공개 레이아웃 후보
 
 계약 파일 규칙:
 
@@ -933,6 +935,15 @@ return [
 - admin 모듈은 SQL 실행 실패를 해당 row의 빈 값으로 처리하므로, 모듈은 자기 테이블이 없거나 비활성 상태인 경우에도 전체 대시보드를 깨지 않게 작성한다.
 - `view`가 없으면 admin 모듈의 fallback renderer가 `layout`과 `rows`/`items`를 사용해 표시한다.
 
+`layout-options.php`:
+
+- 배열을 반환한다.
+- 각 항목 key는 `common.basic`, `community.basic`처럼 provider namespace를 포함한 안정적인 layout key다.
+- 각 항목은 `label`, `provider_module_key`, 선택 `provider_label`, 선택 `supports`, `views`를 가진다.
+- `views.layout`은 필수이며 public layout 파일을 가리킨다.
+- `views.community_home`처럼 특정 화면용 view는 선택으로 제공할 수 있다.
+- 파일 경로는 모듈 또는 코어가 선언한 allowlist 값이어야 하며 DB에 저장하지 않는다.
+
 ## 15-2. 계약 파일 소비 지도
 
 계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `sr_enabled_module_contract_files()`와 `sr_load_module_contract_file()`로 명시적으로 읽는다.
@@ -954,6 +965,7 @@ return [
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
+| `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
@@ -971,7 +983,7 @@ return [
 | `point` | `paths.php`, `admin-menu.php` | 없음 |
 | `deposit` | `paths.php`, `admin-menu.php` | 없음 |
 | `reward` | `paths.php`, `admin-menu.php` | 없음 |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 
 모듈 메타데이터 작성 기준:
 
@@ -1123,7 +1135,7 @@ return [
 - 화면 소유 모듈은 팝업 전용 호출을 따로 두지 않고 필요한 content slot에서 `sr_render_output_slot()`을 호출한다.
 - 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
 
-번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다. 페이지나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 페이지 모듈의 공개 페이지는 관리자 설정의 `화면` 섹션에서 초기화면 후보로 제공되지만 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
+번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다. 페이지별 공개 레이아웃은 `sr_pages.layout_key`에 저장하고 revision 기록을 위해 `sr_page_revisions.layout_key`에도 함께 남긴다. 페이지나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 페이지 모듈의 공개 페이지는 관리자 설정의 `화면` 섹션에서 초기화면 후보로 제공되지만 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
 
 페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/적립금/예치금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
 

@@ -8,6 +8,45 @@ function sr_community_theme_key(array $settings): string
     return isset(sr_community_theme_options()[$themeKey]) ? $themeKey : 'basic';
 }
 
+function sr_community_layout_default_key(): string
+{
+    return 'community.basic';
+}
+
+function sr_community_layout_key(array $settings, ?array $site = null, ?PDO $pdo = null): string
+{
+    $layoutKey = (string) ($settings['layout_key'] ?? '');
+    if ($layoutKey === '') {
+        $themeKey = sr_community_theme_key($settings);
+        $layoutKey = $themeKey === 'basic' ? sr_community_layout_default_key() : 'community.' . $themeKey;
+    }
+
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    if ($layoutKey === sr_community_layout_default_key()) {
+        return $layoutKey;
+    }
+
+    $options = sr_public_layout_options($pdo);
+    if (isset($options[$layoutKey])) {
+        return $layoutKey;
+    }
+
+    $siteLayoutKey = sr_public_layout_key($site, $pdo);
+    return isset($options[$siteLayoutKey]) ? $siteLayoutKey : sr_public_layout_default_key();
+}
+
+function sr_community_layout_home_view(string $layoutKey, ?PDO $pdo = null): string
+{
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    $options = sr_public_layout_options($pdo);
+    $view = (string) ($options[$layoutKey]['views']['community_home'] ?? '');
+    if ($view !== '' && is_file($view)) {
+        return $view;
+    }
+
+    return sr_community_theme_view('basic', 'home');
+}
+
 function sr_community_theme_options(): array
 {
     return sr_filter_view_options([

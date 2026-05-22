@@ -68,6 +68,7 @@ sr_audit_log($pdo, [
     'metadata' => [
         'slug' => (string) $values['slug'],
         'status' => (string) $values['status'],
+        'layout_key' => (string) ($values['layout_key'] ?? ''),
     ],
 ]);
 

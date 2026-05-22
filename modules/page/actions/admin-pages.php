@@ -29,6 +29,7 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
     ? sr_popup_layer_public_layers($pdo)
     : [];
 $assetModuleOptions = sr_page_asset_module_options($pdo);
+$publicLayoutOptions = sr_public_layout_options($pdo);
 
 if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);

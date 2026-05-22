@@ -12,7 +12,7 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager'])
 $errors = [];
 $notice = '';
 $settings = sr_community_settings($pdo);
-$communityThemeOptions = sr_community_theme_options();
+$communityLayoutOptions = sr_public_layout_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $levels = sr_community_levels($pdo);
 $maxLevel = sr_community_max_level_value();
@@ -44,7 +44,7 @@ if (sr_request_method() === 'POST') {
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
-        $themeKey = sr_post_string('theme_key', 40);
+        $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
@@ -71,9 +71,9 @@ if (sr_request_method() === 'POST') {
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
         }
 
-        if (!isset($communityThemeOptions[$themeKey])) {
-            $errors[] = '커뮤니티 테마 값이 올바르지 않습니다.';
-            $themeKey = 'basic';
+        if (!isset($communityLayoutOptions[$layoutKey])) {
+            $errors[] = '커뮤니티 레이아웃 값이 올바르지 않습니다.';
+            $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
         }
 
         foreach (['post_reward' => '게시글 적립', 'comment_reward' => '댓글 적립', 'write_charge' => '글쓰기 차감', 'comment_charge' => '댓글 차감', 'paid_read' => '유료 열람', 'paid_attachment_download' => '첨부 다운로드 차감'] as $assetPrefix => $assetLabel) {
@@ -125,7 +125,8 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
-                ['theme_key', $themeKey, 'string'],
+                ['theme_key', 'basic', 'string'],
+                ['layout_key', $layoutKey, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
                 ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
@@ -186,7 +187,7 @@ if (sr_request_method() === 'POST') {
                     'access_condition_priority' => $accessConditionPriority,
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
-                    'theme_key' => $themeKey,
+                    'layout_key' => $layoutKey,
                     'asset_settings' => $assetSettings,
                 ],
             ]);
