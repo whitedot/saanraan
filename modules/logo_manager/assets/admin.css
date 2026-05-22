@@ -1,7 +1,7 @@
 .admin-sidebar-brand-logo {
     display: block;
-    max-height: 1.75rem;
-    max-width: 2.5rem;
+    max-height: var(--admin-sidebar-brand-logo-max-height, 2rem);
+    max-width: var(--admin-sidebar-brand-logo-max-width, 9.5rem);
     object-fit: contain;
 }
 

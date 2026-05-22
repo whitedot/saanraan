@@ -24,14 +24,23 @@ if (isset($pdo) && $pdo instanceof PDO) {
 }
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';
+$adminBrandIconUrl = '';
 if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $adminBrandLogoHtml = sr_logo_manager_render_logo($pdo, 'admin_sidebar', $site ?? null, [
         'class' => 'admin-sidebar-brand-logo',
         'alt' => '',
     ]);
+    $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'favicon');
     $adminFaviconHtml = sr_logo_manager_favicon_link_tag($pdo);
 }
+$adminBrandInitialSource = trim((string) ($adminShell['site_title'] ?? ''));
+$adminBrandInitial = $adminBrandInitialSource !== ''
+    ? (function_exists('mb_substr') ? mb_substr($adminBrandInitialSource, 0, 1) : substr($adminBrandInitialSource, 0, 1))
+    : 'S';
+$adminBrandMarkClass = 'admin-sidebar-brand-mark';
+$adminBrandMarkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has-no-sidebar-logo';
+$adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-brand-initial';
 ?>
 <!doctype html>
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_color_scheme($site ?? null)); ?>">
@@ -58,13 +67,20 @@ if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager'
 
         <nav id="gnb" class="admin-sidebar" aria-label="관리자 메뉴">
             <h2 class="admin-sidebar-brand">
-                <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>">
-                    <span class="admin-sidebar-brand-mark">
+                <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>" aria-label="<?php echo sr_e((string) $adminShell['site_title']); ?>">
+                    <span class="<?php echo sr_e($adminBrandMarkClass); ?>">
                         <?php if ($adminBrandLogoHtml !== '') { ?>
-                            <?php echo $adminBrandLogoHtml; ?>
-                        <?php } else { ?>
-                            <?php echo sr_material_icon_html('admin_panel_settings', 'admin-shell-control-icon'); ?>
+                            <span class="admin-sidebar-brand-logo-wrap">
+                                <?php echo $adminBrandLogoHtml; ?>
+                            </span>
                         <?php } ?>
+                        <span class="admin-sidebar-brand-compact" aria-hidden="true">
+                        <?php if ($adminBrandIconUrl !== '') { ?>
+                            <img class="admin-sidebar-brand-icon" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandIconUrl)); ?>" alt="" loading="eager" decoding="async">
+                        <?php } else { ?>
+                            <span class="admin-sidebar-brand-initial"><?php echo sr_e($adminBrandInitial); ?></span>
+                        <?php } ?>
+                        </span>
                     </span>
                     <span class="admin-sidebar-brand-name"><?php echo sr_e((string) $adminShell['site_title']); ?></span>
                 </a>

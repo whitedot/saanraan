@@ -343,7 +343,13 @@ function sr_logo_manager_active_url(PDO $pdo, string $usageKey): string
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
     $url = sr_logo_manager_active_url($pdo, 'favicon');
-    return $url !== '' ? '<link rel="icon" href="' . sr_e(sr_logo_manager_url_for_output($url)) . '">' : '';
+    if ($url === '') {
+        return '';
+    }
+
+    $href = sr_e(sr_logo_manager_url_for_output($url));
+    return '<link rel="icon" href="' . $href . '">' . PHP_EOL
+        . '<link rel="apple-touch-icon" href="' . $href . '">';
 }
 
 function sr_logo_manager_og_image_url(PDO $pdo): string
