@@ -158,6 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php foreach ($modules as $module) { ?>
         <?php $moduleKey = (string) $module['module_key']; ?>
         <?php $moduleModalId = 'module-detail-' . $moduleKey; ?>
+        <?php $moduleStatusModalId = 'module-status-' . $moduleKey; ?>
         <?php $isRequired = in_array($moduleKey, $requiredModules, true); ?>
         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
         <?php $moduleStatus = (string) $module['status']; ?>
@@ -249,25 +250,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </form>
                     </details>
                 <?php } else { ?>
-                    <details class="admin-inline-edit-details">
-                        <summary class="btn btn-sm btn-solid-light"<?php echo $isRequired ? ' aria-disabled="true"' : ''; ?>>상태 변경</summary>
-                        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="status">
-                            <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                            <label for="modules_admin_modules_status_3">
-                                <span>상태</span>
-                                <select id="modules_admin_modules_status_3" name="status"<?php echo $isRequired ? ' disabled' : ''; ?> class="form-select">
-                                    <?php foreach ($allowedStatuses as $status) { ?>
-                                        <option value="<?php echo sr_e($status); ?>"<?php echo $moduleStatus === $status ? ' selected' : ''; ?>>
-                                            <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </label>
-                            <button type="submit" class="btn btn-sm btn-solid-primary"<?php echo $isRequired ? ' disabled' : ''; ?>>저장</button>
-                        </form>
-                    </details>
+                    <button type="button" class="btn btn-sm btn-solid-light"<?php echo $isRequired ? ' disabled aria-disabled="true"' : ''; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleStatusModalId); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
+                        상태 변경
+                    </button>
                 <?php } ?>
             </div>
         </article>
@@ -345,6 +330,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
+        <?php if (!in_array($moduleStatus, ['failed', 'installing'], true)) { ?>
+            <div id="<?php echo sr_e($moduleStatusModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleStatusModalId); ?>-label">
+                <div class="modal-dialog-sm">
+                    <div class="modal-content">
+                        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
+                            <div class="modal-header">
+                                <h3 id="<?php echo sr_e($moduleStatusModalId); ?>-label" class="modal-title">모듈 상태 변경</h3>
+                                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
+                                    <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="status">
+                                <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
+                                <div class="admin-form-row">
+                                    <span class="form-label">모듈</span>
+                                    <div class="admin-form-field">
+                                        <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
+                                        <span class="admin-form-help"><?php echo sr_e($moduleKey); ?></span>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <span class="form-label">현재 상태</span>
+                                    <div class="admin-form-field">
+                                        <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
+                                            <?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <label class="form-label" for="<?php echo sr_e($moduleStatusModalId); ?>-status">변경 상태</label>
+                                    <div class="admin-form-field">
+                                        <select id="<?php echo sr_e($moduleStatusModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
+                                            <?php foreach ($allowedStatuses as $status) { ?>
+                                                <option value="<?php echo sr_e($status); ?>"<?php echo $moduleStatus === $status ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <?php if ($isRequired) { ?>
+                                    <p>기본 필수 모듈은 상태를 변경할 수 없습니다.</p>
+                                <?php } else { ?>
+                                    <p>상태를 비활성화하면 해당 모듈의 공개/관리 기능이 즉시 제한될 수 있습니다.</p>
+                                <?php } ?>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">닫기</button>
+                                <button type="submit" class="btn btn-solid-primary modal-action"<?php echo $isRequired ? ' disabled' : ''; ?>>상태 저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php } ?>
     <?php } ?>
 </div>
 
