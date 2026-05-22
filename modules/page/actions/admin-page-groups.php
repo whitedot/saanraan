@@ -213,7 +213,7 @@ if (sr_request_method() === 'POST') {
     ]);
 
     $_SESSION['sr_page_group_admin_notice'] = $isUpdate ? '페이지 그룹을 저장했습니다.' : '페이지 그룹을 만들었습니다.';
-    sr_redirect('/admin/page-groups/edit?id=' . (string) $savedGroupId);
+    sr_redirect($isUpdate ? '/admin/page-groups/edit?id=' . (string) $savedGroupId : '/admin/page-groups');
 }
 
 $pageGroupFilters = sr_page_admin_group_filters();

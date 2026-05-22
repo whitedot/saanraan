@@ -74,4 +74,4 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_page_admin_notice'] = $pageId > 0 ? '페이지를 저장했습니다.' : '페이지를 만들었습니다.';
-sr_redirect('/admin/pages/edit?id=' . (string) $savedPageId);
+sr_redirect($pageId > 0 ? '/admin/pages/edit?id=' . (string) $savedPageId : '/admin/pages');

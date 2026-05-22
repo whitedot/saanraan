@@ -15,8 +15,9 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $communityBoardGroupsPage = isset($communityBoardGroupsPage) ? (string) $communityBoardGroupsPage : 'list';
 if (!in_array($communityBoardGroupsPage, ['list', 'new', 'edit'], true)) {
     $communityBoardGroupsPage = 'list';
@@ -359,6 +360,11 @@ if (sr_request_method() === 'POST') {
                     'applied_board_count' => $appliedBoardCount,
                 ],
             ]);
+
+            if ($intent === 'create_group') {
+                sr_admin_flash_result(sr_admin_action_result([], $notice));
+                sr_redirect('/admin/community/board-groups');
+            }
         }
     } else {
         $errors[] = '작업 값이 올바르지 않습니다.';

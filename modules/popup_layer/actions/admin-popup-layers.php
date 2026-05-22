@@ -11,8 +11,9 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 if (!in_array($popupLayerAdminPage, ['list', 'form'], true)) {
     $popupLayerAdminPage = 'list';
@@ -84,6 +85,7 @@ if (sr_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'save') {
+        $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);
         $bodyText = sr_popup_layer_clean_text(sr_post_string('body_text', 5000), 5000);
         $status = sr_post_string('status', 30);
@@ -229,6 +231,10 @@ if (sr_request_method() === 'POST') {
                 ]);
 
                 $notice = '팝업을 저장했습니다.';
+                if ($isCreate) {
+                    sr_admin_flash_result(sr_admin_action_result([], $notice));
+                    sr_redirect('/admin/popup-layers');
+                }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();

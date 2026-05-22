@@ -15,8 +15,9 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPage : 'list';
 if (!in_array($communityBoardsPage, ['list', 'new', 'edit'], true)) {
     $communityBoardsPage = 'list';
@@ -475,6 +476,8 @@ if (sr_request_method() === 'POST') {
             }
 
             $notice = '게시판을 만들었습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/community/boards');
         } elseif ($intent === 'update' && $errors === []) {
             $boardIdValue = sr_post_string('board_id', 20);
             $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;

@@ -11,8 +11,9 @@ sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
     $bannerAdminPage = 'list';
@@ -80,6 +81,7 @@ if (sr_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'save') {
+        $isCreate = $bannerId <= 0;
         $title = sr_banner_clean_single_line(sr_post_string('title', 120), 120);
         $bodyText = sr_banner_clean_text(sr_post_string('body_text', 3000), 3000);
         $rawLinkUrl = sr_post_string('link_url', 255);
@@ -271,6 +273,10 @@ if (sr_request_method() === 'POST') {
                 ]);
 
                 $notice = '배너를 저장했습니다.';
+                if ($isCreate) {
+                    sr_admin_flash_result(sr_admin_action_result([], $notice));
+                    sr_redirect('/admin/banners');
+                }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();

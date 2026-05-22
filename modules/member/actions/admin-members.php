@@ -9,8 +9,9 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 $allowedStatuses = sr_admin_member_allowed_statuses();
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
 if (!in_array($memberAdminPage, ['members', 'create_form', 'edit_form'], true)) {
     $memberAdminPage = 'members';
@@ -26,6 +27,10 @@ if (sr_request_method() === 'POST') {
     $postResult = sr_admin_handle_members_post($pdo, $account, $allowedStatuses, is_array($site ?? null) ? $site : []);
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
+    if ($errors === [] && (int) ($postResult['created_account_id'] ?? 0) > 0) {
+        sr_admin_flash_result(sr_admin_action_result([], $notice));
+        sr_redirect('/admin/members');
+    }
     if (isset($postResult['create_values']) && is_array($postResult['create_values'])) {
         $memberCreateValues = $postResult['create_values'];
     }

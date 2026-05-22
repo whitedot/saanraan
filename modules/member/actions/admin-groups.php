@@ -12,8 +12,9 @@ if (!sr_member_groups_table_exists($pdo)) {
     sr_render_error(500, '회원 그룹 테이블이 없습니다. 회원 모듈 업데이트를 먼저 적용하세요.');
 }
 
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
 if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations', 'assignments'], true)) {
     $memberGroupsPage = 'groups';
@@ -94,6 +95,10 @@ if (sr_request_method() === 'POST') {
             ]);
 
             $notice = $groupId > 0 ? '회원 그룹을 수정했습니다.' : '회원 그룹을 만들었습니다.';
+            if ($groupId <= 0) {
+                sr_admin_flash_result(sr_admin_action_result([], $notice));
+                sr_redirect('/admin/member-groups');
+            }
         }
     } elseif ($intent === 'save_rule') {
         $ruleId = sr_admin_post_positive_int('rule_id');
@@ -174,6 +179,10 @@ if (sr_request_method() === 'POST') {
             ]);
 
             $notice = $ruleId > 0 ? '자동 규칙을 수정했습니다.' : '자동 규칙을 만들었습니다.';
+            if ($ruleId <= 0) {
+                sr_admin_flash_result(sr_admin_action_result([], $notice));
+                sr_redirect('/admin/member-group-rules');
+            }
         }
     } elseif ($intent === 'evaluate_account' || $intent === 'evaluate_batch') {
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
