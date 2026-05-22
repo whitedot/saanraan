@@ -421,7 +421,7 @@ body.admin-sidebar-condensed #gnb .admin-nav-item{position:relative}
 body.admin-sidebar-condensed #gnb .admin-nav-trigger-main{justify-content:center;width:100%}
 body.admin-sidebar-condensed #gnb .admin-nav-icon{color:var(--color-default-600)}
 body.admin-sidebar-condensed #gnb .admin-nav-item:hover>.admin-nav-trigger .admin-nav-icon,body.admin-sidebar-condensed #gnb .admin-nav-item:focus-within>.admin-nav-trigger .admin-nav-icon{color:var(--color-primary)}
-body.admin-sidebar-condensed #gnb .admin-nav-panel{z-index:120;opacity:0;visibility:hidden;pointer-events:none;min-width:15rem;margin:0;padding:0;transition:opacity .15s,transform .15s,visibility .15s;position:absolute;top:0;left:calc(100% + .5rem);transform:translate(.35rem);display:block!important}
+body.admin-sidebar-condensed #gnb .admin-nav-panel{z-index:120;opacity:0;visibility:hidden;pointer-events:none;min-width:15rem;margin:0;padding:0 0 0 .5rem;transition:opacity .15s,transform .15s,visibility .15s;position:absolute;top:0;left:100%;transform:translate(.35rem);display:block!important}
 body.admin-sidebar-condensed #gnb .admin-nav-item:hover>.admin-nav-panel,body.admin-sidebar-condensed #gnb .admin-nav-item:focus-within>.admin-nav-panel{opacity:1;visibility:visible;pointer-events:auto;transform:translate(0)}
 body.admin-sidebar-condensed #gnb .admin-nav-panel>.admin-nav-sub-list{border-radius:var(--radius-xl);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);padding:calc(var(--spacing) * 3);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm)}
 body.admin-sidebar-condensed #gnb .admin-nav-sub-item:before,body.admin-sidebar-condensed #gnb .admin-nav-sub-item:after{display:none}
@@ -1019,6 +1019,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 #adminPopupContainer #popupOverlay.hidden,#adminPopupContainer #popupOverlay.is-hidden{display:none!important}
 .admin-sidebar-backdrop.hidden,.admin-toolbar-menu.hidden,.admin-nav-panel.hidden{display:none!important}
+body.admin-sidebar-condensed #gnb .admin-nav-panel.hidden{display:block!important}
 
 /* Text color policy: inherit the stronger body text unless the element is genuinely auxiliary. */
 .admin-content :is(
