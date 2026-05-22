@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 
+require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
@@ -126,6 +127,15 @@ sr_output_helper_assert(
     sr_public_layout_file('common.basic') === $root . '/layouts/public/basic/layout.php'
         && sr_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
     'Common public layout and legacy key should resolve to the layouts directory.'
+);
+$layoutPdo = new PDO('sqlite::memory:');
+$layoutPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$layoutPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
+$layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community', 'enabled')");
+sr_output_helper_assert(
+    sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/themes/basic/home.php',
+    'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
 );
 sr_output_helper_assert(
     sr_color_scheme(['ui_color_scheme' => 'dark']) === 'dark',

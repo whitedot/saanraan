@@ -381,14 +381,14 @@ function sr_public_layout_file(string $layoutKey, ?PDO $pdo = null): string
     return $layoutFile;
 }
 
-function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey): ?string
+function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey, ?PDO $pdo = null): ?string
 {
     if (preg_match('/\A[a-z0-9_]{1,40}\z/', $viewKey) !== 1) {
         return null;
     }
 
     $layoutKey = sr_public_layout_normalize_key($layoutKey);
-    $options = sr_public_layout_options();
+    $options = sr_public_layout_options($pdo);
     if (!isset($options[$layoutKey])) {
         $layoutKey = sr_public_layout_default_key();
     }

@@ -22,4 +22,4 @@ echo json_encode([
         'limit' => 20,
     ]),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-exit;
+sr_finish_response();

@@ -265,6 +265,7 @@ function sr_check_module_contract_files(): void
         'extension-points.php',
         'dashboard.php',
         'member-group-rules.php',
+        'layout-options.php',
         'menu-links.php',
         'output-slots.php',
         'paths.php',
@@ -416,6 +417,13 @@ function sr_check_module_route_conflicts(): void
 
             foreach ($routeOwners as $ownedRoute => $ownedModuleDir) {
                 if (sr_check_module_routes_conflict((string) $ownedRoute, $route)) {
+                    if (
+                        $ownedModuleDir === $moduleDir
+                        && (str_ends_with((string) $ownedRoute, '/*') xor str_ends_with($route, '/*'))
+                    ) {
+                        continue;
+                    }
+
                     sr_check_add_error('Module route conflict: ' . $route . ' in ' . $ownedModuleDir . ' and ' . $moduleDir);
                     continue 2;
                 }

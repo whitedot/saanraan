@@ -268,4 +268,6 @@ if (sr_request_method() === 'POST') {
     $levels = sr_community_levels($pdo);
 }
 
+$settings['layout_key'] = sr_community_layout_key($settings, $site ?? null, $pdo);
+
 include SR_ROOT . '/modules/community/views/admin-settings.php';

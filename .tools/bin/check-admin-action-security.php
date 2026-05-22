@@ -297,10 +297,14 @@ if (!is_string($adminRolesView)) {
 }
 
 $adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
+if (!isset($adminModuleActionsHelper)) {
+    $adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
+}
 if (!is_string($adminSettingsHelper)) {
     $errors[] = 'Admin settings helper cannot be read.';
 } elseif (
-    strpos($adminSettingsHelper, "in_array(\$intent, ['site', 'site_setting', 'delete_site_setting'], true)") === false
+    strpos($adminSettingsHelper, "\$intent = sr_post_string('intent', 40)") === false
+    || strpos($adminSettingsHelper, "\$intent !== 'site'") === false
     || strpos($adminSettingsHelper, '사이트 설정 작업 값이 올바르지 않습니다.') === false
 ) {
     $errors[] = 'Admin settings helper must allowlist site setting intents.';
@@ -308,72 +312,61 @@ if (!is_string($adminSettingsHelper)) {
 if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function sr_admin_sensitive_site_setting_keys') === false
     || strpos($adminSettingsHelper, "'admin.module_sources_enabled' => true") === false
-    || strpos($adminSettingsHelper, 'function sr_admin_site_setting_requires_bool') === false
-    || strpos($adminSettingsHelper, "sr_admin_site_setting_requires_bool(\$settingKey) && \$valueType !== 'bool'") === false
-    || strpos($adminSettingsHelper, '고위험 사이트 설정은 bool 타입으로만 저장할 수 있습니다.') === false
-    || substr_count($adminSettingsHelper, 'sr_admin_site_setting_reauth_errors($pdo, $account, $settingKey,') < 2
-    || strpos($adminSettingsHelper, 'site_setting_reauth') === false
+    || !is_string($adminModuleActionsHelper ?? null)
+    || strpos($adminModuleActionsHelper, 'sr_admin_module_source_reauth_errors($pdo, $account, $intent)') === false
+    || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '0', 'bool')") === false
 )) {
-    $errors[] = 'Admin settings helper must require reauthentication for sensitive site setting changes.';
+    $errors[] = 'Admin settings helper must keep sensitive site toggles narrow and protect module source writes with reauthentication.';
 }
 if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function sr_admin_setting_value_is_secret') === false
     || strpos($adminSettingsHelper, 'function sr_admin_setting_display_value') === false
     || strpos($adminSettingsHelper, 'function sr_admin_setting_value_type_errors') === false
     || strpos($adminSettingsHelper, 'function sr_admin_normalize_setting_value') === false
-    || strpos($adminSettingsHelper, 'function sr_admin_site_setting_value_is_secret') === false
-    || strpos($adminSettingsHelper, 'function sr_admin_site_setting_display_value') === false
-    || strpos($adminSettingsHelper, 'function sr_admin_module_setting_display_value') === false
     || strpos($adminSettingsHelper, 'password|token|secret|credential|bearer') === false
     || strpos($adminSettingsHelper, "'[masked]'") === false
 )) {
-    $errors[] = 'Admin settings helper must mask secret-like setting values before display.';
+    $errors[] = 'Admin settings helper must expose shared secret-like setting masking helpers.';
 }
 if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, "preg_match('/\\A-?\\d+\\z/', \$settingValue)") === false
     || strpos($adminSettingsHelper, 'bool 설정값은 1/0, true/false, yes/no, on/off 중 하나여야 합니다.') === false
     || strpos($adminSettingsHelper, "return in_array(strtolower(\$settingValue), ['1', 'true', 'yes', 'on'], true) ? '1' : '0';") === false
-    || strpos($adminSettingsHelper, 'sr_admin_setting_value_type_errors($settingValue, $valueType)') === false
-    || strpos($adminSettingsHelper, 'sr_admin_normalize_setting_value($settingValue, $valueType)') === false
 )) {
-    $errors[] = 'Admin settings helper must validate and normalize int/bool/json setting values before storage.';
+    $errors[] = 'Admin settings helper must expose typed setting validation and normalization helpers.';
 }
 
 if (!isset($adminModuleActionsHelper)) {
     $adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
 }
 if (is_string($adminModuleActionsHelper) && (
-    strpos($adminModuleActionsHelper, 'function sr_admin_module_setting_reauth_errors') === false
-    || substr_count($adminModuleActionsHelper, 'sr_admin_module_setting_reauth_errors($pdo, $account, $moduleKey, $settingKey,') < 2
-    || strpos($adminModuleActionsHelper, 'sr_admin_setting_value_is_secret($settingKey)') === false
-    || strpos($adminModuleActionsHelper, 'module_setting_reauth') === false
-    || strpos($adminModuleActionsHelper, 'module.setting.reauth_failed') === false
+    strpos($adminModuleActionsHelper, 'function sr_admin_module_source_reauth_errors') === false
+    || strpos($adminModuleActionsHelper, 'module_source_reauth') === false
+    || strpos($adminModuleActionsHelper, 'module.source.reauth_failed') === false
 )) {
-    $errors[] = 'Admin module settings helper must require reauthentication for secret-like setting changes.';
-}
-if (is_string($adminModuleActionsHelper) && (
-    strpos($adminModuleActionsHelper, 'sr_admin_setting_value_type_errors($settingValue, $valueType)') === false
-    || strpos($adminModuleActionsHelper, 'sr_admin_normalize_setting_value($settingValue, $valueType)') === false
-)) {
-    $errors[] = 'Admin module settings helper must validate and normalize typed setting values before storage.';
+    $errors[] = 'Admin module source helper must require reauthentication for source writes.';
 }
 
 $adminSettingsView = file_get_contents($root . '/modules/admin/views/settings.php');
 if (!is_string($adminSettingsView)) {
     $errors[] = 'Admin settings view cannot be read.';
-} elseif (strpos($adminSettingsView, 'sr_admin_site_setting_display_value($setting)') === false) {
-    $errors[] = 'Admin settings view must render site setting values through the masking helper.';
+} elseif (
+    strpos($adminSettingsView, '<input type="hidden" name="intent" value="site">') === false
+    || strpos($adminSettingsView, 'name="public_layout_key"') === false
+    || strpos($adminSettingsView, 'name="admin_skin_key"') === false
+) {
+    $errors[] = 'Admin settings view must expose only the supported site settings form.';
 }
 
 $adminModulesView = file_get_contents($root . '/modules/admin/views/modules.php');
 if (!is_string($adminModulesView)) {
     $errors[] = 'Admin modules view cannot be read.';
 } elseif (
-    strpos($adminModulesView, 'sr_admin_module_setting_display_value($setting)') === false
-    || substr_count($adminModulesView, 'name="owner_password"') < 2
-    || strpos($adminModulesView, 'sr_admin_setting_value_is_secret((string) $setting[\'setting_key\'])') === false
+    substr_count($adminModulesView, 'name="owner_password"') < 2
+    || strpos($adminModulesView, 'name="module_zip"') === false
+    || strpos($adminModulesView, 'name="confirm_file_replace"') === false
 ) {
-    $errors[] = 'Admin modules view must mask module setting values and collect owner reauth for secret-like setting changes.';
+    $errors[] = 'Admin modules view must collect owner reauthentication for module source writes.';
 }
 
 $adminAuditLogsHelper = file_get_contents($root . '/modules/admin/helpers/audit-logs.php');

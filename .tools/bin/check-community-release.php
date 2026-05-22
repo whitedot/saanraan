@@ -372,7 +372,7 @@ sr_community_release_file_contains('modules/community/privacy-export.php', [
     'WHERE author_account_id = :account_id',
     'WHERE uploader_account_id = :account_id',
     'WHERE reporter_account_id = :account_id',
-    'WHERE sender_account_id = :account_id OR recipient_account_id = :account_id',
+    'WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id',
     'WHERE account_id = :account_id',
     'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at',
     'SELECT id, post_id, body_text, status, created_at, updated_at',
@@ -753,7 +753,7 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     'sr_admin_post_int_in_range(\'file_attachment_max_count\', 0, 5)',
     '$maxLevel = sr_community_max_level_value()',
     'sr_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
-    'sr_community_invalid_board_group_keys_from_input($groupKeysInput)',
+    'sr_community_invalid_board_group_keys_from_input_value($groupKeysInput)',
     'sr_community_invalid_file_extensions_from_input($fileAllowedExtensionsInput)',
     '$unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys))',
     '(string) $policyGroupKeys[0] === \'group\' && $policyGroupKeys[1] === []',
@@ -775,6 +775,9 @@ sr_community_release_file_contains('modules/community/helpers/themes.php', [
     "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
     'function sr_community_skin_options(): array',
 ], 'Community theme and skin allowlists');
+sr_community_release_file_contains('modules/community/helpers/levels.php', [
+    "return sr_community_normalize_settings(sr_module_settings(\$pdo, 'community'))",
+], 'Community settings normalization should preserve stored layout keys until site-aware fallback');
 sr_community_release_file_contains('modules/community/helpers/themes.php', [
     'function sr_community_skin_files(): array',
     'function sr_community_skin_options(): array',
@@ -789,6 +792,7 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     'if (!isset($communityLayoutOptions[$layoutKey]))',
     '커뮤니티 레이아웃 값이 올바르지 않습니다.',
     "['layout_key', \$layoutKey, 'string']",
+    "\$settings['layout_key'] = sr_community_layout_key(\$settings, \$site ?? null, \$pdo)",
 ], 'Community admin layout setting policy');
 sr_community_release_file_contains('modules/community/views/admin-settings.php', [
     '<label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>',
@@ -797,7 +801,7 @@ sr_community_release_file_contains('modules/community/views/admin-settings.php',
 ], 'Community admin layout field');
 sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     '<input type="hidden" name="intent" value="update_skin">',
-    '<span class="form-label">게시판 스킨</span>',
+    '<label class="form-label" for="community_admin_boards_skin_key">게시판 스킨</label>',
     '<select name="skin_key" class="form-select">',
     'foreach ($communitySkinOptions as $skinKey => $skinOption)',
 ], 'Community admin board skin field');

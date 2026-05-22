@@ -76,7 +76,7 @@ function sr_community_settings(PDO $pdo): array
     return sr_community_normalize_settings(sr_module_settings($pdo, 'community'));
 }
 
-function sr_community_normalize_settings(array $settings): array
+function sr_community_normalize_settings(array $settings, ?array $site = null, ?PDO $pdo = null): array
 {
     $settings = array_merge(sr_community_default_settings(), $settings);
     $settings['posts_per_page'] = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
@@ -106,7 +106,7 @@ function sr_community_normalize_settings(array $settings): array
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
     $settings['theme_key'] = sr_community_theme_key($settings);
-    $settings['layout_key'] = sr_community_layout_key($settings);
+    $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_module_key((string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));

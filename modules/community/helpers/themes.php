@@ -26,13 +26,19 @@ function sr_community_layout_key(array $settings, ?array $site = null, ?PDO $pdo
         return $layoutKey;
     }
 
-    $options = sr_public_layout_options($pdo);
-    if (isset($options[$layoutKey])) {
-        return $layoutKey;
+    if ($pdo instanceof PDO) {
+        $options = sr_public_layout_options($pdo);
+        if (isset($options[$layoutKey])) {
+            return $layoutKey;
+        }
+
+        $siteLayoutKey = sr_public_layout_key($site, $pdo);
+        return isset($options[$siteLayoutKey]) ? $siteLayoutKey : sr_public_layout_default_key();
     }
 
-    $siteLayoutKey = sr_public_layout_key($site, $pdo);
-    return isset($options[$siteLayoutKey]) ? $siteLayoutKey : sr_public_layout_default_key();
+    return preg_match('/\A[a-z0-9][a-z0-9_]{0,39}\.[a-z0-9][a-z0-9_]{0,39}\z/', $layoutKey) === 1
+        ? $layoutKey
+        : sr_public_layout_default_key();
 }
 
 function sr_community_layout_home_view(string $layoutKey, ?PDO $pdo = null): string

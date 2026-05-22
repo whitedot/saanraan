@@ -155,8 +155,8 @@ $targets = [
             "'admin_skin_key' => \$adminSkinKey",
         ],
         'view_needles' => [
-            '<span class="form-label">관리자 스킨</span>',
-            '<select name="admin_skin_key" class="form-select">',
+            '<label class="form-label" for="admin_settings_admin_skin_key">관리자 스킨</label>',
+            '<select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">',
             'foreach ($adminSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -195,9 +195,9 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<span class="form-label">배너 스킨</span>',
-            '<select name="banner_skin_key" class="form-select">',
-            '<select name="skin_key" class="form-select">',
+            '<label class="form-label" for="banner_admin_banner_settings_banner_skin_key">배너 스킨</label>',
+            '<select id="banner_admin_banner_settings_banner_skin_key" name="banner_skin_key" class="form-select">',
+            '<select id="banner_admin_banners_skin_key" name="skin_key" class="form-select">',
             'foreach ($bannerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -232,10 +232,10 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<span class="form-label">팝업레이어 스킨</span>',
-            '<select name="popup_layer_skin_key" class="form-select">',
-            '<span class="form-label">팝업 스킨</span>',
-            '<select name="skin_key" class="form-select">',
+            '<label class="form-label" for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key">팝업레이어 스킨</label>',
+            '<select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select">',
+            '<label class="form-label" for="popup_layer_admin_popup_layers_skin_key">팝업 스킨</label>',
+            '<select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">',
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -281,8 +281,8 @@ $targets = [
             "['member_skin_key', (string) \$settings['member_skin_key'], 'string']",
         ],
         'view_needles' => [
-            '<span class="form-label">회원 스킨</span>',
-            '<select name="member_skin_key" class="form-select">',
+            '<label class="form-label" for="member_admin_settings_member_skin_key">회원 스킨</label>',
+            '<select id="member_admin_settings_member_skin_key" name="member_skin_key" class="form-select">',
             'foreach (sr_member_skin_options() as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -351,7 +351,7 @@ $targets = [
             "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
         ],
         'view_needles' => [
-            '<span class="form-label">게시판 스킨</span>',
+            '<label class="form-label" for="community_admin_boards_skin_key">게시판 스킨</label>',
             '<input type="hidden" name="intent" value="update_skin">',
             '<select name="skin_key" class="form-select">',
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',
@@ -464,7 +464,7 @@ sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', 
 sr_skin_theme_check_admin_skin_material_icons();
 sr_skin_theme_check_admin_icon_contract_docs();
 
-sr_skin_theme_check_contains('assets/ui-kit.css', [
+sr_skin_theme_check_contains(['assets/common.css', 'modules/admin/assets/common.css'], [
     '.form-checkbox:checked',
     'background-image:url("data:image/svg+xml',
 ], 'Checkbox checked indicator');

@@ -20,7 +20,7 @@ if (!isset($options[$colorScheme])) {
         'ok' => false,
         'errors' => ['UI 색상 모드 값이 올바르지 않습니다.'],
     ], JSON_UNESCAPED_UNICODE);
-    exit;
+    sr_finish_response();
 }
 
 $previousColorScheme = sr_color_scheme($site ?? null);
@@ -52,4 +52,4 @@ echo json_encode([
     'ok' => true,
     'ui_color_scheme' => $colorScheme,
 ], JSON_UNESCAPED_UNICODE);
-exit;
+sr_finish_response();

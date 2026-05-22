@@ -18,4 +18,4 @@ header('Content-Type: application/json; charset=utf-8');
 echo json_encode([
     'items' => sr_admin_member_search_rows($pdo, $runtimeConfig, $field, $keyword, $limit),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-exit;
+sr_finish_response();
