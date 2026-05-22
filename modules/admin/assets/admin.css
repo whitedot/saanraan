@@ -379,6 +379,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-module-card-warning{color:var(--color-warning-hover)!important}
 .admin-module-card-actions{justify-content:flex-end;align-items:center;gap:calc(var(--spacing) * 2);border-top:1px solid var(--color-default-200);padding:calc(var(--spacing) * 4);flex-wrap:wrap;display:flex}
 .admin-module-card-action-note{color:var(--color-default-600);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-semibold)}
+.admin-module-status-dialog{max-width:34rem}
+.admin-module-status-help{margin-top:0;margin-bottom:calc(var(--spacing) * 4)}
 .admin-module-sync-form{gap:calc(var(--spacing) * 2);display:grid}
 .admin-module-sync-form .form-input{width:100%}
 .admin-module-detail-list{grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);gap:calc(var(--spacing) * 3) calc(var(--spacing) * 5);display:grid;margin:0}

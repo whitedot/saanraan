@@ -332,7 +332,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php if (!in_array($moduleStatus, ['failed', 'installing'], true)) { ?>
             <div id="<?php echo sr_e($moduleStatusModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleStatusModalId); ?>-label">
-                <div class="modal-dialog-sm">
+                <div class="modal-dialog-sm admin-module-status-dialog">
                     <div class="modal-content">
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
                             <div class="modal-header">
@@ -342,6 +342,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </button>
                             </div>
                             <div class="modal-body">
+                                <?php if ($isRequired) { ?>
+                                    <p class="admin-form-help admin-module-status-help">기본 필수 모듈은 상태를 변경할 수 없습니다.</p>
+                                <?php } else { ?>
+                                    <p class="admin-form-help admin-module-status-help">상태를 비활성화하면 해당 모듈의 공개/관리 기능이 즉시 제한될 수 있습니다.</p>
+                                <?php } ?>
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="status">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
@@ -372,11 +377,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                                     </div>
                                 </div>
-                                <?php if ($isRequired) { ?>
-                                    <p>기본 필수 모듈은 상태를 변경할 수 없습니다.</p>
-                                <?php } else { ?>
-                                    <p>상태를 비활성화하면 해당 모듈의 공개/관리 기능이 즉시 제한될 수 있습니다.</p>
-                                <?php } ?>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">닫기</button>
