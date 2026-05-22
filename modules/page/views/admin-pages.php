@@ -145,17 +145,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_asset_module">차감 자산</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_asset_module" name="asset_module" class="form-select">
+                    <?php $selectedAccessAssetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
+                    <select id="page_admin_pages_asset_module" name="asset_module[]" class="form-select" multiple>
                                                 <?php if ($assetModuleOptions === []) { ?>
                                                     <option value="">활성 자산 모듈 없음</option>
                                                 <?php } ?>
                                                 <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $selectedAccessAssetModules, true) ? ' selected' : ''; ?>>
                                                         <?php echo sr_e((string) $assetOption['label']); ?>
                                                     </option>
                                                 <?php } ?>
                                             </select>
-                    <p class="admin-form-help">포인트, 적립금, 예치금 모듈 중 활성화된 자산만 사용할 수 있습니다.</p>
+                    <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -210,12 +211,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_asset_action_module">대상 자산</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_asset_action_module" name="asset_action_module" class="form-select">
+                    <?php $selectedActionAssetModules = sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'); ?>
+                    <select id="page_admin_pages_asset_action_module" name="asset_action_module[]" class="form-select" multiple>
                                                 <?php if ($assetModuleOptions === []) { ?>
                                                     <option value="">활성 자산 모듈 없음</option>
                                                 <?php } ?>
                                                 <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($values['asset_action_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $selectedActionAssetModules, true) ? ' selected' : ''; ?>>
                                                         <?php echo sr_e((string) $assetOption['label']); ?>
                                                     </option>
                                                 <?php } ?>
@@ -343,12 +345,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <label for="<?php echo sr_e($pageFileAssetModuleId); ?>">
                                             <span class="sr-only">파일 차감 자산</span>
-                                            <select id="<?php echo sr_e($pageFileAssetModuleId); ?>" name="page_file_asset_module[<?php echo sr_e((string) $fileId); ?>]" class="form-select">
+                                            <?php $selectedFileAssetModules = sr_page_asset_module_keys_from_value($pageFile['asset_module'] ?? 'point'); ?>
+                                            <select id="<?php echo sr_e($pageFileAssetModuleId); ?>" name="page_file_asset_module[<?php echo sr_e((string) $fileId); ?>][]" class="form-select" multiple>
                                                 <?php if ($assetModuleOptions === []) { ?>
                                                     <option value="">활성 자산 모듈 없음</option>
                                                 <?php } ?>
                                                 <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($pageFile['asset_module'] ?? 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $selectedFileAssetModules, true) ? ' selected' : ''; ?>>
                                                         <?php echo sr_e((string) $assetOption['label']); ?>
                                                     </option>
                                                 <?php } ?>
@@ -406,7 +409,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
                                 <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
                             </label>
-                            <select name="new_page_file_asset_module" class="form-select" aria-label="새 파일 차감 자산">
+                            <select name="new_page_file_asset_module[]" class="form-select" aria-label="새 파일 차감 자산" multiple>
                                 <?php if ($assetModuleOptions === []) { ?>
                                     <option value="">활성 자산 모듈 없음</option>
                                 <?php } ?>
@@ -533,7 +536,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>
                                     <?php if ((int) ($page['asset_access_enabled'] ?? 0) === 1) { ?>
-                                        <?php echo sr_e(sr_page_asset_module_label((string) ($page['asset_module'] ?? ''))); ?>
+                                        <?php echo sr_e(sr_page_asset_module_labels((string) ($page['asset_module'] ?? ''))); ?>
                                         <?php echo sr_e(number_format((int) ($page['asset_access_amount'] ?? 0))); ?>
                                         · <?php echo sr_e(sr_page_asset_charge_policies()[(string) ($page['asset_charge_policy'] ?? 'once')] ?? ''); ?>
                                     <?php } else { ?>

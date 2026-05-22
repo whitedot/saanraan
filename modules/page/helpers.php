@@ -145,6 +145,68 @@ function sr_page_asset_module_label(string $assetModule): string
     return isset($options[$assetModule]) ? (string) $options[$assetModule]['label'] : '회원 자산';
 }
 
+function sr_page_asset_deduction_order(): array
+{
+    return ['point', 'reward', 'deposit'];
+}
+
+function sr_page_asset_module_keys_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : preg_split('/[\s,]+/', (string) $value);
+    $selected = [];
+    foreach (is_array($rawValues) ? $rawValues : [] as $rawValue) {
+        $assetModule = sr_page_clean_slug((string) $rawValue);
+        if (isset(sr_page_asset_modules()[$assetModule])) {
+            $selected[$assetModule] = true;
+        }
+    }
+
+    $ordered = [];
+    foreach (sr_page_asset_deduction_order() as $assetModule) {
+        if (isset($selected[$assetModule])) {
+            $ordered[] = $assetModule;
+        }
+    }
+
+    return $ordered !== [] ? $ordered : ['point'];
+}
+
+function sr_page_asset_module_value_from_keys(array $assetModules): string
+{
+    return implode(',', sr_page_asset_module_keys_from_value($assetModules));
+}
+
+function sr_page_asset_module_labels(string $assetModuleValue): string
+{
+    $labels = [];
+    foreach (sr_page_asset_module_keys_from_value($assetModuleValue) as $assetModule) {
+        $labels[] = sr_page_asset_module_label($assetModule);
+    }
+
+    return $labels !== [] ? implode(', ', $labels) : '회원 자산';
+}
+
+function sr_page_asset_modules_available(PDO $pdo, array $assetModules): bool
+{
+    foreach (sr_page_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if (!sr_page_asset_module_is_available($pdo, $assetModule)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function sr_page_asset_combined_balance(PDO $pdo, array $assetModules, int $accountId): int
+{
+    $balance = 0;
+    foreach (sr_page_asset_module_keys_from_value($assetModules) as $assetModule) {
+        $balance += sr_page_asset_balance($pdo, $assetModule, $accountId);
+    }
+
+    return $balance;
+}
+
 function sr_page_reserved_slugs(): array
 {
     return ['account', 'admin', 'api', 'assets', 'community', 'login', 'logout', 'modules', 'pages', 'register'];
@@ -637,10 +699,7 @@ function sr_page_public_display_setting_labels(): array
 
 function sr_page_normalize_asset_values(array $values, bool $coerceInvalid = true): array
 {
-    $assetModule = (string) ($values['asset_module'] ?? 'point');
-    if ($coerceInvalid && !isset(sr_page_asset_modules()[$assetModule])) {
-        $assetModule = 'point';
-    }
+    $assetModule = sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_page_asset_charge_policies()[$chargePolicy])) {
@@ -658,10 +717,7 @@ function sr_page_normalize_asset_values(array $values, bool $coerceInvalid = tru
         $values['asset_charge_policy'] = 'once';
     }
 
-    $actionModule = (string) ($values['asset_action_module'] ?? 'point');
-    if ($coerceInvalid && !isset(sr_page_asset_modules()[$actionModule])) {
-        $actionModule = 'point';
-    }
+    $actionModule = sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'));
 
     $actionDirection = (string) ($values['asset_action_direction'] ?? 'grant');
     if ($coerceInvalid && !isset(sr_page_asset_action_directions()[$actionDirection])) {
@@ -699,11 +755,11 @@ function sr_page_input_values(): array
         'status' => sr_post_string('status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
-        'asset_module' => sr_page_clean_slug(sr_post_string('asset_module', 20)),
+        'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
         'asset_access_amount' => (int) sr_post_string('asset_access_amount', 20),
         'asset_charge_policy' => sr_page_clean_slug(sr_post_string('asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('asset_action_enabled', 1) === '1' ? 1 : 0,
-        'asset_action_module' => sr_page_clean_slug(sr_post_string('asset_action_module', 20)),
+        'asset_action_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['asset_action_module'] ?? '')),
         'asset_action_amount' => (int) sr_post_string('asset_action_amount', 20),
         'asset_action_direction' => sr_page_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_page_clean_single_line(sr_post_string('asset_action_label', 80), 80),
@@ -752,11 +808,11 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     }
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
-        $assetModule = (string) ($values['asset_module'] ?? '');
-        if (!isset(sr_page_asset_modules()[$assetModule])) {
+        $assetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? '');
+        if ($assetModules === []) {
             $errors[] = '유료 열람 자산이 올바르지 않습니다.';
-        } elseif (!sr_page_asset_module_is_available($pdo, $assetModule)) {
-            $errors[] = sr_page_asset_module_label($assetModule) . ' 모듈이 활성 상태일 때만 유료 열람 자산으로 사용할 수 있습니다.';
+        } elseif (!sr_page_asset_modules_available($pdo, $assetModules)) {
+            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 유료 열람 자산으로 사용할 수 있습니다.';
         }
 
         $amount = (int) ($values['asset_access_amount'] ?? 0);
@@ -770,11 +826,11 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     }
 
     if ((int) ($values['asset_action_enabled'] ?? 0) === 1) {
-        $assetModule = (string) ($values['asset_action_module'] ?? '');
-        if (!isset(sr_page_asset_modules()[$assetModule])) {
+        $assetModules = sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? '');
+        if ($assetModules === []) {
             $errors[] = '완료 액션 자산이 올바르지 않습니다.';
-        } elseif (!sr_page_asset_module_is_available($pdo, $assetModule)) {
-            $errors[] = sr_page_asset_module_label($assetModule) . ' 모듈이 활성 상태일 때만 완료 액션 자산으로 사용할 수 있습니다.';
+        } elseif (!sr_page_asset_modules_available($pdo, $assetModules)) {
+            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 완료 액션 자산으로 사용할 수 있습니다.';
         }
 
         $amount = (int) ($values['asset_action_amount'] ?? 0);
@@ -1114,10 +1170,7 @@ function sr_page_published_file_by_id(PDO $pdo, int $fileId): ?array
 
 function sr_page_normalize_file_asset_values(array $values, bool $coerceInvalid = true): array
 {
-    $assetModule = (string) ($values['asset_module'] ?? 'point');
-    if ($coerceInvalid && !isset(sr_page_asset_modules()[$assetModule])) {
-        $assetModule = 'point';
-    }
+    $assetModule = sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_page_asset_download_charge_policies()[$chargePolicy])) {
@@ -1145,11 +1198,11 @@ function sr_page_file_asset_validation_errors(PDO $pdo, array $values, string $l
         return [];
     }
 
-    $assetModule = (string) ($values['asset_module'] ?? '');
-    if (!isset(sr_page_asset_modules()[$assetModule])) {
+    $assetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? '');
+    if ($assetModules === []) {
         $errors[] = $labelPrefix . ' 자산이 올바르지 않습니다.';
-    } elseif (!sr_page_asset_module_is_available($pdo, $assetModule)) {
-        $errors[] = sr_page_asset_module_label($assetModule) . ' 모듈이 활성 상태일 때만 ' . $labelPrefix . ' 자산으로 사용할 수 있습니다.';
+    } elseif (!sr_page_asset_modules_available($pdo, $assetModules)) {
+        $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 ' . $labelPrefix . ' 자산으로 사용할 수 있습니다.';
     }
 
     $amount = (int) ($values['asset_download_amount'] ?? 0);
@@ -1216,7 +1269,7 @@ function sr_page_file_values_from_post(int $fileId): array
     return sr_page_normalize_file_asset_values([
         'title' => sr_page_clean_single_line((string) ($titleValues[$fileId] ?? ''), 160),
         'asset_download_enabled' => (string) ($enabledValues[$fileId] ?? '') === '1' ? 1 : 0,
-        'asset_module' => sr_page_clean_slug((string) ($moduleValues[$fileId] ?? '')),
+        'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($moduleValues[$fileId] ?? '')),
         'asset_download_amount' => (int) ($amountValues[$fileId] ?? 0),
         'asset_charge_policy' => sr_page_clean_slug((string) ($policyValues[$fileId] ?? '')),
     ], false);
@@ -1227,7 +1280,7 @@ function sr_page_new_file_values_from_post(): array
     return sr_page_normalize_file_asset_values([
         'title' => sr_page_clean_single_line(sr_post_string('new_page_file_title', 160), 160),
         'asset_download_enabled' => sr_post_string('new_page_file_asset_download_enabled', 1) === '1' ? 1 : 0,
-        'asset_module' => sr_page_clean_slug(sr_post_string('new_page_file_asset_module', 20)),
+        'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['new_page_file_asset_module'] ?? '')),
         'asset_download_amount' => (int) sr_post_string('new_page_file_asset_download_amount', 20),
         'asset_charge_policy' => sr_page_clean_slug(sr_post_string('new_page_file_asset_charge_policy', 20)),
     ], false);
@@ -1407,6 +1460,17 @@ function sr_page_has_paid_access(PDO $pdo, string $assetModule, int $accountId, 
     return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
 }
 
+function sr_page_has_paid_access_for_modules(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind = 'view'): bool
+{
+    foreach (sr_page_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if (sr_page_has_paid_access($pdo, $assetModule, $accountId, $subjectId, $accessKind)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function sr_page_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
 {
     if (!sr_page_asset_module_is_available($pdo, $assetModule)) {
@@ -1429,6 +1493,33 @@ function sr_page_create_asset_transaction(PDO $pdo, string $assetModule, array $
     $transactionFunction = (string) $option['transaction_function'];
 
     return (int) $transactionFunction($pdo, $data);
+}
+
+function sr_page_allocate_asset_use(PDO $pdo, array $assetModules, int $accountId, int $amount): array
+{
+    $remaining = max(0, $amount);
+    $allocations = [];
+    foreach (sr_page_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if ($remaining <= 0) {
+            break;
+        }
+
+        $balance = sr_page_asset_balance($pdo, $assetModule, $accountId);
+        if ($balance <= 0) {
+            continue;
+        }
+
+        $useAmount = min($balance, $remaining);
+        if ($useAmount > 0) {
+            $allocations[] = [
+                'asset_module' => $assetModule,
+                'amount' => $useAmount,
+            ];
+            $remaining -= $useAmount;
+        }
+    }
+
+    return $remaining === 0 ? $allocations : [];
 }
 
 function sr_page_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'page.view', ?string $referenceId = null, string $accessKind = 'view'): bool
@@ -1481,7 +1572,8 @@ function sr_page_delete_asset_access_placeholder(PDO $pdo, string $dedupeKey): v
 function sr_page_charge_view_access(PDO $pdo, array $page, int $accountId): array
 {
     $pageId = (int) ($page['id'] ?? 0);
-    $assetModule = (string) ($page['asset_module'] ?? '');
+    $assetModules = sr_page_asset_module_keys_from_value($page['asset_module'] ?? '');
+    $assetModuleValue = sr_page_asset_module_value_from_keys($assetModules);
     $chargePolicy = (string) ($page['asset_charge_policy'] ?? 'once');
     $amount = (int) ($page['asset_access_amount'] ?? 0);
 
@@ -1489,81 +1581,81 @@ function sr_page_charge_view_access(PDO $pdo, array $page, int $accountId): arra
         return ['allowed' => true, 'charged' => false, 'message' => ''];
     }
 
-    if (!isset(sr_page_asset_modules()[$assetModule]) || !isset(sr_page_asset_view_charge_policies()[$chargePolicy])) {
+    if ($assetModules === [] || !isset(sr_page_asset_view_charge_policies()[$chargePolicy])) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '페이지 유료 열람 설정이 올바르지 않아 열람할 수 없습니다.',
         ];
     }
 
-    if (!sr_page_asset_module_is_available($pdo, $assetModule)) {
+    if (!sr_page_asset_modules_available($pdo, $assetModules)) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 모듈을 사용할 수 없어 페이지를 열람할 수 없습니다.',
+            'message' => '선택한 자산 모듈을 모두 사용할 수 없어 페이지를 열람할 수 없습니다.',
         ];
     }
 
-    if ($chargePolicy === 'once' && sr_page_has_paid_access($pdo, $assetModule, $accountId, $pageId)) {
+    if ($chargePolicy === 'once' && sr_page_has_paid_access_for_modules($pdo, $assetModules, $accountId, $pageId)) {
         return [
             'allowed' => true,
             'charged' => false,
             'already_paid' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '',
         ];
     }
 
-    if (sr_page_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+    $allocations = sr_page_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    if ($allocations === []) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 잔액이 부족해 페이지를 열람할 수 없습니다.',
+            'message' => '선택한 자산의 합산 잔액이 부족해 페이지를 열람할 수 없습니다.',
         ];
     }
 
-    $assetOption = sr_page_asset_modules()[$assetModule];
-    $dedupeKey = $chargePolicy === 'once'
-        ? sr_page_asset_access_dedupe_key($assetModule, $accountId, $pageId)
-        : 'page.view:' . $assetModule . ':' . (string) $accountId . ':' . (string) $pageId . ':' . bin2hex(random_bytes(8));
-    $inserted = sr_page_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $amount, $chargePolicy, $dedupeKey);
-    if (!$inserted) {
-        return [
-            'allowed' => sr_page_has_paid_access($pdo, $assetModule, $accountId, $pageId),
-            'charged' => false,
-            'already_paid' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
-            'amount' => $amount,
-            'message' => '',
-        ];
-    }
-
+    $dedupeKey = '';
     try {
-        $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
-            'account_id' => $accountId,
-            'amount' => -$amount,
-            'transaction_type' => (string) ($assetOption['use_type'] ?? 'use'),
-            'reason' => '페이지 열람',
-            'reference_type' => 'page.view',
-            'reference_id' => sr_page_asset_access_reference_id($pageId),
-            'created_by_account_id' => null,
-        ]);
-        sr_page_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+        foreach ($allocations as $allocation) {
+            $assetModule = (string) $allocation['asset_module'];
+            $allocatedAmount = (int) $allocation['amount'];
+            $assetOption = sr_page_asset_modules()[$assetModule];
+            $dedupeKey = $chargePolicy === 'once'
+                ? sr_page_asset_access_dedupe_key($assetModule, $accountId, $pageId)
+                : 'page.view:' . $assetModule . ':' . (string) $accountId . ':' . (string) $pageId . ':' . bin2hex(random_bytes(8));
+            $inserted = sr_page_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey);
+            if (!$inserted) {
+                continue;
+            }
+
+            $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
+                'account_id' => $accountId,
+                'amount' => -$allocatedAmount,
+                'transaction_type' => (string) ($assetOption['use_type'] ?? 'use'),
+                'reason' => '페이지 열람',
+                'reference_type' => 'page.view',
+                'reference_id' => sr_page_asset_access_reference_id($pageId),
+                'created_by_account_id' => null,
+            ]);
+            sr_page_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+        }
     } catch (Throwable $exception) {
-        sr_page_delete_asset_access_placeholder($pdo, $dedupeKey);
+        if ($dedupeKey !== '') {
+            sr_page_delete_asset_access_placeholder($pdo, $dedupeKey);
+        }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'page_asset_access_charge_failed');
         }
@@ -1571,18 +1663,18 @@ function sr_page_charge_view_access(PDO $pdo, array $page, int $accountId): arra
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 차감에 실패해 페이지를 열람할 수 없습니다.',
+            'message' => '회원 자산 차감에 실패해 페이지를 열람할 수 없습니다.',
         ];
     }
 
     return [
         'allowed' => true,
         'charged' => true,
-        'asset_module' => $assetModule,
-        'asset_label' => sr_page_asset_module_label($assetModule),
+        'asset_module' => $assetModuleValue,
+        'asset_label' => sr_page_asset_module_labels($assetModuleValue),
         'amount' => $amount,
         'message' => '',
     ];
@@ -1598,7 +1690,8 @@ function sr_page_charge_file_download(PDO $pdo, array $file, int $accountId): ar
 {
     $pageId = (int) ($file['page_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
-    $assetModule = (string) ($file['asset_module'] ?? '');
+    $assetModules = sr_page_asset_module_keys_from_value($file['asset_module'] ?? '');
+    $assetModuleValue = sr_page_asset_module_value_from_keys($assetModules);
     $chargePolicy = (string) ($file['asset_charge_policy'] ?? 'once');
     $amount = (int) ($file['asset_download_amount'] ?? 0);
 
@@ -1606,81 +1699,81 @@ function sr_page_charge_file_download(PDO $pdo, array $file, int $accountId): ar
         return ['allowed' => true, 'charged' => false, 'message' => ''];
     }
 
-    if (!isset(sr_page_asset_modules()[$assetModule]) || !isset(sr_page_asset_download_charge_policies()[$chargePolicy])) {
+    if ($assetModules === [] || !isset(sr_page_asset_download_charge_policies()[$chargePolicy])) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '페이지 파일 다운로드 설정이 올바르지 않아 다운로드할 수 없습니다.',
         ];
     }
 
-    if (!sr_page_asset_module_is_available($pdo, $assetModule)) {
+    if (!sr_page_asset_modules_available($pdo, $assetModules)) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 모듈을 사용할 수 없어 파일을 다운로드할 수 없습니다.',
+            'message' => '선택한 자산 모듈을 모두 사용할 수 없어 파일을 다운로드할 수 없습니다.',
         ];
     }
 
-    if ($chargePolicy === 'once' && sr_page_has_paid_access($pdo, $assetModule, $accountId, $fileId, 'download')) {
+    if ($chargePolicy === 'once' && sr_page_has_paid_access_for_modules($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return [
             'allowed' => true,
             'charged' => false,
             'already_paid' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '',
         ];
     }
 
-    if (sr_page_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+    $allocations = sr_page_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    if ($allocations === []) {
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 잔액이 부족해 파일을 다운로드할 수 없습니다.',
+            'message' => '선택한 자산의 합산 잔액이 부족해 파일을 다운로드할 수 없습니다.',
         ];
     }
 
-    $assetOption = sr_page_asset_modules()[$assetModule];
-    $dedupeKey = $chargePolicy === 'once'
-        ? sr_page_asset_access_dedupe_key($assetModule, $accountId, $fileId, 'download')
-        : 'page.download:' . $assetModule . ':' . (string) $accountId . ':' . (string) $fileId . ':' . bin2hex(random_bytes(8));
-    $inserted = sr_page_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $amount, $chargePolicy, $dedupeKey, 'page.download', (string) $fileId, 'download');
-    if (!$inserted) {
-        return [
-            'allowed' => sr_page_has_paid_access($pdo, $assetModule, $accountId, $fileId, 'download'),
-            'charged' => false,
-            'already_paid' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
-            'amount' => $amount,
-            'message' => '',
-        ];
-    }
-
+    $dedupeKey = '';
     try {
-        $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
-            'account_id' => $accountId,
-            'amount' => -$amount,
-            'transaction_type' => (string) ($assetOption['use_type'] ?? 'use'),
-            'reason' => '페이지 파일 다운로드',
-            'reference_type' => 'page.download',
-            'reference_id' => (string) $fileId,
-            'created_by_account_id' => null,
-        ]);
-        sr_page_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+        foreach ($allocations as $allocation) {
+            $assetModule = (string) $allocation['asset_module'];
+            $allocatedAmount = (int) $allocation['amount'];
+            $assetOption = sr_page_asset_modules()[$assetModule];
+            $dedupeKey = $chargePolicy === 'once'
+                ? sr_page_asset_access_dedupe_key($assetModule, $accountId, $fileId, 'download')
+                : 'page.download:' . $assetModule . ':' . (string) $accountId . ':' . (string) $fileId . ':' . bin2hex(random_bytes(8));
+            $inserted = sr_page_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'page.download', (string) $fileId, 'download');
+            if (!$inserted) {
+                continue;
+            }
+
+            $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
+                'account_id' => $accountId,
+                'amount' => -$allocatedAmount,
+                'transaction_type' => (string) ($assetOption['use_type'] ?? 'use'),
+                'reason' => '페이지 파일 다운로드',
+                'reference_type' => 'page.download',
+                'reference_id' => (string) $fileId,
+                'created_by_account_id' => null,
+            ]);
+            sr_page_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+        }
     } catch (Throwable $exception) {
-        sr_page_delete_asset_access_placeholder($pdo, $dedupeKey);
+        if ($dedupeKey !== '') {
+            sr_page_delete_asset_access_placeholder($pdo, $dedupeKey);
+        }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'page_file_download_charge_failed');
         }
@@ -1688,18 +1781,18 @@ function sr_page_charge_file_download(PDO $pdo, array $file, int $accountId): ar
         return [
             'allowed' => false,
             'charged' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 차감에 실패해 파일을 다운로드할 수 없습니다.',
+            'message' => '회원 자산 차감에 실패해 파일을 다운로드할 수 없습니다.',
         ];
     }
 
     return [
         'allowed' => true,
         'charged' => true,
-        'asset_module' => $assetModule,
-        'asset_label' => sr_page_asset_module_label($assetModule),
+        'asset_module' => $assetModuleValue,
+        'asset_label' => sr_page_asset_module_labels($assetModuleValue),
         'amount' => $amount,
         'message' => '',
     ];
@@ -1735,6 +1828,17 @@ function sr_page_has_completed_asset_action(PDO $pdo, string $assetModule, int $
     $log = sr_page_asset_action_log($pdo, sr_page_asset_action_dedupe_key($assetModule, $accountId, $pageId));
 
     return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
+}
+
+function sr_page_has_completed_asset_action_for_modules(PDO $pdo, array $assetModules, int $accountId, int $pageId): bool
+{
+    foreach (sr_page_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if (sr_page_has_completed_asset_action($pdo, $assetModule, $accountId, $pageId)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function sr_page_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey): bool
@@ -1787,7 +1891,8 @@ function sr_page_delete_asset_action_placeholder(PDO $pdo, string $dedupeKey): v
 function sr_page_run_asset_action(PDO $pdo, array $page, int $accountId): array
 {
     $pageId = (int) ($page['id'] ?? 0);
-    $assetModule = (string) ($page['asset_action_module'] ?? '');
+    $assetModules = sr_page_asset_module_keys_from_value($page['asset_action_module'] ?? '');
+    $assetModuleValue = sr_page_asset_module_value_from_keys($assetModules);
     $direction = (string) ($page['asset_action_direction'] ?? 'grant');
     $amount = (int) ($page['asset_action_amount'] ?? 0);
 
@@ -1795,77 +1900,78 @@ function sr_page_run_asset_action(PDO $pdo, array $page, int $accountId): array
         return ['allowed' => false, 'completed' => false, 'message' => '완료 액션을 사용할 수 없습니다.'];
     }
 
-    if (!isset(sr_page_asset_modules()[$assetModule]) || !isset(sr_page_asset_action_directions()[$direction])) {
+    if ($assetModules === [] || !isset(sr_page_asset_action_directions()[$direction])) {
         return ['allowed' => false, 'completed' => false, 'message' => '페이지 완료 액션 설정이 올바르지 않습니다.'];
     }
 
-    if (!sr_page_asset_module_is_available($pdo, $assetModule)) {
+    if (!sr_page_asset_modules_available($pdo, $assetModules)) {
         return [
             'allowed' => false,
             'completed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 모듈을 사용할 수 없어 완료 처리할 수 없습니다.',
+            'message' => '선택한 자산 모듈을 모두 사용할 수 없어 완료 처리할 수 없습니다.',
         ];
     }
 
-    if (sr_page_has_completed_asset_action($pdo, $assetModule, $accountId, $pageId)) {
+    if (sr_page_has_completed_asset_action_for_modules($pdo, $assetModules, $accountId, $pageId)) {
         return [
             'allowed' => true,
             'completed' => false,
             'already_completed' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '이미 완료 처리되었습니다.',
         ];
     }
 
-    if ($direction === 'use' && sr_page_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+    $allocations = $direction === 'use'
+        ? sr_page_allocate_asset_use($pdo, $assetModules, $accountId, $amount)
+        : [['asset_module' => $assetModules[0], 'amount' => $amount]];
+    if ($direction === 'use' && $allocations === []) {
         return [
             'allowed' => false,
             'completed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 잔액이 부족해 완료 처리할 수 없습니다.',
+            'message' => '선택한 자산의 합산 잔액이 부족해 완료 처리할 수 없습니다.',
         ];
     }
 
-    $dedupeKey = sr_page_asset_action_dedupe_key($assetModule, $accountId, $pageId);
-    $inserted = sr_page_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $amount, $dedupeKey);
-    if (!$inserted) {
-        return [
-            'allowed' => sr_page_has_completed_asset_action($pdo, $assetModule, $accountId, $pageId),
-            'completed' => false,
-            'already_completed' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
-            'amount' => $amount,
-            'message' => '이미 완료 처리되었습니다.',
-        ];
-    }
-
-    $assetOption = sr_page_asset_modules()[$assetModule];
-    $signedAmount = $direction === 'grant' ? $amount : -$amount;
-    $transactionType = $direction === 'grant'
-        ? (string) ($assetOption['credit_type'] ?? 'grant')
-        : (string) ($assetOption['use_type'] ?? 'use');
-
+    $dedupeKey = '';
     try {
-        $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
-            'account_id' => $accountId,
-            'amount' => $signedAmount,
-            'transaction_type' => $transactionType,
-            'reason' => '페이지 완료 액션',
-            'reference_type' => 'page.action',
-            'reference_id' => (string) $pageId,
-            'created_by_account_id' => null,
-        ]);
-        sr_page_update_asset_action_transaction($pdo, $dedupeKey, $transactionId);
+        foreach ($allocations as $allocation) {
+            $assetModule = (string) $allocation['asset_module'];
+            $allocatedAmount = (int) $allocation['amount'];
+            $dedupeKey = sr_page_asset_action_dedupe_key($assetModule, $accountId, $pageId);
+            $inserted = sr_page_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey);
+            if (!$inserted) {
+                continue;
+            }
+
+            $assetOption = sr_page_asset_modules()[$assetModule];
+            $signedAmount = $direction === 'grant' ? $allocatedAmount : -$allocatedAmount;
+            $transactionType = $direction === 'grant'
+                ? (string) ($assetOption['credit_type'] ?? 'grant')
+                : (string) ($assetOption['use_type'] ?? 'use');
+            $transactionId = sr_page_create_asset_transaction($pdo, $assetModule, [
+                'account_id' => $accountId,
+                'amount' => $signedAmount,
+                'transaction_type' => $transactionType,
+                'reason' => '페이지 완료 액션',
+                'reference_type' => 'page.action',
+                'reference_id' => (string) $pageId,
+                'created_by_account_id' => null,
+            ]);
+            sr_page_update_asset_action_transaction($pdo, $dedupeKey, $transactionId);
+        }
     } catch (Throwable $exception) {
-        sr_page_delete_asset_action_placeholder($pdo, $dedupeKey);
+        if ($dedupeKey !== '') {
+            sr_page_delete_asset_action_placeholder($pdo, $dedupeKey);
+        }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'page_asset_action_failed');
         }
@@ -1873,18 +1979,18 @@ function sr_page_run_asset_action(PDO $pdo, array $page, int $accountId): array
         return [
             'allowed' => false,
             'completed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_page_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_page_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_page_asset_module_label($assetModule) . ' 처리에 실패했습니다.',
+            'message' => '회원 자산 처리에 실패했습니다.',
         ];
     }
 
     return [
         'allowed' => true,
         'completed' => true,
-        'asset_module' => $assetModule,
-        'asset_label' => sr_page_asset_module_label($assetModule),
+        'asset_module' => $assetModuleValue,
+        'asset_label' => sr_page_asset_module_labels($assetModuleValue),
         'amount' => $amount,
         'direction' => $direction,
         'message' => '',

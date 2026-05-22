@@ -66,7 +66,7 @@ if (is_array($postBoard)) {
         }
         sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         if (!empty($paidReadResult['processed'])) {
-            $assetReadNotices[] = sr_community_asset_module_label((string) $paidReadConfig['asset_module']) . ' ' . number_format((int) $paidReadConfig['amount']) . '을(를) 차감했습니다.';
+            $assetReadNotices[] = sr_community_asset_module_labels((string) $paidReadConfig['asset_module']) . ' ' . number_format((int) $paidReadConfig['amount']) . '을(를) 차감했습니다.';
         }
     }
 }

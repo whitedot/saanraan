@@ -90,6 +90,68 @@ function sr_community_asset_module_key(string $value): string
     return isset(sr_community_asset_modules()[$value]) ? $value : 'point';
 }
 
+function sr_community_asset_composite_prefixes(): array
+{
+    return ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
+}
+
+function sr_community_asset_prefix_uses_composite(string $prefix): bool
+{
+    return in_array($prefix, sr_community_asset_composite_prefixes(), true);
+}
+
+function sr_community_asset_deduction_order(): array
+{
+    return ['point', 'reward', 'deposit'];
+}
+
+function sr_community_asset_module_keys_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : preg_split('/[\s,]+/', (string) $value);
+    $selected = [];
+    foreach (is_array($rawValues) ? $rawValues : [] as $rawValue) {
+        $assetModule = strtolower(trim((string) $rawValue));
+        if (isset(sr_community_asset_modules()[$assetModule])) {
+            $selected[$assetModule] = true;
+        }
+    }
+
+    $ordered = [];
+    foreach (sr_community_asset_deduction_order() as $assetModule) {
+        if (isset($selected[$assetModule])) {
+            $ordered[] = $assetModule;
+        }
+    }
+
+    return $ordered !== [] ? $ordered : ['point'];
+}
+
+function sr_community_asset_module_value_from_keys(array $assetModules): string
+{
+    return implode(',', sr_community_asset_module_keys_from_value($assetModules));
+}
+
+function sr_community_asset_module_labels(string $assetModuleValue): string
+{
+    $labels = [];
+    foreach (sr_community_asset_module_keys_from_value($assetModuleValue) as $assetModule) {
+        $labels[] = sr_community_asset_module_label($assetModule);
+    }
+
+    return $labels !== [] ? implode(', ', $labels) : '회원 자산';
+}
+
+function sr_community_asset_modules_available(PDO $pdo, array $assetModules): bool
+{
+    foreach (sr_community_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function sr_community_asset_charge_policy(string $value, string $fallback = 'once'): string
 {
     return isset(sr_community_asset_charge_policies()[$value]) ? $value : $fallback;
@@ -148,6 +210,43 @@ function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountI
     return (int) $balanceFunction($pdo, $accountId);
 }
 
+function sr_community_asset_combined_balance(PDO $pdo, array $assetModules, int $accountId): int
+{
+    $balance = 0;
+    foreach (sr_community_asset_module_keys_from_value($assetModules) as $assetModule) {
+        $balance += sr_community_asset_balance($pdo, $assetModule, $accountId);
+    }
+
+    return $balance;
+}
+
+function sr_community_allocate_asset_use(PDO $pdo, array $assetModules, int $accountId, int $amount): array
+{
+    $remaining = max(0, $amount);
+    $allocations = [];
+    foreach (sr_community_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if ($remaining <= 0) {
+            break;
+        }
+
+        $balance = sr_community_asset_balance($pdo, $assetModule, $accountId);
+        if ($balance <= 0) {
+            continue;
+        }
+
+        $useAmount = min($balance, $remaining);
+        if ($useAmount > 0) {
+            $allocations[] = [
+                'asset_module' => $assetModule,
+                'amount' => $useAmount,
+            ];
+            $remaining -= $useAmount;
+        }
+    }
+
+    return $remaining === 0 ? $allocations : [];
+}
+
 function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, array $data): int
 {
     if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
@@ -186,13 +285,17 @@ function sr_community_asset_amount_config(PDO $pdo, array $board, array $setting
 function sr_community_asset_event_config(PDO $pdo, array $board, array $settings, string $prefix, string $defaultPolicy = 'once'): array
 {
     $enabled = sr_community_asset_bool_config($pdo, $board, $settings, $prefix . '_enabled');
-    $assetModule = sr_community_asset_module_key(sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_asset_module', 'point'));
+    $assetModuleValue = sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_asset_module', 'point');
+    $assetModule = sr_community_asset_prefix_uses_composite($prefix)
+        ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($assetModuleValue))
+        : sr_community_asset_module_key((string) $assetModuleValue);
     $amount = sr_community_asset_amount_config($pdo, $board, $settings, $prefix . '_amount');
     $policy = sr_community_asset_charge_policy(sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_charge_policy', $defaultPolicy), $defaultPolicy);
 
     return [
         'enabled' => $enabled,
         'asset_module' => $assetModule,
+        'asset_modules' => sr_community_asset_module_keys_from_value($assetModule),
         'amount' => $amount,
         'charge_policy' => $policy,
     ];
@@ -264,6 +367,17 @@ function sr_community_has_asset_event(PDO $pdo, string $assetModule, int $accoun
     return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
 }
 
+function sr_community_has_asset_event_for_modules(PDO $pdo, array $assetModules, int $accountId, string $eventKey, int $subjectId): bool
+{
+    foreach (sr_community_asset_module_keys_from_value($assetModules) as $assetModule) {
+        if (sr_community_has_asset_event($pdo, $assetModule, $accountId, $eventKey, $subjectId)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
     $stmt = $pdo->prepare(
@@ -315,96 +429,100 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
 
 function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
 {
-    $assetModule = (string) ($config['asset_module'] ?? '');
+    $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '');
+    $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules);
     $amount = (int) ($config['amount'] ?? 0);
     $chargePolicy = (string) ($config['charge_policy'] ?? 'once');
 
-    if ($accountId <= 0 || $subjectId <= 0 || $amount <= 0 || !isset(sr_community_asset_modules()[$assetModule])) {
+    if ($accountId <= 0 || $subjectId <= 0 || $amount <= 0 || $assetModules === []) {
         return ['allowed' => true, 'processed' => false, 'message' => ''];
     }
 
-    if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
+    if (!sr_community_asset_modules_available($pdo, $assetModules)) {
         return [
             'allowed' => false,
             'processed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_community_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_community_asset_module_label($assetModule) . ' 모듈을 사용할 수 없습니다.',
+            'message' => '선택한 자산 모듈을 모두 사용할 수 없습니다.',
         ];
     }
 
     $once = in_array($chargePolicy, ['once'], true) || in_array($direction, ['grant', 'refund'], true);
-    if ($once && sr_community_has_asset_event($pdo, $assetModule, $accountId, $eventKey, $subjectId)) {
+    if ($once && sr_community_has_asset_event_for_modules($pdo, $assetModules, $accountId, $eventKey, $subjectId)) {
         return [
             'allowed' => true,
             'processed' => false,
             'already_processed' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_community_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
             'message' => '',
         ];
     }
 
-    if ($direction === 'use' && sr_community_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+    $allocations = $direction === 'use'
+        ? sr_community_allocate_asset_use($pdo, $assetModules, $accountId, $amount)
+        : [['asset_module' => $assetModules[0], 'amount' => $amount]];
+    if ($direction === 'use' && $allocations === []) {
         return [
             'allowed' => false,
             'processed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_community_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_community_asset_module_label($assetModule) . ' 잔액이 부족합니다.',
+            'message' => '선택한 자산의 합산 잔액이 부족합니다.',
         ];
     }
 
-    $module = sr_community_asset_modules()[$assetModule];
-    $dedupeKey = $once
-        ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
-        : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
-    $inserted = sr_community_insert_asset_log_placeholder($pdo, [
-        'account_id' => $accountId,
-        'asset_module' => $assetModule,
-        'reference_type' => $subjectType,
-        'reference_id' => (string) $subjectId,
-        'subject_type' => $subjectType,
-        'subject_id' => $subjectId,
-        'event_key' => $eventKey,
-        'direction' => $direction,
-        'charge_policy' => $chargePolicy,
-        'amount' => $amount,
-        'dedupe_key' => $dedupeKey,
-    ]);
-    if (!$inserted) {
-        return [
-            'allowed' => true,
-            'processed' => false,
-            'already_processed' => true,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_community_asset_module_label($assetModule),
-            'amount' => $amount,
-            'message' => '',
-        ];
-    }
-
-    $signedAmount = $direction === 'use' ? -$amount : $amount;
-    $transactionType = $direction === 'use'
-        ? (string) ($module['use_type'] ?? 'use')
-        : ($direction === 'refund' ? (string) ($module['refund_type'] ?? 'refund') : (string) ($module['credit_type'] ?? 'grant'));
-
+    $processed = false;
+    $dedupeKey = '';
     try {
-        $transactionId = sr_community_create_asset_transaction($pdo, $assetModule, [
-            'account_id' => $accountId,
-            'amount' => $signedAmount,
-            'transaction_type' => $transactionType,
-            'reason' => $reason,
-            'reference_type' => $subjectType,
-            'reference_id' => (string) $subjectId,
-            'created_by_account_id' => null,
-        ]);
-        sr_community_update_asset_log_transaction($pdo, $dedupeKey, $transactionId);
+        foreach ($allocations as $allocation) {
+            $assetModule = (string) $allocation['asset_module'];
+            $allocatedAmount = (int) $allocation['amount'];
+            $module = sr_community_asset_modules()[$assetModule];
+            $dedupeKey = $once
+                ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
+                : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
+            $inserted = sr_community_insert_asset_log_placeholder($pdo, [
+                'account_id' => $accountId,
+                'asset_module' => $assetModule,
+                'reference_type' => $subjectType,
+                'reference_id' => (string) $subjectId,
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'event_key' => $eventKey,
+                'direction' => $direction,
+                'charge_policy' => $chargePolicy,
+                'amount' => $allocatedAmount,
+                'dedupe_key' => $dedupeKey,
+            ]);
+            if (!$inserted) {
+                continue;
+            }
+
+            $signedAmount = $direction === 'use' ? -$allocatedAmount : $allocatedAmount;
+            $transactionType = $direction === 'use'
+                ? (string) ($module['use_type'] ?? 'use')
+                : ($direction === 'refund' ? (string) ($module['refund_type'] ?? 'refund') : (string) ($module['credit_type'] ?? 'grant'));
+            $transactionId = sr_community_create_asset_transaction($pdo, $assetModule, [
+                'account_id' => $accountId,
+                'amount' => $signedAmount,
+                'transaction_type' => $transactionType,
+                'reason' => $reason,
+                'reference_type' => $subjectType,
+                'reference_id' => (string) $subjectId,
+                'created_by_account_id' => null,
+            ]);
+            sr_community_update_asset_log_transaction($pdo, $dedupeKey, $transactionId);
+            $processed = true;
+        }
     } catch (Throwable $exception) {
-        sr_community_delete_asset_log_placeholder($pdo, $dedupeKey);
+        if ($dedupeKey !== '') {
+            sr_community_delete_asset_log_placeholder($pdo, $dedupeKey);
+        }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'community_asset_event_failed');
         }
@@ -412,18 +530,18 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         return [
             'allowed' => false,
             'processed' => false,
-            'asset_module' => $assetModule,
-            'asset_label' => sr_community_asset_module_label($assetModule),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => sr_community_asset_module_label($assetModule) . ' 처리에 실패했습니다.',
+            'message' => '회원 자산 처리에 실패했습니다.',
         ];
     }
 
     return [
         'allowed' => true,
-        'processed' => true,
-        'asset_module' => $assetModule,
-        'asset_label' => sr_community_asset_module_label($assetModule),
+        'processed' => $processed,
+        'asset_module' => $assetModuleValue,
+        'asset_label' => sr_community_asset_module_labels($assetModuleValue),
         'amount' => $amount,
         'direction' => $direction,
         'message' => '',

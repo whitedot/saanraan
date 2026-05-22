@@ -614,6 +614,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     'paid_attachment_download' => '첨부 다운로드 차감',
                 ] as $assetPrefix => $assetLabel) { ?>
                     <?php $assetEnabledId = 'community_board_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
+                    <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
+                    <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($boardField($formBoard, $assetPrefix . '_asset_module', 'point')); ?>
                     <div class="admin-form-row">
                         <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
                         <div class="admin-form-field">
@@ -621,16 +623,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                             <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                                             <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
                                                         </label>
-                                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module<?php echo $usesCompositeAsset ? '[]' : ''; ?>" class="form-select"<?php echo $usesCompositeAsset ? ' multiple' : ''; ?>>
                                                             <?php if ($assetModuleOptions === []) { ?>
                                                                 <option value="">활성 자산 모듈 없음</option>
                                                             <?php } ?>
                                                             <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo ($usesCompositeAsset ? in_array((string) $assetModule, $selectedAssetModules, true) : $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule) ? ' selected' : ''; ?>>
                                                                     <?php echo sr_e((string) $assetOption['label']); ?>
                                                                 </option>
                                                             <?php } ?>
                                                         </select>
+                                                        <?php if ($usesCompositeAsset) { ?>
+                                                            <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                                        <?php } ?>
                                                         <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
                                                         <?php if ($assetPrefix === 'paid_read') { ?>
                                                             <select name="paid_read_charge_policy" class="form-select">

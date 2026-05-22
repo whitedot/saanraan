@@ -46,12 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === [] && sr_community_asset_event_required($writeChargeConfig)) {
-        $assetModule = (string) $writeChargeConfig['asset_module'];
+        $assetModules = sr_community_asset_module_keys_from_value($writeChargeConfig['asset_module'] ?? 'point');
         $amount = (int) $writeChargeConfig['amount'];
-        if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
-            $errors[] = sr_community_asset_module_label($assetModule) . ' 모듈을 사용할 수 없어 글을 작성할 수 없습니다.';
-        } elseif (sr_community_asset_balance($pdo, $assetModule, (int) $account['id']) < $amount) {
-            $errors[] = sr_community_asset_module_label($assetModule) . ' 잔액이 부족해 글을 작성할 수 없습니다.';
+        if (!sr_community_asset_modules_available($pdo, $assetModules)) {
+            $errors[] = '선택한 자산 모듈을 모두 사용할 수 없어 글을 작성할 수 없습니다.';
+        } elseif (sr_community_asset_combined_balance($pdo, $assetModules, (int) $account['id']) < $amount) {
+            $errors[] = '선택한 자산의 합산 잔액이 부족해 글을 작성할 수 없습니다.';
         }
     }
 

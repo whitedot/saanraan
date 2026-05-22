@@ -48,7 +48,9 @@ if (sr_request_method() === 'POST') {
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
-            $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
+            $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
+                ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? ''))
+                : sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
         }
         $assetSettings['post_reward_reversal_enabled'] = ($_POST['post_reward_reversal_enabled'] ?? '') === '1';
@@ -82,9 +84,16 @@ if (sr_request_method() === 'POST') {
                 $assetSettings[$assetPrefix . '_amount'] = 0;
             }
 
-            $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
-            if (!isset($assetModuleOptions[$assetModule]) && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
-                $errors[] = $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+            if (!empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
+                $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
+                if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                    $assetModules = sr_community_asset_module_keys_from_value($assetModule);
+                    if (!sr_community_asset_modules_available($pdo, $assetModules)) {
+                        $errors[] = $assetLabel . '에 사용할 자산 모듈이 모두 활성 상태여야 합니다.';
+                    }
+                } elseif (!isset($assetModuleOptions[$assetModule])) {
+                    $errors[] = $assetLabel . '에 사용할 ' . sr_community_asset_module_label($assetModule) . ' 모듈이 활성 상태가 아닙니다.';
+                }
             }
         }
 

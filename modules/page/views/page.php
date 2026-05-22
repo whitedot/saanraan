@@ -77,7 +77,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                     <?php echo sr_e((string) $pageFile['original_name']); ?>
                                     · <?php echo sr_e(sr_page_format_bytes((int) $pageFile['size_bytes'])); ?>
                                     <?php if ((int) ($pageFile['asset_download_enabled'] ?? 0) === 1) { ?>
-                                        · <?php echo sr_e(sr_page_asset_module_label((string) ($pageFile['asset_module'] ?? ''))); ?>
+                                        · <?php echo sr_e(sr_page_asset_module_labels((string) ($pageFile['asset_module'] ?? ''))); ?>
                                         <?php echo sr_e(number_format((int) ($pageFile['asset_download_amount'] ?? 0))); ?>
                                     <?php } ?>
                                 </small>
