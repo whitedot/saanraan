@@ -30,7 +30,10 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
     }
 
     $now = sr_now();
-    $pdo->beginTransaction();
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
 
     try {
         $stmt = $pdo->prepare(
@@ -85,11 +88,13 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
         ]);
 
         $transactionId = (int) $pdo->lastInsertId();
-        $pdo->commit();
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
 
         return $transactionId;
     } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
+        if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
 

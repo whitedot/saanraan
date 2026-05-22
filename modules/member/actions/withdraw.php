@@ -7,12 +7,19 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 $account = sr_member_require_login($pdo);
 $errors = [];
 $memberSettings = sr_member_settings($pdo);
+$withdrawalAssets = sr_member_withdrawal_asset_balances($pdo, (int) $account['id']);
+$refundAccount = [
+    'bank' => '',
+    'holder' => '',
+    'number' => '',
+];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $password = sr_post_string('password', 255);
     $confirmText = sr_post_string('confirm_text', 20);
+    $refundAccount = sr_member_withdrawal_refund_account_values();
 
     $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
     if (!empty($reauthThrottle['limited'])) {
@@ -27,10 +34,16 @@ if (sr_request_method() === 'POST') {
         $errors[] = '확인 문구를 입력하세요.';
     }
 
+    if (isset($withdrawalAssets['deposit'])) {
+        $errors = array_merge($errors, sr_member_withdrawal_refund_account_errors($refundAccount));
+    }
+
     if ($errors === []) {
         $withdrawnConsents = 0;
+        $processedAssets = [];
         $pdo->beginTransaction();
         try {
+            $processedAssets = sr_member_process_asset_withdrawal($pdo, (int) $account['id'], $refundAccount);
             sr_member_delete_profile($pdo, (int) $account['id']);
             $revokedSessions = sr_member_revoke_account_sessions($pdo, (int) $account['id']);
             if ($revokedSessions < 0) {
@@ -59,6 +72,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'revoked_sessions' => $revokedSessions,
                 'withdrawn_consents' => $withdrawnConsents,
+                'processed_assets' => $processedAssets,
+                'deposit_refund_account_provided' => isset($processedAssets['deposit']),
             ],
         ]);
 

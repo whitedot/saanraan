@@ -9,5 +9,6 @@ require_once SR_ROOT . '/modules/member/helpers/profile.php';
 require_once SR_ROOT . '/modules/member/helpers/tokens.php';
 require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/member/helpers/privacy.php';
+require_once SR_ROOT . '/modules/member/helpers/withdrawal-assets.php';
 require_once SR_ROOT . '/modules/member/helpers/throttle.php';
 require_once SR_ROOT . '/modules/member/helpers/admin-members.php';

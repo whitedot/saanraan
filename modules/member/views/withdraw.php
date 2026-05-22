@@ -20,6 +20,41 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 
         <form method="post" action="<?php echo sr_e(sr_url('/account/withdraw')); ?>">
             <?php echo sr_csrf_field(); ?>
+            <?php if (($withdrawalAssets ?? []) !== []) { ?>
+                <section>
+                    <h2>남은 자산 처리</h2>
+                    <ul>
+                        <?php foreach ($withdrawalAssets as $assetKey => $asset) { ?>
+                            <li>
+                                <?php echo sr_e((string) $asset['label']); ?>
+                                <?php echo sr_e(number_format((int) $asset['balance'])); ?>
+                                <?php echo $assetKey === 'deposit' ? '환불 요청' : '소멸 처리'; ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                    <?php if (isset($withdrawalAssets['deposit'])) { ?>
+                        <p>예치금 환불을 위해 계좌 정보를 입력하세요.</p>
+                        <p>
+                            <label for="modules_member_withdraw_refund_bank">
+                                <span>은행</span>
+                                <input id="modules_member_withdraw_refund_bank" type="text" name="refund_bank" value="<?php echo sr_e((string) ($refundAccount['bank'] ?? '')); ?>" maxlength="80" required>
+                            </label>
+                        </p>
+                        <p>
+                            <label for="modules_member_withdraw_refund_account_holder">
+                                <span>예금주</span>
+                                <input id="modules_member_withdraw_refund_account_holder" type="text" name="refund_account_holder" value="<?php echo sr_e((string) ($refundAccount['holder'] ?? '')); ?>" maxlength="80" required>
+                            </label>
+                        </p>
+                        <p>
+                            <label for="modules_member_withdraw_refund_account_number">
+                                <span>계좌번호</span>
+                                <input id="modules_member_withdraw_refund_account_number" type="text" name="refund_account_number" value="<?php echo sr_e((string) ($refundAccount['number'] ?? '')); ?>" maxlength="80" required>
+                            </label>
+                        </p>
+                    <?php } ?>
+                </section>
+            <?php } ?>
             <p>
                 <label for="modules_member_withdraw_password">
                     <span>비밀번호</span>
