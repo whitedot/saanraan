@@ -198,6 +198,7 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
     if ($keyword !== '') {
         $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+        $matchesWithdrawnLabel = $keyword === sr_t('member::account.withdrawn_display_name');
 
         if ($field === 'hash' || $field === 'login_id') {
             $where[] = $accountId > 0 ? 'id = :account_id' : '1 = 0';
@@ -208,7 +209,11 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
             $where[] = "email LIKE :keyword_like ESCAPE '\\\\'";
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $where[] = "display_name LIKE :keyword_like ESCAPE '\\\\'";
+            $nameClauses = ["display_name LIKE :keyword_like ESCAPE '\\\\'"];
+            if ($matchesWithdrawnLabel) {
+                $nameClauses[] = "status = 'anonymized'";
+            }
+            $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_like'] = $like;
         } else {
             $clauses = ["email LIKE :keyword_email_like ESCAPE '\\\\'", "display_name LIKE :keyword_name_like ESCAPE '\\\\'"];
@@ -217,6 +222,9 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
             if ($accountId > 0) {
                 $clauses[] = 'id = :account_id';
                 $params['account_id'] = $accountId;
+            }
+            if ($matchesWithdrawnLabel) {
+                $clauses[] = "status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }

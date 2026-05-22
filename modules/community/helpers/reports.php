@@ -28,6 +28,10 @@ function sr_community_report_statuses(): array
 function sr_community_report_account_label(?string $displayName, int $accountId): string
 {
     $label = trim((string) $displayName);
+    if ($label === 'withdrawn') {
+        return sr_t('member::account.withdrawn_display_name');
+    }
+
     if ($label !== '') {
         return $label;
     }

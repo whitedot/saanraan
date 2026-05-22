@@ -40,6 +40,10 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
 function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null): string
 {
     $label = trim((string) $displayName);
+    if ($label === 'withdrawn') {
+        $label = sr_t('member::account.withdrawn_display_name');
+    }
+
     if ($label === '') {
         $label = $accountId > 0 ? sr_t('community::report.account.member') : sr_t('community::report.account.unknown');
     }

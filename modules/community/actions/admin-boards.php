@@ -313,10 +313,12 @@ if (sr_request_method() === 'POST') {
         }
 
         foreach ([
-            sr_t('community::action.admin.label.read_group') => $readGroupKeysInput,
-            sr_t('community::action.admin.label.write_group') => $writeGroupKeysInput,
-            sr_t('community::action.admin.label.comment_group') => $commentGroupKeysInput,
-        ] as $label => $groupKeysInput) {
+            ['label' => sr_t('community::action.admin.label.read_group'), 'value' => $readGroupKeysInput],
+            ['label' => sr_t('community::action.admin.label.write_group'), 'value' => $writeGroupKeysInput],
+            ['label' => sr_t('community::action.admin.label.comment_group'), 'value' => $commentGroupKeysInput],
+        ] as $groupKeyValidation) {
+            $label = (string) $groupKeyValidation['label'];
+            $groupKeysInput = $groupKeyValidation['value'];
             if (sr_community_board_group_keys_input_too_long($groupKeysInput)) {
                 $errors[] = sr_t('community::action.admin.group_list_too_long', ['label' => $label]);
                 continue;
@@ -329,10 +331,12 @@ if (sr_request_method() === 'POST') {
         }
 
         foreach ([
-            sr_t('community::action.admin.label.read_group') => $readGroupKeys,
-            sr_t('community::action.admin.label.write_group') => $writeGroupKeys,
-            sr_t('community::action.admin.label.comment_group') => $commentGroupKeys,
-        ] as $label => $groupKeys) {
+            ['label' => sr_t('community::action.admin.label.read_group'), 'value' => $readGroupKeys],
+            ['label' => sr_t('community::action.admin.label.write_group'), 'value' => $writeGroupKeys],
+            ['label' => sr_t('community::action.admin.label.comment_group'), 'value' => $commentGroupKeys],
+        ] as $groupKeyValidation) {
+            $label = (string) $groupKeyValidation['label'];
+            $groupKeys = $groupKeyValidation['value'];
             $unknownGroupKeys = array_values(array_diff($groupKeys, $enabledMemberGroupKeys));
             if ($unknownGroupKeys !== []) {
                 $errors[] = sr_t('community::action.admin.group_keys_inactive', ['label' => $label, 'keys' => implode(', ', $unknownGroupKeys)]);
@@ -340,11 +344,16 @@ if (sr_request_method() === 'POST') {
         }
 
         foreach ([
-            sr_t('community::action.admin.label.read') => [$readPolicy, $readGroupKeys, $settingSources['read_policy']],
-            sr_t('community::action.admin.label.write') => [$writePolicy, $writeGroupKeys, $settingSources['write_policy']],
-            sr_t('community::action.admin.label.comment') => [$commentPolicy, $commentGroupKeys, $settingSources['comment_policy']],
-        ] as $label => $policyGroupKeys) {
-            if ((string) $policyGroupKeys[2] === 'board' && (string) $policyGroupKeys[0] === 'group' && $policyGroupKeys[1] === []) {
+            ['label' => sr_t('community::action.admin.label.read'), 'policy' => $readPolicy, 'group_keys' => $readGroupKeys, 'source' => $settingSources['read_policy']],
+            ['label' => sr_t('community::action.admin.label.write'), 'policy' => $writePolicy, 'group_keys' => $writeGroupKeys, 'source' => $settingSources['write_policy']],
+            ['label' => sr_t('community::action.admin.label.comment'), 'policy' => $commentPolicy, 'group_keys' => $commentGroupKeys, 'source' => $settingSources['comment_policy']],
+        ] as $policyGroupValidation) {
+            $label = (string) $policyGroupValidation['label'];
+            if (
+                (string) $policyGroupValidation['source'] === 'board'
+                && (string) $policyGroupValidation['policy'] === 'group'
+                && $policyGroupValidation['group_keys'] === []
+            ) {
                 $errors[] = sr_t('community::action.admin.policy_group_requires_group', ['label' => $label]);
             }
         }
