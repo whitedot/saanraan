@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('point::ui.point.e5f25ab0'),
+    'name' => '포인트',
     'version' => '2026.04.001',
     'type' => 'module',
-    'description' => sr_t('point::ui.member.point.3ff6e198'),
+    'description' => '회원 포인트 잔액과 거래 장부 모듈입니다.',
     'admin' => [
         'category' => 'member',
-        'category_label' => sr_t('point::ui.member.e335b899'),
+        'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 30,
         'icon' => ['type' => 'symbol', 'name' => 'coins'],

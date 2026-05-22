@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('notification::ui.notification.12ddd6ca'),
+    'name' => '알림',
     'version' => '2026.04.001',
     'type' => 'module',
-    'description' => sr_t('notification::ui.notification.e8d3fbb5'),
+    'description' => '사이트 알림과 외부 발송 대기열 모듈입니다.',
     'admin' => [
         'category' => 'operation',
-        'category_label' => sr_t('notification::ui.text.0928a1b8'),
+        'category_label' => '운영',
         'category_order' => 40,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'bell'],

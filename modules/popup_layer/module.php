@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('popup_layer::ui.text.1063d585'),
+    'name' => '팝업레이어',
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => sr_t('popup_layer::ui.text.c38dc775'),
+    'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [
         'category' => 'site',
-        'category_label' => sr_t('popup_layer::ui.text.b2c8d45c'),
+        'category_label' => '사이트',
         'category_order' => 20,
         'menu_order' => 40,
         'icon' => ['type' => 'symbol', 'name' => 'layers'],

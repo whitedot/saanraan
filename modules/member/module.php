@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('member::ui.member.e335b899'),
+    'name' => '회원',
     'version' => '2026.05.006',
     'type' => 'module',
-    'description' => sr_t('member::ui.member.87554f87'),
+    'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
         'category' => 'member',
-        'category_label' => sr_t('member::ui.member.e335b899'),
+        'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'users'],

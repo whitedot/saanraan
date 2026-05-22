@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('page::ui.page.6c84a1b3'),
+    'name' => '페이지',
     'version' => '2026.05.007',
     'type' => 'module',
-    'description' => sr_t('page::ui.page.611ca13a'),
+    'description' => '단일 페이지 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
         'category' => 'site',
-        'category_label' => sr_t('page::ui.text.b2c8d45c'),
+        'category_label' => '사이트',
         'category_order' => 20,
         'menu_order' => 20,
         'icon' => ['type' => 'symbol', 'name' => 'content'],

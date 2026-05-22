@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('community::ui.community.4a285775'),
+    'name' => '커뮤니티',
     'version' => '2026.05.010',
     'type' => 'module',
-    'description' => sr_t('community::ui.community.623622e0'),
+    'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
         'category' => 'community',
-        'category_label' => sr_t('community::ui.community.4a285775'),
+        'category_label' => '커뮤니티',
         'category_order' => 35,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'message-circle'],
@@ -36,7 +36,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => sr_t('community::ui.community.5c67accb'),
+            'label' => '커뮤니티 홈',
             'path' => '/community',
         ],
     ],

@@ -30,19 +30,19 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     if (!$registrationAllowed) {
-        $errors[] = '현재 회원가입이 비활성화되어 있습니다.';
+        $errors[] = sr_t('member::action.register.disabled');
     }
 
     $email = sr_post_string_without_truncation('email', 255);
     if ($email === null) {
-        $errors[] = '이메일은 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.email_too_long');
         $email = '';
     }
 
     $loginId = sr_post_string_without_truncation('login_id', 40);
     if ($loginId === null) {
         $loginId = '';
-        $errors[] = '로그인 아이디는 40자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.login_id_too_long');
     }
 
     $values = [
@@ -60,33 +60,33 @@ if (sr_request_method() === 'POST') {
     }
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = '이메일 형식이 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.register.email_invalid');
     }
 
     if ($values['login_id'] !== '' && !sr_member_is_valid_login_id($values['login_id'])) {
-        $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
+        $errors[] = sr_t('member::action.register.login_id_invalid');
     }
 
     if ($values['display_name'] === '') {
-        $errors[] = '표시 이름을 입력하세요.';
+        $errors[] = sr_t('member::action.register.display_name_required');
     }
 
     if ($password === null || $passwordConfirm === null) {
-        $errors[] = '비밀번호는 255자 이하로 입력하세요.';
+        $errors[] = sr_t('member::action.register.password_too_long');
         $password = '';
         $passwordConfirm = '';
     }
 
     if (strlen($password) < 8) {
-        $errors[] = '비밀번호는 8자 이상이어야 합니다.';
+        $errors[] = sr_t('member::action.register.password_too_short');
     }
 
     if ($password !== $passwordConfirm) {
-        $errors[] = '비밀번호 확인이 일치하지 않습니다.';
+        $errors[] = sr_t('member::action.register.password_confirm_mismatch');
     }
 
     if (!$termsConsent || !$privacyConsent) {
-        $errors[] = '필수 약관과 개인정보 처리방침에 동의하세요.';
+        $errors[] = sr_t('member::action.register.required_consents_missing');
     }
 
     if ($profileFieldsEnabled) {
@@ -98,7 +98,7 @@ if (sr_request_method() === 'POST') {
             && !empty($profilePolicies['avatar_path']['required'])
             && !sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)
         ) {
-            $errors[] = '아바타를 업로드하세요.';
+            $errors[] = sr_t('member::profile.error.avatar_required');
         }
     }
 
@@ -115,7 +115,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'failure',
                 'message' => 'Member registration blocked by throttle.',
             ]);
-            $errors[] = '가입 요청이 많습니다. 잠시 후 다시 시도하세요.';
+            $errors[] = sr_t('member::action.register.throttled');
         }
     }
 
@@ -131,7 +131,7 @@ if (sr_request_method() === 'POST') {
                 }
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'member_register_avatar_upload');
-                $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : '아바타 업로드를 처리할 수 없습니다.';
+                $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.avatar_upload_failed');
             }
         }
 
@@ -188,7 +188,7 @@ if (sr_request_method() === 'POST') {
                 sr_member_delete_avatar_reference($uploadedAvatarReference);
                 $profileValues['avatar_path'] = '';
             }
-            $errors[] = '이미 사용 중인 이메일이거나 가입을 처리할 수 없습니다.';
+            $errors[] = sr_t('member::action.register.create_failed');
         }
 
         if ($errors === [] && $accountId !== null) {
@@ -196,8 +196,8 @@ if (sr_request_method() === 'POST') {
                 $verificationMailSent = sr_send_mail(
                     $site,
                     $values['email'],
-                    '이메일 인증 안내',
-                    "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+                    sr_t('member::action.email_verification.subject'),
+                    sr_t('member::action.email_verification.body', ['url' => $verificationUrl])
                 );
                 $showVerificationUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
                 if ($showVerificationUrl) {
@@ -226,7 +226,7 @@ if (sr_request_method() === 'POST') {
 
             $newAccount = sr_member_find_by_id($pdo, $accountId);
             if ($emailVerificationEnabled) {
-                $_SESSION['sr_member_login_notice'] = '가입을 접수했습니다. 이메일 인증을 완료한 뒤 로그인하세요.';
+                $_SESSION['sr_member_login_notice'] = sr_t('member::action.register.email_verification_notice');
                 sr_redirect('/login');
             }
 
@@ -234,7 +234,7 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/account');
             }
 
-            $_SESSION['sr_member_login_notice'] = '가입은 완료됐지만 로그인 세션을 만들 수 없습니다. 로그인 화면에서 다시 시도하세요.';
+            $_SESSION['sr_member_login_notice'] = sr_t('member::action.register.login_session_failed_notice');
             sr_redirect('/login');
         }
     }

@@ -637,7 +637,8 @@ return [
 - locale 파일명은 `ko`, `en-US` 같은 locale 값과 맞춘다.
 - 최소 기본 locale 파일을 제공한다.
 - 번역 값도 화면에 출력할 때는 `sr_e()`로 escape한다.
-- `module.php`, `admin-menu.php`, `menu-links.php`, `dashboard.php`, `layout-options.php`, `member-group-rules.php`처럼 화면에 표시될 라벨을 제공하는 계약 파일도 하드코딩 문구 대신 `sr_t('{module_key}::...')` 값을 반환한다.
+- `module.php`의 `name`, `description`, `admin.category_label`, `service_domain.main_page.label` 같은 메타데이터는 설치/업로드 정적 파서가 읽으므로 함수 호출 없이 문자열 리터럴로 둔다.
+- `admin-menu.php`, `menu-links.php`, `dashboard.php`, `layout-options.php`, `member-group-rules.php`처럼 런타임에 읽는 화면 라벨 계약 파일은 하드코딩 문구 대신 `sr_t('{module_key}::...')` 값을 반환한다.
 - 게시글 제목, 상품명 같은 사용자 콘텐츠 번역 테이블을 코어가 대신 만들지 않는다.
 
 ## 10. DB 접근

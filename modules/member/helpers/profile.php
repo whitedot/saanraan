@@ -106,7 +106,7 @@ function sr_member_profile_validation_errors(array $profile, array $policies, ar
 
         if ($field === 'avatar_path') {
             if ($validateAvatar && !sr_member_avatar_reference_is_valid((string) ($profile['avatar_path'] ?? ''))) {
-                $errors[] = '아바타를 업로드하세요.';
+                $errors[] = sr_t('member::profile.error.avatar_required');
             }
             continue;
         }
@@ -119,11 +119,11 @@ function sr_member_profile_validation_errors(array $profile, array $policies, ar
     if (!empty($policies['birth_date']['visible'])) {
         $birthDate = (string) ($profile['birth_date'] ?? '');
         if ($birthDate !== '' && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $birthDate) !== 1) {
-            $errors[] = '생년월일은 YYYY-MM-DD 형식으로 입력하세요.';
+            $errors[] = sr_t('member::profile.error.birth_date_format');
         } elseif ($birthDate !== '') {
             $birthParts = explode('-', $birthDate);
             if (!checkdate((int) $birthParts[1], (int) $birthParts[2], (int) $birthParts[0])) {
-                $errors[] = '생년월일이 올바르지 않습니다.';
+                $errors[] = sr_t('member::profile.error.birth_date_invalid');
             }
         }
     }
@@ -131,7 +131,7 @@ function sr_member_profile_validation_errors(array $profile, array $policies, ar
     if ($validateAvatar && !empty($policies['avatar_path']['visible'])) {
         $avatarPath = (string) ($profile['avatar_path'] ?? '');
         if ($avatarPath !== '' && !sr_member_avatar_reference_is_valid($avatarPath)) {
-            $errors[] = '아바타 이미지를 다시 업로드하세요.';
+            $errors[] = sr_t('member::profile.error.avatar_reupload');
         }
     }
 
@@ -141,11 +141,11 @@ function sr_member_profile_validation_errors(array $profile, array $policies, ar
 function sr_member_profile_required_message(string $field): string
 {
     return match ($field) {
-        'nickname' => '닉네임을 입력하세요.',
-        'phone' => '전화번호를 입력하세요.',
-        'birth_date' => '생년월일을 입력하세요.',
-        'profile_text' => '소개를 입력하세요.',
-        default => '필수 프로필 항목을 입력하세요.',
+        'nickname' => sr_t('member::profile.error.nickname_required'),
+        'phone' => sr_t('member::profile.error.phone_required'),
+        'birth_date' => sr_t('member::profile.error.birth_date_required'),
+        'profile_text' => sr_t('member::profile.error.profile_text_required'),
+        default => sr_t('member::profile.error.required'),
     };
 }
 
@@ -201,13 +201,13 @@ function sr_member_upload_avatar(array $file): ?array
 
     $targetFormat = sr_member_avatar_format_for_mime((string) $validated['mime_type']);
     if ($targetFormat === '') {
-        throw new RuntimeException('허용되지 않은 아바타 이미지 형식입니다.');
+        throw new RuntimeException(sr_t('member::profile.error.avatar_type_disallowed'));
     }
 
     $datePath = date('Y/m');
     $directory = SR_ROOT . '/storage/tmp/member-avatars/' . $datePath;
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-        throw new RuntimeException('아바타 임시 저장 디렉터리를 만들 수 없습니다.');
+        throw new RuntimeException(sr_t('member::profile.error.avatar_temp_dir_failed'));
     }
 
     $storedName = sr_upload_random_filename($targetFormat);
@@ -219,7 +219,7 @@ function sr_member_upload_avatar(array $file): ?array
             'max_pixels' => 12000000,
             'quality' => 85,
         ])) {
-            throw new RuntimeException('아바타 이미지 재인코딩에 실패했습니다.');
+            throw new RuntimeException(sr_t('member::profile.error.avatar_reencode_failed'));
         }
 
         $imageInfo = @getimagesize($targetPath);
@@ -227,7 +227,7 @@ function sr_member_upload_avatar(array $file): ?array
         $checksum = hash_file('sha256', $targetPath);
         $sizeBytes = filesize($targetPath);
         if (!is_array($imageInfo) || !sr_member_avatar_mime_is_allowed($storedMimeType) || !is_string($checksum) || !is_int($sizeBytes)) {
-            throw new RuntimeException('저장된 아바타 이미지 metadata를 확인할 수 없습니다.');
+            throw new RuntimeException(sr_t('member::profile.error.avatar_metadata_failed'));
         }
 
         $storageKey = 'member/avatars/' . $datePath . '/' . $storedName;

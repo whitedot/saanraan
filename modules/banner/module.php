@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('banner::ui.banner.63182d60'),
+    'name' => '배너',
     'version' => '2026.05.003',
     'type' => 'module',
-    'description' => sr_t('banner::ui.banner.83cb1ff1'),
+    'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
     'admin' => [
         'category' => 'site',
-        'category_label' => sr_t('banner::ui.text.b2c8d45c'),
+        'category_label' => '사이트',
         'category_order' => 20,
         'menu_order' => 30,
         'icon' => ['type' => 'symbol', 'name' => 'image'],

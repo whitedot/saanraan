@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'name' => sr_t('privacy::ui.privacy.5cdfba05'),
+    'name' => '개인정보',
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => sr_t('privacy::ui.privacy.privacy.733631a5'),
+    'description' => '개인정보 처리 요청과 개인정보 사본 제공 조정 모듈입니다.',
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
     'admin' => [
         'category' => 'operation',
-        'category_label' => sr_t('privacy::ui.text.0928a1b8'),
+        'category_label' => '운영',
         'category_order' => 40,
         'menu_order' => 20,
         'icon' => ['type' => 'symbol', 'name' => 'shield'],

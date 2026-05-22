@@ -25,7 +25,7 @@ if (!empty($_SESSION['sr_member_login_notice']) && is_string($_SESSION['sr_membe
 }
 
 if ($notice === '' && sr_get_string('password_reset', 10) === '1') {
-    $notice = '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.';
+    $notice = sr_t('member::action.login.password_reset_notice');
 }
 
 if (sr_request_method() === 'POST') {
@@ -53,7 +53,7 @@ if (sr_request_method() === 'POST') {
             'result' => 'failure',
             'message' => 'Member login blocked by throttle.',
         ]);
-        $errors[] = '로그인 시도가 많습니다. 잠시 후 다시 시도하세요.';
+        $errors[] = sr_t('member::action.login.throttled');
     } elseif (
         ($passwordVerified = sr_member_verify_login_password($account, $password))
         && sr_member_email_verification_blocks_login($memberSettings, $account)
@@ -76,8 +76,8 @@ if (sr_request_method() === 'POST') {
             $mailSent = sr_send_mail(
                 $site,
                 (string) $account['email'],
-                '이메일 인증 안내',
-                "아래 링크를 열어 이메일 인증을 완료하세요.\n\n" . $verificationUrl
+                sr_t('member::action.email_verification.subject'),
+                sr_t('member::action.email_verification.body', ['url' => $verificationUrl])
             );
             $showVerificationUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
             if ($showVerificationUrl) {
@@ -112,7 +112,7 @@ if (sr_request_method() === 'POST') {
             'result' => 'failure',
             'message' => 'Member login blocked until email verification.',
         ]);
-        $errors[] = '이메일 인증을 완료한 뒤 로그인할 수 있습니다. 인증 안내 메일을 다시 확인하세요.';
+        $errors[] = sr_t('member::action.login.email_unverified');
     } elseif ($passwordVerified) {
         sr_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
         if (sr_member_login($pdo, $account)) {
@@ -140,7 +140,7 @@ if (sr_request_method() === 'POST') {
             'result' => 'failure',
             'message' => 'Member login session could not be created.',
         ]);
-        $errors[] = '로그인 세션을 만들 수 없습니다. 잠시 후 다시 시도하세요.';
+        $errors[] = sr_t('member::action.login.session_failed');
     } else {
         sr_member_log_auth($pdo, $account !== null ? (int) $account['id'] : null, 'login', 'failure');
         sr_audit_log($pdo, [
@@ -152,7 +152,7 @@ if (sr_request_method() === 'POST') {
             'result' => 'failure',
             'message' => 'Member login failed.',
         ]);
-        $errors[] = '로그인 정보가 올바르지 않습니다.';
+        $errors[] = sr_t('member::action.login.invalid');
     }
 }
 

@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'name' => sr_t('logo_manager::ui.text.e046e24f'),
+    'name' => '로고매니저',
     'version' => '2026.05.001',
     'type' => 'module',
-    'description' => sr_t('logo_manager::ui.admin.f4e398b2'),
+    'description' => '관리자/공개 화면의 로고 자산과 기간별 대체 적용을 관리합니다.',
     'admin' => [
         'category' => 'site',
-        'category_label' => sr_t('logo_manager::ui.text.b2c8d45c'),
+        'category_label' => '사이트',
         'category_order' => 20,
         'menu_order' => 25,
         'icon' => ['type' => 'symbol', 'name' => 'image'],
