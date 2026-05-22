@@ -20,11 +20,11 @@
 
             var selectedModule = moduleSelect.value || '';
             var hasVisibleTypes = false;
+            var hasModuleTypes = false;
             Array.prototype.slice.call(assetTypeSelect.options).forEach(function (option, index) {
                 if (index === 0) {
                     option.hidden = false;
                     option.disabled = false;
-                    option.textContent = selectedModule ? '종류 선택' : '서비스를 먼저 선택';
                     return;
                 }
 
@@ -32,9 +32,15 @@
                 option.hidden = !visible;
                 option.disabled = !visible;
                 if (visible) {
+                    hasModuleTypes = true;
                     hasVisibleTypes = true;
                 }
             });
+            if (assetTypeSelect.options[0]) {
+                assetTypeSelect.options[0].textContent = selectedModule
+                    ? (hasModuleTypes ? '종류 선택' : '연결 가능한 자산 없음')
+                    : '서비스를 먼저 선택';
+            }
 
             assetTypeSelect.disabled = !selectedModule || !hasVisibleTypes;
             if (resetValue || assetTypeSelect.disabled || (assetTypeSelect.selectedOptions[0] && assetTypeSelect.selectedOptions[0].disabled)) {

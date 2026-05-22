@@ -17,6 +17,23 @@ function sr_page_group_key_is_valid(string $groupKey): bool
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1;
 }
 
+function sr_page_groups_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_page_groups LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
 function sr_page_group_path(string $groupKey): string
 {
     return '/pages/group?key=' . rawurlencode($groupKey);
@@ -200,7 +217,7 @@ function sr_page_by_id(PDO $pdo, int $pageId): ?array
 
 function sr_page_group_by_id(PDO $pdo, int $groupId): ?array
 {
-    if ($groupId < 1) {
+    if ($groupId < 1 || !sr_page_groups_table_exists($pdo)) {
         return null;
     }
 
@@ -213,6 +230,10 @@ function sr_page_group_by_id(PDO $pdo, int $groupId): ?array
 
 function sr_page_group_by_key(PDO $pdo, string $groupKey): ?array
 {
+    if (!sr_page_groups_table_exists($pdo)) {
+        return null;
+    }
+
     if (!sr_page_group_key_is_valid($groupKey)) {
         return null;
     }
@@ -236,6 +257,10 @@ function sr_page_enabled_group_by_key(PDO $pdo, string $groupKey): ?array
 
 function sr_page_group_key_exists(PDO $pdo, string $groupKey, int $exceptGroupId = 0): bool
 {
+    if (!sr_page_groups_table_exists($pdo)) {
+        return false;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT id
          FROM sr_page_groups
@@ -289,6 +314,10 @@ function sr_page_slug_exists(PDO $pdo, string $slug, int $exceptPageId = 0): boo
 
 function sr_page_groups(PDO $pdo): array
 {
+    if (!sr_page_groups_table_exists($pdo)) {
+        return [];
+    }
+
     $stmt = $pdo->query(
         'SELECT g.*,
                 COUNT(p.id) AS page_count
@@ -303,6 +332,10 @@ function sr_page_groups(PDO $pdo): array
 
 function sr_page_enabled_groups(PDO $pdo): array
 {
+    if (!sr_page_groups_table_exists($pdo)) {
+        return [];
+    }
+
     $stmt = $pdo->query(
         "SELECT *
          FROM sr_page_groups
@@ -341,6 +374,10 @@ function sr_page_admin_group_status_counts(PDO $pdo): array
         'archived' => 0,
     ];
 
+    if (!sr_page_groups_table_exists($pdo)) {
+        return $counts;
+    }
+
     $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_page_groups GROUP BY status');
     foreach ($stmt->fetchAll() as $row) {
         $status = (string) ($row['status'] ?? '');
@@ -356,6 +393,10 @@ function sr_page_admin_group_status_counts(PDO $pdo): array
 
 function sr_page_admin_group_list(PDO $pdo, array $filters): array
 {
+    if (!sr_page_groups_table_exists($pdo)) {
+        return [];
+    }
+
     $where = [];
     $params = [];
     if ((string) ($filters['status'] ?? '') !== '') {

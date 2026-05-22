@@ -33,6 +33,14 @@ $siteMenuModuleLabel = static function (string $moduleKey): string {
 
     return function_exists('sr_admin_module_name_label') ? sr_admin_module_name_label($moduleName) : $moduleName;
 };
+foreach (sr_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $_menuLinksFile) {
+    if (!isset($siteMenuModuleAssetGroups[$moduleKey])) {
+        $siteMenuModuleAssetGroups[$moduleKey] = [
+            'label' => $siteMenuModuleLabel((string) $moduleKey),
+            'types' => [],
+        ];
+    }
+}
 foreach ($menuLinkSuggestions as $asset) {
     $moduleKey = (string) ($asset['module_key'] ?? '');
     $assetType = (string) ($asset['asset_type'] ?? 'link');
