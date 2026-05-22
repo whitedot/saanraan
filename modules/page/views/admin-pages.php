@@ -325,47 +325,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_banner_before_content_id">본문 상단 배너</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
-                                                <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                                                <?php foreach ($publicBanners as $banner) { ?>
-                                                    <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e((string) $banner['title']); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                    <?php echo $pageSettingSourceRadioHtml('source_banner_before_content_id', $pageSettingSource($values, 'banner_before_content_id')); ?>
+                    <div class="admin-setting-source-line">
+                        <select id="page_admin_pages_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
+                            <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicBanners as $banner) { ?>
+                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $banner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <?php echo $pageSettingSourceRadioHtml('source_banner_before_content_id', $pageSettingSource($values, 'banner_before_content_id')); ?>
+                    </div>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_banner_after_content_id">본문 하단 배너</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
-                                                <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                                                <?php foreach ($publicBanners as $banner) { ?>
-                                                    <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e((string) $banner['title']); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                    <?php echo $pageSettingSourceRadioHtml('source_banner_after_content_id', $pageSettingSource($values, 'banner_after_content_id')); ?>
-                    <br>
-                                        <small>공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                    <div class="admin-setting-source-line">
+                        <select id="page_admin_pages_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
+                            <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicBanners as $banner) { ?>
+                                <option value="<?php echo sr_e((string) $banner['id']); ?>"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === (int) $banner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $banner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <?php echo $pageSettingSourceRadioHtml('source_banner_after_content_id', $pageSettingSource($values, 'banner_after_content_id')); ?>
+                    </div>
+                    <small class="admin-form-help">공용 배너만 직접 선택할 수 있습니다. 세부 출력 규칙은 배너 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_popup_layer_id">팝업레이어</label>
                 <div class="admin-form-field">
-                    <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
-                                                <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
-                                                <?php foreach ($publicPopupLayers as $popupLayer) { ?>
-                                                    <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e((string) $popupLayer['title']); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                    <?php echo $pageSettingSourceRadioHtml('source_popup_layer_id', $pageSettingSource($values, 'popup_layer_id')); ?>
-                    <br>
-                                        <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
+                    <div class="admin-setting-source-line">
+                        <select id="page_admin_pages_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
+                            <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>>사용 안 함</option>
+                            <?php foreach ($publicPopupLayers as $popupLayer) { ?>
+                                <option value="<?php echo sr_e((string) $popupLayer['id']); ?>"<?php echo (int) ($values['popup_layer_id'] ?? 0) === (int) $popupLayer['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $popupLayer['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <?php echo $pageSettingSourceRadioHtml('source_popup_layer_id', $pageSettingSource($values, 'popup_layer_id')); ?>
+                    </div>
+                    <small class="admin-form-help">공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
             <?php if ($editing) { ?>
@@ -464,23 +468,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label">새 파일 과금</span>
                 <div class="admin-form-field">
-                            <?php echo $pageSettingSourceRadioHtml('file_asset_policy_source', (string) ($values['file_asset_policy_source'] ?? 'page')); ?>
+                    <div class="admin-page-file-charge-control">
+                        <div class="admin-page-file-charge-main">
                             <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
                                 <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
                                 <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
                             </label>
-                            <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                            <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
-                            <select name="new_page_file_asset_charge_policy" class="form-select" aria-label="새 파일 과금 방식">
+                            <div class="admin-page-file-charge-assets">
+                                <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
+                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                            </div>
+                            <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input admin-page-file-charge-amount" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
+                            <select name="new_page_file_asset_charge_policy" class="form-select admin-page-file-charge-policy" aria-label="새 파일 과금 방식">
                                 <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
                                     <option value="<?php echo sr_e((string) $policyKey); ?>">
                                         <?php echo sr_e((string) $policyLabel); ?>
                                     </option>
                                 <?php } ?>
                             </select>
+                            <?php echo $pageSettingSourceRadioHtml('file_asset_policy_source', (string) ($values['file_asset_policy_source'] ?? 'page')); ?>
                         </div>
                     </div>
+                </div>
+            </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/pages')); ?>" class="btn btn-solid-light">목록</a>

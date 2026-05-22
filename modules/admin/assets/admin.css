@@ -234,6 +234,20 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-setting-source-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25);width:100%}
+.admin-setting-source-line>.form-control-full{flex:1 1 18rem;width:auto}
+.admin-setting-source-line>.admin-setting-source-options{margin-left:auto}
+.admin-setting-source-line-end{justify-content:flex-end;min-height:0}
+.admin-setting-source-line-end>.admin-setting-source-options{margin-left:0}
+.admin-page-file-charge-control{width:100%}
+.admin-page-file-charge-main{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-page-file-charge-main>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-page-file-charge-main>.admin-setting-source-options{margin-left:auto}
+.admin-page-file-charge-assets{min-width:0}
+.admin-page-file-charge-assets>.admin-check-list{margin-top:0}
+.admin-page-file-charge-assets>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
+.admin-page-file-charge-amount{width:10rem}
+.admin-page-file-charge-policy{width:auto}
 .admin-role-choice-list{border:0;display:grid;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-role-choice{min-height:calc(var(--spacing) * 9);border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
 .admin-role-choice:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent)}
@@ -505,6 +519,31 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-form .form-input,
     .admin-form .form-select{
         width:100%;
+    }
+
+    .admin-setting-source-line{
+        grid-template-columns:1fr;
+    }
+
+    .admin-setting-source-line{
+        align-items:flex-start;
+        display:grid;
+    }
+
+    .admin-setting-source-line>.form-control-full,
+    .admin-page-file-charge-amount,
+    .admin-page-file-charge-policy{
+        width:100%;
+    }
+
+    .admin-setting-source-line>.admin-setting-source-options{
+        justify-content:flex-start;
+        margin-left:0;
+    }
+
+    .admin-page-file-charge-main>.admin-setting-source-options{
+        justify-content:flex-start;
+        margin-left:0;
     }
 
     .modal-body>.admin-form-row{
