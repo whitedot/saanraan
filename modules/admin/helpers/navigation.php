@@ -431,6 +431,9 @@ function sr_admin_menu_overrides(PDO $pdo): array
         if (sr_admin_menu_override_is_stale_default($scope, $targetKey, $sortOrder, $isHidden)) {
             continue;
         }
+        if (!sr_admin_menu_target_can_hide($scope, $targetKey)) {
+            $isHidden = false;
+        }
 
         $overrides[$scope][$targetKey] = [
             'sort_order' => $sortOrder,
@@ -459,6 +462,23 @@ function sr_admin_menu_override_is_stale_default(string $scope, string $targetKe
     ];
 
     return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
+}
+
+function sr_admin_menu_target_can_hide(string $scope, string $targetKey): bool
+{
+    $protectedTargets = [
+        'category' => [
+            'system' => true,
+        ],
+        'group' => [
+            'admin' => true,
+        ],
+        'item' => [
+            sr_admin_menu_item_target_key('admin', '/admin/menu') => true,
+        ],
+    ];
+
+    return empty($protectedTargets[$scope][$targetKey]);
 }
 
 function sr_admin_apply_menu_overrides(PDO $pdo, array $groups): array
@@ -670,6 +690,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
 function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override, array $display = []): array
 {
     $sortOrder = array_key_exists('sort_order', $override) ? (int) $override['sort_order'] : $defaultOrder;
+    $canHide = sr_admin_menu_target_can_hide($scope, $targetKey);
 
     return [
         'scope' => $scope,
@@ -679,7 +700,8 @@ function sr_admin_menu_override_form_row(string $scope, string $targetKey, strin
         'label' => $label,
         'default_order' => $defaultOrder,
         'sort_order' => $sortOrder,
-        'is_hidden' => !empty($override['is_hidden']),
+        'is_hidden' => $canHide && !empty($override['is_hidden']),
+        'can_hide' => $canHide,
         'depth' => max(0, min(2, (int) ($display['depth'] ?? 0))),
         'context' => (string) ($display['context'] ?? ''),
         'path' => (string) ($display['path'] ?? ''),
@@ -740,7 +762,7 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
         }
 
         $sortOrder = (int) $rawOrder;
-        $isHidden = !empty($hiddenMap[$formKey]);
+        $isHidden = !empty($row['can_hide']) && !empty($hiddenMap[$formKey]);
         $changes[] = [
             'scope' => (string) $row['scope'],
             'target_key' => (string) $row['target_key'],

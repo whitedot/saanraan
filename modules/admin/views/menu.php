@@ -30,6 +30,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $rowDepth = max(0, min(2, (int) ($row['depth'] ?? 0)));
                 $rowContext = (string) ($row['context'] ?? '');
                 $rowPath = (string) ($row['path'] ?? '');
+                $canHide = !empty($row['can_hide']);
+                $hiddenInputId = 'modules_admin_menu_is_hidden_' . preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $row['form_key']);
                 ?>
                 <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
                     <td><span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
@@ -65,16 +67,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             required class="form-input">
                     </td>
                     <td>
-                        <label class="admin-form-check form-label" for="modules_admin_menu_is_hidden">
-                            <input id="modules_admin_menu_is_hidden"
-                                type="checkbox"
-                                name="is_hidden[]"
-                                value="<?php echo sr_e((string) $row['form_key']); ?>"
-                                class="form-checkbox"
-                                <?php echo !empty($row['is_hidden']) ? 'checked' : ''; ?>
-                            >
-                            숨김
-                        </label>
+                        <?php if ($canHide) { ?>
+                            <label class="admin-form-check form-label" for="<?php echo sr_e($hiddenInputId); ?>">
+                                <input id="<?php echo sr_e($hiddenInputId); ?>"
+                                    type="checkbox"
+                                    name="is_hidden[]"
+                                    value="<?php echo sr_e((string) $row['form_key']); ?>"
+                                    class="form-checkbox"
+                                    <?php echo !empty($row['is_hidden']) ? 'checked' : ''; ?>
+                                >
+                                숨김
+                            </label>
+                        <?php } else { ?>
+                            <span class="text-muted">숨김 불가</span>
+                        <?php } ?>
                     </td>
                 </tr>
             <?php } ?>
