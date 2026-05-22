@@ -13,7 +13,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/roles')); ?>" class="admin-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/roles')); ?>" class="admin-filter admin-role-filter ui-form-theme">
     <div class="admin-filter-grid admin-role-search-grid">
         <div class="admin-filter-field">
             <label for="admin-role-status-filter" class="admin-filter-label">계정 상태</label>
@@ -139,15 +139,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="form-label">역할</span>
                             <div class="admin-form-field">
                                 <fieldset class="admin-role-choice-list">
-                                                                    <legend class="sr-only">관리자 역할</legend>
-                                                                    <?php foreach ($allowedRoles as $roleKey) { ?>
-                                                                        <label class="admin-role-choice admin-form-check form-label" for="modules_admin_roles_role_keys">
-                                                                            <input id="modules_admin_roles_role_keys" type="checkbox" name="role_keys[]" value="<?php echo sr_e($roleKey); ?>" class="form-checkbox"<?php echo in_array($roleKey, $adminAccount['roles'], true) ? ' checked' : ''; ?><?php echo $roleKey === $allowedRoles[0] ? ' data-overlay-focus' : ''; ?>>
-                                                                            <span><?php echo sr_e(sr_admin_code_label($roleKey, 'role')); ?></span>
-                                                                        </label>
-                                                                    <?php } ?>
-                                                                </fieldset>
-                                                                <p class="admin-form-help">체크된 역할이 저장 후 이 회원의 관리자 권한으로 적용됩니다.</p>
+                                    <legend class="sr-only">관리자 역할</legend>
+                                    <?php foreach ($allowedRoles as $roleKey) { ?>
+                                        <?php $roleInputId = $roleModalId . '-role-' . preg_replace('/[^a-z0-9_-]+/', '-', strtolower($roleKey)); ?>
+                                        <label class="admin-role-choice admin-form-check form-label" for="<?php echo sr_e($roleInputId); ?>">
+                                            <input id="<?php echo sr_e($roleInputId); ?>" type="checkbox" name="role_keys[]" value="<?php echo sr_e($roleKey); ?>" class="form-checkbox"<?php echo in_array($roleKey, $adminAccount['roles'], true) ? ' checked' : ''; ?><?php echo $roleKey === $allowedRoles[0] ? ' data-overlay-focus' : ''; ?>>
+                                            <span><?php echo sr_e(sr_admin_code_label($roleKey, 'role')); ?></span>
+                                        </label>
+                                    <?php } ?>
+                                </fieldset>
+                                <p class="admin-form-help">체크된 역할이 저장 후 이 회원의 관리자 권한으로 적용됩니다.</p>
                             </div>
                         </div>
                     </div>

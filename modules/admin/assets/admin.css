@@ -332,7 +332,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-summary-meta{color:var(--color-default-700);align-items:center;gap:.35rem;font-size:.8125rem;display:inline-flex}
 .admin-summary-meta strong{color:var(--color-default-900)}
 .admin-account-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
-.admin-role-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
+.admin-role-search-grid{grid-template-columns:max-content max-content max-content minmax(16rem,1fr) max-content;align-items:end;gap:.875rem;justify-content:start;display:grid}
 .admin-filter-field{min-width:calc(var(--spacing) * 0);gap:.45rem;display:grid}
 .admin-filter-field label{margin:calc(var(--spacing) * 0);font-size:.8125rem;font-weight:var(--font-weight-semibold);color:var(--color-default-700)}
 .admin-filter-field :is(select,textarea,input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])){width:100%;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);box-shadow:none}
@@ -648,6 +648,44 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     gap: calc(var(--spacing) * 3);
     grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
     justify-content: stretch;
+}
+
+.admin-role-filter {
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-filter-grid.admin-role-search-grid {
+    gap: .875rem;
+    grid-template-columns: max-content max-content max-content minmax(16rem, 1fr) max-content;
+    justify-content: start;
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-role-search-grid .admin-filter-field {
+    min-width: 0;
+    width: fit-content;
+}
+
+.admin-role-search-grid .admin-filter-field:nth-child(-n+3) .admin-filter-input {
+    field-sizing: content;
+    min-width: 7.5rem;
+    width: fit-content;
+}
+
+.admin-role-search-grid .admin-filter-field:nth-child(4) {
+    min-width: 16rem;
+    width: auto;
+}
+
+.admin-role-search-grid .admin-filter-field:nth-child(4) .admin-filter-input {
+    width: 100%;
+}
+
+.admin-role-search-grid .admin-filter-submit {
+    min-width: 5rem;
+    width: fit-content;
 }
 
 .admin-filter-grid-compact {
@@ -1090,6 +1128,29 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
     .admin-filter-submit {
         justify-content: center;
+        width: 100%;
+    }
+
+    .admin-role-search-grid .admin-filter-field:nth-child(-n+3) .admin-filter-input {
+        width: 100%;
+    }
+
+    .admin-role-filter,
+    .admin-filter-grid.admin-role-search-grid,
+    .admin-role-search-grid .admin-filter-field {
+        width: 100%;
+    }
+
+    .admin-filter-grid.admin-role-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-role-search-grid .admin-filter-field:nth-child(4) {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .admin-role-search-grid .admin-filter-submit {
         width: 100%;
     }
 
