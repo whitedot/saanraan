@@ -189,6 +189,41 @@ button {
     margin: 20px auto 0;
 }
 
+.sr-site-menu-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sr-site-menu-item {
+    position: relative;
+}
+
+.sr-site-menu-item > .sr-site-menu-list {
+    display: none;
+    min-width: 11rem;
+    border: 1px solid var(--sr-border);
+    border-radius: 6px;
+    background: var(--sr-surface);
+    padding: 6px;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+}
+
+.sr-site-menu-item:hover > .sr-site-menu-list,
+.sr-site-menu-item:focus-within > .sr-site-menu-list {
+    display: grid;
+}
+
+.sr-site-menu-list-depth-3 {
+    left: 100%;
+    top: 0;
+}
+
 .sr-banner {
     display: block;
     margin: 0 0 20px;

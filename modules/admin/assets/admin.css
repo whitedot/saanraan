@@ -375,6 +375,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-menu-target{align-items:center;gap:.5rem;min-width:0;display:flex}
 .admin-menu-target-depth-1{padding-left:1.25rem}
 .admin-menu-target-depth-2{padding-left:2.5rem}
+.admin-menu-target-depth-3{padding-left:3.75rem}
 .admin-menu-tree-branch{width:1rem;height:1.5rem;border-left:1px solid var(--color-default-300);border-bottom:1px solid var(--color-default-300);flex:none;transform:translateY(-.35rem)}
 .admin-menu-target-copy{min-width:0;display:grid;gap:.15rem}
 .admin-menu-target-label{font-weight:var(--font-weight-medium);color:var(--color-default-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

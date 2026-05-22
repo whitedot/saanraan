@@ -14,7 +14,6 @@ $primaryRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
         <strong><?php echo sr_e((string) ($primaryRow['label'] ?? '활성 메뉴')); ?></strong>
     </div>
     <div class="site-menu-dashboard-actions">
-        <a href="/admin/site-menus" class="btn btn-surface-default-soft">메뉴 관리</a>
-        <a href="/admin/site-menu-items" class="btn btn-solid-primary">항목 관리</a>
+        <a href="/admin/site-menus" class="btn btn-solid-primary">사이트 메뉴 관리</a>
     </div>
 </div>

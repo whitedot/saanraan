@@ -13,11 +13,84 @@ $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
 $errors = [];
 $notice = '';
-$siteMenuPage = isset($siteMenuPage) ? (string) $siteMenuPage : 'menus';
-if (!in_array($siteMenuPage, ['menus', 'menu_form', 'items', 'item_form'], true)) {
-    $siteMenuPage = 'menus';
-}
 $menuLinkSuggestions = sr_site_menu_link_suggestions($pdo);
+
+function sr_site_menu_admin_parent_depth(PDO $pdo, int $menuId, int $parentId, int $excludeItemId = 0): ?int
+{
+    if ($parentId <= 0) {
+        return 0;
+    }
+
+    $depth = 1;
+    $currentId = $parentId;
+    $visited = [];
+    while ($currentId > 0 && $depth <= 3) {
+        if ($excludeItemId > 0 && $currentId === $excludeItemId) {
+            return null;
+        }
+        if (isset($visited[$currentId])) {
+            return null;
+        }
+        $visited[$currentId] = true;
+
+        $stmt = $pdo->prepare('SELECT id, parent_id FROM sr_site_menu_items WHERE id = :id AND menu_id = :menu_id LIMIT 1');
+        $stmt->execute(['id' => $currentId, 'menu_id' => $menuId]);
+        $row = $stmt->fetch();
+        if (!is_array($row)) {
+            return null;
+        }
+
+        $nextParentId = (int) ($row['parent_id'] ?? 0);
+        if ($nextParentId <= 0) {
+            return $depth;
+        }
+
+        $currentId = $nextParentId;
+        $depth++;
+    }
+
+    return null;
+}
+
+function sr_site_menu_admin_descendant_ids(PDO $pdo, int $itemId): array
+{
+    $ids = [];
+    $frontier = [$itemId];
+    while ($frontier !== []) {
+        $placeholders = implode(',', array_fill(0, count($frontier), '?'));
+        $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_items WHERE parent_id IN (' . $placeholders . ')');
+        $stmt->execute($frontier);
+        $frontier = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $childId = (int) ($row['id'] ?? 0);
+            if ($childId > 0 && !in_array($childId, $ids, true)) {
+                $ids[] = $childId;
+                $frontier[] = $childId;
+            }
+        }
+    }
+
+    return $ids;
+}
+
+function sr_site_menu_admin_subtree_max_relative_depth(PDO $pdo, int $itemId): int
+{
+    $maxDepth = 1;
+    $walk = static function (int $parentId, int $depth) use (&$walk, &$maxDepth, $pdo): void {
+        $maxDepth = max($maxDepth, $depth);
+        $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_items WHERE parent_id = :parent_id');
+        $stmt->execute(['parent_id' => $parentId]);
+        foreach ($stmt->fetchAll() as $row) {
+            $childId = (int) ($row['id'] ?? 0);
+            if ($childId > 0) {
+                $walk($childId, $depth + 1);
+            }
+        }
+    };
+    $walk($itemId, 1);
+
+    return $maxDepth;
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -109,6 +182,7 @@ if (sr_request_method() === 'POST') {
         $target = sr_post_string('target', 20);
         $status = sr_post_string('status', 30);
         $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $parentId = (int) sr_post_string('parent_id', 20);
 
         if ($menuId <= 0) {
             $errors[] = '메뉴를 선택하세요.';
@@ -134,6 +208,17 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        if ($errors === [] && $parentId > 0) {
+            $parentDepth = sr_site_menu_admin_parent_depth($pdo, $menuId, $parentId, $itemId);
+            if ($parentDepth === null) {
+                $errors[] = '상위 항목을 찾을 수 없거나 순환 구조가 됩니다.';
+            } elseif ($parentDepth >= 3) {
+                $errors[] = '사이트 메뉴 항목은 최대 3단계까지만 구성할 수 있습니다.';
+            } elseif ($itemId > 0 && $parentDepth + sr_site_menu_admin_subtree_max_relative_depth($pdo, $itemId) > 3) {
+                $errors[] = '하위 항목을 포함하면 최대 3단계를 초과합니다.';
+            }
+        }
+
         if ($errors === []) {
             $stmt = $pdo->prepare(
                 'SELECT id FROM sr_site_menu_items
@@ -155,10 +240,11 @@ if (sr_request_method() === 'POST') {
             if ($itemId > 0) {
                 $stmt = $pdo->prepare(
                     'UPDATE sr_site_menu_items
-                     SET label = :label, url = :url, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
+                     SET parent_id = :parent_id, label = :label, url = :url, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
                      WHERE id = :id AND menu_id = :menu_id'
                 );
                 $stmt->execute([
+                    'parent_id' => $parentId > 0 ? $parentId : null,
                     'label' => $label,
                     'url' => $url,
                     'target' => $target,
@@ -173,10 +259,11 @@ if (sr_request_method() === 'POST') {
                     'INSERT INTO sr_site_menu_items
                         (menu_id, parent_id, label, url, target, status, sort_order, created_at, updated_at)
                      VALUES
-                        (:menu_id, NULL, :label, :url, :target, :status, :sort_order, :created_at, :updated_at)'
+                        (:menu_id, :parent_id, :label, :url, :target, :status, :sort_order, :created_at, :updated_at)'
                 );
                 $stmt->execute([
                     'menu_id' => $menuId,
+                    'parent_id' => $parentId > 0 ? $parentId : null,
                     'label' => $label,
                     'url' => $url,
                     'target' => $target,
@@ -196,10 +283,40 @@ if (sr_request_method() === 'POST') {
                 'target_id' => (string) $itemId,
                 'result' => 'success',
                 'message' => 'Site menu item saved.',
-                'metadata' => ['menu_id' => $menuId],
+                'metadata' => ['menu_id' => $menuId, 'parent_id' => $parentId > 0 ? $parentId : null],
             ]);
 
             $notice = '메뉴 항목을 저장했습니다.';
+        }
+    } elseif ($intent === 'save_item_order') {
+        $sortOrders = $_POST['item_sort_order'] ?? [];
+        if (!is_array($sortOrders)) {
+            $errors[] = '정렬값 형식이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            $now = sr_now();
+            $stmt = $pdo->prepare('UPDATE sr_site_menu_items SET sort_order = :sort_order, updated_at = :updated_at WHERE id = :id');
+            foreach ($sortOrders as $id => $sortOrderValue) {
+                $id = (int) $id;
+                if ($id <= 0) {
+                    continue;
+                }
+                $sortOrder = max(-100000, min(100000, (int) $sortOrderValue));
+                $stmt->execute(['sort_order' => $sortOrder, 'updated_at' => $now, 'id' => $id]);
+            }
+
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'site_menu.item_order.saved',
+                'target_type' => 'site_menu_items',
+                'target_id' => 'site_menu',
+                'result' => 'success',
+                'message' => 'Site menu item order saved.',
+            ]);
+
+            $notice = '메뉴 항목 순서를 저장했습니다.';
         }
     } elseif ($intent === 'delete_item') {
         if ($itemId <= 0) {
@@ -207,8 +324,10 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('DELETE FROM sr_site_menu_items WHERE id = :id');
-            $stmt->execute(['id' => $itemId]);
+            $deleteIds = array_merge([$itemId], sr_site_menu_admin_descendant_ids($pdo, $itemId));
+            $placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
+            $stmt = $pdo->prepare('DELETE FROM sr_site_menu_items WHERE id IN (' . $placeholders . ')');
+            $stmt->execute($deleteIds);
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -272,28 +391,6 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$editItem = null;
-$editItemId = (int) sr_get_string('edit_item_id', 20);
-if ($editItemId > 0) {
-    $stmt = $pdo->prepare('SELECT id, menu_id, label, url, target, status, sort_order FROM sr_site_menu_items WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $editItemId]);
-    $row = $stmt->fetch();
-    if (is_array($row)) {
-        $editItem = $row;
-    }
-}
-
-$editMenu = null;
-$editMenuId = (int) sr_get_string('edit_menu_id', 20);
-if ($editMenuId > 0) {
-    $stmt = $pdo->prepare('SELECT id, menu_key, label, status FROM sr_site_menus WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $editMenuId]);
-    $row = $stmt->fetch();
-    if (is_array($row)) {
-        $editMenu = $row;
-    }
-}
-
 $menus = [];
 $stmt = $pdo->query('SELECT id, menu_key, label, status, updated_at FROM sr_site_menus ORDER BY menu_key ASC');
 foreach ($stmt->fetchAll() as $row) {
@@ -301,28 +398,55 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $items = [];
-$menuItemUrls = [];
-$menuNextSortOrders = [];
+$menuParentNextSortOrders = [];
 $stmt = $pdo->query(
-    'SELECT i.id, i.menu_id, m.menu_key, i.label, i.url, i.target, i.status, i.sort_order, i.updated_at
+    'SELECT i.id, i.menu_id, i.parent_id, m.menu_key, i.label, i.url, i.target, i.status, i.sort_order, i.updated_at
      FROM sr_site_menu_items i
-     INNER JOIN sr_site_menus m ON m.id = i.menu_id
+    INNER JOIN sr_site_menus m ON m.id = i.menu_id
      ORDER BY m.menu_key ASC, i.sort_order ASC, i.id ASC'
 );
 foreach ($stmt->fetchAll() as $row) {
     $items[] = $row;
     $rowMenuId = (int) $row['menu_id'];
-    $rowUrl = (string) $row['url'];
+    $rowParentId = (int) ($row['parent_id'] ?? 0);
     $rowSortOrder = (int) $row['sort_order'];
-    $menuItemUrls[$rowMenuId][$rowUrl] = true;
-    $menuNextSortOrders[$rowMenuId] = max((int) ($menuNextSortOrders[$rowMenuId] ?? 0), $rowSortOrder + 10);
+    $menuParentNextSortOrders[$rowMenuId][$rowParentId] = max((int) ($menuParentNextSortOrders[$rowMenuId][$rowParentId] ?? 0), $rowSortOrder + 10);
 }
 
 foreach ($menus as $menu) {
     $rowMenuId = (int) $menu['id'];
-    if (!isset($menuNextSortOrders[$rowMenuId])) {
-        $menuNextSortOrders[$rowMenuId] = 100;
+    if (!isset($menuParentNextSortOrders[$rowMenuId][0])) {
+        $menuParentNextSortOrders[$rowMenuId][0] = 100;
     }
+}
+
+$menuRows = [];
+$itemsByMenuParent = [];
+$itemDepths = [];
+foreach ($items as $item) {
+    $rowMenuId = (int) $item['menu_id'];
+    $rowParentId = (int) ($item['parent_id'] ?? 0);
+    $itemsByMenuParent[$rowMenuId][$rowParentId][] = $item;
+}
+
+$appendItems = static function (int $menuId, int $parentId, int $depth) use (&$appendItems, &$menuRows, &$itemsByMenuParent, &$itemDepths): void {
+    foreach ($itemsByMenuParent[$menuId][$parentId] ?? [] as $item) {
+        $itemId = (int) $item['id'];
+        $itemDepths[$itemId] = $depth;
+        $item['row_type'] = 'item';
+        $item['depth'] = $depth;
+        $menuRows[] = $item;
+        if ($depth < 3) {
+            $appendItems($menuId, $itemId, $depth + 1);
+        }
+    }
+};
+
+foreach ($menus as $menu) {
+    $menu['row_type'] = 'menu';
+    $menu['depth'] = 0;
+    $menuRows[] = $menu;
+    $appendItems((int) $menu['id'], 0, 1);
 }
 
 include SR_ROOT . '/modules/site_menu/views/admin-site-menus.php';

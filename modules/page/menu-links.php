@@ -21,6 +21,8 @@ return static function (PDO $pdo): array {
         }
 
         $links[] = [
+            'asset_type' => 'page',
+            'asset_type_label' => '페이지',
             'label' => (string) $page['title'],
             'url' => sr_page_path($slug),
         ];

@@ -61,6 +61,29 @@
     grid-column: 1 / -1;
 }
 
+.admin-site-menu-form {
+    overflow: visible;
+}
+
+.admin-site-menu-form-actions {
+    justify-content: flex-end;
+}
+
+.admin-page-site-menu .modal-body > .admin-form-row > .admin-form-field .form-select,
+.admin-page-site-menu .modal-body > .admin-form-row > .admin-form-field .form-input {
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-page-site-menu .admin-row-actions {
+    gap: .5rem;
+}
+
+.admin-page-site-menu .admin-table-actions-cell {
+    min-width: 14rem;
+    overflow: visible;
+}
+
 @media (max-width: 767px) {
     .site-menu-dashboard-summary {
         grid-template-columns: 1fr;

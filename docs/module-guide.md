@@ -843,7 +843,7 @@ return [
 대표 계약 파일:
 
 - `admin-menu.php`: 관리자 메뉴 항목
-- `menu-links.php`: 사이트 메뉴 후보 링크
+- `menu-links.php`: 사이트 메뉴 항목에 연결할 링크 자산
 - `output-slots.php`: 출력 renderer
 - `extension-points.php`: 확장 가능한 화면/기능 위치
 - `privacy-export.php`: 회원 개인정보 사본 제공 확장
@@ -958,7 +958,7 @@ return [
 | `paths.php` | core front controller | 모든 요청의 route 매칭 | 활성 모듈 action include 허용 목록 |
 | `paths.php` | `admin` 모듈 | 관리자 내비게이션 구성 | `admin-menu.php` path가 실제 GET route인지 확인 |
 | `admin-menu.php` | `admin` 모듈 | 관리자 레이아웃/내비게이션 구성 | 활성 모듈 관리자 메뉴 노출 |
-| `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 선택할 수 있는 메뉴 후보 |
+| `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 메뉴 항목에 연결할 수 있는 링크 자산 |
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
 | `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
 | `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출 시 | 저장된 출력 규칙 렌더링 |
@@ -1145,15 +1145,17 @@ return [
 
 커뮤니티의 그룹+레벨 접근 판정은 게시판 읽기/쓰기/댓글과 쪽지 발송처럼 회원 그룹 key와 최소 레벨이 함께 설정된 조건에 적용된다. 기본값 `both_required`는 두 조건을 모두 만족해야 허용하고, `group_first`와 `level_first`는 둘 중 하나만 만족해도 허용하되 둘 다 만족한 경우 어느 조건으로 통과한 것으로 볼지를 정한다. 커뮤니티 활동으로 레벨이 바뀔 수 있는 게시글/댓글 생성, 삭제, 상태 변경 흐름은 레벨을 먼저 재계산한 뒤 커뮤니티 자동 회원 그룹 규칙을 평가해야 `community.level_at_least` 규칙이 최신 레벨을 기준으로 동작한다.
 
-## 18. 사이트 메뉴 후보
+## 18. 사이트 메뉴 추가 링크
 
-사이트 공통 메뉴 구조는 `site_menu` 모듈이 소유한다. 각 모듈은 운영자가 선택할 수 있는 후보 링크만 `menu-links.php`로 제공한다.
+사이트 공통 메뉴 구조는 `site_menu` 모듈이 소유한다. 각 모듈은 운영자가 메뉴 항목에 연결할 수 있는 링크 자산만 `menu-links.php`로 제공한다. 이 링크 자산은 자동으로 메뉴에 등록되지 않고, 사이트 메뉴 항목 추가/수정 모달에서 서비스를 먼저 고른 뒤 대상 종류와 연결 자산으로 선택한다. 서비스는 모듈의 관리자 표시 이름을 사용하고, `asset_type`은 서비스 안의 대상 종류를 구분한다.
 
 ```php
 <?php
 
 return [
     [
+        'asset_type' => 'board',
+        'asset_type_label' => '게시판',
         'label' => '게시판',
         'url' => '/board',
     ],
@@ -1162,10 +1164,12 @@ return [
 
 규칙:
 
-- 후보 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
+- 링크 자산 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
 - 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정한다.
+- 사이트 메뉴 항목은 `parent_id` 기반으로 최대 3단계까지 구성할 수 있으며, 관리자 화면은 메뉴 묶음과 항목을 단일 계층 테이블에서 관리한다.
+- `asset_type`과 `asset_type_label`을 제공하면 항목 모달에서 서비스 안의 대상 종류를 나눠서 선택할 수 있다. 예를 들어 커뮤니티는 `게시판 그룹`, `게시판`, 페이지는 `페이지`로 표시한다.
 - `url`은 내부 상대 경로 또는 허용된 외부 URL이어야 한다.
-- 메뉴 후보는 화면 위치가 아니므로 `extension-points.php`로 선언하지 않는다.
+- 메뉴 항목에 연결할 링크 자산은 화면 위치가 아니므로 `extension-points.php`로 선언하지 않는다.
 
 ## 19. 개인정보 사본 제공
 

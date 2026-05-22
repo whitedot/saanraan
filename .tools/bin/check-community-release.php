@@ -120,7 +120,7 @@ function sr_community_release_directory_is_empty(string $directory): bool
 $module = sr_community_release_array_file('modules/community/module.php');
 $paths = sr_community_release_array_file('modules/community/paths.php');
 $adminMenu = sr_community_release_array_file('modules/community/admin-menu.php');
-$menuLinks = sr_community_release_array_file('modules/community/menu-links.php');
+$menuLinks = sr_community_release_value_file('modules/community/menu-links.php');
 $extensionPoints = sr_community_release_array_file('modules/community/extension-points.php');
 $memberGroupRules = sr_community_release_array_file('modules/community/member-group-rules.php');
 $privacyExport = sr_community_release_value_file('modules/community/privacy-export.php');
@@ -274,29 +274,32 @@ sr_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/posts',
 ], 'Community admin-menu.php');
 
-$menuLinkUrls = [];
-foreach ($menuLinks as $entry) {
-    if (!is_array($entry)) {
-        sr_community_release_error('Community menu-links.php entries must be arrays.');
-        continue;
-    }
+if (is_array($menuLinks)) {
+    foreach ($menuLinks as $entry) {
+        if (!is_array($entry)) {
+            sr_community_release_error('Community menu-links.php entries must be arrays.');
+            continue;
+        }
 
-    $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
-    $url = is_string($entry['url'] ?? null) ? (string) $entry['url'] : '';
-    if ($label === '' || $url === '') {
-        sr_community_release_error('Community menu-links.php entries must include label and url.');
-        continue;
+        $label = is_string($entry['label'] ?? null) ? trim((string) $entry['label']) : '';
+        $url = is_string($entry['url'] ?? null) ? (string) $entry['url'] : '';
+        if ($label === '' || $url === '') {
+            sr_community_release_error('Community menu-links.php entries must include label and url.');
+            continue;
+        }
+        if ($url[0] !== '/' && preg_match('#\Ahttps?://#', $url) !== 1) {
+            sr_community_release_error('Community menu-links.php url must be an internal path or http(s) URL: ' . $url);
+        }
     }
-    if ($url[0] !== '/' && preg_match('#\Ahttps?://#', $url) !== 1) {
-        sr_community_release_error('Community menu-links.php url must be an internal path or http(s) URL: ' . $url);
-    }
-
-    $menuLinkUrls[] = $url;
+} elseif (!is_callable($menuLinks)) {
+    sr_community_release_error('Community menu-links.php must return an array or callable.');
 }
-sr_community_release_require_list_values($menuLinkUrls, [
-    '/community',
-    '/community/scraps',
-    '/community/messages',
+sr_community_release_file_contains('modules/community/menu-links.php', [
+    "'asset_type' => 'board_group'",
+    "'asset_type_label' => '게시판 그룹'",
+    "'asset_type' => 'board'",
+    "'asset_type_label' => '게시판'",
+    '/community/board?key=',
 ], 'Community menu-links.php');
 
 $pointKeys = [];

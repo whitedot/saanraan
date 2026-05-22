@@ -30,7 +30,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>게시판이 없습니다.</p>
         <?php } else { ?>
             <?php foreach ($boardSections as $section) { ?>
-                <section>
+                <?php
+                $sectionGroupKey = '';
+                foreach ($section['boards'] as $sectionBoard) {
+                    $sectionGroupKey = (string) ($sectionBoard['board_group_key'] ?? '');
+                    if ($sectionGroupKey !== '') {
+                        break;
+                    }
+                }
+                ?>
+                <section<?php echo $sectionGroupKey !== '' ? ' id="group-' . sr_e($sectionGroupKey) . '"' : ''; ?>>
                     <h2><?php echo sr_e((string) $section['title']); ?></h2>
                     <ul>
                         <?php foreach ($section['boards'] as $board) { ?>
