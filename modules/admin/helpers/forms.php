@@ -38,20 +38,43 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
         . '</div>';
 }
 
+function sr_admin_checkbox_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음'): string
+{
+    $selectedMap = [];
+    foreach ($selectedValues as $selectedValue) {
+        $selectedMap[(string) $selectedValue] = true;
+    }
+
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_checkbox_list';
+    $html = '<div id="' . sr_e($id) . '" class="admin-check-list" role="group">';
+
+    if ($options === []) {
+        $html .= '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span>';
+        return $html . '</div>';
+    }
+
+    $index = 0;
+    foreach ($options as $value => $label) {
+        $value = (string) $value;
+        if ($value === '') {
+            continue;
+        }
+
+        $inputId = $idBase . '_' . (string) $index;
+        $html .= '<label class="admin-form-check form-label" for="' . sr_e($inputId) . '">'
+            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" class="form-checkbox"' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
+            . sr_admin_choice_label_html((string) $label)
+            . '</label>';
+        $index++;
+    }
+
+    return $html . '</div>';
+}
+
 function sr_admin_member_group_key_select_html(string $id, string $name, array $selectedKeys, array $memberGroups): string
 {
-    $selectedKeyMap = [];
-    foreach ($selectedKeys as $selectedKey) {
-        $selectedKeyMap[(string) $selectedKey] = true;
-    }
-
-    $size = max(3, min(8, count($memberGroups)));
-    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '[]" class="form-select form-control-full admin-member-group-key-select" multiple size="' . sr_e((string) $size) . '">';
-
-    if ($memberGroups === []) {
-        $html .= '<option value="" disabled>활성 회원 그룹 없음</option>';
-    }
-
+    $options = [];
     foreach ($memberGroups as $memberGroup) {
         $groupKey = (string) ($memberGroup['group_key'] ?? '');
         if ($groupKey === '') {
@@ -60,8 +83,8 @@ function sr_admin_member_group_key_select_html(string $id, string $name, array $
 
         $title = trim((string) ($memberGroup['title'] ?? ''));
         $label = $title !== '' ? $title . ' (' . $groupKey . ')' : $groupKey;
-        $html .= '<option value="' . sr_e($groupKey) . '"' . (isset($selectedKeyMap[$groupKey]) ? ' selected' : '') . '>' . sr_e($label) . '</option>';
+        $options[$groupKey] = $label;
     }
 
-    return $html . '</select>';
+    return sr_admin_checkbox_list_html($id, $name, $options, $selectedKeys, '활성 회원 그룹 없음');
 }

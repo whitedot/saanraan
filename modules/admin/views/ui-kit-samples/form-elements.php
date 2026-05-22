@@ -264,21 +264,34 @@
 
                                         <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
 
-                                        <!-- Multiple Select -->
+                                        <!-- Checkbox List -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-multiselect" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">다중 선택
-                                                    (Multiple Select)</label>
+                                                <span class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 목록
+                                                    (Checkbox List)</span>
                                             </div>
 
-                                            <div class="ui-kit-column-lg-2">
-                                                <select id="example-multiselect" multiple class="form-select form-control-auto">
-                                                    <option>1</option>
-                                                    <option>2</option>
-                                                    <option>3</option>
-                                                    <option>4</option>
-                                                    <option>5</option>
-                                                </select>
+                                            <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-x-4 ui-kit-column-lg-2">
+                                                <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2" for="example-check-list-1">
+                                                    <input id="example-check-list-1" type="checkbox" name="example_check_list[]" value="1" class="form-checkbox" checked />
+                                                    1
+                                                </label>
+                                                <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2" for="example-check-list-2">
+                                                    <input id="example-check-list-2" type="checkbox" name="example_check_list[]" value="2" class="form-checkbox" />
+                                                    2
+                                                </label>
+                                                <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2" for="example-check-list-3">
+                                                    <input id="example-check-list-3" type="checkbox" name="example_check_list[]" value="3" class="form-checkbox" checked />
+                                                    3
+                                                </label>
+                                                <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2" for="example-check-list-4">
+                                                    <input id="example-check-list-4" type="checkbox" name="example_check_list[]" value="4" class="form-checkbox" />
+                                                    4
+                                                </label>
+                                                <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2" for="example-check-list-5">
+                                                    <input id="example-check-list-5" type="checkbox" name="example_check_list[]" value="5" class="form-checkbox" />
+                                                    5
+                                                </label>
                                             </div>
                                         </div>
                                     </div>

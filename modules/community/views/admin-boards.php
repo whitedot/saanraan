@@ -31,6 +31,10 @@ $boardArrayValue = static function (array $board, string $key): string {
 $boardField = static function (array $board, string $key, string $default = ''): string {
     return (string) ($board[$key] ?? $default);
 };
+$assetModuleChoiceOptions = [];
+foreach ($assetModuleOptions as $assetModule => $assetOption) {
+    $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
+}
 $communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
     $selectedLevel = sr_community_normalize_level_value($selectedLevel);
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
@@ -623,16 +627,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                             <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                                             <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
                                                         </label>
-                                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module<?php echo $usesCompositeAsset ? '[]' : ''; ?>" class="form-select"<?php echo $usesCompositeAsset ? ' multiple' : ''; ?>>
-                                                            <?php if ($assetModuleOptions === []) { ?>
-                                                                <option value="">활성 자산 모듈 없음</option>
-                                                            <?php } ?>
-                                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo ($usesCompositeAsset ? in_array((string) $assetModule, $selectedAssetModules, true) : $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule) ? ' selected' : ''; ?>>
-                                                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                                                </option>
-                                                            <?php } ?>
-                                                        </select>
+                                                        <?php if ($usesCompositeAsset) { ?>
+                                                            <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
+                                                        <?php } else { ?>
+                                                            <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                                                <?php if ($assetModuleOptions === []) { ?>
+                                                                    <option value="">활성 자산 모듈 없음</option>
+                                                                <?php } ?>
+                                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                                        <?php echo sr_e((string) $assetOption['label']); ?>
+                                                                    </option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        <?php } ?>
                                                         <?php if ($usesCompositeAsset) { ?>
                                                             <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
                                                         <?php } ?>

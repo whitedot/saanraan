@@ -66,13 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="admin_settings_supported_locales">지원 locale 목록</label>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
-                <select id="admin_settings_supported_locales" name="supported_locales[]" class="form-select form-control-full" multiple required>
-                    <?php foreach ($localeOptions as $localeOption) { ?>
-                        <option value="<?php echo sr_e($localeOption); ?>"<?php echo in_array($localeOption, $selectedSupportedLocales, true) ? ' selected' : ''; ?>>
-                            <?php echo sr_e($localeOption); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, '지원 locale 없음'); ?>
             </div>
         </div>
         <div class="admin-form-row">
