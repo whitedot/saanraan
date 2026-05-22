@@ -192,16 +192,76 @@ function sr_community_board_asset_policy_source(PDO $pdo, int $boardId): string
     return 'global';
 }
 
+function sr_community_asset_prefix_setting_keys(string $prefix): array
+{
+    if (!in_array($prefix, sr_community_asset_setting_prefixes(), true)) {
+        return [];
+    }
+
+    $keys = [
+        $prefix . '_enabled',
+        $prefix . '_asset_module',
+        $prefix . '_amount',
+    ];
+
+    if (in_array($prefix, ['paid_read', 'paid_attachment_download'], true)) {
+        $keys[] = $prefix . '_charge_policy';
+    }
+
+    return $keys;
+}
+
+function sr_community_asset_prefix_from_setting_key(string $settingKey): string
+{
+    foreach (sr_community_asset_setting_prefixes() as $prefix) {
+        if (str_starts_with($settingKey, $prefix . '_')) {
+            return $prefix;
+        }
+    }
+
+    return '';
+}
+
+function sr_community_board_asset_setting_source(PDO $pdo, int $boardId, string $prefix): string
+{
+    if ($boardId < 1) {
+        return 'all';
+    }
+
+    foreach (sr_community_asset_prefix_setting_keys($prefix) as $settingKey) {
+        $stmt = $pdo->prepare(
+            'SELECT source
+             FROM sr_community_board_setting_sources
+             WHERE board_id = :board_id
+               AND setting_key = :setting_key
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'board_id' => $boardId,
+            'setting_key' => $settingKey,
+        ]);
+        $source = $stmt->fetchColumn();
+        if (is_string($source) && $source !== '') {
+            return sr_community_normalize_board_setting_source($source);
+        }
+    }
+
+    $legacySource = sr_community_board_asset_policy_source($pdo, $boardId);
+    if ($legacySource === 'global') {
+        return 'all';
+    }
+
+    return sr_community_normalize_board_setting_source($legacySource);
+}
+
 function sr_community_asset_setting_keys(): array
 {
     $keys = [];
-    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $prefix) {
-        $keys[] = $prefix . '_enabled';
-        $keys[] = $prefix . '_asset_module';
-        $keys[] = $prefix . '_amount';
+    foreach (sr_community_asset_setting_prefixes() as $prefix) {
+        foreach (sr_community_asset_prefix_setting_keys($prefix) as $settingKey) {
+            $keys[] = $settingKey;
+        }
     }
-    $keys[] = 'paid_read_charge_policy';
-    $keys[] = 'paid_attachment_download_charge_policy';
 
     return $keys;
 }
@@ -270,7 +330,13 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
 function sr_community_asset_board_setting(PDO $pdo, array $board, array $settings, string $key, mixed $default): string
 {
     $boardId = (int) ($board['id'] ?? 0);
-    $source = $boardId > 0 ? sr_community_board_asset_policy_source($pdo, $boardId) : 'global';
+    $prefix = sr_community_asset_prefix_from_setting_key($key);
+    $source = 'all';
+    if ($boardId > 0 && $prefix !== '') {
+        $source = is_string($board['source_' . $prefix] ?? null)
+            ? sr_community_normalize_board_setting_source((string) $board['source_' . $prefix])
+            : sr_community_board_asset_setting_source($pdo, $boardId, $prefix);
+    }
     if ($source === 'group') {
         $groupId = (int) ($board['board_group_id'] ?? 0);
         if ($groupId > 0) {

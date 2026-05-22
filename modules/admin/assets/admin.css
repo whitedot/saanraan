@@ -248,6 +248,13 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-assets>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
 .admin-page-file-charge-amount{width:10rem}
 .admin-page-file-charge-policy{width:auto}
+.admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-line>.admin-setting-source-options{margin-left:auto}
+.admin-asset-setting-target{min-width:0}
+.admin-asset-setting-target>.admin-check-list{margin-top:0}
+.admin-asset-setting-target>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
+.admin-asset-setting-amount{width:10rem}
 .admin-role-choice-list{border:0;display:grid;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-role-choice{min-height:calc(var(--spacing) * 9);border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
 .admin-role-choice:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent)}
@@ -544,6 +551,15 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-page-file-charge-main>.admin-setting-source-options{
         justify-content:flex-start;
         margin-left:0;
+    }
+
+    .admin-asset-setting-line>.admin-setting-source-options{
+        justify-content:flex-start;
+        margin-left:0;
+    }
+
+    .admin-asset-setting-amount{
+        width:100%;
     }
 
     .modal-body>.admin-form-row{

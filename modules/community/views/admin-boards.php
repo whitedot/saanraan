@@ -43,20 +43,6 @@ $settingSourceRadioHtml = static function (string $name, string $selectedSource)
 
     return $html . '</div>';
 };
-$assetSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
-    $sourceMap = ['group' => 'group', 'global' => 'all', 'board' => 'board'];
-    $selectedSource = isset($sourceMap[$selectedSource]) ? $selectedSource : 'global';
-    $html = '<div class="admin-setting-source-options" role="radiogroup" aria-label="회원 자산 적용 범위">';
-    foreach ($sourceMap as $source => $labelKey) {
-        $id = 'asset_policy_source_' . $source;
-        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
-        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($selectedSource === $source ? ' checked' : '') . '>';
-        $html .= $settingSourceLabelHtml($settingSourceLabels[$labelKey]);
-        $html .= '</label>';
-    }
-
-    return $html . '</div>';
-};
 $boardArrayValue = static function (array $board, string $key): string {
     return implode(', ', is_array($board[$key] ?? null) ? $board[$key] : []);
 };
@@ -121,7 +107,12 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'write_min_level' => 0,
     'comment_min_level' => 0,
     'skin_key' => 'basic',
-    'asset_policy_source' => 'global',
+    'source_post_reward' => 'all',
+    'source_comment_reward' => 'all',
+    'source_write_charge' => 'all',
+    'source_comment_charge' => 'all',
+    'source_paid_read' => 'all',
+    'source_paid_attachment_download' => 'all',
     'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
     'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
@@ -569,12 +560,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2>회원 자산</h2>
-            <div class="admin-form-row">
-                <span class="form-label">적용 방식</span>
-                <div class="admin-form-field">
-                    <?php echo $assetSourceRadioHtml('asset_policy_source', $boardField($formBoard, 'asset_policy_source', 'global')); ?>
-                </div>
-            </div>
             <div class="admin-form-grid">
                 <?php foreach ([
                     'post_reward' => '게시글 적립',
@@ -590,39 +575,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
                         <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                                            <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                                            <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
-                                                        </label>
-                                                        <?php if ($usesCompositeAsset) { ?>
-                                                            <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
-                                                        <?php } else { ?>
-                                                            <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
-                                                                <?php if ($assetModuleOptions === []) { ?>
-                                                                    <option value="">활성 자산 모듈 없음</option>
-                                                                <?php } ?>
-                                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                                    <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                                                        <?php echo sr_e((string) $assetOption['label']); ?>
-                                                                    </option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        <?php } ?>
-                                                        <?php if ($usesCompositeAsset) { ?>
-                                                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                                        <?php } ?>
-                                                        <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
-                                                        <?php if ($assetPrefix === 'paid_read') { ?>
-                                                            <select name="paid_read_charge_policy" class="form-select">
-                                                                <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                                                <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
-                                                            </select>
-                                                        <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                                                            <select name="paid_attachment_download_charge_policy" class="form-select">
-                                                                <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
-                                                                <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
-                                                            </select>
-                                                        <?php } ?>
+                            <div class="admin-asset-setting-line">
+                                <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                    <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_admin_choice_label_html($assetLabel . ' 사용'); ?>
+                                </label>
+                                <div class="admin-asset-setting-target">
+                                    <?php if ($usesCompositeAsset) { ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, '활성 자산 모듈 없음'); ?>
+                                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                                    <?php } else { ?>
+                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                            <?php if ($assetModuleOptions === []) { ?>
+                                                <option value="">활성 자산 모듈 없음</option>
+                                            <?php } ?>
+                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e((string) $assetOption['label']); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
+                                </div>
+                                <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount">
+                                <?php if ($assetPrefix === 'paid_read') { ?>
+                                    <select name="paid_read_charge_policy" class="form-select">
+                                        <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                        <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>>매 열람</option>
+                                    </select>
+                                <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                    <select name="paid_attachment_download_charge_policy" class="form-select">
+                                        <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>>최초 1회</option>
+                                        <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>>매 다운로드</option>
+                                    </select>
+                                <?php } ?>
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix, $boardField($formBoard, 'source_' . (string) $assetPrefix, 'all')); ?>
+                            </div>
                         </div>
                     </div>
                 <?php } ?>

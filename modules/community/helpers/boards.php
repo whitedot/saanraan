@@ -70,10 +70,15 @@ function sr_community_board_group_setting_keys(): array
     ];
 }
 
+function sr_community_asset_setting_prefixes(): array
+{
+    return ['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
+}
+
 function sr_community_board_group_asset_setting_keys(): array
 {
     $keys = [];
-    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $prefix) {
+    foreach (sr_community_asset_setting_prefixes() as $prefix) {
         $keys[] = $prefix . '_enabled';
         $keys[] = $prefix . '_asset_module';
         $keys[] = $prefix . '_amount';
@@ -135,6 +140,84 @@ function sr_community_normalize_board_setting_source(string $source): string
     }
 
     return in_array($source, sr_community_board_setting_source_values(), true) ? $source : 'board';
+}
+
+function sr_community_board_scope_target_ids(PDO $pdo, int $boardId, int $boardGroupId, string $source): array
+{
+    if ($boardId < 1) {
+        return [];
+    }
+
+    $source = sr_community_normalize_board_setting_source($source);
+    if ($source === 'all') {
+        $stmt = $pdo->query('SELECT id FROM sr_community_boards ORDER BY id ASC');
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    if ($source === 'group' && $boardGroupId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM sr_community_boards WHERE board_group_id = :board_group_id ORDER BY id ASC');
+        $stmt->execute(['board_group_id' => $boardGroupId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    return [$boardId];
+}
+
+function sr_community_board_setting_value_type(string $settingKey): string
+{
+    if (in_array($settingKey, [
+        'attachment_max_bytes',
+        'attachment_max_count',
+        'file_attachment_max_bytes',
+        'file_attachment_max_count',
+        'read_min_level',
+        'write_min_level',
+        'comment_min_level',
+        'banner_before_list_id',
+        'banner_after_list_id',
+        'banner_before_view_id',
+        'banner_after_view_id',
+        'banner_before_form_id',
+        'banner_after_form_id',
+        'popup_layer_list_id',
+        'popup_layer_view_id',
+        'popup_layer_form_id',
+    ], true) || str_ends_with($settingKey, '_amount')) {
+        return 'int';
+    }
+
+    if (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled')) {
+        return 'bool';
+    }
+
+    if (in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
+        return 'json';
+    }
+
+    return 'string';
+}
+
+function sr_community_apply_board_setting_scope(PDO $pdo, int $boardId, int $boardGroupId, string $settingKey, string $source, mixed $value): void
+{
+    $targets = sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, $source);
+    if ($targets === []) {
+        return;
+    }
+
+    if (in_array($settingKey, sr_community_board_group_column_setting_keys(), true)) {
+        $placeholders = implode(',', array_fill(0, count($targets), '?'));
+        $stmt = $pdo->prepare('UPDATE sr_community_boards SET ' . $settingKey . ' = ?, updated_at = ? WHERE id IN (' . $placeholders . ')');
+        $stmt->execute(array_merge([(string) $value, sr_now()], $targets));
+    } else {
+        $valueType = sr_community_board_setting_value_type($settingKey);
+        foreach ($targets as $targetBoardId) {
+            sr_community_set_board_setting($pdo, (int) $targetBoardId, $settingKey, (string) $value, $valueType);
+        }
+    }
+
+    foreach ($targets as $targetBoardId) {
+        sr_community_set_board_setting_source($pdo, (int) $targetBoardId, $settingKey, 'board');
+    }
 }
 
 function sr_community_board_select_columns(string $alias = 'b'): string
@@ -524,7 +607,7 @@ function sr_community_board_group_settings(PDO $pdo, int $groupId): array
 
 function sr_community_board_setting_source(PDO $pdo, int $boardId, string $settingKey): string
 {
-    if ($boardId < 1 || !in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+    if ($boardId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
         return 'board';
     }
 
@@ -560,7 +643,7 @@ function sr_community_board_setting_sources(PDO $pdo, int $boardId): array
     $sources = [];
     foreach ($stmt->fetchAll() as $row) {
         $settingKey = (string) ($row['setting_key'] ?? '');
-        if (in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+        if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
             $sources[$settingKey] = sr_community_normalize_board_setting_source((string) ($row['source'] ?? 'board'));
         }
     }
@@ -570,7 +653,7 @@ function sr_community_board_setting_sources(PDO $pdo, int $boardId): array
 
 function sr_community_set_board_setting_source(PDO $pdo, int $boardId, string $settingKey, string $source): void
 {
-    if ($boardId < 1 || !in_array($settingKey, sr_community_board_group_setting_keys(), true)) {
+    if ($boardId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
         return;
     }
 

@@ -630,6 +630,63 @@ function sr_page_group_apply_scope(string $scope): string
     return in_array($scope, ['group', 'all', 'here_only'], true) ? $scope : 'here_only';
 }
 
+function sr_page_apply_scope_target_ids(PDO $pdo, int $pageId, int $pageGroupId, string $scope): array
+{
+    if ($pageId < 1) {
+        return [];
+    }
+
+    $scope = sr_page_group_apply_scope($scope);
+    if ($scope === 'all') {
+        $stmt = $pdo->query('SELECT id FROM sr_pages ORDER BY id ASC');
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    if ($scope === 'group' && $pageGroupId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM sr_pages WHERE page_group_id = :page_group_id ORDER BY id ASC');
+        $stmt->execute(['page_group_id' => $pageGroupId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    return [$pageId];
+}
+
+function sr_page_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId, string $settingKey, string $scope, array $values, int $accountId, string $now): void
+{
+    $targets = sr_page_apply_scope_target_ids($pdo, $pageId, $pageGroupId, $scope);
+    if ($targets === []) {
+        return;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($targets), '?'));
+    $params = [];
+    $sql = '';
+    if ($settingKey === 'status') {
+        $status = (string) ($values['status'] ?? 'draft');
+        $sql = "UPDATE sr_pages
+                SET status = ?, published_at = CASE WHEN ? = 'published' THEN COALESCE(published_at, ?) ELSE NULL END, updated_by = ?, updated_at = ?
+                WHERE id IN (" . $placeholders . ')';
+        $params = [$status, $status, $now, $accountId, $now];
+    } elseif ($settingKey === 'layout_key') {
+        $sql = 'UPDATE sr_pages SET layout_key = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
+        $params = [(string) ($values['layout_key'] ?? ''), $accountId, $now];
+    } elseif (in_array($settingKey, ['banner_before_content_id', 'banner_after_content_id', 'popup_layer_id'], true)) {
+        $sql = 'UPDATE sr_pages SET ' . $settingKey . ' = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
+        $params = [(int) ($values[$settingKey] ?? 0), $accountId, $now];
+    } elseif (in_array($settingKey, sr_page_group_asset_access_setting_keys(), true) || in_array($settingKey, sr_page_group_asset_action_setting_keys(), true)) {
+        $sql = 'UPDATE sr_pages SET ' . $settingKey . ' = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
+        $params = [$values[$settingKey] ?? '', $accountId, $now];
+    } else {
+        return;
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array_merge($params, $targets));
+    foreach ($targets as $targetPageId) {
+        sr_page_set_setting_source($pdo, (int) $targetPageId, $settingKey, 'page');
+    }
+}
+
 function sr_page_admin_status_counts(PDO $pdo): array
 {
     $counts = [
@@ -1031,9 +1088,6 @@ function sr_page_input_values(): array
 {
     $pageGroupScope = sr_page_group_apply_scope(sr_post_string('page_group_scope', 20));
     $pageGroupId = (int) sr_post_string('page_group_id', 20);
-    if ($pageGroupScope !== 'group') {
-        $pageGroupId = 0;
-    }
 
     $values = [
         'page_group_scope' => $pageGroupScope,
@@ -1102,7 +1156,7 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
         'file_asset_policy_source' => '새 파일 과금',
     ] as $sourceKey => $sourceLabel) {
         if (sr_page_normalize_setting_source((string) ($values[$sourceKey] ?? 'page')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $sourceLabel . ' 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+            $errors[] = $sourceLabel . ' 설정은 페이지 그룹이 있어야 그룹 적용할 수 있습니다.';
         }
     }
 
@@ -1169,7 +1223,7 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
         $displayId = (int) ($values[$settingKey] ?? 0);
         if (sr_page_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'page')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $settingLabel . ' 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+            $errors[] = $settingLabel . ' 설정은 페이지 그룹이 있어야 그룹 적용할 수 있습니다.';
         }
 
         if ($displayId < 0) {
@@ -1294,19 +1348,19 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         }
 
         foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_basic_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_asset_access_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_access_policy_source'] ?? 'page'));
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['asset_access_policy_source'] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_asset_action_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_action_policy_source'] ?? 'page'));
+            sr_page_apply_setting_scope($pdo, $pageId, (int) ($values['page_group_id'] ?? 0), (string) $settingKey, (string) ($values['asset_action_policy_source'] ?? 'page'), $values, $accountId, $now);
         }
         foreach (sr_page_group_file_asset_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['file_asset_policy_source'] ?? 'page'));
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, 'page');
         }
 
         sr_page_record_revision($pdo, $pageId, $values, $accountId, $now);
@@ -1633,13 +1687,6 @@ function sr_page_new_file_values_from_post(?PDO $pdo = null, array $pageValues =
         'asset_download_amount' => (int) sr_post_string('new_page_file_asset_download_amount', 20),
         'asset_charge_policy' => sr_page_clean_slug(sr_post_string('new_page_file_asset_charge_policy', 20)),
     ], false);
-
-    if ($pdo instanceof PDO && sr_page_normalize_setting_source((string) ($pageValues['file_asset_policy_source'] ?? 'page')) === 'group') {
-        $groupId = (int) ($pageValues['page_group_id'] ?? 0);
-        if ($groupId > 0) {
-            return array_merge($values, sr_page_file_asset_values_from_group($pdo, $groupId));
-        }
-    }
 
     return $values;
 }
