@@ -1,0 +1,54 @@
+.admin-sidebar-brand-logo {
+    display: block;
+    max-height: 1.75rem;
+    max-width: 2.5rem;
+    object-fit: contain;
+}
+
+.logo-manager-current-grid {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.logo-manager-current-item {
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    min-height: 9rem;
+    padding: calc(var(--spacing) * 4);
+}
+
+.logo-manager-current-item img {
+    max-height: 3rem;
+    max-width: 10rem;
+    object-fit: contain;
+}
+
+.logo-manager-current-item small,
+.logo-manager-empty {
+    color: var(--color-default-600);
+}
+
+.logo-manager-thumb {
+    background: var(--color-default-100);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    height: 2.5rem;
+    margin-right: .5rem;
+    max-width: 7rem;
+    object-fit: contain;
+    padding: .25rem;
+    vertical-align: middle;
+    width: auto;
+}
+
+.logo-manager-assets-table {
+    min-width: 62rem;
+}
+
+.logo-manager-assignments-table {
+    min-width: 58rem;
+}

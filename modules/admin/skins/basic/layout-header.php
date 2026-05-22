@@ -22,6 +22,16 @@ $adminShell = [
 if (isset($pdo) && $pdo instanceof PDO) {
     $adminShell = sr_admin_shell_view($pdo, $site ?? null, (string) $adminPageTitle, (string) $adminPageSubtitle, (string) $adminContainerClass);
 }
+$adminBrandLogoHtml = '';
+$adminFaviconHtml = '';
+if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
+    require_once SR_ROOT . '/modules/logo_manager/helpers.php';
+    $adminBrandLogoHtml = sr_logo_manager_render_logo($pdo, 'admin_sidebar', $site ?? null, [
+        'class' => 'admin-sidebar-brand-logo',
+        'alt' => '',
+    ]);
+    $adminFaviconHtml = sr_logo_manager_favicon_link_tag($pdo);
+}
 ?>
 <!doctype html>
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_color_scheme($site ?? null)); ?>">
@@ -36,6 +46,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
+    <?php echo $adminFaviconHtml; ?>
     <?php echo sr_admin_stylesheet_tag($pdo ?? null); ?>
     <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
@@ -48,8 +59,12 @@ if (isset($pdo) && $pdo instanceof PDO) {
         <nav id="gnb" class="admin-sidebar" aria-label="관리자 메뉴">
             <h2 class="admin-sidebar-brand">
                 <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>">
-                    <span class="admin-sidebar-brand-mark" aria-hidden="true">
-                        <?php echo sr_material_icon_html('admin_panel_settings', 'admin-shell-control-icon'); ?>
+                    <span class="admin-sidebar-brand-mark">
+                        <?php if ($adminBrandLogoHtml !== '') { ?>
+                            <?php echo $adminBrandLogoHtml; ?>
+                        <?php } else { ?>
+                            <?php echo sr_material_icon_html('admin_panel_settings', 'admin-shell-control-icon'); ?>
+                        <?php } ?>
                     </span>
                     <span class="admin-sidebar-brand-name"><?php echo sr_e((string) $adminShell['site_title']); ?></span>
                 </a>

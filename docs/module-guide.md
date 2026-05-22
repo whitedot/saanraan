@@ -594,6 +594,7 @@ modules/board/
 - 비공개 다운로드는 직접 파일 URL 대신 `sr_download_token_create()`와 `sr_download_token_verify()`를 사용해 단기 token으로 처리한다.
 - 다운로드 응답은 `sr_send_download_headers()`로 헤더를 보내고 본문 출력 후 `sr_finish_response()`로 종료한다.
 - 이미지 업로드는 필요할 때 `sr_upload_reencode_image()`를 호출하되, GD/Imagick이 없거나 재인코딩에 실패하면 모듈 정책에 따라 거부하거나 원본 저장을 중단한다.
+- 로고매니저처럼 공개 이미지 자산을 다루는 모듈은 MIME/확장자/실제 이미지 크기를 통과한 경우에 한해 재인코딩 실패 시 검증된 원본 저장을 허용할 수 있으며, 그 정책을 관리자 도움말과 문서에 남긴다.
 
 하지 않는다:
 
@@ -977,6 +978,7 @@ return [
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php` | 없음 |
+| `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |

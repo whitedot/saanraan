@@ -1,0 +1,40 @@
+CREATE TABLE IF NOT EXISTS sr_logo_manager_assets (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usage_key VARCHAR(40) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    alt_text VARCHAR(160) NOT NULL DEFAULT '',
+    original_name VARCHAR(180) NOT NULL DEFAULT '',
+    storage_driver VARCHAR(20) NOT NULL DEFAULT 'local',
+    storage_key VARCHAR(255) NOT NULL,
+    public_url VARCHAR(255) NOT NULL DEFAULT '',
+    mime_type VARCHAR(80) NOT NULL,
+    size_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    width INT UNSIGNED NOT NULL DEFAULT 0,
+    height INT UNSIGNED NOT NULL DEFAULT 0,
+    checksum_sha256 CHAR(64) NOT NULL DEFAULT '',
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    created_by_account_id BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_logo_manager_assets_usage_status (usage_key, status, id),
+    KEY idx_sr_logo_manager_assets_storage (storage_driver, storage_key)
+);
+
+CREATE TABLE IF NOT EXISTS sr_logo_manager_assignments (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usage_key VARCHAR(40) NOT NULL,
+    asset_id BIGINT UNSIGNED NOT NULL,
+    alt_text VARCHAR(160) NOT NULL DEFAULT '',
+    link_url VARCHAR(255) NOT NULL DEFAULT '',
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    starts_at DATETIME NULL,
+    ends_at DATETIME NULL,
+    sort_order INT NOT NULL DEFAULT 100,
+    created_by_account_id BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_logo_manager_assignments_active (usage_key, status, starts_at, ends_at, sort_order, id),
+    KEY idx_sr_logo_manager_assignments_asset (asset_id)
+);

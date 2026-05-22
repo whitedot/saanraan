@@ -38,6 +38,12 @@ $optionalModules = [
         'label' => '사이트 메뉴',
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
+    'logo_manager' => [
+        'name' => '로고매니저',
+        'version' => '2026.05.001',
+        'label' => '로고매니저',
+        'description' => '관리자/공개 화면 로고와 기간별 대체 적용을 관리합니다.',
+    ],
     'banner' => [
         'name' => '배너',
         'version' => '2026.05.003',

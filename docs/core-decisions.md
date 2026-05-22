@@ -343,9 +343,9 @@ core + member + admin + privacy
 - `admin` 모듈: 관리자 화면, 관리자 권한, 관리 기능
 - `privacy` 모듈: 개인정보 처리 요청과 개인정보 사본 제공 조정
 
-`seo`, `site_menu`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `page`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다. 기본 홈페이지는 별도 도메인 모듈이 아니라 public layout/theme이 제공하고, 운영자는 관리자 설정의 `화면` 섹션에서 초기화면 경로만 선택합니다. 기본 홈페이지 본문은 사이트 운영자가 public layout/theme의 홈 템플릿을 직접 작성해 구성합니다. 커뮤니티처럼 `module.php`의 `service_domain.main_page`를 선언한 선택 모듈은 설치 화면의 모듈 카드에서 `초기화면으로 설정` 체크를 제공하고, 선택값은 `site.home_path`에 저장됩니다. 페이지 모듈의 공개 페이지는 설치 후 생성되는 콘텐츠이므로 설치 화면 후보가 아니라 관리자 설정의 초기화면 후보로 제공합니다.
+`seo`, `site_menu`, `logo_manager`, `banner`, `popup_layer`, `point`, `deposit`, `reward`, `notification`, `page`, `community` 모듈은 배포본에 포함되어 있어도 인증과 관리자 진입에 필요한 필수 모듈은 아닙니다. 설치 화면에서 선택한 모듈만 설치 SQL을 실행하고 `sr_modules`에 등록합니다. 선택하지 않은 코드 모듈은 `/admin/modules`에서 나중에 설치할 수 있습니다. 기본 홈페이지는 별도 도메인 모듈이 아니라 public layout/theme이 제공하고, 운영자는 관리자 설정의 `화면` 섹션에서 초기화면 경로만 선택합니다. 기본 홈페이지 본문은 사이트 운영자가 public layout/theme의 홈 템플릿을 직접 작성해 구성합니다. 커뮤니티처럼 `module.php`의 `service_domain.main_page`를 선언한 선택 모듈은 설치 화면의 모듈 카드에서 `초기화면으로 설정` 체크를 제공하고, 선택값은 `site.home_path`에 저장됩니다. 페이지 모듈의 공개 페이지는 설치 후 생성되는 콘텐츠이므로 설치 화면 후보가 아니라 관리자 설정의 초기화면 후보로 제공합니다.
 
-sitemap 같은 SEO 운영 기능은 코어가 아니라 `seo` 모듈 책임으로 두고, 팝업 정책과 대상 규칙은 `popup_layer` 모듈 책임으로 둡니다. 포인트, 적립금, 예치금 같은 회원 연계 도메인도 코어나 `member` 테이블을 넓히지 않고 각 모듈이 `account_id` 기반 확장 테이블로 소유합니다.
+sitemap 같은 SEO 운영 기능은 코어가 아니라 `seo` 모듈 책임으로 두고, 로고 자산과 기간별 대체 적용은 `logo_manager` 모듈 책임으로 둡니다. 공개/관리자 layout은 활성 모듈의 helper가 반환한 현재 로고만 읽고, 로고 자산 테이블이나 예약 정책을 코어 테이블로 끌어올리지 않습니다. 팝업 정책과 대상 규칙은 `popup_layer` 모듈 책임으로 둡니다. 포인트, 적립금, 예치금 같은 회원 연계 도메인도 코어나 `member` 테이블을 넓히지 않고 각 모듈이 `account_id` 기반 확장 테이블로 소유합니다.
 
 설치 순서:
 
