@@ -32,6 +32,7 @@ if (!in_array($pageGroupsPage, ['list', 'new', 'edit'], true)) {
 
 $allowedGroupStatuses = sr_page_group_statuses();
 $assetModuleOptions = sr_page_asset_module_options($pdo);
+$publicLayoutOptions = sr_public_layout_options($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
     : [];
@@ -76,6 +77,8 @@ if (sr_request_method() === 'POST') {
     $status = sr_post_string('status', 30);
     $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
     $groupSettings = [
+        'status' => sr_post_string('group_page_status', 30),
+        'layout_key' => sr_public_layout_normalize_key(sr_post_string('group_layout_key', 80)),
         'asset_access_enabled' => sr_post_string('group_asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['group_asset_module'] ?? '')),
         'asset_access_amount' => (int) sr_post_string('group_asset_access_amount', 20),
@@ -85,12 +88,26 @@ if (sr_request_method() === 'POST') {
         'asset_action_amount' => (int) sr_post_string('group_asset_action_amount', 20),
         'asset_action_direction' => sr_page_clean_slug(sr_post_string('group_asset_action_direction', 20)),
         'asset_action_label' => sr_page_clean_single_line(sr_post_string('group_asset_action_label', 80), 80),
+        'file_asset_download_enabled' => sr_post_string('group_file_asset_download_enabled', 1) === '1' ? 1 : 0,
+        'file_asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['group_file_asset_module'] ?? '')),
+        'file_asset_download_amount' => (int) sr_post_string('group_file_asset_download_amount', 20),
+        'file_asset_charge_policy' => sr_page_clean_slug(sr_post_string('group_file_asset_charge_policy', 20)),
     ];
     foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
         $rawValue = sr_post_string('group_' . $settingKey, 20);
         $groupSettings[$settingKey] = preg_match('/\A[0-9]{1,9}\z/', $rawValue) === 1 ? (int) $rawValue : -1;
     }
     $groupSettings = sr_page_normalize_asset_values($groupSettings, false);
+    $groupFileAssetSettings = sr_page_normalize_file_asset_values([
+        'asset_download_enabled' => $groupSettings['file_asset_download_enabled'] ?? 0,
+        'asset_module' => $groupSettings['file_asset_module'] ?? 'point',
+        'asset_download_amount' => $groupSettings['file_asset_download_amount'] ?? 0,
+        'asset_charge_policy' => $groupSettings['file_asset_charge_policy'] ?? 'once',
+    ], false);
+    $groupSettings['file_asset_download_enabled'] = (int) ($groupFileAssetSettings['asset_download_enabled'] ?? 0);
+    $groupSettings['file_asset_module'] = (string) ($groupFileAssetSettings['asset_module'] ?? 'point');
+    $groupSettings['file_asset_download_amount'] = (int) ($groupFileAssetSettings['asset_download_amount'] ?? 0);
+    $groupSettings['file_asset_charge_policy'] = (string) ($groupFileAssetSettings['asset_charge_policy'] ?? 'once');
 
     if (!$isUpdate && !sr_page_group_key_is_valid($groupKey)) {
         $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -104,6 +121,14 @@ if (sr_request_method() === 'POST') {
 
     if (!in_array($status, $allowedGroupStatuses, true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
+    }
+
+    if (!in_array((string) ($groupSettings['status'] ?? ''), sr_page_allowed_statuses(), true)) {
+        $errors[] = '그룹 기본 페이지 상태 값이 올바르지 않습니다.';
+    }
+
+    if ((string) ($groupSettings['layout_key'] ?? '') !== '' && !isset($publicLayoutOptions[(string) $groupSettings['layout_key']])) {
+        $errors[] = '그룹 기본 페이지 레이아웃 값이 올바르지 않습니다.';
     }
 
     if ($sortOrder === null) {
@@ -135,6 +160,10 @@ if (sr_request_method() === 'POST') {
             continue;
         }
         $errors[] = '그룹 기본 설정: ' . $settingError;
+    }
+
+    foreach (sr_page_file_asset_validation_errors($pdo, $groupFileAssetSettings, '그룹 기본 새 파일 다운로드') as $settingError) {
+        $errors[] = $settingError;
     }
 
     $values = [

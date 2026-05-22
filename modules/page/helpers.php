@@ -73,13 +73,24 @@ function sr_page_group_path(string $groupKey): string
     return '/pages/group?key=' . rawurlencode($groupKey);
 }
 
-function sr_page_group_asset_setting_keys(): array
+function sr_page_group_basic_setting_keys(): array
+{
+    return ['status', 'layout_key'];
+}
+
+function sr_page_group_asset_access_setting_keys(): array
 {
     return [
         'asset_access_enabled',
         'asset_module',
         'asset_access_amount',
         'asset_charge_policy',
+    ];
+}
+
+function sr_page_group_asset_action_setting_keys(): array
+{
+    return [
         'asset_action_enabled',
         'asset_action_module',
         'asset_action_amount',
@@ -88,11 +99,28 @@ function sr_page_group_asset_setting_keys(): array
     ];
 }
 
+function sr_page_group_asset_setting_keys(): array
+{
+    return array_merge(sr_page_group_asset_access_setting_keys(), sr_page_group_asset_action_setting_keys());
+}
+
+function sr_page_group_file_asset_setting_keys(): array
+{
+    return [
+        'file_asset_download_enabled',
+        'file_asset_module',
+        'file_asset_download_amount',
+        'file_asset_charge_policy',
+    ];
+}
+
 function sr_page_group_setting_keys(): array
 {
     return array_values(array_unique(array_merge(
+        sr_page_group_basic_setting_keys(),
         array_keys(sr_page_public_display_setting_labels()),
-        sr_page_group_asset_setting_keys()
+        sr_page_group_asset_setting_keys(),
+        sr_page_group_file_asset_setting_keys()
     )));
 }
 
@@ -419,13 +447,17 @@ function sr_page_published_by_slug(PDO $pdo, string $slug): ?array
         "SELECT *
          FROM sr_pages
          WHERE slug = :slug
-           AND status = 'published'
          LIMIT 1"
     );
     $stmt->execute(['slug' => $slug]);
     $row = $stmt->fetch();
 
-    return is_array($row) ? $row : null;
+    if (!is_array($row)) {
+        return null;
+    }
+
+    $page = sr_page_with_effective_settings($pdo, $row);
+    return (string) ($page['status'] ?? '') === 'published' ? $page : null;
 }
 
 function sr_page_slug_exists(PDO $pdo, string $slug, int $exceptPageId = 0): bool
@@ -1006,7 +1038,11 @@ function sr_page_input_values(): array
     $values = [
         'page_group_scope' => $pageGroupScope,
         'page_group_id' => $pageGroupId,
-        'asset_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20)),
+        'source_status' => sr_page_normalize_setting_source(sr_post_string('source_status', 20)),
+        'source_layout_key' => sr_page_normalize_setting_source(sr_post_string('source_layout_key', 20)),
+        'asset_access_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_access_policy_source', 20)),
+        'asset_action_policy_source' => sr_page_normalize_setting_source(sr_post_string('asset_action_policy_source', 20)),
+        'file_asset_policy_source' => sr_page_normalize_setting_source(sr_post_string('file_asset_policy_source', 20)),
         'title' => sr_page_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_page_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_page_clean_text(sr_post_string('summary', 1000), 1000),
@@ -1033,6 +1069,13 @@ function sr_page_input_values(): array
         $values['source_' . $settingKey] = sr_page_normalize_setting_source(sr_post_string('source_' . $settingKey, 20));
     }
 
+    if ($values['asset_access_policy_source'] === 'page' && sr_post_string('asset_policy_source', 20) !== '') {
+        $values['asset_access_policy_source'] = sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20));
+    }
+    if ($values['asset_action_policy_source'] === 'page' && sr_post_string('asset_policy_source', 20) !== '') {
+        $values['asset_action_policy_source'] = sr_page_normalize_setting_source(sr_post_string('asset_policy_source', 20));
+    }
+
     return sr_page_normalize_asset_values($values, false);
 }
 
@@ -1051,8 +1094,16 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
         $errors[] = '그룹적용을 선택하려면 페이지 그룹을 선택하세요.';
     }
 
-    if (sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page')) === 'group' && $pageGroupId < 1) {
-        $errors[] = '회원 자산 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+    foreach ([
+        'source_status' => '상태',
+        'source_layout_key' => '페이지 레이아웃',
+        'asset_access_policy_source' => '유료 열람',
+        'asset_action_policy_source' => '완료 액션',
+        'file_asset_policy_source' => '새 파일 과금',
+    ] as $sourceKey => $sourceLabel) {
+        if (sr_page_normalize_setting_source((string) ($values[$sourceKey] ?? 'page')) === 'group' && $pageGroupId < 1) {
+            $errors[] = $sourceLabel . ' 설정은 페이지 그룹이 있어야 그룹 기본값을 따를 수 있습니다.';
+        }
     }
 
     $slug = (string) ($values['slug'] ?? '');
@@ -1245,8 +1296,17 @@ function sr_page_save(PDO $pdo, array $values, int $accountId, int $pageId = 0):
         foreach (sr_page_public_display_setting_labels() as $settingKey => $settingLabel) {
             sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
         }
-        foreach (sr_page_group_asset_setting_keys() as $settingKey) {
-            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_policy_source'] ?? 'page'));
+        foreach (sr_page_group_basic_setting_keys() as $settingKey) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'page'));
+        }
+        foreach (sr_page_group_asset_access_setting_keys() as $settingKey) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_access_policy_source'] ?? 'page'));
+        }
+        foreach (sr_page_group_asset_action_setting_keys() as $settingKey) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['asset_action_policy_source'] ?? 'page'));
+        }
+        foreach (sr_page_group_file_asset_setting_keys() as $settingKey) {
+            sr_page_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['file_asset_policy_source'] ?? 'page'));
         }
 
         sr_page_record_revision($pdo, $pageId, $values, $accountId, $now);
@@ -1496,7 +1556,7 @@ function sr_page_file_asset_validation_errors(PDO $pdo, array $values, string $l
     return $errors;
 }
 
-function sr_page_validate_file_request(PDO $pdo, int $pageId): array
+function sr_page_validate_file_request(PDO $pdo, int $pageId, array $pageValues = []): array
 {
     $errors = [];
     $existingIds = $_POST['page_file_ids'] ?? [];
@@ -1530,7 +1590,7 @@ function sr_page_validate_file_request(PDO $pdo, int $pageId): array
             $errors[] = $exception->getMessage();
         }
 
-        $values = sr_page_new_file_values_from_post();
+        $values = sr_page_new_file_values_from_post($pdo, $pageValues);
         $errors = array_merge($errors, sr_page_file_asset_validation_errors($pdo, $values, '새 파일 다운로드'));
     }
 
@@ -1554,18 +1614,37 @@ function sr_page_file_values_from_post(int $fileId): array
     ], false);
 }
 
-function sr_page_new_file_values_from_post(): array
+function sr_page_file_asset_values_from_group(PDO $pdo, int $groupId): array
 {
     return sr_page_normalize_file_asset_values([
+        'asset_download_enabled' => (int) (sr_page_group_setting_value($pdo, $groupId, 'file_asset_download_enabled') ?? 0),
+        'asset_module' => (string) (sr_page_group_setting_value($pdo, $groupId, 'file_asset_module') ?? 'point'),
+        'asset_download_amount' => (int) (sr_page_group_setting_value($pdo, $groupId, 'file_asset_download_amount') ?? 0),
+        'asset_charge_policy' => (string) (sr_page_group_setting_value($pdo, $groupId, 'file_asset_charge_policy') ?? 'once'),
+    ]);
+}
+
+function sr_page_new_file_values_from_post(?PDO $pdo = null, array $pageValues = []): array
+{
+    $values = sr_page_normalize_file_asset_values([
         'title' => sr_page_clean_single_line(sr_post_string('new_page_file_title', 160), 160),
         'asset_download_enabled' => sr_post_string('new_page_file_asset_download_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_page_asset_module_value_from_keys(sr_page_asset_module_keys_from_value($_POST['new_page_file_asset_module'] ?? '')),
         'asset_download_amount' => (int) sr_post_string('new_page_file_asset_download_amount', 20),
         'asset_charge_policy' => sr_page_clean_slug(sr_post_string('new_page_file_asset_charge_policy', 20)),
     ], false);
+
+    if ($pdo instanceof PDO && sr_page_normalize_setting_source((string) ($pageValues['file_asset_policy_source'] ?? 'page')) === 'group') {
+        $groupId = (int) ($pageValues['page_group_id'] ?? 0);
+        if ($groupId > 0) {
+            return array_merge($values, sr_page_file_asset_values_from_group($pdo, $groupId));
+        }
+    }
+
+    return $values;
 }
 
-function sr_page_save_files_from_request(PDO $pdo, int $pageId, int $accountId): void
+function sr_page_save_files_from_request(PDO $pdo, int $pageId, int $accountId, array $pageValues = []): void
 {
     if ($pageId < 1) {
         return;
@@ -1594,7 +1673,7 @@ function sr_page_save_files_from_request(PDO $pdo, int $pageId, int $accountId):
 
     $upload = $_FILES['page_file_upload'] ?? null;
     if (sr_page_file_upload_was_provided($upload)) {
-        sr_page_upload_file($pdo, $pageId, $accountId, $upload, sr_page_new_file_values_from_post());
+        sr_page_upload_file($pdo, $pageId, $accountId, $upload, sr_page_new_file_values_from_post($pdo, $pageValues));
     }
 }
 

@@ -15,7 +15,9 @@ if ($values === []) {
         'title' => '',
         'page_group_scope' => 'here_only',
         'page_group_id' => 0,
-        'asset_policy_source' => 'page',
+        'asset_access_policy_source' => 'page',
+        'asset_action_policy_source' => 'page',
+        'file_asset_policy_source' => 'page',
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -107,7 +109,10 @@ $pageSettingSourceRadioHtml = static function (string $name, string $selectedSou
     return $html . '</div>';
 };
 $values['page_group_scope'] = sr_page_group_apply_scope((string) ($values['page_group_scope'] ?? ((int) ($values['page_group_id'] ?? 0) > 0 ? 'group' : 'here_only')));
-$values['asset_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page'));
+$legacyAssetPolicySource = sr_page_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'page'));
+$values['asset_access_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_access_policy_source'] ?? $legacyAssetPolicySource));
+$values['asset_action_policy_source'] = sr_page_normalize_setting_source((string) ($values['asset_action_policy_source'] ?? $legacyAssetPolicySource));
+$values['file_asset_policy_source'] = sr_page_normalize_setting_source((string) ($values['file_asset_policy_source'] ?? 'page'));
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
 if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -171,6 +176,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="page_admin_pages_seo_title">SEO 제목</label>
+                <div class="admin-form-field">
+                    <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_admin_pages_seo_description">SEO 설명</label>
+                <div class="admin-form-field">
+                    <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="page_admin_pages_status">상태</label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_status" name="status" class="form-select">
@@ -180,6 +197,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_status', $pageSettingSource($values, 'status')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -192,6 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
+                    <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
                     <p class="admin-form-help">이 공개 페이지에 적용할 문서 레이아웃입니다.</p>
                 </div>
             </div>
@@ -201,7 +220,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label">적용 방식</span>
                 <div class="admin-form-field">
-                    <?php echo $pageSettingSourceRadioHtml('asset_policy_source', (string) ($values['asset_policy_source'] ?? 'page')); ?>
+                    <?php echo $pageSettingSourceRadioHtml('asset_access_policy_source', (string) ($values['asset_access_policy_source'] ?? 'page')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -243,6 +262,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <section class="admin-card card">
             <h2>완료 액션</h2>
+            <div class="admin-form-row">
+                <span class="form-label">적용 방식</span>
+                <div class="admin-form-field">
+                    <?php echo $pageSettingSourceRadioHtml('asset_action_policy_source', (string) ($values['asset_action_policy_source'] ?? 'page')); ?>
+                </div>
+            </div>
             <div class="admin-form-row">
                 <span class="form-label">액션 사용</span>
                 <div class="admin-form-field">
@@ -343,18 +368,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <small>공용 팝업레이어만 직접 선택할 수 있습니다. 페이지 전체 규칙은 팝업레이어 모듈의 출력 위치에서 설정할 수도 있습니다.</small>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_seo_title">SEO 제목</label>
-                <div class="admin-form-field">
-                    <input id="page_admin_pages_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_seo_description">SEO 설명</label>
-                <div class="admin-form-field">
-                    <input id="page_admin_pages_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
-                </div>
-            </div>
             <?php if ($editing) { ?>
                 <div class="admin-form-row">
                     <span class="form-label">공개 URL</span>
@@ -451,11 +464,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label">새 파일 과금</span>
                 <div class="admin-form-field">
+                            <?php echo $pageSettingSourceRadioHtml('file_asset_policy_source', (string) ($values['file_asset_policy_source'] ?? 'page')); ?>
                             <label class="admin-form-check form-label" for="modules_page_admin_pages_new_page_file_asset_download_enabled">
                                 <input id="modules_page_admin_pages_new_page_file_asset_download_enabled" type="checkbox" name="new_page_file_asset_download_enabled" value="1" class="form-checkbox">
                                 <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
                             </label>
                             <?php echo sr_admin_checkbox_list_html('page_admin_pages_new_page_file_asset_module', 'new_page_file_asset_module', $assetModuleChoiceOptions, [], '활성 자산 모듈 없음'); ?>
+                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                             <input type="number" name="new_page_file_asset_download_amount" value="0" class="form-input" min="0" max="999999999" step="1" aria-label="새 파일 차감 금액">
                             <select name="new_page_file_asset_charge_policy" class="form-select" aria-label="새 파일 과금 방식">
                                 <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>

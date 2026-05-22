@@ -6,6 +6,7 @@ $adminContainerClass = $pageGroupsPage === 'list' ? 'admin-page-group-list admin
 $pageGroupFilters = isset($pageGroupFilters) && is_array($pageGroupFilters) ? $pageGroupFilters : ['status' => '', 'field' => 'all', 'q' => ''];
 $pageGroupStatusCounts = isset($pageGroupStatusCounts) && is_array($pageGroupStatusCounts) ? $pageGroupStatusCounts : [];
 $allowedGroupStatuses = isset($allowedGroupStatuses) && is_array($allowedGroupStatuses) ? $allowedGroupStatuses : sr_page_group_statuses();
+$publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $editing = is_array($editPageGroup ?? null);
 if (!is_array($values ?? null) || $values === []) {
     $values = $editing ? $editPageGroup : [
@@ -195,6 +196,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
+            <h2>그룹 기본 페이지 설정</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_page_status">페이지 상태</label>
+                <div class="admin-form-field">
+                    <select id="page_group_page_status" name="group_page_status" class="form-select">
+                        <?php foreach (sr_page_allowed_statuses() as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo $groupSettingValue($groupSettings, 'status', 'draft') === $status ? ' selected' : ''; ?>>
+                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_layout_key">페이지 레이아웃</label>
+                <div class="admin-form-field">
+                    <select id="page_group_layout_key" name="group_layout_key" class="form-select">
+                        <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $groupSettingValue($groupSettings, 'layout_key', sr_public_layout_key($site ?? null, $pdo ?? null)) === (string) $layoutKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+        </section>
+        <section class="admin-card card">
             <h2>그룹 기본 공개 표시</h2>
             <?php foreach (sr_page_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
                 <div class="admin-form-row">
@@ -300,6 +328,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="page_group_asset_action_amount">금액</label>
                 <div class="admin-form-field">
                     <input id="page_group_asset_action_amount" type="number" name="group_asset_action_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_action_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1">
+                </div>
+            </div>
+            <h3>새 파일 과금</h3>
+            <div class="admin-form-row">
+                <span class="form-label">다운로드 과금</span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="page_group_file_asset_download_enabled">
+                        <input id="page_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('다운로드 과금'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_file_asset_module">차감 자산</label>
+                <div class="admin-form-field">
+                    <?php echo sr_admin_checkbox_list_html('page_group_file_asset_module', 'group_file_asset_module', $assetModuleChoiceOptions, sr_page_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', 'point')), '활성 자산 모듈 없음'); ?>
+                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_file_asset_download_amount">차감 금액</label>
+                <div class="admin-form-field">
+                    <input id="page_group_file_asset_download_amount" type="number" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="page_group_file_asset_charge_policy">과금 방식</label>
+                <div class="admin-form-field">
+                    <select id="page_group_file_asset_charge_policy" name="group_file_asset_charge_policy" class="form-select">
+                        <?php foreach (sr_page_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'file_asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $policyLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
                 </div>
             </div>
         </section>
