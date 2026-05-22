@@ -59,6 +59,9 @@
 #gnb .admin-nav-item.is-open>.admin-nav-trigger:where([data-theme=dark],[data-theme=dark] *){color:var(--color-default-900)}
 #gnb .admin-nav-item.is-open>.admin-nav-trigger .admin-nav-icon{color:var(--color-default-700)}
 #gnb .admin-nav-item.is-open>.admin-nav-trigger .admin-nav-trigger-label{font-weight:var(--font-weight-semibold)}
+#gnb .admin-nav-item.is-current>.admin-nav-trigger{color:var(--color-primary)}
+#gnb .admin-nav-item.is-current>.admin-nav-trigger .admin-nav-icon{color:var(--color-primary)}
+#gnb .admin-nav-item.is-current>.admin-nav-trigger .admin-nav-trigger-label{font-weight:var(--font-weight-semibold)}
 #gnb .admin-nav-caret{margin-left:calc(var(--spacing) * 3);color:var(--color-default-500);transition-property:transform,translate,scale,rotate;transition-timing-function:var(--default-transition-timing-function);transition-duration:.15s;transition-duration:.15s;display:inline-flex}
 #gnb .admin-nav-caret-icon{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:.9rem;height:.9rem}
 #gnb .admin-nav-caret-icon.sr-icon{fill:initial;stroke:initial;stroke-width:0;font-size:.95rem}

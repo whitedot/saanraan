@@ -164,7 +164,7 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
             'icon' => sr_admin_shell_menu_icon($moduleGroup['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
-            'item_class' => $active ? ' is-open is-active' : '',
+            'item_class' => $active ? ($hasSubmenu ? ' is-open is-active' : ' is-current is-active') : '',
             'panel_class' => $hasSubmenu && $active ? '' : ' hidden',
             'aria_expanded' => $hasSubmenu && $active ? 'true' : 'false',
             'menu_code' => preg_replace('/[^a-z0-9_-]+/', '-', strtolower((string) ($moduleGroup['module_key'] ?? $moduleLabel))),
