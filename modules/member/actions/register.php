@@ -15,7 +15,6 @@ if ($account !== null) {
 $memberSettings = sr_member_settings($pdo);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
-$loginIdRequired = sr_member_login_id_required($memberSettings);
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
 $errors = [];
@@ -66,10 +65,6 @@ if (sr_request_method() === 'POST') {
 
     if ($values['login_id'] !== '' && !sr_member_is_valid_login_id($values['login_id'])) {
         $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
-    }
-
-    if ($loginIdRequired && $values['login_id'] === '') {
-        $errors[] = '로그인 아이디를 입력하세요.';
     }
 
     if ($values['display_name'] === '') {

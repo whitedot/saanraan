@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">로그인 식별자</span>
             <div class="admin-form-field">
                 <strong><?php echo sr_e((string) (sr_member_login_identifier_options()[(string) $settings['login_identifier']] ?? '이메일 + 로그인 아이디')); ?></strong>
-                <small class="admin-form-help">로그인 정책은 최초 설치 때 정하는 값입니다. 운영 중 변경은 기존 계정 로그인 가능 여부에 영향을 줄 수 있어 이 화면에서 수정하지 않습니다.</small>
+                <small class="admin-form-help">이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.</small>
             </div>
         </div>
     </section>

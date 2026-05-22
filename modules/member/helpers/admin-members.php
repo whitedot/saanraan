@@ -310,8 +310,6 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
     $errors = [];
     $notice = '';
     $runtimeConfig = sr_runtime_config();
-    $memberSettings = sr_member_settings($pdo);
-    $loginIdRequired = sr_member_login_id_required($memberSettings);
     $allowedCreateStatuses = sr_admin_member_create_allowed_statuses();
     $supportedLocales = sr_supported_locales($site);
     $values = sr_admin_member_create_values_from_post($site);
@@ -346,10 +344,6 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
 
     if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
         $errors[] = '로그인 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄을 포함한 4~40자여야 합니다.';
-    }
-
-    if ($loginIdRequired && $loginId === '') {
-        $errors[] = '로그인 아이디를 입력하세요.';
     }
 
     if ($displayName === '') {
@@ -535,8 +529,6 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
     } elseif ($errors === [] && $intent === 'edit') {
         $runtimeConfig = sr_runtime_config();
-        $memberSettings = sr_member_settings($pdo);
-        $loginIdRequired = sr_member_login_id_required($memberSettings);
         $supportedLocales = sr_supported_locales($site);
         $emailInput = sr_post_string_without_truncation('email', 255);
         $loginIdInput = sr_post_string_without_truncation('login_id', 40);
@@ -601,18 +593,6 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             ]);
             if (is_array($stmt->fetch())) {
                 $errors[] = '이미 사용 중인 로그인 아이디입니다.';
-            }
-        }
-
-        if ($errors === []) {
-            $hasCurrentLoginIdentifier = (string) ($targetAccount['login_id_hash'] ?? '') !== ''
-                || (
-                    (string) ($targetAccount['account_identifier_hash'] ?? '') !== ''
-                    && (string) ($targetAccount['email_hash'] ?? '') !== ''
-                    && !hash_equals((string) $targetAccount['email_hash'], (string) $targetAccount['account_identifier_hash'])
-                );
-            if ($loginIdRequired && $loginId === '' && ($clearLoginId || !$hasCurrentLoginIdentifier)) {
-                $errors[] = '아이디만 허용하는 정책에서는 로그인 아이디를 유지하거나 새로 입력해야 합니다.';
             }
         }
 

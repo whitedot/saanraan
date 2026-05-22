@@ -16,8 +16,6 @@ $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
 $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
-$memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
-$memberLoginIdRequired = sr_member_login_id_required($memberSettings);
 $createStatuses = sr_admin_member_create_allowed_statuses();
 $memberLocaleOptions = sr_supported_locales($site ?? null);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -40,8 +38,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_create_login_id">로그인 아이디</label>
                 <div class="admin-form-field">
-                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username"<?php echo $memberLoginIdRequired ? ' required' : ''; ?>>
-                    <small class="admin-form-help"><?php echo $memberLoginIdRequired ? '이 설정에서는 로그인 아이디로만 로그인할 수 있습니다.' : '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.'; ?></small>
+                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                    <small class="admin-form-help">비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.</small>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -134,12 +132,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         ?>
                         <input id="member_admin_edit_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberEditValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" placeholder="새 로그인 아이디">
                         <small class="admin-form-help">현재 상태: <?php echo $memberEditHasLoginId ? '등록됨' : '없음'; ?>. 새 값을 입력하면 로그인 아이디가 변경되고, 비워두면 기존 상태를 유지합니다.</small>
-                        <?php if (!$memberLoginIdRequired) { ?>
-                            <label class="admin-form-check form-label" for="member_admin_edit_clear_login_id">
-                                <input id="member_admin_edit_clear_login_id" type="checkbox" name="clear_login_id" value="1" class="form-checkbox"<?php echo (string) ($memberEditValues['clear_login_id'] ?? '0') === '1' ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html('로그인 아이디 해제'); ?>
-                            </label>
-                        <?php } ?>
+                        <label class="admin-form-check form-label" for="member_admin_edit_clear_login_id">
+                            <input id="member_admin_edit_clear_login_id" type="checkbox" name="clear_login_id" value="1" class="form-checkbox"<?php echo (string) ($memberEditValues['clear_login_id'] ?? '0') === '1' ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html('로그인 아이디 해제'); ?>
+                        </label>
                     </div>
                 </div>
                 <div class="admin-form-row">

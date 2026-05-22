@@ -67,23 +67,22 @@ function sr_member_login_identifier_options(): array
 {
     return [
         'both' => '이메일 + 로그인 아이디',
-        'login_id' => '로그인 아이디만',
     ];
 }
 
 function sr_member_normalize_login_identifier_setting($value): string
 {
-    return (string) $value === 'login_id' ? 'login_id' : 'both';
+    return 'both';
 }
 
 function sr_member_email_login_enabled(array $settings): bool
 {
-    return sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both') !== 'login_id';
+    return true;
 }
 
 function sr_member_login_id_required(array $settings): bool
 {
-    return !sr_member_email_login_enabled($settings);
+    return false;
 }
 
 function sr_member_skin_options(): array

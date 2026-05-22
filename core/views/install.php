@@ -222,15 +222,10 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <label for="member_login_identifier">로그인 정책</label>
-                        <select id="member_login_identifier" name="member_login_identifier" required>
-                            <?php foreach (sr_member_login_identifier_options() as $loginIdentifierValue => $loginIdentifierLabel) { ?>
-                                <option value="<?php echo sr_e((string) $loginIdentifierValue); ?>"<?php echo $values['member_login_identifier'] === (string) $loginIdentifierValue ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $loginIdentifierLabel); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                        <span class="sr-install-help">설치 후에는 운영 중 변경하지 않는 정책입니다.</span>
+                        <span class="sr-install-field-label">로그인 정책</span>
+                        <strong>이메일 + 로그인 아이디</strong>
+                        <input type="hidden" name="member_login_identifier" value="both">
+                        <span class="sr-install-help">이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.</span>
                     </p>
                     <p>
                         <label for="admin_email">이메일</label>
@@ -239,7 +234,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     <p>
                         <label for="admin_login_id">로그인 아이디</label>
                         <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
-                        <span class="sr-install-help">아이디만 허용하는 정책이면 필수입니다. 예: admin, site_admin</span>
+                        <span class="sr-install-help">선택 입력입니다. 입력하면 이메일과 아이디를 모두 로그인에 사용할 수 있습니다. 예: admin, site_admin</span>
                     </p>
                     <p>
                         <label for="admin_password">비밀번호</label>

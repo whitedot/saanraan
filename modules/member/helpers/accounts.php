@@ -133,9 +133,6 @@ function sr_member_find_by_identifier(PDO $pdo, array $config, string $identifie
     }
 
     $isEmailIdentifier = filter_var($normalizedIdentifier, FILTER_VALIDATE_EMAIL) !== false;
-    if ($isEmailIdentifier && !$allowEmailLogin) {
-        return null;
-    }
 
     if ($isEmailIdentifier) {
         $stmt = $pdo->prepare(

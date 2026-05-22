@@ -173,8 +173,9 @@ if ($accountHelper !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($accountHelper, 'email_hash = :email_hash') !== false
-            && strpos($accountHelper, 'email_hash_guard') !== false,
-        'Login identifier lookup should allow email fallback when login_id mode is used.'
+            && strpos($accountHelper, 'login_id_hash = :login_id_hash') !== false
+            && strpos($accountHelper, 'if ($isEmailIdentifier && !$allowEmailLogin)') === false,
+        'Login identifier lookup should always allow email lookup and also support login_id lookup.'
     );
 }
 
@@ -597,20 +598,19 @@ if ($registerAction !== '') {
         'Register action should record optional marketing consent history.'
     );
     sr_member_auth_policy_assert(
-        strpos($registerAction, "\$loginIdentifierMode = (string) \$memberSettings['login_identifier'];") !== false
-            && strpos($registerAction, "'login_id' => sr_member_normalize_login_id(\$loginId)") !== false
+        strpos($registerAction, "'login_id' => sr_member_normalize_login_id(\$loginId)") !== false
             && strpos($registerAction, "sr_member_is_valid_login_id(\$values['login_id'])") !== false
-            && strpos($registerAction, "'login_id' => \$loginIdentifierMode === 'login_id' ? \$values['login_id'] : ''") !== false,
-        'Register action should collect and validate login_id when login_id identifier mode is enabled.'
+            && strpos($registerAction, "'login_id' => \$values['login_id']") !== false,
+        'Register action should collect optional login_id and save it when provided.'
     );
 }
 
 $registerView = sr_member_auth_policy_read('modules/member/views/register.php');
 if ($registerView !== '') {
     sr_member_auth_policy_assert(
-        strpos($registerView, '$loginIdentifierMode === \'login_id\'') !== false
-            && strpos($registerView, 'name="login_id"') !== false,
-        'Register view should render login_id input only when login_id identifier mode is enabled.'
+        strpos($registerView, 'name="login_id"') !== false
+            && strpos($registerView, '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.') !== false,
+        'Register view should render optional login_id input for email and login_id parallel login.'
     );
     sr_member_auth_policy_assert(
         strpos($registerView, 'name="marketing_consent"') !== false
@@ -622,10 +622,10 @@ if ($registerView !== '') {
 $adminSettingsAction = sr_member_auth_policy_read('modules/member/actions/admin-settings.php');
 if ($adminSettingsAction !== '') {
     sr_member_auth_policy_assert(
-        strpos($adminSettingsAction, "sr_post_string('login_identifier', 20)") !== false
-            && strpos($adminSettingsAction, "['email', 'login_id']") !== false
-            && strpos($adminSettingsAction, "['login_identifier', (string) \$settings['login_identifier'], 'string']") !== false,
-        'Member settings action should validate and save login_identifier.'
+        strpos($adminSettingsAction, "sr_post_string('login_identifier', 20)") === false
+            && strpos($adminSettingsAction, "['login_identifier', (string) \$settings['login_identifier'], 'string']") === false
+            && strpos($adminSettingsAction, "'login_identifier' => (string) \$settings['login_identifier']") !== false,
+        'Member settings action should keep login_identifier as a fixed normalized policy instead of saving a selectable value.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_member_profile_field_definitions()') !== false
@@ -645,9 +645,9 @@ if ($adminSettingsAction !== '') {
 $adminSettingsView = sr_member_auth_policy_read('modules/member/views/admin-settings.php');
 if ($adminSettingsView !== '') {
     sr_member_auth_policy_assert(
-        strpos($adminSettingsView, 'name="login_identifier"') !== false
-            && strpos($adminSettingsView, 'value="login_id"') !== false,
-        'Member settings view should expose login_identifier selection.'
+        strpos($adminSettingsView, 'name="login_identifier"') === false
+            && strpos($adminSettingsView, '이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.') !== false,
+        'Member settings view should show the fixed email and login_id parallel login policy without a selector.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsView, '선택 프로필 항목') !== false

@@ -361,16 +361,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = '관리자 표시 이름을 입력하세요.';
     }
 
-    if (!array_key_exists($values['member_login_identifier'], sr_member_login_identifier_options())) {
-        $errors[] = '로그인 정책 값이 올바르지 않습니다.';
-    }
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
     $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
     if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
         $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
-    }
-    if ($values['member_login_identifier'] === 'login_id' && $values['admin_login_id'] === '') {
-        $errors[] = '아이디만 허용하려면 최초 관리자 로그인 아이디를 입력하세요.';
     }
 
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
