@@ -66,13 +66,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
             <p>
                 <label for="modules_community_form_title">
-                    <span>제목</span>
+                    <span>제목 <span class="sr-required-label">(필수)</span></span>
                     <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required>
                 </label>
             </p>
             <p>
                 <label for="modules_community_form_body_text">
-                    <span>본문</span>
+                    <span>본문 <span class="sr-required-label">(필수)</span></span>
                     <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>

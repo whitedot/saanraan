@@ -121,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests/export')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo sr_e((string) $request['id']); ?>">
-                                <label class="sr-only" for="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>">관리자 비밀번호</label>
+                                <label class="sr-only" for="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>">관리자 비밀번호 <span class="sr-required-label">(필수)</span></label>
                                 <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>" class="form-input" autocomplete="current-password" required placeholder="관리자 비밀번호">
                                 <button type="submit" class="btn btn-sm btn-solid-light">처리 자료 내려받기</button>
                             </form>

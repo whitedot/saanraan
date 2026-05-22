@@ -121,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <p>
                 <label class="admin-form-check form-label" for="modules_admin_updates_backup_confirmed">
                     <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-checkbox" required>
-                    <?php echo sr_admin_choice_label_html('DB와 파일 백업을 확인했습니다.'); ?>
+                    <?php echo sr_admin_choice_label_html('DB와 파일 백업을 확인했습니다.'); ?> <span class="sr-required-label">(필수)</span>
                 </label>
             </p>
             <div class="admin-list-actions">

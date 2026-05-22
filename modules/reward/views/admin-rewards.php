@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } else { ?>
                             <div class="admin-form-row">
-                                <label class="form-label" for="<?php echo sr_e($rewardAdjustAccountInputId); ?>">회원 공개 해시</label>
+                                <label class="form-label" for="<?php echo sr_e($rewardAdjustAccountInputId); ?>">회원 공개 해시 <span class="sr-required-label">(필수)</span></label>
                                 <div class="admin-form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($rewardAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
@@ -243,14 +243,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_amount">금액</label>
+                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_amount">금액 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
                                 <p class="admin-form-help">지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.</p>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reason">사유</label>
+                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reason">사유 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>

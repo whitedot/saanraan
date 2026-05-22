@@ -58,7 +58,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="logo_manager_title">로고 이름</label>
+                    <label class="form-label" for="logo_manager_title">로고 이름 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="logo_manager_title" type="text" name="title" class="form-input form-control-full" maxlength="120" required>
                     </div>
@@ -76,7 +76,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="logo_manager_logo_file">이미지 파일</label>
+                    <label class="form-label" for="logo_manager_logo_file">이미지 파일 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="logo_manager_logo_file" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp" class="form-input" required>
                         <small class="admin-form-help">용도별 최대 용량은 1-5MB입니다. 가능하면 재인코딩 후 저장하고, 서버 확장이 없으면 검증된 원본을 저장합니다.</small>
@@ -123,7 +123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="save_assignment">
                 <div class="admin-form-row">
-                    <label class="form-label" for="logo_manager_assignment_asset">로고 자산</label>
+                    <label class="form-label" for="logo_manager_assignment_asset">로고 자산 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <select id="logo_manager_assignment_asset" name="asset_id" class="form-select" required data-overlay-focus>
                             <option value="">선택</option>

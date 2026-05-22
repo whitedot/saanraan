@@ -25,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? sr_e((string) $editBanner['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_title">제목</label>
+                <label class="form-label" for="banner_admin_banners_title">제목 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>

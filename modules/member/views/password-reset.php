@@ -26,13 +26,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_password_reset_password">
-                    <span>새 비밀번호</span>
+                    <span>새 비밀번호 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_password_reset_password" type="password" name="password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_password_reset_password_confirm">
-                    <span>새 비밀번호 확인</span>
+                    <span>새 비밀번호 확인 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_password_reset_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>

@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_title">제목</label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_title">제목 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="popup_layer_admin_popup_layers_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>

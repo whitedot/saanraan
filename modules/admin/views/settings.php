@@ -22,7 +22,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2>사이트 기본값</h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_name">사이트 이름</label>
+            <label class="form-label" for="admin_settings_name">사이트 이름 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <input id="admin_settings_name" type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
             </div>
@@ -39,7 +39,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_timezone">시간대</label>
+            <label class="form-label" for="admin_settings_timezone">시간대 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_timezone" name="timezone" class="form-select" required>
                     <?php foreach ($timezoneOptions as $timezoneOption) { ?>
@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_default_locale">기본 locale</label>
+            <label class="form-label" for="admin_settings_default_locale">기본 locale <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_default_locale" name="default_locale" class="form-select" required>
                     <?php foreach ($localeOptions as $localeOption) { ?>

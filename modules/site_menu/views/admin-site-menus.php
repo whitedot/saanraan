@@ -178,13 +178,13 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <input type="hidden" name="intent" value="save_menu">
                     <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key">메뉴 key</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key">메뉴 key <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" required data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">메뉴 이름</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">메뉴 이름 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required>
                         </div>
@@ -269,13 +269,13 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">항목 이름</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_label">항목 이름 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-site-menu-label-input>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL</label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-site-menu-url-input>
                         </div>

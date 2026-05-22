@@ -299,7 +299,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_title">제목</label>
+                        <label class="form-label" for="notification_admin_notifications_title">제목 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="notification_admin_notifications_title" type="text" name="title" value="<?php echo sr_e((string) ($notificationCreateValues['title'] ?? '')); ?>" maxlength="160" required class="form-input form-control-full">
                         </div>

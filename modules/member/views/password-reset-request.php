@@ -30,7 +30,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label for="modules_member_password_reset_request_email">
-                    <span>이메일</span>
+                    <span>이메일 <span class="sr-required-label">(필수)</span></span>
                     <input id="modules_member_password_reset_request_email" type="email" name="email" value="<?php echo sr_e($email); ?>" required>
                 </label>
             </p>

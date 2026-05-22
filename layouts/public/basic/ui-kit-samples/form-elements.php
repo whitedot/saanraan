@@ -45,7 +45,7 @@
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
                                                 <label for="validInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">유효한 입력 (Valid
-                                                    Input)</label>
+                                                    Input) <span class="sr-required-label">(필수)</span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -185,7 +185,7 @@
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
                                                 <label for="inValidationInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">잘못된 입력
-                                                    (Invalid Input)</label>
+                                                    (Invalid Input) <span class="sr-required-label">(필수)</span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">

@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>회원 추가</h2>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_email">이메일</label>
+                <label class="form-label" for="member_admin_create_email">이메일 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                 </div>
@@ -43,25 +43,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_display_name">이름</label>
+                <label class="form-label" for="member_admin_create_display_name">이름 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_password">비밀번호</label>
+                <label class="form-label" for="member_admin_create_password">비밀번호 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_create_password" type="password" name="password" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_password_confirm">비밀번호 확인</label>
+                <label class="form-label" for="member_admin_create_password_confirm">비밀번호 확인 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_create_password_confirm" type="password" name="password_confirm" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_locale">Locale</label>
+                <label class="form-label" for="member_admin_create_locale">Locale <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_create_locale" name="locale" class="form-select" required>
                         <?php foreach ($memberLocaleOptions as $localeOption) { ?>
@@ -112,7 +112,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_email">이메일</label>
+                    <label class="form-label" for="member_admin_edit_email">이메일 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                     </div>
@@ -139,13 +139,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_display_name">이름</label>
+                    <label class="form-label" for="member_admin_edit_display_name">이름 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_locale">Locale</label>
+                    <label class="form-label" for="member_admin_edit_locale">Locale <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <select id="member_admin_edit_locale" name="locale" class="form-select" required>
                             <?php foreach ($memberLocaleOptions as $localeOption) { ?>

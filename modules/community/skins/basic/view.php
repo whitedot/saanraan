@@ -68,7 +68,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $post['id']); ?>">
                         <p>
                             <label for="modules_community_view_reason_key">
-                    <span>신고 사유</span>
+                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
                                 <select id="modules_community_view_reason_key" name="reason_key" required>
                                     <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                                         <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
@@ -200,7 +200,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                         <p>
                                             <label for="modules_community_view_body_text">
-                    <span>댓글 수정</span>
+                    <span>댓글 수정 <span class="sr-required-label">(필수)</span></span>
                                                 <textarea id="modules_community_view_body_text" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                             </label>
                                         </p>
@@ -221,7 +221,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                         <p>
                                             <label for="modules_community_view_reason_key_2">
-                    <span>신고 사유</span>
+                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
                                                 <select id="modules_community_view_reason_key_2" name="reason_key" required>
                                                     <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                                                         <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
@@ -258,7 +258,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <p>
                         <label for="modules_community_view_body_text_2">
-                    <span>댓글</span>
+                    <span>댓글 <span class="sr-required-label">(필수)</span></span>
                             <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required><?php echo sr_e($commentBody); ?></textarea>
                         </label>
                     </p>

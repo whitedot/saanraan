@@ -277,7 +277,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_boards_board_key">게시판 key</label>
+                    <label class="form-label" for="community_admin_boards_board_key">게시판 key <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="community_admin_boards_board_key" type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" required>
                     </div>
@@ -295,7 +295,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_title">이름</label>
+                <label class="form-label" for="community_admin_boards_title">이름 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'title')); ?>" class="form-input form-control-full" required>
                 </div>

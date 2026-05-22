@@ -39,13 +39,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <input type="hidden" name="intent" value="basics">
                 <p>
                     <label for="modules_member_account_display_name">
-                    <span>표시 이름</span>
+                    <span>표시 이름 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_account_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $account['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_account_locale">
-                    <span>선호 locale</span>
+                    <span>선호 locale <span class="sr-required-label">(필수)</span></span>
                         <select id="modules_member_account_locale" name="locale" required>
                             <?php foreach ($memberLocaleOptions as $localeOption) { ?>
                                 <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) $account['locale'] === $localeOption ? ' selected' : ''; ?>>
@@ -83,19 +83,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <input type="hidden" name="intent" value="password">
                 <p>
                     <label for="modules_member_account_current_password">
-                    <span>현재 비밀번호</span>
+                    <span>현재 비밀번호 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_account_current_password" type="password" name="current_password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_account_new_password">
-                    <span>새 비밀번호</span>
+                    <span>새 비밀번호 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_account_new_password" type="password" name="new_password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_account_new_password_confirm">
-                    <span>새 비밀번호 확인</span>
+                    <span>새 비밀번호 확인 <span class="sr-required-label">(필수)</span></span>
                         <input id="modules_member_account_new_password_confirm" type="password" name="new_password_confirm" required>
                     </label>
                 </p>
@@ -112,7 +112,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php if (!empty($profilePolicies['nickname']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_nickname">
-                    <span>닉네임</span>
+                                <span>닉네임<?php echo !empty($profilePolicies['nickname']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
                                 <input id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e($profile['nickname']); ?>" maxlength="80"<?php echo !empty($profilePolicies['nickname']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
@@ -120,7 +120,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_phone">
-                    <span>전화번호</span>
+                                <span>전화번호<?php echo !empty($profilePolicies['phone']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
                                 <input id="modules_member_account_phone" type="text" name="phone" value="<?php echo sr_e($profile['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
@@ -128,7 +128,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_birth_date">
-                    <span>생년월일</span>
+                                <span>생년월일<?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
                                 <input id="modules_member_account_birth_date" type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
@@ -137,7 +137,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <?php $avatarSrc = sr_member_avatar_src((string) $profile['avatar_path']); ?>
                         <p>
                             <label for="modules_member_account_avatar_file">
-                    <span>아바타</span>
+                                <span>아바타<?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
                                 <input id="modules_member_account_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                             </label>
                             <small>JPG, PNG, WebP / 최대 <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
@@ -159,7 +159,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                     <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_profile_text">
-                    <span>소개</span>
+                                <span>소개<?php echo !empty($profilePolicies['profile_text']['required']) ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></span>
                                 <textarea id="modules_member_account_profile_text" name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e($profile['profile_text']); ?></textarea>
                             </label>
                         </p>
@@ -198,7 +198,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-export')); ?>">
             <?php echo sr_csrf_field(); ?>
             <label for="modules_member_account_current_password_2">
-                    <span>현재 비밀번호</span>
+                    <span>현재 비밀번호 <span class="sr-required-label">(필수)</span></span>
                 <input id="modules_member_account_current_password_2" type="password" name="current_password" autocomplete="current-password" required>
             </label>
             <button type="submit">개인정보 사본 내려받기</button>

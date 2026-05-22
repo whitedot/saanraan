@@ -59,7 +59,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <input type="hidden" name="target_id" value="<?php echo sr_e((string) $message['id']); ?>">
             <p>
                 <label for="modules_community_message_view_reason_key">
-                    <span>신고 사유</span>
+                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
                     <select id="modules_community_message_view_reason_key" name="reason_key" required>
                         <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                             <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>

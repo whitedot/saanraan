@@ -130,13 +130,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="page_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_title">제목</label>
+                <label class="form-label" for="page_admin_pages_title">제목 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_slug">Slug</label>
+                <label class="form-label" for="page_admin_pages_slug">Slug <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="page_admin_pages_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     <br>

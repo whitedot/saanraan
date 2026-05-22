@@ -20,7 +20,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th>범위</th>
                 <th>대상</th>
                 <th>기본 순서</th>
-                <th>표시 순서</th>
+                <th>표시 순서 <span class="sr-required-label">(필수)</span></th>
                 <th>숨김</th>
             </tr>
         </thead>

@@ -39,7 +39,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_groups_group_key">그룹 key</label>
+                    <label class="form-label" for="member_admin_groups_group_key">그룹 key <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" required class="form-input">
                     </div>
@@ -47,7 +47,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <?php } ?>
 
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_title">그룹명</label>
+                <label class="form-label" for="member_admin_groups_title">그룹명 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['title'] : ''); ?>" class="form-input form-control-full" required>
                 </div>
@@ -283,7 +283,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($editRule) ? (string) $editRule['id'] : ''); ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id">대상 그룹</label>
+                <label class="form-label" for="member_admin_groups_group_id">대상 그룹 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_group_id" name="group_id" required class="form-select">
                                             <?php foreach ($groups as $group) { ?>
@@ -295,7 +295,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_definition_key">조건 후보</label>
+                <label class="form-label" for="member_admin_groups_definition_key">조건 후보 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_definition_key" name="definition_key" required data-member-rule-definition class="form-select">
                                             <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
@@ -389,7 +389,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <h2>자동 규칙 재평가</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <span class="form-label">회원 조회</span>
+                <span class="form-label">회원 조회 <span class="sr-required-label">(필수)</span></span>
                 <div class="admin-form-field">
                     <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
                         <option value="hash">해시 아이디</option>
@@ -439,7 +439,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <h2>수동 배정</h2>
             <?php echo sr_csrf_field(); ?>
             <div class="admin-form-row">
-                <span class="form-label">회원 조회</span>
+                <span class="form-label">회원 조회 <span class="sr-required-label">(필수)</span></span>
                 <div class="admin-form-field">
                     <select name="account_identifier_field" class="form-select" aria-label="회원 조회 조건">
                         <option value="hash">해시 아이디</option>
@@ -451,7 +451,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id_2">그룹</label>
+                <label class="form-label" for="member_admin_groups_group_id_2">그룹 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_group_id_2" name="group_id" required class="form-select">
                                             <?php foreach ($groups as $group) { ?>

@@ -154,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="<?php echo $editing ? 'update_group' : 'create_group'; ?>">
             <input type="hidden" name="group_id" value="<?php echo $editing ? sr_e((string) $editPageGroup['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_groups_group_key">그룹 key</label>
+                <label class="form-label" for="page_admin_groups_group_key">그룹 key<?php echo $editing ? '' : ' <span class="sr-required-label">(필수)</span>'; ?></label>
                 <div class="admin-form-field">
                     <?php if ($editing) { ?>
                         <code><?php echo sr_e((string) ($values['group_key'] ?? '')); ?></code>
@@ -165,7 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_groups_title">이름</label>
+                <label class="form-label" for="page_admin_groups_title">이름 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="page_admin_groups_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>

@@ -36,19 +36,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <p>예치금 환불을 위해 계좌 정보를 입력하세요.</p>
                         <p>
                             <label for="modules_member_withdraw_refund_bank">
-                                <span>은행</span>
+                                <span>은행 <span class="sr-required-label">(필수)</span></span>
                                 <input id="modules_member_withdraw_refund_bank" type="text" name="refund_bank" value="<?php echo sr_e((string) ($refundAccount['bank'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
                         <p>
                             <label for="modules_member_withdraw_refund_account_holder">
-                                <span>예금주</span>
+                                <span>예금주 <span class="sr-required-label">(필수)</span></span>
                                 <input id="modules_member_withdraw_refund_account_holder" type="text" name="refund_account_holder" value="<?php echo sr_e((string) ($refundAccount['holder'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
                         <p>
                             <label for="modules_member_withdraw_refund_account_number">
-                                <span>계좌번호</span>
+                                <span>계좌번호 <span class="sr-required-label">(필수)</span></span>
                                 <input id="modules_member_withdraw_refund_account_number" type="text" name="refund_account_number" value="<?php echo sr_e((string) ($refundAccount['number'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
@@ -57,13 +57,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <?php } ?>
             <p>
                 <label for="modules_member_withdraw_password">
-                    <span>비밀번호</span>
+                    <span>비밀번호 <span class="sr-required-label">(필수)</span></span>
                     <input id="modules_member_withdraw_password" type="password" name="password" required>
                 </label>
             </p>
             <p>
                 <label for="modules_member_withdraw_confirm_text">
-                    <span>확인 문구</span>
+                    <span>확인 문구 <span class="sr-required-label">(필수)</span></span>
                     <input id="modules_member_withdraw_confirm_text" type="text" name="confirm_text" required>
                 </label>
             </p>

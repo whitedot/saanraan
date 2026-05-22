@@ -236,14 +236,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_key">그룹 key</label>
+                    <label class="form-label" for="community_admin_board_groups_group_key">그룹 key <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_key" type="text" name="group_key" maxlength="60" value="<?php echo sr_e($groupField($formBoardGroup, 'group_key')); ?>" class="form-input" required>
                     </div>
                 </div>
             <?php } ?>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_board_groups_title">이름</label>
+                <label class="form-label" for="community_admin_board_groups_title">이름 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_board_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input form-control-full" required>
                 </div>

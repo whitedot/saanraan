@@ -202,7 +202,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="hidden" name="intent" value="sync_module_version">
                                         <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
                                         <label for="modules_admin_modules_owner_password">
-                                            <span class="sr-only">소유자 비밀번호</span>
+                                            <span class="sr-only">소유자 비밀번호 <span class="sr-required-label">(필수)</span></span>
                                             <input id="modules_admin_modules_owner_password" type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="소유자 비밀번호">
                                         </label>
                                         <button type="submit" class="btn btn-sm btn-solid-light">파일 업데이트 반영</button>
@@ -423,7 +423,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="upload_module_zip">
                         <div class="admin-form-row">
-                            <label class="form-label" for="admin_modules_module_zip">모듈 zip</label>
+                            <label class="form-label" for="admin_modules_module_zip">모듈 zip <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
                                 <input id="admin_modules_module_zip" type="file" name="module_zip" accept=".zip,application/zip" required class="form-input" data-overlay-focus>
                             </div>
@@ -455,7 +455,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="admin_modules_owner_password">소유자 비밀번호</label>
+                            <label class="form-label" for="admin_modules_owner_password">소유자 비밀번호 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
                                 <input id="admin_modules_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                             </div>

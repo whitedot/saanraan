@@ -138,16 +138,16 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <label for="db_host">DB host</label>
+                        <label for="db_host">DB host <span class="sr-required-label">(필수)</span></label>
                         <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required>
                         <span class="sr-install-help">일반 웹호스팅은 보통 localhost를 사용합니다.</span>
                     </p>
                     <p>
-                        <label for="db_name">DB name</label>
+                        <label for="db_name">DB name <span class="sr-required-label">(필수)</span></label>
                         <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required>
                     </p>
                     <p>
-                        <label for="db_user">DB user</label>
+                        <label for="db_user">DB user <span class="sr-required-label">(필수)</span></label>
                         <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required>
                     </p>
                     <p>
@@ -156,7 +156,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <span class="sr-install-help">보안을 위해 오류 후에도 비밀번호는 다시 표시하지 않습니다.</span>
                     </p>
                     <p>
-                        <label for="db_table_prefix">테이블 prefix</label>
+                        <label for="db_table_prefix">테이블 prefix <span class="sr-required-label">(필수)</span></label>
                         <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
                         <span class="sr-install-help">기본값은 sr_입니다. 예: sr_, site1_</span>
                     </p>
@@ -174,7 +174,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 
                 <div class="sr-install-field-grid">
                     <p>
-                        <label for="site_name">사이트 이름</label>
+                        <label for="site_name">사이트 이름 <span class="sr-required-label">(필수)</span></label>
                         <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required>
                     </p>
                     <p>
@@ -183,7 +183,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <span class="sr-install-help">canonical, OG URL, 인증 메일 링크처럼 외부에 노출되는 절대 URL의 기준입니다. 운영 사이트는 HTTPS URL을 권장합니다.</span>
                     </p>
                     <p>
-                        <label for="timezone">timezone</label>
+                        <label for="timezone">timezone <span class="sr-required-label">(필수)</span></label>
                         <select id="timezone" name="timezone" required>
                             <?php foreach ($timezoneOptions as $timezoneOption) { ?>
                                 <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
@@ -193,7 +193,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         </select>
                     </p>
                     <p>
-                        <label for="default_locale">기본 locale</label>
+                        <label for="default_locale">기본 locale <span class="sr-required-label">(필수)</span></label>
                         <select id="default_locale" name="default_locale" required>
                             <?php foreach ($localeOptions as $localeOption) { ?>
                                 <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
@@ -228,7 +228,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <span class="sr-install-help">이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.</span>
                     </p>
                     <p>
-                        <label for="admin_email">이메일</label>
+                        <label for="admin_email">이메일 <span class="sr-required-label">(필수)</span></label>
                         <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required>
                     </p>
                     <p>
@@ -237,16 +237,16 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         <span class="sr-install-help">선택 입력입니다. 입력하면 이메일과 아이디를 모두 로그인에 사용할 수 있습니다. 예: admin, site_admin</span>
                     </p>
                     <p>
-                        <label for="admin_password">비밀번호</label>
+                        <label for="admin_password">비밀번호 <span class="sr-required-label">(필수)</span></label>
                         <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
                         <span class="sr-install-help">8자 이상 입력하세요.</span>
                     </p>
                     <p>
-                        <label for="admin_password_confirm">비밀번호 확인</label>
+                        <label for="admin_password_confirm">비밀번호 확인 <span class="sr-required-label">(필수)</span></label>
                         <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
                     </p>
                     <p>
-                        <label for="admin_display_name">표시 이름</label>
+                        <label for="admin_display_name">표시 이름 <span class="sr-required-label">(필수)</span></label>
                         <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required>
                     </p>
                 </div>
