@@ -642,7 +642,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                             </select>
                                                         <?php } ?>
                                                         <?php if ($usesCompositeAsset) { ?>
-                                                            <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                                            <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                                                         <?php } ?>
                                                         <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input">
                                                         <?php if ($assetPrefix === 'paid_read') { ?>

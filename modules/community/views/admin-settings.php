@@ -164,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <?php $writeChargeAssetModules = sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? 'point'); ?>
                                         <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, '활성 자산 모듈 없음'); ?>
-                                        <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                        <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                                         <input type="number" name="write_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>" class="form-input">
                 </div>
             </div>
@@ -177,7 +177,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <?php $commentChargeAssetModules = sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? 'point'); ?>
                                         <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, '활성 자산 모듈 없음'); ?>
-                                        <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                        <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                                         <input type="number" name="comment_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>" class="form-input">
                 </div>
             </div>
@@ -190,7 +190,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <?php $paidReadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? 'point'); ?>
                                         <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, '활성 자산 모듈 없음'); ?>
-                                        <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                        <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                                         <input type="number" name="paid_read_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>" class="form-input">
                                         <select name="paid_read_charge_policy" class="form-select">
                                             <option value="once"<?php echo (string) $settings['paid_read_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>
@@ -207,7 +207,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <?php $paidAttachmentDownloadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? 'point'); ?>
                                         <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, '활성 자산 모듈 없음'); ?>
-                                        <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                                        <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                                         <input type="number" name="paid_attachment_download_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>" class="form-input">
                                         <select name="paid_attachment_download_charge_policy" class="form-select">
                                             <option value="once"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'once' ? ' selected' : ''; ?>>최초 1회</option>

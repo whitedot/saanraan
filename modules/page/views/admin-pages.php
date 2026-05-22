@@ -151,7 +151,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_page_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('page_admin_pages_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, '활성 자산 모듈 없음'); ?>
-                    <p class="admin-form-help">여러 자산을 선택하면 포인트, 적립금, 예치금 순서로 차감합니다.</p>
+                    <p class="admin-form-help">차감 우선순위: 포인트 > 적립금 > 예치금</p>
                 </div>
             </div>
             <div class="admin-form-row">
