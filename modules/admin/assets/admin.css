@@ -72,6 +72,7 @@
 @supports (color:color-mix(in lab, red, red)){#gnb .admin-nav-sub-item:before{background:color-mix(in oklab, var(--color-default-500) 45%, transparent)}}
 #gnb .admin-nav-sub-item:before{pointer-events:none}
 #gnb .admin-nav-sub-item:first-child:before{top:calc(.8rem - 8px)}
+#gnb .admin-nav-sub-heading+.admin-nav-sub-item:before{top:calc(.8rem - 8px)}
 #gnb .admin-nav-sub-item:last-child:before{height:1.25rem;top:calc(-.45rem - 8px);bottom:auto}
 #gnb .admin-nav-sub-item:only-child:before{display:none}
 #gnb .admin-nav-sub-item:after{content:"";border-left:1px solid #a1a9b173;width:.8rem;height:.8rem;position:absolute;top:calc(.8rem - 8px);left:-.85rem}
