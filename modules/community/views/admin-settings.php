@@ -61,15 +61,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
+            <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
+                <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" required class="form-input">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></label>
+            <label class="form-label" for="community_admin_settings_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
+                <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" required class="form-input">
             </div>
         </div>
         <div class="admin-form-row">
@@ -104,7 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_min_level"><?php echo sr_e(sr_t('community::ui.text.c96c86df')); ?></label>
+            <label class="form-label" for="community_admin_settings_message_write_min_level"><?php echo sr_e(sr_t('community::ui.text.c96c86df')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
@@ -230,7 +230,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('community::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_key"><?php echo sr_e(sr_t('community::ui.community.8f453af4')); ?></label>
+            <label class="form-label" for="community_admin_settings_layout_key"><?php echo sr_e(sr_t('community::ui.community.8f453af4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
                                     <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>

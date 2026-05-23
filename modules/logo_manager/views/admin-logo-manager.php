@@ -47,7 +47,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="upload_asset">
                 <div class="admin-form-row">
-                    <label class="form-label" for="logo_manager_usage_key"><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?></label>
+                    <label class="form-label" for="logo_manager_usage_key"><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="logo_manager_usage_key" name="usage_key" class="form-select" data-overlay-focus>
                             <?php foreach ($usageOptions as $usageKey => $usageOption) { ?>
@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="logo_manager_assignment_usage"><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?></label>
+                    <label class="form-label" for="logo_manager_assignment_usage"><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="logo_manager_assignment_usage" name="usage_key" class="form-select">
                             <?php foreach ($usageOptions as $usageKey => $usageOption) { ?>

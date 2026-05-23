@@ -57,7 +57,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_target_option"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
+                <label class="form-label" for="banner_admin_banners_target_option"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_target_option" name="target_option" class="form-select">
                                             <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
@@ -75,7 +75,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_match_type"><?php echo sr_e(sr_t('banner::ui.text.175f56ba')); ?></label>
+                <label class="form-label" for="banner_admin_banners_match_type"><?php echo sr_e(sr_t('banner::ui.text.175f56ba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_match_type" name="match_type" class="form-select">
                                             <?php foreach ($allowedMatchTypes as $matchType) { ?>
@@ -94,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_status"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="banner_admin_banners_status"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_status" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -109,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_skin_key"><?php echo sr_e(sr_t('banner::ui.banner.46b4fae5')); ?></label>
+                <label class="form-label" for="banner_admin_banners_skin_key"><?php echo sr_e(sr_t('banner::ui.banner.46b4fae5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_skin_key" name="skin_key" class="form-select">
                                             <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>

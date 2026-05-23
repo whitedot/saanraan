@@ -81,7 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="install">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
                                 <label for="modules_admin_modules_status">
-                                    <span><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?></span>
+                                    <span><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                                     <select id="modules_admin_modules_status" name="status" class="form-select">
                                         <?php foreach ($allowedInstallStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
@@ -237,7 +237,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="intent" value="install">
                             <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
                             <label for="modules_admin_modules_status_2">
-                                <span><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?></span>
+                                <span><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                                 <select id="modules_admin_modules_status_2" name="status" class="form-select">
                                     <?php foreach ($allowedInstallStatuses as $status) { ?>
                                         <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
@@ -366,7 +366,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </div>
                                 </div>
                                 <div class="admin-form-row">
-                                    <label class="form-label" for="<?php echo sr_e($moduleStatusModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.098d4cea')); ?></label>
+                                    <label class="form-label" for="<?php echo sr_e($moduleStatusModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.098d4cea')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                                     <div class="admin-form-field">
                                         <select id="<?php echo sr_e($moduleStatusModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
                                             <?php foreach ($allowedStatuses as $status) { ?>

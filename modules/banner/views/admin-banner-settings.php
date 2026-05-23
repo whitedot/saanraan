@@ -14,7 +14,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
         <div class="admin-form-row">
-            <label class="form-label" for="banner_admin_banner_settings_banner_skin_key"><?php echo sr_e(sr_t('banner::ui.banner.46b4fae5')); ?></label>
+            <label class="form-label" for="banner_admin_banner_settings_banner_skin_key"><?php echo sr_e(sr_t('banner::ui.banner.46b4fae5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="banner_admin_banner_settings_banner_skin_key" name="banner_skin_key" class="form-select">
                                     <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>

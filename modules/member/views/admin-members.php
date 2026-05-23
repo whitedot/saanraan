@@ -73,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="member_admin_create_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_create_status" name="status" class="form-select">
                         <?php foreach ($createStatuses as $status) { ?>
@@ -157,7 +157,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                    <label class="form-label" for="member_admin_edit_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="member_admin_edit_status" name="status" class="form-select">
                             <?php foreach ($allowedStatuses as $status) { ?>

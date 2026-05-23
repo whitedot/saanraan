@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_status"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_status"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select">
                                                     <?php foreach ($allowedStatuses as $status) { ?>
@@ -55,7 +55,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_skin_key"><?php echo sr_e(sr_t('popup_layer::ui.text.9c7f107d')); ?></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_skin_key"><?php echo sr_e(sr_t('popup_layer::ui.text.9c7f107d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">
                                                     <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
@@ -68,7 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_target_option"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_target_option"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_target_option" name="target_option" class="form-select">
                                                     <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
@@ -86,7 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_match_type"><?php echo sr_e(sr_t('popup_layer::ui.text.175f56ba')); ?></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_match_type"><?php echo sr_e(sr_t('popup_layer::ui.text.175f56ba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select">
                                                     <?php foreach ($allowedMatchTypes as $matchType) { ?>

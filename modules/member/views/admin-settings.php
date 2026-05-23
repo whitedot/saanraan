@@ -53,7 +53,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('member::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_member_skin_key"><?php echo sr_e(sr_t('member::ui.member.3b335eb1')); ?></label>
+            <label class="form-label" for="member_admin_settings_member_skin_key"><?php echo sr_e(sr_t('member::ui.member.3b335eb1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="member_admin_settings_member_skin_key" name="member_skin_key" class="form-select">
                                     <?php foreach (sr_member_skin_options() as $skinKey => $skinOption) { ?>
@@ -97,21 +97,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('member::ui.login.b726ae4b')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_login_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?></label>
+            <label class="form-label" for="member_admin_settings_login_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_login_throttle_window_seconds" type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
+                <input id="member_admin_settings_login_throttle_window_seconds" type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_login_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?></label>
+            <label class="form-label" for="member_admin_settings_login_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_login_throttle_account_limit" type="number" name="login_throttle_account_limit" value="<?php echo sr_e((string) $settings['login_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_login_throttle_account_limit" type="number" name="login_throttle_account_limit" value="<?php echo sr_e((string) $settings['login_throttle_account_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_login_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?></label>
+            <label class="form-label" for="member_admin_settings_login_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_login_throttle_ip_limit" type="number" name="login_throttle_ip_limit" value="<?php echo sr_e((string) $settings['login_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_login_throttle_ip_limit" type="number" name="login_throttle_ip_limit" value="<?php echo sr_e((string) $settings['login_throttle_ip_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
     </section>
@@ -119,15 +119,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('member::ui.member.52394c42')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_register_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?></label>
+            <label class="form-label" for="member_admin_settings_register_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_register_throttle_window_seconds" type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
+                <input id="member_admin_settings_register_throttle_window_seconds" type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_register_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?></label>
+            <label class="form-label" for="member_admin_settings_register_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_register_throttle_ip_limit" type="number" name="register_throttle_ip_limit" value="<?php echo sr_e((string) $settings['register_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_register_throttle_ip_limit" type="number" name="register_throttle_ip_limit" value="<?php echo sr_e((string) $settings['register_throttle_ip_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
     </section>
@@ -135,21 +135,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('member::ui.password.settings.be683f9d')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_password_reset_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?></label>
+            <label class="form-label" for="member_admin_settings_password_reset_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_password_reset_throttle_window_seconds" type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
+                <input id="member_admin_settings_password_reset_throttle_window_seconds" type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_password_reset_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?></label>
+            <label class="form-label" for="member_admin_settings_password_reset_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_password_reset_throttle_account_limit" type="number" name="password_reset_throttle_account_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_password_reset_throttle_account_limit" type="number" name="password_reset_throttle_account_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_account_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_password_reset_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?></label>
+            <label class="form-label" for="member_admin_settings_password_reset_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_password_reset_throttle_ip_limit" type="number" name="password_reset_throttle_ip_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_password_reset_throttle_ip_limit" type="number" name="password_reset_throttle_ip_limit" value="<?php echo sr_e((string) $settings['password_reset_throttle_ip_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
     </section>
@@ -157,21 +157,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('member::ui.email.2fbad242')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_email_verification_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?></label>
+            <label class="form-label" for="member_admin_settings_email_verification_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_email_verification_throttle_window_seconds" type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" class="form-input" min="0" max="86400">
+                <input id="member_admin_settings_email_verification_throttle_window_seconds" type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_email_verification_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?></label>
+            <label class="form-label" for="member_admin_settings_email_verification_throttle_account_limit"><?php echo sr_e(sr_t('member::ui.text.d78a4171')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_email_verification_throttle_account_limit" type="number" name="email_verification_throttle_account_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_account_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_email_verification_throttle_account_limit" type="number" name="email_verification_throttle_account_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_account_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="member_admin_settings_email_verification_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?></label>
+            <label class="form-label" for="member_admin_settings_email_verification_throttle_ip_limit"><?php echo sr_e(sr_t('member::ui.ip.62b8799d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <input id="member_admin_settings_email_verification_throttle_ip_limit" type="number" name="email_verification_throttle_ip_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_ip_limit']); ?>" class="form-input" min="0" max="1000">
+                <input id="member_admin_settings_email_verification_throttle_ip_limit" type="number" name="email_verification_throttle_ip_limit" value="<?php echo sr_e((string) $settings['email_verification_throttle_ip_limit']); ?>" required class="form-input" min="0" max="1000">
             </div>
         </div>
     </section>

@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                <label for="<?php echo sr_e($postStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
+                                <label for="<?php echo sr_e($postStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                     <select id="<?php echo sr_e($postStatusSelectId); ?>" name="status" class="form-select">
                                         <?php foreach ($allowedPostStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
@@ -261,7 +261,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="comment_status">
                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                    <label for="<?php echo sr_e($commentStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
+                                    <label for="<?php echo sr_e($commentStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                     <select id="<?php echo sr_e($commentStatusSelectId); ?>" name="status" class="form-select">
                                         <?php foreach ($allowedCommentStatuses as $status) { ?>
                                             <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>

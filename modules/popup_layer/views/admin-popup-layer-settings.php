@@ -13,7 +13,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
         <div class="admin-form-row">
-            <label class="form-label" for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key"><?php echo sr_e(sr_t('popup_layer::ui.text.58f7674b')); ?></label>
+            <label class="form-label" for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key"><?php echo sr_e(sr_t('popup_layer::ui.text.58f7674b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select">
                                     <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>

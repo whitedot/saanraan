@@ -244,7 +244,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } ?>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_transaction_type"><?php echo sr_e(sr_t('reward::ui.text.3a7bc5ac')); ?></label>
+                            <label class="form-label" for="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_transaction_type"><?php echo sr_e(sr_t('reward::ui.text.3a7bc5ac')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('reward::ui.required.1f227c67')); ?></span></label>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
                                     <?php foreach ($allowedTransactionTypes as $type) { ?>

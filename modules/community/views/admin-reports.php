@@ -165,7 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
-                                    <label for="<?php echo sr_e($reportStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
+                                    <label for="<?php echo sr_e($reportStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                     <select id="<?php echo sr_e($reportStatusSelectId); ?>" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>

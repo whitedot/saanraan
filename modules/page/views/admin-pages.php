@@ -204,7 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_status"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="page_admin_pages_status"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_status" name="status" class="form-select">
                                                 <?php foreach (sr_page_allowed_statuses() as $status) { ?>

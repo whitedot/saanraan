@@ -17,6 +17,7 @@ return [
     'action.roles.no_changes' => '관리자 권한 변경 사항이 없습니다.',
     'action.roles.revoked' => '관리자 권한을 회수했습니다.',
     'action.roles.permission_invalid' => '권한 값이 올바르지 않습니다.',
+    'action.roles.permission_required' => '부여할 소유자 권한 또는 메뉴 권한을 선택하세요.',
     'action.roles.role_invalid' => '권한 값이 올바르지 않습니다.',
     'action.roles.saved' => '관리자 권한을 저장했습니다.',
     'feedback.close_label' => '알림 닫기',

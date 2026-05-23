@@ -458,6 +458,7 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
 {
     $errors = [];
     $notice = '';
+    $intent = sr_post_string('intent', 40);
     $targetAccountId = sr_admin_post_positive_int('account_id');
     $selectedIsOwner = ($_POST['is_owner'] ?? '') === '1';
     $selectedPermissionKeys = sr_admin_post_permission_keys($pdo);
@@ -468,6 +469,10 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
 
     if (!sr_admin_post_permission_keys_valid($pdo)) {
         $errors[] = sr_t('admin::action.roles.permission_invalid');
+    }
+
+    if ($intent === 'add_permission' && !$selectedIsOwner && $selectedPermissionKeys === []) {
+        $errors[] = sr_t('admin::action.roles.permission_required');
     }
 
     if ($errors === []) {

@@ -255,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_board_groups_status"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="community_admin_board_groups_status"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="community_admin_board_groups_status" name="status" class="form-select">
                                             <?php foreach ($allowedGroupStatuses as $status) { ?>
@@ -265,9 +265,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_board_groups_sort_order"><?php echo sr_e(sr_t('community::ui.text.7d2dc215')); ?></label>
+                <label class="form-label" for="community_admin_board_groups_sort_order"><?php echo sr_e(sr_t('community::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="community_admin_board_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" class="form-input">
+                    <input id="community_admin_board_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" required class="form-input">
                 </div>
             </div>
         </section>
@@ -275,7 +275,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('community::ui.settings.021ed27a')); ?></h2>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_policy"><?php echo sr_e(sr_t('community::ui.text.0b6c5dfd')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_read_policy"><?php echo sr_e(sr_t('community::ui.text.0b6c5dfd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_read_policy" name="group_read_policy" class="form-select">
                                                     <?php foreach ($allowedReadPolicies as $policy) { ?>
@@ -291,13 +291,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_min_level"><?php echo sr_e(sr_t('community::ui.text.a783617f')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_read_min_level"><?php echo sr_e(sr_t('community::ui.text.a783617f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_read_min_level', 'group_read_min_level', (int) $groupSettingValue($formGroupSettings, 'read_min_level', '0')); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_policy"><?php echo sr_e(sr_t('community::ui.text.4f05f6a8')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_write_policy"><?php echo sr_e(sr_t('community::ui.text.4f05f6a8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_write_policy" name="group_write_policy" class="form-select">
                                                     <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -313,13 +313,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_min_level"><?php echo sr_e(sr_t('community::ui.text.82530158')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_write_min_level"><?php echo sr_e(sr_t('community::ui.text.82530158')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_write_min_level', 'group_write_min_level', (int) $groupSettingValue($formGroupSettings, 'write_min_level', '0')); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_policy"><?php echo sr_e(sr_t('community::ui.text.0550e13c')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_comment_policy"><?php echo sr_e(sr_t('community::ui.text.0550e13c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_comment_policy" name="group_comment_policy" class="form-select">
                                                     <?php foreach ($allowedCommentPolicies as $policy) { ?>
@@ -335,7 +335,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_comment_min_level', 'group_comment_min_level', (int) $groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>
                     </div>
@@ -350,15 +350,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.e28899ac')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.e28899ac')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_attachment_max_bytes" type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" class="form-input">
+                        <input id="community_admin_board_groups_group_attachment_max_bytes" type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.bf61ba9f')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.bf61ba9f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_attachment_max_count" type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>" class="form-input">
+                        <input id="community_admin_board_groups_group_attachment_max_count" type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -371,15 +371,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.9055a3dc')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.9055a3dc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_file_attachment_max_bytes" type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" class="form-input">
+                        <input id="community_admin_board_groups_group_file_attachment_max_bytes" type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.593790e4')); ?></label>
+                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.593790e4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_file_attachment_max_count" type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>" class="form-input">
+                        <input id="community_admin_board_groups_group_file_attachment_max_count" type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">

@@ -131,7 +131,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                     <label for="privacy_status_<?php echo sr_e((string) $request['id']); ?>">
-                                        <span><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></span>
+                                        <span><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                         <select name="status" id="privacy_status_<?php echo sr_e((string) $request['id']); ?>" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>

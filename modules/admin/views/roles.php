@@ -132,6 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-body" data-admin-permission-picker>
                 <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="add_permission">
                 <input type="hidden" name="account_id" value="" data-admin-permission-account-id>
                 <div hidden data-admin-permission-hidden></div>
                 <div class="admin-form-row">
@@ -153,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="admin-permission-add-group">1차</label>
+                    <label class="form-label" for="admin-permission-add-group">1차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="admin-permission-add-group" class="form-select" data-admin-permission-group>
                             <option value="">선택</option>
@@ -165,7 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="admin-permission-add-item">2차</label>
+                    <label class="form-label" for="admin-permission-add-item">2차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <select id="admin-permission-add-item" class="form-select" data-admin-permission-item disabled>
                             <option value="">1차 선택 후 선택</option>
@@ -173,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label">권한</span>
+                    <span class="form-label">권한 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                     <div class="admin-form-field">
                         <fieldset class="admin-permission-picker-actions">
                             <legend class="sr-only">권한</legend>
@@ -510,8 +511,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var submit = form.querySelector('[data-admin-permission-submit]');
         var accountInput = form.querySelector('[data-admin-permission-account-id]');
         if (submit && accountInput) {
-            submit.disabled = accountInput.value === '';
+            submit.disabled = accountInput.value === '' || !addFormHasGrantTarget(form);
         }
+        syncAddRequiredIndicators(form);
+    }
+
+    function syncAddRequiredIndicators(form) {
+        var ownerInput = form ? form.querySelector('input[name="is_owner"]') : null;
+        var ownerSelected = !!(ownerInput && ownerInput.checked);
+        if (!form) {
+            return;
+        }
+
+        form.querySelectorAll('[data-admin-permission-required-label]').forEach(function (label) {
+            label.hidden = ownerSelected;
+        });
+    }
+
+    function addFormHasGrantTarget(form) {
+        var ownerInput = form ? form.querySelector('input[name="is_owner"]') : null;
+        if (ownerInput && ownerInput.checked) {
+            return true;
+        }
+
+        if (!form) {
+            return false;
+        }
+
+        return selectedPermissionItems(form).length > 0
+            && form.querySelectorAll('[data-admin-permission-action]:checked').length > 0;
+    }
+
+    function clearAddFormValidity(form) {
+        if (!form) {
+            return;
+        }
+
+        var groupSelect = form.querySelector('[data-admin-permission-group]');
+        var itemSelect = form.querySelector('[data-admin-permission-item]');
+        var firstAction = form.querySelector('[data-admin-permission-action]');
+        [groupSelect, itemSelect, firstAction].forEach(function (control) {
+            if (control && typeof control.setCustomValidity === 'function') {
+                control.setCustomValidity('');
+            }
+        });
+    }
+
+    function validateAddForm(form, report) {
+        clearAddFormValidity(form);
+
+        if (!form || addFormHasGrantTarget(form)) {
+            return true;
+        }
+
+        var groupSelect = form.querySelector('[data-admin-permission-group]');
+        var itemSelect = form.querySelector('[data-admin-permission-item]');
+        var firstAction = form.querySelector('[data-admin-permission-action]');
+        var target = null;
+
+        if (groupSelect && groupSelect.value === '') {
+            groupSelect.setCustomValidity('1차 권한 범위를 선택하세요.');
+            target = groupSelect;
+        } else if (itemSelect && itemSelect.value === '') {
+            itemSelect.setCustomValidity('2차 권한 대상을 선택하세요.');
+            target = itemSelect;
+        } else if (firstAction) {
+            firstAction.setCustomValidity('부여할 권한을 하나 이상 선택하세요.');
+            target = firstAction;
+        }
+
+        if (report && target && typeof target.reportValidity === 'function') {
+            target.reportValidity();
+        }
+
+        return false;
     }
 
     function syncAddFormPermissionInputs(form) {
@@ -646,6 +719,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             var addForm = event.target.closest && event.target.closest('[data-admin-permission-add-form]');
             if (addForm) {
                 syncAddFormPermissionInputs(addForm);
+                if (!validateAddForm(addForm, true)) {
+                    event.preventDefault();
+                    updateAddSubmit(addForm);
+                }
             }
             return;
         }
@@ -670,6 +747,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (groupSelect.value === allGroupsValue) {
             itemSelect.appendChild(option('전체', allItemsValue));
             itemSelect.disabled = false;
+            if (form && form.matches('[data-admin-permission-add-form]')) {
+                validateAddForm(form, false);
+                updateAddSubmit(form);
+            }
             return;
         }
 
@@ -677,6 +758,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!group) {
             itemSelect.appendChild(option('1차 선택 후 선택', ''));
             itemSelect.disabled = true;
+            if (form && form.matches('[data-admin-permission-add-form]')) {
+                validateAddForm(form, false);
+                updateAddSubmit(form);
+            }
             return;
         }
 
@@ -686,6 +771,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             itemSelect.appendChild(option(item.label, item.path));
         });
         itemSelect.disabled = false;
+        if (form && form.matches('[data-admin-permission-add-form]')) {
+            validateAddForm(form, false);
+            updateAddSubmit(form);
+        }
+    });
+
+    document.addEventListener('change', function (event) {
+        var control = event.target.closest && event.target.closest('[data-admin-permission-item], [data-admin-permission-action], input[name="is_owner"]');
+        if (!control) {
+            return;
+        }
+
+        var form = control.closest('[data-admin-permission-add-form]');
+        if (!form) {
+            return;
+        }
+
+        validateAddForm(form, false);
+        updateAddSubmit(form);
     });
 
     document.addEventListener('click', function (event) {
@@ -712,6 +816,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 accountIdentifier.dispatchEvent(new Event('change', { bubbles: true }));
             }
             if (pickForm) {
+                validateAddForm(pickForm, false);
                 updateAddSubmit(pickForm);
             }
             returnToAddModal(memberPickButton.closest('.modal-overlay'));
@@ -783,6 +888,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (searchRoot) {
             runMemberSearch(searchRoot);
         }
+    });
+
+    document.querySelectorAll('[data-admin-permission-add-form]').forEach(function (form) {
+        syncAddRequiredIndicators(form);
+        updateAddSubmit(form);
     });
 })();
 </script>

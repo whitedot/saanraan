@@ -190,7 +190,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -281,7 +281,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_target"><?php echo sr_e(sr_t('site_menu::ui.text.5235ffd9')); ?></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_target"><?php echo sr_e(sr_t('site_menu::ui.text.5235ffd9')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select">
                                 <?php foreach ($allowedTargets as $target) { ?>
@@ -293,7 +293,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($allowedStatuses as $status) { ?>

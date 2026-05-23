@@ -59,7 +59,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="member_admin_groups_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_status" name="status" class="form-select">
                                             <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
@@ -72,9 +72,9 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_sort_order"><?php echo sr_e(sr_t('member::ui.text.7d2dc215')); ?></label>
+                <label class="form-label" for="member_admin_groups_sort_order"><?php echo sr_e(sr_t('member::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="member_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>" class="form-input">
+                    <input id="member_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>" required class="form-input">
                 </div>
             </div>
         </section>
@@ -358,7 +358,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_evaluation_policy"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?></label>
+                <label class="form-label" for="member_admin_groups_evaluation_policy"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_evaluation_policy" name="evaluation_policy" class="form-select">
                                             <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
@@ -368,7 +368,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status_2"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="member_admin_groups_status_2"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_status_2" name="status" class="form-select">
                                             <?php foreach ($allowedRuleStatuses as $status) { ?>
@@ -423,9 +423,9 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_limit"><?php echo sr_e(sr_t('member::ui.member.5138655c')); ?></label>
+                <label class="form-label" for="member_admin_groups_limit"><?php echo sr_e(sr_t('member::ui.member.5138655c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="member_admin_groups_limit" type="number" name="limit" min="1" max="200" value="50" class="form-input">
+                    <input id="member_admin_groups_limit" type="number" name="limit" min="1" max="200" value="50" required class="form-input">
                 </div>
             </div>
         </section>

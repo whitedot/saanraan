@@ -177,7 +177,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_groups_status"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?></label>
+                <label class="form-label" for="page_admin_groups_status"><?php echo sr_e(sr_t('page::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="page_admin_groups_status" name="status" class="form-select">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
@@ -189,16 +189,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_groups_sort_order"><?php echo sr_e(sr_t('page::ui.text.7d2dc215')); ?></label>
+                <label class="form-label" for="page_admin_groups_sort_order"><?php echo sr_e(sr_t('page::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="page_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($values['sort_order'] ?? 0)); ?>" class="form-input">
+                    <input id="page_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($values['sort_order'] ?? 0)); ?>" required class="form-input">
                 </div>
             </div>
         </section>
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('page::ui.page.settings.c384599a')); ?></h2>
             <div class="admin-form-row">
-                <label class="form-label" for="page_group_page_status"><?php echo sr_e(sr_t('page::ui.page.status.ff88bb94')); ?></label>
+                <label class="form-label" for="page_group_page_status"><?php echo sr_e(sr_t('page::ui.page.status.ff88bb94')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="page_group_page_status" name="group_page_status" class="form-select">
                         <?php foreach (sr_page_allowed_statuses() as $status) { ?>

@@ -55,6 +55,14 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - If a code change intentionally does not require a Wiki update, mention that decision in the final response or commit body when useful.
 - Keep repository docs and Wiki docs aligned with the current implementation rather than the initial project plan.
 
+## Admin Form Validation
+
+- Treat server-side validation as the source of truth for required admin fields. Do not rely on HTML `required`, disabled buttons, or JavaScript-only checks as the only protection.
+- When an admin field is required for save/update, keep all three layers aligned where applicable: visible `(필수)`, browser/front-end validation, and server-side POST validation.
+- If a visible control only derives hidden POST fields, validate the actual hidden POST result on the server as well. For example, a picker that turns `1차/2차/권한` choices into `permission_keys[]` must reject an empty or invalid `permission_keys[]` payload server-side.
+- Conditional required fields should still display only the short `(필수)` label. Toggle that label and any browser validation as the condition changes, and enforce the same condition on the server.
+- Do not mark search filters, lookup-only controls, or helper selectors as required unless their value is directly required by the save action.
+
 ## Commit Messages
 
 - Write commit messages in Korean.

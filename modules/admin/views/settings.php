@@ -70,7 +70,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_status"><?php echo sr_e(sr_t('admin::ui.status.e4163930')); ?></label>
+            <label class="form-label" for="admin_settings_status"><?php echo sr_e(sr_t('admin::ui.status.e4163930')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_status" name="status" class="form-select">
                                     <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.0928a1b8')); ?></option>
@@ -82,7 +82,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('admin::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_public_layout_key"><?php echo sr_e(sr_t('admin::ui.text.974e65f4')); ?></label>
+            <label class="form-label" for="admin_settings_public_layout_key"><?php echo sr_e(sr_t('admin::ui.text.974e65f4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
                                     <?php foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption) { ?>
@@ -94,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_home_path"><?php echo sr_e(sr_t('admin::ui.text.214b5fb8')); ?></label>
+            <label class="form-label" for="admin_settings_home_path"><?php echo sr_e(sr_t('admin::ui.text.214b5fb8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_home_path" name="home_path" class="form-select form-control-full">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
@@ -111,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_ui_color_scheme"><?php echo sr_e(sr_t('admin::ui.ui.cf6c41c6')); ?></label>
+            <label class="form-label" for="admin_settings_ui_color_scheme"><?php echo sr_e(sr_t('admin::ui.ui.cf6c41c6')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
                     <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
@@ -126,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_admin_skin_key"><?php echo sr_e(sr_t('admin::ui.admin.1465c5b7')); ?></label>
+            <label class="form-label" for="admin_settings_admin_skin_key"><?php echo sr_e(sr_t('admin::ui.admin.1465c5b7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
                     <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
