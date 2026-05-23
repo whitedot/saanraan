@@ -953,6 +953,15 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     margin-top: calc(var(--spacing) * 2);
 }
 
+.admin-form .admin-form-row > .admin-form-field > .admin-check-list {
+    margin-top: 0;
+}
+
+.admin-form .admin-form-row > .admin-form-field > .admin-check-list:only-child {
+    align-items: center;
+    min-height: calc(var(--spacing) * 9.25);
+}
+
 .admin-check-list .admin-form-check {
     margin: 0;
 }
