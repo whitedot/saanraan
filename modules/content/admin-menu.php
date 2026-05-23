@@ -5,7 +5,7 @@ return [
     'order' => 30,
     'items' => [
         [
-            'label' => sr_t('content::ui.content.6c84a1b3'),
+            'label' => sr_t('content::ui.content.list.771ca9aa'),
             'path' => '/admin/content',
             'order' => 10,
         ],
