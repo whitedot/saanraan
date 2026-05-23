@@ -5,7 +5,7 @@ return [
     'order' => 29,
     'items' => [
         [
-            'label' => sr_t('community::ui.settings.115bced4'),
+            'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 10,
         ],
@@ -15,29 +15,29 @@ return [
             'order' => 20,
         ],
         [
-            'label' => sr_t('community::ui.text.b2845de5'),
-            'path' => '/admin/community/levels',
-            'order' => 25,
-        ],
-        [
             'label' => sr_t('community::ui.text.ec060706'),
             'path' => '/admin/community/board-groups',
             'order' => 30,
         ],
         [
-            'label' => sr_t('community::ui.text.0b138cfe'),
+            'label' => sr_t('community::ui.nav.posts'),
             'path' => '/admin/community/posts',
             'order' => 40,
         ],
         [
-            'label' => sr_t('community::ui.text.c9fff683'),
+            'label' => sr_t('community::ui.nav.comments'),
             'path' => '/admin/community/comments',
-            'order' => 45,
+            'order' => 50,
         ],
         [
-            'label' => sr_t('community::ui.text.bbb56c63'),
+            'label' => sr_t('community::ui.nav.reports'),
             'path' => '/admin/community/reports',
-            'order' => 50,
+            'order' => 60,
+        ],
+        [
+            'label' => sr_t('community::ui.text.b2845de5'),
+            'path' => '/admin/community/levels',
+            'order' => 70,
         ],
     ],
 ];
