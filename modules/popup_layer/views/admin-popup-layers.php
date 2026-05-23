@@ -16,6 +16,8 @@ $selectedTargetOption = sr_popup_layer_public_target_option_value();
 if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '') . '|' . (string) ($editPopup['slot_key'] ?? '');
 }
+$currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all';
+$subjectRequired = !sr_popup_layer_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -23,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>">
         <section class="admin-card card">
             <h2><?php echo $editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc'); ?></h2>
                 <?php echo sr_csrf_field(); ?>
@@ -90,7 +92,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select">
                                                     <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                                                        <?php $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all'; ?>
                                                         <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
                                                             <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
                                                         </option>
@@ -99,9 +100,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e(sr_t('popup_layer::ui.subject.id.14852174')); ?></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e(sr_t('popup_layer::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80">
+                        <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -268,6 +269,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+<?php } ?>
+
+<?php if ($popupLayerAdminPage === 'form') { ?>
+    <script>
+    (function () {
+        var form = document.querySelector('[data-admin-subject-form]');
+        if (!form) {
+            return;
+        }
+
+        var target = form.querySelector('select[name="target_option"]');
+        var match = form.querySelector('select[name="match_type"]');
+        var subject = form.querySelector('[data-admin-subject-id]');
+        var label = form.querySelector('[data-admin-subject-required]');
+        var publicTarget = form.getAttribute('data-public-target-value') || '';
+
+        function syncSubjectRequired() {
+            var needed = !!(target && match && target.value !== publicTarget && match.value === 'exact');
+            if (label) {
+                label.hidden = !needed;
+            }
+            if (subject) {
+                subject.required = needed;
+            }
+        }
+
+        form.addEventListener('change', function (event) {
+            if (event.target === target || event.target === match) {
+                syncSubjectRequired();
+            }
+        });
+        syncSubjectRequired();
+    })();
+    </script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

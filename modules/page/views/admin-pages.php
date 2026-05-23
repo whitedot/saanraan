@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="page_admin_pages_page_group_id"><?php echo sr_e(sr_t('page::ui.page.5875c5b3')); ?></label>
+                <label class="form-label" for="page_admin_pages_page_group_id"><?php echo sr_e(sr_t('page::ui.page.5875c5b3')); ?> <span class="sr-required-label" data-page-group-required hidden><?php echo sr_e(sr_t('page::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <select id="page_admin_pages_page_group_id" name="page_group_id" class="form-select" data-page-group-select>
                         <option value="0"<?php echo (int) ($values['page_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('page::ui.text.d435d292')); ?></option>
@@ -655,6 +655,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     document.addEventListener('DOMContentLoaded', function () {
         var groupSelect = document.querySelector('[data-page-group-select]');
         var scopeOptions = document.querySelectorAll('[data-page-group-scope-option]');
+        var sourceOptions = document.querySelectorAll('input[name^="source_"]');
+        var requiredLabel = document.querySelector('[data-page-group-required]');
         if (!groupSelect || scopeOptions.length === 0) {
             return;
         }
@@ -662,13 +664,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var syncGroupScope = function () {
             var selectedScope = document.querySelector('[data-page-group-scope-option]:checked');
             var useGroup = selectedScope && selectedScope.value === 'group';
-            groupSelect.disabled = !useGroup;
-            if (!useGroup) {
+            var useGroupSource = Array.prototype.slice.call(sourceOptions).some(function (option) {
+                return option.checked && option.value === 'group';
+            });
+            var needsGroup = useGroup || useGroupSource;
+            groupSelect.disabled = !needsGroup;
+            groupSelect.required = needsGroup;
+            if (requiredLabel) {
+                requiredLabel.hidden = !needsGroup;
+            }
+            if (!needsGroup) {
                 groupSelect.value = '0';
             }
         };
 
         scopeOptions.forEach(function (option) {
+            option.addEventListener('change', syncGroupScope);
+        });
+        sourceOptions.forEach(function (option) {
             option.addEventListener('change', syncGroupScope);
         });
         syncGroupScope();

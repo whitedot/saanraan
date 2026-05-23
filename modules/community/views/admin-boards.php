@@ -288,9 +288,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } ?>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_board_group_id"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
+                <label class="form-label" for="community_admin_boards_board_group_id"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?> <span class="sr-required-label" data-community-board-group-required hidden><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <select id="community_admin_boards_board_group_id" name="board_group_id" class="form-select">
+                    <select id="community_admin_boards_board_group_id" name="board_group_id" class="form-select" data-community-board-group-select>
                                             <option value="0"><?php echo sr_e(sr_t('community::ui.text.72ea3d64')); ?></option>
                                             <?php foreach ($boardGroups as $boardGroup) { ?>
                                                 <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
@@ -345,7 +345,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_read_policy"><?php echo sr_e(sr_t('community::ui.text.0b6c5dfd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <select id="community_admin_boards_read_policy" name="read_policy" class="form-select">
+                    <select id="community_admin_boards_read_policy" name="read_policy" class="form-select" data-community-policy="read">
                                             <?php foreach ($allowedReadPolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
@@ -356,7 +356,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?></label>
+                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?> <span class="sr-required-label" data-community-group-required="read"<?php echo $boardField($formBoard, 'read_policy') === 'group' && $boardSettingSource($formBoard, 'read_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -376,7 +376,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_write_policy"><?php echo sr_e(sr_t('community::ui.text.4f05f6a8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <select id="community_admin_boards_write_policy" name="write_policy" class="form-select">
+                    <select id="community_admin_boards_write_policy" name="write_policy" class="form-select" data-community-policy="write">
                                             <?php foreach ($allowedWritePolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
@@ -387,7 +387,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?></label>
+                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?> <span class="sr-required-label" data-community-group-required="write"<?php echo $boardField($formBoard, 'write_policy') === 'group' && $boardSettingSource($formBoard, 'write_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -407,7 +407,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_comment_policy"><?php echo sr_e(sr_t('community::ui.text.0550e13c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <select id="community_admin_boards_comment_policy" name="comment_policy" class="form-select">
+                    <select id="community_admin_boards_comment_policy" name="comment_policy" class="form-select" data-community-policy="comment">
                                             <?php foreach ($allowedCommentPolicies as $policy) { ?>
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
@@ -418,7 +418,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?></label>
+                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?> <span class="sr-required-label" data-community-group-required="comment"<?php echo $boardField($formBoard, 'comment_policy') === 'group' && $boardSettingSource($formBoard, 'comment_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -496,9 +496,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?></label>
+                <?php $boardFileExtensionsRequired = in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) && (int) $boardField($formBoard, 'file_attachment_max_count', '3') > 0; ?>
+                <label class="form-label" for="community_admin_boards_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?> <span class="sr-required-label" data-community-file-extensions-required<?php echo $boardFileExtensionsRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip">
+                    <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $boardFileExtensionsRequired ? ' required' : ''; ?>>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_file_allowed_extensions', $boardSettingSource($formBoard, 'file_allowed_extensions')); ?>
                                     <?php } ?>
@@ -648,6 +649,98 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27'); ?></button>
         </div>
     </form>
+<?php } ?>
+
+<?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
+<script>
+(function () {
+    function syncBoardGroupRequired() {
+        var groupSelect = document.querySelector('[data-community-board-group-select]');
+        var label = document.querySelector('[data-community-board-group-required]');
+        if (!groupSelect) {
+            return;
+        }
+        var needed = Array.prototype.slice.call(document.querySelectorAll('input[name^="source_"]')).some(function (input) {
+            return input.checked && input.value === 'group';
+        });
+        groupSelect.required = needed;
+        if (label) {
+            label.hidden = !needed;
+        }
+    }
+
+    function settingSource(kind) {
+        var selected = document.querySelector('input[name="source_' + kind + '_policy"]:checked');
+        var hidden = document.querySelector('input[type="hidden"][name="source_' + kind + '_policy"]');
+        return selected ? selected.value : (hidden ? hidden.value : 'board');
+    }
+
+    function syncPolicy(kind) {
+        var policy = document.querySelector('[data-community-policy="' + kind + '"]');
+        var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
+        var label = document.querySelector('[data-community-group-required="' + kind + '"]');
+        if (!policy || !group) {
+            return;
+        }
+        var needed = policy.value === 'group' && settingSource(kind) === 'board';
+        var checks = Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]'));
+        var first = checks[0] || null;
+        var selected = checks.some(function (check) {
+            return check.checked;
+        });
+        if (label) {
+            label.hidden = !needed;
+        }
+        if (first && typeof first.setCustomValidity === 'function') {
+            first.setCustomValidity(needed && !selected ? '회원 그룹을 하나 이상 선택하세요.' : '');
+        }
+    }
+
+    function syncFileExtensions() {
+        var count = document.getElementById('community_admin_boards_file_attachment_max_count');
+        var enabled = document.getElementById('modules_community_admin_boards_file_uploads_enabled');
+        var input = document.querySelector('[data-community-file-extensions]');
+        var label = document.querySelector('[data-community-file-extensions-required]');
+        var needed = !!(enabled && enabled.checked && count && parseInt(count.value || '0', 10) > 0);
+        if (input) {
+            input.required = needed;
+        }
+        if (label) {
+            label.hidden = !needed;
+        }
+    }
+
+    ['read', 'write', 'comment'].forEach(function (kind) {
+        var policy = document.querySelector('[data-community-policy="' + kind + '"]');
+        var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
+        var sourceRadios = document.querySelectorAll('input[name="source_' + kind + '_policy"]');
+        if (policy) {
+            policy.addEventListener('change', function () { syncPolicy(kind); });
+        }
+        if (group) {
+            group.addEventListener('change', function () { syncPolicy(kind); });
+        }
+        sourceRadios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                syncPolicy(kind);
+                syncBoardGroupRequired();
+            });
+        });
+        syncPolicy(kind);
+    });
+    syncBoardGroupRequired();
+    var count = document.getElementById('community_admin_boards_file_attachment_max_count');
+    var enabled = document.getElementById('modules_community_admin_boards_file_uploads_enabled');
+    if (count) {
+        count.addEventListener('input', syncFileExtensions);
+        count.addEventListener('change', syncFileExtensions);
+    }
+    if (enabled) {
+        enabled.addEventListener('change', syncFileExtensions);
+    }
+    syncFileExtensions();
+})();
+</script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -216,7 +216,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         ?>
         <div id="<?php echo sr_e($pointAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme" data-admin-reference-pair>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('point::ui.point.c7027855')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>">
@@ -267,9 +267,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?></label>
+                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
                             <div class="admin-form-field">
-                                <select id="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select">
+                                <select id="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select" data-admin-reference-type>
                                     <?php foreach ($pointReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
                                         <option value="<?php echo sr_e($referenceTypeValue); ?>"><?php echo sr_e($referenceTypeLabel); ?></option>
                                     <?php } ?>
@@ -277,10 +277,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.id.e89e337e')); ?></label>
+                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.id.e89e337e')); ?> <span class="sr-required-label" data-admin-reference-id-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
                             <div class="admin-form-field">
                                 <div class="admin-lookup-control">
-                                    <input id="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input">
+                                    <input id="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input" data-admin-reference-id>
                                     <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.search.3acacadd')); ?></button>
                                 </div>
                             </div>

@@ -107,6 +107,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 } elseif (in_array($requestStatus, ['rejected', 'cancelled'], true)) {
                     $statusClass = 'is-left';
                 }
+                $requestId = (string) $request['id'];
+                $storedAdminNote = trim((string) ($request['admin_note'] ?? ''));
+                $noteRequired = in_array($requestStatus, sr_admin_privacy_request_terminal_statuses(), true) && $storedAdminNote === '';
+                $completedRequired = $requestStatus === 'completed';
                 ?>
                 <tr>
                     <td><?php echo sr_e((string) $request['id']); ?></td>
@@ -120,19 +124,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-row-actions privacy-request-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests/export')); ?>">
                                 <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="id" value="<?php echo sr_e((string) $request['id']); ?>">
-                                <label class="sr-only" for="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>"><?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
-                                <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e((string) $request['id']); ?>" class="form-input" autocomplete="current-password" required placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?>">
+                                <input type="hidden" name="id" value="<?php echo sr_e($requestId); ?>">
+                                <label class="sr-only" for="privacy_export_password_<?php echo sr_e($requestId); ?>"><?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
+                                <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e($requestId); ?>" class="form-input" autocomplete="current-password" required placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?>">
                                 <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.text.af6fa16d')); ?></button>
                             </form>
                             <details class="admin-inline-edit-details privacy-request-details">
                                 <summary class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.status.22916f6e')); ?></summary>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-inline-edit-form privacy-request-edit-form">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-inline-edit-form privacy-request-edit-form" data-privacy-request-form data-terminal-statuses="<?php echo sr_e(implode(',', sr_admin_privacy_request_terminal_statuses())); ?>" data-has-admin-note="<?php echo $storedAdminNote !== '' ? '1' : '0'; ?>">
                                     <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
-                                    <label for="privacy_status_<?php echo sr_e((string) $request['id']); ?>">
+                                    <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
+                                    <label for="privacy_status_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-                                        <select name="status" id="privacy_status_<?php echo sr_e((string) $request['id']); ?>" class="form-select">
+                                        <select name="status" id="privacy_status_<?php echo sr_e($requestId); ?>" class="form-select" data-privacy-status>
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
                                                     <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
@@ -140,21 +144,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php } ?>
                                         </select>
                                     </label>
-                                    <label for="privacy_note_<?php echo sr_e((string) $request['id']); ?>">
-                                        <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?></span>
-                                        <textarea name="admin_note" id="privacy_note_<?php echo sr_e((string) $request['id']); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>"></textarea>
+                                    <label for="privacy_note_<?php echo sr_e($requestId); ?>">
+                                        <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?> <span class="sr-required-label" data-privacy-note-required<?php echo $noteRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
+                                        <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
                                     </label>
-                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_identity_confirmed">
-                                        <input id="modules_privacy_admin_privacy_requests_identity_confirmed" type="checkbox" name="identity_confirmed" value="1" class="form-checkbox">
-                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.text.68a81b47')); ?></span>
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_identity_confirmed_<?php echo sr_e($requestId); ?>">
+                                        <input id="modules_privacy_admin_privacy_requests_identity_confirmed_<?php echo sr_e($requestId); ?>" type="checkbox" name="identity_confirmed" value="1" class="form-checkbox" data-privacy-completed-check<?php echo $completedRequired ? ' required' : ''; ?>>
+                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.text.68a81b47')); ?> <span class="sr-required-label" data-privacy-completed-required<?php echo $completedRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                     </label>
-                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_export_confirmed">
-                                        <input id="modules_privacy_admin_privacy_requests_export_confirmed" type="checkbox" name="export_confirmed" value="1" class="form-checkbox">
-                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.text.8a54a65a')); ?></span>
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_export_confirmed_<?php echo sr_e($requestId); ?>">
+                                        <input id="modules_privacy_admin_privacy_requests_export_confirmed_<?php echo sr_e($requestId); ?>" type="checkbox" name="export_confirmed" value="1" class="form-checkbox" data-privacy-completed-check<?php echo $completedRequired ? ' required' : ''; ?>>
+                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.text.8a54a65a')); ?> <span class="sr-required-label" data-privacy-completed-required<?php echo $completedRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                     </label>
-                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_action_confirmed">
-                                        <input id="modules_privacy_admin_privacy_requests_action_confirmed" type="checkbox" name="action_confirmed" value="1" class="form-checkbox">
-                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.admin.5a81e50f')); ?></span>
+                                    <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_action_confirmed_<?php echo sr_e($requestId); ?>">
+                                        <input id="modules_privacy_admin_privacy_requests_action_confirmed_<?php echo sr_e($requestId); ?>" type="checkbox" name="action_confirmed" value="1" class="form-checkbox" data-privacy-completed-check<?php echo $completedRequired ? ' required' : ''; ?>>
+                                        <span class="form-label"><?php echo sr_e(sr_t('privacy::ui.admin.5a81e50f')); ?> <span class="sr-required-label" data-privacy-completed-required<?php echo $completedRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                     </label>
                                     <button type="submit" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('privacy::ui.save.5fb92622')); ?></button>
                                 </form>
@@ -167,5 +171,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+
+<script>
+(function () {
+    function syncPrivacyRequestForm(form) {
+        var status = form.querySelector('[data-privacy-status]');
+        var note = form.querySelector('[data-privacy-note]');
+        var noteRequiredLabel = form.querySelector('[data-privacy-note-required]');
+        var terminalStatuses = (form.getAttribute('data-terminal-statuses') || '').split(',');
+        var hasAdminNote = form.getAttribute('data-has-admin-note') === '1';
+        var noteNeeded = !!(status && terminalStatuses.indexOf(status.value) !== -1 && !hasAdminNote);
+        var completedNeeded = !!(status && status.value === 'completed');
+
+        if (note) {
+            note.required = noteNeeded;
+        }
+        if (noteRequiredLabel) {
+            noteRequiredLabel.hidden = !noteNeeded;
+        }
+        form.querySelectorAll('[data-privacy-completed-check]').forEach(function (check) {
+            check.required = completedNeeded;
+        });
+        form.querySelectorAll('[data-privacy-completed-required]').forEach(function (label) {
+            label.hidden = !completedNeeded;
+        });
+    }
+
+    document.querySelectorAll('[data-privacy-request-form]').forEach(function (form) {
+        syncPrivacyRequestForm(form);
+        form.addEventListener('change', function (event) {
+            if (event.target && event.target.matches('[data-privacy-status]')) {
+                syncPrivacyRequestForm(form);
+            }
+        });
+    });
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

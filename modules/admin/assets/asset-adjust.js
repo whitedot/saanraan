@@ -199,6 +199,58 @@
         });
     }
 
+    function syncReferencePair(form) {
+        var typeInput = form.querySelector('[data-admin-reference-type]');
+        var idInput = form.querySelector('[data-admin-reference-id]');
+        if (!typeInput || !idInput) {
+            return;
+        }
+
+        var typeRequired = idInput.value.trim() !== '';
+        var idRequired = typeInput.value !== '';
+        var typeLabel = form.querySelector('[data-admin-reference-type-required]');
+        var idLabel = form.querySelector('[data-admin-reference-id-required]');
+        typeInput.required = typeRequired;
+        idInput.required = idRequired;
+        if (typeLabel) {
+            typeLabel.hidden = !typeRequired;
+        }
+        if (idLabel) {
+            idLabel.hidden = !idRequired;
+        }
+    }
+
+    function syncAllReferencePairs() {
+        document.querySelectorAll('[data-admin-reference-pair]').forEach(syncReferencePair);
+    }
+
+    document.addEventListener('change', function (event) {
+        var control = closest(event.target, '[data-admin-reference-type], [data-admin-reference-id]');
+        if (!control) {
+            return;
+        }
+
+        var form = closest(control, '[data-admin-reference-pair]');
+        if (form) {
+            syncReferencePair(form);
+        }
+    });
+
+    document.addEventListener('input', function (event) {
+        var control = closest(event.target, '[data-admin-reference-id]');
+        if (!control) {
+            return;
+        }
+
+        var form = closest(control, '[data-admin-reference-pair]');
+        if (form) {
+            syncReferencePair(form);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', syncAllReferencePairs);
+    syncAllReferencePairs();
+
     document.addEventListener('submit', function (event) {
         var memberForm = closest(event.target, MEMBER_FORM_SELECTOR);
         if (memberForm) {

@@ -9,6 +9,8 @@ return [
     'action.admin.member_hash_required' => '회원 공개 해시를 입력하세요.',
     'action.admin.member_not_found' => '회원을 찾을 수 없습니다.',
     'action.admin.reason_required' => '사유를 입력하세요.',
+    'action.admin.reference_id_required' => '참조 유형을 선택한 경우 참조 ID를 입력하세요.',
+    'action.admin.reference_type_required' => '참조 ID를 입력한 경우 참조 유형을 선택하세요.',
     'action.admin.refund_again_disallowed' => '환불 거래는 다시 환불할 수 없습니다.',
     'action.admin.refund_original_not_found' => '환불할 원거래를 찾을 수 없습니다.',
     'action.admin.transaction_save_failed' => '포인트 거래 저장 중 오류가 발생했습니다.',

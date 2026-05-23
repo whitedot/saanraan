@@ -90,7 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="community_admin_settings_message_write_policy"><?php echo sr_e(sr_t('community::ui.text.31edcf4a')); ?></label>
             <div class="admin-form-field">
-                <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select">
+                <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select" data-community-message-policy>
                                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
                                         <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e($policy); ?></option>
                                     <?php } ?>
@@ -98,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?></label>
+            <label class="form-label" for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?> <span class="sr-required-label" data-community-message-group-required<?php echo (string) $settings['message_write_policy'] === 'group' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <?php echo sr_admin_member_group_key_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
@@ -269,6 +269,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
 </div>
 <?php echo sr_admin_help_modal_html($accessConditionPriorityHelpModalId, sr_t('community::ui.text.fd2ad6a5'), (string) ob_get_clean()); ?>
+<?php } ?>
+
+<?php if ($communitySettingsPage === 'settings') { ?>
+<script>
+(function () {
+    var policy = document.querySelector('[data-community-message-policy]');
+    var label = document.querySelector('[data-community-message-group-required]');
+    var group = document.getElementById('community_admin_settings_message_write_group_keys');
+    if (!policy || !group) {
+        return;
+    }
+
+    function syncMessageGroupRequired() {
+        var needed = policy.value === 'group';
+        var checks = Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]'));
+        var first = checks[0] || null;
+        var selected = checks.some(function (check) {
+            return check.checked;
+        });
+        if (label) {
+            label.hidden = !needed;
+        }
+        if (first && typeof first.setCustomValidity === 'function') {
+            first.setCustomValidity(needed && !selected ? '회원 그룹을 하나 이상 선택하세요.' : '');
+        }
+    }
+
+    policy.addEventListener('change', syncMessageGroupRequired);
+    group.addEventListener('change', syncMessageGroupRequired);
+    syncMessageGroupRequired();
+})();
+</script>
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>

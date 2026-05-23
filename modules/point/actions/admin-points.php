@@ -68,6 +68,13 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('point::action.admin.reason_required');
     }
 
+    if ($referenceType !== '' && $referenceId === '') {
+        $errors[] = sr_t('point::action.admin.reference_id_required');
+    }
+    if ($referenceType === '' && $referenceId !== '') {
+        $errors[] = sr_t('point::action.admin.reference_type_required');
+    }
+
     if ($errors === []) {
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $targetAccountId]);

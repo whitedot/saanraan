@@ -12,13 +12,15 @@ $selectedTargetOption = sr_banner_public_target_option_value();
 if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editBanner['module_key'] ?? '') . '|' . (string) ($editBanner['point_key'] ?? '') . '|' . (string) ($editBanner['slot_key'] ?? '');
 }
+$currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all';
+$subjectRequired = !sr_banner_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>">
         <section class="admin-card card">
             <h2><?php echo $editing ? sr_t('banner::ui.banner.edit.52756afa') : sr_t('banner::ui.banner.b0dbbde9'); ?></h2>
             <p><?php echo sr_e(sr_t('banner::ui.banner.banner.select.banner.active.40c015cc')); ?></p>
@@ -79,7 +81,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_match_type" name="match_type" class="form-select">
                                             <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                                                <?php $currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all'; ?>
                                                 <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
                                                     <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
                                                 </option>
@@ -88,9 +89,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?></label>
+                <label class="form-label" for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80">
+                    <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -287,6 +288,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+<?php } ?>
+
+<?php if ($bannerAdminPage === 'form') { ?>
+    <script>
+    (function () {
+        var form = document.querySelector('[data-admin-subject-form]');
+        if (!form) {
+            return;
+        }
+
+        var target = form.querySelector('select[name="target_option"]');
+        var match = form.querySelector('select[name="match_type"]');
+        var subject = form.querySelector('[data-admin-subject-id]');
+        var label = form.querySelector('[data-admin-subject-required]');
+        var publicTarget = form.getAttribute('data-public-target-value') || '';
+
+        function syncSubjectRequired() {
+            var needed = !!(target && match && target.value !== publicTarget && match.value === 'exact');
+            if (label) {
+                label.hidden = !needed;
+            }
+            if (subject) {
+                subject.required = needed;
+            }
+        }
+
+        form.addEventListener('change', function (event) {
+            if (event.target === target || event.target === match) {
+                syncSubjectRequired();
+            }
+        });
+        syncSubjectRequired();
+    })();
+    </script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
