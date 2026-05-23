@@ -463,56 +463,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 <?php } elseif ($memberGroupsPage === 'rules') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.1f9a70dc')); ?></h2>
-        </div>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th><?php echo sr_e(sr_t('member::ui.text.6d2d8bf4')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.8c3f651d')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.bf705e51')); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($ruleDefinitions === []) { ?>
-                    <tr>
-                        <td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.93ca7cdf')); ?></td>
-                    </tr>
-                <?php } ?>
-                <?php foreach ($ruleDefinitions as $definition) { ?>
-                    <tr>
-                        <td><?php echo sr_e((string) $definition['source_module_key']); ?></td>
-                        <td>
-                            <?php echo sr_e((string) $definition['label']); ?><br>
-                            <?php echo sr_e((string) $definition['rule_key']); ?>
-                        </td>
-                        <td><?php echo sr_e((string) $definition['description']); ?></td>
-                        <td>
-                            <?php if ($definition['params'] === []) { ?>
-                                <?php echo sr_e(sr_t('member::ui.text.72ea3d64')); ?>
-                            <?php } else { ?>
-                                <ul>
-                                    <?php foreach ($definition['params'] as $param) { ?>
-                                        <li>
-                                            <?php echo sr_e((string) $param['key']); ?>:
-                                            <?php echo sr_e((string) $param['label']); ?>
-                                            (<?php echo sr_e(sr_admin_code_label((string) $param['type'], 'setting_type')); ?>)
-                                        </li>
-                                    <?php } ?>
-                                </ul>
-                            <?php } ?>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    </section>
-
-    <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
             <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
         </div>
