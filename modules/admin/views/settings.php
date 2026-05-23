@@ -114,24 +114,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="admin_settings_ui_color_scheme"><?php echo sr_e(sr_t('admin::ui.ui.cf6c41c6')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
-                                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $colorSchemeLabel); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
+                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
+                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $colorSchemeLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </div>
+    </section>
+    <section class="admin-card card">
+        <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_admin_skin_key"><?php echo sr_e(sr_t('admin::ui.admin.1465c5b7')); ?></label>
             <div class="admin-form-field">
                 <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
-                                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
-                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
+                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
+                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </div>
     </section>

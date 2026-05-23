@@ -71,6 +71,18 @@ function sr_site_home_path_is_available(PDO $pdo, string $homePath): bool
         }
 
         require_once SR_ROOT . '/modules/page/helpers.php';
+        $parts = parse_url($homePath);
+        if (is_array($parts) && (string) ($parts['path'] ?? '') === '/pages/group') {
+            parse_str((string) ($parts['query'] ?? ''), $query);
+            $groupKey = is_string($query['key'] ?? null) ? sr_page_clean_slug((string) $query['key']) : '';
+
+            try {
+                return is_array(sr_page_enabled_group_by_key($pdo, $groupKey));
+            } catch (Throwable) {
+                return false;
+            }
+        }
+
         $slug = rawurldecode(substr($homePath, strlen('/pages/')));
         if (!is_string($slug) || $slug === '' || strpos($slug, '/') !== false) {
             return false;

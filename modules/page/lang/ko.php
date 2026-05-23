@@ -16,6 +16,7 @@ return [
     'contract.slot.after_content' => '본문 아래',
     'contract.slot.before_content' => '본문 위',
     'homepage.candidate_label' => '페이지: {title}',
+    'homepage.group_candidate_label' => '페이지 그룹: {title}',
     'ui.active.4add3230' => '사용 안 함',
     'ui.active.8bcecbe7' => '액션 사용',
     'ui.active.904d506b' => '완료 액션 사용',

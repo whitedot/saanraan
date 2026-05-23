@@ -990,6 +990,24 @@ function sr_page_with_effective_settings(PDO $pdo, array $page): array
 
 function sr_page_homepage_candidates(PDO $pdo): array
 {
+    $candidates = [];
+
+    foreach (sr_page_enabled_groups($pdo) as $group) {
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if (!sr_page_group_key_is_valid($groupKey)) {
+            continue;
+        }
+
+        $path = sr_page_group_path($groupKey);
+        $candidates[] = [
+            'module_key' => 'page',
+            'label' => sr_t('page::homepage.group_candidate_label', ['title' => (string) ($group['title'] ?? $groupKey)]),
+            'path' => $path,
+            'detail' => $path,
+            'available' => true,
+        ];
+    }
+
     $stmt = $pdo->query(
         "SELECT id, slug, title, updated_at
          FROM sr_pages
@@ -998,7 +1016,6 @@ function sr_page_homepage_candidates(PDO $pdo): array
          LIMIT 200"
     );
 
-    $candidates = [];
     foreach ($stmt->fetchAll() as $page) {
         $slug = (string) ($page['slug'] ?? '');
         if (!sr_page_slug_is_valid($slug)) {
