@@ -59,7 +59,7 @@ return [
     'ui.text.c2f4a315' => '대체 텍스트',
     'ui.text.dcb06beb' => '미리보기',
     'ui.text.dfa401cd' => '용도',
-    'ui.text.e046e24f' => '로고매니저',
+    'ui.text.e046e24f' => '로고 매니저',
     'ui.text.e3241f70' => '적용 추가',
     'ui.text.e98faae0' => '동일 용도에서 기간이 겹치면 정렬값이 작은 항목, 시작일이 늦은 항목 순으로 우선합니다.',
     'ui.url.f7ca9b13' => '링크 URL',

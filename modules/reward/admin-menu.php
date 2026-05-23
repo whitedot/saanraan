@@ -5,12 +5,12 @@ return [
     'order' => 60,
     'items' => [
         [
-            'label' => sr_t('reward::ui.text.b099377c'),
+            'label' => sr_t('reward::ui.text.abe10d3e'),
             'path' => '/admin/rewards/balances',
             'order' => 10,
         ],
         [
-            'label' => sr_t('reward::ui.text.754ef98b'),
+            'label' => sr_t('reward::ui.text.abaae118'),
             'path' => '/admin/rewards/transactions',
             'order' => 30,
         ],
