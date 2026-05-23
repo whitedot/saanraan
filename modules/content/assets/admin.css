@@ -1,0 +1,26 @@
+.admin-content-list .admin-content-search-grid{grid-template-columns:fit-content(9rem) fit-content(16rem) fit-content(10rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
+.admin-content-list .admin-content-filter .admin-filter-field{min-width:0}
+.admin-content-list .admin-content-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-content-list .admin-content-table{table-layout:fixed;min-width:78rem}
+.admin-content-list .admin-content-table th,.admin-content-list .admin-content-table td{overflow:hidden;text-overflow:ellipsis}
+.admin-content-list .admin-content-table .admin-table-actions-cell{overflow:visible}
+.admin-content-list .admin-content-table .admin-table-actions-cell{min-width:12rem}
+.admin-content-list .admin-content-title-cell,.admin-content-list .admin-content-slug-cell,.admin-content-list .admin-content-date-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-content-list .admin-content-table .admin-row-actions{gap:.5rem}
+.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:fit-content(9rem) fit-content(10rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
+.admin-content-group-list .admin-content-group-filter .admin-filter-field{min-width:0}
+.admin-content-group-list .admin-content-group-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-content-group-list .admin-content-group-table{table-layout:fixed;min-width:64rem}
+.admin-content-group-list .admin-content-group-table th,.admin-content-group-list .admin-content-group-table td{overflow:hidden;text-overflow:ellipsis}
+.admin-content-group-list .admin-content-group-table .admin-table-actions-cell{overflow:visible}
+
+@media (max-width:1023px){
+    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3){grid-column:1 / -1}
+    .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
+}
+
+@media (max-width:767px){
+    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:1fr}
+    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3){grid-column:auto}
+}

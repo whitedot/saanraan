@@ -80,11 +80,11 @@ $optionalModules = [
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
     ],
-    'page' => [
-        'name' => '페이지',
-        'version' => '2026.05.005',
-        'label' => sr_t('install.module.page.label'),
-        'description' => '단일 페이지 작성과 공개 URL 관리 기능을 설치합니다.',
+    'content' => [
+        'name' => '콘텐츠',
+        'version' => '2026.05.009',
+        'label' => sr_t('install.module.content.label'),
+        'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',

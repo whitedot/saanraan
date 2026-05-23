@@ -457,7 +457,7 @@ function sr_admin_menu_override_is_stale_default(string $scope, string $targetKe
             'point' => [30],
             'reward' => [40, 50],
             'deposit' => [30, 40],
-            'page' => [10, 20, 30],
+            'content' => [10, 20, 30],
             'logo_manager' => [25],
             'site_menu' => [20, 60],
             'banner' => [20, 70],

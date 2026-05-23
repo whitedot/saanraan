@@ -65,31 +65,31 @@ function sr_site_home_path_is_available(PDO $pdo, string $homePath): bool
         return false;
     }
 
-    if (str_starts_with($homePath, '/pages/')) {
-        if (!sr_module_enabled($pdo, 'page') || !is_file(SR_ROOT . '/modules/page/helpers.php')) {
+    if (str_starts_with($homePath, '/content/')) {
+        if (!sr_module_enabled($pdo, 'content') || !is_file(SR_ROOT . '/modules/content/helpers.php')) {
             return false;
         }
 
-        require_once SR_ROOT . '/modules/page/helpers.php';
+        require_once SR_ROOT . '/modules/content/helpers.php';
         $parts = parse_url($homePath);
-        if (is_array($parts) && (string) ($parts['path'] ?? '') === '/pages/group') {
+        if (is_array($parts) && (string) ($parts['path'] ?? '') === '/content/group') {
             parse_str((string) ($parts['query'] ?? ''), $query);
-            $groupKey = is_string($query['key'] ?? null) ? sr_page_clean_slug((string) $query['key']) : '';
+            $groupKey = is_string($query['key'] ?? null) ? sr_content_clean_slug((string) $query['key']) : '';
 
             try {
-                return is_array(sr_page_enabled_group_by_key($pdo, $groupKey));
+                return is_array(sr_content_enabled_group_by_key($pdo, $groupKey));
             } catch (Throwable) {
                 return false;
             }
         }
 
-        $slug = rawurldecode(substr($homePath, strlen('/pages/')));
+        $slug = rawurldecode(substr($homePath, strlen('/content/')));
         if (!is_string($slug) || $slug === '' || strpos($slug, '/') !== false) {
             return false;
         }
 
         try {
-            return is_array(sr_page_published_by_slug($pdo, sr_page_clean_slug($slug)));
+            return is_array(sr_content_published_by_slug($pdo, sr_content_clean_slug($slug)));
         } catch (Throwable) {
             return false;
         }

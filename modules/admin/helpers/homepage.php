@@ -32,7 +32,7 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
         ];
     }
 
-    foreach (sr_admin_homepage_page_candidates($pdo) as $candidate) {
+    foreach (sr_admin_homepage_content_candidates($pdo) as $candidate) {
         $path = (string) ($candidate['path'] ?? '');
         if ($path !== '') {
             $candidates[$path] = $candidate;
@@ -52,19 +52,19 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
     return $candidates;
 }
 
-function sr_admin_homepage_page_candidates(PDO $pdo): array
+function sr_admin_homepage_content_candidates(PDO $pdo): array
 {
-    if (!sr_module_enabled($pdo, 'page') || !is_file(SR_ROOT . '/modules/page/helpers.php')) {
+    if (!sr_module_enabled($pdo, 'content') || !is_file(SR_ROOT . '/modules/content/helpers.php')) {
         return [];
     }
 
-    require_once SR_ROOT . '/modules/page/helpers.php';
-    if (!function_exists('sr_page_homepage_candidates')) {
+    require_once SR_ROOT . '/modules/content/helpers.php';
+    if (!function_exists('sr_content_homepage_candidates')) {
         return [];
     }
 
     try {
-        return sr_page_homepage_candidates($pdo);
+        return sr_content_homepage_candidates($pdo);
     } catch (Throwable) {
         return [];
     }

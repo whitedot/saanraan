@@ -15,7 +15,7 @@ return [
     'install.module.logo_manager.label' => '로고매니저',
     'install.module.member.label' => '회원',
     'install.module.notification.label' => '알림',
-    'install.module.page.label' => '페이지',
+    'install.module.content.label' => '콘텐츠',
     'install.module.point.label' => '포인트',
     'install.module.popup_layer.label' => '팝업레이어',
     'install.module.privacy.label' => '개인정보',

@@ -56,14 +56,14 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'page missing slug entry',
-        'path' => '/pages/example',
+        'label' => 'content missing slug entry',
+        'path' => '/content/example',
         'allowed_statuses' => [200, 302, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'admin pages entry',
-        'path' => '/admin/pages',
+        'label' => 'admin content entry',
+        'path' => '/admin/content',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
