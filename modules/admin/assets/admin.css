@@ -464,7 +464,9 @@ body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .ad
 body.admin-sidebar-condensed #gnb .admin-sidebar-auxiliary{padding-inline:calc(var(--spacing) * 2);text-align:center}
 body.admin-sidebar-condensed #gnb .admin-sidebar-auxiliary-link{justify-content:center;width:100%;font-size:.6875rem}
 body.admin-sidebar-condensed #gnb .admin-nav-section-label-item{display:none}
-body.admin-sidebar-condensed #gnb .admin-nav-item>.admin-nav-trigger{justify-content:center}
+body.admin-sidebar-condensed #gnb .admin-nav-item>.admin-nav-trigger{justify-content:center;min-height:calc(var(--spacing) * 11)}
+body.admin-sidebar-condensed #gnb .admin-nav-item.is-active>.admin-nav-trigger{border-radius:var(--radius-xl);background-color:var(--color-default-200);color:var(--color-primary)}
+body.admin-sidebar-condensed #gnb .admin-nav-item.is-active>.admin-nav-trigger .admin-nav-icon{color:var(--color-primary)}
 body.admin-sidebar-condensed #gnb .admin-nav-caret{display:none}
 body.admin-sidebar-condensed #gnb .admin-nav-item{position:relative}
 body.admin-sidebar-condensed #gnb .admin-nav-trigger[data-admin-sidebar-tooltip]{position:relative}
