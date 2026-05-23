@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('page::ui.page.list.d2ad38e3')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('page::ui.active.status.pages.group.key.0f2cd28c')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/page-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.text.6de46476')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/page-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('page::ui.text.6de46476')); ?></a>
         </div>
         <div class="table-wrapper">
             <table class="table admin-page-group-table">

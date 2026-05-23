@@ -25,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1f36938c')); ?></h2>
-        <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.public.ui.kit.cba054e6')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/ui-kit')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('admin::ui.public.ui.kit.cba054e6')); ?></a>
     </div>
     <div class="card-body">
         <p class="admin-card-subtitle"><?php echo sr_e(sr_t('admin::ui.admin.ui.49666d14')); ?></p>

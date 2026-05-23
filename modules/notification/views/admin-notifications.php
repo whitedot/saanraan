@@ -216,7 +216,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></h2>
-            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
         </div>
         <div class="table-wrapper">
         <table class="table admin-notification-table">

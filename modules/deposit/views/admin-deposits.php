@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('deposit::ui.text.b62aead1')); ?></h2>
             <?php $depositHeaderAdjustModalId = is_array($selectedAccount) ? 'deposit-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'deposit-adjust-modal-0'; ?>
             <?php $depositHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/deposits/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/deposits/balances'; ?>
-            <a href="<?php echo sr_e(sr_url($depositHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('deposit::ui.text.7535b737')); ?></a>
+            <a href="<?php echo sr_e(sr_url($depositHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($depositHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('deposit::ui.text.7535b737')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table">

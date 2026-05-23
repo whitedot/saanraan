@@ -225,7 +225,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.member.list.d8e6279a')); ?></h2>
-        <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>
     </div>
     <div class="table-wrapper">
         <table class="table admin-member-table">

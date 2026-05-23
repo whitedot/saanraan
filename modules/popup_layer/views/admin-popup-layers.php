@@ -200,7 +200,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('popup_layer::ui.text.bbd10514')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('popup_layer::ui.text.bbd10514')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-popup-layer-table">

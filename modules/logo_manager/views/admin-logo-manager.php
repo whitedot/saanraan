@@ -199,7 +199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('logo_manager::ui.text.93360d4f')); ?></h2>
             <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('logo_manager::ui.status.active.f4b40b50')); ?></p>
         </div>
-        <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-upload-modal" data-overlay="#logo-manager-upload-modal"><?php echo sr_e(sr_t('logo_manager::ui.create.d7f97185')); ?></button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-upload-modal" data-overlay="#logo-manager-upload-modal"><?php echo sr_e(sr_t('logo_manager::ui.create.d7f97185')); ?></button>
     </div>
     <div class="table-wrapper">
         <table class="table logo-manager-assets-table">
@@ -252,7 +252,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('logo_manager::ui.text.470ae903')); ?></h2>
             <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('logo_manager::ui.text.e98faae0')); ?></p>
         </div>
-        <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-assignment-modal" data-overlay="#logo-manager-assignment-modal"><?php echo sr_e(sr_t('logo_manager::ui.text.e3241f70')); ?></button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-assignment-modal" data-overlay="#logo-manager-assignment-modal"><?php echo sr_e(sr_t('logo_manager::ui.text.e3241f70')); ?></button>
     </div>
     <div class="table-wrapper">
         <table class="table logo-manager-assignments-table">

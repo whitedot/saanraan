@@ -214,7 +214,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('banner::ui.active.status.banner.active.d22e3e06')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('banner::ui.banner.c0e70d2c')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('banner::ui.banner.c0e70d2c')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-banner-table">

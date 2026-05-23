@@ -201,7 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table admin-community-board-table">

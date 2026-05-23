@@ -245,11 +245,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.list.c78d8209')); ?></h2>
             <div class="admin-row-actions">
-                <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
+                <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
                 <?php if ($hasAutoRuleEvaluationRules) { ?>
-                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
                 <?php } else { ?>
-                    <button type="button" class="btn btn-sm btn-solid-light" data-member-auto-rule-empty data-toast-message="<?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment_empty.2d85364d')); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-member-auto-rule-empty data-toast-message="<?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment_empty.2d85364d')); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
                 <?php } ?>
             </div>
         </div>
@@ -610,7 +610,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
-            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
         </div>
         <div class="table-wrapper">
         <table class="table">

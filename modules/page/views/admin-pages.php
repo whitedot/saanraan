@@ -576,7 +576,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('page::ui.page.list.771ca9aa')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('page::ui.status.page.pages.slug.d9329b0b')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('page::ui.page.530929bb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/pages/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('page::ui.page.530929bb')); ?></a>
         </div>
         <div class="table-wrapper">
             <table class="table admin-page-table">

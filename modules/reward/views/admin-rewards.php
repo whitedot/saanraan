@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('reward::ui.text.b62aead1')); ?></h2>
             <?php $rewardHeaderAdjustModalId = is_array($selectedAccount) ? 'reward-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'reward-adjust-modal-0'; ?>
             <?php $rewardHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/rewards/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/rewards/balances'; ?>
-            <a href="<?php echo sr_e(sr_url($rewardHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($rewardHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('reward::ui.text.7535b737')); ?></a>
+            <a href="<?php echo sr_e(sr_url($rewardHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($rewardHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('reward::ui.text.7535b737')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table">

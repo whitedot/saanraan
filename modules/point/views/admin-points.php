@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('point::ui.text.b62aead1')); ?></h2>
             <?php $pointHeaderAdjustModalId = is_array($selectedAccount) ? 'point-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'point-adjust-modal-0'; ?>
             <?php $pointHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/points/balances'; ?>
-            <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.7535b737')); ?></a>
+            <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.7535b737')); ?></a>
         </div>
         <div class="table-wrapper">
         <table class="table">
