@@ -384,6 +384,7 @@ function sr_admin_default_menu_category_label(string $category): string
         'site' => sr_t('admin::nav.category.site'),
         'system_asset' => sr_t('admin::nav.category.site'),
         'content' => sr_t('admin::nav.category.site'),
+        'service' => sr_t('admin::nav.category.service'),
         'operation' => sr_t('admin::nav.category.operation'),
         'other' => sr_t('admin::nav.category.other'),
     ];
@@ -399,6 +400,7 @@ function sr_admin_default_menu_category_order(string $category): int
         'site' => 20,
         'system_asset' => 20,
         'content' => 20,
+        'service' => 30,
         'operation' => 40,
         'other' => 1000,
     ];

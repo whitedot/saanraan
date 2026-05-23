@@ -14,7 +14,7 @@ $requiredModules = [
     ],
     'admin' => [
         'name' => '관리자',
-        'version' => '2026.05.001',
+        'version' => '2026.05.005',
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
@@ -88,7 +88,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.05.010',
+        'version' => '2026.05.011',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

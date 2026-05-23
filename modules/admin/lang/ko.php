@@ -32,6 +32,7 @@ return [
     'nav.category.member' => '회원',
     'nav.category.operation' => '운영',
     'nav.category.other' => '기타',
+    'nav.category.service' => '서비스',
     'nav.category.site' => '사이트',
     'nav.dashboard' => '대시보드',
     'nav.menu' => '관리자 메뉴',

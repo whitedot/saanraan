@@ -2,13 +2,13 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.05.010',
+    'version' => '2026.05.011',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
-        'category' => 'community',
-        'category_label' => '커뮤니티',
-        'category_order' => 35,
+        'category' => 'service',
+        'category_label' => '서비스',
+        'category_order' => 30,
         'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'message-circle'],
         'stylesheets' => ['assets/community-admin.css'],

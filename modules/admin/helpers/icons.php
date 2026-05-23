@@ -152,6 +152,15 @@ function sr_admin_icon_symbols(): array
                 'M16 12h.01',
             ],
         ],
+        'service' => [
+            'module_menu' => true,
+            'paths' => [
+                'M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z',
+                'M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z',
+                'M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z',
+                'M14 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z',
+            ],
+        ],
         'sidebar-toggle' => [
             'module_menu' => false,
             'paths' => [
@@ -246,6 +255,7 @@ function sr_admin_material_icon_names(): array
         'wallet' => 'account_balance_wallet',
         'gift' => 'redeem',
         'message-circle' => 'forum',
+        'service' => 'apps',
         'sidebar-toggle' => 'keyboard_double_arrow_left',
         'menu' => 'menu',
         'moon-stars' => 'dark_mode',
@@ -271,6 +281,7 @@ function sr_admin_default_menu_icon_id(string $category): string
         'system_asset' => 'content',
         'content' => 'content',
         'community' => 'message-circle',
+        'service' => 'service',
         'operation' => 'stats',
         'other' => 'folder',
     ];
