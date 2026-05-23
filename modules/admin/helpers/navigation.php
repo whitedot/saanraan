@@ -136,12 +136,12 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
             'items' => [
                 ['label' => sr_t('admin::nav.dashboard'), 'path' => '/admin', 'order' => 10],
                 ['label' => sr_t('admin::nav.settings'), 'path' => '/admin/settings', 'order' => 20],
-                ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 30],
-                ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 40],
-                ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 50],
-                ['label' => sr_t('admin::nav.roles'), 'path' => '/admin/roles', 'order' => 60],
-                ['label' => sr_t('admin::nav.audit_logs'), 'path' => '/admin/audit-logs', 'order' => 70],
-                ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 80],
+                ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 30],
+                ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 40],
+                ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 50],
+                ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 60],
+                ['label' => sr_t('admin::nav.roles'), 'path' => '/admin/roles', 'order' => 70],
+                ['label' => sr_t('admin::nav.audit_logs'), 'path' => '/admin/audit-logs', 'order' => 80],
             ],
         ],
     ];
@@ -446,22 +446,39 @@ function sr_admin_menu_overrides(PDO $pdo): array
 
 function sr_admin_menu_override_is_stale_default(string $scope, string $targetKey, int $sortOrder, bool $isHidden): bool
 {
-    if ($isHidden || $scope !== 'group') {
+    if ($isHidden) {
         return false;
     }
 
-    $legacyDefaults = [
-        'point' => [30],
-        'reward' => [40, 50],
-        'deposit' => [30, 40],
-        'page' => [10, 20, 30],
-        'site_menu' => [20, 60],
-        'banner' => [20, 70],
-        'popup_layer' => [30, 80],
-        'seo' => [40, 90],
-    ];
+    if ($scope === 'group') {
+        $legacyDefaults = [
+            'point' => [30],
+            'reward' => [40, 50],
+            'deposit' => [30, 40],
+            'page' => [10, 20, 30],
+            'site_menu' => [20, 60],
+            'banner' => [20, 70],
+            'popup_layer' => [30, 80],
+            'seo' => [40, 90],
+        ];
 
-    return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
+        return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
+    }
+
+    if ($scope === 'item') {
+        $legacyDefaults = [
+            sr_admin_menu_item_target_key('admin', '/admin/menu') => [30],
+            sr_admin_menu_item_target_key('admin', '/admin/modules') => [40],
+            sr_admin_menu_item_target_key('admin', '/admin/updates') => [50],
+            sr_admin_menu_item_target_key('admin', '/admin/roles') => [60],
+            sr_admin_menu_item_target_key('admin', '/admin/audit-logs') => [70],
+            sr_admin_menu_item_target_key('admin', '/admin/retention') => [80],
+        ];
+
+        return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
+    }
+
+    return false;
 }
 
 function sr_admin_menu_target_can_hide(string $scope, string $targetKey): bool
