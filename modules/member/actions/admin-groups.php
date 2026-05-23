@@ -15,7 +15,7 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
-if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations'], true)) {
+if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form'], true)) {
     $memberGroupsPage = 'groups';
 }
 $memberGroupPermissionPath = [
@@ -23,13 +23,27 @@ $memberGroupPermissionPath = [
     'group_form' => '/admin/member-groups',
     'rules' => '/admin/member-group-rules',
     'rule_form' => '/admin/member-group-rules',
-    'evaluations' => '/admin/member-group-evaluations',
 ][$memberGroupsPage];
 sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'view');
 $allowedStatuses = sr_member_group_statuses();
 $allowedRuleStatuses = sr_member_group_rule_statuses();
 $allowedEvaluationPolicies = sr_member_group_evaluation_policies();
 $ruleDefinitions = sr_member_group_rule_definitions($pdo);
+$memberRuleSourceOptions = [];
+$stmt = $pdo->query("SELECT DISTINCT source_module_key FROM sr_member_group_rules WHERE status = 'enabled' ORDER BY source_module_key ASC");
+foreach ($stmt->fetchAll() as $row) {
+    $sourceModuleKey = (string) ($row['source_module_key'] ?? '');
+    if (!sr_is_safe_module_key($sourceModuleKey)) {
+        continue;
+    }
+
+    $metadata = sr_module_metadata($sourceModuleKey);
+    $moduleName = trim((string) ($metadata['name'] ?? ''));
+    $memberRuleSourceOptions[$sourceModuleKey] = [
+        'module_key' => $sourceModuleKey,
+        'label' => $moduleName !== '' ? sr_admin_module_name_label($moduleName) : $sourceModuleKey,
+    ];
+}
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 
 if (sr_request_method() === 'POST') {
@@ -184,7 +198,7 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/admin/member-group-rules');
             }
         }
-    } elseif ($intent === 'evaluate_account' || $intent === 'evaluate_batch') {
+    } elseif ($intent === 'evaluate_account') {
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
         $targetAccountField = sr_post_string('account_identifier_field', 20);
         if ($targetAccountIdentifier === '') {
@@ -192,22 +206,16 @@ if (sr_request_method() === 'POST') {
         }
         $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, $runtimeConfig, $targetAccountField, $targetAccountIdentifier);
         $sourceModuleKey = strtolower(trim(sr_post_string('source_module_key', 60)));
-        $limit = sr_admin_post_int_in_range('limit', 1, 200);
 
-        if ($intent === 'evaluate_account' && $targetAccountId < 1) {
+        if ($targetAccountId < 1) {
             $errors[] = sr_t('member::action.admin_groups.evaluate_member_required');
         }
 
-        if ($intent === 'evaluate_batch' && $limit === null) {
-            $errors[] = sr_t('member::action.admin_groups.batch_limit_invalid');
-            $limit = 50;
-        }
-
-        if ($sourceModuleKey !== '' && !sr_is_safe_module_key($sourceModuleKey)) {
+        if ($sourceModuleKey !== '' && (!sr_is_safe_module_key($sourceModuleKey) || !isset($memberRuleSourceOptions[$sourceModuleKey]))) {
             $errors[] = sr_t('member::action.admin_groups.module_key_invalid');
         }
 
-        if ($errors === [] && $intent === 'evaluate_account') {
+        if ($errors === []) {
             $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $targetAccountId]);
             if (!is_array($stmt->fetch())) {
@@ -216,33 +224,17 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            if ($intent === 'evaluate_account') {
-                $summary = sr_member_group_evaluate_account($pdo, $targetAccountId, [
-                    'source_module_key' => $sourceModuleKey,
-                ]);
-                $targetType = 'member_account';
-                $targetId = (string) $targetAccountId;
-                $eventType = 'member.group_rules.evaluated';
-                $notice = sr_t('member::action.admin_groups.evaluated', [
-                    'evaluated' => (string) $summary['evaluated'],
-                    'granted' => (string) $summary['granted'],
-                    'revoked' => (string) $summary['revoked'],
-                ]);
-            } else {
-                $summary = sr_member_group_evaluate_accounts($pdo, [
-                    'source_module_key' => $sourceModuleKey,
-                    'limit' => (int) $limit,
-                ]);
-                $targetType = 'member_group_rule';
-                $targetId = 'batch';
-                $eventType = 'member.group_rules.batch_evaluated';
-                $notice = sr_t('member::action.admin_groups.batch_evaluated', [
-                    'accounts' => (string) $summary['accounts'],
-                    'evaluated' => (string) $summary['evaluated'],
-                    'granted' => (string) $summary['granted'],
-                    'revoked' => (string) $summary['revoked'],
-                ]);
-            }
+            $summary = sr_member_group_evaluate_account($pdo, $targetAccountId, [
+                'source_module_key' => $sourceModuleKey,
+            ]);
+            $targetType = 'member_account';
+            $targetId = (string) $targetAccountId;
+            $eventType = 'member.group_rules.evaluated';
+            $notice = sr_t('member::action.admin_groups.evaluated', [
+                'evaluated' => (string) $summary['evaluated'],
+                'granted' => (string) $summary['granted'],
+                'revoked' => (string) $summary['revoked'],
+            ]);
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -252,7 +244,9 @@ if (sr_request_method() === 'POST') {
                 'target_id' => $targetId,
                 'result' => 'success',
                 'message' => 'Member group rules evaluated.',
-                'metadata' => $summary,
+                'metadata' => array_merge($summary, [
+                    'source_module_key' => $sourceModuleKey,
+                ]),
             ]);
         }
     } elseif ($intent === 'grant_manual' || $intent === 'revoke_manual') {

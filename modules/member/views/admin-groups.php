@@ -9,8 +9,6 @@ if ($memberGroupsPage === 'group_form') {
     $adminPageTitle = sr_t('member::ui.member.bc3daeb8');
 } elseif ($memberGroupsPage === 'rule_form') {
     $adminPageTitle = is_array($editRule) ? sr_t('member::ui.member.edit.8fa5d9e5') : sr_t('member::ui.member.ac78ee3c');
-} elseif ($memberGroupsPage === 'evaluations') {
-    $adminPageTitle = sr_t('member::ui.member.ec737c00');
 }
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -193,6 +191,12 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
+    <?php
+    $autoRuleEvaluationModalId = 'member-group-auto-rule-evaluation-modal';
+    $autoRuleEvaluationFieldPrefix = 'member_group_auto_rule_evaluation';
+    $autoRuleEvaluationAccountInputId = $autoRuleEvaluationFieldPrefix . '_account_identifier';
+    $autoRuleEvaluationMemberLookupModalId = $autoRuleEvaluationFieldPrefix . '_member_lookup_modal';
+    ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
             <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.all.e078b14a')); ?></a>
@@ -239,7 +243,10 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.list.c78d8209')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
+            <div class="admin-row-actions">
+                <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
+                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+            </div>
         </div>
         <div class="table-wrapper">
         <table class="table admin-member-group-table">
@@ -293,6 +300,57 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </table>
         </div>
     </section>
+
+    <div id="<?php echo sr_e($autoRuleEvaluationModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.32fa0afb')); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <div class="admin-form-field">
+                            <div class="admin-lookup-control">
+                                <input id="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
+                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key"><?php echo sr_e(sr_t('member::ui.member.rule_scope.88eb0d91')); ?></label>
+                        <div class="admin-form-field">
+                            <select id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key" name="source_module_key" class="form-select">
+                                <option value=""><?php echo sr_e(sr_t('member::ui.member.rule_scope_all.4f957633')); ?></option>
+                                <?php foreach ($memberRuleSourceOptions as $sourceOption) { ?>
+                                    <option value="<?php echo sr_e((string) $sourceOption['module_key']); ?>"><?php echo sr_e((string) $sourceOption['label']); ?></option>
+                                <?php } ?>
+                            </select>
+                            <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.member.evaluation_scope_help.381b1e9c')); ?></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php
+    $assetAdjustLookup = [
+        'field_prefix' => $autoRuleEvaluationFieldPrefix,
+        'member_input_id' => $autoRuleEvaluationAccountInputId,
+        'return_overlay_id' => $autoRuleEvaluationModalId,
+        'return_label' => sr_t('member::ui.member.auto_rule_assignment.7fc613fd'),
+        'member_search_url' => sr_url('/admin/members/search'),
+    ];
+    include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+    ?>
     <?php foreach ($groups as $group) { ?>
         <?php
         $groupId = (int) $group['id'];
@@ -536,56 +594,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.95d3fea1')); ?></button>
-        </div>
-    </form>
-<?php } elseif ($memberGroupsPage === 'evaluations') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('member::ui.text.32fa0afb')); ?></h2>
-            <?php echo sr_csrf_field(); ?>
-            <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('member::ui.member.9d5adfda')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                <div class="admin-form-field">
-                    <select name="account_identifier_field" class="form-select" aria-label="<?php echo sr_e(sr_t('member::ui.member.a4cdf8ad')); ?>">
-                        <option value="hash"><?php echo sr_e(sr_t('member::ui.text.93971787')); ?></option>
-                        <option value="email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></option>
-                        <option value="login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></option>
-                        <option value="name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></option>
-                    </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="<?php echo sr_e(sr_t('member::ui.member.4806b16f')); ?>" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_source_module_key"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
-                <div class="admin-form-field">
-                    <input id="member_admin_groups_source_module_key" type="text" name="source_module_key" maxlength="60" pattern="[a-z0-9_]*" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
-        </div>
-    </form>
-
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/batch')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('member::ui.text.fdbee63b')); ?></h2>
-            <?php echo sr_csrf_field(); ?>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_source_module_key_2"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
-                <div class="admin-form-field">
-                    <input id="member_admin_groups_source_module_key_2" type="text" name="source_module_key" maxlength="60" pattern="[a-z0-9_]*" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_limit"><?php echo sr_e(sr_t('member::ui.member.5138655c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <input id="member_admin_groups_limit" type="number" name="limit" min="1" max="200" value="50" required class="form-input">
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.fdbee63b')); ?></button>
         </div>
     </form>
 <?php } ?>

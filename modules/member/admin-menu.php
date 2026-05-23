@@ -24,10 +24,5 @@ return [
             'path' => '/admin/member-group-rules',
             'order' => 30,
         ],
-        [
-            'label' => sr_t('member::ui.member.evaluation.7dc4b9f0'),
-            'path' => '/admin/member-group-evaluations',
-            'order' => 40,
-        ],
     ],
 ];
