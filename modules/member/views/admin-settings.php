@@ -100,6 +100,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="member_admin_settings_login_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="member_admin_settings_login_throttle_window_seconds" type="number" name="login_throttle_window_seconds" value="<?php echo sr_e((string) $settings['login_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.text.c9d35c98')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
@@ -122,6 +123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="member_admin_settings_register_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="member_admin_settings_register_throttle_window_seconds" type="number" name="register_throttle_window_seconds" value="<?php echo sr_e((string) $settings['register_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.text.c9d35c98')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
@@ -138,6 +140,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="member_admin_settings_password_reset_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="member_admin_settings_password_reset_throttle_window_seconds" type="number" name="password_reset_throttle_window_seconds" value="<?php echo sr_e((string) $settings['password_reset_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.text.c9d35c98')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
@@ -160,6 +163,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="member_admin_settings_email_verification_throttle_window_seconds"><?php echo sr_e(sr_t('member::ui.text.c7f70c10')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="member_admin_settings_email_verification_throttle_window_seconds" type="number" name="email_verification_throttle_window_seconds" value="<?php echo sr_e((string) $settings['email_verification_throttle_window_seconds']); ?>" required class="form-input" min="0" max="86400">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.text.c9d35c98')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">

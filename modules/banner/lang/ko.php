@@ -64,6 +64,8 @@ return [
     'ui.text.bb23452c' => '선언이 사라진 출력 위치 / ',
     'ui.text.cb0f2404' => '내용',
     'ui.text.cead00a8' => '이미지 업로드',
-    'ui.url.http.https.81cff7be' => '링크 URL (외부 http/https 링크는 새 창으로 열림)',
-    'ui.url.http.https.url.264bd3d3' => '이미지 URL (/ 내부 경로 또는 http/https URL)',
+    'ui.url.help.6f5481db' => '외부 http/https 링크는 새 창으로 열립니다.',
+    'ui.url.help.e0a0162e' => '/ 내부 경로 또는 http/https URL을 입력하세요.',
+    'ui.url.http.https.81cff7be' => '링크 URL',
+    'ui.url.http.https.url.264bd3d3' => '이미지 URL',
 ];

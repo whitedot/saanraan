@@ -42,12 +42,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="banner_admin_banners_link_url"><?php echo sr_e(sr_t('banner::ui.url.http.https.81cff7be')); ?></label>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_link_url" type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.6f5481db')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_image_url"><?php echo sr_e(sr_t('banner::ui.url.http.https.url.264bd3d3')); ?></label>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.e0a0162e')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
