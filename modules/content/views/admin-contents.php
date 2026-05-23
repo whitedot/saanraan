@@ -631,7 +631,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php if ((string) $page['status'] === 'published') { ?>
                                             <a href="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></a>
                                         <?php } ?>
-                                        <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?></a>
+                                        <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>

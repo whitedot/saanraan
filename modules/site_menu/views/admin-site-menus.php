@@ -375,12 +375,12 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($addItemModalId); ?>" data-overlay="#<?php echo sr_e($addItemModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.2c54ca2d')); ?></button>
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($menuModalId); ?>" data-overlay="#<?php echo sr_e($menuModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></button>
+                                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($menuModalId); ?>" data-overlay="#<?php echo sr_e($menuModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_menu">
                                             <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $menuId); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -414,12 +414,12 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                         <?php if ($rowDepth < 3) { ?>
                                             <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($childAddModalId); ?>" data-overlay="#<?php echo sr_e($childAddModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.8d136d31')); ?></button>
                                         <?php } ?>
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></button>
+                                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_item">
                                             <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
                                 </td>

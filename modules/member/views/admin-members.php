@@ -269,7 +269,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) $member['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></a>
+                                <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="revoke_sessions">

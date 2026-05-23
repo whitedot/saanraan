@@ -255,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('notification::ui.delete.6139b6c3')); ?></button>
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('notification::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('notification::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
                             </td>

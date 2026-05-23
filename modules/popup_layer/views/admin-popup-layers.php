@@ -254,11 +254,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?></a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('popup_layer::ui.delete.6139b6c3')); ?></button>
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
                             </td>
