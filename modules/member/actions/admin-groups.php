@@ -15,7 +15,7 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
-if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations', 'assignments'], true)) {
+if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations'], true)) {
     $memberGroupsPage = 'groups';
 }
 $memberGroupPermissionPath = [
@@ -24,7 +24,6 @@ $memberGroupPermissionPath = [
     'rules' => '/admin/member-group-rules',
     'rule_form' => '/admin/member-group-rules',
     'evaluations' => '/admin/member-group-evaluations',
-    'assignments' => '/admin/member-group-assignments',
 ][$memberGroupsPage];
 sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'view');
 $allowedStatuses = sr_member_group_statuses();
@@ -320,6 +319,8 @@ if (sr_request_method() === 'POST') {
                     'assignment_type' => 'manual',
                 ],
             ]);
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/member-groups');
         }
     } else {
         $errors[] = sr_t('member::action.admin_groups.intent_invalid');
@@ -347,7 +348,18 @@ $groups = $memberGroupsPage === 'groups'
     ? sr_admin_member_group_filter_rows($allGroups, $groupListFilter)
     : $allGroups;
 $groupRules = sr_member_group_rules($pdo);
-$memberships = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, 100));
-$membershipLogs = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, 50));
+$membershipsByGroupId = [];
+$membershipLogsByGroupId = [];
+if ($memberGroupsPage === 'groups') {
+    foreach ($groups as $group) {
+        $groupId = (int) ($group['id'] ?? 0);
+        if ($groupId < 1) {
+            continue;
+        }
+
+        $membershipsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, 50, $groupId));
+        $membershipLogsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, 50, $groupId));
+    }
+}
 
 include SR_ROOT . '/modules/member/views/admin-groups.php';

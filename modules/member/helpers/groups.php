@@ -860,40 +860,50 @@ function sr_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, arra
     return true;
 }
 
-function sr_member_group_memberships(PDO $pdo, int $limit = 100): array
+function sr_member_group_memberships(PDO $pdo, int $limit = 100, int $groupId = 0): array
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
+    $whereSql = $groupId > 0 ? ' WHERE m.group_id = :group_id' : '';
     $stmt = $pdo->prepare(
         'SELECT m.*, g.group_key, g.title AS group_title, a.email, a.display_name, a.status AS account_status
          FROM sr_member_group_memberships m
          INNER JOIN sr_member_groups g ON g.id = m.group_id
          INNER JOIN sr_member_accounts a ON a.id = m.account_id
+         ' . $whereSql . '
          ORDER BY m.id DESC
          LIMIT :limit_value'
     );
+    if ($groupId > 0) {
+        $stmt->bindValue('group_id', $groupId, PDO::PARAM_INT);
+    }
     $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetchAll();
 }
 
-function sr_member_group_logs(PDO $pdo, int $limit = 50): array
+function sr_member_group_logs(PDO $pdo, int $limit = 50, int $groupId = 0): array
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
+    $whereSql = $groupId > 0 ? ' WHERE l.group_id = :group_id' : '';
     $stmt = $pdo->prepare(
         'SELECT l.*, g.group_key, g.title AS group_title, a.email, a.display_name
          FROM sr_member_group_membership_logs l
          INNER JOIN sr_member_groups g ON g.id = l.group_id
          INNER JOIN sr_member_accounts a ON a.id = l.account_id
+         ' . $whereSql . '
          ORDER BY l.id DESC
          LIMIT :limit_value'
     );
+    if ($groupId > 0) {
+        $stmt->bindValue('group_id', $groupId, PDO::PARAM_INT);
+    }
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 

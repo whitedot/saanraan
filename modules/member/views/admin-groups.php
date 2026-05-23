@@ -11,13 +11,13 @@ if ($memberGroupsPage === 'group_form') {
     $adminPageTitle = is_array($editRule) ? sr_t('member::ui.member.edit.8fa5d9e5') : sr_t('member::ui.member.ac78ee3c');
 } elseif ($memberGroupsPage === 'evaluations') {
     $adminPageTitle = sr_t('member::ui.member.ec737c00');
-} elseif ($memberGroupsPage === 'assignments') {
-    $adminPageTitle = sr_t('member::ui.member.d6407be3');
 }
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 $groupListFilter = isset($groupListFilter) && is_array($groupListFilter) ? $groupListFilter : ['status' => '', 'field' => 'all', 'keyword' => ''];
 $groupStatusCounts = isset($groupStatusCounts) && is_array($groupStatusCounts) ? $groupStatusCounts : [];
+$membershipsByGroupId = isset($membershipsByGroupId) && is_array($membershipsByGroupId) ? $membershipsByGroupId : [];
+$membershipLogsByGroupId = isset($membershipLogsByGroupId) && is_array($membershipLogsByGroupId) ? $membershipLogsByGroupId : [];
 $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
 ?>
 
@@ -154,12 +154,15 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
                     <?php
+                    $groupId = (int) $group['id'];
                     $groupStatus = (string) $group['status'];
                     $statusClass = match ($groupStatus) {
                         'enabled' => 'is-normal',
                         'disabled' => 'is-blocked',
                         default => 'is-left',
                     };
+                    $manualAssignModalId = 'member-group-manual-assign-modal-' . $groupId;
+                    $assignmentHistoryModalId = 'member-group-assignment-history-modal-' . $groupId;
                     ?>
                     <tr>
                         <td><?php echo sr_e((string) $group['id']); ?></td>
@@ -170,6 +173,8 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
+                                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($manualAssignModalId); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></button>
+                                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($assignmentHistoryModalId); ?>" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>"><?php echo sr_e(sr_t('member::ui.text.fb4e329c')); ?></button>
                                 <a href="<?php echo sr_e(sr_url('/admin/member-groups/edit?id=' . rawurlencode((string) $group['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></a>
                             </div>
                         </td>
@@ -179,6 +184,173 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
         </table>
         </div>
     </section>
+    <?php foreach ($groups as $group) { ?>
+        <?php
+        $groupId = (int) $group['id'];
+        $manualAssignModalId = 'member-group-manual-assign-modal-' . $groupId;
+        $assignmentHistoryModalId = 'member-group-assignment-history-modal-' . $groupId;
+        $manualAssignFieldPrefix = 'member_group_manual_assign_' . $groupId;
+        $manualAssignAccountInputId = $manualAssignFieldPrefix . '_account_identifier';
+        $manualAssignMemberLookupModalId = $manualAssignFieldPrefix . '_member_lookup_modal';
+        $groupMemberships = isset($membershipsByGroupId[$groupId]) && is_array($membershipsByGroupId[$groupId]) ? $membershipsByGroupId[$groupId] : [];
+        $groupMembershipLogs = isset($membershipLogsByGroupId[$groupId]) && is_array($membershipLogsByGroupId[$groupId]) ? $membershipLogsByGroupId[$groupId] : [];
+        ?>
+        <div id="<?php echo sr_e($manualAssignModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($manualAssignFieldPrefix); ?>_title" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($manualAssignFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>">
+                            <?php echo sr_material_icon_html('close'); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="group_id" value="<?php echo sr_e((string) $groupId); ?>">
+                        <div class="admin-summary-stats">
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($manualAssignAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <div class="admin-lookup-control">
+                                    <input id="<?php echo sr_e($manualAssignAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
+                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($manualAssignMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($manualAssignMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($manualAssignAccountInputId); ?>"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('member::ui.text.41172d90')); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <?php
+        $assetAdjustLookup = [
+            'field_prefix' => $manualAssignFieldPrefix,
+            'member_input_id' => $manualAssignAccountInputId,
+            'return_overlay_id' => $manualAssignModalId,
+            'return_label' => sr_t('member::ui.text.94e3ebac'),
+            'member_search_url' => sr_url('/admin/members/search'),
+        ];
+        include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+        ?>
+
+        <div id="<?php echo sr_e($assignmentHistoryModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($manualAssignFieldPrefix); ?>_history_title" aria-hidden="true" inert>
+            <div class="modal-dialog modal-dialog-lg">
+                <div class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($manualAssignFieldPrefix); ?>_history_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>">
+                            <?php echo sr_material_icon_html('close'); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="admin-summary-stats">
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
+                        </div>
+                        <section class="admin-card admin-list-card card admin-list-form">
+                            <div class="card-header">
+                                <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.561bac1a')); ?></h4>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="table">
+                                    <thead class="ui-table-head">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.text.5cf2792b')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.text.095ffbfb')); ?></th>
+                                            <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.8b179161')); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if ($groupMemberships === []) { ?>
+                                            <tr>
+                                                <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.6bfe04ee')); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                        <?php foreach ($groupMemberships as $membership) { ?>
+                                            <tr>
+                                                <td><?php echo sr_e((string) $membership['id']); ?></td>
+                                                <td>
+                                                    <?php echo sr_e((string) $membership['account_public_hash']); ?><br>
+                                                    <?php echo sr_e(sr_admin_member_display_name_preview($membership)); ?>
+                                                </td>
+                                                <td><?php echo sr_e(sr_admin_code_label((string) $membership['assignment_type'], 'assignment_type')); ?></td>
+                                                <td><?php echo sr_e(sr_admin_code_label((string) $membership['status'], 'membership_status')); ?></td>
+                                                <td><?php echo sr_e((string) ($membership['granted_at'] ?? '')); ?></td>
+                                                <td class="admin-table-actions-cell">
+                                                    <div class="admin-row-actions">
+                                                        <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
+                                                            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/revoke')); ?>">
+                                                                <?php echo sr_csrf_field(); ?>
+                                                                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
+                                                                <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('member::ui.text.293182ec')); ?></button>
+                                                            </form>
+                                                        <?php } else { ?>
+                                                            <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
+                                                        <?php } ?>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="admin-card admin-list-card card admin-list-form">
+                            <div class="card-header">
+                                <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h4>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="table">
+                                    <thead class="ui-table-head">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.text.46b289bb')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.text.4cd44bae')); ?></th>
+                                            <th><?php echo sr_e(sr_t('member::ui.text.4692cef5')); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if ($groupMembershipLogs === []) { ?>
+                                            <tr>
+                                                <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.537aa44f')); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                        <?php foreach ($groupMembershipLogs as $log) { ?>
+                                            <tr>
+                                                <td><?php echo sr_e((string) $log['id']); ?></td>
+                                                <td>
+                                                    <?php echo sr_e((string) $log['account_public_hash']); ?><br>
+                                                    <?php echo sr_e(sr_admin_member_display_name_preview($log)); ?>
+                                                </td>
+                                                <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
+                                                <td><?php echo sr_e((string) $log['message']); ?></td>
+                                                <td><?php echo sr_e((string) $log['created_at']); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
 <?php } elseif ($memberGroupsPage === 'rules') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
@@ -433,135 +605,6 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.fdbee63b')); ?></button>
         </div>
     </form>
-<?php } elseif ($memberGroupsPage === 'assignments') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></h2>
-            <?php echo sr_csrf_field(); ?>
-            <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('member::ui.member.9d5adfda')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                <div class="admin-form-field">
-                    <select name="account_identifier_field" class="form-select" aria-label="<?php echo sr_e(sr_t('member::ui.member.a4cdf8ad')); ?>">
-                        <option value="hash"><?php echo sr_e(sr_t('member::ui.text.93971787')); ?></option>
-                        <option value="email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></option>
-                        <option value="login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></option>
-                        <option value="name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></option>
-                    </select>
-                    <input type="text" name="account_identifier" maxlength="120" required class="form-input" aria-label="<?php echo sr_e(sr_t('member::ui.member.4806b16f')); ?>" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id_2"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <select id="member_admin_groups_group_id_2" name="group_id" required class="form-select">
-                                            <?php foreach ($groups as $group) { ?>
-                                                <option value="<?php echo sr_e((string) $group['id']); ?>">
-                                                    <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
-                                                </option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-        </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.text.41172d90')); ?></button>
-        </div>
-    </form>
-
-    <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.561bac1a')); ?></h2>
-        </div>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th>ID</th>
-                    <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.5cf2792b')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.095ffbfb')); ?></th>
-                    <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.8b179161')); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($memberships === []) { ?>
-                    <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.6bfe04ee')); ?></td>
-                    </tr>
-                <?php } ?>
-                <?php foreach ($memberships as $membership) { ?>
-                    <tr>
-                        <td><?php echo sr_e((string) $membership['id']); ?></td>
-                        <td>
-                            <?php echo sr_e((string) $membership['account_public_hash']); ?><br>
-                            <?php echo sr_e(sr_admin_member_display_name_preview($membership)); ?>
-                        </td>
-                        <td><?php echo sr_e((string) $membership['group_title']); ?></td>
-                        <td><?php echo sr_e(sr_admin_code_label((string) $membership['assignment_type'], 'assignment_type')); ?></td>
-                        <td><?php echo sr_e(sr_admin_code_label((string) $membership['status'], 'membership_status')); ?></td>
-                        <td><?php echo sr_e((string) ($membership['granted_at'] ?? '')); ?></td>
-                        <td class="admin-table-actions-cell">
-                            <div class="admin-row-actions">
-                            <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/revoke')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
-                                    <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('member::ui.text.293182ec')); ?></button>
-                                </form>
-                            <?php } else { ?>
-                                <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
-                            <?php } ?>
-                            </div>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    </section>
-
-    <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h2>
-        </div>
-        <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th>ID</th>
-                    <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.46b289bb')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.4cd44bae')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.4692cef5')); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($membershipLogs === []) { ?>
-                    <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.537aa44f')); ?></td>
-                    </tr>
-                <?php } ?>
-                <?php foreach ($membershipLogs as $log) { ?>
-                    <tr>
-                        <td><?php echo sr_e((string) $log['id']); ?></td>
-                        <td>
-                            <?php echo sr_e((string) $log['account_public_hash']); ?><br>
-                            <?php echo sr_e(sr_admin_member_display_name_preview($log)); ?>
-                        </td>
-                        <td><?php echo sr_e((string) $log['group_title']); ?></td>
-                        <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
-                        <td><?php echo sr_e((string) $log['message']); ?></td>
-                        <td><?php echo sr_e((string) $log['created_at']); ?></td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-        </div>
-    </section>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

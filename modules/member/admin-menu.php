@@ -5,34 +5,29 @@ return [
     'order' => 10,
     'items' => [
         [
-            'label' => sr_t('member::ui.member.list.d8e6279a'),
-            'path' => '/admin/members',
+            'label' => sr_t('member::ui.member.settings.6b4c84f7'),
+            'path' => '/admin/member-settings',
             'order' => 5,
         ],
         [
-            'label' => sr_t('member::ui.settings.9d52d064'),
-            'path' => '/admin/member-settings',
+            'label' => sr_t('member::ui.member.list.d8e6279a'),
+            'path' => '/admin/members',
             'order' => 10,
         ],
         [
-            'label' => sr_t('member::ui.text.5d908ddd'),
+            'label' => sr_t('member::ui.member.7482bebf'),
             'path' => '/admin/member-groups',
             'order' => 20,
         ],
         [
-            'label' => sr_t('member::ui.text.c40d1648'),
+            'label' => sr_t('member::ui.member.bc3daeb8'),
             'path' => '/admin/member-group-rules',
             'order' => 30,
         ],
         [
-            'label' => sr_t('member::ui.text.3d1d323a'),
+            'label' => sr_t('member::ui.member.evaluation.7dc4b9f0'),
             'path' => '/admin/member-group-evaluations',
             'order' => 40,
-        ],
-        [
-            'label' => sr_t('member::ui.text.94e3ebac'),
-            'path' => '/admin/member-group-assignments',
-            'order' => 50,
         ],
     ],
 ];
