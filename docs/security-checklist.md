@@ -72,7 +72,7 @@
 - action 파일이 `exit` 또는 `die`를 직접 호출하지 않는가
 - action 파일이 `header('Location: ...')`를 직접 호출하지 않고 `sr_redirect()`를 사용하는가
 - 다운로드처럼 응답을 직접 끝내는 action은 `sr_finish_response()`를 사용하는가
-- 관리자 action은 `sr_member_require_login()`과 `sr_admin_require_role()`을 모두 호출하는가
+- 관리자 action은 `sr_member_require_login()`과 `sr_admin_require_permission()` 또는 `sr_admin_require_owner()`를 모두 호출하는가
 - action 파일이 low-level contract mark 함수를 직접 호출하지 않는가
 - 권한 판단에 `$_SERVER['REQUEST_URI']` 원문 대신 정규화된 `sr_request_path()` 기준을 사용하는가
 
@@ -115,7 +115,7 @@
 - 관리자 개인정보 처리 요청 목록에서 기존 관리자 메모 원문을 입력칸에 미리 노출하지 않는가
 - 관리자 개인정보 처리 자료 다운로드는 현재 관리자 비밀번호 재인증을 요구하는가
 - 관리자 개인정보 처리 자료 다운로드는 연결 계정 데이터 실패가 전체 요청 자료 생성을 중단하지 않는가
-- 회원/역할 목록은 이메일과 표시명을 전체 원문 대신 축약해 표시하는가
+- 회원/관리자 권한 목록은 이메일과 표시명을 전체 원문 대신 축약해 표시하는가
 - 관리자 화면에도 XSS 방어가 적용되는가
 - 모듈 소스 반영, 파일 버전 동기화 같은 고위험 owner 작업은 재인증을 요구하는가
 - 관리자 권한 화면은 전체 회원을 기본 노출하지 않고 필터 결과 안에서만 권한을 변경하는가

@@ -559,7 +559,7 @@ sr_community_release_file_contains('modules/community/helpers/attachments.php', 
 ], 'Community attachment helpers');
 
 sr_community_release_file_contains('modules/community/actions/write.php', [
-    'sr_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    "sr_admin_has_permission(\$pdo, (int) \$account['id'], '/admin/community/posts', 'edit')",
     'sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)',
     'sr_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
     'sr_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
@@ -693,7 +693,9 @@ sr_community_release_file_contains('modules/community/helpers/notifications.php'
     "'channels' => ['site']",
     'sr_log_exception($exception, \'community_notification_create\')',
     'sr_admin_account_roles',
-    "r.role_key IN ('owner', 'admin', 'manager')",
+    'sr_admin_account_permissions',
+    "p.menu_path = '/admin/community/reports'",
+    "p.action_key = 'view'",
     "a.status = 'active'",
     'sr_community_notification_admin_account_ids($pdo)',
     "'/admin/community/reports'",
@@ -736,8 +738,8 @@ sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
 ], 'Community authenticated smoke admin comment flow');
 
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/boards', 'view')",
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/boards', 'edit')",
     '$allowedReadPolicies = sr_community_policy_values(\'read\')',
     '$allowedWritePolicies = sr_community_policy_values(\'write\')',
     '$allowedCommentPolicies = sr_community_policy_values(\'comment\')',
@@ -809,8 +811,8 @@ sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     'foreach ($communitySkinOptions as $skinKey => $skinOption)',
 ], 'Community admin board skin field');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
     '$allowedGroupStatuses = sr_community_board_group_statuses()',
     '$memberGroups = sr_member_groups($pdo)',
     '(string) ($memberGroup[\'status\'] ?? \'\') !== \'enabled\'',
@@ -827,8 +829,8 @@ sr_community_release_file_contains('modules/community/actions/admin-board-groups
     "'target_type' => 'community_board_group'",
 ], 'Community admin board group policy');
 sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\'])',
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'view')",
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'edit')",
     'sr_require_csrf()',
     '$levelAutoRecalculate = ($_POST[\'level_auto_recalculate\'] ?? \'\') === \'1\'',
     '[\'level_auto_recalculate\', $levelAutoRecalculate ? \'1\' : \'0\', \'bool\']',
@@ -842,7 +844,7 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     "'event_type' => 'community.levels.recalculated'",
 ], 'Community admin settings policy');
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communityPostsPermissionPath, 'view')",
     '$allowedPostStatuses = sr_community_post_statuses()',
     '$allowedCommentStatuses = sr_community_comment_statuses()',
     'sr_community_update_post_status($pdo, $postId, $status)',
@@ -872,7 +874,7 @@ sr_community_release_file_contains('modules/community/views/admin-settings.php',
     '레벨 정의 저장',
 ], 'Community admin settings level UI');
 sr_community_release_file_contains('modules/community/actions/admin-reports.php', [
-    'sr_admin_require_role($pdo, (int) $account[\'id\'], [\'owner\', \'admin\', \'manager\'])',
+    "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/reports', 'view')",
     '$allowedStatuses = sr_community_report_statuses()',
     'sr_post_string_without_truncation(\'review_note\', 1000)',
     'sr_community_report_by_id($pdo, $reportId)',

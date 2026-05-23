@@ -7,7 +7,9 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$communityPostsPage = isset($communityPostsPage) ? (string) $communityPostsPage : 'posts';
+$communityPostsPermissionPath = $communityPostsPage === 'comments' ? '/admin/community/comments' : '/admin/community/posts';
+sr_admin_require_permission($pdo, (int) $account['id'], $communityPostsPermissionPath, 'view');
 
 $errors = [];
 $notice = '';
@@ -56,11 +58,11 @@ if (!in_array($commentListFilters['field'], ['all', 'body', 'author', 'post', 'b
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
     $status = sr_post_string('status', 30);
+    sr_admin_require_permission($pdo, (int) $account['id'], $communityPostsPermissionPath, $status === 'deleted' ? 'delete' : 'edit');
 
     if ($intent === 'post_status') {
         $postIdValue = sr_post_string('post_id', 20);

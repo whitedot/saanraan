@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/reports', 'view');
 
 $errors = [];
 $notice = '';
@@ -35,8 +35,8 @@ if (!in_array($reportListFilters['field'], ['all', 'target', 'reporter', 'report
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/reports', 'edit');
 
     $reportIdValue = sr_post_string('report_id', 20);
     $reportId = preg_match('/\A[1-9][0-9]*\z/', $reportIdValue) === 1 ? (int) $reportIdValue : 0;

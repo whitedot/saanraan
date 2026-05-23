@@ -4,29 +4,37 @@ declare(strict_types=1);
 
 function sr_admin_grant_role(PDO $pdo, int $accountId, string $roleKey): void
 {
+    if ($roleKey !== 'owner') {
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_admin_account_roles (account_id, role_key, created_at)
          VALUES (:account_id, :role_key, :created_at)'
     );
     $stmt->execute([
         'account_id' => $accountId,
-        'role_key' => $roleKey,
+        'role_key' => 'owner',
         'created_at' => sr_now(),
     ]);
 }
 
 function sr_admin_revoke_role(PDO $pdo, int $accountId, string $roleKey): void
 {
+    if ($roleKey !== 'owner') {
+        return;
+    }
+
     $stmt = $pdo->prepare('DELETE FROM sr_admin_account_roles WHERE account_id = :account_id AND role_key = :role_key');
     $stmt->execute([
         'account_id' => $accountId,
-        'role_key' => $roleKey,
+        'role_key' => 'owner',
     ]);
 }
 
 function sr_admin_current_roles(PDO $pdo, int $accountId): array
 {
-    $stmt = $pdo->prepare('SELECT role_key FROM sr_admin_account_roles WHERE account_id = :account_id ORDER BY role_key ASC');
+    $stmt = $pdo->prepare("SELECT role_key FROM sr_admin_account_roles WHERE account_id = :account_id AND role_key = 'owner' ORDER BY role_key ASC");
     $stmt->execute(['account_id' => $accountId]);
 
     $roles = [];
@@ -37,19 +45,215 @@ function sr_admin_current_roles(PDO $pdo, int $accountId): array
     return $roles;
 }
 
+function sr_admin_is_owner(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare("SELECT 1 FROM sr_admin_account_roles WHERE account_id = :account_id AND role_key = 'owner' LIMIT 1");
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
 function sr_admin_has_role(PDO $pdo, int $accountId, array $allowedRoles): bool
 {
-    $roles = sr_admin_current_roles($pdo, $accountId);
-    return array_intersect($roles, $allowedRoles) !== [];
+    return in_array('owner', $allowedRoles, true) && sr_admin_is_owner($pdo, $accountId);
 }
 
 function sr_admin_require_role(PDO $pdo, int $accountId, array $allowedRoles): void
 {
+    sr_admin_require_owner($pdo, $accountId);
+}
+
+function sr_admin_require_owner(PDO $pdo, int $accountId): void
+{
     sr_request_contract_mark('role_checked');
 
-    if (!sr_admin_has_role($pdo, $accountId, $allowedRoles)) {
+    if (!sr_admin_is_owner($pdo, $accountId)) {
         sr_request_contract_guard_blocked('role');
         sr_render_error(403, sr_t('admin::auth.role_required'));
+    }
+}
+
+function sr_admin_permission_actions(): array
+{
+    return ['view', 'edit', 'delete'];
+}
+
+function sr_admin_normalize_permission_action(string $actionKey): string
+{
+    return in_array($actionKey, sr_admin_permission_actions(), true) ? $actionKey : '';
+}
+
+function sr_admin_permissions_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_admin_account_permissions LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_admin_normalize_permission_path(string $menuPath): string
+{
+    $menuPath = trim($menuPath);
+    if (preg_match('/\A\/admin(?:\/[a-z0-9][a-z0-9_-]*)*\z/', $menuPath) !== 1) {
+        return '';
+    }
+
+    return $menuPath;
+}
+
+function sr_admin_permission_token(string $menuPath, string $actionKey): string
+{
+    $menuPath = sr_admin_normalize_permission_path($menuPath);
+    $actionKey = sr_admin_normalize_permission_action($actionKey);
+    if ($menuPath === '' || $actionKey === '') {
+        return '';
+    }
+
+    return $menuPath . '|' . $actionKey;
+}
+
+function sr_admin_parse_permission_token(string $token): array
+{
+    $parts = explode('|', trim($token), 2);
+    if (count($parts) !== 2) {
+        return ['', ''];
+    }
+
+    $menuPath = sr_admin_normalize_permission_path($parts[0]);
+    $actionKey = sr_admin_normalize_permission_action($parts[1]);
+    if ($menuPath === '' || $actionKey === '') {
+        return ['', ''];
+    }
+
+    return [$menuPath, $actionKey];
+}
+
+function sr_admin_current_permission_keys(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1 || !sr_admin_permissions_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare('SELECT menu_path, action_key FROM sr_admin_account_permissions WHERE account_id = :account_id ORDER BY menu_path ASC, action_key ASC');
+    $stmt->execute(['account_id' => $accountId]);
+
+    $tokens = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $token = sr_admin_permission_token((string) $row['menu_path'], (string) $row['action_key']);
+        if ($token !== '') {
+            $tokens[] = $token;
+        }
+    }
+
+    return $tokens;
+}
+
+function sr_admin_current_permission_map(PDO $pdo, int $accountId): array
+{
+    $map = [];
+    foreach (sr_admin_current_permission_keys($pdo, $accountId) as $token) {
+        [$menuPath, $actionKey] = sr_admin_parse_permission_token($token);
+        if ($menuPath !== '' && $actionKey !== '') {
+            $map[$menuPath][$actionKey] = true;
+        }
+    }
+
+    return $map;
+}
+
+function sr_admin_has_permission(PDO $pdo, int $accountId, string $menuPath, string $actionKey = 'view'): bool
+{
+    $menuPath = sr_admin_normalize_permission_path($menuPath);
+    $actionKey = sr_admin_normalize_permission_action($actionKey);
+    if ($menuPath === '' || $actionKey === '' || $accountId < 1) {
+        return false;
+    }
+
+    if (sr_admin_is_owner($pdo, $accountId)) {
+        return true;
+    }
+
+    if (!sr_admin_permissions_table_exists($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT 1
+         FROM sr_admin_account_permissions
+         WHERE account_id = :account_id
+           AND menu_path = :menu_path
+           AND action_key = :action_key
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'menu_path' => $menuPath,
+        'action_key' => $actionKey,
+    ]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+function sr_admin_require_permission(PDO $pdo, int $accountId, string $menuPath, string $actionKey = 'view'): void
+{
+    sr_request_contract_mark('role_checked');
+
+    if (!sr_admin_has_permission($pdo, $accountId, $menuPath, $actionKey)) {
+        sr_request_contract_guard_blocked('permission');
+        sr_render_error(403, sr_t('admin::auth.role_required'));
+    }
+}
+
+function sr_admin_sync_account_permissions(PDO $pdo, int $accountId, array $permissionTokens): void
+{
+    if ($accountId < 1 || !sr_admin_permissions_table_exists($pdo)) {
+        return;
+    }
+
+    $allowedMap = sr_admin_permission_option_map($pdo);
+    $selectedMap = [];
+    foreach ($permissionTokens as $permissionToken) {
+        [$menuPath, $actionKey] = sr_admin_parse_permission_token(is_string($permissionToken) ? $permissionToken : '');
+        if ($menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath])) {
+            $selectedMap[$menuPath . '|' . $actionKey] = [$menuPath, $actionKey];
+        }
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $delete = $pdo->prepare('DELETE FROM sr_admin_account_permissions WHERE account_id = :account_id');
+        $delete->execute(['account_id' => $accountId]);
+
+        $insert = $pdo->prepare(
+            'INSERT INTO sr_admin_account_permissions (account_id, menu_path, action_key, created_at)
+             VALUES (:account_id, :menu_path, :action_key, :created_at)'
+        );
+        foreach ($selectedMap as $permission) {
+            $insert->execute([
+                'account_id' => $accountId,
+                'menu_path' => $permission[0],
+                'action_key' => $permission[1],
+                'created_at' => sr_now(),
+            ]);
+        }
+
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        $pdo->rollBack();
+        throw $exception;
     }
 }
 
@@ -73,54 +277,124 @@ function sr_admin_active_owner_count(PDO $pdo): int
     return is_array($row) ? (int) $row['count_value'] : 0;
 }
 
-function sr_admin_allowed_roles(): array
+function sr_admin_permission_options(PDO $pdo): array
 {
-    return ['owner', 'admin', 'manager'];
-}
-
-function sr_admin_role_actions(): array
-{
-    return ['grant', 'revoke'];
-}
-
-function sr_admin_post_role_keys(array $allowedRoles): array
-{
-    $roleKeys = $_POST['role_keys'] ?? [];
-    if (!is_array($roleKeys)) {
+    if (!function_exists('sr_admin_navigation_source_groups')) {
         return [];
     }
 
-    $selectedMap = [];
-    foreach ($roleKeys as $roleKey) {
-        $roleKey = is_string($roleKey) ? trim($roleKey) : '';
-        if (in_array($roleKey, $allowedRoles, true)) {
-            $selectedMap[$roleKey] = true;
+    $ownerOnlyPaths = sr_admin_owner_only_permission_keys();
+    $groups = [];
+    foreach (sr_admin_navigation_source_groups($pdo) as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $categoryLabel = trim((string) ($group['label'] ?? ''));
+        foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleLabel = trim((string) ($moduleGroup['label'] ?? ''));
+            if ($moduleLabel === '') {
+                $moduleLabel = (string) ($moduleGroup['module_key'] ?? '');
+            }
+
+            $items = [];
+            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $path = sr_admin_normalize_permission_path((string) ($item['path'] ?? ''));
+                $label = trim((string) ($item['label'] ?? ''));
+                if ($path === '' || $label === '' || isset($ownerOnlyPaths[$path])) {
+                    continue;
+                }
+
+                $items[$path] = [
+                    'key' => $path,
+                    'label' => $label,
+                    'path' => $path,
+                    'actions' => sr_admin_permission_actions(),
+                ];
+            }
+
+            if ($items === []) {
+                continue;
+            }
+
+            $groups[] = [
+                'category_label' => $categoryLabel,
+                'module_key' => (string) ($moduleGroup['module_key'] ?? ''),
+                'label' => $moduleLabel,
+                'items' => array_values($items),
+            ];
         }
     }
 
-    $selectedRoles = [];
-    foreach ($allowedRoles as $allowedRole) {
-        if (isset($selectedMap[$allowedRole])) {
-            $selectedRoles[] = $allowedRole;
-        }
-    }
-
-    return array_values($selectedRoles);
+    return $groups;
 }
 
-function sr_admin_post_role_keys_valid(array $allowedRoles): bool
+function sr_admin_permission_option_map(PDO $pdo): array
 {
-    $roleKeys = $_POST['role_keys'] ?? [];
-    if ($roleKeys === []) {
+    $map = [];
+    foreach (sr_admin_permission_options($pdo) as $group) {
+        foreach ((array) ($group['items'] ?? []) as $item) {
+            $key = (string) ($item['key'] ?? '');
+            if ($key !== '') {
+                $map[$key] = $item;
+            }
+        }
+    }
+
+    return $map;
+}
+
+function sr_admin_owner_only_permission_keys(): array
+{
+    return [
+        '/admin/roles' => true,
+        '/admin/updates' => true,
+        '/admin/retention' => true,
+    ];
+}
+
+function sr_admin_post_permission_keys(PDO $pdo): array
+{
+    $permissionKeys = $_POST['permission_keys'] ?? [];
+    if (!is_array($permissionKeys)) {
+        return [];
+    }
+
+    $allowedMap = sr_admin_permission_option_map($pdo);
+    $selectedMap = [];
+    foreach ($permissionKeys as $permissionKey) {
+        [$menuPath, $actionKey] = sr_admin_parse_permission_token(is_string($permissionKey) ? $permissionKey : '');
+        if ($menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath])) {
+            $selectedMap[$menuPath . '|' . $actionKey] = true;
+        }
+    }
+
+    return array_values(array_keys($selectedMap));
+}
+
+function sr_admin_post_permission_keys_valid(PDO $pdo): bool
+{
+    $permissionKeys = $_POST['permission_keys'] ?? [];
+    if ($permissionKeys === []) {
         return true;
     }
 
-    if (!is_array($roleKeys)) {
+    if (!is_array($permissionKeys)) {
         return false;
     }
 
-    foreach ($roleKeys as $roleKey) {
-        if (!is_string($roleKey) || !in_array(trim($roleKey), $allowedRoles, true)) {
+    $allowedMap = sr_admin_permission_option_map($pdo);
+    foreach ($permissionKeys as $permissionKey) {
+        [$menuPath, $actionKey] = sr_admin_parse_permission_token(is_string($permissionKey) ? $permissionKey : '');
+        if ($menuPath === '' || $actionKey === '' || !isset($allowedMap[$menuPath])) {
             return false;
         }
     }
@@ -128,36 +402,39 @@ function sr_admin_post_role_keys_valid(array $allowedRoles): bool
     return true;
 }
 
-function sr_admin_role_filter(array $allowedRoles): string
+function sr_admin_permission_filter(PDO $pdo): string
 {
-    $roleFilter = sr_get_string('role', 40);
-    if ($roleFilter === '') {
+    $permissionFilter = sr_get_string('permission', 230);
+    if ($permissionFilter === '') {
         return '';
     }
 
-    if (in_array($roleFilter, array_merge(['any', 'none'], $allowedRoles), true)) {
-        return $roleFilter;
+    if (in_array($permissionFilter, ['any', 'none', 'owner'], true)) {
+        return $permissionFilter;
     }
 
-    return '';
+    [$menuPath, $actionKey] = sr_admin_parse_permission_token($permissionFilter);
+    $allowedMap = sr_admin_permission_option_map($pdo);
+
+    return $menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath]) ? $menuPath . '|' . $actionKey : '';
 }
 
-function sr_admin_role_filter_has_conditions(string $statusFilter, string $roleFilter, array $searchFilter): bool
+function sr_admin_permission_filter_has_conditions(string $statusFilter, string $permissionFilter, array $searchFilter): bool
 {
     return $statusFilter !== ''
-        || $roleFilter !== ''
+        || $permissionFilter !== ''
         || trim((string) ($searchFilter['keyword'] ?? '')) !== '';
 }
 
-function sr_admin_role_filter_url(string $statusFilter, string $roleFilter, array $searchFilter): string
+function sr_admin_permission_filter_url(string $statusFilter, string $permissionFilter, array $searchFilter): string
 {
     $query = [];
     if ($statusFilter !== '') {
         $query['status'] = $statusFilter;
     }
 
-    if ($roleFilter !== '') {
-        $query['role'] = $roleFilter;
+    if ($permissionFilter !== '') {
+        $query['permission'] = $permissionFilter;
     }
 
     if ((string) ($searchFilter['field'] ?? 'all') !== 'all') {
@@ -171,32 +448,20 @@ function sr_admin_role_filter_url(string $statusFilter, string $roleFilter, arra
     return '/admin/roles' . ($query === [] ? '' : '?' . http_build_query($query));
 }
 
-function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRoles, array $allowedActions): array
+function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
 {
     $errors = [];
     $notice = '';
     $targetAccountId = sr_admin_post_positive_int('account_id');
-    $roleKey = sr_post_string('role_key', 40);
-    $roleAction = sr_post_string('role_action', 20);
-    $intent = sr_post_string('intent', 40);
-    $selectedRoles = sr_admin_post_role_keys($allowedRoles);
+    $selectedIsOwner = ($_POST['is_owner'] ?? '') === '1';
+    $selectedPermissionKeys = sr_admin_post_permission_keys($pdo);
 
     if ($targetAccountId <= 0) {
         $errors[] = sr_t('admin::action.roles.account_required');
     }
 
-    if ($intent === 'sync_roles') {
-        if (!sr_admin_post_role_keys_valid($allowedRoles)) {
-            $errors[] = sr_t('admin::action.roles.role_invalid');
-        }
-    } else {
-        if (!in_array($roleKey, $allowedRoles, true)) {
-            $errors[] = sr_t('admin::action.roles.role_invalid');
-        }
-
-        if (!in_array($roleAction, $allowedActions, true)) {
-            $errors[] = sr_t('admin::action.roles.action_invalid');
-        }
+    if (!sr_admin_post_permission_keys_valid($pdo)) {
+        $errors[] = sr_t('admin::action.roles.permission_invalid');
     }
 
     if ($errors === []) {
@@ -210,10 +475,11 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
     }
 
     if ($errors === []) {
-        $targetRoles = array_values(array_intersect($allowedRoles, sr_admin_current_roles($pdo, $targetAccountId)));
+        $beforeIsOwner = sr_admin_is_owner($pdo, $targetAccountId);
+        $beforePermissionKeys = sr_admin_current_permission_keys($pdo, $targetAccountId);
     }
 
-    if ($errors === [] && $intent === 'sync_roles' && in_array('owner', $targetRoles, true) && !in_array('owner', $selectedRoles, true)) {
+    if ($errors === [] && $beforeIsOwner && !$selectedIsOwner) {
         if (sr_admin_owner_count($pdo) <= 1) {
             $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
         } elseif ((string) $targetAccount['status'] === 'active' && sr_admin_active_owner_count($pdo) <= 1) {
@@ -221,82 +487,43 @@ function sr_admin_handle_roles_post(PDO $pdo, array $account, array $allowedRole
         }
     }
 
-    if ($errors === [] && $intent !== 'sync_roles' && $roleAction === 'revoke' && $roleKey === 'owner') {
-        if (in_array('owner', $targetRoles, true) && sr_admin_owner_count($pdo) <= 1) {
-            $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
-        } elseif (
-            in_array('owner', $targetRoles, true)
-            && (string) $targetAccount['status'] === 'active'
-            && sr_admin_active_owner_count($pdo) <= 1
-        ) {
-            $errors[] = sr_t('admin::action.roles.last_active_owner_revoke_disallowed');
+    if ($errors === []) {
+        if ($selectedIsOwner) {
+            sr_admin_grant_role($pdo, $targetAccountId, 'owner');
+        } else {
+            sr_admin_revoke_role($pdo, $targetAccountId, 'owner');
         }
-    }
+        sr_admin_sync_account_permissions($pdo, $targetAccountId, $selectedPermissionKeys);
 
-    if ($errors === [] && $intent === 'sync_roles') {
-        $beforeRoles = $targetRoles;
-        $grantedRoles = array_values(array_diff($selectedRoles, $beforeRoles));
-        $revokedRoles = array_values(array_diff($beforeRoles, $selectedRoles));
-
-        foreach ($grantedRoles as $grantRole) {
-            sr_admin_grant_role($pdo, $targetAccountId, $grantRole);
-        }
-
-        foreach ($revokedRoles as $revokeRole) {
-            sr_admin_revoke_role($pdo, $targetAccountId, $revokeRole);
-        }
-
-        if ($grantedRoles === [] && $revokedRoles === []) {
+        $afterIsOwner = sr_admin_is_owner($pdo, $targetAccountId);
+        $afterPermissionKeys = sr_admin_current_permission_keys($pdo, $targetAccountId);
+        if ($beforeIsOwner === $afterIsOwner && $beforePermissionKeys === $afterPermissionKeys) {
             $notice = sr_t('admin::action.roles.no_changes');
         } else {
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
-                'event_type' => 'admin.role.changed',
+                'event_type' => 'admin.permissions.changed',
                 'target_type' => 'member_account',
                 'target_id' => (string) $targetAccountId,
                 'result' => 'success',
-                'message' => 'Admin roles changed.',
+                'message' => 'Admin permissions changed.',
                 'metadata' => [
-                    'before_roles' => $beforeRoles,
-                    'after_roles' => $selectedRoles,
-                    'granted_roles' => $grantedRoles,
-                    'revoked_roles' => $revokedRoles,
+                    'before_owner' => $beforeIsOwner,
+                    'after_owner' => $afterIsOwner,
+                    'before_permissions' => $beforePermissionKeys,
+                    'after_permissions' => $afterPermissionKeys,
                 ],
             ]);
 
             $notice = sr_t('admin::action.roles.saved');
         }
-    } elseif ($errors === []) {
-        if ($roleAction === 'grant') {
-            sr_admin_grant_role($pdo, $targetAccountId, $roleKey);
-            $eventType = 'admin.role.granted';
-            $notice = sr_t('admin::action.roles.granted');
-        } else {
-            sr_admin_revoke_role($pdo, $targetAccountId, $roleKey);
-            $eventType = 'admin.role.revoked';
-            $notice = sr_t('admin::action.roles.revoked');
-        }
-
-        sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'admin',
-            'event_type' => $eventType,
-            'target_type' => 'member_account',
-            'target_id' => (string) $targetAccountId,
-            'result' => 'success',
-            'message' => 'Admin role changed.',
-            'metadata' => [
-                'role_key' => $roleKey,
-                'action' => $roleAction,
-            ],
-        ]);
     }
 
     return sr_admin_action_result($errors, $notice);
 }
 
-function sr_admin_role_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $roleFilter = ''): array
+function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = ''): array
 {
     $accounts = [];
     $where = [];
@@ -336,20 +563,31 @@ function sr_admin_role_accounts(PDO $pdo, string $statusFilter = '', array $sear
         }
     }
 
-    if ($roleFilter === 'any') {
-        $having = 'HAVING COUNT(r.role_key) > 0';
-    } elseif ($roleFilter === 'none') {
-        $having = 'HAVING COUNT(r.role_key) = 0';
-    } elseif ($roleFilter !== '') {
-        $having = 'HAVING SUM(CASE WHEN r.role_key = :role_filter THEN 1 ELSE 0 END) > 0';
-        $params['role_filter'] = $roleFilter;
+    if ($permissionFilter === 'any') {
+        $having = 'HAVING owner_count > 0 OR permission_count > 0';
+    } elseif ($permissionFilter === 'none') {
+        $having = 'HAVING owner_count = 0 AND permission_count = 0';
+    } elseif ($permissionFilter === 'owner') {
+        $having = 'HAVING owner_count > 0';
+    } elseif ($permissionFilter !== '') {
+        [$filterPath, $filterAction] = sr_admin_parse_permission_token($permissionFilter);
+        $having = 'HAVING owner_count > 0 OR SUM(CASE WHEN p.menu_path = :permission_path AND p.action_key = :permission_action THEN 1 ELSE 0 END) > 0';
+        $params['permission_path'] = $filterPath;
+        $params['permission_action'] = $filterAction;
     }
 
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    $permissionJoin = sr_admin_permissions_table_exists($pdo)
+        ? 'LEFT JOIN sr_admin_account_permissions p ON p.account_id = a.id'
+        : 'LEFT JOIN (SELECT NULL AS account_id, NULL AS menu_path, NULL AS action_key) p ON 1 = 0';
     $stmt = $pdo->prepare(
-        'SELECT a.id, a.email, a.display_name, a.status, GROUP_CONCAT(r.role_key ORDER BY r.role_key SEPARATOR ",") AS role_keys
+        'SELECT a.id, a.email, a.display_name, a.status,
+                COUNT(DISTINCT r.id) AS owner_count,
+                COUNT(DISTINCT CONCAT(p.menu_path, "|", p.action_key)) AS permission_count,
+                GROUP_CONCAT(DISTINCT CONCAT(p.menu_path, "|", p.action_key) ORDER BY p.menu_path, p.action_key SEPARATOR ",") AS permission_keys
          FROM sr_member_accounts a
-         LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id
+         LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = "owner"
+         ' . $permissionJoin . '
          ' . $whereSql . '
          GROUP BY a.id, a.email, a.display_name, a.status
          ' . $having . '
@@ -359,8 +597,9 @@ function sr_admin_role_accounts(PDO $pdo, string $statusFilter = '', array $sear
     $stmt->execute($params);
 
     foreach ($stmt->fetchAll() as $row) {
-        $roleKeys = (string) ($row['role_keys'] ?? '');
-        $row['roles'] = $roleKeys === '' ? [] : explode(',', $roleKeys);
+        $permissionKeys = (string) ($row['permission_keys'] ?? '');
+        $row['is_owner'] = (int) ($row['owner_count'] ?? 0) > 0;
+        $row['permission_keys'] = $permissionKeys === '' ? [] : explode(',', $permissionKeys);
         $accounts[] = $row;
     }
 

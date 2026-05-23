@@ -6,7 +6,6 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 if (!sr_member_groups_table_exists($pdo)) {
     sr_render_error(500, sr_t('member::action.admin_groups.table_missing'));
@@ -19,6 +18,15 @@ $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'gro
 if (!in_array($memberGroupsPage, ['groups', 'group_form', 'rules', 'rule_form', 'evaluations', 'assignments'], true)) {
     $memberGroupsPage = 'groups';
 }
+$memberGroupPermissionPath = [
+    'groups' => '/admin/member-groups',
+    'group_form' => '/admin/member-groups',
+    'rules' => '/admin/member-group-rules',
+    'rule_form' => '/admin/member-group-rules',
+    'evaluations' => '/admin/member-group-evaluations',
+    'assignments' => '/admin/member-group-assignments',
+][$memberGroupsPage];
+sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'view');
 $allowedStatuses = sr_member_group_statuses();
 $allowedRuleStatuses = sr_member_group_rule_statuses();
 $allowedEvaluationPolicies = sr_member_group_evaluation_policies();
@@ -26,10 +34,10 @@ $ruleDefinitions = sr_member_group_rule_definitions($pdo);
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, $intent === 'revoke_manual' ? 'delete' : 'edit');
     if ($intent === 'save_group') {
         $groupId = sr_admin_post_positive_int('group_id');
         $groupKey = sr_post_string('group_key', 60);

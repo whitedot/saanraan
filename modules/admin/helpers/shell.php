@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $pageSubtitle = '', string $containerClass = ''): array
+function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $pageSubtitle = '', string $containerClass = '', int $accountId = 0): array
 {
     $currentPath = sr_request_path();
-    $navigationItems = sr_admin_shell_navigation_items($pdo, $currentPath);
+    $navigationItems = sr_admin_shell_navigation_items($pdo, $currentPath, $accountId);
     $auxiliaryLinks = sr_admin_shell_auxiliary_links($currentPath);
 
     return [
@@ -29,7 +29,7 @@ function sr_admin_shell_site_title(?array $site): string
     return $siteName !== '' ? $siteName : '산란';
 }
 
-function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath): array
+function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath, int $accountId = 0): array
 {
     $sections = [];
 
@@ -44,7 +44,7 @@ function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath): array
             $title = sr_admin_default_menu_category_label($category);
         }
 
-        $navGroups = sr_admin_shell_navigation_group_items($group, $currentPath);
+        $navGroups = sr_admin_shell_navigation_group_items($pdo, $group, $currentPath, $accountId);
         if ($navGroups === []) {
             continue;
         }
@@ -102,7 +102,7 @@ function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath): array
     return $sections;
 }
 
-function sr_admin_shell_navigation_group_items(array $group, string $currentPath): array
+function sr_admin_shell_navigation_group_items(PDO $pdo, array $group, string $currentPath, int $accountId = 0): array
 {
     $navGroups = [];
     $moduleGroups = isset($group['module_groups']) && is_array($group['module_groups']) ? $group['module_groups'] : [];
@@ -130,6 +130,9 @@ function sr_admin_shell_navigation_group_items(array $group, string $currentPath
             $label = trim((string) ($rawItem['label'] ?? ''));
             $path = trim((string) ($rawItem['path'] ?? ''));
             if ($label === '' || $path === '') {
+                continue;
+            }
+            if ($accountId > 0 && function_exists('sr_admin_has_permission') && !sr_admin_has_permission($pdo, $accountId, $path, 'view')) {
                 continue;
             }
 

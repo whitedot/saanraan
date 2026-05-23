@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', 'view');
 
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
@@ -44,6 +44,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', $intent === 'delete' ? 'delete' : 'edit');
     $popupId = (int) sr_post_string('popup_id', 20);
 
     if ($intent === 'delete') {

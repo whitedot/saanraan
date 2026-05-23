@@ -7,6 +7,17 @@ CREATE TABLE IF NOT EXISTS sr_admin_account_roles (
     UNIQUE KEY uq_sr_admin_account_roles (account_id, role_key)
 );
 
+CREATE TABLE IF NOT EXISTS sr_admin_account_permissions (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    menu_path VARCHAR(190) NOT NULL,
+    action_key VARCHAR(20) NOT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_admin_account_permissions (account_id, menu_path, action_key),
+    KEY idx_sr_admin_account_permissions_menu (menu_path, action_key)
+);
+
 CREATE TABLE IF NOT EXISTS sr_admin_menu_overrides (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     scope VARCHAR(20) NOT NULL,

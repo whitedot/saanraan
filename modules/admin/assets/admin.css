@@ -270,6 +270,28 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-role-choice-list{border:0;display:grid;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-role-choice{min-height:calc(var(--spacing) * 9);border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
 .admin-role-choice:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 10%,transparent)}
+.admin-permission-row{display:grid;grid-template-columns:minmax(11rem,1fr) minmax(10rem,.8fr) repeat(3,minmax(5.5rem,auto));gap:calc(var(--spacing) * 2);align-items:center;border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-card);padding:calc(var(--spacing) * 2.5)}
+.admin-permission-row .admin-role-choice{min-height:auto;justify-content:center;padding:calc(var(--spacing) * 1.5) calc(var(--spacing) * 2)}
+.admin-permission-modal-dialog{max-width:min(52rem,calc(100vw - 2rem))}
+.admin-permission-modal-dialog .modal-body{max-height:min(68vh,46rem);overflow:auto}
+.admin-permission-picker{border:1px solid var(--color-default-200);border-radius:var(--radius);background-color:var(--color-default-50);padding:calc(var(--spacing) * 3)}
+.admin-permission-section-header{align-items:center;border-bottom:1px solid var(--color-default-200);display:flex;gap:calc(var(--spacing) * 3);justify-content:space-between;padding:calc(var(--spacing) * 4) calc(var(--spacing) * 5)}
+.admin-permission-section-header .card-title{margin:0}
+.admin-permission-add-modal .modal-body>.admin-form-row>.admin-form-field .form-select,
+.admin-permission-add-modal .modal-body>.admin-form-row>.admin-form-field .form-input{max-width:100%;width:100%}
+.admin-permission-add-modal .admin-role-choice{background:transparent;border:0;min-height:calc(var(--spacing) * 9.25);padding:0}
+.admin-permission-picker-grid{align-items:stretch;display:grid;gap:calc(var(--spacing) * 2.5);grid-template-columns:1fr}
+.admin-permission-picker-actions{border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5);margin:0;padding:0}
+.admin-permission-picker-actions .admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-permission-add{min-height:calc(var(--spacing) * 9.25);white-space:nowrap}
+.admin-permission-selected-list{display:grid;flex-basis:100%;gap:calc(var(--spacing) * 2);margin-top:calc(var(--spacing) * 3);width:100%}
+.admin-permission-selected-row{align-items:stretch;border:1px solid var(--color-default-200);border-radius:var(--radius);display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:1fr;min-width:0;padding:calc(var(--spacing) * 2.5) calc(var(--spacing) * 3)}
+.admin-permission-selected-title{display:grid;gap:calc(var(--spacing) * .75);min-width:0}
+.admin-permission-selected-title strong{color:var(--color-default-900);font-size:var(--text-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-permission-selected-title span{color:var(--color-default-600);font-size:var(--text-xs);overflow-wrap:anywhere}
+.admin-permission-selected-actions{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5);min-width:0}
+.admin-permission-selected-actions .admin-form-check{min-height:calc(var(--spacing) * 8);white-space:nowrap}
+.admin-permission-empty{margin:0}
 .admin-form .admin-form-label,
 .admin-form .admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-weight:var(--font-weight-semibold);min-height:calc(var(--spacing) * 9.25);padding-top:0}
 .admin-form .admin-form-field{grid-column:auto;min-width:0}
@@ -1188,6 +1210,26 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-role-search-grid .admin-filter-field:nth-child(4) {
         min-width: 0;
         width: 100%;
+    }
+
+    .admin-permission-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-permission-picker-grid,
+    .admin-permission-selected-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-permission-section-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-permission-picker-actions,
+    .admin-permission-selected-actions {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .admin-role-search-grid .admin-filter-submit {

@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers/settings', 'view');
 
 $errors = [];
 $notice = '';
@@ -17,6 +17,7 @@ $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers/settings', 'edit');
 
     $intent = sr_post_string('intent', 40);
     if ($intent !== 'save_settings') {

@@ -11,7 +11,6 @@ if (sr_request_method() === 'GET' && sr_request_path() === '/admin/rewards') {
 }
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedTransactionTypes = ['adjustment', 'grant', 'use', 'refund', 'expire'];
 $allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];
@@ -22,11 +21,14 @@ $rewardAdminPage = isset($rewardAdminPage) ? (string) $rewardAdminPage : 'balanc
 if (!in_array($rewardAdminPage, ['balances', 'transactions'], true)) {
     $rewardAdminPage = 'balances';
 }
+$rewardPermissionPath = $rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : '/admin/rewards/balances';
+sr_admin_require_permission($pdo, (int) $account['id'], $rewardPermissionPath, 'view');
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $submittedAccountId = 0;
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], $rewardPermissionPath, 'edit');
 
     $targetAccountIdentifier = sr_post_string('account_identifier', 80);
     if ($targetAccountIdentifier === '') {

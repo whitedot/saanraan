@@ -7,7 +7,6 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/notification/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
 
 $allowedAudiences = ['account', 'all'];
 $allowedNotificationStatuses = sr_notification_admin_statuses();
@@ -20,6 +19,8 @@ $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationA
 if (!in_array($notificationAdminPage, ['list', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
 }
+$notificationPermissionPath = $notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications';
+sr_admin_require_permission($pdo, (int) $account['id'], $notificationPermissionPath, 'view');
 $notificationCreateModalOpen = !empty($notificationCreateModalOpen);
 $notificationCreateValues = [
     'audience' => (string) ($allowedAudiences[0] ?? 'account'),
@@ -66,6 +67,13 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    if ($intent === 'delete_notification') {
+        sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications', 'delete');
+    } elseif ($intent === 'delivery_status') {
+        sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notification-deliveries', 'edit');
+    } else {
+        sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications', 'edit');
+    }
 
     if ($intent === 'delete_notification') {
         $notificationId = (int) sr_post_string('notification_id', 20);

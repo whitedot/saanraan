@@ -45,7 +45,7 @@ function sr_community_create_account_notification(
     }
 }
 
-function sr_community_admin_role_table_exists(PDO $pdo): bool
+function sr_community_admin_permission_tables_exist(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -54,6 +54,7 @@ function sr_community_admin_role_table_exists(PDO $pdo): bool
 
     try {
         $pdo->query('SELECT 1 FROM sr_admin_account_roles LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_admin_account_permissions LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -64,15 +65,16 @@ function sr_community_admin_role_table_exists(PDO $pdo): bool
 
 function sr_community_notification_admin_account_ids(PDO $pdo): array
 {
-    if (!sr_community_admin_role_table_exists($pdo)) {
+    if (!sr_community_admin_permission_tables_exist($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query(
         "SELECT DISTINCT a.id
-         FROM sr_admin_account_roles r
-         INNER JOIN sr_member_accounts a ON a.id = r.account_id
-         WHERE r.role_key IN ('owner', 'admin', 'manager')
+         FROM sr_member_accounts a
+         LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = 'owner'
+         LEFT JOIN sr_admin_account_permissions p ON p.account_id = a.id
+         WHERE (r.id IS NOT NULL OR (p.menu_path = '/admin/community/reports' AND p.action_key = 'view'))
            AND a.status = 'active'
          ORDER BY a.id ASC"
     );

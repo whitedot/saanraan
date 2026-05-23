@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 function sr_community_admin_can_view_member_identifiers(PDO $pdo, ?array $account): bool
 {
-    if (!is_array($account) || !function_exists('sr_admin_has_role')) {
+    if (!is_array($account) || !function_exists('sr_admin_has_permission')) {
         return false;
     }
 
-    return sr_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+    return sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'view')
+        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'view')
+        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/reports', 'view');
 }
 
 function sr_community_member_identifier_suffix(array $config, int $accountId, bool $showIdentifier): string

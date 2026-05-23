@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/banner/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', 'view');
 
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
@@ -44,6 +44,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', $intent === 'delete' ? 'delete' : 'edit');
     $bannerId = (int) sr_post_string('banner_id', 20);
 
     if ($intent === 'delete') {

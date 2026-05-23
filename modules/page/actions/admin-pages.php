@@ -13,7 +13,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 }
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/pages', 'view');
 
 $notice = $_SESSION['sr_page_admin_notice'] ?? '';
 unset($_SESSION['sr_page_admin_notice']);

@@ -424,13 +424,14 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/board/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/board', 'view');
 
 $errors = [];
 $notice = '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/board', 'edit');
 
     $title = sr_post_string('title', 160);
 
@@ -489,7 +490,7 @@ action 파일에서 피한다:
 
 action에서 응답을 끝내야 하면 `sr_redirect()`, `sr_render_error()`, `sr_finish_response()` 중 하나를 사용한다. 이 helper들은 dispatch contract 검사를 거친 뒤 종료한다. `header('Content-Type: ...')` 같은 응답 메타 제어는 허용하지만, redirect는 반드시 `sr_redirect()`를 통과해야 한다.
 
-`sr_request_contract_mark()`와 `sr_request_contract_guard_blocked()`는 action 파일에서 직접 호출하지 않는다. action은 `sr_require_csrf()`, `sr_member_require_login()`, `sr_admin_require_role()` 같은 공개 helper를 호출해 contract mark가 자연스럽게 기록되게 둔다.
+`sr_request_contract_mark()`와 `sr_request_contract_guard_blocked()`는 action 파일에서 직접 호출하지 않는다. action은 `sr_require_csrf()`, `sr_member_require_login()`, `sr_admin_require_permission()`, `sr_admin_require_owner()` 같은 공개 helper를 호출해 contract mark가 자연스럽게 기록되게 둔다.
 
 ## 8. view 작성
 
@@ -1263,7 +1264,7 @@ return function (PDO $pdo, ?array $site): array {
 
 - 모든 상태 변경 요청이 `POST`인가?
 - 모든 `POST` action에서 `sr_require_csrf()`를 호출하는가?
-- 관리자 action 시작 부분에서 로그인과 role을 검증하는가?
+- 관리자 action 시작 부분에서 로그인과 메뉴 권한 또는 owner 권한을 검증하는가?
 - 회원 전용 action에서 `sr_member_require_login()`을 사용하는가?
 - 출력 값은 `sr_e()` 또는 동등한 escape를 거쳤는가?
 - SQL 동적 값은 prepared statement로 바인딩했는가?

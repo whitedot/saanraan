@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/seo/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/seo', 'view');
 
 $errors = [];
 $notice = '';
@@ -15,6 +15,7 @@ $settings = sr_seo_settings($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/seo', 'edit');
 
     $settings = [
         'title_suffix' => sr_seo_clean_single_line(sr_post_string('title_suffix', 80), 80),

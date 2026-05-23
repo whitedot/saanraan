@@ -490,7 +490,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     if ($errors === []) {
         $targetRoles = sr_admin_current_roles($pdo, $targetAccountId);
         $targetIsOwner = in_array('owner', $targetRoles, true);
-        $actorIsOwner = sr_admin_has_role($pdo, (int) $account['id'], ['owner']);
+        $actorIsOwner = sr_admin_is_owner($pdo, (int) $account['id']);
 
         if ($targetIsOwner && !$actorIsOwner) {
             $errors[] = sr_t('member::action.admin.owner_only');

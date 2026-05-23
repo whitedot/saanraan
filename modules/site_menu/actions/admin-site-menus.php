@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/site_menu/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', 'view');
 
 $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
@@ -96,6 +96,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', in_array($intent, ['delete_item', 'delete_menu'], true) ? 'delete' : 'edit');
     $menuId = (int) sr_post_string('menu_id', 20);
     $itemId = (int) sr_post_string('item_id', 20);
 

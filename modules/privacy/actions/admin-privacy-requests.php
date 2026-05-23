@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/privacy/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/privacy-requests', 'view');
 
 $allowedStatuses = sr_admin_privacy_request_statuses();
 $allowedTypes = sr_privacy_request_types();
@@ -16,6 +16,7 @@ $notice = '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/privacy-requests', 'edit');
 
     $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
     $errors = $postResult['errors'];

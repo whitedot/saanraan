@@ -133,8 +133,11 @@ function sr_admin_code_label(string $value, string $context = ''): string
         ],
         'role' => [
             'owner' => '소유자',
-            'admin' => '관리자',
-            'manager' => '매니저',
+        ],
+        'admin_permission_action' => [
+            'view' => '조회',
+            'edit' => '수정',
+            'delete' => '삭제',
         ],
         'admin_menu_scope' => [
             'category' => '분류',
@@ -195,7 +198,8 @@ function sr_admin_event_type_label(string $eventType): string
         'site.homepage.updated' => '초기화면 설정 변경',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
-        'admin.role.changed' => '관리자 역할 변경',
+        'admin.role.changed' => '관리자 권한 변경',
+        'admin.permissions.changed' => '관리자 권한 변경',
         'retention.settings.updated' => '보관 기간 설정 변경',
         'retention.cleanup.completed' => '보관 정리 완료',
         'retention.auto_cleanup.completed' => '요청 기반 자동 정리 완료',
@@ -238,7 +242,8 @@ function sr_admin_event_type_label(string $eventType): string
         'revoke' => '회수',
         'revoked' => '회수',
         'reward' => '적립금',
-        'role' => '역할',
+        'role' => '권한',
+        'permissions' => '권한',
         'settings' => '설정',
         'sessions' => '세션',
         'status' => '상태',

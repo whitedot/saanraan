@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/members', 'view');
 
 $allowedStatuses = sr_admin_member_allowed_statuses();
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
@@ -21,8 +21,8 @@ $memberEditValues = [];
 $memberSettings = sr_member_settings($pdo);
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/members', 'edit');
 
     $postResult = sr_admin_handle_members_post($pdo, $account, $allowedStatuses, is_array($site ?? null) ? $site : []);
     $errors = $postResult['errors'];

@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'view');
 
 $errors = [];
 $notice = '';
@@ -19,6 +19,7 @@ $localeOptions = sr_available_locale_options($site ?? null);
 $values = array_merge($values, ['admin_skin_key' => $adminSkinKey]);
 
 if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'edit');
     sr_require_csrf();
     $postedSkinKey = sr_post_string('admin_skin_key', 40);
     if (!isset($adminSkinOptions[$postedSkinKey])) {

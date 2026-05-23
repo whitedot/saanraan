@@ -189,13 +189,20 @@ foreach (sr_admin_action_security_module_dirs($root) as $moduleDir) {
                 $errors[] = 'Admin action must require login: ' . $route . ' -> ' . $actionFile;
             }
 
-            if (strpos($effectiveContent, 'sr_admin_require_role(') === false) {
-                $errors[] = 'Admin action must require an admin role: ' . $route . ' -> ' . $actionFile;
+            $permissionPosition = strpos($effectiveContent, 'sr_admin_require_permission(');
+            $ownerPosition = strpos($effectiveContent, 'sr_admin_require_owner(');
+            $legacyRolePosition = strpos($effectiveContent, 'sr_admin_require_role(');
+            $rolePositionCandidates = array_values(array_filter([$permissionPosition, $ownerPosition, $legacyRolePosition], static function ($position): bool {
+                return $position !== false;
+            }));
+            $rolePosition = $rolePositionCandidates === [] ? false : min($rolePositionCandidates);
+
+            if ($rolePosition === false) {
+                $errors[] = 'Admin action must require an admin permission or owner guard: ' . $route . ' -> ' . $actionFile;
             }
 
             if ($method === 'POST') {
                 $loginPosition = strpos($effectiveContent, 'sr_member_require_login(');
-                $rolePosition = strpos($effectiveContent, 'sr_admin_require_role(');
                 $csrfPosition = strpos($effectiveContent, 'sr_require_csrf(');
                 if (
                     $loginPosition !== false
@@ -203,7 +210,7 @@ foreach (sr_admin_action_security_module_dirs($root) as $moduleDir) {
                     && $csrfPosition !== false
                     && ($loginPosition > $csrfPosition || $rolePosition > $csrfPosition)
                 ) {
-                    $errors[] = 'Admin POST action must check login and role before CSRF: ' . $route . ' -> ' . $actionFile;
+                    $errors[] = 'Admin POST action must check login and admin permission before CSRF: ' . $route . ' -> ' . $actionFile;
                 }
             }
         }
@@ -215,7 +222,7 @@ if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function sr_admi
     $errors[] = 'Admin role helper must expose an active owner count guard.';
 } elseif (
     strpos($adminRolesHelper, 'sr_admin_active_owner_count($pdo) <= 1') === false
-    || strpos($adminRolesHelper, '마지막 활성 소유자 권한은 회수할 수 없습니다.') === false
+    || strpos($adminRolesHelper, "sr_t('admin::action.roles.last_active_owner_revoke_disallowed')") === false
 ) {
     $errors[] = 'Admin role helper must prevent revoking the last active owner role.';
 }
@@ -245,7 +252,7 @@ if (!is_string($adminMembersHelper)) {
     if (
         strpos($adminMembersHelper, "in_array(\$intent, ['status', 'revoke_sessions'], true)") === false
         && strpos($adminMembersHelper, "in_array(\$intent, ['status', 'edit', 'revoke_sessions'], true)") === false
-        || strpos($adminMembersHelper, '회원 작업 값이 올바르지 않습니다.') === false
+        || strpos($adminMembersHelper, "sr_t('member::action.admin.intent_invalid')") === false
         || strpos($adminMembersHelper, "sr_admin_post_positive_int('account_id')") === false
     ) {
         $errors[] = 'Admin members helper must allowlist member management intents and strict account ids.';
@@ -253,15 +260,15 @@ if (!is_string($adminMembersHelper)) {
 
     if (
         strpos($adminMembersHelper, 'sr_admin_current_roles($pdo, $targetAccountId)') === false
-        || strpos($adminMembersHelper, 'sr_admin_has_role($pdo, (int) $account[\'id\'], [\'owner\'])') === false
-        || strpos($adminMembersHelper, '소유자 계정 상태와 세션은 소유자만 변경할 수 있습니다.') === false
+        || strpos($adminMembersHelper, 'sr_admin_is_owner($pdo, (int) $account[\'id\'])') === false
+        || strpos($adminMembersHelper, "sr_t('member::action.admin.owner_only')") === false
     ) {
         $errors[] = 'Admin members helper must prevent non-owner admins from changing owner accounts.';
     }
 
     if (
         strpos($adminMembersHelper, 'sr_admin_active_owner_count($pdo) <= 1') === false
-        || strpos($adminMembersHelper, '마지막 활성 소유자 계정은 비활성화할 수 없습니다.') === false
+        || strpos($adminMembersHelper, "sr_t('member::action.admin.last_owner_disable_disallowed')") === false
     ) {
         $errors[] = 'Admin members helper must prevent deactivating the last active owner.';
     }
@@ -459,9 +466,12 @@ if (!is_string($memberAccountsHelper)) {
 
 if (is_string($adminRolesHelper) && (
     strpos($adminRolesHelper, "sr_request_contract_mark('role_checked')") === false
-    || strpos($adminRolesHelper, "sr_request_contract_guard_blocked('role')") === false
+    || (
+        strpos($adminRolesHelper, "sr_request_contract_guard_blocked('role')") === false
+        && strpos($adminRolesHelper, "sr_request_contract_guard_blocked('permission')") === false
+    )
 )) {
-    $errors[] = 'Admin role guard must mark request contract role checks and guard-blocked errors.';
+    $errors[] = 'Admin permission guard must mark request contract permission checks and guard-blocked errors.';
 }
 
 $adminPrivacyRequestsHelper = file_get_contents($root . '/modules/privacy/helpers/requests.php');
@@ -745,7 +755,8 @@ if (
     || strpos($communityNotificationsHelper, "function_exists('sr_notification_create')") === false
     || strpos($communityNotificationsHelper, 'catch (Throwable $exception)') === false
     || strpos($communityNotificationsHelper, 'function sr_community_create_admin_report_notifications') === false
-    || strpos($communityNotificationsHelper, "r.role_key IN ('owner', 'admin', 'manager')") === false
+    || strpos($communityNotificationsHelper, "p.menu_path = '/admin/community/reports'") === false
+    || strpos($communityNotificationsHelper, "p.action_key = 'view'") === false
     || strpos($memberAccountsHelper, 'function sr_member_public_account_summaries_by_hash') === false
     || strpos($memberAccountsHelper, 'static $cachedMaps = [];') === false
     || strpos($communityMessagesHelper, 'recipient_account_hash') === false

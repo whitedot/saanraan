@@ -20,7 +20,8 @@ $adminShell = [
     'auxiliary_links' => [],
 ];
 if (isset($pdo) && $pdo instanceof PDO) {
-    $adminShell = sr_admin_shell_view($pdo, $site ?? null, (string) $adminPageTitle, (string) $adminPageSubtitle, (string) $adminContainerClass);
+    $adminShellAccountId = isset($account) && is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $adminShell = sr_admin_shell_view($pdo, $site ?? null, (string) $adminPageTitle, (string) $adminPageSubtitle, (string) $adminContainerClass, $adminShellAccountId);
 }
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';

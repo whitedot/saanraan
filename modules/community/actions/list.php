@@ -18,7 +18,7 @@ if (!is_array($account) && sr_community_board_requires_login($board)) {
 if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
     sr_render_error(403, sr_t('community::action.error.board_view_forbidden'));
 }
-$isAdminWriter = is_array($account) && sr_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 $canWriteBoard = is_array($account) && sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
 

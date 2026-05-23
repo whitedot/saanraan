@@ -198,7 +198,7 @@ function sr_enforce_request_contract(string $stage): void
     }
 
     if (!empty($contract['is_admin']) && empty($contract['role_checked'])) {
-        $violations[] = 'Admin action did not call sr_admin_require_role().';
+        $violations[] = 'Admin action did not call sr_admin_require_permission().';
     }
 
     if ($violations !== []) {

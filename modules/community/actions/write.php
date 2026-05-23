@@ -13,7 +13,7 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 
-$isAdminWriter = sr_admin_has_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+$isAdminWriter = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)) {
     sr_render_error(403, sr_t('community::action.error.board_write_forbidden'));
 }

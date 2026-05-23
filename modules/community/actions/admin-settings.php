@@ -7,11 +7,13 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
 
 $errors = [];
 $notice = '';
 $settings = sr_community_settings($pdo);
+$communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
+$communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
+sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $communityLayoutOptions = sr_public_layout_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $levels = sr_community_levels($pdo);
@@ -29,8 +31,8 @@ foreach ($memberGroups as $memberGroup) {
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'edit');
 
     $intent = sr_post_string('intent', 40);
 

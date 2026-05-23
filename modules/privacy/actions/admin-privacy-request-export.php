@@ -11,7 +11,7 @@ if (sr_request_method() !== 'POST') {
 }
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/privacy-requests', 'view');
 sr_require_csrf();
 
 $requestId = sr_admin_post_positive_int('id');

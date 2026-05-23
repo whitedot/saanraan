@@ -13,7 +13,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 }
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin', 'manager']);
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
 
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = $flashResult['errors'];
@@ -83,8 +83,8 @@ if (!in_array($boardListFilters['field'], ['all', 'key', 'title', 'group'], true
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_role($pdo, (int) $account['id'], ['owner', 'admin']);
     sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'edit');
 
     $intent = sr_post_string('intent', 40);
 
