@@ -2,7 +2,7 @@
 
 return [
     'name' => '관리자',
-    'version' => '2026.05.003',
+    'version' => '2026.05.004',
     'type' => 'module',
     'description' => '관리자 대시보드 모듈입니다.',
     'admin' => [

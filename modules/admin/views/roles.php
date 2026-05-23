@@ -157,6 +157,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <select id="admin-permission-add-group" class="form-select" data-admin-permission-group>
                             <option value="">선택</option>
+                            <option value="__all_groups__">전체</option>
                             <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
                                 <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
                             <?php } ?>
@@ -272,6 +273,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <label class="admin-filter-label" for="<?php echo sr_e($permissionModalId); ?>-group">1차</label>
                                             <select id="<?php echo sr_e($permissionModalId); ?>-group" class="form-select form-control-full" data-admin-permission-group>
                                                 <option value="">선택</option>
+                                                <option value="__all_groups__">전체</option>
                                                 <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
                                                     <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
                                                 <?php } ?>
@@ -352,6 +354,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var groups = <?php echo $permissionPickerJson ?: '[]'; ?>;
     var actionLabels = <?php echo $permissionActionLabelJson ?: '{}'; ?>;
     var actions = <?php echo json_encode(array_values($permissionActions), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+    var allGroupsValue = '__all_groups__';
     var allItemsValue = '__all__';
 
     function option(text, value) {
@@ -373,8 +376,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     function selectedPermissionItems(form) {
         var groupSelect = form ? form.querySelector('[data-admin-permission-group]') : null;
         var itemSelect = form ? form.querySelector('[data-admin-permission-item]') : null;
-        var group = groupSelect ? findGroup(groupSelect.value) : null;
-        if (!group || !itemSelect || itemSelect.value === '') {
+        if (!groupSelect || !itemSelect || itemSelect.value === '') {
+            return [];
+        }
+
+        if (groupSelect.value === allGroupsValue) {
+            var allItems = [];
+            groups.forEach(function (group) {
+                if (Array.isArray(group.items)) {
+                    allItems = allItems.concat(group.items);
+                }
+            });
+            if (itemSelect.value === allItemsValue) {
+                return allItems;
+            }
+            return allItems.filter(function (item) {
+                return item.path === itemSelect.value;
+            });
+        }
+
+        var group = findGroup(groupSelect.value);
+        if (!group) {
             return [];
         }
 
@@ -645,6 +667,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
 
         itemSelect.innerHTML = '';
+        if (groupSelect.value === allGroupsValue) {
+            itemSelect.appendChild(option('전체', allItemsValue));
+            itemSelect.disabled = false;
+            return;
+        }
+
         var group = findGroup(groupSelect.value);
         if (!group) {
             itemSelect.appendChild(option('1차 선택 후 선택', ''));

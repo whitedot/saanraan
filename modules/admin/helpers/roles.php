@@ -186,6 +186,11 @@ function sr_admin_has_permission(PDO $pdo, int $accountId, string $menuPath, str
         return true;
     }
 
+    $ownerOnlyPaths = sr_admin_owner_only_permission_keys();
+    if (isset($ownerOnlyPaths[$menuPath])) {
+        return false;
+    }
+
     if (!sr_admin_permissions_table_exists($pdo)) {
         return false;
     }
@@ -355,6 +360,7 @@ function sr_admin_permission_option_map(PDO $pdo): array
 function sr_admin_owner_only_permission_keys(): array
 {
     return [
+        '/admin/menu' => true,
         '/admin/roles' => true,
         '/admin/updates' => true,
         '/admin/retention' => true,
