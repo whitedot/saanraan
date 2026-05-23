@@ -196,6 +196,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     $autoRuleEvaluationFieldPrefix = 'member_group_auto_rule_evaluation';
     $autoRuleEvaluationAccountInputId = $autoRuleEvaluationFieldPrefix . '_account_identifier';
     $autoRuleEvaluationMemberLookupModalId = $autoRuleEvaluationFieldPrefix . '_member_lookup_modal';
+    $hasAutoRuleEvaluationRules = $memberRuleSourceOptions !== [];
     ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
@@ -245,7 +246,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.list.c78d8209')); ?></h2>
             <div class="admin-row-actions">
                 <a href="<?php echo sr_e(sr_url('/admin/member-groups/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.6de46476')); ?></a>
-                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+                <?php if ($hasAutoRuleEvaluationRules) { ?>
+                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+                <?php } else { ?>
+                    <button type="button" class="btn btn-sm btn-solid-light" data-member-auto-rule-empty data-toast-message="<?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment_empty.2d85364d')); ?>"><?php echo sr_e(sr_t('member::ui.member.auto_rule_assignment.7fc613fd')); ?></button>
+                <?php } ?>
             </div>
         </div>
         <div class="table-wrapper">
@@ -301,56 +306,139 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </section>
 
-    <div id="<?php echo sr_e($autoRuleEvaluationModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" aria-hidden="true" inert>
-        <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="modal-content ui-form-theme">
-                <div class="modal-header">
-                    <h3 id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.32fa0afb')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>">
-                        <?php echo sr_material_icon_html('close'); ?>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <?php echo sr_csrf_field(); ?>
-                    <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
-                            <div class="admin-lookup-control">
-                                <input id="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
-                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></button>
+    <?php if ($hasAutoRuleEvaluationRules) { ?>
+        <div id="<?php echo sr_e($autoRuleEvaluationModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/account')); ?>" class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.32fa0afb')); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>">
+                            <?php echo sr_material_icon_html('close'); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <div class="admin-lookup-control">
+                                    <input id="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
+                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($autoRuleEvaluationMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key"><?php echo sr_e(sr_t('member::ui.member.rule_scope.88eb0d91')); ?></label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key" name="source_module_key" class="form-select">
+                                    <option value=""><?php echo sr_e(sr_t('member::ui.member.rule_scope_all.4f957633')); ?></option>
+                                    <?php foreach ($memberRuleSourceOptions as $sourceOption) { ?>
+                                        <option value="<?php echo sr_e((string) $sourceOption['module_key']); ?>"><?php echo sr_e((string) $sourceOption['label']); ?></option>
+                                    <?php } ?>
+                                </select>
+                                <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.member.evaluation_scope_help.381b1e9c')); ?></p>
                             </div>
                         </div>
                     </div>
-                    <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key"><?php echo sr_e(sr_t('member::ui.member.rule_scope.88eb0d91')); ?></label>
-                        <div class="admin-form-field">
-                            <select id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key" name="source_module_key" class="form-select">
-                                <option value=""><?php echo sr_e(sr_t('member::ui.member.rule_scope_all.4f957633')); ?></option>
-                                <?php foreach ($memberRuleSourceOptions as $sourceOption) { ?>
-                                    <option value="<?php echo sr_e((string) $sourceOption['module_key']); ?>"><?php echo sr_e((string) $sourceOption['label']); ?></option>
-                                <?php } ?>
-                            </select>
-                            <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.member.evaluation_scope_help.381b1e9c')); ?></p>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($autoRuleEvaluationModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-    <?php
-    $assetAdjustLookup = [
-        'field_prefix' => $autoRuleEvaluationFieldPrefix,
-        'member_input_id' => $autoRuleEvaluationAccountInputId,
-        'return_overlay_id' => $autoRuleEvaluationModalId,
-        'return_label' => sr_t('member::ui.member.auto_rule_assignment.7fc613fd'),
-        'member_search_url' => sr_url('/admin/members/search'),
-    ];
-    include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
-    ?>
+        <?php
+        $assetAdjustLookup = [
+            'field_prefix' => $autoRuleEvaluationFieldPrefix,
+            'member_input_id' => $autoRuleEvaluationAccountInputId,
+            'return_overlay_id' => $autoRuleEvaluationModalId,
+            'return_label' => sr_t('member::ui.member.auto_rule_assignment.7fc613fd'),
+            'member_search_url' => sr_url('/admin/members/search'),
+        ];
+        include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+        ?>
+    <?php } else { ?>
+        <script>
+        (function () {
+            'use strict';
+
+            var title = <?php echo json_encode(sr_t('admin::feedback.error_title'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+            var closeLabel = <?php echo json_encode(sr_t('admin::feedback.close_label'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+
+            function closeToast(toast) {
+                if (!toast) {
+                    return;
+                }
+
+                toast.classList.add('is-hiding');
+                window.setTimeout(function () {
+                    var stack = toast.parentElement;
+                    toast.remove();
+                    if (stack && stack.children.length === 0) {
+                        stack.remove();
+                    }
+                }, 180);
+            }
+
+            function toastStack() {
+                var stack = document.querySelector('[data-admin-toast-stack]');
+                if (stack) {
+                    return stack;
+                }
+
+                stack = document.createElement('div');
+                stack.setAttribute('data-admin-toast-stack', '');
+                stack.setAttribute('role', 'status');
+                stack.setAttribute('aria-live', 'polite');
+                stack.setAttribute('aria-atomic', 'false');
+                document.body.appendChild(stack);
+                stack.addEventListener('click', function (event) {
+                    var closeButton = event.target.closest('[data-admin-toast-close]');
+                    if (closeButton) {
+                        closeToast(closeButton.closest('[data-admin-toast]'));
+                    }
+                });
+
+                return stack;
+            }
+
+            function showToast(message) {
+                var toast = document.createElement('div');
+                toast.className = 'admin-flash-message admin-flash-message-error';
+                toast.setAttribute('data-admin-toast', '');
+
+                var strong = document.createElement('strong');
+                strong.textContent = title;
+                var span = document.createElement('span');
+                span.textContent = message;
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-sm btn-icon';
+                button.setAttribute('data-admin-toast-close', '');
+                button.setAttribute('aria-label', closeLabel);
+                button.textContent = 'x';
+
+                toast.appendChild(strong);
+                toast.appendChild(span);
+                toast.appendChild(button);
+                toastStack().appendChild(toast);
+                window.setTimeout(function () {
+                    closeToast(toast);
+                }, 6500);
+            }
+
+            document.addEventListener('click', function (event) {
+                var button = event.target.closest('[data-member-auto-rule-empty]');
+                if (!button) {
+                    return;
+                }
+
+                event.preventDefault();
+                showToast(button.getAttribute('data-toast-message') || '');
+            });
+        }());
+        </script>
+    <?php } ?>
     <?php foreach ($groups as $group) { ?>
         <?php
         $groupId = (int) $group['id'];

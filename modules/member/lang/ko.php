@@ -197,6 +197,7 @@ return [
     'ui.member.ac78ee3c' => '회원 그룹 자동 규칙 생성',
     'ui.member.active.7c7e897d' => '현재 회원가입을 사용할 수 없습니다.',
     'ui.member.auto_rule_assignment.7fc613fd' => '자동규칙배정',
+    'ui.member.auto_rule_assignment_empty.2d85364d' => '배정할 수 있는 자동 규칙이 없습니다. 먼저 회원 그룹 자동 규칙을 추가하세요.',
     'ui.member.bc3daeb8' => '회원 그룹 자동 규칙',
     'ui.member.c879c4be' => '회원 그룹 생성',
     'ui.member.d2605064' => '회원이 없습니다.',
