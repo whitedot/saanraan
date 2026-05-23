@@ -122,7 +122,7 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('community::action.admin.board_skin_saved');
         }
     } elseif (in_array($intent, ['create', 'update'], true)) {
-        $boardKey = sr_post_string('board_key', 60);
+        $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);
         $status = sr_post_string('status', 30);

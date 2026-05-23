@@ -85,7 +85,7 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        $groupKey = sr_post_string('group_key', 60);
+        $groupKey = strtolower(trim(sr_post_string('group_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);
         $status = sr_post_string('status', 30);

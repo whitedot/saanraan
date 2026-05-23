@@ -41,7 +41,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
                 <div class="admin-form-row">
                     <label class="form-label" for="member_admin_groups_group_key"><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" required class="form-input">
+                        <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" pattern="[a-z0-9_]+" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input>
                     </div>
                 </div>
             <?php } ?>
@@ -575,7 +575,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_groups_source_module_key"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
                 <div class="admin-form-field">
-                    <input id="member_admin_groups_source_module_key" type="text" name="source_module_key" maxlength="60" class="form-input">
+                    <input id="member_admin_groups_source_module_key" type="text" name="source_module_key" maxlength="60" pattern="[a-z0-9_]*" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
                 </div>
             </div>
         </section>
@@ -591,7 +591,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
             <div class="admin-form-row">
                 <label class="form-label" for="member_admin_groups_source_module_key_2"><?php echo sr_e(sr_t('member::ui.key.d2f54e12')); ?></label>
                 <div class="admin-form-field">
-                    <input id="member_admin_groups_source_module_key_2" type="text" name="source_module_key" maxlength="60" class="form-input">
+                    <input id="member_admin_groups_source_module_key_2" type="text" name="source_module_key" maxlength="60" pattern="[a-z0-9_]*" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
                 </div>
             </div>
             <div class="admin-form-row">

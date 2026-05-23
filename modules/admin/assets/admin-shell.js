@@ -40,6 +40,30 @@ window.AdminShell = {
         let hideScrollbarTimer = null;
         let themeSaving = false;
 
+        const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+        const syncKeyInputValue = input => {
+            if (!input || input.readOnly || input.disabled) {
+                return;
+            }
+
+            const previousValue = input.value;
+            const nextValue = normalizeKeyInputValue(previousValue);
+            if (previousValue === nextValue) {
+                return;
+            }
+
+            const selectionStart = input.selectionStart;
+            const beforeSelection = typeof selectionStart === 'number' ? previousValue.slice(0, selectionStart) : '';
+            const nextSelectionStart = typeof selectionStart === 'number'
+                ? normalizeKeyInputValue(beforeSelection).length
+                : nextValue.length;
+            input.value = nextValue;
+            if (typeof input.setSelectionRange === 'function') {
+                input.setSelectionRange(nextSelectionStart, nextSelectionStart);
+            }
+        };
+
         const isMobileViewport = () => mobileQuery.matches;
         const systemColorSchemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
@@ -448,6 +472,16 @@ window.AdminShell = {
                 menuResetConfirmedInput.value = '1';
             });
         }
+
+        document.addEventListener('input', event => {
+            const keyInput = event.target && event.target.closest
+                ? event.target.closest('[data-admin-key-input]')
+                : null;
+            if (keyInput) {
+                syncKeyInputValue(keyInput);
+            }
+        });
+        document.querySelectorAll('[data-admin-key-input]').forEach(syncKeyInputValue);
 
         if (sortableRows.length > 0) {
             let draggedRow = null;

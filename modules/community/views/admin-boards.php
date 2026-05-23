@@ -283,7 +283,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_boards_board_key"><?php echo sr_e(sr_t('community::ui.key.cf056766')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="community_admin_boards_board_key" type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" required>
+                        <input id="community_admin_boards_board_key" type="text" name="board_key" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'board_key')); ?>" class="form-input" pattern="[a-z0-9_]+" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input>
                     </div>
                 </div>
             <?php } ?>

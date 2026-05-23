@@ -39,7 +39,7 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, $intent === 'revoke_manual' ? 'delete' : 'edit');
     if ($intent === 'save_group') {
         $groupId = sr_admin_post_positive_int('group_id');
-        $groupKey = sr_post_string('group_key', 60);
+        $groupKey = strtolower(trim(sr_post_string('group_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);
         $status = sr_post_string('status', 30);
@@ -198,7 +198,7 @@ if (sr_request_method() === 'POST') {
             $targetAccountIdentifier = sr_post_string('account_id', 80);
         }
         $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, $runtimeConfig, $targetAccountField, $targetAccountIdentifier);
-        $sourceModuleKey = sr_post_string('source_module_key', 60);
+        $sourceModuleKey = strtolower(trim(sr_post_string('source_module_key', 60)));
         $limit = sr_admin_post_int_in_range('limit', 1, 200);
 
         if ($intent === 'evaluate_account' && $targetAccountId < 1) {
