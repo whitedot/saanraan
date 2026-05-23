@@ -115,8 +115,8 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'blank' => '새 창',
         ],
         'evaluation_policy' => [
-            'grant_only' => '조건 충족 시 부여',
-            'sync' => '조건에 맞춰 동기화',
+            'grant_only' => '조건 달성 후 계속 유지',
+            'sync' => '조건 미충족 시 자동 회수',
         ],
         'assignment_type' => [
             'manual' => '수동',

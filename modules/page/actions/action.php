@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/page/helpers.php';
+require_once SR_ROOT . '/modules/page/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -19,6 +20,7 @@ if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
 
 $result = sr_page_run_asset_action($pdo, $page, (int) $account['id']);
 if (!empty($result['completed'])) {
+    sr_page_member_group_evaluate_after_activity($pdo, (int) $account['id']);
     $directionLabel = (string) ($result['direction'] ?? '') === 'use' ? '차감' : '지급';
     $_SESSION['sr_page_action_notice'] = (string) ($result['asset_label'] ?? '회원 자산') . ' '
         . number_format((int) ($result['amount'] ?? 0)) . ' ' . $directionLabel . ' 처리되었습니다.';

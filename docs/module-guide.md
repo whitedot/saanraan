@@ -918,9 +918,10 @@ return [
 - 배열을 반환한다.
 - 각 항목은 `rule_key`, `label`, 선택 `description`, 선택 `params`, `evaluator`를 가진다.
 - `rule_key`는 `{module_key}.domain.condition` 형태로 제공 모듈 key로 시작한다.
-- `params`는 관리자 설정 UI와 JSON 저장 검증에 사용할 parameter schema이다.
+- `params`는 관리자 설정 UI와 JSON 저장 검증에 사용할 parameter schema이다. 파라미터가 게시판, 게시판 그룹, 페이지, 페이지 그룹처럼 기존 도메인 대상을 고르는 값이면 숫자 직접 입력 대신 `options` 또는 `options_callback`으로 선택지를 제공한다.
 - `evaluator` callable 형식은 `function (PDO $pdo, int $accountId, array $params): array`이다.
 - evaluator는 자기 모듈 테이블만 조회하고 member 그룹 membership을 직접 변경하지 않는다.
+- 평가 실행은 회원 모듈의 로그인 성공, 관리자 단일/일괄 재평가, 그리고 각 제공 모듈이 명시적으로 연결한 도메인 이벤트에서 일어난다. 예를 들어 페이지 모듈은 유료 열람, 유료 파일 다운로드, 완료 버튼 자산 처리 성공 직후 `source_module_key=page` 규칙만 재평가한다.
 
 `dashboard.php`:
 
@@ -980,7 +981,7 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php` | 없음 |
+| `page` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php` | 없음 |
 | `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
@@ -1140,11 +1141,11 @@ return [
 - 화면 소유 모듈은 팝업 전용 호출을 따로 두지 않고 필요한 content slot에서 `sr_render_output_slot()`을 호출한다.
 - 팝업레이어 모듈은 자신의 `output-slots.php`에서 저장된 대상 규칙, 기간, 닫기 유지 정책을 검증한 뒤 해당 slot에 출력할 HTML을 반환한다.
 
-번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다. 페이지 그룹은 `sr_page_groups`가 소유하고 페이지는 `sr_pages.page_group_id`로 선택적으로 연결한다. 페이지 생성/수정 화면의 `그룹적용`은 같은 페이지 그룹의 페이지에, `전체적용`은 전체 페이지에, `여기만적용`은 현재 페이지만 현재 입력값을 저장한다. 상태, 페이지 레이아웃, 배너, 팝업레이어, 유료 열람, 완료 액션의 적용 범위는 섹션 단위가 아니라 각 입력 항목별로 선택한다. 페이지 그룹은 `sr_page_group_settings`에 상태, 페이지 레이아웃, 배너, 팝업레이어, 유료 열람, 완료 액션, 새 파일 과금 기본값을 저장하고 페이지별 `sr_page_setting_sources`는 기존 호환과 적용 상태 기록에 사용한다. 사용 상태의 페이지 그룹은 `/pages/group?key={group_key}` 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보, 초기화면 후보로 노출된다. 페이지별 공개 레이아웃은 `sr_pages.layout_key`에 저장하고 revision 기록을 위해 `sr_page_revisions.layout_key`에도 함께 남긴다. 페이지나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 페이지 모듈의 공개 페이지와 페이지 그룹은 관리자 설정의 `화면` 섹션에서 초기화면 후보로 제공되지만 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
+번들 페이지 모듈은 `page.view` point와 `before_content`, `after_content` content slot을 제공한다. 배너/팝업레이어 관리 화면에서 페이지 전체 또는 특정 페이지 ID를 대상으로 출력 규칙을 저장할 수 있고, 페이지 관리자 화면에서는 공용 배너/팝업레이어를 직접 선택할 수도 있다. 페이지 그룹은 `sr_page_groups`가 소유하고 페이지는 `sr_pages.page_group_id`로 선택적으로 연결한다. 페이지 생성/수정 화면의 `그룹적용`은 같은 페이지 그룹의 페이지에, `전체적용`은 전체 페이지에, `여기만적용`은 현재 페이지만 현재 입력값을 저장한다. 상태, 페이지 레이아웃, 배너, 팝업레이어, 유료 열람, 완료 버튼 자산 처리의 적용 범위는 섹션 단위가 아니라 각 입력 항목별로 선택한다. 페이지 그룹은 `sr_page_group_settings`에 상태, 페이지 레이아웃, 배너, 팝업레이어, 유료 열람, 완료 버튼 자산 처리, 새 파일 과금 기본값을 저장하고 페이지별 `sr_page_setting_sources`는 기존 호환과 적용 상태 기록에 사용한다. 사용 상태의 페이지 그룹은 `/pages/group?key={group_key}` 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보, 초기화면 후보로 노출된다. 페이지별 공개 레이아웃은 `sr_pages.layout_key`에 저장하고 revision 기록을 위해 `sr_page_revisions.layout_key`에도 함께 남긴다. 페이지나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 페이지 모듈의 공개 페이지와 페이지 그룹은 관리자 설정의 `화면` 섹션에서 초기화면 후보로 제공되지만 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
 
-페이지 유료 열람, 다운로드 과금, 완료 액션은 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/적립금/예치금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시하며, 우선순위 안내 문구도 활성 자산만 나열한다. 차감 계열 설정은 여러 자산을 함께 선택할 수 있다. 차감 우선순위: 포인트 > 적립금 > 예치금. 지급 계열은 첫 번째 선택 자산을 사용해 지급 의미가 섞이지 않도록 한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 액션 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 로그는 페이지 모듈의 `privacy-export.php`에 포함한다.
+페이지 유료 열람, 다운로드 과금, 완료 버튼 자산 처리는 페이지 모듈이 접근/액션 정책과 로그를 소유하고, 포인트/적립금/예치금 모듈의 잔액 조회와 원장 생성 helper만 호출한다. 완료 버튼 자산 처리는 공개 페이지에서 회원이 버튼을 눌렀을 때만 실행되며, 단순 페이지 조회는 포함하지 않는다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시하며, 우선순위 안내 문구도 활성 자산만 나열한다. 차감 계열 설정은 여러 자산을 함께 선택할 수 있다. 차감 우선순위: 포인트 > 적립금 > 예치금. 지급 계열은 첫 번째 선택 자산을 사용해 지급 의미가 섞이지 않도록 한다. 결제 자산 모듈은 페이지 도메인을 알 필요가 없으며, 거래 참조는 열람 `reference_type=page.view`, 다운로드 `reference_type=page.download`, 완료 버튼 자산 처리 `reference_type=page.action`으로 남긴다. 계정별 열람/다운로드/완료 버튼 처리 로그는 페이지 모듈의 `privacy-export.php`에 포함한다. 페이지 모듈은 이 세 로그를 기준으로 전체/특정 페이지/특정 페이지 그룹 회원 그룹 자동 규칙을 제공하고, 성공 로그가 생긴 직후 페이지 출처 규칙을 즉시 재평가한다.
 
-커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/적립금/예치금 증감은 활성 자산 모듈 helper를 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시하며, 우선순위 안내 문구도 활성 자산만 나열한다. 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 여러 자산을 함께 선택할 수 있다. 차감 우선순위: 포인트 > 적립금 > 예치금. 게시글/댓글 적립은 단일 자산 지급으로 유지한다. 게시판의 접근, 첨부, 배너, 팝업레이어, 게시글 적립, 댓글 적립, 글쓰기 차감, 댓글 차감, 유료 열람, 첨부 다운로드 차감은 각 항목 우측의 `그룹적용`/`전체적용`/`여기만적용` 라디오로 같은 게시판 그룹, 전체 게시판, 현재 게시판에 현재 입력값을 저장한다. 회원 자산 항목 안에서도 사용 여부, 자산, 금액, 과금 방식의 적용 범위는 각각 저장한다. 별도 적용값 미리보기 문구는 표시하지 않는다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 `sr_community_asset_logs.dedupe_key`로 처리하며, 계정별 자산 로그는 커뮤니티 모듈의 `privacy-export.php`에 포함한다.
+커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/적립금/예치금 증감은 활성 자산 모듈 helper를 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시하며, 우선순위 안내 문구도 활성 자산만 나열한다. 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 여러 자산을 함께 선택할 수 있다. 차감 우선순위: 포인트 > 적립금 > 예치금. 게시글/댓글 적립은 단일 자산 지급으로 유지한다. 게시판의 접근, 첨부, 배너, 팝업레이어, 게시글 적립, 댓글 적립, 글쓰기 차감, 댓글 차감, 유료 열람, 첨부 다운로드 차감은 각 항목 우측의 `그룹적용`/`전체적용`/`여기만적용` 라디오로 같은 게시판 그룹, 전체 게시판, 현재 게시판에 현재 입력값을 저장한다. 회원 자산 항목 안에서도 사용 여부, 자산, 금액, 과금 방식의 적용 범위는 각각 저장한다. 커뮤니티 자동 회원 그룹 규칙은 전체 활동, 특정 게시판, 특정 게시판 그룹 기준을 제공하고, 게시판과 게시판 그룹 대상은 관리자 화면에서 선택 셀렉트로 고른다. 별도 적용값 미리보기 문구는 표시하지 않는다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 `sr_community_asset_logs.dedupe_key`로 처리하며, 계정별 자산 로그는 커뮤니티 모듈의 `privacy-export.php`에 포함한다.
 
 회원 탈퇴는 member 모듈이 조정하되 잔액 처리는 각 자산 모듈의 원장 helper를 호출한다. 탈퇴 화면은 포인트/적립금/예치금 잔액이 남아 있을 때만 남은 자산 처리 섹션을 표시한다. 포인트와 적립금은 `member.withdrawal` 참조의 `expire` 거래로 0 처리하고, 예치금은 환불 은행/예금주/계좌번호를 입력받은 뒤 `member.withdrawal` 참조의 `withdraw` 거래로 0 처리한다. 이 자산 원장 처리는 프로필 삭제, 세션 폐기, 동의 철회, 계정 익명화와 같은 탈퇴 트랜잭션 안에서 수행한다.
 

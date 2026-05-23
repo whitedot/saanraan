@@ -63,6 +63,7 @@ return [
                 'label' => sr_t('community::ui.text.4732a58f'),
                 'type' => 'subject',
                 'default' => 0,
+                'options_callback' => 'sr_community_member_group_rule_board_options',
             ],
             [
                 'key' => 'min_count',
@@ -74,5 +75,51 @@ return [
             ],
         ],
         'evaluator' => 'sr_community_member_group_rule_post_count_at_least',
+    ],
+    [
+        'rule_key' => 'community.board_group.post_count_at_least',
+        'label' => sr_t('community::member_group.rule.board_group_post_count.label'),
+        'description' => sr_t('community::member_group.rule.board_group_post_count.description'),
+        'params' => [
+            [
+                'key' => 'board_group_id',
+                'label' => sr_t('community::member_group.param.board_group'),
+                'type' => 'subject',
+                'default' => 0,
+                'options_callback' => 'sr_community_member_group_rule_board_group_options',
+            ],
+            [
+                'key' => 'min_count',
+                'label' => sr_t('community::ui.text.5df51859'),
+                'type' => 'int',
+                'min' => 1,
+                'max' => 1000,
+                'default' => 5,
+            ],
+        ],
+        'evaluator' => 'sr_community_member_group_rule_board_group_post_count_at_least',
+    ],
+    [
+        'rule_key' => 'community.board_group.comment_count_at_least',
+        'label' => sr_t('community::member_group.rule.board_group_comment_count.label'),
+        'description' => sr_t('community::member_group.rule.board_group_comment_count.description'),
+        'params' => [
+            [
+                'key' => 'board_group_id',
+                'label' => sr_t('community::member_group.param.board_group'),
+                'type' => 'subject',
+                'default' => 0,
+                'options_callback' => 'sr_community_member_group_rule_board_group_options',
+            ],
+            [
+                'key' => 'min_count',
+                'label' => sr_t('community::ui.text.697632bb'),
+                'type' => 'int',
+                'min' => 1,
+                'max' => 1000,
+                'default' => 5,
+            ],
+        ],
+        'evaluator' => 'sr_community_member_group_rule_board_group_comment_count_at_least',
     ],
 ];

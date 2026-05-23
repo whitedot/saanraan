@@ -19,6 +19,115 @@ $groupStatusCounts = isset($groupStatusCounts) && is_array($groupStatusCounts) ?
 $membershipsByGroupId = isset($membershipsByGroupId) && is_array($membershipsByGroupId) ? $membershipsByGroupId : [];
 $membershipLogsByGroupId = isset($membershipLogsByGroupId) && is_array($membershipLogsByGroupId) ? $membershipLogsByGroupId : [];
 $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
+$memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, bool $focusFirst = false) use ($allowedEvaluationPolicies, $allowedRuleStatuses, $groups, $pdo, $ruleDefinitions): void {
+    $currentDefinitionKey = is_array($formRule) ? (string) $formRule['source_module_key'] . ':' . (string) $formRule['rule_key'] : '';
+    $currentRuleParams = [];
+    if (is_array($formRule)) {
+        $decodedRuleParams = json_decode((string) $formRule['rule_params_json'], true);
+        $currentRuleParams = is_array($decodedRuleParams) ? $decodedRuleParams : [];
+    }
+    $groupFieldId = $fieldPrefix . '_group_id';
+    $definitionFieldId = $fieldPrefix . '_definition_key';
+    $evaluationPolicyFieldId = $fieldPrefix . '_evaluation_policy';
+    $statusFieldId = $fieldPrefix . '_status';
+    $focusAttr = $focusFirst ? ' data-overlay-focus' : '';
+    ?>
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($formRule) ? (string) $formRule['id'] : ''); ?>">
+    <div class="admin-form-row">
+        <label class="form-label" for="<?php echo sr_e($groupFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.5034bb32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <div class="admin-form-field">
+            <select id="<?php echo sr_e($groupFieldId); ?>" name="group_id" required class="form-select"<?php echo $focusAttr; ?>>
+                <?php foreach ($groups as $group) { ?>
+                    <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($formRule) && (int) $formRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+    </div>
+    <div class="admin-form-row">
+        <label class="form-label" for="<?php echo sr_e($definitionFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.7a1e6434')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <div class="admin-form-field">
+            <select id="<?php echo sr_e($definitionFieldId); ?>" name="definition_key" required data-member-rule-definition class="form-select">
+                <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
+                    <option value="<?php echo sr_e((string) $definitionKey); ?>"<?php echo $currentDefinitionKey === (string) $definitionKey ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $definition['label']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+    </div>
+    <div class="admin-form-row">
+        <span class="form-label"><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span>
+        <div class="admin-form-field">
+            <div class="member-rule-param-panels" data-member-rule-param-panels>
+                <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
+                    <?php $panelActive = $currentDefinitionKey === (string) $definitionKey || ($currentDefinitionKey === '' && $definitionKey === array_key_first($ruleDefinitions)); ?>
+                    <div class="member-rule-param-panel"<?php echo $panelActive ? '' : ' hidden'; ?> data-rule-param-panel="<?php echo sr_e((string) $definitionKey); ?>">
+                        <?php if ((string) ($definition['description'] ?? '') !== '') { ?>
+                            <p><?php echo sr_e((string) $definition['description']); ?></p>
+                        <?php } ?>
+                        <?php if (($definition['params'] ?? []) === []) { ?>
+                            <p><?php echo sr_e(sr_t('member::ui.settings.1ca7d0dd')); ?></p>
+                        <?php } ?>
+                        <?php foreach ((array) ($definition['params'] ?? []) as $param) { ?>
+                            <?php
+                            $paramKey = (string) ($param['key'] ?? '');
+                            $paramType = (string) ($param['type'] ?? 'string');
+                            $paramValue = array_key_exists($paramKey, $currentRuleParams) ? $currentRuleParams[$paramKey] : ($param['default'] ?? '');
+                            $paramFieldId = $fieldPrefix . '_param_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $definitionKey . '_' . $paramKey);
+                            $paramOptions = sr_member_group_rule_param_options($pdo, $param);
+                            ?>
+                            <label class="admin-filter-field" for="<?php echo sr_e($paramFieldId); ?>">
+                                <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
+                                <?php if ($paramType === 'bool') { ?>
+                                    <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
+                                        <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.2eb73fba')); ?></option>
+                                        <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.4c490f1c')); ?></option>
+                                    </select>
+                                <?php } elseif ($paramOptions !== []) { ?>
+                                    <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
+                                        <?php foreach ($paramOptions as $option) { ?>
+                                            <option value="<?php echo sr_e((string) $option['value']); ?>"<?php echo (string) $paramValue === (string) $option['value'] ? ' selected' : ''; ?>>
+                                                <?php echo sr_e((string) $option['label']); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                <?php } elseif ($paramType === 'int' || $paramType === 'subject') { ?>
+                                    <input id="<?php echo sr_e($paramFieldId); ?>" type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
+                                <?php } else { ?>
+                                    <input id="<?php echo sr_e($paramFieldId); ?>" type="text" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
+                                <?php } ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+    <div class="admin-form-row">
+        <label class="form-label" for="<?php echo sr_e($evaluationPolicyFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <div class="admin-form-field">
+            <select id="<?php echo sr_e($evaluationPolicyFieldId); ?>" name="evaluation_policy" class="form-select">
+                <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
+                    <option value="<?php echo sr_e($policy); ?>"<?php echo is_array($formRule) && (string) $formRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+    </div>
+    <div class="admin-form-row">
+        <label class="form-label" for="<?php echo sr_e($statusFieldId); ?>"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <div class="admin-form-field">
+            <select id="<?php echo sr_e($statusFieldId); ?>" name="status" class="form-select">
+                <?php foreach ($allowedRuleStatuses as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo is_array($formRule) && (string) $formRule['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+    </div>
+    <?php
+};
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -405,7 +514,7 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/member-group-rules/new')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></a>
+            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
         </div>
         <div class="table-wrapper">
         <table class="table">
@@ -448,107 +557,31 @@ $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
         </table>
         </div>
     </section>
+
+    <div id="member-group-rule-create-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member_group_rule_create_modal_title" aria-hidden="true" inert>
+        <div class="modal-dialog modal-dialog-lg">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="member_group_rule_create_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.eee300ae')); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-create-modal">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php $memberRuleFormFields(null, 'member_group_rule_create_modal', true); ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('member::ui.save.95d3fea1')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
             <h2><?php echo is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae'); ?></h2>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($editRule) ? (string) $editRule['id'] : ''); ?>">
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_group_id"><?php echo sr_e(sr_t('member::ui.text.5034bb32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <select id="member_admin_groups_group_id" name="group_id" required class="form-select">
-                                            <?php foreach ($groups as $group) { ?>
-                                                <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($editRule) && (int) $editRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
-                                                </option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_definition_key"><?php echo sr_e(sr_t('member::ui.text.7a1e6434')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <select id="member_admin_groups_definition_key" name="definition_key" required data-member-rule-definition class="form-select">
-                                            <?php $currentDefinitionKey = is_array($editRule) ? (string) $editRule['source_module_key'] . ':' . (string) $editRule['rule_key'] : ''; ?>
-                                            <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
-                                                <option value="<?php echo sr_e((string) $definitionKey); ?>"<?php echo $currentDefinitionKey === (string) $definitionKey ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e((string) $definition['label']); ?>
-                                                </option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span>
-                <div class="admin-form-field">
-                    <?php
-                    $currentRuleParams = [];
-                    if (is_array($editRule)) {
-                        $decodedRuleParams = json_decode((string) $editRule['rule_params_json'], true);
-                        $currentRuleParams = is_array($decodedRuleParams) ? $decodedRuleParams : [];
-                    }
-                    ?>
-                    <div class="member-rule-param-panels" data-member-rule-param-panels>
-                        <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
-                            <?php $panelActive = $currentDefinitionKey === (string) $definitionKey || ($currentDefinitionKey === '' && $definitionKey === array_key_first($ruleDefinitions)); ?>
-                            <div class="member-rule-param-panel"<?php echo $panelActive ? '' : ' hidden'; ?> data-rule-param-panel="<?php echo sr_e((string) $definitionKey); ?>">
-                                <?php if ((string) ($definition['description'] ?? '') !== '') { ?>
-                                    <p><?php echo sr_e((string) $definition['description']); ?></p>
-                                <?php } ?>
-                                <?php if (($definition['params'] ?? []) === []) { ?>
-                                    <p><?php echo sr_e(sr_t('member::ui.settings.1ca7d0dd')); ?></p>
-                                <?php } ?>
-                                <?php foreach ((array) ($definition['params'] ?? []) as $param) { ?>
-                                    <?php
-                                    $paramKey = (string) ($param['key'] ?? '');
-                                    $paramType = (string) ($param['type'] ?? 'string');
-                                    $paramValue = array_key_exists($paramKey, $currentRuleParams) ? $currentRuleParams[$paramKey] : ($param['default'] ?? '');
-                                    $paramFieldId = 'member_rule_param_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $definitionKey . '_' . $paramKey);
-                                    ?>
-                                    <label class="admin-filter-field" for="<?php echo sr_e($paramFieldId); ?>">
-                                        <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
-                                        <?php if ($paramType === 'bool') { ?>
-                                            <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
-                                                <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.2eb73fba')); ?></option>
-                                                <option value="0"<?php echo empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.4c490f1c')); ?></option>
-                                            </select>
-                                        <?php } elseif ($paramType === 'int' || $paramType === 'subject') { ?>
-                                            <input id="<?php echo sr_e($paramFieldId); ?>" type="number" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo isset($param['min']) ? ' min="' . sr_e((string) $param['min']) . '"' : ''; ?><?php echo isset($param['max']) ? ' max="' . sr_e((string) $param['max']) . '"' : ''; ?><?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
-                                        <?php } else { ?>
-                                            <input id="<?php echo sr_e($paramFieldId); ?>" type="text" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]" value="<?php echo sr_e((string) $paramValue); ?>"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-input">
-                                        <?php } ?>
-                                    </label>
-                                <?php } ?>
-                            </div>
-                        <?php } ?>
-                    </div>
-                    <details class="admin-advanced-details">
-                        <summary><?php echo sr_e(sr_t('member::ui.json.663601a1')); ?></summary>
-                        <textarea name="rule_params_json" rows="4" cols="70" class="form-textarea"><?php echo sr_e(is_array($editRule) ? (string) $editRule['rule_params_json'] : '{}'); ?></textarea>
-                    </details>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_evaluation_policy"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <select id="member_admin_groups_evaluation_policy" name="evaluation_policy" class="form-select">
-                                            <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
-                                                <option value="<?php echo sr_e($policy); ?>"<?php echo is_array($editRule) && (string) $editRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?></option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status_2"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
-                    <select id="member_admin_groups_status_2" name="status" class="form-select">
-                                            <?php foreach ($allowedRuleStatuses as $status) { ?>
-                                                <option value="<?php echo sr_e($status); ?>"<?php echo is_array($editRule) && (string) $editRule['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
-                                            <?php } ?>
-                                        </select>
-                </div>
-            </div>
+            <?php $memberRuleFormFields(is_array($editRule) ? $editRule : null, 'member_admin_groups_rule_form'); ?>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>

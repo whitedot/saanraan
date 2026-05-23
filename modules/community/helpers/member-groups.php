@@ -6,9 +6,24 @@ function sr_community_member_group_rule_board_options(PDO $pdo): array
 {
     $options = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
+        $groupTitle = trim((string) ($board['board_group_title'] ?? ''));
+        $label = $groupTitle !== '' ? $groupTitle . ' / ' . (string) $board['title'] : (string) $board['title'];
         $options[] = [
             'value' => (string) $board['id'],
-            'label' => (string) $board['title'],
+            'label' => $label . ' (' . (string) $board['board_key'] . ')',
+        ];
+    }
+
+    return $options;
+}
+
+function sr_community_member_group_rule_board_group_options(PDO $pdo): array
+{
+    $options = [];
+    foreach (sr_community_enabled_board_groups($pdo) as $group) {
+        $options[] = [
+            'value' => (string) $group['id'],
+            'label' => (string) $group['title'] . ' (' . (string) $group['group_key'] . ')',
         ];
     }
 
@@ -50,6 +65,67 @@ function sr_community_member_group_rule_post_count_at_least(PDO $pdo, int $accou
         'matched' => $count >= $minCount,
         'metric' => $count,
         'summary' => sr_t('community::member_group.summary.posts', ['count' => (string) $count]),
+    ];
+}
+
+function sr_community_member_group_rule_board_group_post_count_at_least(PDO $pdo, int $accountId, array $params): array
+{
+    $groupId = (int) ($params['board_group_id'] ?? 0);
+    $minCount = max(1, (int) ($params['min_count'] ?? 1));
+    if ($accountId < 1 || $groupId < 1) {
+        return ['matched' => false, 'metric' => 0, 'summary' => sr_t('community::member_group.summary.posts', ['count' => '0'])];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS count_value
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE p.author_account_id = :account_id
+           AND b.board_group_id = :board_group_id
+           AND p.status = 'published'"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'board_group_id' => $groupId,
+    ]);
+    $row = $stmt->fetch();
+    $count = is_array($row) ? (int) $row['count_value'] : 0;
+
+    return [
+        'matched' => $count >= $minCount,
+        'metric' => $count,
+        'summary' => sr_t('community::member_group.summary.posts', ['count' => (string) $count]),
+    ];
+}
+
+function sr_community_member_group_rule_board_group_comment_count_at_least(PDO $pdo, int $accountId, array $params): array
+{
+    $groupId = (int) ($params['board_group_id'] ?? 0);
+    $minCount = max(1, (int) ($params['min_count'] ?? 1));
+    if ($accountId < 1 || $groupId < 1) {
+        return ['matched' => false, 'metric' => 0, 'summary' => sr_t('community::member_group.summary.comments', ['count' => '0'])];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS count_value
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE c.author_account_id = :account_id
+           AND b.board_group_id = :board_group_id
+           AND c.status = 'published'"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'board_group_id' => $groupId,
+    ]);
+    $row = $stmt->fetch();
+    $count = is_array($row) ? (int) $row['count_value'] : 0;
+
+    return [
+        'matched' => $count >= $minCount,
+        'metric' => $count,
+        'summary' => sr_t('community::member_group.summary.comments', ['count' => (string) $count]),
     ];
 }
 

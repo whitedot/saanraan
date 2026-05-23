@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/page/helpers.php';
+require_once SR_ROOT . '/modules/page/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 
 $fileId = (int) sr_get_string('id', 20);
@@ -16,6 +17,9 @@ if (sr_page_file_download_required($file)) {
     $downloadAccess = sr_page_charge_file_download($pdo, $file, (int) $account['id']);
     if (empty($downloadAccess['allowed'])) {
         sr_render_error(403, (string) ($downloadAccess['message'] ?? sr_t('page::action.error.download_forbidden')));
+    }
+    if (!empty($downloadAccess['charged'])) {
+        sr_page_member_group_evaluate_after_activity($pdo, (int) $account['id']);
     }
 }
 

@@ -111,10 +111,10 @@ if (sr_request_method() === 'POST') {
         $ruleId = sr_admin_post_positive_int('rule_id');
         $groupId = sr_admin_post_positive_int('group_id');
         $definitionKey = sr_post_string('definition_key', 200);
-        $ruleParamsJson = sr_post_string_without_truncation('rule_params_json', 5000);
         $ruleParamInputs = $_POST['rule_param'][$definitionKey] ?? null;
         $evaluationPolicy = sr_post_string('evaluation_policy', 30);
         $status = sr_post_string('status', 30);
+        $decodedParams = [];
 
         if ($groupId < 1 || !is_array(sr_member_group_by_id($pdo, $groupId))) {
             $errors[] = sr_t('member::action.admin_groups.rule_group_required');
@@ -124,19 +124,12 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('member::action.admin_groups.rule_definition_invalid');
         }
 
-        if (is_array($ruleParamInputs) && isset($ruleDefinitions[$definitionKey])) {
-            $decodedParams = sr_member_group_rule_params_from_input($ruleDefinitions[$definitionKey], $ruleParamInputs);
-            $ruleParamsJson = '{}';
-        } elseif ($ruleParamsJson === null) {
-            $errors[] = sr_t('member::action.admin_groups.rule_json_too_long');
-            $ruleParamsJson = '{}';
-            $decodedParams = [];
-        } else {
-            $decodedParams = json_decode((string) $ruleParamsJson, true);
-            if (!is_array($decodedParams)) {
-                $errors[] = sr_t('member::action.admin_groups.rule_json_invalid');
-                $decodedParams = [];
-            }
+        if (isset($ruleDefinitions[$definitionKey])) {
+            $decodedParams = sr_member_group_rule_params_from_input(
+                $ruleDefinitions[$definitionKey],
+                is_array($ruleParamInputs) ? $ruleParamInputs : [],
+                $pdo
+            );
         }
 
         if (!in_array($evaluationPolicy, $allowedEvaluationPolicies, true)) {

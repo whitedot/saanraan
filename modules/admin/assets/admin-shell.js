@@ -34,7 +34,7 @@ window.AdminShell = {
         const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
-        const memberRuleDefinition = document.querySelector('[data-member-rule-definition]');
+        const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
         let hideScrollbarTimer = null;
@@ -693,8 +693,9 @@ window.AdminShell = {
             }
         }
 
-        if (memberRuleDefinition) {
-            const panels = Array.prototype.slice.call(document.querySelectorAll('[data-rule-param-panel]'));
+        memberRuleDefinitions.forEach(memberRuleDefinition => {
+            const root = memberRuleDefinition.closest('form') || document;
+            const panels = Array.prototype.slice.call(root.querySelectorAll('[data-rule-param-panel]'));
             const syncRuleParamPanel = () => {
                 panels.forEach(panel => {
                     const active = panel.dataset.ruleParamPanel === memberRuleDefinition.value;
@@ -706,7 +707,7 @@ window.AdminShell = {
             };
             memberRuleDefinition.addEventListener('change', syncRuleParamPanel);
             syncRuleParamPanel();
-        }
+        });
 
         if (dateQuickButtons.length > 0) {
             const toLocalDatetimeValue = date => {

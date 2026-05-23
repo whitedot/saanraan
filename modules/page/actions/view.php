@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/page/helpers.php';
+require_once SR_ROOT . '/modules/page/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
@@ -22,6 +23,9 @@ $pageAccess = ['allowed' => true, 'charged' => false, 'message' => ''];
 if (sr_page_asset_access_required($page)) {
     $account = sr_member_require_login($pdo);
     $pageAccess = sr_page_charge_view_access($pdo, $page, (int) $account['id']);
+    if (!empty($pageAccess['charged'])) {
+        sr_page_member_group_evaluate_after_activity($pdo, (int) $account['id']);
+    }
 }
 
 $pageFiles = sr_page_files_for_page($pdo, (int) $page['id']);

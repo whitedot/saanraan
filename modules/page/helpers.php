@@ -1193,11 +1193,11 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
         'asset_module' => '차감 자산',
         'asset_access_amount' => '차감 금액',
         'asset_charge_policy' => '과금 방식',
-        'asset_action_enabled' => '완료 액션 사용',
-        'asset_action_module' => '완료 액션 대상 자산',
-        'asset_action_amount' => '완료 액션 금액',
-        'asset_action_direction' => '완료 액션 처리 방향',
-        'asset_action_label' => '완료 액션 버튼 문구',
+        'asset_action_enabled' => '완료 버튼 사용',
+        'asset_action_module' => '완료 버튼 대상 자산',
+        'asset_action_amount' => '완료 버튼 금액',
+        'asset_action_direction' => '완료 버튼 처리 방향',
+        'asset_action_label' => '완료 버튼 문구',
     ] as $settingKey => $sourceLabel) {
         $sourceLabels['source_' . $settingKey] = $sourceLabel;
     }
@@ -1248,22 +1248,22 @@ function sr_page_validate_input(PDO $pdo, array $values, int $pageId = 0, array 
     if ((int) ($values['asset_action_enabled'] ?? 0) === 1) {
         $assetModules = sr_page_asset_module_keys_from_value($values['asset_action_module'] ?? '');
         if ($assetModules === []) {
-            $errors[] = '완료 액션 자산이 올바르지 않습니다.';
+            $errors[] = '완료 버튼 대상 자산이 올바르지 않습니다.';
         } elseif (!sr_page_asset_modules_available($pdo, $assetModules)) {
-            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 완료 액션 자산으로 사용할 수 있습니다.';
+            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 완료 버튼 대상 자산으로 사용할 수 있습니다.';
         }
 
         $amount = (int) ($values['asset_action_amount'] ?? 0);
         if ($amount < 1 || $amount > 999999999) {
-            $errors[] = '완료 액션 금액은 1부터 999999999 사이로 입력하세요.';
+            $errors[] = '완료 버튼 금액은 1부터 999999999 사이로 입력하세요.';
         }
 
         if (!isset(sr_page_asset_action_directions()[(string) ($values['asset_action_direction'] ?? '')])) {
-            $errors[] = '완료 액션 지급/차감 방향이 올바르지 않습니다.';
+            $errors[] = '완료 버튼 지급/차감 방향이 올바르지 않습니다.';
         }
 
         if ((string) ($values['asset_action_label'] ?? '') === '') {
-            $errors[] = '완료 액션 버튼 문구를 입력하세요.';
+            $errors[] = '완료 버튼 문구를 입력하세요.';
         }
     }
 
@@ -2349,11 +2349,11 @@ function sr_page_run_asset_action(PDO $pdo, array $page, int $accountId): array
     $amount = (int) ($page['asset_action_amount'] ?? 0);
 
     if ($pageId <= 0 || $accountId <= 0 || !sr_page_asset_action_required($page)) {
-        return ['allowed' => false, 'completed' => false, 'message' => '완료 액션을 사용할 수 없습니다.'];
+        return ['allowed' => false, 'completed' => false, 'message' => '페이지 완료 버튼을 사용할 수 없습니다.'];
     }
 
     if ($assetModules === [] || !isset(sr_page_asset_action_directions()[$direction])) {
-        return ['allowed' => false, 'completed' => false, 'message' => '페이지 완료 액션 설정이 올바르지 않습니다.'];
+        return ['allowed' => false, 'completed' => false, 'message' => '페이지 완료 버튼 설정이 올바르지 않습니다.'];
     }
 
     if (!sr_page_asset_modules_available($pdo, $assetModules)) {
@@ -2413,7 +2413,7 @@ function sr_page_run_asset_action(PDO $pdo, array $page, int $accountId): array
                 'account_id' => $accountId,
                 'amount' => $signedAmount,
                 'transaction_type' => $transactionType,
-                'reason' => '페이지 완료 액션',
+                'reason' => '페이지 완료 버튼 처리',
                 'reference_type' => 'page.action',
                 'reference_id' => (string) $pageId,
                 'created_by_account_id' => null,

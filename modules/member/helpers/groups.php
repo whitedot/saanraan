@@ -494,6 +494,11 @@ function sr_member_group_normalize_rule_params(array $params): array
             $type = 'string';
         }
 
+        $optionsCallback = (string) ($param['options_callback'] ?? '');
+        if ($optionsCallback !== '' && !is_callable($optionsCallback)) {
+            $optionsCallback = '';
+        }
+
         $normalized[] = [
             'key' => $key,
             'label' => $label,
@@ -501,13 +506,60 @@ function sr_member_group_normalize_rule_params(array $params): array
             'min' => isset($param['min']) ? (int) $param['min'] : null,
             'max' => isset($param['max']) ? (int) $param['max'] : null,
             'default' => $param['default'] ?? null,
+            'options' => sr_member_group_normalize_rule_param_options($param['options'] ?? []),
+            'options_callback' => $optionsCallback,
         ];
     }
 
     return $normalized;
 }
 
-function sr_member_group_rule_params_from_input(array $definition, mixed $input): array
+function sr_member_group_normalize_rule_param_options(mixed $options): array
+{
+    if (!is_array($options)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($options as $optionKey => $option) {
+        if (is_array($option)) {
+            $value = (string) ($option['value'] ?? '');
+            $label = trim((string) ($option['label'] ?? $value));
+        } else {
+            $value = is_string($optionKey) ? (string) $optionKey : (string) $option;
+            $label = trim((string) $option);
+        }
+
+        if ($value === '' || $label === '') {
+            continue;
+        }
+
+        $normalized[] = [
+            'value' => $value,
+            'label' => $label,
+        ];
+    }
+
+    return $normalized;
+}
+
+function sr_member_group_rule_param_options(?PDO $pdo, array $param): array
+{
+    $options = sr_member_group_normalize_rule_param_options($param['options'] ?? []);
+    $optionsCallback = (string) ($param['options_callback'] ?? '');
+    if ($optionsCallback !== '' && $pdo instanceof PDO && is_callable($optionsCallback)) {
+        try {
+            $callbackOptions = $optionsCallback($pdo);
+            $options = sr_member_group_normalize_rule_param_options($callbackOptions);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'member_group_rule_param_options_' . (string) ($param['key'] ?? 'unknown'));
+        }
+    }
+
+    return $options;
+}
+
+function sr_member_group_rule_params_from_input(array $definition, mixed $input, ?PDO $pdo = null): array
 {
     $input = is_array($input) ? $input : [];
     $values = [];
@@ -529,6 +581,16 @@ function sr_member_group_rule_params_from_input(array $definition, mixed $input)
         $type = (string) ($param['type'] ?? 'string');
         if ($type === 'int' || $type === 'subject') {
             $value = (int) $rawValue;
+            $options = sr_member_group_rule_param_options($pdo, $param);
+            if ($options !== []) {
+                $allowedValues = [];
+                foreach ($options as $option) {
+                    $allowedValues[(string) $option['value']] = true;
+                }
+                if (!isset($allowedValues[(string) $value])) {
+                    $value = (int) ($param['default'] ?? 0);
+                }
+            }
             if (isset($param['min']) && $value < (int) $param['min']) {
                 $value = (int) $param['min'];
             }
