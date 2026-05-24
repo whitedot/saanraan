@@ -21,7 +21,7 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
 {
     $modalId = trim($modalId);
 
-    return '<div id="' . sr_e($modalId) . '" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="' . sr_e($modalId) . '_title" aria-hidden="true" inert>'
+    return '<div id="' . sr_e($modalId) . '" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="' . sr_e($modalId) . '_title" aria-hidden="true" inert data-overlay-stack="true">'
         . '<div class="modal-dialog">'
         . '<div class="modal-content">'
         . '<div class="modal-header">'

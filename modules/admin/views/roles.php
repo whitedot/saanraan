@@ -43,6 +43,78 @@ foreach ($permissionActions as $actionKey) {
     $permissionActionLabels[(string) $actionKey] = sr_admin_code_label((string) $actionKey, 'admin_permission_action');
 }
 $permissionActionLabelJson = json_encode($permissionActionLabels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+$roleHelpOpenLabel = sr_t('admin::roles.help.open');
+$roleHelpButtonHtml = static function (string $label, string $modalId) use ($roleHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $roleHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$roleHelpBodyHtml = static function (array $bodyKeys): string {
+    $html = '';
+    foreach ($bodyKeys as $bodyKey) {
+        $html .= '<p>' . sr_e(sr_t((string) $bodyKey)) . '</p>';
+    }
+
+    return $html;
+};
+$roleHelp = [
+    'add_member' => [
+        'id' => 'admin-permission-help-add-member-modal',
+        'title' => sr_t('admin::roles.help.add_member.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.add_member.body.1',
+            'admin::roles.help.add_member.body.2',
+        ]),
+    ],
+    'edit_member' => [
+        'id' => 'admin-permission-help-edit-member-modal',
+        'title' => sr_t('admin::roles.help.edit_member.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.edit_member.body.1',
+            'admin::roles.help.edit_member.body.2',
+        ]),
+    ],
+    'owner' => [
+        'id' => 'admin-permission-help-owner-modal',
+        'title' => sr_t('admin::roles.help.owner.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.owner.body.1',
+            'admin::roles.help.owner.body.2',
+        ]),
+    ],
+    'permission_group' => [
+        'id' => 'admin-permission-help-group-modal',
+        'title' => sr_t('admin::roles.help.permission_group.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.permission_group.body.1',
+            'admin::roles.help.permission_group.body.2',
+        ]),
+    ],
+    'permission_item' => [
+        'id' => 'admin-permission-help-item-modal',
+        'title' => sr_t('admin::roles.help.permission_item.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.permission_item.body.1',
+            'admin::roles.help.permission_item.body.2',
+        ]),
+    ],
+    'permission_action' => [
+        'id' => 'admin-permission-help-action-modal',
+        'title' => sr_t('admin::roles.help.permission_action.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.permission_action.body.1',
+            'admin::roles.help.permission_action.body.2',
+        ]),
+    ],
+    'selected_permissions' => [
+        'id' => 'admin-permission-help-selected-modal',
+        'title' => sr_t('admin::roles.help.selected_permissions.title'),
+        'body_html' => $roleHelpBodyHtml([
+            'admin::roles.help.selected_permissions.body.1',
+            'admin::roles.help.selected_permissions.body.2',
+        ]),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -136,7 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="account_id" value="" data-admin-permission-account-id>
                 <div hidden data-admin-permission-hidden></div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="admin-permission-add-account-identifier">회원 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('admin-permission-add-account-identifier', '회원', $roleHelp['add_member']['id'], $roleHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <div class="admin-lookup-control">
                             <input id="admin-permission-add-account-identifier" type="text" value="" class="form-input" maxlength="80" readonly required data-admin-permission-account-identifier data-admin-permission-selected-member data-overlay-focus placeholder="회원을 검색해 선택하세요.">
@@ -145,7 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
+                    <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?><span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span></span>
                     <div class="admin-form-field">
                         <label class="admin-role-choice admin-form-check form-label" for="admin-permission-add-owner">
                             <input id="admin-permission-add-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox">
@@ -154,7 +226,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="admin-permission-add-group">1차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    <div class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('1차', $roleHelp['permission_group']['id']); ?><label for="admin-permission-add-group">1차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label></div>
                     <div class="admin-form-field">
                         <select id="admin-permission-add-group" class="form-select" data-admin-permission-group>
                             <option value="">선택</option>
@@ -166,7 +238,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="admin-permission-add-item">2차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    <div class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('2차', $roleHelp['permission_item']['id']); ?><label for="admin-permission-add-item">2차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label></div>
                     <div class="admin-form-field">
                         <select id="admin-permission-add-item" class="form-select" data-admin-permission-item disabled>
                             <option value="">1차 선택 후 선택</option>
@@ -174,7 +246,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label">권한 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                    <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?><span>권한 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span></span>
                     <div class="admin-form-field">
                         <fieldset class="admin-permission-picker-actions">
                             <legend class="sr-only">권한</legend>
@@ -250,14 +322,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e(sr_t('admin::ui.member.e335b899')); ?></span>
+                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_t('admin::ui.member.e335b899'), $roleHelp['edit_member']['id']); ?><span><?php echo sr_e(sr_t('admin::ui.member.e335b899')); ?></span></span>
                             <div class="admin-form-field">
                                 <strong><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></strong><br>
                                 <?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?> · <?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
+                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?><span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span></span>
                             <div class="admin-form-field">
                                 <label class="admin-role-choice admin-form-check form-label" for="<?php echo sr_e($permissionModalId); ?>-owner">
                                     <input id="<?php echo sr_e($permissionModalId); ?>-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox"<?php echo !empty($adminAccount['is_owner']) ? ' checked' : ''; ?> data-overlay-focus>
@@ -266,7 +338,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.4b72a63a')); ?></span>
+                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_t('admin::ui.text.4b72a63a'), $roleHelp['selected_permissions']['id']); ?><span><?php echo sr_e(sr_t('admin::ui.text.4b72a63a')); ?></span></span>
                             <div class="admin-form-field">
                                 <div class="admin-permission-picker" data-admin-permission-picker>
                                     <div class="admin-permission-picker-grid">
@@ -348,6 +420,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     </div>
+<?php } ?>
+
+<?php foreach ($roleHelp as $roleHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $roleHelpModal['id'], (string) $roleHelpModal['title'], (string) $roleHelpModal['body_html']); ?>
 <?php } ?>
 
 <script>
