@@ -76,6 +76,21 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
+$memberGroupAccessHelpModalId = 'community-board-member-group-access-help-modal';
+$memberGroupAccessHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.member_group_access_help_policy')) . '</p>'
+    . '<ul>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_empty')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_auto_read')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_level')) . '</li>'
+    . '</ul>';
+$memberGroupAccessLabelHtml = static function (string $forId, string $label) use ($memberGroupAccessHelpModalId): string {
+    return '<div class="form-label admin-form-label-help">'
+        . '<label for="' . sr_e($forId) . '">' . sr_e($label) . '</label>'
+        . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . sr_t('community::ui.member_group_access_help_open')) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($memberGroupAccessHelpModalId) . '" data-overlay="#' . sr_e($memberGroupAccessHelpModalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>'
+        . '</div>';
+};
 $communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
     $selectedLevel = sr_community_normalize_level_value($selectedLevel);
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
@@ -369,7 +384,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?></label>
+                <?php echo $memberGroupAccessLabelHtml('community_admin_boards_read_group_keys', sr_t('community::ui.member.ecf858a4')); ?>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_read_group_keys', $boardSettingSource($formBoard, 'read_group_keys')); ?>
@@ -394,7 +409,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?></label>
+                <?php echo $memberGroupAccessLabelHtml('community_admin_boards_write_group_keys', sr_t('community::ui.member.e99a3ed2')); ?>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_write_group_keys', $boardSettingSource($formBoard, 'write_group_keys')); ?>
@@ -419,7 +434,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?></label>
+                <?php echo $memberGroupAccessLabelHtml('community_admin_boards_comment_group_keys', sr_t('community::ui.member.11859d69')); ?>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_comment_group_keys', $boardSettingSource($formBoard, 'comment_group_keys')); ?>
@@ -641,6 +656,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27'); ?></button>
         </div>
     </form>
+
+    <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
 <?php } ?>
 
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>

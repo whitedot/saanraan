@@ -306,7 +306,7 @@ return [
     'ui.member_group_access_help_empty' => '회원 그룹을 하나도 고르지 않으면 회원 그룹 제한을 적용하지 않습니다. 이때 최소 레벨이 있으면 레벨 조건만 확인합니다.',
     'ui.member_group_access_help_level' => '회원 그룹과 최소 레벨을 함께 설정하면 두 조건을 모두 통과해야 허용됩니다.',
     'ui.member_group_access_help_open' => '회원 그룹 접근 조건 안내',
-    'ui.member_group_access_help_policy' => '회원 그룹 선택은 정책이 회원 그룹일 때 접근 조건으로 사용됩니다.',
+    'ui.member_group_access_help_policy' => '선택한 회원 그룹에게만 권한을 부여하려면 해당 읽기/쓰기/댓글 정책을 그룹으로 선택하세요.',
     'ui.member_group_access_help_title' => '회원 그룹 접근 조건',
     'ui.create.8033fdca' => '댓글 등록',
     'ui.create.bb216f10' => '등록',
