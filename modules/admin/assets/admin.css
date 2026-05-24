@@ -254,10 +254,17 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
+.admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:18rem}
+.admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
+.admin-asset-setting-primary>.admin-form-check{min-height:auto}
 .admin-asset-setting-target{min-width:0}
 .admin-asset-setting-target>.admin-check-list{margin-top:0}
-.admin-asset-setting-target>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
+.admin-asset-setting-target>.form-select{min-width:8rem}
 .admin-asset-setting-amount{width:10rem}
+.admin-asset-setting-secondary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
+.admin-asset-setting-policy{width:10rem}
+.admin-asset-setting-scope{align-items:flex-start;display:flex;flex:1 1 13rem;justify-content:flex-end;min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-scope>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-setting-unit{align-items:flex-start;display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1);min-width:10rem}
 .admin-setting-unit-wide{min-width:16rem}
 .admin-setting-unit>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
@@ -596,7 +603,21 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         margin-left:0;
     }
 
+    .admin-asset-setting-scope{
+        flex-basis:100%;
+        justify-content:flex-start;
+        min-height:0;
+    }
+
+    .admin-asset-setting-scope>.admin-setting-source-options{
+        justify-content:flex-start;
+    }
+
     .admin-asset-setting-amount{
+        width:100%;
+    }
+
+    .admin-asset-setting-policy{
         width:100%;
     }
 

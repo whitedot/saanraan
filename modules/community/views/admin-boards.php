@@ -34,6 +34,15 @@ $boardSettingSource = static function (array $board, string $key): string {
     $sources = is_array($board['setting_sources'] ?? null) ? $board['setting_sources'] : [];
     return sr_community_normalize_board_setting_source((string) ($sources[$key] ?? 'board'));
 };
+$assetPrefixSettingSource = static function (array $board, string $prefix) use ($boardSettingSource): string {
+    foreach (sr_community_asset_prefix_setting_keys($prefix) as $settingKey) {
+        if (array_key_exists('source_' . $settingKey, $board)) {
+            return $boardSettingSource($board, $settingKey);
+        }
+    }
+
+    return 'board';
+};
 $settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
     $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
@@ -137,7 +146,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
 ];
 if ($communityBoardsPage !== 'edit') {
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
-        $formBoard['source_' . $assetSettingKey] = 'all';
+        $formBoard['source_' . $assetSettingKey] = 'board';
     }
 }
 
@@ -610,53 +619,50 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
 	                        <div class="admin-form-field">
 	                            <div class="admin-asset-setting-line">
-                                <div class="admin-setting-unit">
-                                    <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                        <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                        <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
-                                    </label>
-                                    <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_enabled', $boardSettingSource($formBoard, (string) $assetPrefix . '_enabled')); ?>
-                                </div>
-                                <div class="admin-asset-setting-target admin-setting-unit admin-setting-unit-wide">
+                                <div class="admin-asset-setting-control">
+                                    <div class="admin-asset-setting-primary">
+                                        <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                            <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
+                                        </label>
+                                        <div class="admin-asset-setting-target">
+                                            <?php if ($usesCompositeAsset) { ?>
+                                                <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                            <?php } else { ?>
+                                                <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
+                                                    <?php if ($assetModuleOptions === []) { ?>
+                                                        <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                                    <?php } ?>
+                                                    <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                        <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                            <?php echo sr_e((string) $assetOption['label']); ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                    <div class="admin-asset-setting-secondary">
+                                        <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e(sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>">
+                                        <?php if ($assetPrefix === 'paid_read') { ?>
+                                            <select name="paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
+                                                <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
+                                            </select>
+                                        <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                            <select name="paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
+                                                <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
+                                            </select>
+                                        <?php } ?>
+                                    </div>
                                     <?php if ($usesCompositeAsset) { ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
-                                        <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                    <?php } else { ?>
-                                        <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
-                                            <?php if ($assetModuleOptions === []) { ?>
-                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                            <?php } ?>
-                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                                </option>
-                                            <?php } ?>
-                                        </select>
-                                        <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                                     <?php } ?>
                                 </div>
-                                <div class="admin-setting-unit">
-                                    <input type="number" name="<?php echo sr_e($assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e(sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>">
-                                    <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_amount', $boardSettingSource($formBoard, (string) $assetPrefix . '_amount')); ?>
+                                <div class="admin-asset-setting-scope">
+                                    <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix, $assetPrefixSettingSource($formBoard, (string) $assetPrefix)); ?>
                                 </div>
-                                <?php if ($assetPrefix === 'paid_read') { ?>
-                                    <div class="admin-setting-unit">
-                                        <select name="paid_read_charge_policy" class="form-select" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
-                                            <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                            <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
-                                        </select>
-                                        <?php echo $settingSourceRadioHtml('source_paid_read_charge_policy', $boardSettingSource($formBoard, 'paid_read_charge_policy')); ?>
-                                    </div>
-                                <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                                    <div class="admin-setting-unit">
-                                        <select name="paid_attachment_download_charge_policy" class="form-select" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
-                                            <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                            <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
-                                        </select>
-                                        <?php echo $settingSourceRadioHtml('source_paid_attachment_download_charge_policy', $boardSettingSource($formBoard, 'paid_attachment_download_charge_policy')); ?>
-                                    </div>
-                                <?php } ?>
 	                            </div>
                         </div>
                     </div>

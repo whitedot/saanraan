@@ -170,16 +170,25 @@ if (sr_request_method() === 'POST') {
         $legacyAssetPolicySource = sr_community_asset_policy_source(sr_post_string('asset_policy_source', 20));
         $legacyAssetSettingSource = $legacyAssetPolicySource === 'global' ? 'all' : $legacyAssetPolicySource;
         $assetSettingSources = [];
+        $assetPrefixSources = [];
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $legacyPrefixSource = sr_post_string('source_' . $assetPrefix, 20);
             if ($legacyPrefixSource === '') {
                 $legacyPrefixSource = $legacyAssetSettingSource;
             }
+            $postedPrefixSource = sr_post_string('source_' . $assetPrefix, 20);
+            $postedSettingSource = '';
             foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
-                $postedSource = sr_post_string('source_' . $settingKey, 20);
-                $assetSettingSources[$settingKey] = $postedSource !== ''
-                    ? sr_community_normalize_board_setting_source($postedSource)
-                    : sr_community_normalize_board_setting_source($legacyPrefixSource);
+                if ($postedSettingSource === '') {
+                    $postedSettingSource = sr_post_string('source_' . $settingKey, 20);
+                }
+            }
+            $assetPrefixSource = $postedPrefixSource !== ''
+                ? sr_community_normalize_board_setting_source($postedPrefixSource)
+                : sr_community_normalize_board_setting_source($postedSettingSource !== '' ? $postedSettingSource : $legacyPrefixSource);
+            $assetPrefixSources[$assetPrefix] = $assetPrefixSource;
+            foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
+                $assetSettingSources[$settingKey] = $assetPrefixSource;
             }
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
@@ -364,7 +373,7 @@ if (sr_request_method() === 'POST') {
                 $assetSettings[$assetPrefix . '_amount'] = 0;
             }
 
-            if (($assetSettingSources[$assetPrefix] ?? 'board') === 'board' && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
+            if (($assetPrefixSources[$assetPrefix] ?? 'board') === 'board' && !empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
                 $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
                 if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
@@ -453,6 +462,7 @@ if (sr_request_method() === 'POST') {
                     'level_comment_score' => $levelCommentScore,
                     'skin_key' => $skinKey,
                     'asset_settings' => $assetSettings,
+                    'asset_prefix_sources' => $assetPrefixSources,
                     'asset_setting_sources' => $assetSettingSources,
                     'setting_sources' => $settingSources,
                 ], $publicDisplaySettingValues),
@@ -610,6 +620,7 @@ if (sr_request_method() === 'POST') {
                         'before_skin_key' => $beforeSkinKey,
                         'after_skin_key' => $skinKey,
                         'before_asset_setting_sources' => $beforeAssetSettingSources,
+                        'after_asset_prefix_sources' => $assetPrefixSources,
                         'after_asset_setting_sources' => $assetSettingSources,
                         'before_asset_settings' => $beforeAssetSettings,
                         'after_asset_settings' => $assetSettings,
