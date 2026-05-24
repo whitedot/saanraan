@@ -351,11 +351,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
 
-            <?php foreach (sr_community_board_group_setting_keys() as $settingKey) { ?>
-                <?php if ($communityBoardsPage === 'new') { ?>
-                    <input type="hidden" name="source_<?php echo sr_e($settingKey); ?>" value="board">
-                <?php } ?>
-            <?php } ?>
         </section>
 
         <section class="admin-card card">
@@ -368,27 +363,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'read_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
                     </select>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_read_policy', $boardSettingSource($formBoard, 'read_policy')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_read_policy', $boardSettingSource($formBoard, 'read_policy')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_read_group_keys', $boardSettingSource($formBoard, 'read_group_keys')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_read_group_keys', $boardSettingSource($formBoard, 'read_group_keys')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_read_min_level"><?php echo sr_e(sr_t('community::ui.text.a783617f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_read_min_level', 'read_min_level', (int) $boardField($formBoard, 'read_min_level', '0')); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_read_min_level', $boardSettingSource($formBoard, 'read_min_level')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_read_min_level', $boardSettingSource($formBoard, 'read_min_level')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -399,27 +388,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'write_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
                     </select>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_write_policy', $boardSettingSource($formBoard, 'write_policy')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_write_policy', $boardSettingSource($formBoard, 'write_policy')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_write_group_keys', $boardSettingSource($formBoard, 'write_group_keys')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_write_group_keys', $boardSettingSource($formBoard, 'write_group_keys')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_write_min_level"><?php echo sr_e(sr_t('community::ui.text.82530158')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_write_min_level', 'write_min_level', (int) $boardField($formBoard, 'write_min_level', '0')); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_write_min_level', $boardSettingSource($formBoard, 'write_min_level')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_write_min_level', $boardSettingSource($formBoard, 'write_min_level')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -430,45 +413,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === $boardField($formBoard, 'comment_policy') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'policy')); ?></option>
                                             <?php } ?>
                     </select>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_comment_policy', $boardSettingSource($formBoard, 'comment_policy')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_comment_policy', $boardSettingSource($formBoard, 'comment_policy')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_comment_group_keys', $boardSettingSource($formBoard, 'comment_group_keys')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_comment_group_keys', $boardSettingSource($formBoard, 'comment_group_keys')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <?php echo $communityLevelSelectHtml('community_admin_boards_comment_min_level', 'comment_min_level', (int) $boardField($formBoard, 'comment_min_level', '0')); ?>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_comment_min_level', $boardSettingSource($formBoard, 'comment_min_level')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_comment_min_level', $boardSettingSource($formBoard, 'comment_min_level')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input" data-community-level-score="post">
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_level_post_score', $boardSettingSource($formBoard, 'level_post_score')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_level_post_score', $boardSettingSource($formBoard, 'level_post_score')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input" data-community-level-score="comment">
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -478,9 +451,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_boards_image_uploads_enabled" type="checkbox" name="image_uploads_enabled" value="1" class="form-checkbox"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.c3bd14cb')); ?>
                                         </label>
-                                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_image_uploads_enabled', $boardSettingSource($formBoard, 'image_uploads_enabled')); ?>
-                                    <?php } ?>
+                                    <?php echo $settingSourceRadioHtml('source_image_uploads_enabled', $boardSettingSource($formBoard, 'image_uploads_enabled')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -488,18 +459,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
                     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_attachment_max_bytes', $boardSettingSource($formBoard, 'attachment_max_bytes')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_attachment_max_bytes', $boardSettingSource($formBoard, 'attachment_max_bytes')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.bf61ba9f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_attachment_max_count" type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" required class="form-input">
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_attachment_max_count', $boardSettingSource($formBoard, 'attachment_max_count')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_attachment_max_count', $boardSettingSource($formBoard, 'attachment_max_count')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -509,9 +476,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_boards_file_uploads_enabled" type="checkbox" name="file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.fe95ead0')); ?>
                                         </label>
-                                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_file_uploads_enabled', $boardSettingSource($formBoard, 'file_uploads_enabled')); ?>
-                                    <?php } ?>
+                                    <?php echo $settingSourceRadioHtml('source_file_uploads_enabled', $boardSettingSource($formBoard, 'file_uploads_enabled')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -519,18 +484,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
                     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_file_attachment_max_bytes', $boardSettingSource($formBoard, 'file_attachment_max_bytes')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_file_attachment_max_bytes', $boardSettingSource($formBoard, 'file_attachment_max_bytes')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_file_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.593790e4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_attachment_max_count" type="number" name="file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_count', '3')); ?>" required class="form-input">
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_file_attachment_max_count', $boardSettingSource($formBoard, 'file_attachment_max_count')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_file_attachment_max_count', $boardSettingSource($formBoard, 'file_attachment_max_count')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -538,9 +499,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?> <span class="sr-required-label" data-community-file-extensions-required<?php echo $boardFileExtensionsRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_file_allowed_extensions" type="text" name="file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($boardArrayValue($formBoard, 'file_allowed_extensions')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $boardFileExtensionsRequired ? ' required' : ''; ?>>
-                    <?php if ($communityBoardsPage === 'edit') { ?>
-                                        <?php echo $settingSourceRadioHtml('source_file_allowed_extensions', $boardSettingSource($formBoard, 'file_allowed_extensions')); ?>
-                                    <?php } ?>
+                    <?php echo $settingSourceRadioHtml('source_file_allowed_extensions', $boardSettingSource($formBoard, 'file_allowed_extensions')); ?>
                 </div>
             </div>
         </section>
@@ -565,9 +524,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                     </option>
                                                                 <?php } ?>
                                                             </select>
-                            <?php if ($communityBoardsPage === 'edit') { ?>
-                                <?php echo $settingSourceRadioHtml('source_' . (string) $bannerSettingKey, $boardSettingSource($formBoard, (string) $bannerSettingKey)); ?>
-                            <?php } ?>
+                            <?php echo $settingSourceRadioHtml('source_' . (string) $bannerSettingKey, $boardSettingSource($formBoard, (string) $bannerSettingKey)); ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -593,9 +550,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                     </option>
                                                                 <?php } ?>
                                                             </select>
-                            <?php if ($communityBoardsPage === 'edit') { ?>
-                                <?php echo $settingSourceRadioHtml('source_' . (string) $popupLayerSettingKey, $boardSettingSource($formBoard, (string) $popupLayerSettingKey)); ?>
-                            <?php } ?>
+                            <?php echo $settingSourceRadioHtml('source_' . (string) $popupLayerSettingKey, $boardSettingSource($formBoard, (string) $popupLayerSettingKey)); ?>
                         </div>
                     </div>
                 <?php } ?>
