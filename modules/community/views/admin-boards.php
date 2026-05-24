@@ -16,6 +16,7 @@ if ($communityBoardsPage === 'new') {
 $boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => '', 'group_id' => 0, 'field' => 'all', 'q' => ''];
 $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ? $boardStatusCounts : [];
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
+$boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 
 $settingSourceLabels = [
     'group' => ['visible' => sr_t('community::ui.text.5d908ddd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
@@ -295,7 +296,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <select id="community_admin_boards_board_group_id" name="board_group_id" class="form-select" data-community-board-group-select>
                                             <option value="0"><?php echo sr_e(sr_t('community::ui.text.72ea3d64')); ?></option>
                                             <?php foreach ($boardGroups as $boardGroup) { ?>
-                                                <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
+                                                <?php
+                                                $optionBoardGroupId = (int) $boardGroup['id'];
+                                                $optionBoardGroupSettings = is_array($boardGroupSettings[$optionBoardGroupId] ?? null) ? $boardGroupSettings[$optionBoardGroupId] : [];
+                                                $optionLevelPostScore = (string) ($optionBoardGroupSettings['level_post_score'] ?? ($settings['level_post_score'] ?? 10));
+                                                $optionLevelCommentScore = (string) ($optionBoardGroupSettings['level_comment_score'] ?? ($settings['level_comment_score'] ?? 2));
+                                                ?>
+                                                <option value="<?php echo sr_e((string) $boardGroup['id']); ?>" data-level-post-score="<?php echo sr_e($optionLevelPostScore); ?>" data-level-comment-score="<?php echo sr_e($optionLevelCommentScore); ?>"<?php echo (int) $boardField($formBoard, 'board_group_id', '0') === (int) $boardGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $boardGroup['title']); ?></option>
                                             <?php } ?>
                                         </select>
                 </div>
@@ -440,7 +447,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input">
+                    <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input" data-community-level-score="post">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_level_post_score', $boardSettingSource($formBoard, 'level_post_score')); ?>
                                     <?php } ?>
@@ -449,7 +456,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input">
+                    <input id="community_admin_boards_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input" data-community-level-score="comment">
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
                                     <?php } ?>
@@ -676,6 +683,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
+    var isNewBoard = <?php echo $communityBoardsPage === 'new' ? 'true' : 'false'; ?>;
+    var defaultLevelPostScore = '<?php echo sr_e((string) ($settings['level_post_score'] ?? 10)); ?>';
+    var defaultLevelCommentScore = '<?php echo sr_e((string) ($settings['level_comment_score'] ?? 2)); ?>';
+    var levelScoreTouched = {post: false, comment: false};
+
     function syncBoardGroupRequired() {
         var groupSelect = document.querySelector('[data-community-board-group-select]');
         var label = document.querySelector('[data-community-board-group-required]');
@@ -688,6 +700,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         groupSelect.required = needed;
         if (label) {
             label.hidden = !needed;
+        }
+    }
+
+    function syncLevelScoreDefaults(force) {
+        var groupSelect = document.querySelector('[data-community-board-group-select]');
+        var post = document.querySelector('[data-community-level-score="post"]');
+        var comment = document.querySelector('[data-community-level-score="comment"]');
+        if (!isNewBoard || !groupSelect) {
+            return;
+        }
+
+        var option = groupSelect.options[groupSelect.selectedIndex] || null;
+        if (post && (force || !levelScoreTouched.post)) {
+            post.value = option && option.dataset.levelPostScore ? option.dataset.levelPostScore : defaultLevelPostScore;
+        }
+        if (comment && (force || !levelScoreTouched.comment)) {
+            comment.value = option && option.dataset.levelCommentScore ? option.dataset.levelCommentScore : defaultLevelCommentScore;
         }
     }
 
@@ -751,6 +780,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         syncPolicy(kind);
     });
     syncBoardGroupRequired();
+    var groupSelect = document.querySelector('[data-community-board-group-select]');
+    var postScore = document.querySelector('[data-community-level-score="post"]');
+    var commentScore = document.querySelector('[data-community-level-score="comment"]');
+    if (postScore) {
+        postScore.addEventListener('input', function () {
+            levelScoreTouched.post = true;
+        });
+    }
+    if (commentScore) {
+        commentScore.addEventListener('input', function () {
+            levelScoreTouched.comment = true;
+        });
+    }
+    if (groupSelect) {
+        groupSelect.addEventListener('change', function () {
+            syncLevelScoreDefaults(false);
+        });
+    }
+    syncLevelScoreDefaults(false);
     var count = document.getElementById('community_admin_boards_file_attachment_max_count');
     var enabled = document.getElementById('modules_community_admin_boards_file_uploads_enabled');
     if (count) {

@@ -773,15 +773,20 @@ function sr_community_board_level_score(PDO $pdo, int $boardId, string $settingK
     }
 
     $board = sr_community_board_by_id($pdo, $boardId);
-    $value = is_array($board)
-        ? sr_community_effective_board_setting($pdo, $board, $settingKey, (string) $default)
-        : sr_community_board_setting_value($pdo, $boardId, $settingKey);
-
-    if (!is_string($value) || $value === '') {
-        return $default;
+    $value = sr_community_board_setting_value($pdo, $boardId, $settingKey);
+    if (is_string($value) && $value !== '') {
+        return min(10000, max(0, (int) $value));
     }
 
-    return min(10000, max(0, (int) $value));
+    $boardGroupId = is_array($board) ? (int) ($board['board_group_id'] ?? 0) : 0;
+    if ($boardGroupId > 0) {
+        $groupValue = sr_community_board_group_setting_value($pdo, $boardGroupId, $settingKey);
+        if (is_string($groupValue) && $groupValue !== '') {
+            return min(10000, max(0, (int) $groupValue));
+        }
+    }
+
+    return $default;
 }
 
 function sr_community_board_own_level_score(PDO $pdo, int $boardId, string $settingKey, array $settings = []): int

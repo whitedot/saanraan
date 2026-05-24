@@ -61,8 +61,11 @@ foreach ($memberGroups as $memberGroup) {
 
 $boardGroups = sr_community_board_groups($pdo);
 $boardGroupIds = [];
+$boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
-    $boardGroupIds[(int) $boardGroup['id']] = true;
+    $boardGroupId = (int) $boardGroup['id'];
+    $boardGroupIds[$boardGroupId] = true;
+    $boardGroupSettings[$boardGroupId] = sr_community_board_group_settings($pdo, $boardGroupId);
 }
 $boardGroupFilterValue = sr_get_string('group_id', 20);
 $boardGroupFilterId = preg_match('/\A[1-9][0-9]*\z/', $boardGroupFilterValue) === 1 ? (int) $boardGroupFilterValue : 0;
