@@ -81,7 +81,7 @@ if (sr_request_method() === 'POST') {
             if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
                 $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
                 if (empty($reversalResult['allowed'])) {
-                    $errors[] = (string) ($reversalResult['message'] ?? sr_t('community::action.admin.post_reward_reversal_status_failed'));
+                    $errors[] = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.post_reward_reversal_balance_low', 'community::action.admin.post_reward_reversal_status_failed');
                 }
             }
 
@@ -133,7 +133,7 @@ if (sr_request_method() === 'POST') {
             if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
                 $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal');
                 if (empty($reversalResult['allowed'])) {
-                    $errors[] = (string) ($reversalResult['message'] ?? sr_t('community::action.admin.comment_reward_reversal_status_failed'));
+                    $errors[] = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.comment_reward_reversal_balance_low', 'community::action.admin.comment_reward_reversal_status_failed');
                 }
             }
 

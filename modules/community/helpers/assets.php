@@ -553,6 +553,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         return [
             'allowed' => false,
             'processed' => false,
+            'error_key' => 'asset_modules_unavailable',
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
@@ -580,6 +581,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         return [
             'allowed' => false,
             'processed' => false,
+            'error_key' => 'asset_balance_low',
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
@@ -641,6 +643,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         return [
             'allowed' => false,
             'processed' => false,
+            'error_key' => 'asset_processing_failed',
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue),
             'amount' => $amount,
@@ -681,4 +684,14 @@ function sr_community_reverse_asset_grant(PDO $pdo, int $accountId, string $gran
     }
 
     return ['allowed' => true, 'processed' => false, 'message' => ''];
+}
+
+function sr_community_asset_reversal_error_message(array $result, string $balanceLowKey, string $fallbackKey): string
+{
+    if ((string) ($result['error_key'] ?? '') === 'asset_balance_low') {
+        return sr_t($balanceLowKey);
+    }
+
+    $message = trim((string) ($result['message'] ?? ''));
+    return $message !== '' ? $message : sr_t($fallbackKey);
 }

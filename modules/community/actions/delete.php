@@ -23,7 +23,7 @@ $settings = sr_community_settings($pdo);
 if (!empty($settings['post_reward_reversal_enabled'])) {
     $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
     if (empty($reversalResult['allowed'])) {
-        sr_render_error(409, (string) ($reversalResult['message'] ?? sr_t('community::action.error.post_reward_reversal_failed')));
+        sr_render_error(409, sr_community_asset_reversal_error_message($reversalResult, 'community::action.error.post_reward_reversal_balance_low', 'community::action.error.post_reward_reversal_failed'));
     }
 }
 sr_community_update_post_status($pdo, $postId, 'deleted');

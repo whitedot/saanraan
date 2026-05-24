@@ -15,6 +15,11 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
+$messageWritePolicyLabels = [
+    'member' => sr_t('community::ui.message_policy.member'),
+    'group' => sr_t('community::ui.message_policy.group'),
+    'disabled' => sr_t('community::ui.message_policy.disabled'),
+];
 $levelScoreHelpModalId = 'community-level-score-help-modal';
 $levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_global_default')) . '</p>'
     . '<p>' . sr_e(sr_t('community::ui.level_score_help_formula')) . '</p>'
@@ -51,7 +56,7 @@ $communitySettingsHelp = [
     'message_policy' => [
         'id' => 'community_settings_help_message_policy',
         'title' => sr_t('community::help.message_policy.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.message_policy.body.1', 'community::help.message_policy.body.2']),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.message_policy.body.1', 'community::help.message_policy.body.2', 'community::help.message_policy.body.3', 'community::help.message_policy.body.4']),
     ],
     'message_group' => [
         'id' => 'community_settings_help_message_group',
@@ -132,9 +137,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select" data-community-message-policy>
                                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
-                                        <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e($policy); ?></option>
+                                        <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($messageWritePolicyLabels[$policy] ?? sr_admin_code_label($policy, 'policy'))); ?></option>
                                     <?php } ?>
                                 </select>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.message_policy.help')); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
