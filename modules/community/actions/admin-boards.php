@@ -398,6 +398,8 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === []) {
             $boardSettingValues = [
+                'status' => $status,
+                'skin_key' => $skinKey,
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,

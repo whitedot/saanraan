@@ -336,6 +336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === $boardField($formBoard, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                             <?php } ?>
                                         </select>
+                    <?php echo $settingSourceRadioHtml('source_status', $boardSettingSource($formBoard, 'status')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -348,6 +349,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
+                    <?php echo $settingSourceRadioHtml('source_skin_key', $boardSettingSource($formBoard, 'skin_key')); ?>
                 </div>
             </div>
 

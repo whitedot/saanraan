@@ -42,6 +42,8 @@ function sr_community_policy_values(string $policy): array
 function sr_community_board_group_setting_keys(): array
 {
     return [
+        'status',
+        'skin_key',
         'read_policy',
         'write_policy',
         'comment_policy',
@@ -141,7 +143,7 @@ function sr_community_public_display_setting_labels(): array
 
 function sr_community_board_group_column_setting_keys(): array
 {
-    return ['read_policy', 'write_policy', 'comment_policy', 'image_uploads_enabled'];
+    return ['status', 'read_policy', 'write_policy', 'comment_policy', 'image_uploads_enabled'];
 }
 
 function sr_community_board_setting_source_values(): array
@@ -1008,36 +1010,7 @@ function sr_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupI
         foreach (array_diff($settingKeys, sr_community_board_group_column_setting_keys()) as $settingKey) {
             $value = sr_community_board_group_setting_value($pdo, $groupId, $settingKey);
             if (is_string($value)) {
-                if (in_array($settingKey, [
-                    'attachment_max_bytes',
-                    'attachment_max_count',
-                    'file_attachment_max_bytes',
-                    'file_attachment_max_count',
-                    'read_min_level',
-                    'write_min_level',
-                    'comment_min_level',
-                    'level_post_score',
-                    'level_comment_score',
-                    'banner_before_list_id',
-                    'banner_after_list_id',
-                    'banner_before_view_id',
-                    'banner_after_view_id',
-                    'banner_before_form_id',
-                    'banner_after_form_id',
-                    'popup_layer_list_id',
-                    'popup_layer_view_id',
-                    'popup_layer_form_id',
-                ], true)) {
-                    $valueType = 'int';
-                } elseif (str_ends_with($settingKey, '_amount')) {
-                    $valueType = 'int';
-                } elseif (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled')) {
-                    $valueType = 'bool';
-                } elseif (in_array($settingKey, ['file_allowed_extensions'], true) || in_array($settingKey, sr_community_board_group_asset_setting_keys(), true)) {
-                    $valueType = 'string';
-                } else {
-                    $valueType = 'json';
-                }
+                $valueType = sr_community_board_setting_value_type($settingKey);
                 sr_community_set_board_setting($pdo, $boardId, $settingKey, $value, $valueType);
             }
         }
