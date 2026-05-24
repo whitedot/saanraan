@@ -26,7 +26,7 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 }
 ?>
 <!doctype html>
-<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_color_scheme($layoutSite)); ?>">
+<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

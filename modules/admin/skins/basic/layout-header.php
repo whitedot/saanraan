@@ -44,7 +44,7 @@ $adminBrandMarkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
 $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-brand-initial';
 ?>
 <!doctype html>
-<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_color_scheme($site ?? null)); ?>">
+<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_admin_color_scheme(is_array($adminSettings ?? null) ? $adminSettings : [])); ?>">
 <head>
     <meta charset="utf-8">
     <script>

@@ -19,7 +19,6 @@ function sr_load_site(PDO $pdo): ?array
         'status' => (string) ($settings['site.status'] ?? 'active'),
         'home_path' => (string) ($settings['site.home_path'] ?? '/'),
         'public_layout_key' => $publicLayoutKey,
-        'ui_color_scheme' => (string) ($settings['ui_color_scheme'] ?? 'light'),
     ];
 }
 

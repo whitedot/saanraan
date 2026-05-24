@@ -311,8 +311,18 @@ function sr_admin_settings(PDO $pdo): array
 {
     $metadata = sr_module_metadata('admin');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+    $settings = sr_module_settings($pdo, 'admin');
+    $baseSettings = array_merge(['admin_skin_key' => 'basic', 'admin_color_scheme' => 'light'], $defaults);
 
-    return array_merge(['admin_skin_key' => 'basic'], $defaults, sr_module_settings($pdo, 'admin'));
+    if (!isset($settings['admin_color_scheme'])) {
+        $legacySiteSettings = sr_site_settings($pdo);
+        $legacyColorScheme = (string) ($legacySiteSettings['ui_color_scheme'] ?? '');
+        if (isset(sr_color_scheme_options()[$legacyColorScheme])) {
+            $baseSettings['admin_color_scheme'] = $legacyColorScheme;
+        }
+    }
+
+    return array_merge($baseSettings, $settings);
 }
 
 function sr_admin_skin_options(): array
@@ -335,6 +345,13 @@ function sr_admin_skin_key(array $settings): string
     return isset(sr_admin_skin_options()[$skinKey]) ? $skinKey : 'basic';
 }
 
+function sr_admin_color_scheme(array $settings): string
+{
+    $colorScheme = (string) ($settings['admin_color_scheme'] ?? 'light');
+
+    return isset(sr_color_scheme_options()[$colorScheme]) ? $colorScheme : 'light';
+}
+
 function sr_admin_skin_view(string $skinKey, string $viewKey): string
 {
     $options = sr_admin_skin_options();
@@ -355,6 +372,17 @@ function sr_admin_skin_view(string $skinKey, string $viewKey): string
 function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
 {
     $skinKey = sr_admin_skin_key(['admin_skin_key' => $skinKey]);
+    sr_admin_save_module_setting($pdo, 'admin_skin_key', $skinKey);
+}
+
+function sr_admin_save_color_scheme(PDO $pdo, string $colorScheme): void
+{
+    $colorScheme = sr_admin_color_scheme(['admin_color_scheme' => $colorScheme]);
+    sr_admin_save_module_setting($pdo, 'admin_color_scheme', $colorScheme);
+}
+
+function sr_admin_save_module_setting(PDO $pdo, string $settingKey, string $settingValue, string $valueType = 'string'): void
+{
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'admin' LIMIT 1");
     $stmt->execute();
     $module = $stmt->fetch();
@@ -375,9 +403,9 @@ function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
     $now = sr_now();
     $stmt->execute([
         'module_id' => (int) $module['id'],
-        'setting_key' => 'admin_skin_key',
-        'setting_value' => $skinKey,
-        'value_type' => 'string',
+        'setting_key' => $settingKey,
+        'setting_value' => $settingValue,
+        'value_type' => $valueType,
         'created_at' => $now,
         'updated_at' => $now,
     ]);
@@ -452,7 +480,6 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
         'status' => (string) ($site['status'] ?? 'active'),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
-        'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
 
@@ -467,7 +494,6 @@ function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): 
         'status' => (string) ($site['status'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
-        'ui_color_scheme' => sr_color_scheme($site),
     ];
 }
 
@@ -482,7 +508,6 @@ function sr_admin_post_site_setting_values(?array $site): array
         'status' => sr_post_string('status', 30),
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
-        'ui_color_scheme' => sr_post_string('ui_color_scheme', 20),
     ];
 }
 
@@ -585,10 +610,6 @@ function sr_admin_handle_settings_post(
             $errors[] = '초기화면 후보가 올바르지 않거나 현재 사용할 수 없습니다.';
         }
 
-        if (!isset(sr_color_scheme_options()[$values['ui_color_scheme']])) {
-            $errors[] = 'UI 색상 모드 값이 올바르지 않습니다.';
-        }
-
         if ($errors === []) {
             $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
 
@@ -601,7 +622,6 @@ function sr_admin_handle_settings_post(
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
                 'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
-                'ui_color_scheme' => ['value' => $values['ui_color_scheme'], 'type' => 'string'],
             ]);
 
             sr_audit_log($pdo, [

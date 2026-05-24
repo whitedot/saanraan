@@ -526,7 +526,6 @@ if (sr_request_method() === 'POST') {
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],
                 'public_layout_key' => ['value' => sr_public_layout_default_key(), 'type' => 'string'],
-                'ui_color_scheme' => ['value' => 'light', 'type' => 'string'],
             ]);
 
             $modules = [];

@@ -26,5 +26,6 @@ return [
     ],
     'settings' => [
         'admin_skin_key' => 'basic',
+        'admin_color_scheme' => 'light',
     ],
 ];

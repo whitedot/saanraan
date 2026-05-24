@@ -18,31 +18,30 @@ if (!isset($options[$colorScheme])) {
     http_response_code(422);
     echo json_encode([
         'ok' => false,
-        'errors' => ['UI 색상 모드 값이 올바르지 않습니다.'],
+        'errors' => ['관리자 UI 색상 모드 값이 올바르지 않습니다.'],
     ], JSON_UNESCAPED_UNICODE);
     sr_finish_response();
 }
 
-$previousColorScheme = sr_color_scheme($site ?? null);
+$adminSettings = sr_admin_settings($pdo);
+$previousColorScheme = sr_admin_color_scheme($adminSettings);
 if ($colorScheme !== $previousColorScheme) {
-    sr_save_site_settings($pdo, [
-        'ui_color_scheme' => ['value' => $colorScheme, 'type' => 'string'],
-    ]);
+    sr_admin_save_color_scheme($pdo, $colorScheme);
 
     sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
         'actor_type' => 'admin',
-        'event_type' => 'site.settings.updated',
-        'target_type' => 'site_settings',
-        'target_id' => 'site',
+        'event_type' => 'admin.settings.updated',
+        'target_type' => 'module',
+        'target_id' => 'admin',
         'result' => 'success',
-        'message' => 'Site color scheme updated.',
+        'message' => 'Admin settings updated.',
         'metadata' => [
             'before' => [
-                'ui_color_scheme' => $previousColorScheme,
+                'admin_color_scheme' => $previousColorScheme,
             ],
             'after' => [
-                'ui_color_scheme' => $colorScheme,
+                'admin_color_scheme' => $colorScheme,
             ],
         ],
     ]);

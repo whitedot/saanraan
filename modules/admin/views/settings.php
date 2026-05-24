@@ -69,8 +69,8 @@ $siteSettingsHelp = [
             'settings.help.home_path.body.2',
         ]),
     ],
-    'ui_color_scheme' => [
-        'id' => 'admin-settings-ui-color-scheme-help-modal',
+    'admin_color_scheme' => [
+        'id' => 'admin-settings-admin-color-scheme-help-modal',
         'title' => sr_t('admin::settings.help.ui_color_scheme.title'),
         'body_html' => $siteSettingsHelpBodyHtml([
             'settings.help.ui_color_scheme.body.1',
@@ -200,21 +200,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?></p>
             </div>
         </div>
+    </section>
+    <section class="admin-card card">
+        <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('admin_settings_ui_color_scheme', sr_t('admin::ui.ui.cf6c41c6'), $siteSettingsHelp['ui_color_scheme']['id'], $siteSettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('admin_settings_admin_color_scheme', sr_t('admin::ui.ui.cf6c41c6'), $siteSettingsHelp['admin_color_scheme']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
+                <select id="admin_settings_admin_color_scheme" name="admin_color_scheme" class="form-select" data-admin-color-scheme-select>
                     <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['ui_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
+                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['admin_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $colorSchemeLabel); ?>
                         </option>
                     <?php } ?>
                 </select>
             </div>
         </div>
-    </section>
-    <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_admin_skin_key', sr_t('admin::ui.admin.1465c5b7'), $siteSettingsHelp['admin_skin']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
