@@ -30,7 +30,7 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
         . sr_material_icon_html('close')
         . '</button>'
         . '</div>'
-        . '<div class="modal-body">' . $bodyHtml . '</div>'
+        . '<div class="modal-body admin-help-modal-body">' . $bodyHtml . '</div>'
         . '<div class="modal-footer">'
         . '<button type="button" class="btn btn-solid-light modal-action" data-overlay="#' . sr_e($modalId) . '">닫기</button>'
         . '</div>'

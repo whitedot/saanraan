@@ -1,6 +1,91 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.settings.4738c9b6');
+$siteSettingsHelpOpenLabel = sr_t('admin::settings.help.open');
+$siteSettingsHelpBodyHtml = static function (array $translationKeys): string {
+    $html = '';
+    foreach ($translationKeys as $translationKey) {
+        $html .= '<p>' . sr_e(sr_t('admin::' . $translationKey)) . '</p>';
+    }
+
+    return $html;
+};
+$siteSettingsHelp = [
+    'base_url' => [
+        'id' => 'admin-settings-base-url-help-modal',
+        'title' => sr_t('admin::settings.help.base_url.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.base_url.body.1',
+            'settings.help.base_url.body.2',
+        ]),
+    ],
+    'timezone' => [
+        'id' => 'admin-settings-timezone-help-modal',
+        'title' => sr_t('admin::settings.help.timezone.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.timezone.body.1',
+            'settings.help.timezone.body.2',
+        ]),
+    ],
+    'default_locale' => [
+        'id' => 'admin-settings-default-locale-help-modal',
+        'title' => sr_t('admin::settings.help.default_locale.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.default_locale.body.1',
+            'settings.help.default_locale.body.2',
+        ]),
+    ],
+    'supported_locales' => [
+        'id' => 'admin-settings-supported-locales-help-modal',
+        'title' => sr_t('admin::settings.help.supported_locales.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.supported_locales.body.1',
+            'settings.help.supported_locales.body.2',
+        ]),
+    ],
+    'status' => [
+        'id' => 'admin-settings-status-help-modal',
+        'title' => sr_t('admin::settings.help.status.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.status.body.1',
+            'settings.help.status.body.2',
+            'settings.help.status.body.3',
+            'settings.help.status.body.4',
+        ]),
+    ],
+    'public_layout' => [
+        'id' => 'admin-settings-public-layout-help-modal',
+        'title' => sr_t('admin::settings.help.public_layout.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.public_layout.body.1',
+            'settings.help.public_layout.body.2',
+        ]),
+    ],
+    'home_path' => [
+        'id' => 'admin-settings-home-path-help-modal',
+        'title' => sr_t('admin::settings.help.home_path.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.home_path.body.1',
+            'settings.help.home_path.body.2',
+        ]),
+    ],
+    'ui_color_scheme' => [
+        'id' => 'admin-settings-ui-color-scheme-help-modal',
+        'title' => sr_t('admin::settings.help.ui_color_scheme.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.ui_color_scheme.body.1',
+            'settings.help.ui_color_scheme.body.2',
+        ]),
+    ],
+    'admin_skin' => [
+        'id' => 'admin-settings-admin-skin-help-modal',
+        'title' => sr_t('admin::settings.help.admin_skin.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.admin_skin.body.1',
+            'settings.help.admin_skin.body.2',
+        ]),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -28,7 +113,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <span class="form-label"><?php echo sr_e(sr_t('admin::ui.url.09f44187')); ?></span>
+            <span class="form-label admin-form-label-help">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('admin::ui.url.09f44187') . ' ' . $siteSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>" data-overlay="#<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>">
+                    <?php echo sr_material_icon_html('help'); ?>
+                </button>
+                <span><?php echo sr_e(sr_t('admin::ui.url.09f44187')); ?></span>
+            </span>
             <div class="admin-form-field">
                 <?php if ($values['base_url'] !== '') { ?>
                     <code><?php echo sr_e($values['base_url']); ?></code>
@@ -39,7 +129,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_timezone"><?php echo sr_e(sr_t('admin::ui.text.26e997a5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_timezone', sr_t('admin::ui.text.26e997a5'), $siteSettingsHelp['timezone']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_timezone" name="timezone" class="form-select" required>
                     <?php foreach ($timezoneOptions as $timezoneOption) { ?>
@@ -51,7 +141,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_default_locale"><?php echo sr_e(sr_t('admin::ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_default_locale', sr_t('admin::ui.locale.c7cd39b4'), $siteSettingsHelp['default_locale']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_default_locale" name="default_locale" class="form-select" required>
                     <?php foreach ($localeOptions as $localeOption) { ?>
@@ -63,14 +153,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_supported_locales"><?php echo sr_e(sr_t('admin::ui.locale.list.51d8e798')); ?></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_supported_locales', sr_t('admin::ui.locale.list.51d8e798'), $siteSettingsHelp['supported_locales']['id'], $siteSettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
                 <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, sr_t('admin::ui.locale.9d745a6e')); ?>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_status"><?php echo sr_e(sr_t('admin::ui.status.e4163930')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_status', sr_t('admin::ui.status.e4163930'), $siteSettingsHelp['status']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_status" name="status" class="form-select">
                                     <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.0928a1b8')); ?></option>
@@ -82,7 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('admin::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_public_layout_key"><?php echo sr_e(sr_t('admin::ui.text.974e65f4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_public_layout_key', sr_t('admin::ui.text.974e65f4'), $siteSettingsHelp['public_layout']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
                                     <?php foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption) { ?>
@@ -94,7 +184,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_home_path"><?php echo sr_e(sr_t('admin::ui.text.214b5fb8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_home_path', sr_t('admin::ui.text.214b5fb8'), $siteSettingsHelp['home_path']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_home_path" name="home_path" class="form-select form-control-full">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
@@ -111,7 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_ui_color_scheme"><?php echo sr_e(sr_t('admin::ui.ui.cf6c41c6')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_ui_color_scheme', sr_t('admin::ui.ui.cf6c41c6'), $siteSettingsHelp['ui_color_scheme']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_ui_color_scheme" name="ui_color_scheme" class="form-select" data-admin-color-scheme-select>
                     <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
@@ -126,7 +216,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_admin_skin_key"><?php echo sr_e(sr_t('admin::ui.admin.1465c5b7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('admin_settings_admin_skin_key', sr_t('admin::ui.admin.1465c5b7'), $siteSettingsHelp['admin_skin']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
                     <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
@@ -143,5 +233,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
     </div>
 </form>
+
+<?php foreach ($siteSettingsHelp as $siteSettingsHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html($siteSettingsHelpModal['id'], $siteSettingsHelpModal['title'], $siteSettingsHelpModal['body_html']); ?>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
