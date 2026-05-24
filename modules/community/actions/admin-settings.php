@@ -41,7 +41,6 @@ if (sr_request_method() === 'POST') {
         $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
-        $accessConditionPriority = sr_community_access_condition_priority(sr_post_string('access_condition_priority', 40));
         $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
@@ -136,7 +135,6 @@ if (sr_request_method() === 'POST') {
                 ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
                 ['level_post_score', (string) $levelPostScore, 'int'],
                 ['level_comment_score', (string) $levelCommentScore, 'int'],
-                ['access_condition_priority', $accessConditionPriority, 'string'],
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
@@ -185,6 +183,11 @@ if (sr_request_method() === 'POST') {
                     'updated_at' => sr_now(),
                 ]);
             }
+            $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
+            $stmt->execute([
+                'module_id' => (int) $communityModule['id'],
+                'setting_key' => 'access_condition_priority',
+            ]);
             sr_clear_module_settings_cache('community');
             $settings = sr_community_settings($pdo);
 
@@ -199,7 +202,6 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'level_enabled' => $levelEnabled,
                     'level_auto_recalculate' => $levelAutoRecalculate,
-                    'access_condition_priority' => $accessConditionPriority,
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
                     'layout_key' => $layoutKey,

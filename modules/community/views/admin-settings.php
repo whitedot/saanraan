@@ -2,16 +2,6 @@
 
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
-$accessConditionPriorityLabels = [
-    'both_required' => sr_t('community::ui.text.e11baa69'),
-    'group_first' => sr_t('community::ui.text.eeebd1cf'),
-    'level_first' => sr_t('community::ui.text.e6e726db'),
-];
-$accessConditionPriorityDescriptions = [
-    'both_required' => sr_t('community::ui.settings.c2fb86ae'),
-    'group_first' => sr_t('community::ui.text.e111bd78'),
-    'level_first' => sr_t('community::ui.text.dce86ee3'),
-];
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -25,9 +15,6 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
-$accessConditionPriorityInputId = 'community_admin_settings_access_condition_priority';
-$currentAccessConditionPriority = (string) $settings['access_condition_priority'];
-$accessConditionPriorityHelpModalId = 'community_access_condition_priority_help_modal';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -70,17 +57,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="community_admin_settings_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" required class="form-input">
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html($accessConditionPriorityInputId, sr_t('community::ui.text.98a7801d'), $accessConditionPriorityHelpModalId, sr_t('community::ui.text.60c97100')); ?>
-            <div class="admin-form-field">
-                <select id="<?php echo sr_e($accessConditionPriorityInputId); ?>" name="access_condition_priority" class="form-select">
-                                    <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
-                                        <option value="<?php echo sr_e($priority); ?>"<?php echo $priority === (string) $settings['access_condition_priority'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></option>
-                                    <?php } ?>
-                                </select>
-                                <small class="admin-form-help"><?php echo sr_e(sr_t('community::ui.text.b64f0562')); ?> <?php echo sr_e((string) ($accessConditionPriorityLabels[$currentAccessConditionPriority] ?? $currentAccessConditionPriority)); ?><?php echo sr_e(sr_t('community::ui.settings.999d80a0')); ?></small>
             </div>
         </div>
     </section>
@@ -248,27 +224,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<?php ob_start(); ?>
-<p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.settings.c4dcf2ad')); ?></p>
-<div class="table-wrapper">
-    <table class="table">
-        <thead class="ui-table-head">
-            <tr>
-                <th><?php echo sr_e(sr_t('community::ui.text.3f5e5497')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach (sr_community_access_condition_priority_values() as $priority) { ?>
-                <tr>
-                    <td><?php echo sr_e((string) ($accessConditionPriorityLabels[$priority] ?? $priority)); ?></td>
-                    <td><?php echo sr_e((string) ($accessConditionPriorityDescriptions[$priority] ?? '')); ?></td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-</div>
-<?php echo sr_admin_help_modal_html($accessConditionPriorityHelpModalId, sr_t('community::ui.text.fd2ad6a5'), (string) ob_get_clean()); ?>
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>

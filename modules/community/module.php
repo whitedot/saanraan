@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.05.012',
+    'version' => '2026.05.013',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -61,7 +61,6 @@ return [
         'level_auto_recalculate' => false,
         'level_post_score' => 10,
         'level_comment_score' => 2,
-        'access_condition_priority' => 'both_required',
         'message_write_policy' => 'member',
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,

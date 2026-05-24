@@ -30,7 +30,6 @@ function sr_community_default_settings(): array
         'level_auto_recalculate' => (bool) ($settings['level_auto_recalculate'] ?? false),
         'level_post_score' => (int) ($settings['level_post_score'] ?? 10),
         'level_comment_score' => (int) ($settings['level_comment_score'] ?? 2),
-        'access_condition_priority' => is_string($settings['access_condition_priority'] ?? null) ? (string) $settings['access_condition_priority'] : 'both_required',
         'message_write_policy' => is_string($settings['message_write_policy'] ?? null) ? (string) $settings['message_write_policy'] : 'member',
         'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
@@ -101,7 +100,6 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['level_auto_recalculate'] = sr_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
     $settings['level_comment_score'] = min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2)));
-    $settings['access_condition_priority'] = sr_community_access_condition_priority((string) ($settings['access_condition_priority'] ?? ''));
     $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
@@ -129,16 +127,6 @@ function sr_community_bool_setting(mixed $value): bool
     }
 
     return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
-}
-
-function sr_community_access_condition_priority_values(): array
-{
-    return ['both_required', 'group_first', 'level_first'];
-}
-
-function sr_community_access_condition_priority(string $value): string
-{
-    return in_array($value, sr_community_access_condition_priority_values(), true) ? $value : 'both_required';
 }
 
 function sr_community_message_write_policy_values(): array
@@ -310,18 +298,8 @@ function sr_community_account_satisfies_access(PDO $pdo, int $accountId, array $
 
     $groupMatched = !$hasGroupCondition ? true : sr_member_account_in_any_group($pdo, $accountId, $groupKeys);
     $levelMatched = !$hasLevelCondition ? true : sr_community_account_meets_min_level($pdo, $accountId, $minLevel, $settings);
-    $priority = (string) $settings['access_condition_priority'];
-
-    if ($priority === 'group_first') {
-        $allowed = ($hasGroupCondition && $groupMatched) || ($hasLevelCondition && $levelMatched);
-        $matchedBy = $hasGroupCondition && $groupMatched ? 'group' : ($hasLevelCondition && $levelMatched ? 'level' : '');
-    } elseif ($priority === 'level_first') {
-        $allowed = ($hasLevelCondition && $levelMatched) || ($hasGroupCondition && $groupMatched);
-        $matchedBy = $hasLevelCondition && $levelMatched ? 'level' : ($hasGroupCondition && $groupMatched ? 'group' : '');
-    } else {
-        $allowed = $groupMatched && $levelMatched;
-        $matchedBy = $allowed ? ($hasGroupCondition && $hasLevelCondition ? 'group_level' : ($hasGroupCondition ? 'group' : 'level')) : '';
-    }
+    $allowed = $groupMatched && $levelMatched;
+    $matchedBy = $allowed ? ($hasGroupCondition && $hasLevelCondition ? 'group_level' : ($hasGroupCondition ? 'group' : 'level')) : '';
 
     return [
         'allowed' => $allowed,
