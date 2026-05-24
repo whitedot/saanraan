@@ -250,7 +250,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </form>
                     </details>
                 <?php } else { ?>
-                    <button type="button" class="btn btn-sm btn-solid-light"<?php echo $isRequired ? ' disabled aria-disabled="true"' : ''; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleStatusModalId); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
+                    <button type="button" class="btn btn-sm btn-solid-primary"<?php echo $isRequired ? ' disabled aria-disabled="true"' : ''; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleStatusModalId); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
                         <?php echo sr_e(sr_t('admin::ui.status.22916f6e')); ?>
                     </button>
                 <?php } ?>
