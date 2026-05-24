@@ -405,48 +405,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $groupFileExtensionsRequired ? ' required' : ''; ?>>
                     </div>
                 </div>
-                <h3><?php echo sr_e(sr_t('community::ui.banner.ca341bdf')); ?></h3>
-                <?php foreach (sr_community_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
-                    <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
-                        <div class="admin-form-field">
-                            <select id="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $bannerSettingKey); ?>" class="form-select form-control-full">
-                                <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
-                                <?php foreach ($publicBanners as $publicBanner) { ?>
-                                    <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $publicBanner['title']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
+        </section>
+
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('community::ui.banner.ca341bdf')); ?></h2>
+            <?php foreach (sr_community_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
+                    <div class="admin-form-field">
+                        <select id="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $bannerSettingKey); ?>" class="form-select form-control-full">
+                            <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
+                            <?php foreach ($publicBanners as $publicBanner) { ?>
+                                <option value="<?php echo sr_e((string) $publicBanner['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $bannerSettingKey, '0') === (int) $publicBanner['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $publicBanner['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </div>
-                <?php } ?>
-                <h3><?php echo sr_e(sr_t('community::ui.text.63ba6fa3')); ?></h3>
-                <?php foreach (sr_community_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
-                    <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
-                        <div class="admin-form-field">
-                            <select id="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
-                                <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
-                                <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
-                                    <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $publicPopupLayer['title']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
+                </div>
+            <?php } ?>
+        </section>
+
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('community::ui.text.63ba6fa3')); ?></h2>
+            <?php foreach (sr_community_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
+                    <div class="admin-form-field">
+                        <select id="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
+                            <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
+                            <?php foreach ($publicPopupLayers as $publicPopupLayer) { ?>
+                                <option value="<?php echo sr_e((string) $publicPopupLayer['id']); ?>"<?php echo (int) $groupSettingValue($formGroupSettings, (string) $popupLayerSettingKey, '0') === (int) $publicPopupLayer['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $publicPopupLayer['title']); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </div>
-                <?php } ?>
-                <h3><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></h3>
-                <div class="admin-form-grid">
-                    <?php foreach ([
-                        'post_reward' => sr_t('community::ui.text.a3cc976c'),
-                        'comment_reward' => sr_t('community::ui.text.bb39df0e'),
-                        'write_charge' => sr_t('community::ui.text.ce1392a2'),
-                        'comment_charge' => sr_t('community::ui.text.629c5136'),
-                        'paid_read' => sr_t('community::ui.text.c9b3e6f0'),
-                        'paid_attachment_download' => sr_t('community::ui.text.5b864b9e'),
-                    ] as $assetPrefix => $assetLabel) { ?>
+                </div>
+            <?php } ?>
+        </section>
+
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></h2>
+            <div class="admin-form-grid">
+                <?php foreach ([
+                    'post_reward' => sr_t('community::ui.text.a3cc976c'),
+                    'comment_reward' => sr_t('community::ui.text.bb39df0e'),
+                    'write_charge' => sr_t('community::ui.text.ce1392a2'),
+                    'comment_charge' => sr_t('community::ui.text.629c5136'),
+                    'paid_read' => sr_t('community::ui.text.c9b3e6f0'),
+                    'paid_attachment_download' => sr_t('community::ui.text.5b864b9e'),
+                ] as $assetPrefix => $assetLabel) { ?>
                         <?php $assetEnabledId = 'community_board_group_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                         <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
                         <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', 'point')); ?>
@@ -486,21 +495,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </div>
                         </div>
-                    <?php } ?>
-                </div>
+                <?php } ?>
+            </div>
         </section>
-            <?php if ($communityBoardGroupsPage === 'edit') { ?>
-                <section class="admin-card card">
-                    <h2><?php echo sr_e(sr_t('community::ui.text.206dd316')); ?></h2>
-                    <p><?php echo sr_e(sr_t('community::ui.settings.select.62b200b8')); ?></p>
-                    <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
-                        <label class="admin-form-check form-label" for="modules_community_admin_board_groups_apply_setting_keys">
-                            <input id="modules_community_admin_board_groups_apply_setting_keys" type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">
-                            <?php echo sr_e($settingLabel); ?>
-                        </label>
-                    <?php } ?>
-                </section>
-            <?php } ?>
+        <?php if ($communityBoardGroupsPage === 'edit') { ?>
+            <section class="admin-card card">
+                <h2><?php echo sr_e(sr_t('community::ui.text.206dd316')); ?></h2>
+                <p><?php echo sr_e(sr_t('community::ui.settings.select.62b200b8')); ?></p>
+                <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
+                    <label class="admin-form-check form-label" for="modules_community_admin_board_groups_apply_setting_keys">
+                        <input id="modules_community_admin_board_groups_apply_setting_keys" type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">
+                        <?php echo sr_e($settingLabel); ?>
+                    </label>
+                <?php } ?>
+            </section>
+        <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319'); ?></button>
