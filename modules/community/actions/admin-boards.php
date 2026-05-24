@@ -358,21 +358,6 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        foreach ([
-            ['label' => sr_t('community::action.admin.label.read'), 'policy' => $readPolicy, 'group_keys' => $readGroupKeys, 'source' => $settingSources['read_policy']],
-            ['label' => sr_t('community::action.admin.label.write'), 'policy' => $writePolicy, 'group_keys' => $writeGroupKeys, 'source' => $settingSources['write_policy']],
-            ['label' => sr_t('community::action.admin.label.comment'), 'policy' => $commentPolicy, 'group_keys' => $commentGroupKeys, 'source' => $settingSources['comment_policy']],
-        ] as $policyGroupValidation) {
-            $label = (string) $policyGroupValidation['label'];
-            if (
-                (string) $policyGroupValidation['source'] === 'board'
-                && (string) $policyGroupValidation['policy'] === 'group'
-                && $policyGroupValidation['group_keys'] === []
-            ) {
-                $errors[] = sr_t('community::action.admin.policy_group_requires_group', ['label' => $label]);
-            }
-        }
-
         foreach ($assetSettingLabels as $assetPrefix => $assetLabel) {
             if ($assetSettings[$assetPrefix . '_amount'] === null) {
                 $errors[] = sr_t('community::action.admin.asset_amount_invalid', ['label' => $assetLabel]);

@@ -198,7 +198,6 @@ function sr_community_account_can_write_message(PDO $pdo, array $account, ?array
     $result = sr_community_account_satisfies_access($pdo, $accountId, [
         'settings' => $settings,
         'group_keys' => $groupKeys,
-        'group_required' => $policy === 'group',
         'min_level' => (int) $settings['message_write_min_level'],
     ]);
 

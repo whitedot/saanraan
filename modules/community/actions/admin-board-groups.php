@@ -267,16 +267,7 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        foreach ([
-            ['label' => sr_t('community::action.admin.label.read'), 'policy' => $readPolicy, 'group_keys' => $readGroupKeys],
-            ['label' => sr_t('community::action.admin.label.write'), 'policy' => $writePolicy, 'group_keys' => $writeGroupKeys],
-            ['label' => sr_t('community::action.admin.label.comment'), 'policy' => $commentPolicy, 'group_keys' => $commentGroupKeys],
-        ] as $policyGroupValidation) {
-            $label = (string) $policyGroupValidation['label'];
-            if ((string) $policyGroupValidation['policy'] === 'group' && $policyGroupValidation['group_keys'] === []) {
-                $errors[] = sr_t('community::action.admin.board_group_policy_group_requires_group', ['label' => $label]);
-            }
-        }
+        $readGroupKeys = sr_community_normalize_board_group_keys(array_merge($readGroupKeys, $writeGroupKeys, $commentGroupKeys));
 
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $assetLabel = sr_community_asset_setting_label($assetPrefix);

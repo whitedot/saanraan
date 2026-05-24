@@ -40,7 +40,6 @@ function sr_community_account_can_read_board(PDO $pdo, array $board, ?array $acc
         $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
         return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
-            'group_required' => true,
             'min_level' => $minLevel,
         ])['allowed']);
     }
@@ -537,7 +536,6 @@ function sr_community_account_can_write_board(PDO $pdo, array $board, array $acc
         $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
         return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
-            'group_required' => true,
             'min_level' => $minLevel,
         ])['allowed']);
     }
@@ -799,7 +797,6 @@ function sr_community_account_can_comment_post(PDO $pdo, array $post, array $acc
         $minLevel = sr_community_board_min_level($pdo, (int) $post['board_id'], 'comment_min_level');
         return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
             'group_keys' => $groupKeys,
-            'group_required' => true,
             'min_level' => $minLevel,
         ])['allowed']);
     }

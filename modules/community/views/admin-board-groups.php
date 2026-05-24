@@ -107,6 +107,21 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
+$memberGroupAccessHelpModalId = 'community-board-group-member-group-access-help-modal';
+$memberGroupAccessHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.member_group_access_help_policy')) . '</p>'
+    . '<ul>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_empty')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_auto_read')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_level')) . '</li>'
+    . '</ul>';
+$memberGroupAccessLabelHtml = static function (string $forId, string $label) use ($memberGroupAccessHelpModalId): string {
+    return '<div class="form-label admin-form-label-help">'
+        . '<label for="' . sr_e($forId) . '">' . sr_e($label) . '</label>'
+        . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . sr_t('community::ui.member_group_access_help_open')) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($memberGroupAccessHelpModalId) . '" data-overlay="#' . sr_e($memberGroupAccessHelpModalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>'
+        . '</div>';
+};
 $selectedBoardGroup = is_array($editBoardGroup ?? null) ? $editBoardGroup : [];
 $formBoardGroup = $communityBoardGroupsPage === 'edit' ? $selectedBoardGroup : [
     'group_key' => '',
@@ -287,7 +302,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?> <span class="sr-required-label" data-community-group-required="read"<?php echo $groupSettingValue($formGroupSettings, 'read_policy', 'public') === 'group' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_read_group_keys', sr_t('community::ui.member.ecf858a4')); ?>
                     <div class="admin-form-field">
                         <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_read_group_keys', 'group_read_group_keys', $groupKeysSettingValue($formGroupSettings, 'read_group_keys'), $enabledMemberGroups); ?>
                     </div>
@@ -309,7 +324,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?> <span class="sr-required-label" data-community-group-required="write"<?php echo $groupSettingValue($formGroupSettings, 'write_policy', 'member') === 'group' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_write_group_keys', sr_t('community::ui.member.e99a3ed2')); ?>
                     <div class="admin-form-field">
                         <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_write_group_keys', 'group_write_group_keys', $groupKeysSettingValue($formGroupSettings, 'write_group_keys'), $enabledMemberGroups); ?>
                     </div>
@@ -331,7 +346,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?> <span class="sr-required-label" data-community-group-required="comment"<?php echo $groupSettingValue($formGroupSettings, 'comment_policy', 'member') === 'group' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_comment_group_keys', sr_t('community::ui.member.11859d69')); ?>
                     <div class="admin-form-field">
                         <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_comment_group_keys', 'group_comment_group_keys', $groupKeysSettingValue($formGroupSettings, 'comment_group_keys'), $enabledMemberGroups); ?>
                     </div>
@@ -515,6 +530,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319'); ?></button>
         </div>
     </form>
+
+    <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
 <?php } ?>
 
 <?php if (in_array($communityBoardGroupsPage, ['new', 'edit'], true)) { ?>
@@ -523,22 +540,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     function syncPolicy(kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_board_groups_group_' + kind + '_group_keys');
-        var label = document.querySelector('[data-community-group-required="' + kind + '"]');
         if (!policy || !group) {
             return;
         }
-        var needed = policy.value === 'group';
-        var checks = Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]'));
-        var first = checks[0] || null;
-        var selected = checks.some(function (check) {
-            return check.checked;
-        });
-        if (label) {
-            label.hidden = !needed;
-        }
+        var first = group.querySelector('input[type="checkbox"]');
         if (first && typeof first.setCustomValidity === 'function') {
-            first.setCustomValidity(needed && !selected ? '회원 그룹을 하나 이상 선택하세요.' : '');
+            first.setCustomValidity('');
         }
+    }
+
+    function mirrorSelectedGroupsToRead(kind) {
+        var readGroup = document.getElementById('community_admin_board_groups_group_read_group_keys');
+        var sourceGroup = document.getElementById('community_admin_board_groups_group_' + kind + '_group_keys');
+        if (!readGroup || !sourceGroup || kind === 'read') {
+            return;
+        }
+
+        Array.prototype.slice.call(sourceGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (sourceCheck) {
+            Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]')).forEach(function (readCheck) {
+                if (readCheck.value === sourceCheck.value) {
+                    readCheck.checked = true;
+                }
+            });
+        });
+    }
+
+    function mirrorWritableGroupsToRead() {
+        mirrorSelectedGroupsToRead('write');
+        mirrorSelectedGroupsToRead('comment');
     }
 
     function syncFileExtensions() {
@@ -562,10 +591,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             policy.addEventListener('change', function () { syncPolicy(kind); });
         }
         if (group) {
-            group.addEventListener('change', function () { syncPolicy(kind); });
+            group.addEventListener('change', function () {
+                mirrorWritableGroupsToRead();
+                syncPolicy(kind);
+                syncPolicy('read');
+            });
         }
         syncPolicy(kind);
     });
+    var form = document.querySelector('.admin-page-community-board-group-form form.admin-form');
+    if (form) {
+        form.addEventListener('submit', mirrorWritableGroupsToRead);
+    }
+    mirrorWritableGroupsToRead();
+    syncPolicy('read');
     var count = document.getElementById('community_admin_board_groups_group_file_attachment_max_count');
     var enabled = document.getElementById('modules_community_admin_board_groups_group_file_uploads_enabled');
     if (count) {

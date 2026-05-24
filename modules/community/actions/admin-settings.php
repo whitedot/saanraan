@@ -116,10 +116,6 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.message_group_keys_inactive', ['keys' => implode(', ', $unknownGroupKeys)]);
         }
 
-        if ($messageWritePolicy === 'group' && $messageWriteGroupKeys === []) {
-            $errors[] = sr_t('community::action.admin.message_group_policy_requires_group');
-        }
-
         if ($errors === []) {
             $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
             $stmt->execute();

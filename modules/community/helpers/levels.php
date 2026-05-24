@@ -262,8 +262,6 @@ function sr_community_account_satisfies_access(PDO $pdo, int $accountId, array $
     $settings = sr_community_normalize_settings(is_array($context['settings'] ?? null) ? $context['settings'] : sr_community_settings($pdo));
     $groupKeys = sr_community_normalize_board_group_keys(is_array($context['group_keys'] ?? null) ? $context['group_keys'] : []);
     $minLevel = sr_community_normalize_level_value($context['min_level'] ?? 0);
-    $groupRequired = !empty($context['group_required']);
-
     if ($accountId < 1) {
         return [
             'allowed' => false,
@@ -274,17 +272,7 @@ function sr_community_account_satisfies_access(PDO $pdo, int $accountId, array $
         ];
     }
 
-    if ($groupRequired && $groupKeys === []) {
-        return [
-            'allowed' => false,
-            'reason_key' => 'group_config_missing',
-            'matched_by' => '',
-            'group_matched' => false,
-            'level_matched' => false,
-        ];
-    }
-
-    $hasGroupCondition = $groupRequired || $groupKeys !== [];
+    $hasGroupCondition = $groupKeys !== [];
     $hasLevelCondition = $minLevel > 0;
     if (!$hasGroupCondition && !$hasLevelCondition) {
         return [

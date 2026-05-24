@@ -365,7 +365,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?> <span class="sr-required-label" data-community-group-required="read"<?php echo $boardField($formBoard, 'read_policy') === 'group' && $boardSettingSource($formBoard, 'read_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <label class="form-label" for="community_admin_boards_read_group_keys"><?php echo sr_e(sr_t('community::ui.member.ecf858a4')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -396,7 +396,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?> <span class="sr-required-label" data-community-group-required="write"<?php echo $boardField($formBoard, 'write_policy') === 'group' && $boardSettingSource($formBoard, 'write_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <label class="form-label" for="community_admin_boards_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.e99a3ed2')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -427,7 +427,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?> <span class="sr-required-label" data-community-group-required="comment"<?php echo $boardField($formBoard, 'comment_policy') === 'group' && $boardSettingSource($formBoard, 'comment_policy') === 'board' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <label class="form-label" for="community_admin_boards_comment_group_keys"><?php echo sr_e(sr_t('community::ui.member.11859d69')); ?></label>
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
@@ -720,30 +720,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
-    function settingSource(kind) {
-        var selected = document.querySelector('input[name="source_' + kind + '_policy"]:checked');
-        var hidden = document.querySelector('input[type="hidden"][name="source_' + kind + '_policy"]');
-        return selected ? selected.value : (hidden ? hidden.value : 'board');
-    }
-
     function syncPolicy(kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
-        var label = document.querySelector('[data-community-group-required="' + kind + '"]');
         if (!policy || !group) {
             return;
         }
-        var needed = policy.value === 'group' && settingSource(kind) === 'board';
-        var checks = Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]'));
-        var first = checks[0] || null;
-        var selected = checks.some(function (check) {
-            return check.checked;
-        });
-        if (label) {
-            label.hidden = !needed;
-        }
+        var first = group.querySelector('input[type="checkbox"]');
         if (first && typeof first.setCustomValidity === 'function') {
-            first.setCustomValidity(needed && !selected ? '회원 그룹을 하나 이상 선택하세요.' : '');
+            first.setCustomValidity('');
         }
     }
 
