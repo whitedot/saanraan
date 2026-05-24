@@ -236,7 +236,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
-.admin-setting-source-options>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
+.admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:14px;line-height:1.5;min-height:calc(var(--spacing) * 9.25)}
 .admin-setting-source-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25);width:100%}
 .admin-setting-source-line>.form-control-full{flex:1 1 18rem;width:auto}
 .admin-setting-source-line>.admin-setting-source-options{margin-left:auto}
