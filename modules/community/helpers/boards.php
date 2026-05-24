@@ -51,6 +51,8 @@ function sr_community_board_group_setting_keys(): array
         'read_min_level',
         'write_min_level',
         'comment_min_level',
+        'level_post_score',
+        'level_comment_score',
         'image_uploads_enabled',
         'attachment_max_bytes',
         'attachment_max_count',
@@ -187,6 +189,8 @@ function sr_community_board_setting_value_type(string $settingKey): string
         'read_min_level',
         'write_min_level',
         'comment_min_level',
+        'level_post_score',
+        'level_comment_score',
         'banner_before_list_id',
         'banner_after_list_id',
         'banner_before_view_id',
@@ -757,6 +761,45 @@ function sr_community_board_own_min_level(PDO $pdo, int $boardId, string $settin
     return is_string($value) && $value !== '' ? sr_community_normalize_level_value($value) : 0;
 }
 
+function sr_community_board_level_score(PDO $pdo, int $boardId, string $settingKey, array $settings = []): int
+{
+    if (!in_array($settingKey, ['level_post_score', 'level_comment_score'], true)) {
+        return 0;
+    }
+
+    $default = min(10000, max(0, (int) ($settings[$settingKey] ?? ($settingKey === 'level_post_score' ? 10 : 2))));
+    if ($boardId < 1) {
+        return $default;
+    }
+
+    $board = sr_community_board_by_id($pdo, $boardId);
+    $value = is_array($board)
+        ? sr_community_effective_board_setting($pdo, $board, $settingKey, (string) $default)
+        : sr_community_board_setting_value($pdo, $boardId, $settingKey);
+
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return min(10000, max(0, (int) $value));
+}
+
+function sr_community_board_own_level_score(PDO $pdo, int $boardId, string $settingKey, array $settings = []): int
+{
+    if (!in_array($settingKey, ['level_post_score', 'level_comment_score'], true)) {
+        return 0;
+    }
+
+    $default = min(10000, max(0, (int) ($settings[$settingKey] ?? ($settingKey === 'level_post_score' ? 10 : 2))));
+    if ($boardId < 1) {
+        return $default;
+    }
+
+    $value = sr_community_board_setting_value($pdo, $boardId, $settingKey);
+
+    return is_string($value) && $value !== '' ? min(10000, max(0, (int) $value)) : $default;
+}
+
 function sr_community_board_attachment_max_bytes(PDO $pdo, int $boardId, array $settings = []): int
 {
     $default = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
@@ -968,6 +1011,8 @@ function sr_community_apply_board_group_settings_to_boards(PDO $pdo, int $groupI
                     'read_min_level',
                     'write_min_level',
                     'comment_min_level',
+                    'level_post_score',
+                    'level_comment_score',
                     'banner_before_list_id',
                     'banner_after_list_id',
                     'banner_before_view_id',

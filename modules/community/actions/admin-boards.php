@@ -146,6 +146,8 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
+        $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
+        $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
         $boardGroupId = is_int($boardGroupId) ? $boardGroupId : 0;
         $readGroupKeysInput = $_POST['read_group_keys'] ?? [];
@@ -294,6 +296,16 @@ if (sr_request_method() === 'POST') {
             $commentMinLevel = 0;
         }
 
+        if ($levelPostScore === null) {
+            $errors[] = sr_t('community::action.admin.post_score_invalid');
+            $levelPostScore = (int) $settings['level_post_score'];
+        }
+
+        if ($levelCommentScore === null) {
+            $errors[] = sr_t('community::action.admin.comment_score_invalid');
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
             $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
@@ -395,6 +407,8 @@ if (sr_request_method() === 'POST') {
                 'read_min_level' => (string) $readMinLevel,
                 'write_min_level' => (string) $writeMinLevel,
                 'comment_min_level' => (string) $commentMinLevel,
+                'level_post_score' => (string) $levelPostScore,
+                'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
                 'attachment_max_bytes' => (string) $attachmentMaxBytes,
                 'attachment_max_count' => (string) $attachmentMaxCount,
@@ -447,6 +461,8 @@ if (sr_request_method() === 'POST') {
                     'read_min_level' => $readMinLevel,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
+                    'level_post_score' => $levelPostScore,
+                    'level_comment_score' => $levelCommentScore,
                     'skin_key' => $skinKey,
                     'asset_settings' => $assetSettings,
                     'asset_setting_sources' => $assetSettingSources,
@@ -469,6 +485,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+            sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
+            sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
             foreach ($boardSettingValues as $settingKey => $settingValue) {
                 sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
@@ -504,6 +522,8 @@ if (sr_request_method() === 'POST') {
                 $beforeReadMinLevel = sr_community_board_min_level($pdo, $boardId, 'read_min_level');
                 $beforeWriteMinLevel = sr_community_board_min_level($pdo, $boardId, 'write_min_level');
                 $beforeCommentMinLevel = sr_community_board_min_level($pdo, $boardId, 'comment_min_level');
+                $beforeLevelPostScore = sr_community_board_level_score($pdo, $boardId, 'level_post_score', $settings);
+                $beforeLevelCommentScore = sr_community_board_level_score($pdo, $boardId, 'level_comment_score', $settings);
                 $beforeSkinKey = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
                 $beforeAssetSettingSources = [];
                 foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
@@ -540,6 +560,8 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+                sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
+                sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
                 sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
                     sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
@@ -593,6 +615,10 @@ if (sr_request_method() === 'POST') {
                         'after_write_min_level' => $writeMinLevel,
                         'before_comment_min_level' => $beforeCommentMinLevel,
                         'after_comment_min_level' => $commentMinLevel,
+                        'before_level_post_score' => $beforeLevelPostScore,
+                        'after_level_post_score' => $levelPostScore,
+                        'before_level_comment_score' => $beforeLevelCommentScore,
+                        'after_level_comment_score' => $levelCommentScore,
                         'before_skin_key' => $beforeSkinKey,
                         'after_skin_key' => $skinKey,
                         'before_asset_setting_sources' => $beforeAssetSettingSources,
@@ -642,6 +668,10 @@ foreach ($boards as &$board) {
     $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
+    $board['level_post_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
+    $board['level_comment_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
+    $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
+    $board['effective_level_comment_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);

@@ -104,6 +104,8 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('group_read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('group_write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
+        $levelPostScore = sr_admin_post_int_in_range('group_level_post_score', 0, 10000);
+        $levelCommentScore = sr_admin_post_int_in_range('group_level_comment_score', 0, 10000);
         $publicDisplaySettingValues = [];
         foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
             $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range('group_' . $displaySettingKey, 0, 999999999);
@@ -205,6 +207,16 @@ if (sr_request_method() === 'POST') {
         if ($commentMinLevel === null) {
             $errors[] = sr_t('community::action.admin.board_group_comment_min_level_invalid', ['max' => (string) $maxLevel]);
             $commentMinLevel = 0;
+        }
+
+        if ($levelPostScore === null) {
+            $errors[] = sr_t('community::action.admin.post_score_invalid');
+            $levelPostScore = (int) $settings['level_post_score'];
+        }
+
+        if ($levelCommentScore === null) {
+            $errors[] = sr_t('community::action.admin.comment_score_invalid');
+            $levelCommentScore = (int) $settings['level_comment_score'];
         }
 
         foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
@@ -331,6 +343,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'read_min_level', (string) $readMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'comment_min_level', (string) $commentMinLevel, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'level_post_score', (string) $levelPostScore, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'level_comment_score', (string) $levelCommentScore, 'int');
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $displaySettingKey, (string) $displaySettingValue, 'int');
             }

@@ -110,6 +110,8 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'read_min_level' => 0,
     'write_min_level' => 0,
     'comment_min_level' => 0,
+    'level_post_score' => (string) ($settings['level_post_score'] ?? 10),
+    'level_comment_score' => (string) ($settings['level_comment_score'] ?? 2),
     'skin_key' => 'basic',
     'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
@@ -432,6 +434,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $communityLevelSelectHtml('community_admin_boards_comment_min_level', 'comment_min_level', (int) $boardField($formBoard, 'comment_min_level', '0')); ?>
                     <?php if ($communityBoardsPage === 'edit') { ?>
                                         <?php echo $settingSourceRadioHtml('source_comment_min_level', $boardSettingSource($formBoard, 'comment_min_level')); ?>
+                                    <?php } ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <?php echo $settingSourceRadioHtml('source_level_post_score', $boardSettingSource($formBoard, 'level_post_score')); ?>
+                                    <?php } ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input">
+                    <?php if ($communityBoardsPage === 'edit') { ?>
+                                        <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
                                     <?php } ?>
                 </div>
             </div>

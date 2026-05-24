@@ -27,6 +27,8 @@ $settingLabels = [
     'read_min_level' => sr_t('community::ui.text.a783617f'),
     'write_min_level' => sr_t('community::ui.text.82530158'),
     'comment_min_level' => sr_t('community::ui.text.3eccb18c'),
+    'level_post_score' => sr_t('community::ui.text.99092cba'),
+    'level_comment_score' => sr_t('community::ui.text.96af1f5c'),
     'image_uploads_enabled' => sr_t('community::ui.text.c3bd14cb'),
     'attachment_max_bytes' => sr_t('community::ui.text.8ffcc807'),
     'attachment_max_count' => sr_t('community::ui.text.bf61ba9f'),
@@ -338,6 +340,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="community_admin_board_groups_group_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_comment_min_level', 'group_comment_min_level', (int) $groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_level_post_score" type="number" name="group_level_post_score" min="0" max="10000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_level_comment_score" type="number" name="group_level_comment_score" min="0" max="10000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">

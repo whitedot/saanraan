@@ -322,18 +322,41 @@ function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT
-            (SELECT COUNT(*) FROM sr_community_posts WHERE author_account_id = :post_account_id AND status = 'published') AS post_count,
-            (SELECT COUNT(*) FROM sr_community_comments WHERE author_account_id = :comment_account_id AND status = 'published') AS comment_count"
+        "SELECT board_id, COUNT(*) AS post_count
+         FROM sr_community_posts
+         WHERE author_account_id = :account_id
+           AND status = 'published'
+         GROUP BY board_id"
     );
-    $stmt->execute([
-        'post_account_id' => $accountId,
-        'comment_account_id' => $accountId,
-    ]);
-    $row = $stmt->fetch();
-    $postCount = is_array($row) ? (int) $row['post_count'] : 0;
-    $commentCount = is_array($row) ? (int) $row['comment_count'] : 0;
-    $scoreValue = ($postCount * (int) $settings['level_post_score']) + ($commentCount * (int) $settings['level_comment_score']);
+    $stmt->execute(['account_id' => $accountId]);
+    $postCountsByBoard = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $postCountsByBoard[(int) ($row['board_id'] ?? 0)] = (int) ($row['post_count'] ?? 0);
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT p.board_id, COUNT(*) AS comment_count
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         WHERE c.author_account_id = :account_id
+           AND c.status = 'published'
+         GROUP BY p.board_id"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $commentCountsByBoard = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $commentCountsByBoard[(int) ($row['board_id'] ?? 0)] = (int) ($row['comment_count'] ?? 0);
+    }
+
+    $postCount = array_sum($postCountsByBoard);
+    $commentCount = array_sum($commentCountsByBoard);
+    $scoreValue = 0;
+    foreach ($postCountsByBoard as $boardId => $boardPostCount) {
+        $scoreValue += $boardPostCount * sr_community_board_level_score($pdo, (int) $boardId, 'level_post_score', $settings);
+    }
+    foreach ($commentCountsByBoard as $boardId => $boardCommentCount) {
+        $scoreValue += $boardCommentCount * sr_community_board_level_score($pdo, (int) $boardId, 'level_comment_score', $settings);
+    }
     $levelValue = sr_community_level_value_for_score($pdo, $scoreValue);
     if (sr_community_account_is_owner($pdo, $accountId)) {
         $levelValue = sr_community_max_level_value();
