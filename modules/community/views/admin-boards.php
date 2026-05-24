@@ -738,6 +738,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function mirrorSelectedGroupsToRead(kind) {
+        var readGroup = document.getElementById('community_admin_boards_read_group_keys');
+        var sourceGroup = document.getElementById('community_admin_boards_' + kind + '_group_keys');
+        if (!readGroup || !sourceGroup || kind === 'read') {
+            return;
+        }
+
+        Array.prototype.slice.call(sourceGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (sourceCheck) {
+            Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]')).forEach(function (readCheck) {
+                if (readCheck.value === sourceCheck.value) {
+                    readCheck.checked = true;
+                }
+            });
+        });
+    }
+
+    function syncWritableGroupsFromRead() {
+        var readGroup = document.getElementById('community_admin_boards_read_group_keys');
+        if (!readGroup) {
+            return;
+        }
+
+        var readable = {};
+        Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (readCheck) {
+            readable[readCheck.value] = true;
+        });
+        ['write', 'comment'].forEach(function (kind) {
+            var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
+            if (!group) {
+                return;
+            }
+            Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (check) {
+                if (!readable[check.value]) {
+                    check.checked = false;
+                }
+            });
+        });
+    }
+
     function syncFileExtensions() {
         var count = document.getElementById('community_admin_boards_file_attachment_max_count');
         var enabled = document.getElementById('modules_community_admin_boards_file_uploads_enabled');
@@ -760,7 +799,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             policy.addEventListener('change', function () { syncPolicy(kind); });
         }
         if (group) {
-            group.addEventListener('change', function () { syncPolicy(kind); });
+            group.addEventListener('change', function () {
+                if (kind === 'read') {
+                    syncWritableGroupsFromRead();
+                } else {
+                    mirrorSelectedGroupsToRead(kind);
+                }
+                syncPolicy(kind);
+                syncPolicy('read');
+            });
         }
         sourceRadios.forEach(function (radio) {
             radio.addEventListener('change', function () {
@@ -770,6 +817,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         });
         syncPolicy(kind);
     });
+    var form = document.querySelector('.admin-page-community-board-form form.admin-form');
+    if (form) {
+        form.addEventListener('submit', syncWritableGroupsFromRead);
+    }
+    syncWritableGroupsFromRead();
+    syncPolicy('read');
     syncBoardGroupRequired();
     var groupSelect = document.querySelector('[data-community-board-group-select]');
     var postScore = document.querySelector('[data-community-level-score="post"]');

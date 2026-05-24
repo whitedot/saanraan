@@ -267,7 +267,8 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        $readGroupKeys = sr_community_normalize_board_group_keys(array_merge($readGroupKeys, $writeGroupKeys, $commentGroupKeys));
+        $writeGroupKeys = array_values(array_intersect($writeGroupKeys, $readGroupKeys));
+        $commentGroupKeys = array_values(array_intersect($commentGroupKeys, $readGroupKeys));
 
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $assetLabel = sr_community_asset_setting_label($assetPrefix);

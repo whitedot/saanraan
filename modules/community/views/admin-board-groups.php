@@ -565,9 +565,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         });
     }
 
-    function mirrorWritableGroupsToRead() {
-        mirrorSelectedGroupsToRead('write');
-        mirrorSelectedGroupsToRead('comment');
+    function syncWritableGroupsFromRead() {
+        var readGroup = document.getElementById('community_admin_board_groups_group_read_group_keys');
+        if (!readGroup) {
+            return;
+        }
+
+        var readable = {};
+        Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (readCheck) {
+            readable[readCheck.value] = true;
+        });
+        ['write', 'comment'].forEach(function (kind) {
+            var group = document.getElementById('community_admin_board_groups_group_' + kind + '_group_keys');
+            if (!group) {
+                return;
+            }
+            Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (check) {
+                if (!readable[check.value]) {
+                    check.checked = false;
+                }
+            });
+        });
     }
 
     function syncFileExtensions() {
@@ -592,7 +610,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
         if (group) {
             group.addEventListener('change', function () {
-                mirrorWritableGroupsToRead();
+                if (kind === 'read') {
+                    syncWritableGroupsFromRead();
+                } else {
+                    mirrorSelectedGroupsToRead(kind);
+                }
                 syncPolicy(kind);
                 syncPolicy('read');
             });
@@ -601,9 +623,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
     var form = document.querySelector('.admin-page-community-board-group-form form.admin-form');
     if (form) {
-        form.addEventListener('submit', mirrorWritableGroupsToRead);
+        form.addEventListener('submit', syncWritableGroupsFromRead);
     }
-    mirrorWritableGroupsToRead();
+    syncWritableGroupsFromRead();
     syncPolicy('read');
     var count = document.getElementById('community_admin_board_groups_group_file_attachment_max_count');
     var enabled = document.getElementById('modules_community_admin_board_groups_group_file_uploads_enabled');

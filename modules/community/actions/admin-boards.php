@@ -367,6 +367,9 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        $writeGroupKeys = array_values(array_intersect($writeGroupKeys, $readGroupKeys));
+        $commentGroupKeys = array_values(array_intersect($commentGroupKeys, $readGroupKeys));
+
         foreach ($assetSettingLabels as $assetPrefix => $assetLabel) {
             if ($assetSettings[$assetPrefix . '_amount'] === null) {
                 $errors[] = sr_t('community::action.admin.asset_amount_invalid', ['label' => $assetLabel]);

@@ -302,7 +302,7 @@ return [
     'ui.level_score_help_open' => '레벨 점수 안내',
     'ui.level_score_help_priority' => '유효 점수는 게시판 점수, 게시판 그룹 점수, 전역 점수 순서로 적용합니다.',
     'ui.level_score_help_title' => '레벨 점수 계산 방식',
-    'ui.member_group_access_help_auto_read' => '쓰기 회원 그룹이나 댓글 회원 그룹을 선택하면 같은 회원 그룹을 읽기 회원 그룹에도 자동으로 포함합니다.',
+    'ui.member_group_access_help_auto_read' => '쓰기 회원 그룹이나 댓글 회원 그룹은 읽기 회원 그룹 안에서 선택합니다. 쓰기/댓글에서 선택하면 읽기에도 포함되고, 읽기에서 제거하면 쓰기/댓글에서도 제거됩니다.',
     'ui.member_group_access_help_empty' => '회원 그룹을 하나도 고르지 않으면 회원 그룹 제한을 적용하지 않습니다. 이때 최소 레벨이 있으면 레벨 조건만 확인합니다.',
     'ui.member_group_access_help_level' => '회원 그룹과 최소 레벨을 함께 설정하면 두 조건을 모두 통과해야 허용됩니다.',
     'ui.member_group_access_help_open' => '회원 그룹 접근 조건 안내',
