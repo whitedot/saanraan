@@ -15,6 +15,14 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
+$levelScoreHelpModalId = 'community-level-score-help-modal';
+$levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_global_default')) . '</p>'
+    . '<p>' . sr_e(sr_t('community::ui.level_score_help_formula')) . '</p>'
+    . '<ul>'
+    . '<li>' . sr_e(sr_t('community::ui.level_score_help_priority')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.level_score_help_group_initial')) . '</li>'
+    . '<li>' . sr_e(sr_t('community::ui.level_score_help_board_initial')) . '</li>'
+    . '</ul>';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -48,13 +56,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_level_post_score', sr_t('community::ui.text.99092cba'), $levelScoreHelpModalId, sr_t('community::ui.level_score_help_open'), true); ?>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" required class="form-input">
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_level_comment_score"><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_level_comment_score', sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId, sr_t('community::ui.level_score_help_open'), true); ?>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" required class="form-input">
             </div>
@@ -224,6 +232,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<?php echo sr_admin_help_modal_html($levelScoreHelpModalId, sr_t('community::ui.level_score_help_title'), $levelScoreHelpBodyHtml); ?>
+
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>
@@ -263,6 +273,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
     </div>
+    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php if ($levels !== []) { ?>
             <?php echo sr_csrf_field(); ?>
