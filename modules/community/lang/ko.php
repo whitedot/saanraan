@@ -546,7 +546,7 @@ return [
     'ui.text.f3e1cf06' => '쪽지가 없습니다.',
     'ui.text.f789aad9' => '팝업레이어 관리',
     'ui.text.f8d240bf' => '조회',
-    'ui.text.f9447e05' => '게시글/댓글 활동 후 레벨 자동 재계산',
+    'ui.text.f9447e05' => '레벨 자동 재계산',
     'ui.text.f99bc7dd' => '작성자:',
     'ui.text.fd2ad6a5' => '그룹+레벨 판정 방식',
     'ui.text.fe95ead0' => '파일 첨부 허용',
