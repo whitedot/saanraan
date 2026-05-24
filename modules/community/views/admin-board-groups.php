@@ -122,6 +122,67 @@ $memberGroupAccessLabelHtml = static function (string $forId, string $label) use
         . '<label for="' . sr_e($forId) . '">' . sr_e($label) . '</label>'
         . '</div>';
 };
+$communityBoardGroupHelpOpenLabel = sr_t('community::help.open');
+$communityBoardGroupHelpButtonHtml = static function (string $label, string $modalId) use ($communityBoardGroupHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $communityBoardGroupHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$communityBoardGroupHelpBodyHtml = static function (array $keys): string {
+    $html = '';
+    foreach ($keys as $key) {
+        $html .= '<p>' . sr_e(sr_t((string) $key)) . '</p>';
+    }
+
+    return $html;
+};
+$communityBoardGroupHelp = [
+    'status' => [
+        'id' => 'community_board_group_help_status',
+        'title' => sr_t('community::help.status.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.status.body.1', 'community::help.status.body.2', 'community::help.status.body.3']),
+    ],
+    'policy' => [
+        'id' => 'community_board_group_help_policy',
+        'title' => sr_t('community::help.policy.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.policy.body.1', 'community::help.policy.body.2']),
+    ],
+    'min_level' => [
+        'id' => 'community_board_group_help_min_level',
+        'title' => sr_t('community::help.min_level.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.min_level.body.1', 'community::help.min_level.body.2']),
+    ],
+    'attachments' => [
+        'id' => 'community_board_group_help_attachments',
+        'title' => sr_t('community::help.attachments.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.attachments.body.1', 'community::help.attachments.body.2']),
+    ],
+    'file_extensions' => [
+        'id' => 'community_board_group_help_file_extensions',
+        'title' => sr_t('community::help.file_extensions.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.file_extensions.body.1', 'community::help.file_extensions.body.2']),
+    ],
+    'display_banner' => [
+        'id' => 'community_board_group_help_display_banner',
+        'title' => sr_t('community::help.display_banner.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.display_banner.body.1', 'community::help.display_banner.body.2']),
+    ],
+    'display_popup' => [
+        'id' => 'community_board_group_help_display_popup',
+        'title' => sr_t('community::help.display_popup.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.display_popup.body.1', 'community::help.display_popup.body.2']),
+    ],
+    'asset_settings' => [
+        'id' => 'community_board_group_help_asset_settings',
+        'title' => sr_t('community::help.asset_settings.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.asset_settings.body.1', 'community::help.asset_settings.body.2', 'community::help.asset_settings.body.3']),
+    ],
+    'sort_order' => [
+        'id' => 'community_board_group_help_sort_order',
+        'title' => sr_t('community::help.sort_order.title'),
+        'body' => $communityBoardGroupHelpBodyHtml(['community::help.sort_order.body.1', 'community::help.sort_order.body.2']),
+    ],
+];
 $selectedBoardGroup = is_array($editBoardGroup ?? null) ? $editBoardGroup : [];
 $formBoardGroup = $communityBoardGroupsPage === 'edit' ? $selectedBoardGroup : [
     'group_key' => '',
@@ -272,7 +333,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_board_groups_status"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_board_groups_status', sr_t('community::ui.status.e10195a1'), $communityBoardGroupHelp['status']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="community_admin_board_groups_status" name="status" class="form-select">
                                             <?php foreach ($allowedGroupStatuses as $status) { ?>
@@ -282,7 +343,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_board_groups_sort_order"><?php echo sr_e(sr_t('community::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_board_groups_sort_order', sr_t('community::ui.text.7d2dc215'), $communityBoardGroupHelp['sort_order']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="community_admin_board_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" required class="form-input">
                 </div>
@@ -292,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('community::ui.settings.021ed27a')); ?></h2>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_policy"><?php echo sr_e(sr_t('community::ui.text.0b6c5dfd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardGroupHelp['policy']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_read_policy" name="group_read_policy" class="form-select" data-community-policy="read">
                                                     <?php foreach ($allowedReadPolicies as $policy) { ?>
@@ -308,13 +369,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_read_min_level"><?php echo sr_e(sr_t('community::ui.text.a783617f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_read_min_level', sr_t('community::ui.text.a783617f'), $communityBoardGroupHelp['min_level']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_read_min_level', 'group_read_min_level', (int) $groupSettingValue($formGroupSettings, 'read_min_level', '0')); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_policy"><?php echo sr_e(sr_t('community::ui.text.4f05f6a8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_write_policy', sr_t('community::ui.text.4f05f6a8'), $communityBoardGroupHelp['policy']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_write_policy" name="group_write_policy" class="form-select" data-community-policy="write">
                                                     <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -330,13 +391,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_write_min_level"><?php echo sr_e(sr_t('community::ui.text.82530158')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_write_min_level', sr_t('community::ui.text.82530158'), $communityBoardGroupHelp['min_level']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_write_min_level', 'group_write_min_level', (int) $groupSettingValue($formGroupSettings, 'write_min_level', '0')); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_policy"><?php echo sr_e(sr_t('community::ui.text.0550e13c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_comment_policy', sr_t('community::ui.text.0550e13c'), $communityBoardGroupHelp['policy']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_comment_policy" name="group_comment_policy" class="form-select" data-community-policy="comment">
                                                     <?php foreach ($allowedCommentPolicies as $policy) { ?>
@@ -352,7 +413,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_comment_min_level"><?php echo sr_e(sr_t('community::ui.text.3eccb18c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_comment_min_level', sr_t('community::ui.text.3eccb18c'), $communityBoardGroupHelp['min_level']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <?php echo $communityLevelSelectHtml('community_admin_board_groups_group_comment_min_level', 'group_comment_min_level', (int) $groupSettingValue($formGroupSettings, 'comment_min_level', '0')); ?>
                     </div>
@@ -370,7 +431,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span>
+                    <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.c3bd14cb'), $communityBoardGroupHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span></div>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_group_image_uploads_enabled">
                                                     <input id="modules_community_admin_board_groups_group_image_uploads_enabled" type="checkbox" name="group_image_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -379,20 +440,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.e28899ac')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_attachment_max_bytes', sr_t('community::ui.bytes.e28899ac'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_attachment_max_bytes" type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
                         <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.bf61ba9f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_attachment_max_count', sr_t('community::ui.text.bf61ba9f'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_attachment_max_count" type="number" name="group_attachment_max_count" min="0" max="10" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_count', '1')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.fe95ead0')); ?></span>
+                    <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.fe95ead0'), $communityBoardGroupHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.fe95ead0')); ?></span></div>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_group_file_uploads_enabled">
                                                     <input id="modules_community_admin_board_groups_group_file_uploads_enabled" type="checkbox" name="group_file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -401,21 +462,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_bytes"><?php echo sr_e(sr_t('community::ui.bytes.9055a3dc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_file_attachment_max_bytes', sr_t('community::ui.bytes.9055a3dc'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_file_attachment_max_bytes" type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
                         <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_file_attachment_max_count"><?php echo sr_e(sr_t('community::ui.text.593790e4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_file_attachment_max_count', sr_t('community::ui.text.593790e4'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_file_attachment_max_count" type="number" name="group_file_attachment_max_count" min="0" max="5" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3')); ?>" required class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">
                     <?php $groupFileExtensionsRequired = in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) && (int) $groupSettingValue($formGroupSettings, 'file_attachment_max_count', '3') > 0; ?>
-                    <label class="form-label" for="community_admin_board_groups_group_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?> <span class="sr-required-label" data-community-file-extensions-required<?php echo $groupFileExtensionsRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.69600d46'), $communityBoardGroupHelp['file_extensions']['id']); ?><label for="community_admin_board_groups_group_file_allowed_extensions"><?php echo sr_e(sr_t('community::ui.text.69600d46')); ?> <span class="sr-required-label" data-community-file-extensions-required<?php echo $groupFileExtensionsRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label></div>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $groupFileExtensionsRequired ? ' required' : ''; ?>>
                     </div>
@@ -426,7 +487,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2><?php echo sr_e(sr_t('community::ui.banner.ca341bdf')); ?></h2>
             <?php foreach (sr_community_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label>
+                    <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml((string) $bannerSettingLabel, $communityBoardGroupHelp['display_banner']['id']); ?><label for="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>"><?php echo sr_e((string) $bannerSettingLabel); ?></label></div>
                     <div class="admin-form-field">
                         <select id="<?php echo sr_e('community_board_group_' . (string) $bannerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $bannerSettingKey); ?>" class="form-select form-control-full">
                             <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
@@ -445,7 +506,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2><?php echo sr_e(sr_t('community::ui.text.63ba6fa3')); ?></h2>
             <?php foreach (sr_community_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label>
+                    <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml((string) $popupLayerSettingLabel, $communityBoardGroupHelp['display_popup']['id']); ?><label for="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>"><?php echo sr_e((string) $popupLayerSettingLabel); ?></label></div>
                     <div class="admin-form-field">
                         <select id="<?php echo sr_e('community_board_group_' . (string) $popupLayerSettingKey); ?>" name="<?php echo sr_e('group_' . (string) $popupLayerSettingKey); ?>" class="form-select form-control-full">
                             <option value="0"><?php echo sr_e(sr_t('community::ui.active.4add3230')); ?></option>
@@ -475,7 +536,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
                         <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', 'point')); ?>
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e($assetLabel); ?></span>
+                            <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
                             <div class="admin-form-field">
                                 <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                     <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -532,6 +593,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 
     <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
+    <?php foreach ($communityBoardGroupHelp as $communityBoardGroupHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $communityBoardGroupHelpModal['id'], (string) $communityBoardGroupHelpModal['title'], (string) $communityBoardGroupHelpModal['body']); ?>
+    <?php } ?>
 <?php } ?>
 
 <?php if (in_array($communityBoardGroupsPage, ['new', 'edit'], true)) { ?>

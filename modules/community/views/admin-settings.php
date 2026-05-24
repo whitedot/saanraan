@@ -23,6 +23,62 @@ $levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_glob
     . '<li>' . sr_e(sr_t('community::ui.level_score_help_group_initial')) . '</li>'
     . '<li>' . sr_e(sr_t('community::ui.level_score_help_board_initial')) . '</li>'
     . '</ul>';
+$communitySettingsHelpOpenLabel = sr_t('community::help.open');
+$communitySettingsHelpButtonHtml = static function (string $label, string $modalId) use ($communitySettingsHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $communitySettingsHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$communitySettingsHelpBodyHtml = static function (array $keys): string {
+    $html = '';
+    foreach ($keys as $key) {
+        $html .= '<p>' . sr_e(sr_t((string) $key)) . '</p>';
+    }
+
+    return $html;
+};
+$communitySettingsHelp = [
+    'level_feature' => [
+        'id' => 'community_settings_help_level_feature',
+        'title' => sr_t('community::help.level_feature.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.level_feature.body.1', 'community::help.level_feature.body.2']),
+    ],
+    'level_auto_recalculate' => [
+        'id' => 'community_settings_help_level_auto_recalculate',
+        'title' => sr_t('community::help.level_auto_recalculate.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.level_auto_recalculate.body.1', 'community::help.level_auto_recalculate.body.2']),
+    ],
+    'message_policy' => [
+        'id' => 'community_settings_help_message_policy',
+        'title' => sr_t('community::help.message_policy.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.message_policy.body.1', 'community::help.message_policy.body.2']),
+    ],
+    'message_group' => [
+        'id' => 'community_settings_help_message_group',
+        'title' => sr_t('community::help.message_group.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.message_group.body.1', 'community::help.message_group.body.2']),
+    ],
+    'message_min_level' => [
+        'id' => 'community_settings_help_message_min_level',
+        'title' => sr_t('community::help.message_min_level.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.message_min_level.body.1', 'community::help.message_min_level.body.2']),
+    ],
+    'asset_settings' => [
+        'id' => 'community_settings_help_asset_settings',
+        'title' => sr_t('community::help.asset_settings.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.asset_settings.body.1', 'community::help.asset_settings.body.2', 'community::help.asset_settings.body.3']),
+    ],
+    'layout' => [
+        'id' => 'community_settings_help_layout',
+        'title' => sr_t('community::help.layout.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.layout.body.1', 'community::help.layout.body.2']),
+    ],
+    'level_min_score' => [
+        'id' => 'community_settings_help_level_min_score',
+        'title' => sr_t('community::help.level_min_score.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.level_min_score.body.1', 'community::help.level_min_score.body.2']),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -37,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.community.active.9b707ae1')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.community.active.9b707ae1'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.community.active.9b707ae1')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_enabled">
                                             <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
@@ -46,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
                                             <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
@@ -72,7 +128,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('community::ui.text.919bd592')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_policy"><?php echo sr_e(sr_t('community::ui.text.31edcf4a')); ?></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select" data-community-message-policy>
                                     <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
@@ -82,13 +138,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_group_keys', sr_t('community::ui.member.69b1363d'), $communitySettingsHelp['message_group']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
                 <?php echo sr_admin_member_group_key_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_message_write_min_level"><?php echo sr_e(sr_t('community::ui.text.c96c86df')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_min_level', sr_t('community::ui.text.c96c86df'), $communitySettingsHelp['message_min_level']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
@@ -105,7 +161,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.a3cc976c')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.a3cc976c'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.a3cc976c')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_post_reward_enabled">
                                             <input id="modules_community_admin_settings_post_reward_enabled" type="checkbox" name="post_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['post_reward_enabled']) ? ' checked' : ''; ?>>
@@ -127,7 +183,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.bb39df0e')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.bb39df0e'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.bb39df0e')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_comment_reward_enabled">
                                             <input id="modules_community_admin_settings_comment_reward_enabled" type="checkbox" name="comment_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_reward_enabled']) ? ' checked' : ''; ?>>
@@ -149,7 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.ce1392a2')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.ce1392a2'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.ce1392a2')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_write_charge_enabled">
                                             <input id="modules_community_admin_settings_write_charge_enabled" type="checkbox" name="write_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['write_charge_enabled']) ? ' checked' : ''; ?>>
@@ -162,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.629c5136')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.629c5136'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.629c5136')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_comment_charge_enabled">
                                             <input id="modules_community_admin_settings_comment_charge_enabled" type="checkbox" name="comment_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_charge_enabled']) ? ' checked' : ''; ?>>
@@ -175,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.c9b3e6f0')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.c9b3e6f0'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c9b3e6f0')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_read_enabled">
                                             <input id="modules_community_admin_settings_paid_read_enabled" type="checkbox" name="paid_read_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_read_enabled']) ? ' checked' : ''; ?>>
@@ -192,7 +248,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('community::ui.text.5b864b9e')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.5b864b9e'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.5b864b9e')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_attachment_download_enabled">
                                             <input id="modules_community_admin_settings_paid_attachment_download_enabled" type="checkbox" name="paid_attachment_download_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_enabled']) ? ' checked' : ''; ?>>
@@ -214,7 +270,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('community::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_key"><?php echo sr_e(sr_t('community::ui.community.8f453af4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
                                     <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -233,6 +289,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 
 <?php echo sr_admin_help_modal_html($levelScoreHelpModalId, sr_t('community::ui.level_score_help_title'), $levelScoreHelpBodyHtml); ?>
+<?php foreach ($communitySettingsHelp as $communitySettingsHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $communitySettingsHelpModal['id'], (string) $communitySettingsHelpModal['title'], (string) $communitySettingsHelpModal['body']); ?>
+<?php } ?>
 
 <?php } ?>
 
@@ -253,7 +312,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></th>
+                    <th><span class="admin-form-check admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.2ba8a858'), $communitySettingsHelp['level_min_score']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></span></span></th>
                     <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
                 </tr>
             </thead>
@@ -295,6 +354,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </div>
 </section>
+<?php echo sr_admin_help_modal_html((string) $communitySettingsHelp['level_min_score']['id'], (string) $communitySettingsHelp['level_min_score']['title'], (string) $communitySettingsHelp['level_min_score']['body']); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

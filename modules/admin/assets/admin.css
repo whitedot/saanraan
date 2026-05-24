@@ -164,7 +164,11 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form-label-help>label{min-width:0}
 .admin-label-help-button{color:var(--color-default-500);flex:0 0 auto}
 .admin-label-help-button:hover,.admin-label-help-button:focus-visible{color:var(--color-primary)}
-.admin-help-modal-body>p+p{margin-top:calc(var(--spacing) * 3)}
+.admin-help-modal-body{color:var(--color-default-700);line-height:var(--text-sm--line-height)}
+.admin-help-modal-body>*{margin-block:0}
+.admin-help-modal-body>*+*{margin-top:calc(var(--spacing) * 3)}
+.admin-help-modal-body ul,.admin-help-modal-body ol{padding-left:calc(var(--spacing) * 5)}
+.admin-help-modal-body li+li{margin-top:calc(var(--spacing) * 1.5)}
 .admin-form>section.card{margin-bottom:calc(var(--spacing) * 5);overflow:hidden}
 .admin-form>section.card>.card-header{padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75)}
 .admin-form>section.card>.card-body{padding:calc(var(--spacing) * 5)}
