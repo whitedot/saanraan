@@ -31,7 +31,7 @@ if (sr_request_method() === 'POST') {
         $settings[$enabledKey] = ($_POST[$enabledKey] ?? '') === '1';
         $settings[$requiredKey] = ($_POST[$requiredKey] ?? '') === '1';
         if ($settings[$requiredKey] && !$settings[$enabledKey]) {
-            $errors[] = sr_t('member::action.admin_settings.required_needs_visible', ['label' => (string) $definition['label']]);
+            $settings[$enabledKey] = true;
         }
     }
 

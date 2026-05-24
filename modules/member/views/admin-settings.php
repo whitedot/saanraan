@@ -148,11 +148,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html($label, $memberSettingsHelp['profile_field']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e($label); ?></span></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="<?php echo sr_e($enabledFieldId); ?>">
-                                            <input id="<?php echo sr_e($enabledFieldId); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?>>
+                                            <input id="<?php echo sr_e($enabledFieldId); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?> data-member-profile-visible data-member-profile-required-target="<?php echo sr_e('#' . $requiredFieldId); ?>">
                                             <?php echo sr_admin_choice_label_html((string) $label . sr_t('member::ui.text.dc690320')); ?>
                                         </label>
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($requiredFieldId); ?>">
-                                            <input id="<?php echo sr_e($requiredFieldId); ?>" type="checkbox" name="<?php echo sr_e($requiredKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?>>
+                                            <input id="<?php echo sr_e($requiredFieldId); ?>" type="checkbox" name="<?php echo sr_e($requiredKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?> data-member-profile-required data-member-profile-visible-target="<?php echo sr_e('#' . $enabledFieldId); ?>">
                                             <?php echo sr_admin_choice_label_html((string) $label . sr_t('member::ui.required.800c5ae5')); ?>
                                         </label>
                 </div>
@@ -255,5 +255,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php foreach ($memberSettingsHelp as $memberSettingsHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $memberSettingsHelpModal['id'], (string) $memberSettingsHelpModal['title'], (string) $memberSettingsHelpModal['body_html']); ?>
 <?php } ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-member-profile-required]').forEach(function (requiredInput) {
+        requiredInput.addEventListener('change', function () {
+            if (!requiredInput.checked) {
+                return;
+            }
+
+            var visibleTarget = requiredInput.getAttribute('data-member-profile-visible-target');
+            var visibleInput = visibleTarget ? document.querySelector(visibleTarget) : null;
+            if (visibleInput) {
+                visibleInput.checked = true;
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-member-profile-visible]').forEach(function (visibleInput) {
+        visibleInput.addEventListener('change', function () {
+            if (visibleInput.checked) {
+                return;
+            }
+
+            var requiredTarget = visibleInput.getAttribute('data-member-profile-required-target');
+            var requiredInput = requiredTarget ? document.querySelector(requiredTarget) : null;
+            if (requiredInput) {
+                requiredInput.checked = false;
+            }
+        });
+    });
+});
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -197,7 +197,7 @@ return [
     'help.settings.member_skin.body.2' => '선택지는 설치된 회원 스킨 기준으로 표시됩니다. 바꾸면 회원 화면의 표시 방식이 달라질 수 있습니다.',
     'help.settings.member_skin.title' => '회원 스킨 도움말',
     'help.settings.profile_field.body.1' => '선택 프로필 항목은 회원이 계정 화면에서 추가로 입력할 수 있는 정보입니다.',
-    'help.settings.profile_field.body.2' => '필수입력으로 두려면 먼저 보이기를 켜야 합니다. 꼭 필요한 정보만 필수로 두는 것이 좋습니다.',
+    'help.settings.profile_field.body.2' => '필수입력으로 두면 보이기도 함께 켜집니다. 꼭 필요한 정보만 필수로 두는 것이 좋습니다.',
     'help.settings.profile_field.title' => '선택 프로필 항목 도움말',
     'help.settings.throttle_account.body.1' => '계정 기준 제한 횟수는 같은 회원 계정으로 일정 시간 안에 몇 번까지 시도할 수 있는지 정합니다.',
     'help.settings.throttle_account.body.2' => '값을 낮게 잡으면 공격을 빨리 막을 수 있지만, 비밀번호를 자주 틀리는 정상 회원도 더 쉽게 제한될 수 있습니다.',
