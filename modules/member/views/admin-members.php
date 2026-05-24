@@ -18,6 +18,66 @@ $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
 $createStatuses = sr_admin_member_create_allowed_statuses();
 $memberLocaleOptions = sr_supported_locales($site ?? null);
+$memberAdminHelpOpenLabel = sr_t('member::help.open');
+$memberAdminHelp = [
+    'public_hash' => [
+        'id' => 'member-admin-help-public-hash-modal',
+        'title' => sr_t('member::help.members.public_hash.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.public_hash.body.1',
+            'member::help.members.public_hash.body.2',
+        ]),
+    ],
+    'email' => [
+        'id' => 'member-admin-help-email-modal',
+        'title' => sr_t('member::help.members.email.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.email.body.1',
+            'member::help.members.email.body.2',
+        ]),
+    ],
+    'login_id' => [
+        'id' => 'member-admin-help-login-id-modal',
+        'title' => sr_t('member::help.members.login_id.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.login_id.body.1',
+            'member::help.members.login_id.body.2',
+        ]),
+    ],
+    'password' => [
+        'id' => 'member-admin-help-password-modal',
+        'title' => sr_t('member::help.members.password.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.password.body.1',
+            'member::help.members.password.body.2',
+        ]),
+    ],
+    'locale' => [
+        'id' => 'member-admin-help-locale-modal',
+        'title' => sr_t('member::help.members.locale.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.locale.body.1',
+            'member::help.members.locale.body.2',
+        ]),
+    ],
+    'status' => [
+        'id' => 'member-admin-help-status-modal',
+        'title' => sr_t('member::help.members.status.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.status.body.1',
+            'member::help.members.status.body.2',
+            'member::help.members.status.body.3',
+        ]),
+    ],
+    'email_verified' => [
+        'id' => 'member-admin-help-email-verified-modal',
+        'title' => sr_t('member::help.members.email_verified.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.members.email_verified.body.1',
+            'member::help.members.email_verified.body.2',
+        ]),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -30,13 +90,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('member::ui.member.e9679572')); ?></h2>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_create_email', sr_t('member::ui.email.3b7dbc4c'), $memberAdminHelp['email']['id'], $memberAdminHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_create_login_id', sr_t('member::ui.login.0cdb28b5'), $memberAdminHelp['login_id']['id'], $memberAdminHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
                     <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
@@ -49,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_password"><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_create_password', sr_t('member::ui.password.4fa210a0'), $memberAdminHelp['password']['id'], $memberAdminHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="member_admin_create_password" type="password" name="password" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
                 </div>
@@ -61,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_locale">Locale <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_create_locale', sr_t('member::help.members.locale.label'), $memberAdminHelp['locale']['id'], $memberAdminHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="member_admin_create_locale" name="locale" class="form-select" required>
                         <?php foreach ($memberLocaleOptions as $localeOption) { ?>
@@ -73,7 +133,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_create_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_create_status', sr_t('member::ui.status.e10195a1'), $memberAdminHelp['status']['id'], $memberAdminHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="member_admin_create_status" name="status" class="form-select">
                         <?php foreach ($createStatuses as $status) { ?>
@@ -85,7 +145,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span>
+                <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.2f905abd'), $memberAdminHelp['email_verified']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span></span>
                 <div class="admin-form-field admin-form-check">
                     <input id="member_admin_create_email_verified" type="checkbox" name="email_verified" value="1" class="form-checkbox"<?php echo (string) ($memberCreateValues['email_verified'] ?? '1') === '1' ? ' checked' : ''; ?>>
                     <label for="member_admin_create_email_verified"><?php echo sr_admin_choice_label_html(sr_t('member::ui.text.386deb8d')); ?></label>
@@ -106,19 +166,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <section class="admin-card card">
                 <h2><?php echo sr_e(sr_t('member::ui.member.edit.7eaadfda')); ?></h2>
                 <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span>
+                    <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.text.4ca2f9ab'), $memberAdminHelp['public_hash']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span></span>
                     <div class="admin-form-field">
                         <code><?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></code>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_email"><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('member_admin_edit_email', sr_t('member::ui.email.3b7dbc4c'), $memberAdminHelp['email']['id'], $memberAdminHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_login_id"><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></label>
+                    <?php echo sr_admin_form_label_help_html('member_admin_edit_login_id', sr_t('member::ui.login.0cdb28b5'), $memberAdminHelp['login_id']['id'], $memberAdminHelpOpenLabel); ?>
                     <div class="admin-form-field">
                         <?php
                         $memberEditAccountIdentifierHash = (string) ($editMember['account_identifier_hash'] ?? '');
@@ -145,7 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_locale">Locale <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('member_admin_edit_locale', sr_t('member::help.members.locale.label'), $memberAdminHelp['locale']['id'], $memberAdminHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <select id="member_admin_edit_locale" name="locale" class="form-select" required>
                             <?php foreach ($memberLocaleOptions as $localeOption) { ?>
@@ -157,7 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_edit_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('member_admin_edit_status', sr_t('member::ui.status.e10195a1'), $memberAdminHelp['status']['id'], $memberAdminHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <select id="member_admin_edit_status" name="status" class="form-select">
                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -292,6 +352,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p><?php echo sr_e(sr_t('member::ui.status.member.login.1e2b02c0')); ?></p>
     </div>
 </div>
+<?php } ?>
+
+<?php foreach ($memberAdminHelp as $memberAdminHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $memberAdminHelpModal['id'], (string) $memberAdminHelpModal['title'], (string) $memberAdminHelpModal['body_html']); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

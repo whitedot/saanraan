@@ -11,13 +11,97 @@ if ($memberGroupsPage === 'group_form') {
     $adminPageTitle = is_array($editRule) ? sr_t('member::ui.member.edit.8fa5d9e5') : sr_t('member::ui.member.ac78ee3c');
 }
 
+$memberGroupHelpOpenLabel = sr_t('member::help.open');
+$memberGroupHelp = [
+    'group_key' => [
+        'id' => 'member-groups-help-group-key-modal',
+        'title' => sr_t('member::help.groups.group_key.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.group_key.body.1',
+            'member::help.groups.group_key.body.2',
+        ]),
+    ],
+    'group_status' => [
+        'id' => 'member-groups-help-group-status-modal',
+        'title' => sr_t('member::help.groups.group_status.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.group_status.body.1',
+            'member::help.groups.group_status.body.2',
+        ]),
+    ],
+    'sort_order' => [
+        'id' => 'member-groups-help-sort-order-modal',
+        'title' => sr_t('member::help.groups.sort_order.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.sort_order.body.1',
+            'member::help.groups.sort_order.body.2',
+        ]),
+    ],
+    'member_hash' => [
+        'id' => 'member-groups-help-member-hash-modal',
+        'title' => sr_t('member::help.groups.member_hash.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.member_hash.body.1',
+            'member::help.groups.member_hash.body.2',
+        ]),
+    ],
+    'rule_scope' => [
+        'id' => 'member-groups-help-rule-scope-modal',
+        'title' => sr_t('member::help.groups.rule_scope.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.rule_scope.body.1',
+            'member::help.groups.rule_scope.body.2',
+        ]),
+    ],
+    'rule_group' => [
+        'id' => 'member-groups-help-rule-group-modal',
+        'title' => sr_t('member::help.groups.rule_group.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.rule_group.body.1',
+            'member::help.groups.rule_group.body.2',
+        ]),
+    ],
+    'rule_definition' => [
+        'id' => 'member-groups-help-rule-definition-modal',
+        'title' => sr_t('member::help.groups.rule_definition.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.rule_definition.body.1',
+            'member::help.groups.rule_definition.body.2',
+        ]),
+    ],
+    'rule_params' => [
+        'id' => 'member-groups-help-rule-params-modal',
+        'title' => sr_t('member::help.groups.rule_params.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.rule_params.body.1',
+            'member::help.groups.rule_params.body.2',
+        ]),
+    ],
+    'evaluation_policy' => [
+        'id' => 'member-groups-help-evaluation-policy-modal',
+        'title' => sr_t('member::help.groups.evaluation_policy.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.evaluation_policy.body.1',
+            'member::help.groups.evaluation_policy.body.2',
+            'member::help.groups.evaluation_policy.body.3',
+        ]),
+    ],
+    'rule_status' => [
+        'id' => 'member-groups-help-rule-status-modal',
+        'title' => sr_t('member::help.groups.rule_status.title'),
+        'body_html' => sr_member_admin_help_body_html([
+            'member::help.groups.rule_status.body.1',
+            'member::help.groups.rule_status.body.2',
+        ]),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 $groupListFilter = isset($groupListFilter) && is_array($groupListFilter) ? $groupListFilter : ['status' => '', 'field' => 'all', 'keyword' => ''];
 $groupStatusCounts = isset($groupStatusCounts) && is_array($groupStatusCounts) ? $groupStatusCounts : [];
 $membershipsByGroupId = isset($membershipsByGroupId) && is_array($membershipsByGroupId) ? $membershipsByGroupId : [];
 $membershipLogsByGroupId = isset($membershipLogsByGroupId) && is_array($membershipLogsByGroupId) ? $membershipLogsByGroupId : [];
 $totalGroups = (int) ($groupStatusCounts['total'] ?? count($groups));
-$memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, bool $focusFirst = false) use ($allowedEvaluationPolicies, $allowedRuleStatuses, $groups, $pdo, $ruleDefinitions): void {
+$memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, bool $focusFirst = false) use ($allowedEvaluationPolicies, $allowedRuleStatuses, $groups, $memberGroupHelp, $memberGroupHelpOpenLabel, $pdo, $ruleDefinitions): void {
     $currentDefinitionKey = is_array($formRule) ? (string) $formRule['source_module_key'] . ':' . (string) $formRule['rule_key'] : '';
     $currentRuleParams = [];
     if (is_array($formRule)) {
@@ -33,7 +117,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($formRule) ? (string) $formRule['id'] : ''); ?>">
     <div class="admin-form-row">
-        <label class="form-label" for="<?php echo sr_e($groupFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.5034bb32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <?php echo sr_admin_form_label_help_html($groupFieldId, sr_t('member::ui.text.5034bb32'), $memberGroupHelp['rule_group']['id'], $memberGroupHelpOpenLabel, true); ?>
         <div class="admin-form-field">
             <select id="<?php echo sr_e($groupFieldId); ?>" name="group_id" required class="form-select"<?php echo $focusAttr; ?>>
                 <?php foreach ($groups as $group) { ?>
@@ -45,7 +129,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="admin-form-row">
-        <label class="form-label" for="<?php echo sr_e($definitionFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.7a1e6434')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <?php echo sr_admin_form_label_help_html($definitionFieldId, sr_t('member::ui.text.7a1e6434'), $memberGroupHelp['rule_definition']['id'], $memberGroupHelpOpenLabel, true); ?>
         <div class="admin-form-field">
             <select id="<?php echo sr_e($definitionFieldId); ?>" name="definition_key" required data-member-rule-definition class="form-select">
                 <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
@@ -57,7 +141,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="admin-form-row">
-        <span class="form-label"><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span>
+        <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.settings.7d7902a7'), $memberGroupHelp['rule_params']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span></span>
         <div class="admin-form-field">
             <div class="member-rule-param-panels" data-member-rule-param-panels>
                 <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
@@ -105,7 +189,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="admin-form-row">
-        <label class="form-label" for="<?php echo sr_e($evaluationPolicyFieldId); ?>"><?php echo sr_e(sr_t('member::ui.text.c3054578')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <?php echo sr_admin_form_label_help_html($evaluationPolicyFieldId, sr_t('member::ui.text.c3054578'), $memberGroupHelp['evaluation_policy']['id'], $memberGroupHelpOpenLabel, true); ?>
         <div class="admin-form-field">
             <select id="<?php echo sr_e($evaluationPolicyFieldId); ?>" name="evaluation_policy" class="form-select">
                 <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
@@ -115,7 +199,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="admin-form-row">
-        <label class="form-label" for="<?php echo sr_e($statusFieldId); ?>"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+        <?php echo sr_admin_form_label_help_html($statusFieldId, sr_t('member::ui.status.e10195a1'), $memberGroupHelp['rule_status']['id'], $memberGroupHelpOpenLabel, true); ?>
         <div class="admin-form-field">
             <select id="<?php echo sr_e($statusFieldId); ?>" name="status" class="form-select">
                 <?php foreach ($allowedRuleStatuses as $status) { ?>
@@ -139,14 +223,14 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
             <?php if (is_array($editGroup)) { ?>
                 <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?></span>
+                    <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?></span></span>
                     <div class="admin-form-field">
                         <code><?php echo sr_e((string) $editGroup['group_key']); ?></code>
                     </div>
                 </div>
             <?php } else { ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="member_admin_groups_group_key"><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('member_admin_groups_group_key', sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
                         <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" pattern="[a-z0-9_]+" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input>
                     </div>
@@ -166,7 +250,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_status"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_groups_status', sr_t('member::ui.status.e10195a1'), $memberGroupHelp['group_status']['id'], $memberGroupHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="member_admin_groups_status" name="status" class="form-select">
                                             <?php $currentStatus = is_array($editGroup) ? (string) $editGroup['status'] : 'enabled'; ?>
@@ -179,7 +263,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="member_admin_groups_sort_order"><?php echo sr_e(sr_t('member::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('member_admin_groups_sort_order', sr_t('member::ui.text.7d2dc215'), $memberGroupHelp['sort_order']['id'], $memberGroupHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="member_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($editGroup) ? (string) $editGroup['sort_order'] : '0'); ?>" required class="form-input">
                 </div>
@@ -319,7 +403,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($autoRuleEvaluationAccountInputId, sr_t('member::ui.member.hash.5a5dbe2b'), $memberGroupHelp['member_hash']['id'], $memberGroupHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <div class="admin-lookup-control">
                                     <input id="<?php echo sr_e($autoRuleEvaluationAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
@@ -328,7 +412,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key"><?php echo sr_e(sr_t('member::ui.member.rule_scope.88eb0d91')); ?></label>
+                            <?php echo sr_admin_form_label_help_html($autoRuleEvaluationFieldPrefix . '_source_module_key', sr_t('member::ui.member.rule_scope.88eb0d91'), $memberGroupHelp['rule_scope']['id'], $memberGroupHelpOpenLabel); ?>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_source_module_key" name="source_module_key" class="form-select">
                                     <option value=""><?php echo sr_e(sr_t('member::ui.member.rule_scope_all.4f957633')); ?></option>
@@ -467,7 +551,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($manualAssignAccountInputId); ?>"><?php echo sr_e(sr_t('member::ui.member.hash.5a5dbe2b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($manualAssignAccountInputId, sr_t('member::ui.member.hash.5a5dbe2b'), $memberGroupHelp['member_hash']['id'], $memberGroupHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <div class="admin-lookup-control">
                                     <input id="<?php echo sr_e($manualAssignAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
@@ -684,6 +768,10 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.95d3fea1')); ?></button>
         </div>
     </form>
+<?php } ?>
+
+<?php foreach ($memberGroupHelp as $memberGroupHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $memberGroupHelpModal['id'], (string) $memberGroupHelpModal['title'], (string) $memberGroupHelpModal['body_html']); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
