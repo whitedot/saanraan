@@ -242,7 +242,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
     </div>
     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
+    <form id="community-level-definitions-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php if ($levels !== []) { ?>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_level_definitions">
@@ -282,20 +282,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
         </div>
-        <?php if ($levels !== []) { ?>
-            <div class="admin-list-actions">
-                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
-            </div>
-        <?php } ?>
     </form>
 
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
+    <form id="community-level-recalculate-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
-        <div class="admin-list-actions">
-            <button type="submit" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
-        </div>
     </form>
+    <div class="admin-list-actions">
+        <button type="submit" form="community-level-recalculate-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
+        <?php if ($levels !== []) { ?>
+            <button type="submit" form="community-level-definitions-form" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
+        <?php } ?>
+    </div>
 </section>
 <?php } ?>
 
