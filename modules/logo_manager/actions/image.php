@@ -32,6 +32,10 @@ if (!is_string($imagePath)) {
 }
 
 $mimeType = sr_upload_detect_mime($imagePath);
+$isSvg = str_ends_with($key, '.svg');
+if ($isSvg && sr_logo_manager_svg_upload_mime_is_allowed($mimeType)) {
+    $mimeType = 'image/svg+xml';
+}
 $sizeBytes = filesize($imagePath);
 if (!sr_logo_manager_image_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
     sr_render_error(404, sr_t('logo_manager::action.error.image_not_found'));
@@ -41,5 +45,8 @@ header('Content-Type: ' . $mimeType);
 header('Content-Length: ' . (string) $sizeBytes);
 header('Cache-Control: public, max-age=31536000, immutable');
 header('X-Content-Type-Options: nosniff');
+if ($isSvg) {
+    header("Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox");
+}
 readfile($imagePath);
 sr_finish_response();

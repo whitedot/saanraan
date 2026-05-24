@@ -2,7 +2,7 @@
 
 return [
     'name' => '로고 매니저',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => '관리자/공개 화면의 로고 자산과 기간별 대체 적용을 관리합니다.',
     'admin' => [

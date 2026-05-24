@@ -78,7 +78,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="logo_manager_logo_file"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <input id="logo_manager_logo_file" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp" class="form-input" required>
+                        <input id="logo_manager_logo_file" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input" required>
                         <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.1.save.save.cfcc4930')); ?></small>
                     </div>
                 </div>

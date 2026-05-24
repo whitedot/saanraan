@@ -97,13 +97,19 @@ function sr_logo_manager_image_format_for_mime(string $mimeType): string
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/webp' => 'webp',
+        'image/svg+xml' => 'svg',
         default => '',
     };
 }
 
 function sr_logo_manager_image_mime_is_allowed(string $mimeType): bool
 {
-    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'], true);
+}
+
+function sr_logo_manager_svg_upload_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'], true);
 }
 
 function sr_logo_manager_upload_max_bytes(string $usageKey): int
@@ -119,13 +125,17 @@ function sr_logo_manager_upload_image(array $file, string $usageKey): array
     $usageKey = sr_logo_manager_usage_key($usageKey);
     $validated = sr_upload_validate_file($file, [
         'max_bytes' => sr_logo_manager_upload_max_bytes($usageKey),
-        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
-        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp', 'svg'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'text/xml', 'application/xml', 'text/plain'],
     ]);
+
+    if ((string) $validated['extension'] === 'svg') {
+        return sr_logo_manager_upload_svg_image($validated);
+    }
 
     $sourcePath = (string) $validated['tmp_name'];
     $targetFormat = sr_logo_manager_image_format_for_mime((string) $validated['mime_type']);
-    if ($targetFormat === '') {
+    if ($targetFormat === '' || $targetFormat === 'svg') {
         throw new RuntimeException('허용되지 않은 로고 이미지 형식입니다.');
     }
 
@@ -192,9 +202,243 @@ function sr_logo_manager_upload_image(array $file, string $usageKey): array
     ];
 }
 
+function sr_logo_manager_upload_svg_image(array $validated): array
+{
+    if (!sr_logo_manager_svg_upload_mime_is_allowed((string) ($validated['mime_type'] ?? ''))) {
+        throw new RuntimeException('허용되지 않은 SVG MIME입니다.');
+    }
+
+    $sourcePath = (string) ($validated['tmp_name'] ?? '');
+    $svg = sr_logo_manager_sanitize_svg_file($sourcePath);
+    $dimensions = $svg['dimensions'];
+    if ((int) $dimensions['width'] * (int) $dimensions['height'] > 25000000) {
+        throw new RuntimeException('SVG 이미지 크기가 너무 큽니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/logo-manager-images/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('로고 이미지 임시 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = sr_upload_random_filename('svg');
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
+    if (file_put_contents($targetPath, $svg['content']) === false) {
+        throw new RuntimeException('SVG 파일을 저장할 수 없습니다.');
+    }
+
+    $storageKey = 'logo_manager/images/' . $datePath . '/' . $storedName;
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
+        'content_type' => 'image/svg+xml',
+    ]);
+    $checksum = hash_file('sha256', $targetPath);
+    $sizeBytes = filesize($targetPath);
+    @unlink($targetPath);
+
+    $storageReference = sr_storage_reference((string) $stored['driver'], $storageKey);
+    $publicUrl = (string) ($stored['url'] ?? '');
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'public_url' => $publicUrl !== '' ? $publicUrl : '/logo-manager/image?file=' . rawurlencode($storageReference),
+        'mime_type' => 'image/svg+xml',
+        'size_bytes' => is_int($sizeBytes) ? $sizeBytes : 0,
+        'width' => (int) $dimensions['width'],
+        'height' => (int) $dimensions['height'],
+        'checksum_sha256' => is_string($checksum) ? $checksum : '',
+        'reencoded' => true,
+        'original_name' => (string) ($validated['original_name'] ?? ''),
+    ];
+}
+
+function sr_logo_manager_sanitize_svg_file(string $path): array
+{
+    if (!class_exists('DOMDocument')) {
+        throw new RuntimeException('SVG 검증에 필요한 DOM 확장이 설치되어 있지 않습니다.');
+    }
+
+    $content = is_file($path) ? file_get_contents($path) : false;
+    if (!is_string($content) || $content === '') {
+        throw new RuntimeException('SVG 파일을 읽을 수 없습니다.');
+    }
+    if (strlen($content) > 5242880 || str_contains($content, "\0")) {
+        throw new RuntimeException('SVG 파일 내용이 올바르지 않습니다.');
+    }
+    if (preg_match('/<!DOCTYPE|<!ENTITY/i', $content) === 1) {
+        throw new RuntimeException('DOCTYPE 또는 ENTITY가 포함된 SVG는 업로드할 수 없습니다.');
+    }
+
+    $previous = libxml_use_internal_errors(true);
+    libxml_clear_errors();
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $loaded = $dom->loadXML($content, LIBXML_NONET | LIBXML_COMPACT);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded || !$dom->documentElement instanceof DOMElement) {
+        throw new RuntimeException('SVG XML을 해석할 수 없습니다.');
+    }
+
+    $root = $dom->documentElement;
+    if (strtolower($root->localName) !== 'svg') {
+        throw new RuntimeException('SVG 루트 요소를 확인할 수 없습니다.');
+    }
+
+    sr_logo_manager_sanitize_svg_node($root);
+    if (!$dom->documentElement instanceof DOMElement || strtolower($dom->documentElement->localName) !== 'svg') {
+        throw new RuntimeException('SVG 루트 요소를 확인할 수 없습니다.');
+    }
+
+    $dimensions = sr_logo_manager_svg_dimensions($dom->documentElement);
+    if ($dimensions['width'] < 1 || $dimensions['height'] < 1) {
+        throw new RuntimeException('SVG 이미지 크기를 확인할 수 없습니다.');
+    }
+
+    $sanitized = $dom->saveXML($dom->documentElement);
+    if (!is_string($sanitized) || $sanitized === '') {
+        throw new RuntimeException('SVG 정리본을 만들 수 없습니다.');
+    }
+
+    return [
+        'content' => $sanitized . "\n",
+        'dimensions' => $dimensions,
+    ];
+}
+
+function sr_logo_manager_sanitize_svg_node(DOMNode $node): void
+{
+    if ($node instanceof DOMElement) {
+        $blockedElements = ['script', 'foreignobject', 'iframe', 'object', 'embed', 'audio', 'video', 'canvas'];
+        if (in_array(strtolower($node->localName), $blockedElements, true)) {
+            if ($node->parentNode instanceof DOMNode) {
+                $node->parentNode->removeChild($node);
+            }
+            return;
+        }
+
+        if (strtolower($node->localName) === 'style' && !sr_logo_manager_svg_style_is_safe($node->textContent)) {
+            if ($node->parentNode instanceof DOMNode) {
+                $node->parentNode->removeChild($node);
+            }
+            return;
+        }
+
+        sr_logo_manager_sanitize_svg_attributes($node);
+    }
+
+    $children = [];
+    foreach ($node->childNodes as $child) {
+        $children[] = $child;
+    }
+
+    foreach ($children as $child) {
+        sr_logo_manager_sanitize_svg_node($child);
+    }
+}
+
+function sr_logo_manager_sanitize_svg_attributes(DOMElement $element): void
+{
+    $remove = [];
+    foreach ($element->attributes as $attribute) {
+        $name = strtolower($attribute->name);
+        $localName = strtolower($attribute->localName);
+        $value = trim($attribute->value);
+
+        if (str_starts_with($localName, 'on') || preg_match('/[\x00-\x1F\x7F]/', $value) === 1) {
+            $remove[] = $attribute->name;
+            continue;
+        }
+
+        if (in_array($localName, ['href', 'src'], true) && !sr_logo_manager_svg_reference_is_safe($value)) {
+            $remove[] = $attribute->name;
+            continue;
+        }
+
+        if ($localName === 'style' && !sr_logo_manager_svg_style_is_safe($value)) {
+            $remove[] = $attribute->name;
+            continue;
+        }
+
+        if (preg_match('/javascript\s*:|data\s*:|vbscript\s*:/i', $value) === 1) {
+            $remove[] = $attribute->name;
+            continue;
+        }
+
+        if (preg_match_all('/url\(([^)]*)\)/i', $value, $matches) > 0) {
+            foreach ($matches[1] as $match) {
+                if (!sr_logo_manager_svg_reference_is_safe(trim((string) $match, " \t\n\r\0\x0B'\""))) {
+                    $remove[] = $attribute->name;
+                    break;
+                }
+            }
+        }
+
+        if ($name === 'xmlns:xlink' || $name === 'xmlns') {
+            continue;
+        }
+    }
+
+    foreach (array_unique($remove) as $name) {
+        $element->removeAttribute($name);
+    }
+}
+
+function sr_logo_manager_svg_reference_is_safe(string $value): bool
+{
+    $value = trim($value);
+    return $value === '' || preg_match('/\A#[A-Za-z][A-Za-z0-9_.:-]*\z/', $value) === 1;
+}
+
+function sr_logo_manager_svg_style_is_safe(string $value): bool
+{
+    if (preg_match('/@import|expression\s*\(|javascript\s*:|data\s*:|vbscript\s*:/i', $value) === 1) {
+        return false;
+    }
+
+    if (preg_match_all('/url\(([^)]*)\)/i', $value, $matches) > 0) {
+        foreach ($matches[1] as $match) {
+            if (!sr_logo_manager_svg_reference_is_safe(trim((string) $match, " \t\n\r\0\x0B'\""))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+function sr_logo_manager_svg_dimensions(DOMElement $root): array
+{
+    $width = sr_logo_manager_svg_dimension_value($root->getAttribute('width'));
+    $height = sr_logo_manager_svg_dimension_value($root->getAttribute('height'));
+    if ($width > 0 && $height > 0) {
+        return ['width' => $width, 'height' => $height];
+    }
+
+    $viewBox = preg_split('/[\s,]+/', trim($root->getAttribute('viewBox')));
+    if (is_array($viewBox) && count($viewBox) === 4 && is_numeric($viewBox[2]) && is_numeric($viewBox[3])) {
+        return [
+            'width' => max(0, (int) ceil((float) $viewBox[2])),
+            'height' => max(0, (int) ceil((float) $viewBox[3])),
+        ];
+    }
+
+    return ['width' => 0, 'height' => 0];
+}
+
+function sr_logo_manager_svg_dimension_value(string $value): int
+{
+    $value = trim($value);
+    if (preg_match('/\A([0-9]+(?:\.[0-9]+)?)(?:px|pt|pc|mm|cm|in)?\z/i', $value, $matches) !== 1) {
+        return 0;
+    }
+
+    return max(0, (int) ceil((float) $matches[1]));
+}
+
 function sr_logo_manager_image_storage_key_is_valid(string $key): bool
 {
-    return preg_match('#\Alogo_manager/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
+    return preg_match('#\Alogo_manager/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp|svg)\z#', $key) === 1;
 }
 
 function sr_logo_manager_image_storage_reference(string $reference): ?array
