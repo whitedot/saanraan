@@ -134,6 +134,142 @@ if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
 }
 $totalPages = (int) ($pageStatusCounts['total'] ?? count($pages ?? []));
+$contentHelpOpenLabel = sr_t('content::help.open');
+$contentHelpButtonHtml = static function (string $label, string $modalId) use ($contentHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $contentHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$contentHelpBodyHtml = static function (array $keys): string {
+    $html = '';
+    foreach ($keys as $key) {
+        $html .= '<p>' . sr_e(sr_t((string) $key)) . '</p>';
+    }
+
+    return $html;
+};
+$contentHelp = [
+    'title' => [
+        'id' => 'content_admin_help_title',
+        'title' => sr_t('content::help.title.title'),
+        'body' => $contentHelpBodyHtml(['content::help.title.body.1', 'content::help.title.body.2']),
+    ],
+    'slug' => [
+        'id' => 'content_admin_help_slug',
+        'title' => sr_t('content::help.slug.title'),
+        'body' => $contentHelpBodyHtml(['content::help.slug.body.1', 'content::help.slug.body.2']),
+    ],
+    'content_group' => [
+        'id' => 'content_admin_help_content_group',
+        'title' => sr_t('content::help.content_group.title'),
+        'body' => $contentHelpBodyHtml(['content::help.content_group.body.1', 'content::help.content_group.body.2']),
+    ],
+    'summary' => [
+        'id' => 'content_admin_help_summary',
+        'title' => sr_t('content::help.summary.title'),
+        'body' => $contentHelpBodyHtml(['content::help.summary.body.1', 'content::help.summary.body.2']),
+    ],
+    'body_text' => [
+        'id' => 'content_admin_help_body_text',
+        'title' => sr_t('content::help.body_text.title'),
+        'body' => $contentHelpBodyHtml(['content::help.body_text.body.1', 'content::help.body_text.body.2']),
+    ],
+    'seo_title' => [
+        'id' => 'content_admin_help_seo_title',
+        'title' => sr_t('content::help.seo_title.title'),
+        'body' => $contentHelpBodyHtml(['content::help.seo_title.body.1', 'content::help.seo_title.body.2']),
+    ],
+    'seo_description' => [
+        'id' => 'content_admin_help_seo_description',
+        'title' => sr_t('content::help.seo_description.title'),
+        'body' => $contentHelpBodyHtml(['content::help.seo_description.body.1', 'content::help.seo_description.body.2']),
+    ],
+    'status' => [
+        'id' => 'content_admin_help_status',
+        'title' => sr_t('content::help.status.title'),
+        'body' => $contentHelpBodyHtml(['content::help.status.body.1', 'content::help.status.body.2', 'content::help.status.body.3']),
+    ],
+    'layout' => [
+        'id' => 'content_admin_help_layout',
+        'title' => sr_t('content::help.layout.title'),
+        'body' => $contentHelpBodyHtml(['content::help.layout.body.1', 'content::help.layout.body.2']),
+    ],
+    'asset_access_enabled' => [
+        'id' => 'content_admin_help_asset_access_enabled',
+        'title' => sr_t('content::help.asset_access_enabled.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_access_enabled.body.1', 'content::help.asset_access_enabled.body.2']),
+    ],
+    'asset_module' => [
+        'id' => 'content_admin_help_asset_module',
+        'title' => sr_t('content::help.asset_module.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_module.body.1', 'content::help.asset_module.body.2']),
+    ],
+    'asset_access_amount' => [
+        'id' => 'content_admin_help_asset_access_amount',
+        'title' => sr_t('content::help.asset_access_amount.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_access_amount.body.1', 'content::help.asset_access_amount.body.2']),
+    ],
+    'asset_charge_policy' => [
+        'id' => 'content_admin_help_asset_charge_policy',
+        'title' => sr_t('content::help.asset_charge_policy.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_charge_policy.body.1', 'content::help.asset_charge_policy.body.2']),
+    ],
+    'asset_action_enabled' => [
+        'id' => 'content_admin_help_asset_action_enabled',
+        'title' => sr_t('content::help.asset_action_enabled.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_action_enabled.body.1', 'content::help.asset_action_enabled.body.2']),
+    ],
+    'asset_action_label' => [
+        'id' => 'content_admin_help_asset_action_label',
+        'title' => sr_t('content::help.asset_action_label.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_action_label.body.1', 'content::help.asset_action_label.body.2']),
+    ],
+    'asset_action_direction' => [
+        'id' => 'content_admin_help_asset_action_direction',
+        'title' => sr_t('content::help.asset_action_direction.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_action_direction.body.1', 'content::help.asset_action_direction.body.2']),
+    ],
+    'asset_action_module' => [
+        'id' => 'content_admin_help_asset_action_module',
+        'title' => sr_t('content::help.asset_action_module.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_action_module.body.1', 'content::help.asset_action_module.body.2']),
+    ],
+    'asset_action_amount' => [
+        'id' => 'content_admin_help_asset_action_amount',
+        'title' => sr_t('content::help.asset_action_amount.title'),
+        'body' => $contentHelpBodyHtml(['content::help.asset_action_amount.body.1', 'content::help.asset_action_amount.body.2']),
+    ],
+    'banner_before' => [
+        'id' => 'content_admin_help_banner_before',
+        'title' => sr_t('content::help.banner_before.title'),
+        'body' => $contentHelpBodyHtml(['content::help.banner_before.body.1', 'content::help.banner_before.body.2']),
+    ],
+    'banner_after' => [
+        'id' => 'content_admin_help_banner_after',
+        'title' => sr_t('content::help.banner_after.title'),
+        'body' => $contentHelpBodyHtml(['content::help.banner_after.body.1', 'content::help.banner_after.body.2']),
+    ],
+    'popup_layer' => [
+        'id' => 'content_admin_help_popup_layer',
+        'title' => sr_t('content::help.popup_layer.title'),
+        'body' => $contentHelpBodyHtml(['content::help.popup_layer.body.1', 'content::help.popup_layer.body.2']),
+    ],
+    'file_upload' => [
+        'id' => 'content_admin_help_file_upload',
+        'title' => sr_t('content::help.file_upload.title'),
+        'body' => $contentHelpBodyHtml(['content::help.file_upload.body.1', 'content::help.file_upload.body.2', 'content::help.file_upload.body.3']),
+    ],
+    'file_title' => [
+        'id' => 'content_admin_help_file_title',
+        'title' => sr_t('content::help.file_title.title'),
+        'body' => $contentHelpBodyHtml(['content::help.file_title.body.1', 'content::help.file_title.body.2']),
+    ],
+    'file_charge' => [
+        'id' => 'content_admin_help_file_charge',
+        'title' => sr_t('content::help.file_charge.title'),
+        'body' => $contentHelpBodyHtml(['content::help.file_charge.body.1', 'content::help.file_charge.body.2', 'content::help.file_charge.body.3', 'content::help.file_charge.body.4']),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -146,13 +282,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="content_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_title"><?php echo sr_e(sr_t('content::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_title', sr_t('content::ui.text.08b17e43'), $contentHelp['title']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_slug">Slug <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_slug', 'Slug', $contentHelp['slug']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     <br>
@@ -160,7 +296,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_content_group_id"><?php echo sr_e(sr_t('content::ui.content.5875c5b3')); ?> <span class="sr-required-label" data-content-group-required hidden><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.content.5875c5b3'), $contentHelp['content_group']['id']); ?><label for="content_admin_contents_content_group_id"><?php echo sr_e(sr_t('content::ui.content.5875c5b3')); ?> <span class="sr-required-label" data-content-group-required hidden><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label></div>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_content_group_id" name="content_group_id" class="form-select" data-content-group-select>
                         <option value="0"<?php echo (int) ($values['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.text.d435d292')); ?></option>
@@ -178,13 +314,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_summary"><?php echo sr_e(sr_t('content::ui.text.50f30154')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_summary', sr_t('content::ui.text.50f30154'), $contentHelp['summary']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <textarea id="content_admin_contents_summary" name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_body_text"><?php echo sr_e(sr_t('content::ui.text.9118bb57')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
@@ -192,19 +328,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_seo_title"><?php echo sr_e(sr_t('content::ui.seo.f66e126a')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_seo_description"><?php echo sr_e(sr_t('content::ui.seo.b6187d8d')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_description', sr_t('content::ui.seo.b6187d8d'), $contentHelp['seo_description']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_status"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_status', sr_t('content::ui.status.e10195a1'), $contentHelp['status']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_status" name="status" class="form-select">
                                                 <?php foreach (sr_content_allowed_statuses() as $status) { ?>
@@ -217,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_layout_key"><?php echo sr_e(sr_t('content::ui.content.fa985852')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_layout_key', sr_t('content::ui.content.fa985852'), $contentHelp['layout']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_layout_key" name="layout_key" class="form-select">
                                                 <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -234,7 +370,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></h2>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
                                             <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
@@ -245,7 +381,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.7d96defe'), $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
@@ -254,14 +390,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_access_amount"><?php echo sr_e(sr_t('content::ui.text.a9f15a8b')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_access_amount', sr_t('content::ui.text.a9f15a8b'), $contentHelp['asset_access_amount']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_asset_access_amount" type="number" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_amount', $pageSettingSource($values, 'asset_access_amount')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_charge_policy"><?php echo sr_e(sr_t('content::ui.text.86803f52')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_charge_policy', sr_t('content::ui.text.86803f52'), $contentHelp['asset_charge_policy']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_asset_charge_policy" name="asset_charge_policy" class="form-select">
                                                 <?php foreach (sr_content_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
@@ -277,7 +413,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></h2>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.8bcecbe7')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.8bcecbe7'), $contentHelp['asset_action_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.active.8bcecbe7')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_action_enabled">
                                             <input id="modules_content_admin_contents_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
@@ -288,14 +424,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_action_label"><?php echo sr_e(sr_t('content::ui.text.98fb4605')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_label', sr_t('content::ui.text.98fb4605'), $contentHelp['asset_action_label']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? sr_t('content::ui.text.727333ab'))); ?>" class="form-input" maxlength="80">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_label', $pageSettingSource($values, 'asset_action_label')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_action_direction"><?php echo sr_e(sr_t('content::ui.text.af7873a8')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_direction', sr_t('content::ui.text.af7873a8'), $contentHelp['asset_action_direction']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_asset_action_direction" name="asset_action_direction" class="form-select">
                                                 <?php foreach (sr_content_asset_action_directions() as $directionKey => $directionLabel) { ?>
@@ -308,7 +444,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_action_module"><?php echo sr_e(sr_t('content::ui.text.2f2b6193')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_module', sr_t('content::ui.text.2f2b6193'), $contentHelp['asset_action_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedActionAssetModules = sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'); ?>
                     <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
@@ -316,7 +452,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_action_amount"><?php echo sr_e(sr_t('content::ui.text.5c705e1a')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_amount', sr_t('content::ui.text.5c705e1a'), $contentHelp['asset_action_amount']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_asset_action_amount" type="number" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_amount', $pageSettingSource($values, 'asset_action_amount')); ?>
@@ -336,7 +472,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </span>
             </h2>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_banner_before_content_id"><?php echo sr_e(sr_t('content::ui.banner.042ab3f3')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_banner_before_content_id', sr_t('content::ui.banner.042ab3f3'), $contentHelp['banner_before']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
@@ -352,7 +488,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_banner_after_content_id"><?php echo sr_e(sr_t('content::ui.banner.5818427a')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_banner_after_content_id', sr_t('content::ui.banner.5818427a'), $contentHelp['banner_after']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
@@ -369,7 +505,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_popup_layer_id"><?php echo sr_e(sr_t('content::ui.text.1063d585')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_popup_layer_id', sr_t('content::ui.text.1063d585'), $contentHelp['popup_layer']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
@@ -462,10 +598,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } elseif ($editing) { ?>
                 <p><?php echo sr_e(sr_t('content::ui.create.c0af4d1f')); ?></p>
             <?php } else { ?>
-                <p><?php echo sr_e(sr_t('content::ui.content.save.136c7ad6')); ?></p>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.content.save.136c7ad6')); ?></p>
             <?php } ?>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_content_file_upload"><?php echo sr_e(sr_t('content::ui.text.45a992ee')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_content_file_upload', sr_t('content::ui.text.45a992ee'), $contentHelp['file_upload']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_content_file_upload" type="file" name="content_file_upload" class="form-input">
                     <br>
@@ -473,41 +609,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_new_content_file_title"><?php echo sr_e(sr_t('content::ui.text.8d3d9268')); ?></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_new_content_file_title', sr_t('content::ui.text.8d3d9268'), $contentHelp['file_title']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_new_content_file_title" type="text" name="new_content_file_title" value="" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span>
+                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.text.b065b16b'), $contentHelp['file_charge']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span></div>
                 <div class="admin-form-field">
-	                    <div class="admin-content-file-charge-control">
-	                        <div class="admin-content-file-charge-main">
-                                <div class="admin-setting-unit">
-	                                <label class="admin-form-check form-label" for="modules_content_admin_contents_new_content_file_asset_download_enabled">
-	                                    <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox">
-	                                    <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.d07eab27')); ?>
-	                                </label>
-                                </div>
-	                            <div class="admin-content-file-charge-assets admin-setting-unit admin-setting-unit-wide">
-	                                <?php echo sr_admin_checkbox_list_html('content_admin_contents_new_content_file_asset_module', 'new_content_file_asset_module', $assetModuleChoiceOptions, [], sr_t('content::ui.text.3e195cdd')); ?>
-	                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-	                            </div>
-                                <div class="admin-setting-unit">
-	                                <input type="number" name="new_content_file_asset_download_amount" value="0" class="form-input admin-content-file-charge-amount" min="0" max="999999999" step="1" aria-label="<?php echo sr_e(sr_t('content::ui.text.63526029')); ?>">
-                                </div>
-                                <div class="admin-setting-unit">
-	                                <select name="new_content_file_asset_charge_policy" class="form-select admin-content-file-charge-policy" aria-label="<?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?>">
-	                                    <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-	                                        <option value="<?php echo sr_e((string) $policyKey); ?>">
-	                                            <?php echo sr_e((string) $policyLabel); ?>
-	                                        </option>
-	                                    <?php } ?>
-	                                </select>
-                                </div>
-	                        </div>
-	                    </div>
-	                </div>
+                    <div class="admin-content-file-charge-control">
+                        <div class="admin-content-file-charge-main">
+                            <label class="admin-form-check form-label" for="modules_content_admin_contents_new_content_file_asset_download_enabled">
+                                <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox">
+                                <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
+                            </label>
+                            <div class="admin-content-file-charge-assets">
+                                <?php echo sr_admin_checkbox_list_html('content_admin_contents_new_content_file_asset_module', 'new_content_file_asset_module', $assetModuleChoiceOptions, [], sr_t('content::ui.text.3e195cdd')); ?>
+                            </div>
+                            <label for="content_admin_contents_new_content_file_asset_download_amount">
+                                <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.63526029')); ?></span>
+                                <input id="content_admin_contents_new_content_file_asset_download_amount" type="number" name="new_content_file_asset_download_amount" value="0" class="form-input admin-content-file-charge-amount" min="0" max="999999999" step="1">
+                            </label>
+                            <label for="content_admin_contents_new_content_file_asset_charge_policy">
+                                <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?></span>
+                                <select id="content_admin_contents_new_content_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select admin-content-file-charge-policy">
+                                    <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+                                        <option value="<?php echo sr_e((string) $policyKey); ?>">
+                                            <?php echo sr_e((string) $policyLabel); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </label>
+                        </div>
+                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                    </div>
+                </div>
             </div>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
@@ -648,6 +784,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
+<?php } ?>
+
+<?php if ($pageAdminPage === 'form') { ?>
+    <?php foreach ($contentHelp as $contentHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $contentHelpModal['id'], (string) $contentHelpModal['title'], (string) $contentHelpModal['body']); ?>
+    <?php } ?>
 <?php } ?>
 
 <?php if ($pageAdminPage === 'form') { ?>
