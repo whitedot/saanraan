@@ -15,6 +15,86 @@ $pointReferenceTypeOptions = [
     'event' => sr_t('point::ui.text.46b289bb'),
     'migration' => sr_t('point::ui.text.2e52928e'),
 ];
+$pointHelpOpenLabel = sr_t('point::help.open');
+$pointHelpButtonHtml = static function (string $label, string $modalId) use ($pointHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $pointHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$pointHelpBodyHtml = static function (array $bodyKeys): string {
+    $html = '';
+    foreach ($bodyKeys as $bodyKey) {
+        $html .= '<p>' . sr_e(sr_t((string) $bodyKey)) . '</p>';
+    }
+
+    return $html;
+};
+$pointHelp = [
+    'member_hash' => [
+        'id' => 'point-help-member-hash-modal',
+        'title' => sr_t('point::help.member_hash.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.member_hash.body.1',
+            'point::help.member_hash.body.2',
+        ]),
+    ],
+    'transaction_type' => [
+        'id' => 'point-help-transaction-type-modal',
+        'title' => sr_t('point::help.transaction_type.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.transaction_type.body.1',
+            'point::help.transaction_type.body.2',
+        ]),
+    ],
+    'amount' => [
+        'id' => 'point-help-amount-modal',
+        'title' => sr_t('point::help.amount.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.amount.body.1',
+            'point::help.amount.body.2',
+        ]),
+    ],
+    'reason' => [
+        'id' => 'point-help-reason-modal',
+        'title' => sr_t('point::help.reason.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.reason.body.1',
+            'point::help.reason.body.2',
+        ]),
+    ],
+    'reference_type' => [
+        'id' => 'point-help-reference-type-modal',
+        'title' => sr_t('point::help.reference_type.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.reference_type.body.1',
+            'point::help.reference_type.body.2',
+        ]),
+    ],
+    'reference_id' => [
+        'id' => 'point-help-reference-id-modal',
+        'title' => sr_t('point::help.reference_id.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.reference_id.body.1',
+            'point::help.reference_id.body.2',
+        ]),
+    ],
+    'refund_amount' => [
+        'id' => 'point-help-refund-amount-modal',
+        'title' => sr_t('point::help.refund_amount.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.refund_amount.body.1',
+            'point::help.refund_amount.body.2',
+        ]),
+    ],
+    'refund_reason' => [
+        'id' => 'point-help-refund-reason-modal',
+        'title' => sr_t('point::help.refund_reason.title'),
+        'body_html' => $pointHelpBodyHtml([
+            'point::help.refund_reason.body.1',
+            'point::help.refund_reason.body.2',
+        ]),
+    ],
+];
 $pointAdjustModalAccounts = [];
 if ($pointAdminPage === 'balances') {
     $pointAdjustModalSeen = [];
@@ -234,7 +314,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } else { ?>
                             <div class="admin-form-row">
-                                <label class="form-label" for="<?php echo sr_e($pointAdjustAccountInputId); ?>"><?php echo sr_e(sr_t('point::ui.member.900e04a5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                                <?php echo sr_admin_form_label_help_html($pointAdjustAccountInputId, sr_t('point::ui.member.900e04a5'), $pointHelp['member_hash']['id'], $pointHelpOpenLabel, true); ?>
                                 <div class="admin-form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($pointAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
@@ -244,7 +324,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } ?>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_transaction_type"><?php echo sr_e(sr_t('point::ui.text.3a7bc5ac')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_transaction_type', sr_t('point::ui.text.3a7bc5ac'), $pointHelp['transaction_type']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
                                     <?php foreach ($allowedTransactionTypes as $type) { ?>
@@ -254,20 +334,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_amount"><?php echo sr_e(sr_t('point::ui.text.4a12f983')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_amount', sr_t('point::ui.text.4a12f983'), $pointHelp['amount']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
                                 <p class="admin-form-help"><?php echo sr_e(sr_t('point::ui.active.d2de5076')); ?></p>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_reason"><?php echo sr_e(sr_t('point::ui.text.ab9442a2')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['reason']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <div class="form-label admin-form-label-help"><?php echo $pointHelpButtonHtml(sr_t('point::ui.text.200e7df1'), $pointHelp['reference_type']['id']); ?><label for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label></div>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select" data-admin-reference-type>
                                     <?php foreach ($pointReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
@@ -277,7 +357,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.id.e89e337e')); ?> <span class="sr-required-label" data-admin-reference-id-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <div class="form-label admin-form-label-help"><?php echo $pointHelpButtonHtml(sr_t('point::ui.id.e89e337e'), $pointHelp['reference_id']['id']); ?><label for="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.id.e89e337e')); ?> <span class="sr-required-label" data-admin-reference-id-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label></div>
                             <div class="admin-form-field">
                                 <div class="admin-lookup-control">
                                     <input id="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input" data-admin-reference-id>
@@ -343,14 +423,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.18e61249')); ?> <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> P</strong></span>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount"><?php echo sr_e(sr_t('point::ui.text.42607c84')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_amount', sr_t('point::ui.text.42607c84'), $pointHelp['refund_amount']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $pointRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
                                 <p class="admin-form-help"><?php echo sr_e(sr_t('point::ui.point.save.fcebf5f3')); ?></p>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason"><?php echo sr_e(sr_t('point::ui.text.ab9442a2')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
+                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['refund_reason']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e(sr_t('point::ui.text.5b471750') . (string) $pointRefundTransactionId . sr_t('point::ui.text.0a4d3a11')); ?>" maxlength="255" required class="form-input form-control-full">
                                 <p class="admin-form-help"><?php echo sr_e(sr_t('point::ui.id.0b5dbcb4')); ?> <?php echo sr_e($pointRefundReferenceId); ?></p>
@@ -365,6 +445,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     <?php } ?>
+<?php } ?>
+
+<?php foreach ($pointHelp as $pointHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $pointHelpModal['id'], (string) $pointHelpModal['title'], (string) $pointHelpModal['body_html']); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
