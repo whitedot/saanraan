@@ -1,0 +1,22 @@
+.seo-og-image-current {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    margin-bottom: calc(var(--spacing) * 3);
+}
+
+.seo-og-image-current img {
+    background: var(--color-default-100);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-sm);
+    display: block;
+    height: 4.5rem;
+    object-fit: contain;
+    padding: .25rem;
+    width: 8rem;
+}
+
+.seo-og-image-current .admin-form-check {
+    margin-top: calc(var(--spacing) * 2);
+}

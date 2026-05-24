@@ -17,21 +17,18 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/seo', 'edit');
 
+    $existingDefaultOgImage = (string) ($settings['default_og_image'] ?? '');
+    $ogImageUploadFile = $_FILES['default_og_image_upload'] ?? null;
+    $ogImageUploadProvided = sr_seo_og_image_upload_was_provided($ogImageUploadFile);
+    $deleteDefaultOgImage = ($_POST['delete_default_og_image'] ?? '') === '1';
+
     $settings = [
         'title_suffix' => sr_seo_clean_single_line(sr_post_string('title_suffix', 80), 80),
         'default_description' => sr_seo_clean_single_line(sr_post_string('default_description', 255), 255),
-        'default_og_image' => sr_seo_clean_single_line(sr_post_string('default_og_image', 255), 255),
+        'default_og_image' => $deleteDefaultOgImage ? '' : sr_seo_clean_single_line($existingDefaultOgImage, 255),
         'sitemap_include_home' => ($_POST['sitemap_include_home'] ?? '') === '1',
         'robots_disallow_paths' => sr_seo_clean_textarea(sr_post_string('robots_disallow_paths', 2000), 2000),
     ];
-
-    if (
-        $settings['default_og_image'] !== ''
-        && !sr_is_http_url($settings['default_og_image'])
-        && !sr_is_safe_relative_url($settings['default_og_image'])
-    ) {
-        $errors[] = '기본 OG image URL은 http/https URL 또는 /로 시작하는 내부 경로여야 합니다.';
-    }
 
     foreach (explode("\n", $settings['robots_disallow_paths']) as $line) {
         $path = trim($line);
@@ -46,6 +43,23 @@ if (sr_request_method() === 'POST') {
     $seoModule = $stmt->fetch();
     if (!is_array($seoModule)) {
         $errors[] = 'SEO 모듈이 등록되어 있지 않습니다.';
+    }
+
+    if ($errors === [] && $ogImageUploadProvided) {
+        if (!is_array($ogImageUploadFile)) {
+            $errors[] = '업로드할 기본 OG 이미지를 확인할 수 없습니다.';
+        } else {
+            try {
+                $uploadedImage = sr_seo_upload_og_image($ogImageUploadFile);
+                $settings['default_og_image'] = sr_seo_clean_single_line((string) ($uploadedImage['public_url'] ?? ''), 255);
+            } catch (Throwable $exception) {
+                $errors[] = $exception->getMessage();
+            }
+        }
+    }
+
+    if ($settings['default_og_image'] !== '' && !sr_is_http_url($settings['default_og_image']) && !sr_is_safe_relative_url($settings['default_og_image'])) {
+        $errors[] = '기본 OG 이미지는 업로드된 이미지 경로만 저장할 수 있습니다.';
     }
 
     if ($errors === []) {

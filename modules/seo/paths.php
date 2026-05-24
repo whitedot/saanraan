@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /seo/image' => 'actions/image.php',
     'GET /admin/seo' => 'actions/admin-settings.php',
     'POST /admin/seo' => 'actions/admin-settings.php',
     'GET /robots.txt' => 'actions/robots.php',

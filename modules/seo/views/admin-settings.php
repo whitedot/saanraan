@@ -4,9 +4,19 @@ $adminPageTitle = sr_t('seo::ui.seo.settings.604d83e6');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
+<?php
+$defaultOgImage = (string) ($settings['default_og_image'] ?? '');
+$defaultOgImageUrl = '';
+if (sr_is_http_url($defaultOgImage)) {
+    $defaultOgImageUrl = $defaultOgImage;
+} elseif (sr_is_safe_relative_url($defaultOgImage)) {
+    $defaultOgImageUrl = sr_url($defaultOgImage);
+}
+?>
+
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
     <section class="admin-card card">
@@ -24,9 +34,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="seo_admin_settings_default_og_image"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
+            <label class="form-label" for="seo_admin_settings_default_og_image_upload"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
             <div class="admin-form-field">
-                <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e((string) $settings['default_og_image']); ?>" class="form-input form-control-full" maxlength="255">
+                <?php if ($defaultOgImageUrl !== '') { ?>
+                    <div class="seo-og-image-current">
+                        <img src="<?php echo sr_e($defaultOgImageUrl); ?>" alt="<?php echo sr_e(sr_t('seo::ui.og.current.8f910aba')); ?>">
+                        <div>
+                            <a href="<?php echo sr_e($defaultOgImageUrl); ?>"><?php echo sr_e(sr_t('seo::ui.og.current.8f910aba')); ?></a>
+                            <label class="admin-form-check form-label" for="seo_admin_settings_delete_default_og_image">
+                                <input id="seo_admin_settings_delete_default_og_image" type="checkbox" name="delete_default_og_image" value="1" class="form-checkbox">
+                                <?php echo sr_admin_choice_label_html(sr_t('seo::ui.og.delete.f7ca7f83')); ?>
+                            </label>
+                        </div>
+                    </div>
+                <?php } ?>
+                <input id="seo_admin_settings_default_og_image_upload" type="file" name="default_og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('seo::ui.og.upload.help.80d2d781')); ?> <?php echo sr_e(sr_seo_format_bytes(sr_seo_og_image_upload_max_bytes())); ?><?php echo sr_e(sr_t('seo::ui.og.upload.help.suffix.1a055fd3')); ?></p>
             </div>
         </div>
     </section>

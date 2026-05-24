@@ -1,7 +1,11 @@
 <?php
 
 return [
-    'ui.og.url.14dbf393' => '기본 OG 이미지 URL',
+    'ui.og.current.8f910aba' => '현재 기본 OG 이미지',
+    'ui.og.delete.f7ca7f83' => '삭제',
+    'ui.og.upload.help.80d2d781' => 'jpg, png, webp 이미지를 업로드하세요. 최대',
+    'ui.og.upload.help.suffix.1a055fd3' => '까지 업로드할 수 있습니다.',
+    'ui.og.url.14dbf393' => '기본 OG 이미지',
     'ui.save.5fb92622' => '저장',
     'ui.seo.point.ea9a7371' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
     'ui.seo.settings.604d83e6' => 'SEO 설정',

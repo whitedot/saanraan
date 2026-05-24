@@ -95,6 +95,121 @@ function sr_seo_clean_textarea(string $value, int $maxLength): string
     return trim(substr($value, 0, $maxLength));
 }
 
+function sr_seo_og_image_upload_max_bytes(): int
+{
+    return 5242880;
+}
+
+function sr_seo_format_bytes(int $bytes): string
+{
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    }
+
+    if ($bytes >= 1024) {
+        return number_format($bytes / 1024, 1) . ' KB';
+    }
+
+    return number_format(max(0, $bytes)) . ' bytes';
+}
+
+function sr_seo_og_image_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function sr_seo_image_format_for_mime(string $mimeType): string
+{
+    return match (strtolower(trim($mimeType))) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        default => '',
+    };
+}
+
+function sr_seo_image_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+}
+
+function sr_seo_upload_og_image(array $file): array
+{
+    $validated = sr_upload_validate_file($file, [
+        'max_bytes' => sr_seo_og_image_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+    ]);
+
+    $sourcePath = (string) $validated['tmp_name'];
+    $targetFormat = sr_seo_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 OG 이미지 형식입니다.');
+    }
+
+    $dimensions = @getimagesize($sourcePath);
+    if (!is_array($dimensions) || (int) ($dimensions[0] ?? 0) < 1 || (int) ($dimensions[1] ?? 0) < 1) {
+        throw new RuntimeException('이미지 크기를 확인할 수 없습니다.');
+    }
+    if ((int) $dimensions[0] * (int) $dimensions[1] > 25000000) {
+        throw new RuntimeException('이미지 픽셀 수가 너무 큽니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/seo-og-images/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('OG 이미지 임시 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = sr_upload_random_filename($targetFormat);
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
+
+    if (!sr_upload_reencode_image($sourcePath, $targetPath, $targetFormat, [
+        'max_pixels' => 25000000,
+        'quality' => 88,
+    ])) {
+        throw new RuntimeException('이미지 재인코딩에 실패했습니다.');
+    }
+
+    $storedMimeType = sr_upload_detect_mime($targetPath);
+    if (!sr_seo_image_mime_is_allowed($storedMimeType)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 이미지 MIME을 확인할 수 없습니다.');
+    }
+
+    $storageKey = 'seo/og-images/' . $datePath . '/' . $storedName;
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
+        'content_type' => $storedMimeType,
+    ]);
+    @unlink($targetPath);
+
+    $storageReference = sr_storage_reference((string) $stored['driver'], $storageKey);
+    $publicUrl = (string) ($stored['url'] ?? '');
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'public_url' => $publicUrl !== '' ? $publicUrl : '/seo/image?file=' . rawurlencode($storageReference),
+        'mime_type' => $storedMimeType,
+    ];
+}
+
+function sr_seo_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\Aseo/og-images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
+}
+
+function sr_seo_image_storage_reference(string $reference): ?array
+{
+    $storage = sr_storage_parse_reference($reference);
+    if (!is_array($storage) || !sr_seo_image_storage_key_is_valid((string) $storage['key'])) {
+        return null;
+    }
+
+    return $storage;
+}
+
 function sr_seo_disallow_paths(string $value): array
 {
     $paths = [];
