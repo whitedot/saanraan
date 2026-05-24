@@ -116,10 +116,10 @@ $memberGroupAccessHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.member_group_a
     . '</ul>';
 $memberGroupAccessLabelHtml = static function (string $forId, string $label) use ($memberGroupAccessHelpModalId): string {
     return '<div class="form-label admin-form-label-help">'
-        . '<label for="' . sr_e($forId) . '">' . sr_e($label) . '</label>'
         . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . sr_t('community::ui.member_group_access_help_open')) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($memberGroupAccessHelpModalId) . '" data-overlay="#' . sr_e($memberGroupAccessHelpModalId) . '">'
         . sr_material_icon_html('help')
         . '</button>'
+        . '<label for="' . sr_e($forId) . '">' . sr_e($label) . '</label>'
         . '</div>';
 };
 $selectedBoardGroup = is_array($editBoardGroup ?? null) ? $editBoardGroup : [];
