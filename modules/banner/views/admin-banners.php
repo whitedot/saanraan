@@ -14,6 +14,77 @@ if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
 }
 $currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all';
 $subjectRequired = !sr_banner_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
+$bannerHelpOpenLabel = sr_t('banner::help.open');
+$bannerHelpButtonHtml = static function (string $label, string $modalId) use ($bannerHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $bannerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$bannerHelpBodyHtml = static function (array $keys): string {
+    $html = '';
+    foreach ($keys as $key) {
+        $html .= '<p>' . sr_e(sr_t((string) $key)) . '</p>';
+    }
+
+    return $html;
+};
+$bannerHelp = [
+    'link_url' => [
+        'id' => 'banner_admin_help_link_url',
+        'title' => sr_t('banner::help.link_url.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.link_url.body.1', 'banner::help.link_url.body.2']),
+    ],
+    'image_url' => [
+        'id' => 'banner_admin_help_image_url',
+        'title' => sr_t('banner::help.image_url.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.image_url.body.1', 'banner::help.image_url.body.2']),
+    ],
+    'image_upload' => [
+        'id' => 'banner_admin_help_image_upload',
+        'title' => sr_t('banner::help.image_upload.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.image_upload.body.1', 'banner::help.image_upload.body.2']),
+    ],
+    'target_option' => [
+        'id' => 'banner_admin_help_target_option',
+        'title' => sr_t('banner::help.target_option.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.target_option.body.1', 'banner::help.target_option.body.2']),
+    ],
+    'match_type' => [
+        'id' => 'banner_admin_help_match_type',
+        'title' => sr_t('banner::help.match_type.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.match_type.body.1', 'banner::help.match_type.body.2']),
+    ],
+    'subject_id' => [
+        'id' => 'banner_admin_help_subject_id',
+        'title' => sr_t('banner::help.subject_id.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.subject_id.body.1', 'banner::help.subject_id.body.2']),
+    ],
+    'status' => [
+        'id' => 'banner_admin_help_status',
+        'title' => sr_t('banner::help.status.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.status.body.1', 'banner::help.status.body.2', 'banner::help.status.body.3']),
+    ],
+    'skin_key' => [
+        'id' => 'banner_admin_help_skin_key',
+        'title' => sr_t('banner::help.skin_key.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.skin_key.body.1', 'banner::help.skin_key.body.2']),
+    ],
+    'starts_at' => [
+        'id' => 'banner_admin_help_starts_at',
+        'title' => sr_t('banner::help.starts_at.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.starts_at.body.1', 'banner::help.starts_at.body.2']),
+    ],
+    'ends_at' => [
+        'id' => 'banner_admin_help_ends_at',
+        'title' => sr_t('banner::help.ends_at.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.ends_at.body.1', 'banner::help.ends_at.body.2']),
+    ],
+    'sort_order' => [
+        'id' => 'banner_admin_help_sort_order',
+        'title' => sr_t('banner::help.sort_order.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.sort_order.body.1', 'banner::help.sort_order.body.2']),
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -39,21 +110,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_link_url"><?php echo sr_e(sr_t('banner::ui.url.http.https.81cff7be')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_link_url', sr_t('banner::ui.url.http.https.81cff7be'), $bannerHelp['link_url']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_link_url" type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.6f5481db')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_image_url"><?php echo sr_e(sr_t('banner::ui.url.http.https.url.264bd3d3')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_url', sr_t('banner::ui.url.http.https.url.264bd3d3'), $bannerHelp['image_url']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.e0a0162e')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_image_upload"><?php echo sr_e(sr_t('banner::ui.text.cead00a8')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_upload', sr_t('banner::ui.text.cead00a8'), $bannerHelp['image_upload']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_image_upload" type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
                     <br>
@@ -61,7 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_target_option"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_target_option', sr_t('banner::ui.text.76389a62'), $bannerHelp['target_option']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_target_option" name="target_option" class="form-select">
                                             <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
@@ -79,7 +150,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_match_type"><?php echo sr_e(sr_t('banner::ui.text.175f56ba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_match_type', sr_t('banner::ui.text.175f56ba'), $bannerHelp['match_type']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_match_type" name="match_type" class="form-select">
                                             <?php foreach ($allowedMatchTypes as $matchType) { ?>
@@ -91,13 +162,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <div class="form-label admin-form-label-help"><?php echo $bannerHelpButtonHtml(sr_t('banner::ui.subject.id.14852174'), $bannerHelp['subject_id']['id']); ?><label for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label></div>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_status"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_status', sr_t('banner::ui.status.e10195a1'), $bannerHelp['status']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_status" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -112,7 +183,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_skin_key"><?php echo sr_e(sr_t('banner::ui.banner.46b4fae5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_skin_key', sr_t('banner::ui.banner.46b4fae5'), $bannerHelp['skin_key']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_skin_key" name="skin_key" class="form-select">
                                             <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
@@ -128,19 +199,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_starts_at"><?php echo sr_e(sr_t('banner::ui.text.65bdaefd')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_starts_at', sr_t('banner::ui.text.65bdaefd'), $bannerHelp['starts_at']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_starts_at" type="datetime-local" name="starts_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['starts_at'] ?? null)) : ''; ?>" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_ends_at"><?php echo sr_e(sr_t('banner::ui.text.26c25fca')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_ends_at', sr_t('banner::ui.text.26c25fca'), $bannerHelp['ends_at']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_ends_at" type="datetime-local" name="ends_at" value="<?php echo $editing ? sr_e(sr_banner_admin_datetime_value($editBanner['ends_at'] ?? null)) : ''; ?>" class="form-input">
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_sort_order"><?php echo sr_e(sr_t('banner::ui.text.3788952d')); ?></label>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_sort_order', sr_t('banner::ui.text.3788952d'), $bannerHelp['sort_order']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_sort_order" type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>" class="form-input">
                 </div>
@@ -290,6 +361,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+<?php } ?>
+
+<?php if ($bannerAdminPage === 'form') { ?>
+    <?php foreach ($bannerHelp as $bannerHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $bannerHelpModal['id'], (string) $bannerHelpModal['title'], (string) $bannerHelpModal['body']); ?>
+    <?php } ?>
 <?php } ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
