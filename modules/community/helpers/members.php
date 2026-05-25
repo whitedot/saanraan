@@ -198,13 +198,18 @@ function sr_community_public_account_summary_by_hash(PDO $pdo, array $config, st
     return $summary;
 }
 
-function sr_community_nickname_filter(PDO $pdo, array $config): array
+function sr_community_nickname_filter(PDO $pdo, array $config, bool $levelFilterEnabled = false): array
 {
     $field = sr_get_string('field', 30);
     $keyword = trim(sr_get_string('q', 120));
-    $allowedFields = ['all', 'hash', 'email', 'name', 'nickname'];
+    $allowedFields = ['all', 'hash', 'email', 'nickname'];
     if (!in_array($field, $allowedFields, true)) {
         $field = 'all';
+    }
+    $levelValue = null;
+    $levelInput = sr_get_string('level', 20);
+    if ($levelFilterEnabled && $levelInput !== '' && preg_match('/\A[0-9]+\z/', $levelInput) === 1) {
+        $levelValue = sr_community_normalize_level_value($levelInput);
     }
 
     $accountId = 0;
@@ -216,6 +221,8 @@ function sr_community_nickname_filter(PDO $pdo, array $config): array
         'field' => $field,
         'keyword' => $keyword,
         'account_id' => $accountId,
+        'level_value' => $levelValue,
+        'level_enabled' => $levelFilterEnabled,
     ];
 }
 
@@ -229,6 +236,7 @@ function sr_community_nickname_query_parts(array $filter = []): array
     $field = (string) ($filter['field'] ?? 'all');
     $keyword = trim((string) ($filter['keyword'] ?? ''));
     $accountId = (int) ($filter['account_id'] ?? 0);
+    $levelValue = $filter['level_value'] ?? null;
 
     if ($keyword !== '') {
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
@@ -240,20 +248,15 @@ function sr_community_nickname_query_parts(array $filter = []): array
         } elseif ($field === 'email') {
             $where[] = "a.email LIKE :keyword_like ESCAPE '\\\\'";
             $params['keyword_like'] = $like;
-        } elseif ($field === 'name') {
-            $where[] = "a.display_name LIKE :keyword_like ESCAPE '\\\\'";
-            $params['keyword_like'] = $like;
         } elseif ($field === 'nickname') {
             $where[] = "(a.status NOT IN ('withdrawn', 'anonymized') AND n.nickname LIKE :keyword_like ESCAPE '\\\\')";
             $params['keyword_like'] = $like;
         } else {
             $clauses = [
                 "a.email LIKE :keyword_email_like ESCAPE '\\\\'",
-                "a.display_name LIKE :keyword_name_like ESCAPE '\\\\'",
                 "(a.status NOT IN ('withdrawn', 'anonymized') AND n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\')",
             ];
             $params['keyword_email_like'] = $like;
-            $params['keyword_name_like'] = $like;
             $params['keyword_nickname_like'] = $like;
             if ($accountId > 0) {
                 $clauses[] = 'a.id = :account_id';
@@ -261,6 +264,10 @@ function sr_community_nickname_query_parts(array $filter = []): array
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }
+    }
+    if (!empty($filter['level_enabled']) && $levelValue !== null) {
+        $where[] = 'COALESCE(l.level_value, 0) = :level_value';
+        $params['level_value'] = sr_community_normalize_level_value($levelValue);
     }
 
     return [
@@ -273,10 +280,14 @@ function sr_community_nickname_count(PDO $pdo, array $filter = []): int
 {
     $queryParts = sr_community_nickname_query_parts($filter);
     $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
+    $levelJoinSql = !empty($filter['level_enabled']) && sr_community_level_tables_exist($pdo)
+        ? 'LEFT JOIN sr_community_account_levels l ON l.account_id = a.id'
+        : '';
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_member_accounts a
          INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         ' . $levelJoinSql . '
          ' . $whereSql
     );
     $stmt->execute($queryParts['params']);
@@ -290,12 +301,26 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
     $queryParts = sr_community_nickname_query_parts($filter);
     $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
     $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
+    $includeLevel = !empty($filter['level_enabled']) && sr_community_level_tables_exist($pdo);
+    $levelSelectSql = $includeLevel
+        ? ',
+                COALESCE(l.level_value, 0) AS community_level_value,
+                COALESCE(l.score_value, 0) AS community_score_value,
+                COALESCE(l.post_count, 0) AS community_level_post_count,
+                COALESCE(l.comment_count, 0) AS community_level_comment_count,
+                l.evaluated_at AS community_level_evaluated_at'
+        : '';
+    $levelJoinSql = $includeLevel
+        ? 'LEFT JOIN sr_community_account_levels l ON l.account_id = a.id'
+        : '';
     $stmt = $pdo->prepare(
         'SELECT a.id, a.email, a.display_name, a.status, a.created_at,
                 CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN \'\' ELSE COALESCE(n.nickname, \'\') END AS nickname,
                 CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN NULL ELSE n.updated_at END AS nickname_updated_at
+                ' . $levelSelectSql . '
          FROM sr_member_accounts a
          INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         ' . $levelJoinSql . '
          ' . $whereSql . '
          ORDER BY a.id DESC' . $limitSql
     );

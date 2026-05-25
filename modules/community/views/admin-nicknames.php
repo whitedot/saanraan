@@ -7,6 +7,12 @@ $nicknameFilter = isset($nicknameFilter) && is_array($nicknameFilter) ? $nicknam
 $nicknameRows = isset($nicknameRows) && is_array($nicknameRows) ? $nicknameRows : [];
 $nicknamePagination = isset($nicknamePagination) && is_array($nicknamePagination) ? $nicknamePagination : sr_admin_pagination_meta(0, 50, 1);
 $canResetNicknames = !empty($canResetNicknames);
+$canSendMemberMessages = !empty($canSendMemberMessages);
+$memberMessageSendingEnabled = !empty($memberMessageSendingEnabled);
+$communityLevelEnabled = !empty($communityLevelEnabled);
+$canEditMemberLevels = !empty($canEditMemberLevels);
+$communityLevels = isset($communityLevels) && is_array($communityLevels) ? $communityLevels : [];
+$currentAdminAccountId = isset($account) && is_array($account) ? (int) ($account['id'] ?? 0) : 0;
 $nicknameSearchSubmitted = !empty($nicknameSearchSubmitted);
 $nicknameNotificationAvailable = !empty($nicknameNotificationAvailable);
 $nicknameResetReasonOptions = function_exists('sr_community_nickname_reset_reason_options')
@@ -23,13 +29,29 @@ if (!is_array($nicknameReturnPathInfo)
 ) {
     $nicknameReturnPath = '/admin/community/nicknames';
 }
+$memberListColumnCount = $communityLevelEnabled ? 7 : 6;
+$communityLevelLabels = [0 => sr_t('community::ui.member.level.default')];
+foreach ($communityLevels as $communityLevel) {
+    $levelValue = (int) ($communityLevel['level_value'] ?? 0);
+    $levelTitle = trim((string) ($communityLevel['title'] ?? ''));
+    $communityLevelLabels[$levelValue] = $levelTitle !== ''
+        ? ($levelTitle === sr_t('community::ui.member.level.value', ['level' => (string) $levelValue])
+            ? $levelTitle
+            : sr_t('community::ui.member.level.option', ['level' => (string) $levelValue, 'title' => $levelTitle]))
+        : sr_t('community::ui.member.level.value', ['level' => (string) $levelValue]);
+}
+for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) {
+    if (!isset($communityLevelLabels[$levelValue])) {
+        $communityLevelLabels[$levelValue] = sr_t('community::ui.member.level.value', ['level' => (string) $levelValue]);
+    }
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="admin-filter admin-member-filter ui-form-theme">
-    <div class="admin-filter-grid admin-member-search-grid">
+    <div class="admin-filter-grid admin-member-search-grid<?php echo $communityLevelEnabled ? ' has-level-filter' : ''; ?>">
         <label class="admin-filter-field">
             <span><?php echo sr_e(sr_t('community::ui.search.condition')); ?></span>
             <select name="field" class="form-select admin-filter-input">
@@ -38,7 +60,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </label>
-        <label class="admin-filter-field">
+        <?php if ($communityLevelEnabled) { ?>
+            <label class="admin-filter-field">
+                <span><?php echo sr_e(sr_t('community::ui.member.level')); ?></span>
+                <select name="level" class="form-select admin-filter-input">
+                    <option value=""><?php echo sr_e(sr_t('community::ui.all')); ?></option>
+                    <?php foreach ($communityLevelLabels as $levelValue => $levelLabel) { ?>
+                        <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo ($nicknameFilter['level_value'] ?? null) !== null && (int) $nicknameFilter['level_value'] === (int) $levelValue ? ' selected' : ''; ?>><?php echo sr_e((string) $levelLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+        <?php } ?>
+        <label class="admin-filter-field admin-member-filter-keyword">
             <span><?php echo sr_e(sr_t('community::ui.search.keyword')); ?></span>
             <input type="search" name="q" value="<?php echo sr_e((string) ($nicknameFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="<?php echo sr_e(sr_t('community::ui.nickname.search.placeholder')); ?>">
         </label>
@@ -61,6 +94,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th><?php echo sr_e(sr_t('community::ui.public_hash')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.email')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.nickname')); ?></th>
+                    <?php if ($communityLevelEnabled) { ?>
+                        <th><?php echo sr_e(sr_t('community::ui.member.level')); ?></th>
+                    <?php } ?>
                     <th><?php echo sr_e(sr_t('community::ui.status')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.nickname.updated_at')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('community::ui.manage')); ?></th>
@@ -69,32 +105,59 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if (!$nicknameSearchSubmitted) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.nickname.search_first')); ?></td>
+                        <td colspan="<?php echo sr_e((string) $memberListColumnCount); ?>" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.nickname.search_first')); ?></td>
                     </tr>
                 <?php } elseif ($nicknameRows === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.empty')); ?></td>
+                        <td colspan="<?php echo sr_e((string) $memberListColumnCount); ?>" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.empty')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($nicknameRows as $member) { ?>
                     <?php
                     $memberStatus = (string) ($member['status'] ?? '');
+                    $memberId = (int) ($member['id'] ?? 0);
+                    $memberLevelValue = sr_community_normalize_level_value($member['community_level_value'] ?? 0);
+                    $memberLevelLabel = (string) ($communityLevelLabels[$memberLevelValue] ?? sr_t('community::ui.member.level.value', ['level' => (string) $memberLevelValue]));
+                    $memberLevelEditable = $canEditMemberLevels && $memberId > 0 && $memberStatus === 'active';
                     $statusClass = match ($memberStatus) {
                         'active' => 'is-normal',
                         'suspended', 'pending' => 'is-blocked',
                         default => 'is-left',
                     };
                     $nicknameResettable = $canResetNicknames && !sr_community_nickname_status_blocks_identity($memberStatus);
+                    $memberMessageSendable = $memberMessageSendingEnabled && $canSendMemberMessages && $memberId > 0 && $memberStatus === 'active' && $memberId !== $currentAdminAccountId;
                     ?>
                     <tr>
                         <td class="admin-table-nowrap admin-member-hash-cell" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
                         <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
                         <td class="admin-table-break"><?php echo sr_e((string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-'); ?></td>
+                        <?php if ($communityLevelEnabled) { ?>
+                            <td class="admin-table-nowrap">
+                                <?php if ($memberLevelEditable) { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="admin-inline-edit-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="update_level">
+                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
+                                        <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
+                                        <label class="sr-only" for="community-admin-member-level-<?php echo sr_e((string) $memberId); ?>"><?php echo sr_e(sr_t('community::ui.member.level')); ?></label>
+                                        <select id="community-admin-member-level-<?php echo sr_e((string) $memberId); ?>" name="level_value" class="form-select">
+                                            <?php foreach ($communityLevelLabels as $levelValue => $levelLabel) { ?>
+                                                <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo $memberLevelValue === (int) $levelValue ? ' selected' : ''; ?>><?php echo sr_e((string) $levelLabel); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('community::ui.member.level.update')); ?>" title="<?php echo sr_e(sr_t('community::ui.member.level.update')); ?>"><?php echo sr_material_icon_html('save'); ?></button>
+                                    </form>
+                                <?php } else { ?>
+                                    <?php echo sr_e($memberLevelLabel); ?>
+                                <?php } ?>
+                            </td>
+                        <?php } ?>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['nickname_updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-admin-nickname-reset-modal-<?php echo sr_e((string) ((int) $member['id'])); ?>" data-overlay="#community-admin-nickname-reset-modal-<?php echo sr_e((string) ((int) $member['id'])); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>" title="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>"<?php echo $nicknameResettable ? '' : ' disabled'; ?>><?php echo sr_material_icon_html('restart_alt'); ?></button>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-admin-member-message-modal-<?php echo sr_e((string) $memberId); ?>" data-overlay="#community-admin-member-message-modal-<?php echo sr_e((string) $memberId); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.member.message.send')); ?>" title="<?php echo sr_e(sr_t('community::ui.member.message.send')); ?>"<?php echo $memberMessageSendable ? '' : ' disabled'; ?>><?php echo sr_material_icon_html('mail'); ?></button>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-admin-nickname-reset-modal-<?php echo sr_e((string) $memberId); ?>" data-overlay="#community-admin-nickname-reset-modal-<?php echo sr_e((string) $memberId); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>" title="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>"<?php echo $nicknameResettable ? '' : ' disabled'; ?>><?php echo sr_material_icon_html('restart_alt'); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -105,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($nicknameSearchSubmitted) { ?>
-    <?php echo sr_admin_pagination_html($nicknamePagination, '닉네임 관리 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($nicknamePagination, '멤버 관리 목록 페이지'); ?>
 <?php } ?>
 
 <?php foreach ($nicknameRows as $member) { ?>
@@ -113,12 +176,56 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $memberId = (int) ($member['id'] ?? 0);
     $memberStatus = (string) ($member['status'] ?? '');
     $nicknameResettable = $memberId > 0 && $canResetNicknames && !sr_community_nickname_status_blocks_identity($memberStatus);
-    if (!$nicknameResettable) {
-        continue;
-    }
-    $modalId = 'community-admin-nickname-reset-modal-' . (string) $memberId;
+    $memberMessageSendable = $memberId > 0 && $memberMessageSendingEnabled && $canSendMemberMessages && $memberStatus === 'active' && $memberId !== $currentAdminAccountId;
     $nicknameDisplay = (string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-';
     ?>
+    <?php if ($memberMessageSendable) { ?>
+        <?php $messageModalId = 'community-admin-member-message-modal-' . (string) $memberId; ?>
+        <div id="<?php echo sr_e($messageModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($messageModalId); ?>-label">
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($messageModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.member.message.send')); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($messageModalId); ?>">
+                            <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="send_message">
+                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
+                        <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
+                        <p class="community-nickname-reset-copy"><?php echo sr_e(sr_t('community::ui.member.message.confirm_body')); ?></p>
+                        <div class="community-nickname-reset-summary" aria-label="<?php echo sr_e(sr_t('community::ui.member.message.target')); ?>">
+                            <div>
+                                <span><?php echo sr_e(sr_t('community::ui.public_hash')); ?></span>
+                                <strong><?php echo sr_e((string) ($member['account_public_hash'] ?? '')); ?></strong>
+                            </div>
+                            <div>
+                                <span><?php echo sr_e(sr_t('community::ui.nickname')); ?></span>
+                                <strong><?php echo sr_e($nicknameDisplay); ?></strong>
+                            </div>
+                        </div>
+                        <div class="community-nickname-reset-reason">
+                            <label class="form-label" for="<?php echo sr_e($messageModalId); ?>-body">
+                                <?php echo sr_e(sr_t('community::ui.member.message.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span>
+                            </label>
+                            <textarea id="<?php echo sr_e($messageModalId); ?>-body" name="body_text" class="form-textarea" rows="6" maxlength="5000" required></textarea>
+                            <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.member.message.help')); ?></p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($messageModalId); ?>"><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action" data-overlay-focus><?php echo sr_e(sr_t('community::ui.member.message.send')); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
+    <?php if (!$nicknameResettable) {
+        continue;
+    } ?>
+    <?php $modalId = 'community-admin-nickname-reset-modal-' . (string) $memberId; ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label">
         <div class="modal-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="modal-content ui-form-theme">
@@ -130,6 +237,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="reset_nickname">
                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
                     <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
                     <p class="community-nickname-reset-copy"><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>

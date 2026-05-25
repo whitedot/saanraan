@@ -27,7 +27,7 @@ return [
         [
             'label' => sr_t('community::ui.nickname.manage'),
             'path' => '/admin/community/nicknames',
-            'order' => 65,
+            'order' => 15,
         ],
         [
             'label' => sr_t('community::ui.nav.comments'),
