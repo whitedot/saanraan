@@ -92,7 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<?php echo sr_admin_pagination_html($nicknamePagination, '커뮤니티 닉네임 관리 목록 페이지'); ?>
+<?php echo sr_admin_pagination_html($nicknamePagination, '닉네임 관리 목록 페이지'); ?>
 
 <div class="admin-notice">
     <span class="admin-notice-icon" aria-hidden="true">i</span>
