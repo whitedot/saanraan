@@ -2,14 +2,8 @@
 .admin-page-privacy-request-list .admin-privacy-request-filter .admin-filter-field{min-width:0}
 .admin-page-privacy-request-list .admin-filter-input{width:100%}
 .admin-page-privacy-request-list .admin-filter-submit{justify-content:center;min-width:0}
-.admin-page-privacy-request-list .admin-privacy-request-table{min-width:78rem;table-layout:fixed}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(1){width:5rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(2){width:7rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(3){width:8rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(4){width:8rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(5){width:13rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(7){width:11rem}
-.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(8){width:20rem}
+.admin-page-privacy-request-list .admin-privacy-request-table{table-layout:auto}
+.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(1),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(2),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(3),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(5),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(6){width:1%}
 .privacy-request-edit-form .admin-form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
 .privacy-request-edit-form .admin-form-check input{width:1rem;min-height:1rem}
 .admin-list-form .privacy-request-manage,

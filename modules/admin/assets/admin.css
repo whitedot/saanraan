@@ -843,7 +843,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-list-form .table {
     border-collapse: collapse;
     border-radius: 0 !important;
-    min-width: max-content;
+    min-width: 100%;
     width: 100%;
 }
 
@@ -888,6 +888,10 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     text-align: right;
 }
 
+.admin-list-form .table thead th.text-end {
+    width: 1%;
+}
+
 .admin-list-form .admin-table-nowrap,
 .admin-list-form .admin-table-actions-cell {
     white-space: nowrap;
@@ -910,6 +914,16 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-audit-log-table {
     table-layout: auto;
+}
+
+.admin-audit-log-table th:nth-child(1),
+.admin-audit-log-table th:nth-child(2),
+.admin-audit-log-table th:nth-child(3),
+.admin-audit-log-table th:nth-child(4),
+.admin-audit-log-table th:nth-child(5),
+.admin-audit-log-table th:nth-child(6),
+.admin-audit-log-table th:nth-child(8) {
+    width: 1%;
 }
 
 .admin-audit-log-table .admin-audit-message {

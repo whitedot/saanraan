@@ -7,20 +7,22 @@
 .admin-page-member-list .admin-member-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-member-list .admin-member-filter .admin-filter-field{min-width:0}
 .admin-page-member-list .admin-member-filter .admin-filter-submit{justify-content:center;width:auto}
-.admin-page-member-list .admin-member-table{table-layout:fixed;min-width:72rem}
+.admin-page-member-list .admin-member-table{table-layout:auto}
 .admin-page-member-list .admin-member-table th,.admin-page-member-list .admin-member-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-list .admin-member-table .admin-table-actions-cell{overflow:visible}
 .admin-page-member-list .admin-member-hash-cell,.admin-page-member-list .admin-member-email-cell,.admin-page-member-list .admin-member-date-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-page-member-list .admin-member-table thead th:nth-child(1),.admin-page-member-list .admin-member-table thead th:nth-child(3),.admin-page-member-list .admin-member-table thead th:nth-child(4),.admin-page-member-list .admin-member-table thead th:nth-child(5),.admin-page-member-list .admin-member-table thead th:nth-child(6),.admin-page-member-list .admin-member-table thead th:nth-child(7),.admin-page-member-list .admin-member-table thead th:nth-child(8),.admin-page-member-list .admin-member-table thead th:nth-child(9){width:1%}
 .admin-page-member-list .admin-member-session-cell,.admin-page-member-list .admin-member-table thead th:nth-child(7){text-align:center}
 .admin-page-member-list .admin-member-table .admin-row-actions{gap:.5rem}
 .admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-member-groups .admin-member-group-filter .admin-filter-field{min-width:0}
 .admin-page-member-groups .admin-member-group-filter .admin-filter-submit{justify-content:center;width:auto}
-.admin-page-member-groups .admin-member-group-table{table-layout:fixed;min-width:56rem}
+.admin-page-member-groups .admin-member-group-table{table-layout:auto}
 .admin-page-member-groups .admin-member-group-table th,.admin-page-member-groups .admin-member-group-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-groups .admin-member-group-table .admin-table-actions-cell{overflow:visible}
 .admin-page-member-groups .admin-member-group-key-cell,.admin-page-member-groups .admin-member-group-title-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.admin-page-member-groups .admin-member-group-number-cell,.admin-page-member-groups .admin-member-group-table thead th:nth-child(5),.admin-page-member-groups .admin-member-group-table thead th:nth-child(6){text-align:center}
+.admin-page-member-groups .admin-member-group-table thead th:nth-child(1),.admin-page-member-groups .admin-member-group-table thead th:nth-child(3),.admin-page-member-groups .admin-member-group-table thead th:nth-child(4),.admin-page-member-groups .admin-member-group-table thead th:nth-child(5),.admin-page-member-groups .admin-member-group-table thead th:nth-child(6){width:1%}
+.admin-page-member-groups .admin-member-group-number-cell,.admin-page-member-groups .admin-member-group-table thead th:nth-child(4),.admin-page-member-groups .admin-member-group-table thead th:nth-child(5){text-align:center}
 
 @media (max-width:1280px){
     .admin-page-member-list .admin-member-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}

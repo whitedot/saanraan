@@ -55,20 +55,21 @@
 .admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-notification-list .admin-notification-filter .admin-filter-field{min-width:0}
 .admin-page-notification-list .admin-notification-filter .admin-filter-submit{justify-content:center;width:auto}
-.admin-page-notification-list .admin-notification-table{table-layout:fixed;min-width:62rem}
+.admin-page-notification-list .admin-notification-table{table-layout:auto}
 .admin-page-notification-list .admin-notification-table th,.admin-page-notification-list .admin-notification-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-notification-list .admin-notification-table .admin-table-actions-cell{min-width:7rem;overflow:visible}
+.admin-page-notification-list .admin-notification-table th:nth-child(2),.admin-page-notification-list .admin-notification-table th:nth-child(3),.admin-page-notification-list .admin-notification-table th:nth-child(4),.admin-page-notification-list .admin-notification-table th:nth-child(5){width:1%}
 .admin-page-notification-list .admin-notification-title-cell,.admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{overflow:hidden;text-overflow:ellipsis}
 .admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{white-space:nowrap}
 .admin-page-notification-list .admin-notification-table .admin-row-actions{gap:.5rem}
 .admin-page-notification-list .admin-notification-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
-.notification-id{font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-semibold);color:inherit}
 .admin-page-notification-delivery-list .admin-notification-delivery-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-notification-delivery-list .admin-notification-delivery-filter .admin-filter-field{min-width:0}
 .admin-page-notification-delivery-list .admin-notification-delivery-filter .admin-filter-submit{justify-content:center;width:auto}
-.admin-page-notification-delivery-list .admin-notification-delivery-table{table-layout:fixed;min-width:72rem}
+.admin-page-notification-delivery-list .admin-notification-delivery-table{table-layout:auto}
 .admin-page-notification-delivery-list .admin-notification-delivery-table th,.admin-page-notification-delivery-list .admin-notification-delivery-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-notification-delivery-list .admin-notification-delivery-table .admin-table-actions-cell{min-width:10rem;overflow:visible}
+.admin-page-notification-delivery-list .admin-notification-delivery-table th:nth-child(2),.admin-page-notification-delivery-list .admin-notification-delivery-table th:nth-child(3),.admin-page-notification-delivery-list .admin-notification-delivery-table th:nth-child(4),.admin-page-notification-delivery-list .admin-notification-delivery-table th:nth-child(5),.admin-page-notification-delivery-list .admin-notification-delivery-table th:nth-child(6){width:1%}
 .admin-page-notification-delivery-list .admin-notification-delivery-title-cell,.admin-page-notification-delivery-list .admin-notification-delivery-recipient-cell,.admin-page-notification-delivery-list .admin-notification-delivery-date-cell{overflow:hidden;text-overflow:ellipsis}
 .admin-page-notification-delivery-list .admin-notification-delivery-date-cell{white-space:nowrap}
 .admin-page-notification-delivery-list .admin-notification-delivery-table .admin-row-actions{gap:.5rem}
