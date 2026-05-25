@@ -442,8 +442,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_attachment_max_bytes', sr_t('community::ui.bytes.e28899ac'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_attachment_max_bytes" type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
+                        <div class="input-group admin-input-unit">
+                            <input id="community_admin_board_groups_group_attachment_max_bytes" type="number" name="group_attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
+                            <span class="input-group-text">bytes</span>
+                        </div>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -464,8 +466,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_file_attachment_max_bytes', sr_t('community::ui.bytes.9055a3dc'), $communityBoardGroupHelp['attachments']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_file_attachment_max_bytes" type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
+                        <div class="input-group admin-input-unit">
+                            <input id="community_admin_board_groups_group_file_attachment_max_bytes" type="number" name="group_file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
+                            <span class="input-group-text">bytes</span>
+                        </div>
                     </div>
                 </div>
                 <div class="admin-form-row">

@@ -315,6 +315,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-input.form-control-full{width:100%}
 .admin-form .form-select{width:fit-content;max-width:100%}
 .admin-form .form-select.form-control-full{width:100%}
+.admin-form .admin-input-unit{width:fit-content;max-width:100%}
+.admin-form .admin-input-unit>.form-input{flex:0 1 10rem;width:10rem}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select),.admin-content .ui-form-theme textarea:not(.form-textarea){width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
 .admin-content .ui-form-theme input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=reset]):not(.form-input):not(.form-range),.admin-content .ui-form-theme select:not(.form-select){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
 .admin-content .ui-form-theme textarea:not(.form-textarea){min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}

@@ -335,7 +335,6 @@ return [
     'ui.banner.e30cc36a' => '글보기 상단 배너',
     'ui.bytes.9055a3dc' => '파일 최대 용량',
     'ui.bytes.e28899ac' => '이미지 최대 용량',
-    'ui.bytes.help.f2f708d5' => 'bytes 단위로 입력합니다.',
     'ui.community.22fe030e' => '커뮤니티 게시판',
     'ui.community.451bb85e' => '커뮤니티 신고',
     'ui.community.4a285775' => '커뮤니티',

@@ -545,8 +545,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_boards_attachment_max_bytes', sr_t('community::ui.bytes.e28899ac'), $communityBoardHelp['attachments']['id'], $communityBoardHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_boards_attachment_max_bytes" type="number" name="attachment_max_bytes" min="1024" max="10485760" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_bytes', '2097152')); ?>" required class="form-input">
+                        <span class="input-group-text">bytes</span>
+                    </div>
                     <?php echo $settingSourceRadioHtml('source_attachment_max_bytes', $boardSettingSource($formBoard, 'attachment_max_bytes')); ?>
                 </div>
             </div>
@@ -570,8 +572,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_boards_file_attachment_max_bytes', sr_t('community::ui.bytes.9055a3dc'), $communityBoardHelp['attachments']['id'], $communityBoardHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.bytes.help.f2f708d5')); ?></p>
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_boards_file_attachment_max_bytes" type="number" name="file_attachment_max_bytes" min="1024" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'file_attachment_max_bytes', '5242880')); ?>" required class="form-input">
+                        <span class="input-group-text">bytes</span>
+                    </div>
                     <?php echo $settingSourceRadioHtml('source_file_attachment_max_bytes', $boardSettingSource($formBoard, 'file_attachment_max_bytes')); ?>
                 </div>
             </div>
