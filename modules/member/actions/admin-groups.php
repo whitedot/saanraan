@@ -329,31 +329,29 @@ if ($editRuleIdValue !== '' && preg_match('/\A[1-9][0-9]*\z/', $editRuleIdValue)
 $editGroup = $editGroupId > 0 ? sr_member_group_by_id($pdo, $editGroupId) : null;
 $editRule = $editRuleId > 0 ? sr_member_group_rule_by_id($pdo, $editRuleId) : null;
 $groupListFilter = sr_admin_member_group_list_filter($allowedStatuses);
-$allGroups = sr_member_groups($pdo);
-$groupStatusCounts = sr_admin_member_group_status_counts($allGroups);
-$groups = $memberGroupsPage === 'groups'
-    ? sr_admin_member_group_filter_rows($allGroups, $groupListFilter)
-    : $allGroups;
-$groupPagination = sr_admin_pagination_meta(count($groups), sr_admin_list_pagination_per_page(sr_admin_settings($pdo)), sr_admin_page_number_from_request());
+$groups = in_array($memberGroupsPage, ['rules', 'rule_form'], true) ? sr_member_groups($pdo) : [];
+$groupStatusCounts = sr_admin_member_group_status_counts($pdo);
+$groupPagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'groups' ? sr_admin_member_group_count($pdo, $groupListFilter) : 0);
 if ($memberGroupsPage === 'groups') {
-    $groups = array_slice($groups, ((int) $groupPagination['page'] - 1) * (int) $groupPagination['per_page'], (int) $groupPagination['per_page']);
+    $groups = sr_admin_member_group_list($pdo, $groupListFilter, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination));
 }
-$groupRules = sr_member_group_rules($pdo);
-$groupRulePagination = sr_admin_pagination_meta(count($groupRules), sr_admin_list_pagination_per_page(sr_admin_settings($pdo)), sr_admin_page_number_from_request());
+$groupRules = [];
+$groupRulePagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'rules' ? sr_member_group_rule_count($pdo) : 0);
 if ($memberGroupsPage === 'rules') {
-    $groupRules = array_slice($groupRules, ((int) $groupRulePagination['page'] - 1) * (int) $groupRulePagination['per_page'], (int) $groupRulePagination['per_page']);
+    $groupRules = sr_member_group_rules($pdo, (int) $groupRulePagination['per_page'], sr_admin_pagination_offset($groupRulePagination));
 }
 $membershipsByGroupId = [];
 $membershipLogsByGroupId = [];
 if ($memberGroupsPage === 'groups') {
+    $memberGroupModalListLimit = (int) $groupPagination['per_page'];
     foreach ($groups as $group) {
         $groupId = (int) ($group['id'] ?? 0);
         if ($groupId < 1) {
             continue;
         }
 
-        $membershipsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, 50, $groupId));
-        $membershipLogsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, 50, $groupId));
+        $membershipsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_memberships($pdo, $memberGroupModalListLimit, $groupId));
+        $membershipLogsByGroupId[$groupId] = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_member_group_logs($pdo, $memberGroupModalListLimit, $groupId));
     }
 }
 

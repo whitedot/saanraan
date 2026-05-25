@@ -43,13 +43,20 @@ function sr_admin_member_account_id_from_identifier(PDO $pdo, array $config, str
     }
 
     if (sr_member_public_account_hash_is_valid($identifier)) {
-        $stmt = $pdo->query('SELECT id FROM sr_member_accounts ORDER BY id ASC');
-        foreach ($stmt->fetchAll() as $row) {
-            $accountId = (int) ($row['id'] ?? 0);
-            if ($accountId > 0 && hash_equals($identifier, sr_admin_member_public_hash($config, $accountId))) {
-                return $accountId;
+        $lastAccountId = 0;
+        do {
+            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id > :last_id ORDER BY id ASC LIMIT 500');
+            $stmt->bindValue('last_id', $lastAccountId, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+            foreach ($rows as $row) {
+                $accountId = (int) ($row['id'] ?? 0);
+                if ($accountId > 0 && hash_equals($identifier, sr_admin_member_public_hash($config, $accountId))) {
+                    return $accountId;
+                }
+                $lastAccountId = max($lastAccountId, $accountId);
             }
-        }
+        } while ($rows !== []);
 
         return 0;
     }

@@ -457,55 +457,16 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$boardGroups = sr_community_board_groups($pdo);
-$boardGroupStatusCounts = ['total' => 0];
-foreach ($allowedGroupStatuses as $status) {
-    $boardGroupStatusCounts[$status] = 0;
-}
-foreach ($boardGroups as $boardGroup) {
-    $status = (string) ($boardGroup['status'] ?? '');
-    if (array_key_exists($status, $boardGroupStatusCounts)) {
-        $boardGroupStatusCounts[$status]++;
-    }
-    $boardGroupStatusCounts['total']++;
-}
+$boardGroupStatusCounts = sr_community_admin_board_group_status_counts($pdo, $allowedGroupStatuses);
+$boardGroupPagination = sr_admin_pagination_from_total(
+    $pdo,
+    $communityBoardGroupsPage === 'list' ? sr_community_admin_board_group_count($pdo, $boardGroupListFilters) : 0
+);
+$boardGroups = [];
 if ($communityBoardGroupsPage === 'list') {
-    $boardGroups = array_values(array_filter($boardGroups, static function (array $boardGroup) use ($boardGroupListFilters): bool {
-        if ((string) $boardGroupListFilters['status'] !== '' && (string) ($boardGroup['status'] ?? '') !== (string) $boardGroupListFilters['status']) {
-            return false;
-        }
-
-        $keyword = trim((string) $boardGroupListFilters['q']);
-        if ($keyword === '') {
-            return true;
-        }
-
-        $field = (string) $boardGroupListFilters['field'];
-        $haystacks = [];
-        if ($field === 'key') {
-            $haystacks[] = (string) ($boardGroup['group_key'] ?? '');
-        } elseif ($field === 'title') {
-            $haystacks[] = (string) ($boardGroup['title'] ?? '');
-        } else {
-            $haystacks[] = (string) ($boardGroup['group_key'] ?? '');
-            $haystacks[] = (string) ($boardGroup['title'] ?? '');
-            $haystacks[] = (string) ($boardGroup['description'] ?? '');
-        }
-
-        foreach ($haystacks as $haystack) {
-            if ($haystack !== '' && stripos($haystack, $keyword) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }));
+    $boardGroups = sr_community_admin_board_groups($pdo, $boardGroupListFilters, (int) $boardGroupPagination['per_page'], sr_admin_pagination_offset($boardGroupPagination));
 }
-$boardGroupPagination = sr_admin_paginate_array($pdo, $boardGroups);
-if ($communityBoardGroupsPage === 'list') {
-    $boardGroups = $boardGroupPagination['rows'];
-}
-$boardGroupPagination = $boardGroupPagination['pagination'];
+
 $boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupSettings[(int) $boardGroup['id']] = sr_community_board_group_settings($pdo, (int) $boardGroup['id']);
@@ -515,16 +476,13 @@ $editBoardGroup = null;
 if ($communityBoardGroupsPage === 'edit') {
     $editGroupIdValue = isset($_GET['edit_id']) ? (string) $_GET['edit_id'] : '';
     $editGroupId = preg_match('/\A[1-9][0-9]*\z/', $editGroupIdValue) === 1 ? (int) $editGroupIdValue : 0;
-    foreach ($boardGroups as $boardGroup) {
-        if ((int) $boardGroup['id'] === $editGroupId) {
-            $editBoardGroup = $boardGroup;
-            break;
-        }
-    }
+    $editBoardGroup = sr_community_board_group_by_id($pdo, $editGroupId);
 
     if (!is_array($editBoardGroup)) {
         sr_render_error(404, sr_t('community::action.error.board_group_not_found'));
     }
+
+    $boardGroupSettings[(int) $editBoardGroup['id']] = sr_community_board_group_settings($pdo, (int) $editBoardGroup['id']);
 }
 
 include SR_ROOT . '/modules/community/views/admin-board-groups.php';

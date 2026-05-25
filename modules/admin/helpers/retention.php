@@ -474,11 +474,13 @@ function sr_admin_retention_delete_module_backups(string $cutoff, ?int $limit = 
 {
     $deletedCount = 0;
     $directories = sr_admin_retention_module_backup_dirs($cutoff);
-    if ($limit !== null) {
-        $directories = array_slice($directories, 0, max(0, $limit));
-    }
+    $deleteLimit = $limit !== null ? max(0, $limit) : null;
 
     foreach ($directories as $directory) {
+        if ($deleteLimit !== null && $deletedCount >= $deleteLimit) {
+            break;
+        }
+
         sr_admin_remove_directory($directory);
         $deletedCount++;
     }

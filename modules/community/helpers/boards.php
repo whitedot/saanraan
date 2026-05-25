@@ -271,6 +271,126 @@ function sr_community_boards(PDO $pdo): array
     return $boards;
 }
 
+function sr_community_admin_board_query_parts(array $filters): array
+{
+    $where = [];
+    $params = [];
+    $status = (string) ($filters['status'] ?? '');
+    $groupId = (int) ($filters['group_id'] ?? 0);
+    $field = (string) ($filters['field'] ?? 'all');
+    $keyword = trim((string) ($filters['q'] ?? ''));
+
+    if ($status !== '') {
+        $where[] = 'b.status = :status';
+        $params['status'] = $status;
+    }
+
+    if ($groupId > 0) {
+        $where[] = 'b.board_group_id = :board_group_id';
+        $params['board_group_id'] = $groupId;
+    }
+
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        if ($field === 'key') {
+            $where[] = 'b.board_key LIKE :keyword';
+            $params['keyword'] = $like;
+        } elseif ($field === 'title') {
+            $where[] = 'b.title LIKE :keyword';
+            $params['keyword'] = $like;
+        } elseif ($field === 'group') {
+            $where[] = '(g.title LIKE :group_title_keyword OR g.group_key LIKE :group_key_keyword)';
+            $params['group_title_keyword'] = $like;
+            $params['group_key_keyword'] = $like;
+        } else {
+            $where[] = '(b.board_key LIKE :board_key_keyword OR b.title LIKE :title_keyword OR b.description LIKE :description_keyword OR g.title LIKE :group_title_keyword OR g.group_key LIKE :group_key_keyword)';
+            $params['board_key_keyword'] = $like;
+            $params['title_keyword'] = $like;
+            $params['description_keyword'] = $like;
+            $params['group_title_keyword'] = $like;
+            $params['group_key_keyword'] = $like;
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_board_count(PDO $pdo, array $filters): int
+{
+    $queryParts = sr_community_admin_board_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_community_boards b
+            LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+{
+    $queryParts = sr_community_admin_board_query_parts($filters);
+    $sql = 'SELECT ' . sr_community_board_select_columns('b') . ',
+                   g.group_key AS board_group_key,
+                   g.title AS board_group_title,
+                   g.status AS board_group_status,
+                   g.sort_order AS board_group_sort_order
+            FROM sr_community_boards b
+            LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $sql .= ' ORDER BY COALESCE(g.sort_order, 1000000) ASC, g.id ASC, b.sort_order ASC, b.id ASC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    $boards = [];
+    foreach ($stmt->fetchAll() as $board) {
+        $boards[] = sr_community_board_with_effective_settings($pdo, $board);
+    }
+
+    return $boards;
+}
+
+function sr_community_admin_board_status_counts(PDO $pdo, array $allowedStatuses): array
+{
+    $counts = ['total' => 0];
+    foreach ($allowedStatuses as $status) {
+        $counts[(string) $status] = 0;
+    }
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_boards GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
 function sr_community_enabled_boards(PDO $pdo): array
 {
     $stmt = $pdo->query(
@@ -423,6 +543,105 @@ function sr_community_board_groups(PDO $pdo): array
     );
 
     return $stmt->fetchAll();
+}
+
+function sr_community_admin_board_group_query_parts(array $filters): array
+{
+    $where = [];
+    $params = [];
+    $status = (string) ($filters['status'] ?? '');
+    $field = (string) ($filters['field'] ?? 'all');
+    $keyword = trim((string) ($filters['q'] ?? ''));
+
+    if ($status !== '') {
+        $where[] = 'g.status = :status';
+        $params['status'] = $status;
+    }
+
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        if ($field === 'key') {
+            $where[] = 'g.group_key LIKE :keyword';
+            $params['keyword'] = $like;
+        } elseif ($field === 'title') {
+            $where[] = 'g.title LIKE :keyword';
+            $params['keyword'] = $like;
+        } else {
+            $where[] = '(g.group_key LIKE :group_key_keyword OR g.title LIKE :title_keyword OR g.description LIKE :description_keyword)';
+            $params['group_key_keyword'] = $like;
+            $params['title_keyword'] = $like;
+            $params['description_keyword'] = $like;
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_board_group_count(PDO $pdo, array $filters): int
+{
+    $queryParts = sr_community_admin_board_group_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_community_board_groups g';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_board_groups(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+{
+    $queryParts = sr_community_admin_board_group_query_parts($filters);
+    $sql = 'SELECT g.*,
+                   COUNT(b.id) AS board_count
+            FROM sr_community_board_groups g
+            LEFT JOIN sr_community_boards b ON b.board_group_id = g.id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
+              ORDER BY g.sort_order ASC, g.id ASC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_admin_board_group_status_counts(PDO $pdo, array $allowedStatuses): array
+{
+    $counts = ['total' => 0];
+    foreach ($allowedStatuses as $status) {
+        $counts[(string) $status] = 0;
+    }
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_board_groups GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
 }
 
 function sr_community_enabled_board_groups(PDO $pdo): array

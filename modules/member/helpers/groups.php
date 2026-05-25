@@ -143,7 +143,97 @@ function sr_admin_member_group_list_filter(array $allowedStatuses): array
     ];
 }
 
-function sr_admin_member_group_status_counts(array $groups): array
+function sr_admin_member_group_query_parts(array $filter): array
+{
+    $where = [];
+    $params = [];
+    $status = (string) ($filter['status'] ?? '');
+    $field = (string) ($filter['field'] ?? 'all');
+    $keyword = trim((string) ($filter['keyword'] ?? ''));
+
+    if ($status !== '') {
+        $where[] = 'g.status = :status';
+        $params['status'] = $status;
+    }
+
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+        if ($field === 'key') {
+            $where[] = 'g.group_key LIKE :keyword';
+            $params['keyword'] = $like;
+        } elseif ($field === 'title') {
+            $where[] = 'g.title LIKE :keyword';
+            $params['keyword'] = $like;
+        } elseif ($field === 'description') {
+            $where[] = 'g.description LIKE :keyword';
+            $params['keyword'] = $like;
+        } else {
+            $where[] = '(g.group_key LIKE :group_key_keyword OR g.title LIKE :title_keyword OR g.description LIKE :description_keyword)';
+            $params['group_key_keyword'] = $like;
+            $params['title_keyword'] = $like;
+            $params['description_keyword'] = $like;
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_admin_member_group_count(PDO $pdo, array $filter): int
+{
+    if (!sr_member_groups_table_exists($pdo)) {
+        return 0;
+    }
+
+    $queryParts = sr_admin_member_group_query_parts($filter);
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_member_groups g';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_member_group_list(PDO $pdo, array $filter, int $limit = 0, int $offset = 0): array
+{
+    if (!sr_member_groups_table_exists($pdo)) {
+        return [];
+    }
+
+    $queryParts = sr_admin_member_group_query_parts($filter);
+    $sql = "SELECT g.*,
+                   COUNT(DISTINCT CASE WHEN m.status = 'active' THEN m.account_id END) AS active_member_count
+            FROM sr_member_groups g
+            LEFT JOIN sr_member_group_memberships m ON m.group_id = g.id";
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.is_system, g.sort_order, g.created_at, g.updated_at
+              ORDER BY g.sort_order ASC, g.id ASC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_admin_member_group_status_counts(PDO $pdo): array
 {
     $counts = [
         'total' => 0,
@@ -152,16 +242,18 @@ function sr_admin_member_group_status_counts(array $groups): array
         'archived' => 0,
     ];
 
-    foreach ($groups as $group) {
-        if (!is_array($group)) {
-            continue;
-        }
+    if (!sr_member_groups_table_exists($pdo)) {
+        return $counts;
+    }
 
-        $status = (string) ($group['status'] ?? '');
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_member_groups GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
         if (array_key_exists($status, $counts)) {
-            $counts[$status]++;
+            $counts[$status] = $count;
         }
-        $counts['total']++;
+        $counts['total'] += $count;
     }
 
     return $counts;
@@ -608,19 +700,42 @@ function sr_member_group_rule_params_from_input(array $definition, mixed $input,
     return $values;
 }
 
-function sr_member_group_rules(PDO $pdo): array
+function sr_member_group_rule_count(PDO $pdo): int
+{
+    if (!sr_member_groups_table_exists($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->query(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_member_group_rules r
+         INNER JOIN sr_member_groups g ON g.id = r.group_id'
+    );
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0): array
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
-    $stmt = $pdo->query(
-        'SELECT r.*, g.group_key, g.title AS group_title
-         FROM sr_member_group_rules r
-         INNER JOIN sr_member_groups g ON g.id = r.group_id
-         ORDER BY r.id DESC
-         LIMIT 100'
-    );
+    $sql = 'SELECT r.*, g.group_key, g.title AS group_title
+            FROM sr_member_group_rules r
+            INNER JOIN sr_member_groups g ON g.id = r.group_id
+            ORDER BY r.id DESC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

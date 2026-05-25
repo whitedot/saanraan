@@ -682,9 +682,7 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$boardGroups = sr_community_board_groups($pdo);
-$boards = sr_community_boards($pdo);
-foreach ($boards as &$board) {
+$communityAdminPrepareBoard = static function (array $board) use ($pdo, $settings, $publicDisplaySettingLabels): array {
     $board['setting_sources'] = sr_community_board_setting_sources($pdo, (int) $board['id']);
     $board['attachment_max_bytes'] = sr_community_board_own_attachment_max_bytes($pdo, (int) $board['id'], $settings);
     $board['attachment_max_count'] = sr_community_board_own_attachment_max_count($pdo, (int) $board['id'], $settings);
@@ -729,77 +727,26 @@ foreach ($boards as &$board) {
             $board[$assetPrefix . '_charge_policy'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_charge_policy', (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'));
         }
     }
-}
-unset($board);
 
-$boardStatusCounts = ['total' => 0];
-foreach ($allowedStatuses as $status) {
-    $boardStatusCounts[$status] = 0;
-}
-foreach ($boards as $board) {
-    $status = (string) ($board['status'] ?? '');
-    if (array_key_exists($status, $boardStatusCounts)) {
-        $boardStatusCounts[$status]++;
+    return $board;
+};
+
+$boardStatusCounts = sr_community_admin_board_status_counts($pdo, $allowedStatuses);
+$boardPagination = sr_admin_pagination_from_total($pdo, $communityBoardsPage === 'list' ? sr_community_admin_board_count($pdo, $boardListFilters) : 0);
+$boards = [];
+if ($communityBoardsPage === 'list') {
+    foreach (sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination)) as $board) {
+        $boards[] = $communityAdminPrepareBoard($board);
     }
-    $boardStatusCounts['total']++;
 }
-
-if ($communityBoardsPage === 'list') {
-    $boards = array_values(array_filter($boards, static function (array $board) use ($boardListFilters): bool {
-        if ((string) $boardListFilters['status'] !== '' && (string) ($board['status'] ?? '') !== (string) $boardListFilters['status']) {
-            return false;
-        }
-
-        if ((int) $boardListFilters['group_id'] > 0 && (int) ($board['board_group_id'] ?? 0) !== (int) $boardListFilters['group_id']) {
-            return false;
-        }
-
-        $keyword = trim((string) $boardListFilters['q']);
-        if ($keyword === '') {
-            return true;
-        }
-
-        $field = (string) $boardListFilters['field'];
-        $haystacks = [];
-        if ($field === 'key') {
-            $haystacks[] = (string) ($board['board_key'] ?? '');
-        } elseif ($field === 'title') {
-            $haystacks[] = (string) ($board['title'] ?? '');
-        } elseif ($field === 'group') {
-            $haystacks[] = (string) ($board['board_group_title'] ?? '');
-            $haystacks[] = (string) ($board['board_group_key'] ?? '');
-        } else {
-            $haystacks[] = (string) ($board['board_key'] ?? '');
-            $haystacks[] = (string) ($board['title'] ?? '');
-            $haystacks[] = (string) ($board['description'] ?? '');
-            $haystacks[] = (string) ($board['board_group_title'] ?? '');
-            $haystacks[] = (string) ($board['board_group_key'] ?? '');
-        }
-
-        foreach ($haystacks as $haystack) {
-            if ($haystack !== '' && stripos($haystack, $keyword) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }));
-}
-$boardPagination = sr_admin_paginate_array($pdo, $boards);
-if ($communityBoardsPage === 'list') {
-    $boards = $boardPagination['rows'];
-}
-$boardPagination = $boardPagination['pagination'];
 
 $editBoard = null;
 if ($communityBoardsPage === 'edit') {
     $editBoardIdValue = isset($_GET['edit_id']) ? (string) $_GET['edit_id'] : '';
     $editBoardId = preg_match('/\A[1-9][0-9]*\z/', $editBoardIdValue) === 1 ? (int) $editBoardIdValue : 0;
-    foreach ($boards as $board) {
-        if ((int) $board['id'] === $editBoardId) {
-            $editBoard = $board;
-            break;
-        }
+    $editBoard = sr_community_board_by_id($pdo, $editBoardId);
+    if (is_array($editBoard)) {
+        $editBoard = $communityAdminPrepareBoard($editBoard);
     }
 
     if (!is_array($editBoard)) {
