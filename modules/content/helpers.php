@@ -2392,6 +2392,21 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ];
     }
 
+    $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId);
+    if (!empty($couponResult['allowed'])) {
+        return [
+            'allowed' => true,
+            'charged' => false,
+            'coupon_used' => !empty($couponResult['processed']),
+            'already_paid' => !empty($couponResult['already_redeemed']),
+            'coupon_title' => (string) ($couponResult['coupon_title'] ?? ''),
+            'asset_module' => $assetModuleValue,
+            'asset_label' => '쿠폰',
+            'amount' => 0,
+            'message' => '',
+        ];
+    }
+
     $allocations = $amounts !== []
         ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
         : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
@@ -2457,6 +2472,25 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         'amount' => $amount,
         'message' => '',
     ];
+}
+
+function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId): array
+{
+    if ($pageId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_redeem_for_target')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    return sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, [
+        'dedupe_key' => 'content.view:coupon:' . (string) $accountId . ':' . (string) $pageId,
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => (string) $pageId,
+    ]);
 }
 
 function sr_content_file_download_required(array $file): bool

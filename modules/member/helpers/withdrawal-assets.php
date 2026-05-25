@@ -102,6 +102,22 @@ function sr_member_withdrawal_asset_balances(PDO $pdo, int $accountId): array
         ];
     }
 
+    if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        require_once SR_ROOT . '/modules/coupon/helpers.php';
+        if (function_exists('sr_coupon_active_account_issue_count')) {
+            $couponCount = sr_coupon_active_account_issue_count($pdo, $accountId);
+            if ($couponCount > 0) {
+                $assets['coupon'] = [
+                    'asset_key' => 'coupon',
+                    'label' => '쿠폰',
+                    'balance' => $couponCount,
+                    'unit_label' => '개',
+                    'process_label' => '소멸/환급 검토',
+                ];
+            }
+        }
+    }
+
     return $assets;
 }
 
@@ -183,6 +199,16 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
             'transaction_id' => $transactionId,
             'process' => (string) $definition['process_label'],
         ];
+    }
+
+    if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        require_once SR_ROOT . '/modules/coupon/helpers.php';
+        if (function_exists('sr_coupon_process_account_withdrawal')) {
+            $couponResult = sr_coupon_process_account_withdrawal($pdo, $accountId);
+            if ((int) ($couponResult['amount'] ?? 0) > 0) {
+                $processedAssets['coupon'] = $couponResult;
+            }
+        }
     }
 
     return $processedAssets;

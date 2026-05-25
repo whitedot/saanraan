@@ -61,6 +61,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php echo sr_e(number_format((int) ($pageAccess['amount'] ?? 0))); ?> <?php echo sr_e(sr_t('content::ui.text.375151be')); ?>
                 </p>
             <?php } ?>
+            <?php if (!empty($pageAccess['coupon_used'])) { ?>
+                <p class="content-access-notice">쿠폰으로 열람했습니다.</p>
+            <?php } ?>
             <div class="content-body">
                 <?php echo nl2br(sr_e((string) $page['body_text'])); ?>
             </div>

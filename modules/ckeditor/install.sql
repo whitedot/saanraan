@@ -1,0 +1,1 @@
+-- CKEditor plugin does not create database tables.

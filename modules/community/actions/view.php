@@ -54,16 +54,35 @@ if (is_array($postBoard)) {
             $account = sr_member_require_login($pdo);
         }
 
-        $paidReadResult = sr_community_run_asset_event(
-            $pdo,
-            $paidReadConfig,
-            (int) $account['id'],
-            'post_read',
-            'community.post',
-            (int) $post['id'],
-            'use',
-            'community.post.read'
-        );
+        $couponReadResult = ['allowed' => false, 'processed' => false];
+        if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+            require_once SR_ROOT . '/modules/coupon/helpers.php';
+            if (function_exists('sr_coupon_redeem_for_target')) {
+                $couponContext = [
+                    'dedupe_key' => 'community.post.read:coupon:' . (string) $account['id'] . ':' . (string) $post['id'],
+                    'reference_module' => 'community',
+                    'reference_type' => 'community.post',
+                    'reference_id' => (string) $post['id'],
+                ];
+                $couponReadResult = sr_coupon_redeem_for_target($pdo, (int) $account['id'], 'community_post', (string) $post['id'], $couponContext);
+                if (empty($couponReadResult['allowed'])) {
+                    $couponReadResult = sr_coupon_redeem_for_target($pdo, (int) $account['id'], 'community_board', (string) $post['board_id'], $couponContext);
+                }
+            }
+        }
+
+        $paidReadResult = !empty($couponReadResult['allowed'])
+            ? ['allowed' => true, 'processed' => false, 'coupon_used' => !empty($couponReadResult['processed'])]
+            : sr_community_run_asset_event(
+                $pdo,
+                $paidReadConfig,
+                (int) $account['id'],
+                'post_read',
+                'community.post',
+                (int) $post['id'],
+                'use',
+                'community.post.read'
+            );
         if (empty($paidReadResult['allowed'])) {
             sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));
         }
@@ -73,6 +92,8 @@ if (is_array($postBoard)) {
                 'asset' => sr_community_asset_module_labels((string) $paidReadConfig['asset_module']),
                 'amount' => number_format((int) $paidReadConfig['amount']),
             ]);
+        } elseif (!empty($paidReadResult['coupon_used'])) {
+            $assetReadNotices[] = '쿠폰으로 열람했습니다.';
         }
     }
 }
