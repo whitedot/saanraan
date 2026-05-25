@@ -274,18 +274,22 @@ if (sr_request_method() === 'POST') {
             }
         }
     } elseif ($intent === 'recalculate_levels') {
-        $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
-        sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'admin',
-            'event_type' => 'community.levels.recalculated',
-            'target_type' => 'module',
-            'target_id' => 'community',
-            'result' => 'success',
-            'message' => 'Community levels recalculated.',
-            'metadata' => $summary,
-        ]);
-        $notice = sr_t('community::action.admin.levels_recalculated', ['accounts' => (string) ($summary['accounts'] ?? 0)]);
+        if (empty($settings['level_enabled'])) {
+            $errors[] = sr_t('community::action.admin.level_recalculate_disabled');
+        } else {
+            $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.levels.recalculated',
+                'target_type' => 'module',
+                'target_id' => 'community',
+                'result' => 'success',
+                'message' => 'Community levels recalculated.',
+                'metadata' => $summary,
+            ]);
+            $notice = sr_t('community::action.admin.levels_recalculated', ['accounts' => (string) ($summary['accounts'] ?? 0)]);
+        }
     } else {
         $errors[] = sr_t('community::action.error.intent_invalid');
     }

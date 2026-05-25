@@ -26,6 +26,7 @@ return [
     'POST /admin/community/settings' => 'actions/admin-settings.php',
     'GET /admin/community/levels' => 'actions/admin-levels.php',
     'POST /admin/community/levels' => 'actions/admin-levels.php',
+    'POST /admin/community/levels/recalculate' => 'actions/admin-level-recalculate.php',
     'GET /admin/community/boards' => 'actions/admin-boards.php',
     'POST /admin/community/boards' => 'actions/admin-boards.php',
     'GET /admin/community/boards/new' => 'actions/admin-board-new.php',

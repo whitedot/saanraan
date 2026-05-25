@@ -316,6 +316,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>
+<?php $communityLevelEnabled = !empty($settings['level_enabled']); ?>
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
@@ -363,18 +364,151 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <form id="community-level-recalculate-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
+    <form
+        id="community-level-recalculate-form"
+        method="post"
+        action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>"
+        data-community-level-recalculate-form
+        data-recalculate-url="<?php echo sr_e(sr_url('/admin/community/levels/recalculate')); ?>"
+        data-batch-size="50"
+    >
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
     </form>
     <div class="admin-list-actions">
-        <button type="submit" form="community-level-recalculate-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
+        <button type="submit" form="community-level-recalculate-form" class="btn btn-solid-light"<?php echo $communityLevelEnabled ? '' : ' disabled'; ?> data-community-level-recalculate-submit><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
         <?php if ($levels !== []) { ?>
             <button type="submit" form="community-level-definitions-form" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
         <?php } ?>
     </div>
+    <div class="community-level-recalculate-progress" data-community-level-recalculate-progress hidden>
+        <p data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
+        <progress value="0" max="100" data-community-level-recalculate-meter></progress>
+    </div>
 </section>
 <?php echo sr_admin_help_modal_html((string) $communitySettingsHelp['level_min_score']['id'], (string) $communitySettingsHelp['level_min_score']['title'], (string) $communitySettingsHelp['level_min_score']['body']); ?>
+<script>
+(function () {
+    var form = document.querySelector('[data-community-level-recalculate-form]');
+    if (!form || !window.fetch || !window.FormData) {
+        return;
+    }
+
+    var button = document.querySelector('[data-community-level-recalculate-submit]');
+    var progress = document.querySelector('[data-community-level-recalculate-progress]');
+    var status = document.querySelector('[data-community-level-recalculate-status]');
+    var meter = document.querySelector('[data-community-level-recalculate-meter]');
+    var labels = <?php echo json_encode([
+        'start' => sr_t('community::ui.level_recalculate_start'),
+        'running' => sr_t('community::ui.level_recalculate_running'),
+        'running_unknown' => sr_t('community::ui.level_recalculate_running_unknown'),
+        'error' => sr_t('community::ui.level_recalculate_error'),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+
+    function text(template, values) {
+        return Object.keys(values).reduce(function (message, key) {
+            return message.replace('{' + key + '}', String(values[key]));
+        }, template);
+    }
+
+    function updateStatus(message) {
+        if (status) {
+            status.textContent = message;
+        }
+    }
+
+    function updateProgress(processed, total, done) {
+        if (!meter) {
+            return;
+        }
+
+        meter.value = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : (done ? 100 : 0);
+    }
+
+    form.addEventListener('submit', function (event) {
+        if (button && button.disabled) {
+            event.preventDefault();
+            return;
+        }
+
+        event.preventDefault();
+
+        var url = form.getAttribute('data-recalculate-url') || '';
+        var batchSize = parseInt(form.getAttribute('data-batch-size') || '50', 10);
+        if (!url || !Number.isFinite(batchSize) || batchSize < 1) {
+            return;
+        }
+
+        var cursor = 0;
+        var processed = 0;
+        var total = 0;
+
+        if (button) {
+            button.disabled = true;
+        }
+        if (progress) {
+            progress.hidden = false;
+        }
+        updateProgress(0, 0, false);
+        updateStatus(labels.start);
+
+        function runBatch() {
+            var body = new FormData(form);
+            body.set('cursor', String(cursor));
+            body.set('batch_size', String(batchSize));
+            body.set('processed_total', String(processed));
+
+            return window.fetch(url, {
+                method: 'POST',
+                body: body,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            }).then(function (response) {
+                return response.json().then(function (payload) {
+                    if (!response.ok || !payload || !payload.ok) {
+                        throw new Error(payload && payload.message ? payload.message : labels.error);
+                    }
+
+                    return payload;
+                });
+            }).then(function (payload) {
+                processed = Number(payload.processed_total || processed);
+                total = Number(payload.total || total);
+                cursor = Number(payload.next_cursor || cursor);
+                updateProgress(processed, total, !!payload.done);
+
+                if (payload.done) {
+                    updateStatus(payload.message || text(labels.running, {
+                        processed: processed,
+                        total: total,
+                    }));
+                    if (button) {
+                        button.disabled = false;
+                    }
+                    return;
+                }
+
+                updateStatus(total > 0 ? text(labels.running, {
+                    processed: processed,
+                    total: total,
+                }) : text(labels.running_unknown, {
+                    processed: processed,
+                }));
+                return runBatch();
+            }).catch(function (error) {
+                updateStatus(error && error.message ? error.message : labels.error);
+                if (button) {
+                    button.disabled = false;
+                }
+            });
+        }
+
+        runBatch();
+    });
+})();
+</script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

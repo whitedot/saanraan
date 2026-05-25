@@ -496,26 +496,65 @@ function sr_community_log_level_change(PDO $pdo, int $accountId, array $before, 
 function sr_community_recalculate_recent_account_levels(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(500, $limit));
+    $summary = sr_community_recalculate_account_levels_batch($pdo, 0, $limit);
+
+    return ['accounts' => (int) ($summary['accounts'] ?? 0)];
+}
+
+function sr_community_recalculate_target_account_count(PDO $pdo): int
+{
     if (!sr_community_level_tables_exist($pdo)) {
-        return ['accounts' => 0];
+        return 0;
+    }
+
+    $stmt = $pdo->query("SELECT COUNT(*) AS account_count FROM sr_member_accounts WHERE status IN ('active', 'pending')");
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['account_count'] ?? 0) : 0;
+}
+
+function sr_community_recalculate_account_levels_batch(PDO $pdo, int $cursor = 0, int $limit = 50, ?array $settings = null): array
+{
+    $cursor = max(0, $cursor);
+    $limit = max(1, min(500, $limit));
+    if (!sr_community_level_tables_exist($pdo)) {
+        return [
+            'accounts' => 0,
+            'next_cursor' => $cursor,
+            'done' => true,
+        ];
     }
 
     $stmt = $pdo->prepare(
         "SELECT id
          FROM sr_member_accounts
          WHERE status IN ('active', 'pending')
+           AND id > :cursor
          ORDER BY id ASC
          LIMIT :limit_value"
     );
+    $stmt->bindValue('cursor', $cursor, PDO::PARAM_INT);
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
+    $rows = $stmt->fetchAll();
 
-    $settings = sr_community_settings($pdo);
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     $count = 0;
-    foreach ($stmt->fetchAll() as $row) {
-        sr_community_recalculate_account_level($pdo, (int) $row['id'], $settings, 'admin_recalculate');
+    $nextCursor = $cursor;
+    foreach ($rows as $row) {
+        $accountId = (int) ($row['id'] ?? 0);
+        if ($accountId < 1) {
+            continue;
+        }
+
+        sr_community_recalculate_account_level($pdo, $accountId, $settings, 'admin_recalculate');
+        $nextCursor = $accountId;
         $count++;
     }
 
-    return ['accounts' => $count];
+    return [
+        'accounts' => $count,
+        'next_cursor' => $nextCursor,
+        'done' => count($rows) < $limit,
+    ];
 }
