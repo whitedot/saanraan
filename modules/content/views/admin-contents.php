@@ -384,7 +384,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.7d96defe'), $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? 'point'); ?>
-                    <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_access_enabled">
+                        <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_module', 'asset_module', $assetModuleChoiceOptions, $selectedAccessAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                    </div>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module')); ?>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
@@ -447,7 +449,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_module', sr_t('content::ui.text.2f2b6193'), $contentHelp['asset_action_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedActionAssetModules = sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'); ?>
-                    <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_action_enabled">
+                        <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                    </div>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module')); ?>
                 </div>
             </div>
@@ -568,7 +572,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.30430e12')); ?></span>
                                         <?php $selectedFileAssetModules = sr_content_asset_module_keys_from_value($contentFile['asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html($contentFileAssetModuleId, 'content_file_asset_module[' . (string) $fileId . ']', $assetModuleChoiceOptions, $selectedFileAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($contentFileChargeEnabledId); ?>">
+                                            <?php echo sr_admin_checkbox_list_html($contentFileAssetModuleId, 'content_file_asset_module[' . (string) $fileId . ']', $assetModuleChoiceOptions, $selectedFileAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                                        </div>
                                         <label for="<?php echo sr_e($contentFileAmountId); ?>">
                                             <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.c871de35')); ?></span>
                                             <input id="<?php echo sr_e($contentFileAmountId); ?>" type="number" name="content_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($contentFile['asset_download_amount'] ?? 0)); ?>" class="form-input" min="0" max="999999999" step="1">
@@ -623,7 +629,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox">
                                 <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
                             </label>
-                            <div class="admin-content-file-charge-assets">
+                            <div class="admin-content-file-charge-assets admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_new_content_file_asset_download_enabled">
                                 <?php echo sr_admin_checkbox_list_html('content_admin_contents_new_content_file_asset_module', 'new_content_file_asset_module', $assetModuleChoiceOptions, [], sr_t('content::ui.text.3e195cdd')); ?>
                             </div>
                             <label for="content_admin_contents_new_content_file_asset_download_amount">

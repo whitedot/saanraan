@@ -546,21 +546,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                     <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                 </label>
-                                <?php if ($usesCompositeAsset) { ?>
-                                    <?php echo sr_admin_checkbox_list_html('community_board_group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
-                                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                <?php } else { ?>
-                                    <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
-                                        <?php if ($assetModuleOptions === []) { ?>
-                                            <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                        <?php } ?>
-                                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
-                                                <?php echo sr_e((string) $assetOption['label']); ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                <?php } ?>
+                                <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
+                                    <?php if ($usesCompositeAsset) { ?>
+                                        <?php echo sr_admin_checkbox_list_html('community_board_group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                                    <?php } else { ?>
+                                        <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
+                                            <?php if ($assetModuleOptions === []) { ?>
+                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                            <?php } ?>
+                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
+                                                    <?php echo sr_e((string) $assetOption['label']); ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } ?>
+                                </div>
                                 <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
                                 <?php if ($assetPrefix === 'paid_read') { ?>
                                     <select name="group_paid_read_charge_policy" class="form-select">

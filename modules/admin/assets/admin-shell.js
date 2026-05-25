@@ -37,10 +37,153 @@ window.AdminShell = {
         const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
+        const assetEnablePreviousValues = new WeakMap();
+        const assetEnableTouchedRoots = new WeakSet();
         let hideScrollbarTimer = null;
         let themeSaving = false;
 
         const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+        const assetEnableControl = target => {
+            if (!target || !target.closest || !target.matches) {
+                return null;
+            }
+
+            if (target.matches('[data-admin-asset-enable-target], [data-admin-asset-enable-target] input, [data-admin-asset-enable-target] select')) {
+                return target.matches('input, select') ? target : null;
+            }
+
+            return null;
+        };
+
+        const assetEnableRoot = control => control
+            ? (control.matches('[data-admin-asset-enable-target]')
+                ? control
+                : control.closest('[data-admin-asset-enable-target]'))
+            : null;
+
+        const markAssetEnableTouched = control => {
+            const root = assetEnableRoot(control);
+            if (root) {
+                assetEnableTouchedRoots.add(root);
+            }
+        };
+
+        const assetEnableTargetInput = control => {
+            const root = assetEnableRoot(control);
+            const selector = root
+                ? root.getAttribute('data-admin-asset-enable-target')
+                : control.getAttribute('data-admin-asset-enable-target');
+
+            return selector ? document.querySelector(selector) : null;
+        };
+
+        const rememberAssetEnableValue = control => {
+            if (!control || control.tagName !== 'SELECT') {
+                return;
+            }
+
+            assetEnablePreviousValues.set(control, control.value);
+        };
+
+        const restoreAssetEnableSelection = control => {
+            if (!control) {
+                return;
+            }
+
+            if (control.type === 'checkbox' || control.type === 'radio') {
+                control.checked = false;
+                return;
+            }
+
+            if (control.tagName === 'SELECT') {
+                control.value = assetEnablePreviousValues.has(control)
+                    ? String(assetEnablePreviousValues.get(control))
+                    : '';
+            }
+        };
+
+        const assetEnableSelectionActive = control => {
+            if (!control) {
+                return false;
+            }
+
+            if (control.type === 'checkbox' || control.type === 'radio') {
+                return control.checked;
+            }
+
+            if (control.tagName === 'SELECT') {
+                return control.value !== '';
+            }
+
+            return false;
+        };
+
+        const assetEnableRootSelectionActive = root => {
+            if (!root) {
+                return false;
+            }
+
+            const controls = root.matches('input, select')
+                ? [root]
+                : Array.prototype.slice.call(root.querySelectorAll('input, select'));
+            return controls.some(control => !control.disabled && assetEnableSelectionActive(control));
+        };
+
+        const markAssetEnableTargetTouched = target => {
+            if (!target || !target.matches || !target.matches('input')) {
+                return;
+            }
+
+            Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-enable-target]')).forEach(root => {
+                if (assetEnableTargetInput(root) === target) {
+                    assetEnableTouchedRoots.add(root);
+                }
+            });
+        };
+
+        const confirmAssetEnableSelection = control => {
+            markAssetEnableTouched(control);
+            const enabledInput = assetEnableTargetInput(control);
+            if (!enabledInput || enabledInput.checked || !assetEnableSelectionActive(control)) {
+                rememberAssetEnableValue(control);
+                return;
+            }
+
+            const root = assetEnableRoot(control);
+            const message = (root ? root.getAttribute('data-admin-asset-enable-confirm') : '')
+                || '자산을 선택하면 이 항목의 사용/과금 체크가 함께 켜집니다. 계속할까요?';
+            if (!window.confirm(message)) {
+                restoreAssetEnableSelection(control);
+                rememberAssetEnableValue(control);
+                return;
+            }
+
+            enabledInput.checked = true;
+            enabledInput.dispatchEvent(new Event('change', { bubbles: true }));
+            rememberAssetEnableValue(control);
+        };
+
+        const confirmAssetEnableSubmit = form => {
+            if (!form || !form.querySelectorAll) {
+                return true;
+            }
+
+            const roots = Array.prototype.slice.call(form.querySelectorAll('[data-admin-asset-enable-target]'));
+            const hasDisabledAssetSelection = roots.some(root => {
+                const enabledInput = assetEnableTargetInput(root);
+                return assetEnableTouchedRoots.has(root)
+                    && enabledInput
+                    && !enabledInput.checked
+                    && assetEnableRootSelectionActive(root);
+            });
+            if (!hasDisabledAssetSelection) {
+                return true;
+            }
+
+            const message = '사용/과금 체크가 꺼진 항목에 선택된 자산이 있습니다. 저장하면 해당 자산 선택은 적용되지 않습니다. 그래도 저장할까요?';
+            return window.confirm(message);
+        };
 
         const syncKeyInputValue = input => {
             if (!input || input.readOnly || input.disabled) {
@@ -482,6 +625,36 @@ window.AdminShell = {
             }
         });
         document.querySelectorAll('[data-admin-key-input]').forEach(syncKeyInputValue);
+
+        document.addEventListener('focusin', event => {
+            const control = assetEnableControl(event.target);
+            if (control) {
+                rememberAssetEnableValue(control);
+            }
+        });
+
+        document.addEventListener('pointerdown', event => {
+            const control = assetEnableControl(event.target);
+            if (control) {
+                rememberAssetEnableValue(control);
+            }
+        });
+
+        document.addEventListener('change', event => {
+            const control = assetEnableControl(event.target);
+            if (control) {
+                confirmAssetEnableSelection(control);
+                return;
+            }
+
+            markAssetEnableTargetTouched(event.target);
+        });
+
+        document.addEventListener('submit', event => {
+            if (!confirmAssetEnableSubmit(event.target)) {
+                event.preventDefault();
+            }
+        });
 
         if (sortableRows.length > 0) {
             let draggedRow = null;

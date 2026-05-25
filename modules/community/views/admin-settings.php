@@ -218,7 +218,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.98b7dd61')); ?>
                                         </label>
                                         <?php $writeChargeAssetModules = sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_write_charge_enabled">
+                                            <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="write_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>" class="form-input">
                 </div>
@@ -231,7 +233,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.5f0ef7af')); ?>
                                         </label>
                                         <?php $commentChargeAssetModules = sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_comment_charge_enabled">
+                                            <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="comment_charge_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>" class="form-input">
                 </div>
@@ -244,7 +248,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.11ad75bb')); ?>
                                         </label>
                                         <?php $paidReadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_paid_read_enabled">
+                                            <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="paid_read_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>" class="form-input">
                                         <select name="paid_read_charge_policy" class="form-select">
@@ -261,7 +267,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.ac757b6f')); ?>
                                         </label>
                                         <?php $paidAttachmentDownloadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? 'point'); ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_paid_attachment_download_enabled">
+                                            <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="number" name="paid_attachment_download_amount" min="0" max="999999999" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>" class="form-input">
                                         <select name="paid_attachment_download_charge_policy" class="form-select">
