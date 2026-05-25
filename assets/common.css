@@ -147,7 +147,7 @@ input:focus-visible + .btn-choice-secondary{box-shadow:0 0 0 3px color-mix(in ok
 .modal-body-fill{height:100%;padding:calc(var(--spacing) * 5);overflow-y:auto}
 .modal-footer{border-top:1px solid var(--color-default-300);padding:calc(var(--spacing) * 4);justify-content:flex-end;align-items:center;display:flex}
 .modal-action{margin:calc(var(--spacing) * 1)}
-.modal-footer>.modal-action:is(.btn-solid-light,.btn-soft-default,.btn-solid-secondary)[data-overlay]{order:-1;margin-inline-end:auto}
+.modal-footer:has(>.modal-action:not(:is(.btn-solid-light,.btn-soft-default,.btn-solid-secondary)[data-overlay]))>.modal-action:is(.btn-solid-light,.btn-soft-default,.btn-solid-secondary)[data-overlay]{order:-1;margin-inline-end:auto}
 .form-label{display:block;font-weight:var(--font-weight-semibold)}
 .form-input,.form-select,.form-textarea{width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
 .form-input,.form-select{min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
