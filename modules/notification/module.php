@@ -2,9 +2,9 @@
 
 return [
     'name' => '알림',
-    'version' => '2026.04.001',
+    'version' => '2026.05.001',
     'type' => 'module',
-    'description' => '사이트 알림과 외부 발송 대기열 모듈입니다.',
+    'description' => '사이트 알림과 이메일 발송 작업을 관리합니다.',
     'admin' => [
         'category' => 'operation',
         'category_label' => '운영',

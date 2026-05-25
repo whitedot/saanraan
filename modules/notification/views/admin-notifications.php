@@ -12,6 +12,7 @@ $deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilt
 $notificationStatusCounts = isset($notificationStatusCounts) && is_array($notificationStatusCounts) ? $notificationStatusCounts : [];
 $deliveryStatusCounts = isset($deliveryStatusCounts) && is_array($deliveryStatusCounts) ? $deliveryStatusCounts : [];
 $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($allowedNotificationStatuses) ? $allowedNotificationStatuses : [];
+$allowedDeliveryChannels = isset($allowedDeliveryChannels) && is_array($allowedDeliveryChannels) ? $allowedDeliveryChannels : ['email'];
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
 $totalDeliveries = (int) ($deliveryStatusCounts['total'] ?? count($deliveries ?? []));
 $notificationCreateModalId = 'notification-create-modal';
@@ -55,7 +56,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label for="notification_admin_delivery_channel_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
                 <select name="delivery_channel" id="notification_admin_delivery_channel_filter" class="form-select admin-filter-input">
                     <option value=""<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
-                    <?php foreach ($allowedChannels as $channel) { ?>
+                    <?php foreach ($allowedDeliveryChannels as $channel) { ?>
                         <option value="<?php echo sr_e($channel); ?>"<?php echo (string) ($deliveryListFilters['delivery_channel'] ?? '') === $channel ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
                         </option>
@@ -117,7 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php
                         $deliveryStatus = (string) $delivery['status'];
                         $deliveryStatusClass = match ($deliveryStatus) {
-                            'ready', 'sent' => 'is-normal',
+                            'sent' => 'is-normal',
                             'failed', 'canceled' => 'is-left',
                             default => 'is-blocked',
                         };
@@ -154,7 +155,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
-    <?php echo sr_admin_pagination_html($deliveryPagination, '알림 발송 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($deliveryPagination, '이메일 발송 작업 목록 페이지'); ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">

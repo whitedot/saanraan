@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS sr_notifications (
     title VARCHAR(160) NOT NULL,
     body_text TEXT NULL,
     link_url VARCHAR(255) NOT NULL DEFAULT '',
-    status VARCHAR(30) NOT NULL DEFAULT 'queued',
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
     read_at DATETIME NULL,
     created_by_account_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL,

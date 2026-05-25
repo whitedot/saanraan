@@ -25,12 +25,11 @@ if (sr_request_method() === 'POST') {
 
         $stmt = $pdo->prepare(
             "UPDATE sr_notifications
-             SET read_at = :read_at, status = :status, updated_at = :updated_at
+             SET read_at = :read_at, updated_at = :updated_at
              WHERE account_id = :account_id AND read_at IS NULL"
         );
         $stmt->execute([
             'read_at' => $now,
-            'status' => 'read',
             'updated_at' => $now,
             'account_id' => (int) $account['id'],
         ]);
@@ -79,12 +78,11 @@ if (sr_request_method() === 'POST') {
             } else {
                 $stmt = $pdo->prepare(
                     'UPDATE sr_notifications
-                     SET read_at = :read_at, status = :status, updated_at = :updated_at
+                     SET read_at = :read_at, updated_at = :updated_at
                      WHERE id = :id AND account_id = :account_id'
                 );
                 $stmt->execute([
                     'read_at' => $now,
-                    'status' => 'read',
                     'updated_at' => $now,
                     'id' => $notificationId,
                     'account_id' => (int) $account['id'],
@@ -98,7 +96,7 @@ if (sr_request_method() === 'POST') {
 
 $notifications = [];
 $notificationSql = "SELECT n.id, n.title, n.body_text, n.link_url,
-                           CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN n.status ELSE 'read' END AS status,
+                           CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
                            COALESCE(n.read_at, r.read_at) AS read_at,
                            n.created_at
                     FROM sr_notifications n

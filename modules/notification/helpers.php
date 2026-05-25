@@ -44,6 +44,118 @@ function sr_notification_allowed_channels(): array
     return ['site', 'email', 'sms', 'alimtalk'];
 }
 
+function sr_notification_default_settings(): array
+{
+    return [
+        'email_channel_enabled' => true,
+        'email_transport' => 'php_mail',
+        'email_from_email' => '',
+        'email_from_name' => '',
+        'email_smtp_host' => '',
+        'email_smtp_port' => 587,
+        'email_smtp_encryption' => 'tls',
+        'email_smtp_username' => '',
+        'email_smtp_password' => '',
+        'email_timeout_seconds' => 10,
+        'email_http_api_endpoint' => '',
+        'email_http_api_bearer_token' => '',
+    ];
+}
+
+function sr_notification_settings(PDO $pdo): array
+{
+    $settings = array_merge(sr_notification_default_settings(), sr_module_settings($pdo, 'notification'));
+    $settings['email_channel_enabled'] = (bool) $settings['email_channel_enabled'];
+    $settings['email_transport'] = in_array((string) $settings['email_transport'], ['php_mail', 'smtp', 'http_api'], true) ? (string) $settings['email_transport'] : 'php_mail';
+    $settings['email_smtp_port'] = max(1, min(65535, (int) $settings['email_smtp_port']));
+    $settings['email_smtp_encryption'] = in_array((string) $settings['email_smtp_encryption'], ['none', 'tls', 'ssl'], true) ? (string) $settings['email_smtp_encryption'] : 'tls';
+    $settings['email_timeout_seconds'] = max(3, min(30, (int) $settings['email_timeout_seconds']));
+
+    return $settings;
+}
+
+function sr_notification_email_transport_options(): array
+{
+    return [
+        'php_mail' => 'PHP mail()',
+        'smtp' => 'SMTP',
+        'http_api' => 'HTTP API',
+    ];
+}
+
+function sr_notification_email_encryption_options(): array
+{
+    return [
+        'none' => '사용 안 함',
+        'tls' => 'STARTTLS',
+        'ssl' => 'SSL/TLS',
+    ];
+}
+
+function sr_notification_clean_setting_value(string $value, int $maxLength): string
+{
+    return sr_notification_clean_single_line($value, $maxLength);
+}
+
+function sr_notification_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'notification' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('알림 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $rows = [
+        ['email_channel_enabled', !empty($settings['email_channel_enabled']) ? '1' : '0', 'bool'],
+        ['email_transport', (string) $settings['email_transport'], 'string'],
+        ['email_from_email', (string) $settings['email_from_email'], 'string'],
+        ['email_from_name', (string) $settings['email_from_name'], 'string'],
+        ['email_smtp_host', (string) $settings['email_smtp_host'], 'string'],
+        ['email_smtp_port', (string) $settings['email_smtp_port'], 'int'],
+        ['email_smtp_encryption', (string) $settings['email_smtp_encryption'], 'string'],
+        ['email_smtp_username', (string) $settings['email_smtp_username'], 'string'],
+        ['email_smtp_password', (string) $settings['email_smtp_password'], 'string'],
+        ['email_timeout_seconds', (string) $settings['email_timeout_seconds'], 'int'],
+        ['email_http_api_endpoint', (string) $settings['email_http_api_endpoint'], 'string'],
+        ['email_http_api_bearer_token', (string) $settings['email_http_api_bearer_token'], 'string'],
+    ];
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $now = sr_now();
+    foreach ($rows as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => $row[0],
+            'setting_value' => $row[1],
+            'value_type' => $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    sr_clear_module_settings_cache('notification');
+}
+
+function sr_notification_create_channels(PDO $pdo): array
+{
+    $settings = sr_notification_settings($pdo);
+    $channels = ['site'];
+    if (!empty($settings['email_channel_enabled'])) {
+        $channels[] = 'email';
+    }
+
+    return $channels;
+}
+
 function sr_notification_normalize_channels(array $channels): array
 {
     $allowedChannels = sr_notification_allowed_channels();
@@ -74,7 +186,7 @@ function sr_notification_external_channels(array $channels): array
 
 function sr_notification_admin_statuses(): array
 {
-    return ['queued', 'active', 'deleted'];
+    return ['active', 'deleted'];
 }
 
 function sr_notification_account_email(PDO $pdo, int $accountId): string
@@ -302,7 +414,7 @@ function sr_notification_create(PDO $pdo, array $data): int
             'title' => $title,
             'body_text' => $bodyText,
             'link_url' => $linkUrl,
-            'status' => 'queued',
+            'status' => 'active',
             'created_by_account_id' => $createdByAccountId,
             'created_at' => $now,
             'updated_at' => $now,
@@ -353,13 +465,16 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
     );
 
     foreach ($channels as $channel) {
-        $recipients = $channel === 'email' ? $emailRecipients : [$channel === 'site' ? '' : $recipient];
+        if ($channel === 'site') {
+            continue;
+        }
+        $recipients = $channel === 'email' ? $emailRecipients : [$recipient];
         foreach ($recipients as $deliveryRecipient) {
             $stmt->execute([
                 'notification_id' => $notificationId,
                 'channel' => $channel,
                 'recipient' => $deliveryRecipient,
-                'status' => $channel === 'site' ? 'ready' : 'queued',
+                'status' => 'queued',
                 'provider_message_id' => '',
                 'error_message' => '',
                 'created_at' => $now,

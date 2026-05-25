@@ -206,8 +206,9 @@
 ## 기타 모듈 관리자 화면
 
 - [ ] `/admin/notifications` 알림 관리
+- [ ] `/admin/notifications/settings` 알림 환경설정
 - [ ] `/admin/notifications/new` 알림 생성
-- [ ] `/admin/notification-deliveries` 알림 발송 내역
+- [ ] `/admin/notification-deliveries` 이메일 발송 작업
 - [ ] `/admin/privacy-requests` 개인정보 요청 관리
 - [ ] `/admin/popup-layers` 팝업 레이어 목록
 - [ ] `/admin/popup-layers/new` 팝업 레이어 생성

@@ -11,8 +11,9 @@ $account = sr_member_require_login($pdo);
 $allowedAudiences = ['account', 'all'];
 $allowedNotificationStatuses = sr_notification_admin_statuses();
 $allowedChannels = sr_notification_allowed_channels();
-$allowedCreateChannels = array_values(array_intersect($allowedChannels, ['site', 'email']));
-$allowedDeliveryStatuses = ['queued', 'ready', 'sent', 'failed', 'canceled'];
+$allowedCreateChannels = sr_notification_create_channels($pdo);
+$allowedDeliveryChannels = array_values(array_intersect($allowedChannels, ['email']));
+$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
@@ -52,7 +53,7 @@ if ($notificationListFilters['status'] !== '' && !in_array($notificationListFilt
 if (!in_array($notificationListFilters['field'], ['all', 'title', 'body', 'link', 'account', 'id'], true)) {
     $notificationListFilters['field'] = 'all';
 }
-if ($deliveryListFilters['delivery_channel'] !== '' && !in_array($deliveryListFilters['delivery_channel'], $allowedChannels, true)) {
+if ($deliveryListFilters['delivery_channel'] !== '' && !in_array($deliveryListFilters['delivery_channel'], $allowedDeliveryChannels, true)) {
     $deliveryListFilters['delivery_channel'] = '';
 }
 if ($deliveryListFilters['delivery_status'] !== '' && !in_array($deliveryListFilters['delivery_status'], $allowedDeliveryStatuses, true)) {
@@ -141,7 +142,7 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM sr_notification_deliveries WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare("SELECT id FROM sr_notification_deliveries WHERE id = :id AND channel <> 'site' LIMIT 1");
             $stmt->execute(['id' => $deliveryId]);
             if (!is_array($stmt->fetch())) {
                 $errors[] = '발송 항목을 찾을 수 없습니다.';
@@ -265,7 +266,9 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
 
-                $notice = '알림을 등록했습니다. 이메일은 발송 대기열에 쌓입니다.';
+                $notice = in_array('email', $channels, true)
+                    ? '알림을 등록했고 이메일 발송 작업을 만들었습니다.'
+                    : '알림을 등록했습니다.';
                 $notificationCreateModalOpen = false;
                 $notificationCreateValues = [
                     'audience' => (string) ($allowedAudiences[0] ?? 'account'),
@@ -296,7 +299,7 @@ $deliveryStatusCounts = ['total' => 0];
 foreach ($allowedDeliveryStatuses as $status) {
     $deliveryStatusCounts[$status] = 0;
 }
-$stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_notification_deliveries GROUP BY status');
+$stmt = $pdo->query("SELECT status, COUNT(*) AS count_value FROM sr_notification_deliveries WHERE channel <> 'site' GROUP BY status");
 foreach ($stmt->fetchAll() as $row) {
     $status = (string) ($row['status'] ?? '');
     $count = (int) ($row['count_value'] ?? 0);
@@ -312,7 +315,7 @@ $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status
                 FROM sr_notification_deliveries d
                 LEFT JOIN sr_notifications n ON n.id = d.notification_id';
 $deliveryParams = [];
-$deliveryWhere = [];
+$deliveryWhere = ["d.channel <> 'site'"];
 if ($deliveryListFilters['delivery_channel'] !== '') {
     $deliveryWhere[] = 'd.channel = :delivery_channel';
     $deliveryParams['delivery_channel'] = $deliveryListFilters['delivery_channel'];

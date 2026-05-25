@@ -76,9 +76,9 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.04.001',
+        'version' => '2026.05.001',
         'label' => sr_t('install.module.notification.label'),
-        'description' => '사이트 내 알림과 이메일/SMS/알림톡 발송 대기열을 관리합니다.',
+        'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],
     'content' => [
         'name' => '콘텐츠',
