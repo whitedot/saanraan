@@ -187,6 +187,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
+                    <th>회원 정보</th>
                     <th><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?></th>
                     <th><?php echo sr_e(sr_t('point::ui.text.5cf2792b')); ?></th>
                     <th><?php echo sr_e(sr_t('point::ui.text.4a12f983')); ?></th>
@@ -200,16 +201,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.f50f4b9d')); ?></td>
+                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.f50f4b9d')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
                         <tr>
-                            <td>
-                                <?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br>
-                                <?php echo sr_e(sr_admin_member_email_display($transaction)); ?><br>
-                                <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $transaction['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a>
-                            </td>
+                            <td><a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $transaction['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a></td>
+                            <td><?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br><?php echo sr_e(sr_admin_member_email_display($transaction)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> P</td>
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> P</td>
@@ -272,7 +270,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('point::ui.text.754ef98b')); ?></a>
                                     <?php $pointBalanceAdjustModalId = 'point-adjust-modal-' . (int) ($balance['account_id'] ?? 0); ?>
-                                    <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointBalanceAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?></a>
+                                    <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?>" title="<?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointBalanceAdjustModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                 </div>
                             </td>
                         </tr>
