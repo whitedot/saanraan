@@ -409,7 +409,7 @@ function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array
     ]);
 
     return [
-        'label' => '쿠폰',
+        'label' => '쿠폰·이용권',
         'amount' => $stmt->rowCount(),
         'process' => '소멸/환급 검토',
     ];

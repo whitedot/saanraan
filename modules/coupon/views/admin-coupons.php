@@ -1,7 +1,7 @@
 <?php
 
-$adminPageTitle = '쿠폰 관리';
-$adminPageSubtitle = '쿠폰 정의, 회원 발급, 사용 상태를 관리합니다.';
+$adminPageTitle = '쿠폰·이용권 관리';
+$adminPageSubtitle = '쿠폰·이용권 정의, 회원 발급, 사용 상태를 관리합니다.';
 $targetTypes = sr_coupon_target_types();
 $refundablePolicies = sr_coupon_refundable_policies();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
