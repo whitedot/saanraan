@@ -86,7 +86,7 @@ if (sr_request_method() === 'POST') {
         } elseif ($intent === 'set_issue_status') {
             $issueId = (int) sr_post_string('issue_id', 20);
             $status = sr_post_string('status', 30);
-            sr_coupon_update_issue_status($pdo, $issueId, $status);
+            sr_coupon_update_issue_status($pdo, $issueId, $status, (int) $account['id']);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',

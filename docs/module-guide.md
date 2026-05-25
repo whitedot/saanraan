@@ -995,7 +995,7 @@ return [
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php` | 선택적 notification helper |
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php` | 선택적 notification helper |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php` | 선택적 notification helper |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 없음 |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 
 모듈 메타데이터 작성 기준:
@@ -1158,7 +1158,7 @@ return [
 
 회원 탈퇴는 member 모듈이 조정하되 잔액 처리는 각 자산 모듈의 원장 helper를 호출한다. 탈퇴 화면은 포인트/적립금/예치금 잔액이 남아 있을 때만 남은 자산 처리 섹션을 표시한다. 포인트와 적립금은 `member.withdrawal` 참조의 `expire` 거래로 0 처리하고, 예치금은 환불 은행/예금주/계좌번호를 입력받은 뒤 `member.withdrawal` 참조의 `withdraw` 거래로 0 처리한다. 이 자산 원장 처리는 프로필 삭제, 세션 폐기, 동의 철회, 계정 익명화와 같은 탈퇴 트랜잭션 안에서 수행한다.
 
-포인트/적립금/예치금 원장 helper는 거래 생성 성공 후 알림 모듈이 활성화되어 있으면 `sr_notification_create_account_event()`를 통해 회원 사이트 알림을 만든다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 원장 거래를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits` 거래 내역 화면을 사용한다.
+포인트/적립금/예치금 원장 helper와 쿠폰·이용권 발급/사용/상태 변경 helper는 거래 또는 권리 상태 변경 성공 후 알림 모듈이 활성화되어 있으면 `sr_notification_create_account_event()`를 통해 회원 사이트 알림을 만든다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 자산 처리를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` 화면을 사용한다.
 
 커뮤니티의 게시판 읽기/쓰기/댓글과 쪽지 발송에서 회원 그룹과 최소 레벨이 함께 설정된 경우 두 조건을 모두 통과해야 허용한다. 회원 그룹만 설정된 조건은 회원 그룹만, 최소 레벨만 설정된 조건은 최소 레벨만 확인한다. 게시판과 게시판 그룹에서 선택한 회원 그룹에게만 권한을 부여하려면 해당 읽기/쓰기/댓글 정책을 그룹으로 선택해야 한다. 회원 그룹이 비어 있으면 회원 그룹 제한을 적용하지 않고, 최소 레벨이 있으면 레벨 조건만 확인한다. 게시판과 게시판 그룹 저장 시 쓰기/댓글 회원 그룹은 읽기 회원 그룹의 하위 집합으로 저장한다. 쓰기/댓글에서 선택하면 읽기에도 포함하고, 읽기에서 제거하면 쓰기/댓글에서도 제거한다. 커뮤니티 활동 점수는 게시글과 댓글을 게시판별로 집계한 뒤 각 게시판의 유효 게시글 점수와 댓글 점수를 곱해서 합산한다. 커뮤니티 활동으로 레벨이 바뀔 수 있는 게시글/댓글 생성, 삭제, 상태 변경 흐름은 레벨을 먼저 재계산한 뒤 커뮤니티 자동 회원 그룹 규칙을 평가해야 `community.level_at_least` 규칙이 최신 레벨을 기준으로 동작한다. 레벨 자동 재계산을 사용하지 않을 때 관리자는 멤버 관리 목록에서 활성 멤버를 선택한 뒤 상단 일괄 작업으로 레벨을 직접 변경할 수 있으며, 목록의 레벨 열은 현재 레벨 텍스트만 표시한다.
 

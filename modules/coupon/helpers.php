@@ -59,6 +59,25 @@ function sr_coupon_definition_by_id(PDO $pdo, int $definitionId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_coupon_issue_by_id(PDO $pdo, int $issueId): ?array
+{
+    if ($issueId <= 0) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT i.*, d.coupon_key, d.title, d.description, d.coupon_type, d.target_type, d.target_id, d.refundable_policy, d.max_uses_per_issue
+         FROM sr_coupon_issues i
+         INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+         WHERE i.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $issueId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_coupon_definitions(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(300, $limit));
@@ -161,10 +180,13 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
         'updated_at' => $now,
     ]);
 
-    return (int) $pdo->lastInsertId();
+    $issueId = (int) $pdo->lastInsertId();
+    sr_coupon_notify_issue_event($pdo, $issueId, 'issue.created', $issuedByAccountId);
+
+    return $issueId;
 }
 
-function sr_coupon_update_issue_status(PDO $pdo, int $issueId, string $status): void
+function sr_coupon_update_issue_status(PDO $pdo, int $issueId, string $status, ?int $updatedByAccountId = null): void
 {
     if ($issueId <= 0 || !in_array($status, sr_coupon_issue_statuses(), true)) {
         throw new InvalidArgumentException('Coupon issue status is invalid.');
@@ -181,6 +203,25 @@ function sr_coupon_update_issue_status(PDO $pdo, int $issueId, string $status): 
         'updated_at' => sr_now(),
         'id' => $issueId,
     ]);
+
+    sr_coupon_notify_issue_event($pdo, $issueId, 'issue.status_updated', $updatedByAccountId, [
+        'status_label' => sr_coupon_issue_status_label($status),
+    ]);
+}
+
+function sr_coupon_issue_status_label(string $status): string
+{
+    $labels = [
+        'active' => '사용 가능',
+        'used' => '사용 완료',
+        'expired' => '만료',
+        'revoked' => '회수',
+        'withdrawn_expired' => '탈퇴 만료',
+        'refund_requested' => '환급 요청',
+        'refunded' => '환급 완료',
+    ];
+
+    return $labels[$status] ?? $status;
 }
 
 function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 100): array
@@ -346,6 +387,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             'redeemed_at' => $now,
             'created_at' => $now,
         ]);
+        $redemptionId = (int) $pdo->lastInsertId();
 
         $usedCount = (int) $selectedIssue['used_count'] + 1;
         $maxUses = max(1, (int) $selectedIssue['max_uses_per_issue']);
@@ -368,6 +410,19 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             $pdo->commit();
         }
 
+        sr_coupon_notify_issue_event($pdo, (int) $selectedIssue['id'], 'redemption.redeemed', null, [
+            'redemption_id' => $redemptionId,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'reference_module' => sr_coupon_clean_key((string) ($context['reference_module'] ?? ''), 60),
+            'reference_type' => sr_coupon_clean_text((string) ($context['reference_type'] ?? ''), 80),
+            'reference_id' => sr_coupon_clean_text((string) ($context['reference_id'] ?? $targetId), 120),
+            'used_count' => $usedCount,
+            'max_uses_per_issue' => $maxUses,
+            'status_label' => sr_coupon_issue_status_label($newStatus),
+            'created_at' => $now,
+        ]);
+
         return [
             'allowed' => true,
             'processed' => true,
@@ -386,6 +441,57 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
 
         return ['allowed' => false, 'processed' => false, 'message' => ''];
     }
+}
+
+function sr_coupon_notify_issue_event(PDO $pdo, int $issueId, string $eventKey, ?int $createdByAccountId = null, array $metadata = []): ?int
+{
+    if (!sr_module_enabled($pdo, 'notification') || !is_file(SR_ROOT . '/modules/notification/helpers.php')) {
+        return null;
+    }
+
+    $issue = sr_coupon_issue_by_id($pdo, $issueId);
+    if (!is_array($issue)) {
+        return null;
+    }
+
+    try {
+        require_once SR_ROOT . '/modules/notification/helpers.php';
+        if (!function_exists('sr_notification_create_account_event')) {
+            return null;
+        }
+
+        return sr_notification_create_account_event($pdo, [
+            'account_id' => (int) $issue['account_id'],
+            'module_key' => 'coupon',
+            'event_key' => $eventKey,
+            'created_by_account_id' => $createdByAccountId !== null && $createdByAccountId > 0 ? $createdByAccountId : null,
+            'metadata' => array_merge(sr_coupon_issue_notification_metadata($issue), $metadata),
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'coupon_issue_notification');
+        return null;
+    }
+}
+
+function sr_coupon_issue_notification_metadata(array $issue): array
+{
+    return [
+        'coupon_issue_id' => (int) ($issue['id'] ?? 0),
+        'coupon_definition_id' => (int) ($issue['coupon_definition_id'] ?? 0),
+        'coupon_key' => (string) ($issue['coupon_key'] ?? ''),
+        'coupon_title' => (string) ($issue['title'] ?? ''),
+        'asset_label' => '쿠폰·이용권',
+        'status' => (string) ($issue['status'] ?? ''),
+        'status_label' => sr_coupon_issue_status_label((string) ($issue['status'] ?? '')),
+        'issued_reason' => (string) ($issue['issued_reason'] ?? ''),
+        'target_type' => (string) ($issue['target_type'] ?? ''),
+        'target_id' => (string) ($issue['target_id'] ?? ''),
+        'used_count' => (int) ($issue['used_count'] ?? 0),
+        'max_uses_per_issue' => (int) ($issue['max_uses_per_issue'] ?? 1),
+        'issued_at' => (string) ($issue['issued_at'] ?? ''),
+        'expires_at' => (string) ($issue['expires_at'] ?? ''),
+        'created_at' => sr_now(),
+    ];
 }
 
 function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array

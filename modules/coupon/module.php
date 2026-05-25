@@ -2,7 +2,7 @@
 
 return [
     'name' => '쿠폰·이용권',
-    'version' => '2026.05.001',
+    'version' => '2026.05.002',
     'type' => 'module',
     'description' => '회원별 권리성 쿠폰·이용권 정의, 발급, 사용 로그를 관리합니다.',
     'admin' => [
