@@ -109,7 +109,7 @@ function sr_member_withdrawal_asset_balances(PDO $pdo, int $accountId): array
             if ($couponCount > 0) {
                 $assets['coupon'] = [
                     'asset_key' => 'coupon',
-                    'label' => '쿠폰',
+                    'label' => '쿠폰·이용권',
                     'balance' => $couponCount,
                     'unit_label' => '개',
                     'process_label' => '소멸/환급 검토',
