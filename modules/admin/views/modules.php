@@ -431,7 +431,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-form-row">
                             <label class="form-label" for="admin_modules_upload_module_key"><?php echo sr_e(sr_t('admin::ui.key.d2f54e12')); ?></label>
                             <div class="admin-form-field">
-                                <input id="admin_modules_upload_module_key" type="text" name="upload_module_key" maxlength="60" pattern="[a-z0-9_]*" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
+                                <input id="admin_modules_upload_module_key" type="text" name="upload_module_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
                             </div>
                         </div>
                         <div class="admin-form-grid">

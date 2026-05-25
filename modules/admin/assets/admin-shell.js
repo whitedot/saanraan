@@ -42,7 +42,8 @@ window.AdminShell = {
         let hideScrollbarTimer = null;
         let themeSaving = false;
 
-        const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
+        const normalizeSlugInputValue = value => value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '');
 
         const assetEnableControl = target => {
             if (!target || !target.closest || !target.matches) {
@@ -185,13 +186,13 @@ window.AdminShell = {
             return window.confirm(message);
         };
 
-        const syncKeyInputValue = input => {
+        const syncRestrictedInputValue = (input, normalizeValue) => {
             if (!input || input.readOnly || input.disabled) {
                 return;
             }
 
             const previousValue = input.value;
-            const nextValue = normalizeKeyInputValue(previousValue);
+            const nextValue = normalizeValue(previousValue);
             if (previousValue === nextValue) {
                 return;
             }
@@ -199,13 +200,16 @@ window.AdminShell = {
             const selectionStart = input.selectionStart;
             const beforeSelection = typeof selectionStart === 'number' ? previousValue.slice(0, selectionStart) : '';
             const nextSelectionStart = typeof selectionStart === 'number'
-                ? normalizeKeyInputValue(beforeSelection).length
+                ? normalizeValue(beforeSelection).length
                 : nextValue.length;
             input.value = nextValue;
             if (typeof input.setSelectionRange === 'function') {
                 input.setSelectionRange(nextSelectionStart, nextSelectionStart);
             }
         };
+
+        const syncKeyInputValue = input => syncRestrictedInputValue(input, normalizeKeyInputValue);
+        const syncSlugInputValue = input => syncRestrictedInputValue(input, normalizeSlugInputValue);
 
         const isMobileViewport = () => mobileQuery.matches;
         const systemColorSchemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -618,13 +622,23 @@ window.AdminShell = {
 
         document.addEventListener('input', event => {
             const keyInput = event.target && event.target.closest
-                ? event.target.closest('[data-admin-key-input]')
+                ? event.target.closest('[data-admin-key-input], [data-admin-login-id-input]')
                 : null;
             if (keyInput) {
                 syncKeyInputValue(keyInput);
+                return;
+            }
+
+            const slugInput = event.target && event.target.closest
+                ? event.target.closest('[data-admin-slug-input]')
+                : null;
+            if (slugInput) {
+                syncSlugInputValue(slugInput);
             }
         });
         document.querySelectorAll('[data-admin-key-input]').forEach(syncKeyInputValue);
+        document.querySelectorAll('[data-admin-login-id-input]').forEach(syncKeyInputValue);
+        document.querySelectorAll('[data-admin-slug-input]').forEach(syncSlugInputValue);
 
         document.addEventListener('focusin', event => {
             const control = assetEnableControl(event.target);

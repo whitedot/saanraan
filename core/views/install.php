@@ -153,7 +153,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     </p>
                     <p>
                         <label for="db_table_prefix"><?php echo sr_e(sr_t('ui.prefix.49bc3888')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" required>
+                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" inputmode="latin" autocapitalize="none" spellcheck="false" required data-install-table-prefix-input>
                         <span class="sr-install-help"><?php echo sr_e(sr_t('ui.sr.sr.site1.c9aaa2e0')); ?></span>
                     </p>
                 </div>
@@ -229,7 +229,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     </p>
                     <p>
                         <label for="admin_login_id"><?php echo sr_e(sr_t('ui.login.0cdb28b5')); ?></label>
-                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-install-key-input>
                         <span class="sr-install-help"><?php echo sr_e(sr_t('ui.select.email.login.active.admin.9a22f604')); ?></span>
                     </p>
                     <p>
@@ -344,6 +344,51 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
     </main>
     <script>
         (function () {
+            function syncRestrictedInput(input, normalizeValue) {
+                if (!input || input.readOnly || input.disabled) {
+                    return;
+                }
+
+                var previousValue = input.value;
+                var nextValue = normalizeValue(previousValue);
+                if (previousValue === nextValue) {
+                    return;
+                }
+
+                var selectionStart = input.selectionStart;
+                var beforeSelection = typeof selectionStart === 'number' ? previousValue.slice(0, selectionStart) : '';
+                var nextSelectionStart = typeof selectionStart === 'number' ? normalizeValue(beforeSelection).length : nextValue.length;
+                input.value = nextValue;
+                if (typeof input.setSelectionRange === 'function') {
+                    input.setSelectionRange(nextSelectionStart, nextSelectionStart);
+                }
+            }
+
+            function normalizeKeyValue(value) {
+                return String(value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
+            }
+
+            function normalizeTablePrefixValue(value) {
+                var nextValue = String(value || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+                var hasTrailingUnderscore = /_$/.test(nextValue);
+                nextValue = nextValue.replace(/_/g, '').replace(/^[^a-z]+/, '');
+                return nextValue + (hasTrailingUnderscore ? '_' : '');
+            }
+
+            document.querySelectorAll('[data-install-key-input]').forEach(function (input) {
+                syncRestrictedInput(input, normalizeKeyValue);
+                input.addEventListener('input', function () {
+                    syncRestrictedInput(input, normalizeKeyValue);
+                });
+            });
+
+            document.querySelectorAll('[data-install-table-prefix-input]').forEach(function (input) {
+                syncRestrictedInput(input, normalizeTablePrefixValue);
+                input.addEventListener('input', function () {
+                    syncRestrictedInput(input, normalizeTablePrefixValue);
+                });
+            });
+
             var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
             mainPageInputs.forEach(function (input) {
                 var moduleCheckboxId = input.getAttribute('data-sr-install-module-checkbox');

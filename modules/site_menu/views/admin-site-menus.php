@@ -180,7 +180,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" pattern="[a-z0-9_]+" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-overlay-focus>
+                            <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">

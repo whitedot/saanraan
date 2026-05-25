@@ -32,7 +32,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <p>
                     <label for="modules_member_register_login_id">
                     <span><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></span>
-                        <input id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                        <input id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-member-login-id-input>
                     </label>
                     <small><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </p>
@@ -122,4 +122,35 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 
         <p><a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
     </main>
+    <script>
+        (function () {
+            var input = document.querySelector('[data-member-login-id-input]');
+            if (!input) {
+                return;
+            }
+
+            function normalizeLoginId(value) {
+                return String(value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
+            }
+
+            function syncLoginId() {
+                var previousValue = input.value;
+                var nextValue = normalizeLoginId(previousValue);
+                if (previousValue === nextValue) {
+                    return;
+                }
+
+                var selectionStart = input.selectionStart;
+                var beforeSelection = typeof selectionStart === 'number' ? previousValue.slice(0, selectionStart) : '';
+                var nextSelectionStart = typeof selectionStart === 'number' ? normalizeLoginId(beforeSelection).length : nextValue.length;
+                input.value = nextValue;
+                if (typeof input.setSelectionRange === 'function') {
+                    input.setSelectionRange(nextSelectionStart, nextSelectionStart);
+                }
+            }
+
+            syncLoginId();
+            input.addEventListener('input', syncLoginId);
+        }());
+    </script>
 <?php sr_public_layout_end(); ?>

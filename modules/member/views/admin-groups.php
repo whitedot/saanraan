@@ -232,7 +232,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('member_admin_groups_group_key', sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" pattern="[a-z0-9_]+" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input>
+                        <input id="member_admin_groups_group_key" type="text" name="group_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input>
                     </div>
                 </div>
             <?php } ?>

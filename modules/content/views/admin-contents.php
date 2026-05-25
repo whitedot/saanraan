@@ -290,7 +290,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_slug', 'Slug', $contentHelp['slug']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <input id="content_admin_contents_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
+                    <input id="content_admin_contents_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
                     <br>
                                         <small><?php echo sr_e(sr_t('content::ui.content.slug.active.359891c0')); ?></small>
                 </div>

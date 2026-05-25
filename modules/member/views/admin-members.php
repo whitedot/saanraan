@@ -98,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_login_id', sr_t('member::ui.login.0cdb28b5'), $memberAdminHelp['login_id']['id'], $memberAdminHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username">
+                    <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-admin-login-id-input>
                     <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </div>
             </div>
@@ -190,7 +190,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 && !hash_equals($memberEditEmailHash, $memberEditAccountIdentifierHash)
                             );
                         ?>
-                        <input id="member_admin_edit_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberEditValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" autocomplete="username" placeholder="<?php echo sr_e(sr_t('member::ui.login.02a3f102')); ?>">
+                        <input id="member_admin_edit_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberEditValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" placeholder="<?php echo sr_e(sr_t('member::ui.login.02a3f102')); ?>" data-admin-login-id-input>
                         <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.status.771e6888')); ?> <?php echo $memberEditHasLoginId ? sr_t('member::ui.create.1b9cb032') : sr_t('member::ui.text.72ea3d64'); ?><?php echo sr_e(sr_t('member::ui.login.status.ba691fb4')); ?></small>
                         <label class="admin-form-check form-label" for="member_admin_edit_clear_login_id">
                             <input id="member_admin_edit_clear_login_id" type="checkbox" name="clear_login_id" value="1" class="form-checkbox"<?php echo (string) ($memberEditValues['clear_login_id'] ?? '0') === '1' ? ' checked' : ''; ?>>
