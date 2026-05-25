@@ -10,6 +10,11 @@ return [
             'order' => 10,
         ],
         [
+            'label' => '환경설정',
+            'path' => '/admin/content/settings',
+            'order' => 15,
+        ],
+        [
             'label' => sr_t('content::ui.content.5875c5b3'),
             'path' => '/admin/content-groups',
             'order' => 20,

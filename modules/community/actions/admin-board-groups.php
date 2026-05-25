@@ -28,6 +28,7 @@ $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $maxLevel = sr_community_max_level_value();
 $settings = sr_community_settings($pdo);
+$editorOptions = sr_editor_options($pdo, true);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -93,6 +94,8 @@ if (sr_request_method() === 'POST') {
         $readPolicy = sr_post_string('group_read_policy', 30);
         $writePolicy = sr_post_string('group_write_policy', 30);
         $commentPolicy = sr_post_string('group_comment_policy', 30);
+        $postEditorInput = sr_post_string('group_post_editor', 30);
+        $postEditor = sr_community_post_editor_key($postEditorInput, true);
         $attachmentMaxBytes = sr_admin_post_int_in_range('group_attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('group_attachment_max_count', 0, 10);
         $imageUploadsEnabled = ($_POST['group_image_uploads_enabled'] ?? '') === '1';
@@ -168,6 +171,11 @@ if (sr_request_method() === 'POST') {
             if (!in_array((string) $policyValidation['policy'], $policyValidation['allowed'], true)) {
                 $errors[] = sr_t('community::action.admin.board_group_policy_invalid', ['label' => $label]);
             }
+        }
+
+        if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
+            $errors[] = '게시판 그룹 에디터 값이 올바르지 않습니다.';
+            $postEditor = 'inherit';
         }
 
         if ($attachmentMaxBytes === null) {
@@ -374,6 +382,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'read_policy', $readPolicy);
             sr_community_set_board_group_setting($pdo, $groupId, 'write_policy', $writePolicy);
             sr_community_set_board_group_setting($pdo, $groupId, 'comment_policy', $commentPolicy);
+            sr_community_set_board_group_setting($pdo, $groupId, 'post_editor', $postEditor);
             sr_community_set_board_group_setting($pdo, $groupId, 'image_uploads_enabled', $imageUploadsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_group_setting($pdo, $groupId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');

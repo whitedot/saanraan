@@ -209,6 +209,7 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'level_post_score' => (string) ($settings['level_post_score'] ?? 10),
     'level_comment_score' => (string) ($settings['level_comment_score'] ?? 2),
     'skin_key' => 'basic',
+    'post_editor' => 'inherit',
     'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
     'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
@@ -422,6 +423,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php } ?>
                                         </select>
                     <?php echo $settingSourceRadioHtml('source_skin_key', $boardSettingSource($formBoard, 'skin_key')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_post_editor">게시글 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="admin-form-field">
+                    <select id="community_admin_boards_post_editor" name="post_editor" class="form-select" required>
+                        <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
+                            <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $boardField($formBoard, 'post_editor', 'inherit') === (string) $editorKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $editorLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <?php echo $settingSourceRadioHtml('source_post_editor', $boardSettingSource($formBoard, 'post_editor')); ?>
+                    <p class="admin-form-help">상위 설정을 사용하면 게시판 그룹, 커뮤니티 환경설정 순서로 적용됩니다.</p>
                 </div>
             </div>
 

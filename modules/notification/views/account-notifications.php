@@ -71,7 +71,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                     <?php echo sr_e((string) $notification['title']); ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo nl2br(sr_e((string) ($notification['body_text'] ?? ''))); ?></td>
+                            <td><?php echo sr_notification_body_html($notification); ?></td>
                             <td><?php echo sr_e((string) $notification['status'] === 'read' ? sr_t('notification::ui.text.3fe5701c') : sr_t('notification::ui.text.62808119')); ?></td>
                             <td><?php echo sr_e((string) $notification['created_at']); ?></td>
                             <td>

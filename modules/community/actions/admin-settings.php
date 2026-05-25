@@ -15,6 +15,7 @@ $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySett
 $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $communityLayoutOptions = sr_public_layout_options($pdo);
+$editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $levels = sr_community_levels($pdo);
 $maxLevel = sr_community_max_level_value();
@@ -43,6 +44,8 @@ if (sr_request_method() === 'POST') {
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
+        $postEditorInput = sr_post_string('post_editor', 30);
+        $postEditor = sr_community_post_editor_key($postEditorInput);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $nicknameEnabled = ($_POST['nickname_enabled'] ?? '') === '1';
@@ -90,6 +93,10 @@ if (sr_request_method() === 'POST') {
         if (!isset($communityLayoutOptions[$layoutKey])) {
             $errors[] = sr_t('community::action.admin.layout_invalid');
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
+        }
+        if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
+            $errors[] = '게시글 에디터 값이 올바르지 않습니다.';
+            $postEditor = (string) ($settings['post_editor'] ?? 'textarea');
         }
 
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
@@ -155,6 +162,7 @@ if (sr_request_method() === 'POST') {
                 ['nickname_required', $nicknameRequired ? '1' : '0', 'bool'],
                 ['theme_key', 'basic', 'string'],
                 ['layout_key', $layoutKey, 'string'],
+                ['post_editor', $postEditor, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
                 ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
@@ -226,6 +234,7 @@ if (sr_request_method() === 'POST') {
                     'nickname_enabled' => $nicknameEnabled,
                     'nickname_required' => $nicknameRequired,
                     'layout_key' => $layoutKey,
+                    'post_editor' => $postEditor,
                     'asset_settings' => $assetSettings,
                 ],
             ]);

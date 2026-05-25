@@ -797,10 +797,10 @@ function sr_community_board_group_keys_setting_value(array $groupKeys): string
     return is_string($encoded) ? $encoded : '[]';
 }
 
-function sr_community_post_input_values(?PDO $pdo = null): array
+function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, ?array $settings = null): array
 {
     $bodyFormat = 'plain';
-    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo)) {
+    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) {
         $bodyFormat = 'html';
     }
 
@@ -1040,14 +1040,23 @@ function sr_community_post_body_html(array $post): string
     return sr_community_plain_text_html($bodyText);
 }
 
-function sr_community_html_post_body_enabled(PDO $pdo): bool
+function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool
 {
     if (!sr_module_enabled($pdo, 'ckeditor') || !is_file(SR_ROOT . '/modules/ckeditor/helpers.php')) {
         return false;
     }
 
     require_once SR_ROOT . '/modules/ckeditor/helpers.php';
-    return function_exists('sr_ckeditor_community_posts_enabled') && sr_ckeditor_community_posts_enabled($pdo);
+    if (!function_exists('sr_ckeditor_community_posts_enabled') || !sr_ckeditor_community_posts_enabled($pdo)) {
+        return false;
+    }
+
+    if (is_array($board)) {
+        return sr_community_effective_post_editor($pdo, $board, $settings) === 'ckeditor';
+    }
+
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')) === 'ckeditor';
 }
 
 function sr_community_body_text_is_empty(string $bodyText, string $bodyFormat): bool

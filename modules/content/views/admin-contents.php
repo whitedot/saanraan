@@ -47,6 +47,8 @@ $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', '
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
+$contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
+$contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, 'content_basic') : '';
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -325,9 +327,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
+                    <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
-                                        <small><?php echo sr_e(sr_t('content::ui.content.plain.save.723dab58')); ?></small>
+                    <small><?php echo sr_e($contentEditorKey === 'ckeditor' ? 'CKEditor 제출은 허용된 HTML만 정화해 저장합니다.' : sr_t('content::ui.content.plain.save.723dab58')); ?></small>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -679,6 +681,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
+    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, 'content_basic') : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">

@@ -326,6 +326,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
             </div>
         </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_post_editor" name="post_editor" class="form-select" required>
+                    <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
+                        <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo (string) ($settings['post_editor'] ?? 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $editorLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">게시판에서 별도 값을 고르지 않으면 게시판 그룹, 환경설정 순서로 적용됩니다.</p>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

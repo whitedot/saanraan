@@ -18,6 +18,7 @@ $boardGroupStatusCounts = isset($boardGroupStatusCounts) && is_array($boardGroup
 $totalBoardGroups = (int) ($boardGroupStatusCounts['total'] ?? count($boardGroups ?? []));
 
 $settingLabels = [
+    'post_editor' => '게시글 에디터',
     'read_policy' => sr_t('community::ui.text.0b6c5dfd'),
     'write_policy' => sr_t('community::ui.text.4f05f6a8'),
     'comment_policy' => sr_t('community::ui.text.0550e13c'),
@@ -355,6 +356,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('community::ui.settings.021ed27a')); ?></h2>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <select id="community_admin_board_groups_group_post_editor" name="group_post_editor" class="form-select" required>
+                            <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
+                                <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'post_editor', 'inherit') === (string) $editorKey ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $editorLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <p class="admin-form-help">게시판이 상위 설정을 사용할 때 이 값이 적용됩니다.</p>
+                    </div>
+                </div>
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardGroupHelp['policy']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="admin-form-field">

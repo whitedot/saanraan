@@ -169,6 +169,216 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function sr_plain_text_html(string $value): string
+{
+    return nl2br(sr_e($value), false);
+}
+
+function sr_rich_text_allowed_html_tags(): array
+{
+    return [
+        'p' => [],
+        'br' => [],
+        'strong' => [],
+        'em' => [],
+        'u' => [],
+        's' => [],
+        'blockquote' => [],
+        'ul' => [],
+        'ol' => [],
+        'li' => [],
+        'a' => ['href'],
+        'h2' => [],
+        'h3' => [],
+        'img' => ['src', 'alt', 'width', 'height'],
+    ];
+}
+
+function sr_sanitize_rich_text_html(string $html): string
+{
+    if (!class_exists('DOMDocument')) {
+        return sr_plain_text_html(strip_tags($html));
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-rich-text-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return '';
+    }
+
+    $root = null;
+    foreach ($document->getElementsByTagName('div') as $div) {
+        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-rich-text-root') {
+            $root = $div;
+            break;
+        }
+    }
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $output .= sr_sanitize_rich_text_html_node($child);
+    }
+
+    return trim($output);
+}
+
+function sr_sanitize_rich_text_html_node(DOMNode $node): string
+{
+    if ($node instanceof DOMText) {
+        return sr_e($node->wholeText);
+    }
+
+    if (!$node instanceof DOMElement) {
+        return '';
+    }
+
+    $tagName = strtolower($node->tagName);
+    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
+        return '';
+    }
+
+    $allowedTags = sr_rich_text_allowed_html_tags();
+    $children = '';
+    foreach ($node->childNodes as $child) {
+        $children .= sr_sanitize_rich_text_html_node($child);
+    }
+
+    if (!isset($allowedTags[$tagName])) {
+        return $children;
+    }
+
+    if ($tagName === 'br') {
+        return '<br>';
+    }
+
+    $attributes = sr_sanitize_rich_text_html_attributes($node, $tagName, $allowedTags[$tagName]);
+    if ($tagName === 'img') {
+        return $attributes === '' ? '' : '<img' . $attributes . '>';
+    }
+
+    return '<' . $tagName . $attributes . '>' . $children . '</' . $tagName . '>';
+}
+
+function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName, array $allowedAttributes): string
+{
+    $attributes = '';
+    foreach ($allowedAttributes as $attributeName) {
+        if (!$node->hasAttribute($attributeName)) {
+            continue;
+        }
+
+        $value = trim($node->getAttribute($attributeName));
+        if ($attributeName === 'href' || $attributeName === 'src') {
+            if (!sr_is_safe_relative_url($value) && !sr_is_http_url($value)) {
+                continue;
+            }
+            if ($attributeName === 'src' && sr_is_http_url($value) && strtolower((string) parse_url($value, PHP_URL_SCHEME)) !== 'https') {
+                continue;
+            }
+        } elseif ($attributeName === 'width' || $attributeName === 'height') {
+            if (preg_match('/\A[1-9][0-9]{0,3}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($attributeName === 'alt') {
+            $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        } else {
+            continue;
+        }
+
+        $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
+    }
+
+    if ($tagName === 'a' && $attributes !== '') {
+        $attributes .= ' rel="nofollow noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
+function sr_body_text_html(array $record): string
+{
+    $bodyText = (string) ($record['body_text'] ?? '');
+    if ((string) ($record['body_format'] ?? 'plain') === 'html') {
+        return sr_sanitize_rich_text_html($bodyText);
+    }
+
+    return sr_plain_text_html($bodyText);
+}
+
+function sr_body_text_is_empty(string $bodyText, string $bodyFormat): bool
+{
+    if ($bodyFormat !== 'html') {
+        return trim($bodyText) === '';
+    }
+
+    $plainText = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    return $plainText === '';
+}
+
+function sr_editor_normalize_key(string $editorKey, bool $allowInherit = false): string
+{
+    $editorKey = strtolower(trim($editorKey));
+    if ($allowInherit && $editorKey === 'inherit') {
+        return 'inherit';
+    }
+
+    return in_array($editorKey, ['textarea', 'ckeditor'], true) ? $editorKey : 'textarea';
+}
+
+function sr_editor_available(PDO $pdo, string $editorKey): bool
+{
+    $editorKey = sr_editor_normalize_key($editorKey);
+    if ($editorKey === 'textarea') {
+        return true;
+    }
+
+    return $editorKey === 'ckeditor'
+        && sr_module_enabled($pdo, 'ckeditor')
+        && is_file(SR_ROOT . '/modules/ckeditor/helpers.php');
+}
+
+function sr_editor_effective_key(PDO $pdo, string $editorKey): string
+{
+    $editorKey = sr_editor_normalize_key($editorKey);
+    return sr_editor_available($pdo, $editorKey) ? $editorKey : 'textarea';
+}
+
+function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
+{
+    $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
+    $options['textarea'] = '기본 textarea';
+    if (sr_editor_available($pdo, 'ckeditor')) {
+        $options['ckeditor'] = 'CKEditor';
+    }
+
+    return $options;
+}
+
+function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $presetKey = 'default', string $formatFieldName = 'body_format'): string
+{
+    if (sr_editor_effective_key($pdo, $editorKey) !== 'ckeditor') {
+        return '';
+    }
+
+    return ' data-sr-editor="ckeditor" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';
+}
+
+function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 'default'): string
+{
+    if (sr_editor_effective_key($pdo, $editorKey) !== 'ckeditor') {
+        return '';
+    }
+
+    require_once SR_ROOT . '/modules/ckeditor/helpers.php';
+    return function_exists('sr_ckeditor_public_assets_html') ? sr_ckeditor_public_assets_html($pdo, $presetKey) : '';
+}
+
 function sr_material_icon_font_url(): string
 {
     return sr_url('/assets/fonts/material-symbols-outlined.ttf');

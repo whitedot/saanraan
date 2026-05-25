@@ -30,6 +30,8 @@ $notificationCreateValues = isset($notificationCreateValues) && is_array($notifi
 ];
 $notificationCreateChannels = is_array($notificationCreateValues['channels'] ?? null) ? $notificationCreateValues['channels'] : ['site'];
 $notificationCreateAudience = (string) ($notificationCreateValues['audience'] ?? 'account');
+$notificationAdminEditorKey = $pdo instanceof PDO ? sr_admin_editor_key($pdo) : 'textarea';
+$notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'admin_basic') : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -307,7 +309,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="notification_admin_notifications_body_text"><?php echo sr_e(sr_t('notification::ui.text.cb0f2404')); ?></label>
                         <div class="admin-form-field">
-                            <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
+                            <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $notificationEditorAttributes; ?>><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -398,6 +400,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         syncRequiredState();
     })();
     </script>
+    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $notificationAdminEditorKey, 'admin_basic') : ''; ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

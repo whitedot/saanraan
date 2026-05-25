@@ -66,6 +66,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
         ],
         'module_type' => [
             'module' => '모듈',
+            'plugin' => '플러그인',
             'theme' => '테마',
             'skin' => '스킨',
         ],
@@ -223,6 +224,7 @@ function sr_admin_event_type_label(string $eventType): string
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 권한 변경',
         'admin.permissions.changed' => '관리자 권한 변경',
+        'content.settings.updated' => '콘텐츠 환경설정 변경',
         'content.asset_settings.updated' => '콘텐츠 자산 설정 변경',
         'content_group.asset_settings.updated' => '콘텐츠 그룹 자산 설정 변경',
         'community.nickname.created' => '커뮤니티 닉네임 설정',
@@ -377,7 +379,7 @@ function sr_admin_settings(PDO $pdo): array
     $metadata = sr_module_metadata('admin');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
     $settings = sr_module_settings($pdo, 'admin');
-    $baseSettings = array_merge(['admin_skin_key' => 'basic', 'admin_color_scheme' => 'light'], $defaults);
+    $baseSettings = array_merge(['admin_skin_key' => 'basic', 'admin_color_scheme' => 'light', 'admin_editor' => 'textarea'], $defaults);
 
     if (!isset($settings['admin_color_scheme'])) {
         $legacySiteSettings = sr_site_settings($pdo);
@@ -391,6 +393,8 @@ function sr_admin_settings(PDO $pdo): array
     if (!isset($settings['list_pagination_per_page']) && isset($settings['audit_logs_per_page'])) {
         $mergedSettings['list_pagination_per_page'] = $settings['audit_logs_per_page'];
     }
+
+    $mergedSettings['admin_editor'] = sr_editor_normalize_key((string) ($mergedSettings['admin_editor'] ?? 'textarea'));
 
     return $mergedSettings;
 }
@@ -429,6 +433,12 @@ function sr_admin_list_pagination_per_page(array $settings): int
     return max(10, min(500, (int) $perPage));
 }
 
+function sr_admin_editor_key(PDO $pdo, ?array $settings = null): string
+{
+    $settings = is_array($settings) ? $settings : sr_admin_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['admin_editor'] ?? 'textarea'));
+}
+
 function sr_admin_skin_view(string $skinKey, string $viewKey): string
 {
     $options = sr_admin_skin_options();
@@ -462,6 +472,11 @@ function sr_admin_save_list_pagination_per_page(PDO $pdo, int $perPage): void
 {
     $perPage = sr_admin_list_pagination_per_page(['list_pagination_per_page' => $perPage]);
     sr_admin_save_module_setting($pdo, 'list_pagination_per_page', (string) $perPage, 'int');
+}
+
+function sr_admin_save_editor_key(PDO $pdo, string $editorKey): void
+{
+    sr_admin_save_module_setting($pdo, 'admin_editor', sr_editor_normalize_key($editorKey));
 }
 
 function sr_admin_save_module_setting(PDO $pdo, string $settingKey, string $settingValue, string $valueType = 'string'): void

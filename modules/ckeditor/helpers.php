@@ -51,6 +51,18 @@ function sr_ckeditor_clean_license_key(string $value): string
 function sr_ckeditor_toolbar_presets(): array
 {
     return [
+        'default' => [
+            'label' => '기본',
+            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
+        ],
+        'admin_basic' => [
+            'label' => '관리자 화면 기본',
+            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
+        ],
+        'content_basic' => [
+            'label' => '콘텐츠 본문 기본',
+            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
+        ],
         'community_post_basic' => [
             'label' => '커뮤니티 게시글 기본',
             'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],

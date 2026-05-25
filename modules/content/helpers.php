@@ -12,6 +12,69 @@ function sr_content_group_statuses(): array
     return ['enabled', 'disabled', 'archived'];
 }
 
+function sr_content_default_settings(): array
+{
+    return [
+        'editor' => 'textarea',
+    ];
+}
+
+function sr_content_settings(PDO $pdo): array
+{
+    $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
+    $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
+
+    return $settings;
+}
+
+function sr_content_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'content' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('콘텐츠 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $editor = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'editor',
+        'setting_value' => $editor,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('content');
+}
+
+function sr_content_editor_key(PDO $pdo): string
+{
+    $settings = sr_content_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) $settings['editor']);
+}
+
+function sr_content_html_body_enabled(PDO $pdo): bool
+{
+    return sr_content_editor_key($pdo) === 'ckeditor';
+}
+
+function sr_content_body_html(array $page): string
+{
+    return sr_body_text_html($page);
+}
+
 function sr_content_group_key_is_valid(string $groupKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1;
@@ -1391,10 +1454,21 @@ function sr_content_group_asset_settings_from_storage_for_audit(PDO $pdo, int $g
     return sr_content_group_asset_settings_for_audit(sr_content_group_settings($pdo, $groupId));
 }
 
-function sr_content_input_values(): array
+function sr_content_input_values(?PDO $pdo = null): array
 {
     $pageGroupScope = sr_content_group_apply_scope(sr_post_string('content_group_scope', 20));
     $pageGroupId = (int) sr_post_string('content_group_id', 20);
+    $bodyFormat = 'plain';
+    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) {
+        $bodyFormat = 'html';
+    }
+    $bodyText = sr_post_string_without_truncation('body_text', 100000);
+    if (!is_string($bodyText)) {
+        $bodyText = '';
+    }
+    $bodyText = $bodyFormat === 'html'
+        ? sr_sanitize_rich_text_html($bodyText)
+        : sr_content_clean_text($bodyText, 100000);
 
     $values = [
         'content_group_scope' => $pageGroupScope,
@@ -1404,8 +1478,8 @@ function sr_content_input_values(): array
         'title' => sr_content_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_content_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_content_clean_text(sr_post_string('summary', 1000), 1000),
-        'body_text' => sr_content_clean_text(sr_post_string('body_text', 100000), 100000),
-        'body_format' => 'plain',
+        'body_text' => $bodyText,
+        'body_format' => $bodyFormat,
         'status' => sr_post_string('status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
@@ -1518,7 +1592,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = '콘텐츠 레이아웃 값이 올바르지 않습니다.';
     }
 
-    if ((string) ($values['body_format'] ?? 'plain') !== 'plain') {
+    if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)) {
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
 
@@ -1639,7 +1713,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
                 'body_text' => (string) $values['body_text'],
-                'body_format' => 'plain',
+                'body_format' => (string) ($values['body_format'] ?? 'plain'),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -1676,7 +1750,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
                 'body_text' => (string) $values['body_text'],
-                'body_format' => 'plain',
+                'body_format' => (string) ($values['body_format'] ?? 'plain'),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -1747,7 +1821,7 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'title' => (string) $values['title'],
         'summary' => (string) $values['summary'],
         'body_text' => (string) $values['body_text'],
-        'body_format' => 'plain',
+        'body_format' => (string) ($values['body_format'] ?? 'plain'),
         'status' => (string) $values['status'],
         'layout_key' => (string) ($values['layout_key'] ?? ''),
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),

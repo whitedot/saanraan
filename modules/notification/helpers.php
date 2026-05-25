@@ -14,6 +14,16 @@ function sr_notification_clean_text(string $value, int $maxLength): string
     return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
 }
 
+function sr_notification_body_format(string $value): string
+{
+    return in_array($value, ['plain', 'html'], true) ? $value : 'plain';
+}
+
+function sr_notification_body_html(array $notification): string
+{
+    return sr_body_text_html($notification);
+}
+
 function sr_notification_clean_link_url(string $value): string
 {
     $value = trim($value);
@@ -455,7 +465,10 @@ function sr_notification_create(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Notification title is required.');
     }
 
-    $bodyText = sr_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
+    $bodyFormat = sr_notification_body_format((string) ($data['body_format'] ?? 'plain'));
+    $bodyText = $bodyFormat === 'html'
+        ? sr_sanitize_rich_text_html(sr_notification_clean_text((string) ($data['body_text'] ?? ''), 5000))
+        : sr_notification_clean_text((string) ($data['body_text'] ?? ''), 5000);
     $rawLinkUrl = (string) ($data['link_url'] ?? '');
     $linkUrl = sr_notification_clean_link_url($rawLinkUrl);
     if (trim($rawLinkUrl) !== '' && $linkUrl === '') {
@@ -495,15 +508,16 @@ function sr_notification_create(PDO $pdo, array $data): int
         $now = sr_now();
         $stmt = $pdo->prepare(
             'INSERT INTO sr_notifications
-                (account_id, audience, title, body_text, link_url, status, read_at, created_by_account_id, created_at, updated_at)
+                (account_id, audience, title, body_text, body_format, link_url, status, read_at, created_by_account_id, created_at, updated_at)
              VALUES
-                (:account_id, :audience, :title, :body_text, :link_url, :status, NULL, :created_by_account_id, :created_at, :updated_at)'
+                (:account_id, :audience, :title, :body_text, :body_format, :link_url, :status, NULL, :created_by_account_id, :created_at, :updated_at)'
         );
         $stmt->execute([
             'account_id' => $accountId,
             'audience' => $audience,
             'title' => $title,
             'body_text' => $bodyText,
+            'body_format' => $bodyFormat,
             'link_url' => $linkUrl,
             'status' => 'active',
             'created_by_account_id' => $createdByAccountId,

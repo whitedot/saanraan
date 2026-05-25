@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS sr_notifications (
     audience VARCHAR(30) NOT NULL DEFAULT 'account',
     title VARCHAR(160) NOT NULL,
     body_text TEXT NULL,
+    body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
     link_url VARCHAR(255) NOT NULL DEFAULT '',
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     read_at DATETIME NULL,

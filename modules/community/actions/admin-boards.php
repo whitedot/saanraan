@@ -28,6 +28,7 @@ $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $communitySkinOptions = sr_community_skin_options();
 $settings = sr_community_settings($pdo);
+$editorOptions = sr_editor_options($pdo, true);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $maxLevel = sr_community_max_level_value();
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
@@ -100,6 +101,8 @@ if (sr_request_method() === 'POST') {
         $writePolicy = sr_post_string('write_policy', 30);
         $commentPolicy = sr_post_string('comment_policy', 30);
         $skinKey = sr_post_string('skin_key', 40);
+        $postEditorInput = sr_post_string('post_editor', 30);
+        $postEditor = sr_community_post_editor_key($postEditorInput, true);
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
         $attachmentMaxBytes = sr_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('attachment_max_count', 0, 10);
@@ -212,6 +215,11 @@ if (sr_request_method() === 'POST') {
         if (!isset($communitySkinOptions[$skinKey])) {
             $errors[] = sr_t('community::action.admin.board_skin_invalid');
             $skinKey = 'basic';
+        }
+
+        if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
+            $errors[] = '게시판 에디터 값이 올바르지 않습니다.';
+            $postEditor = 'inherit';
         }
 
         if ($sortOrder === null) {
@@ -381,6 +389,7 @@ if (sr_request_method() === 'POST') {
             $boardSettingValues = [
                 'status' => $status,
                 'skin_key' => $skinKey,
+                'post_editor' => $postEditor,
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,
@@ -697,6 +706,8 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
     $board['effective_level_comment_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
+    $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? 'inherit'), true);
+    $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
     }

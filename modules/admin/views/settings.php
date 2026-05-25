@@ -244,6 +244,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="admin_settings_admin_editor">관리자 화면 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+            <div class="admin-form-field">
+                <select id="admin_settings_admin_editor" name="admin_editor" class="form-select" required>
+                    <?php foreach ($adminEditorOptions as $editorKey => $editorLabel) { ?>
+                        <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo (string) ($values['admin_editor'] ?? 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $editorLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">알림 등록처럼 관리자에서 긴 본문을 작성하는 화면에 적용됩니다.</p>
+            </div>
+        </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('admin::ui.text.b47e1675')); ?></a>

@@ -2,7 +2,7 @@
 
 return [
     'name' => '관리자',
-    'version' => '2026.05.006',
+    'version' => '2026.05.007',
     'type' => 'module',
     'description' => '관리자 대시보드 모듈입니다.',
     'admin' => [
@@ -28,5 +28,6 @@ return [
         'admin_skin_key' => 'basic',
         'admin_color_scheme' => 'light',
         'list_pagination_per_page' => 50,
+        'admin_editor' => 'textarea',
     ],
 ];

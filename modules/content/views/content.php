@@ -65,7 +65,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <p class="content-access-notice">쿠폰으로 열람했습니다.</p>
             <?php } ?>
             <div class="content-body">
-                <?php echo nl2br(sr_e((string) $page['body_text'])); ?>
+                <?php echo sr_content_body_html($page); ?>
             </div>
             <?php if (is_array($contentFiles ?? null) && $contentFiles !== []) { ?>
                 <section class="content-downloads">

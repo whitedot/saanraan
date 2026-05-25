@@ -13,7 +13,7 @@ return static function (PDO $pdo, int $accountId): array {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, account_id, audience, title, body_text, link_url, status, read_at, created_by_account_id, created_at, updated_at
+        'SELECT id, account_id, audience, title, body_text, body_format, link_url, status, read_at, created_by_account_id, created_at, updated_at
          FROM sr_notifications
          WHERE account_id = :account_id OR audience = :audience
          ORDER BY id DESC

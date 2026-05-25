@@ -44,6 +44,7 @@ function sr_community_board_group_setting_keys(): array
     return [
         'status',
         'skin_key',
+        'post_editor',
         'read_policy',
         'write_policy',
         'comment_policy',
@@ -218,6 +219,34 @@ function sr_community_board_setting_value_type(string $settingKey): string
     }
 
     return 'string';
+}
+
+function sr_community_post_editor_key(string $value, bool $allowInherit = false): string
+{
+    return sr_editor_normalize_key($value, $allowInherit);
+}
+
+function sr_community_effective_post_editor(PDO $pdo, array $board, ?array $settings = null): string
+{
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
+    $boardId = (int) ($board['id'] ?? 0);
+    $boardGroupId = (int) ($board['board_group_id'] ?? 0);
+
+    if ($boardId > 0) {
+        $boardEditor = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, $boardId, 'post_editor') ?? 'inherit'), true);
+        if ($boardEditor !== 'inherit') {
+            return sr_editor_effective_key($pdo, $boardEditor);
+        }
+    }
+
+    if ($boardGroupId > 0) {
+        $groupEditor = sr_community_post_editor_key((string) (sr_community_board_group_setting_value($pdo, $boardGroupId, 'post_editor') ?? 'inherit'), true);
+        if ($groupEditor !== 'inherit') {
+            return sr_editor_effective_key($pdo, $groupEditor);
+        }
+    }
+
+    return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
 }
 
 function sr_community_apply_board_setting_scope(PDO $pdo, int $boardId, int $boardGroupId, string $settingKey, string $source, mixed $value): void

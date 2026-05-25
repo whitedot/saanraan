@@ -28,6 +28,7 @@ $notificationCreateValues = [
     'account_identifier' => '',
     'title' => '',
     'body_text' => '',
+    'body_format' => 'plain',
     'link_url' => '',
     'channels' => ['site'],
 ];
@@ -186,7 +187,13 @@ if (sr_request_method() === 'POST') {
         }
         $accountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
         $title = sr_notification_clean_single_line(sr_post_string('title', 160), 160);
-        $bodyText = sr_notification_clean_text(sr_post_string('body_text', 5000), 5000);
+        $adminEditorKey = sr_admin_editor_key($pdo);
+        $bodyFormat = $adminEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html' ? 'html' : 'plain';
+        $rawBodyText = sr_post_string_without_truncation('body_text', 5000);
+        $rawBodyText = is_string($rawBodyText) ? $rawBodyText : '';
+        $bodyText = $bodyFormat === 'html'
+            ? sr_sanitize_rich_text_html(sr_notification_clean_text($rawBodyText, 5000))
+            : sr_notification_clean_text($rawBodyText, 5000);
         $rawLinkUrl = sr_post_string('link_url', 255);
         $linkUrl = sr_notification_clean_link_url($rawLinkUrl);
         $postedChannels = $_POST['channels'] ?? [];
@@ -196,6 +203,7 @@ if (sr_request_method() === 'POST') {
             'account_identifier' => $accountIdentifier,
             'title' => $title,
             'body_text' => $bodyText,
+            'body_format' => $bodyFormat,
             'link_url' => $rawLinkUrl,
             'channels' => is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [],
         ];
@@ -247,6 +255,7 @@ if (sr_request_method() === 'POST') {
                     'account_id' => $audience === 'account' ? $accountId : null,
                     'title' => $title,
                     'body_text' => $bodyText,
+                    'body_format' => $bodyFormat,
                     'link_url' => $linkUrl,
                     'channels' => array_values($channels),
                     'created_by_account_id' => (int) $account['id'],
@@ -275,6 +284,7 @@ if (sr_request_method() === 'POST') {
                     'account_identifier' => '',
                     'title' => '',
                     'body_text' => '',
+                    'body_format' => 'plain',
                     'link_url' => '',
                     'channels' => ['site'],
                 ];

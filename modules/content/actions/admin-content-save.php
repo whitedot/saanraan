@@ -17,7 +17,7 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'edit'
 sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
-$values = sr_content_input_values();
+$values = sr_content_input_values($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
     : [];

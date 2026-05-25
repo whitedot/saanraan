@@ -88,13 +88,14 @@
 
   function markHtmlFormat(textarea) {
     var form = textarea.form;
-    if (!form || form.querySelector('input[name="body_format"][data-sr-editor-format="ckeditor"]')) {
+    var formatName = textarea.dataset.srEditorFormatName || 'body_format';
+    if (!form || form.querySelector('input[name="' + formatName + '"][data-sr-editor-format="ckeditor"]')) {
       return;
     }
 
     var input = document.createElement('input');
     input.type = 'hidden';
-    input.name = 'body_format';
+    input.name = formatName;
     input.value = 'html';
     input.setAttribute('data-sr-editor-format', 'ckeditor');
     form.appendChild(input);

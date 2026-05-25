@@ -37,6 +37,7 @@ function sr_community_default_settings(): array
         'nickname_required' => (bool) ($settings['nickname_enabled'] ?? true),
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
+        'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
         'post_reward_asset_module' => is_string($settings['post_reward_asset_module'] ?? null) ? (string) $settings['post_reward_asset_module'] : 'point',
         'post_reward_amount' => (int) ($settings['post_reward_amount'] ?? 0),
@@ -109,6 +110,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['theme_key'] = sr_community_theme_key($settings);
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
+    $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
