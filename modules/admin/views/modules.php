@@ -31,6 +31,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php foreach ($installableModules as $module) { ?>
             <?php $moduleKey = (string) $module['module_key']; ?>
             <?php $moduleModalId = 'installable-module-detail-' . $moduleKey; ?>
+            <?php $moduleInstallModalId = 'installable-module-install-' . $moduleKey; ?>
             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
             <?php $canInstall = $moduleErrors === []; ?>
             <article class="admin-card admin-module-card card admin-list-form">
@@ -75,25 +76,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_e(sr_t('admin::ui.text.9caeb34c')); ?>
                     </button>
                     <?php if ($canInstall) { ?>
-                        <details class="admin-inline-edit-details">
-                            <summary class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?></summary>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="install">
-                                <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                <label for="modules_admin_modules_status">
-                                    <span><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
-                                    <select id="modules_admin_modules_status" name="status" class="form-select">
-                                        <?php foreach ($allowedInstallStatuses as $status) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
-                                                <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                </label>
-                                <button type="submit" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?></button>
-                            </form>
-                        </details>
+                        <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleInstallModalId); ?>" data-overlay="#<?php echo sr_e($moduleInstallModalId); ?>">
+                            <?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?>
+                        </button>
                     <?php } else { ?>
                         <span class="admin-module-card-action-note"><?php echo sr_e(sr_t('admin::ui.text.b4052951')); ?></span>
                     <?php } ?>
@@ -148,6 +133,50 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
+            <?php if ($canInstall) { ?>
+                <div id="<?php echo sr_e($moduleInstallModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleInstallModalId); ?>-label">
+                    <div class="modal-dialog-sm admin-module-status-dialog">
+                        <div class="modal-content">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
+                                <div class="modal-header">
+                                    <h3 id="<?php echo sr_e($moduleInstallModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?> <?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?></h3>
+                                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleInstallModalId); ?>">
+                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="install">
+                                    <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
+                                    <div class="admin-form-row">
+                                        <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
+                                        <div class="admin-form-field">
+                                            <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
+                                            <span class="admin-form-help"><?php echo sr_e($moduleKey); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-form-row">
+                                        <label class="form-label" for="<?php echo sr_e($moduleInstallModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                        <div class="admin-form-field">
+                                            <select id="<?php echo sr_e($moduleInstallModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
+                                                <?php foreach ($allowedInstallStatuses as $status) { ?>
+                                                    <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
+                                                        <?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?>
+                                                    </option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleInstallModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
         <?php } ?>
     </div>
     <?php echo sr_admin_pagination_html($installableModulePagination, '설치 가능 모듈 목록 페이지'); ?>

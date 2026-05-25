@@ -37,7 +37,7 @@ return [
     'nav.category.site' => '사이트',
     'nav.dashboard' => '대시보드',
     'nav.menu' => '관리자 메뉴',
-    'nav.modules' => '모듈관리',
+    'nav.modules' => '모듈·플러그인 관리',
     'nav.retention' => '데이터 정리',
     'nav.roles' => '관리자 권한',
     'nav.settings' => '환경설정',
@@ -686,7 +686,7 @@ return [
     'ui.text.1a3608ec' => '스크롤 가능
                                             모달',
     'ui.text.1aacb54c' => '확인',
-    'ui.text.1ab0e3a9' => '모듈 관리',
+    'ui.text.1ab0e3a9' => '모듈·플러그인 관리',
     'ui.text.1b4019bd' => '분리된 링크',
     'ui.text.1b50041e' => '우편번호',
     'ui.text.1c977f4a' => '드롭스타트 변형',
