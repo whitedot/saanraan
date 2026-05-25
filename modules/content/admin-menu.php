@@ -12,7 +12,7 @@ return [
         [
             'label' => '환경설정',
             'path' => '/admin/content/settings',
-            'order' => 15,
+            'order' => 5,
         ],
         [
             'label' => sr_t('content::ui.content.5875c5b3'),

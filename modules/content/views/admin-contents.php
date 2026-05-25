@@ -3,19 +3,21 @@
 $sessionErrors = $_SESSION['sr_content_admin_errors'] ?? [];
 $sessionValues = $_SESSION['sr_content_admin_values'] ?? [];
 unset($_SESSION['sr_content_admin_errors'], $_SESSION['sr_content_admin_values']);
+$hasSubmittedValues = is_array($sessionValues) && $sessionValues !== [];
 if (is_array($sessionErrors)) {
     $errors = array_merge($errors, array_map('strval', $sessionErrors));
 }
-if (is_array($sessionValues)) {
+if ($hasSubmittedValues) {
     $values = $sessionValues;
 }
 $editing = is_array($editPage);
 $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.asset_settings.updated', 'content', (string) (int) ($editPage['id'] ?? 0)) : '';
 if ($values === []) {
+    $defaultContentGroupId = !$editing ? (int) ($contentGroupPrefillId ?? 0) : 0;
     $values = $editing ? $editPage : [
         'title' => '',
         'content_group_scope' => 'here_only',
-        'content_group_id' => 0,
+        'content_group_id' => $defaultContentGroupId,
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -46,6 +48,33 @@ $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
+$pageGroupSettingsById = isset($pageGroupSettingsById) && is_array($pageGroupSettingsById) ? $pageGroupSettingsById : [];
+$newContentFileAssetSettings = [
+    'file_asset_download_enabled' => 0,
+    'file_asset_module' => '',
+    'file_asset_download_amount' => 0,
+    'file_asset_download_amounts_json' => '',
+    'file_asset_charge_policy' => 'once',
+];
+if (!$editing && !$hasSubmittedValues) {
+    $defaultContentGroupSettings = is_array($pageGroupSettingsById[(int) ($values['content_group_id'] ?? 0)] ?? null)
+        ? $pageGroupSettingsById[(int) ($values['content_group_id'] ?? 0)]
+        : [];
+    foreach (array_merge(
+        sr_content_group_basic_setting_keys(),
+        array_keys(sr_content_public_display_setting_labels()),
+        sr_content_group_asset_setting_keys()
+    ) as $defaultSettingKey) {
+        if (array_key_exists((string) $defaultSettingKey, $defaultContentGroupSettings)) {
+            $values[(string) $defaultSettingKey] = $defaultContentGroupSettings[(string) $defaultSettingKey];
+        }
+    }
+    foreach (sr_content_group_file_asset_setting_keys() as $defaultFileSettingKey) {
+        if (array_key_exists((string) $defaultFileSettingKey, $defaultContentGroupSettings)) {
+            $newContentFileAssetSettings[(string) $defaultFileSettingKey] = $defaultContentGroupSettings[(string) $defaultFileSettingKey];
+        }
+    }
+}
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, 'content_basic') : '';
@@ -652,19 +681,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-content-file-charge-control">
                         <div class="admin-content-file-charge-main">
                             <label class="admin-form-check form-label" for="modules_content_admin_contents_new_content_file_asset_download_enabled">
-                                <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox">
+                                <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array((string) ($newContentFileAssetSettings['file_asset_download_enabled'] ?? '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
                             </label>
+                            <?php $selectedNewFileAssetModules = sr_content_asset_module_keys_from_value($newContentFileAssetSettings['file_asset_module'] ?? ''); ?>
                             <div class="admin-content-file-charge-assets admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_new_content_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
-                                <?php echo sr_admin_checkbox_list_html('content_admin_contents_new_content_file_asset_module', 'new_content_file_asset_module', $assetModuleChoiceOptions, [], sr_t('content::ui.text.3e195cdd')); ?>
+                                <?php echo sr_admin_checkbox_list_html('content_admin_contents_new_content_file_asset_module', 'new_content_file_asset_module', $assetModuleChoiceOptions, $selectedNewFileAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
                             </div>
-                            <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="0">
-                            <?php echo sr_content_asset_amount_inputs_html('new_content_file_asset_download_amounts', $assetModuleOptions, [], '', 0, sr_t('content::ui.text.63526029')); ?>
+                            <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0)); ?>">
+                            <?php echo sr_content_asset_amount_inputs_html('new_content_file_asset_download_amounts', $assetModuleOptions, $selectedNewFileAssetModules, $newContentFileAssetSettings['file_asset_download_amounts_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0), sr_t('content::ui.text.63526029')); ?>
                             <label for="content_admin_contents_new_content_file_asset_charge_policy">
                                 <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?></span>
                                 <select id="content_admin_contents_new_content_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select admin-content-file-charge-policy">
                                     <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $policyKey); ?>">
+                                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($newContentFileAssetSettings['file_asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) $policyLabel); ?>
                                         </option>
                                     <?php } ?>
@@ -743,7 +773,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('content::ui.status.content.slug.d9329b0b')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/content/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
+            <?php $contentNewUrl = (int) ($filters['content_group_id'] ?? 0) > 0 ? '/admin/content/new?content_group_id=' . rawurlencode((string) (int) $filters['content_group_id']) : '/admin/content/new'; ?>
+            <a href="<?php echo sr_e(sr_url($contentNewUrl)); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
         </div>
         <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         <div class="table-wrapper">

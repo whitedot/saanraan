@@ -193,6 +193,13 @@ $formBoardGroup = $communityBoardGroupsPage === 'edit' ? $selectedBoardGroup : [
     'sort_order' => 0,
 ];
 $formGroupSettings = [];
+if ($communityBoardGroupsPage === 'new') {
+    foreach (array_merge(['post_editor'], sr_community_board_group_asset_setting_keys()) as $settingKey) {
+        if (array_key_exists((string) $settingKey, $settings)) {
+            $formGroupSettings[(string) $settingKey] = $settings[(string) $settingKey];
+        }
+    }
+}
 if ($communityBoardGroupsPage === 'edit' && isset($formBoardGroup['id'])) {
     $formGroupSettings = is_array($boardGroupSettings[(int) $formBoardGroup['id']] ?? null) ? $boardGroupSettings[(int) $formBoardGroup['id']] : [];
 }

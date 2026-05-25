@@ -174,8 +174,22 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
     return $html . '</select>';
 };
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
+$newBoardGroupId = $communityBoardsPage === 'new' ? (int) ($boardGroupFilterId ?? 0) : 0;
+$newBoardDefaultSettings = $settings;
+if ($newBoardGroupId > 0 && is_array($boardGroupSettings[$newBoardGroupId] ?? null)) {
+    foreach ($boardGroupSettings[$newBoardGroupId] as $settingKey => $settingValue) {
+        if ((string) $settingKey === 'post_editor' && sr_community_post_editor_key((string) $settingValue, true) === 'inherit') {
+            continue;
+        }
+        $newBoardDefaultSettings[(string) $settingKey] = $settingValue;
+    }
+}
+$newBoardPostEditor = sr_community_post_editor_key((string) ($newBoardDefaultSettings['post_editor'] ?? ($settings['post_editor'] ?? 'textarea')), true);
+if ($newBoardPostEditor === 'inherit') {
+    $newBoardPostEditor = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
+}
 $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
-    'board_group_id' => 0,
+    'board_group_id' => $newBoardGroupId,
     'board_key' => '',
     'title' => '',
     'description' => '',
@@ -209,27 +223,33 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'level_post_score' => (string) ($settings['level_post_score'] ?? 10),
     'level_comment_score' => (string) ($settings['level_comment_score'] ?? 2),
     'skin_key' => 'basic',
-    'post_editor' => 'inherit',
-    'post_reward_enabled' => !empty($settings['post_reward_enabled']) ? '1' : '0',
-    'post_reward_asset_module' => (string) ($settings['post_reward_asset_module'] ?? 'point'),
-    'post_reward_amount' => (string) ($settings['post_reward_amount'] ?? 0),
-    'comment_reward_enabled' => !empty($settings['comment_reward_enabled']) ? '1' : '0',
-    'comment_reward_asset_module' => (string) ($settings['comment_reward_asset_module'] ?? 'point'),
-    'comment_reward_amount' => (string) ($settings['comment_reward_amount'] ?? 0),
-    'write_charge_enabled' => !empty($settings['write_charge_enabled']) ? '1' : '0',
-    'write_charge_asset_module' => (string) ($settings['write_charge_asset_module'] ?? 'point'),
-    'write_charge_amount' => (string) ($settings['write_charge_amount'] ?? 0),
-    'comment_charge_enabled' => !empty($settings['comment_charge_enabled']) ? '1' : '0',
-    'comment_charge_asset_module' => (string) ($settings['comment_charge_asset_module'] ?? 'point'),
-    'comment_charge_amount' => (string) ($settings['comment_charge_amount'] ?? 0),
-    'paid_read_enabled' => !empty($settings['paid_read_enabled']) ? '1' : '0',
-    'paid_read_asset_module' => (string) ($settings['paid_read_asset_module'] ?? 'point'),
-    'paid_read_amount' => (string) ($settings['paid_read_amount'] ?? 0),
-    'paid_read_charge_policy' => (string) ($settings['paid_read_charge_policy'] ?? 'once'),
-    'paid_attachment_download_enabled' => !empty($settings['paid_attachment_download_enabled']) ? '1' : '0',
-    'paid_attachment_download_asset_module' => (string) ($settings['paid_attachment_download_asset_module'] ?? 'point'),
-    'paid_attachment_download_amount' => (string) ($settings['paid_attachment_download_amount'] ?? 0),
-    'paid_attachment_download_charge_policy' => (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'),
+    'post_editor' => $newBoardPostEditor,
+    'post_reward_enabled' => !empty($newBoardDefaultSettings['post_reward_enabled']) ? '1' : '0',
+    'post_reward_asset_module' => (string) ($newBoardDefaultSettings['post_reward_asset_module'] ?? 'point'),
+    'post_reward_amount' => (string) ($newBoardDefaultSettings['post_reward_amount'] ?? 0),
+    'post_reward_amounts_json' => (string) ($newBoardDefaultSettings['post_reward_amounts_json'] ?? ''),
+    'comment_reward_enabled' => !empty($newBoardDefaultSettings['comment_reward_enabled']) ? '1' : '0',
+    'comment_reward_asset_module' => (string) ($newBoardDefaultSettings['comment_reward_asset_module'] ?? 'point'),
+    'comment_reward_amount' => (string) ($newBoardDefaultSettings['comment_reward_amount'] ?? 0),
+    'comment_reward_amounts_json' => (string) ($newBoardDefaultSettings['comment_reward_amounts_json'] ?? ''),
+    'write_charge_enabled' => !empty($newBoardDefaultSettings['write_charge_enabled']) ? '1' : '0',
+    'write_charge_asset_module' => (string) ($newBoardDefaultSettings['write_charge_asset_module'] ?? 'point'),
+    'write_charge_amount' => (string) ($newBoardDefaultSettings['write_charge_amount'] ?? 0),
+    'write_charge_amounts_json' => (string) ($newBoardDefaultSettings['write_charge_amounts_json'] ?? ''),
+    'comment_charge_enabled' => !empty($newBoardDefaultSettings['comment_charge_enabled']) ? '1' : '0',
+    'comment_charge_asset_module' => (string) ($newBoardDefaultSettings['comment_charge_asset_module'] ?? 'point'),
+    'comment_charge_amount' => (string) ($newBoardDefaultSettings['comment_charge_amount'] ?? 0),
+    'comment_charge_amounts_json' => (string) ($newBoardDefaultSettings['comment_charge_amounts_json'] ?? ''),
+    'paid_read_enabled' => !empty($newBoardDefaultSettings['paid_read_enabled']) ? '1' : '0',
+    'paid_read_asset_module' => (string) ($newBoardDefaultSettings['paid_read_asset_module'] ?? 'point'),
+    'paid_read_amount' => (string) ($newBoardDefaultSettings['paid_read_amount'] ?? 0),
+    'paid_read_amounts_json' => (string) ($newBoardDefaultSettings['paid_read_amounts_json'] ?? ''),
+    'paid_read_charge_policy' => (string) ($newBoardDefaultSettings['paid_read_charge_policy'] ?? 'once'),
+    'paid_attachment_download_enabled' => !empty($newBoardDefaultSettings['paid_attachment_download_enabled']) ? '1' : '0',
+    'paid_attachment_download_asset_module' => (string) ($newBoardDefaultSettings['paid_attachment_download_asset_module'] ?? 'point'),
+    'paid_attachment_download_amount' => (string) ($newBoardDefaultSettings['paid_attachment_download_amount'] ?? 0),
+    'paid_attachment_download_amounts_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_amounts_json'] ?? ''),
+    'paid_attachment_download_charge_policy' => (string) ($newBoardDefaultSettings['paid_attachment_download_charge_policy'] ?? 'once'),
 ];
 $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     ? sr_admin_asset_settings_audit_url('community.board.asset_settings.updated', 'community_board', (string) (int) ($formBoard['id'] ?? 0))
@@ -303,7 +323,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
+            <?php $communityBoardNewUrl = (int) ($boardListFilters['group_id'] ?? 0) > 0 ? '/admin/community/boards/new?group_id=' . rawurlencode((string) (int) $boardListFilters['group_id']) : '/admin/community/boards/new'; ?>
+            <a href="<?php echo sr_e(sr_url($communityBoardNewUrl)); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
         <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
         <div class="table-wrapper">
