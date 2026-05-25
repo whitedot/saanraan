@@ -36,6 +36,7 @@ $notice = '';
 $values = [
     'title' => '',
     'body_text' => '',
+    'body_format' => 'plain',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -44,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/community'))));
     }
 
-    $values = sr_community_post_input_values();
+    $values = sr_community_post_input_values($pdo);
     $errors = sr_community_validate_post_input($values);
 
     if ($errors === [] && sr_community_post_rate_limited($pdo, (int) $account['id'], $settings)) {

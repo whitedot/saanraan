@@ -35,6 +35,7 @@ $errors = [];
 $values = [
     'title' => (string) $post['title'],
     'body_text' => (string) $post['body_text'],
+    'body_format' => (string) ($post['body_format'] ?? 'plain'),
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -49,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         sr_render_error(400, sr_t('community::action.error.post_value_invalid'));
     }
 
-    $values = sr_community_post_input_values();
+    $values = sr_community_post_input_values($pdo);
     $errors = sr_community_validate_post_input($values);
 
     if ($errors === []) {

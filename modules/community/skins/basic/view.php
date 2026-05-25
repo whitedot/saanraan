@@ -116,7 +116,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
 
             <div>
-                <?php echo sr_community_plain_text_html((string) $post['body_text']); ?>
+                <?php echo sr_community_post_body_html($post); ?>
             </div>
 
             <?php if ($imageAttachments !== []) { ?>

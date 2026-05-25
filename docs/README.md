@@ -33,7 +33,6 @@
 
 현재 계획 문서:
 
-- [CKEditor 플러그인 계획](ckeditor-plugin-plan.md)
 - [본인확인 플러그인 계획](identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](member-migration-plan.md)
 - [결제 플러그인 계획](payment-plugin-plan.md)

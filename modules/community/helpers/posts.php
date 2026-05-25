@@ -393,16 +393,21 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
 
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values): void
 {
+    $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
+        ? (string) $values['body_format']
+        : 'plain';
     $stmt = $pdo->prepare(
         'UPDATE sr_community_posts
          SET title = :title,
              body_text = :body_text,
+             body_format = :body_format,
              updated_at = :updated_at
          WHERE id = :id'
     );
     $stmt->execute([
         'title' => trim((string) $values['title']),
         'body_text' => trim((string) $values['body_text']),
+        'body_format' => $bodyFormat,
         'updated_at' => sr_now(),
         'id' => $postId,
     ]);
@@ -792,11 +797,22 @@ function sr_community_board_group_keys_setting_value(array $groupKeys): string
     return is_string($encoded) ? $encoded : '[]';
 }
 
-function sr_community_post_input_values(): array
+function sr_community_post_input_values(?PDO $pdo = null): array
 {
+    $bodyFormat = 'plain';
+    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo)) {
+        $bodyFormat = 'html';
+    }
+
+    $bodyText = sr_post_string_without_truncation('body_text', 20000);
+    if ($bodyFormat === 'html' && is_string($bodyText)) {
+        $bodyText = sr_community_sanitize_post_html($bodyText);
+    }
+
     return [
         'title' => sr_post_string_without_truncation('title', 160),
-        'body_text' => sr_post_string_without_truncation('body_text', 20000),
+        'body_text' => $bodyText,
+        'body_format' => $bodyFormat,
     ];
 }
 
@@ -814,7 +830,7 @@ function sr_community_validate_post_input(array $values): array
 
     if (!is_string($bodyText)) {
         $errors[] = sr_t('community::action.error.post_body_too_long');
-    } elseif (trim($bodyText) === '') {
+    } elseif (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         $errors[] = sr_t('community::action.error.post_body_required');
     }
 
@@ -823,6 +839,9 @@ function sr_community_validate_post_input(array $values): array
 
 function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, array $values): int
 {
+    $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
+        ? (string) $values['body_format']
+        : 'plain';
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
@@ -835,7 +854,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'author_account_id' => $authorAccountId,
         'title' => trim((string) $values['title']),
         'body_text' => trim((string) $values['body_text']),
-        'body_format' => 'plain',
+        'body_format' => $bodyFormat,
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
@@ -1009,4 +1028,159 @@ function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showId
 function sr_community_plain_text_html(string $value): string
 {
     return nl2br(sr_e($value), false);
+}
+
+function sr_community_post_body_html(array $post): string
+{
+    $bodyText = (string) ($post['body_text'] ?? '');
+    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+        return sr_community_sanitize_post_html($bodyText);
+    }
+
+    return sr_community_plain_text_html($bodyText);
+}
+
+function sr_community_html_post_body_enabled(PDO $pdo): bool
+{
+    if (!sr_module_enabled($pdo, 'ckeditor') || !is_file(SR_ROOT . '/modules/ckeditor/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/ckeditor/helpers.php';
+    return function_exists('sr_ckeditor_community_posts_enabled') && sr_ckeditor_community_posts_enabled($pdo);
+}
+
+function sr_community_body_text_is_empty(string $bodyText, string $bodyFormat): bool
+{
+    if ($bodyFormat !== 'html') {
+        return trim($bodyText) === '';
+    }
+
+    $plainText = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    return $plainText === '';
+}
+
+function sr_community_allowed_post_html_tags(): array
+{
+    return [
+        'p' => [],
+        'br' => [],
+        'strong' => [],
+        'em' => [],
+        'u' => [],
+        's' => [],
+        'blockquote' => [],
+        'ul' => [],
+        'ol' => [],
+        'li' => [],
+        'a' => ['href'],
+        'h2' => [],
+        'h3' => [],
+        'img' => ['src', 'alt', 'width', 'height'],
+    ];
+}
+
+function sr_community_sanitize_post_html(string $html): string
+{
+    if (!class_exists('DOMDocument')) {
+        return sr_community_plain_text_html(strip_tags($html));
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-community-html-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return '';
+    }
+
+    $root = null;
+    foreach ($document->getElementsByTagName('div') as $div) {
+        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-community-html-root') {
+            $root = $div;
+            break;
+        }
+    }
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $output .= sr_community_sanitize_post_html_node($child);
+    }
+
+    return trim($output);
+}
+
+function sr_community_sanitize_post_html_node(DOMNode $node): string
+{
+    if ($node instanceof DOMText) {
+        return sr_e($node->wholeText);
+    }
+
+    if (!$node instanceof DOMElement) {
+        return '';
+    }
+
+    $tagName = strtolower($node->tagName);
+    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
+        return '';
+    }
+
+    $allowedTags = sr_community_allowed_post_html_tags();
+    $children = '';
+    foreach ($node->childNodes as $child) {
+        $children .= sr_community_sanitize_post_html_node($child);
+    }
+
+    if (!isset($allowedTags[$tagName])) {
+        return $children;
+    }
+
+    if ($tagName === 'br') {
+        return '<br>';
+    }
+
+    $attributes = sr_community_sanitize_post_html_attributes($node, $tagName, $allowedTags[$tagName]);
+    if ($tagName === 'img') {
+        return $attributes === '' ? '' : '<img' . $attributes . '>';
+    }
+
+    return '<' . $tagName . $attributes . '>' . $children . '</' . $tagName . '>';
+}
+
+function sr_community_sanitize_post_html_attributes(DOMElement $node, string $tagName, array $allowedAttributes): string
+{
+    $attributes = '';
+    foreach ($allowedAttributes as $attributeName) {
+        if (!$node->hasAttribute($attributeName)) {
+            continue;
+        }
+
+        $value = trim($node->getAttribute($attributeName));
+        if ($attributeName === 'href' || $attributeName === 'src') {
+            if (!sr_is_safe_relative_url($value) && !sr_is_http_url($value)) {
+                continue;
+            }
+            if ($attributeName === 'src' && sr_is_http_url($value) && strtolower((string) parse_url($value, PHP_URL_SCHEME)) !== 'https') {
+                continue;
+            }
+        } elseif ($attributeName === 'width' || $attributeName === 'height') {
+            if (preg_match('/\A[1-9][0-9]{0,3}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($attributeName === 'alt') {
+            $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        }
+
+        $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
+    }
+
+    if ($tagName === 'a' && $attributes !== '') {
+        $attributes .= ' rel="nofollow noopener noreferrer"';
+    }
+
+    return $attributes;
 }

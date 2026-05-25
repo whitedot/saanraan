@@ -11,6 +11,7 @@ $fileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_co
 $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) ? sr_community_normalize_file_extensions($settings['file_allowed_extensions']) : [];
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
+$ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo);
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -73,7 +74,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>
                 <label for="modules_community_form_body_text">
                     <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required<?php echo $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic"' : ''; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php if ($imageUploadEnabled) { ?>
@@ -109,6 +110,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         ]); ?>
         <?php if (function_exists('sr_banner_render_public_banner') && sr_module_enabled($pdo, 'banner')) { ?>
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_after_form_id'] ?? 0)); ?>
+        <?php } ?>
+        <?php if ($ckeditorEnabled && function_exists('sr_ckeditor_public_assets_html')) { ?>
+            <?php echo sr_ckeditor_public_assets_html($pdo, 'community_post_basic'); ?>
         <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>
