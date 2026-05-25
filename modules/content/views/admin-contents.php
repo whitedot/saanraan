@@ -876,13 +876,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 return option.checked && option.value === 'group';
             });
             var needsGroup = useGroup || useGroupSource;
-            groupSelect.disabled = !needsGroup;
             groupSelect.required = needsGroup;
             if (requiredLabel) {
                 requiredLabel.hidden = !needsGroup;
-            }
-            if (!needsGroup) {
-                groupSelect.value = '0';
             }
         };
 
