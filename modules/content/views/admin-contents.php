@@ -866,10 +866,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var actionDirection = document.querySelector('[data-content-action-direction]');
         var grantAmount = document.querySelector('[data-content-action-grant-amount]');
         var useAmounts = document.querySelector('[data-content-action-use-amounts]');
+        var selectFallbackOption = function (option, fallbackValue) {
+            var fallback = document.querySelector('input[name="' + option.name + '"][value="' + fallbackValue + '"]');
+            if (fallback) {
+                fallback.checked = true;
+            }
+        };
         var syncGroupScope = function () {
             if (!groupSelect || scopeOptions.length === 0) {
                 return;
             }
+            var hasGroup = groupSelect.value !== '0';
+            Array.prototype.slice.call(scopeOptions).forEach(function (option) {
+                if (option.value !== 'group') {
+                    return;
+                }
+                option.disabled = !hasGroup;
+                if (!hasGroup && option.checked) {
+                    selectFallbackOption(option, 'here_only');
+                }
+            });
+            Array.prototype.slice.call(sourceOptions).forEach(function (option) {
+                if (option.value !== 'group') {
+                    return;
+                }
+                option.disabled = !hasGroup;
+                if (!hasGroup && option.checked) {
+                    selectFallbackOption(option, 'content');
+                }
+            });
             var selectedScope = document.querySelector('[data-content-group-scope-option]:checked');
             var useGroup = selectedScope && selectedScope.value === 'group';
             var useGroupSource = Array.prototype.slice.call(sourceOptions).some(function (option) {
@@ -888,6 +913,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         sourceOptions.forEach(function (option) {
             option.addEventListener('change', syncGroupScope);
         });
+        if (groupSelect) {
+            groupSelect.addEventListener('change', syncGroupScope);
+        }
         syncGroupScope();
 
         var syncActionAmountMode = function () {

@@ -786,6 +786,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!groupSelect) {
             return;
         }
+        var hasGroup = groupSelect.value !== '0';
+        Array.prototype.slice.call(document.querySelectorAll('input[name^="source_"]')).forEach(function (input) {
+            if (input.value !== 'group') {
+                return;
+            }
+            input.disabled = !hasGroup;
+            if (!hasGroup && input.checked) {
+                var fallback = document.querySelector('input[name="' + input.name + '"][value="board"]');
+                if (fallback) {
+                    fallback.checked = true;
+                }
+            }
+        });
         var needed = Array.prototype.slice.call(document.querySelectorAll('input[name^="source_"]')).some(function (input) {
             return input.checked && input.value === 'group';
         });
@@ -926,6 +939,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (groupSelect) {
         groupSelect.addEventListener('change', function () {
             syncLevelScoreDefaults(false);
+            syncBoardGroupRequired();
         });
     }
     syncLevelScoreDefaults(false);
