@@ -292,6 +292,87 @@ function sr_community_asset_setting_keys(): array
     return $keys;
 }
 
+function sr_community_asset_bool_value_for_audit(mixed $value): bool
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_asset_settings_for_audit(array $settings, bool $includeReversalSettings = false): array
+{
+    $auditSettings = [];
+    foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
+        $moduleValue = (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point');
+        $auditSettings[$assetPrefix . '_enabled'] = sr_community_asset_bool_value_for_audit($settings[$assetPrefix . '_enabled'] ?? false);
+        $auditSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
+            ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($moduleValue))
+            : sr_community_asset_module_key($moduleValue);
+        $auditSettings[$assetPrefix . '_amount'] = max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0));
+        if (in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true)) {
+            $auditSettings[$assetPrefix . '_charge_policy'] = sr_community_asset_charge_policy(
+                (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'),
+                'once'
+            );
+        }
+    }
+
+    if ($includeReversalSettings) {
+        $auditSettings['post_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['post_reward_reversal_enabled'] ?? true);
+        $auditSettings['comment_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['comment_reward_reversal_enabled'] ?? true);
+    }
+
+    return $auditSettings;
+}
+
+function sr_community_board_asset_settings_for_audit(PDO $pdo, int $boardId, bool $includeSources = true): array
+{
+    if ($boardId < 1) {
+        return [];
+    }
+
+    $board = sr_community_board_by_id($pdo, $boardId);
+    if (!is_array($board)) {
+        return [];
+    }
+
+    $communitySettings = sr_community_settings($pdo);
+    $settings = [];
+    foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
+        $settings[$assetSettingKey] = sr_community_asset_board_setting(
+            $pdo,
+            $board,
+            $communitySettings,
+            (string) $assetSettingKey,
+            str_ends_with((string) $assetSettingKey, '_asset_module') ? 'point' : '0'
+        );
+    }
+    $auditSettings = sr_community_asset_settings_for_audit($settings);
+    if ($includeSources) {
+        foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
+            $auditSettings['source_' . (string) $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, $boardId, (string) $assetSettingKey);
+        }
+    }
+
+    return $auditSettings;
+}
+
+function sr_community_board_group_asset_settings_from_storage_for_audit(PDO $pdo, int $groupId): array
+{
+    if ($groupId < 1) {
+        return [];
+    }
+
+    $settings = [];
+    foreach (sr_community_board_group_asset_setting_keys() as $assetSettingKey) {
+        $settings[$assetSettingKey] = sr_community_board_group_setting_value($pdo, $groupId, (string) $assetSettingKey);
+    }
+
+    return sr_community_asset_settings_for_audit($settings);
+}
+
 function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
 {
     if (!sr_community_asset_module_is_available($pdo, $assetModule)) {

@@ -6,18 +6,25 @@ function sr_admin_audit_log_filters(): array
 {
     $field = sr_admin_audit_log_search_field(sr_get_string('field', 30));
     $keyword = sr_get_string('q', 80);
+    $eventType = sr_admin_audit_log_identifier_filter(sr_get_string('event_type', 80), 80);
+    $targetType = sr_admin_audit_log_identifier_filter(sr_get_string('target_type', 60), 60);
+    $targetId = sr_admin_audit_log_target_id_filter(sr_get_string('target_id', 80), 80);
 
     if ($keyword === '') {
-        $legacyEventType = sr_get_string('event_type', 80);
-        $legacyTargetType = sr_get_string('target_type', 60);
         $legacyActorAccountId = sr_get_string('actor_account_id', 20);
 
-        if ($legacyEventType !== '') {
+        if ($eventType !== '' && $targetType === '' && $targetId === '') {
             $field = 'event_type';
-            $keyword = $legacyEventType;
-        } elseif ($legacyTargetType !== '') {
+            $keyword = $eventType;
+            $eventType = '';
+        } elseif ($targetType !== '' && $eventType === '' && $targetId === '') {
             $field = 'target_type';
-            $keyword = $legacyTargetType;
+            $keyword = $targetType;
+            $targetType = '';
+        } elseif ($targetId !== '' && $eventType === '' && $targetType === '') {
+            $field = 'target_id';
+            $keyword = $targetId;
+            $targetId = '';
         } elseif ($legacyActorAccountId !== '') {
             $field = 'actor_account_id';
             $keyword = $legacyActorAccountId;
@@ -27,6 +34,9 @@ function sr_admin_audit_log_filters(): array
     return [
         'field' => $field,
         'q' => $keyword,
+        'event_type' => $eventType,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
         'result' => sr_get_string('result', 30),
         'date_from' => sr_get_string('date_from', 30),
         'date_to' => sr_get_string('date_to', 30),
@@ -35,7 +45,7 @@ function sr_admin_audit_log_filters(): array
 
 function sr_admin_audit_log_search_field(string $value): string
 {
-    return in_array($value, ['event_type', 'target_type', 'actor_account_id'], true) ? $value : 'event_type';
+    return in_array($value, ['event_type', 'target_type', 'target_id', 'actor_account_id'], true) ? $value : 'event_type';
 }
 
 function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): string
@@ -45,6 +55,103 @@ function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): st
     }
 
     return preg_match('/\A[a-z][a-z0-9_.-]*\z/', $value) === 1 ? $value : '';
+}
+
+function sr_admin_audit_log_target_id_filter(string $value, int $maxLength): string
+{
+    if ($value === '' || strlen($value) > $maxLength) {
+        return '';
+    }
+
+    return preg_match('/\A[a-zA-Z0-9][a-zA-Z0-9_.:-]*\z/', $value) === 1 ? $value : '';
+}
+
+function sr_admin_audit_asset_compare_value(mixed $value): mixed
+{
+    if (is_bool($value)) {
+        return $value ? '1' : '0';
+    }
+
+    if (is_int($value) || is_float($value)) {
+        return (string) $value;
+    }
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $normalized = [];
+    foreach ($value as $key => $childValue) {
+        $normalized[(string) $key] = sr_admin_audit_asset_compare_value($childValue);
+    }
+    ksort($normalized);
+
+    return $normalized;
+}
+
+function sr_admin_asset_setting_changed_keys(array $beforeSettings, array $afterSettings): array
+{
+    $keys = array_values(array_unique(array_merge(array_keys($beforeSettings), array_keys($afterSettings))));
+    sort($keys);
+
+    $changedKeys = [];
+    foreach ($keys as $key) {
+        $beforeExists = array_key_exists($key, $beforeSettings);
+        $afterExists = array_key_exists($key, $afterSettings);
+        if ($beforeExists !== $afterExists) {
+            $changedKeys[] = (string) $key;
+            continue;
+        }
+
+        if (sr_admin_audit_asset_compare_value($beforeSettings[$key]) !== sr_admin_audit_asset_compare_value($afterSettings[$key])) {
+            $changedKeys[] = (string) $key;
+        }
+    }
+
+    return $changedKeys;
+}
+
+function sr_admin_asset_settings_audit_url(string $eventType, string $targetType, string $targetId): string
+{
+    $query = http_build_query([
+        'field' => 'event_type',
+        'q' => $eventType,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+
+    return sr_url('/admin/audit-logs?' . $query);
+}
+
+function sr_admin_audit_asset_settings_update(PDO $pdo, array $data): void
+{
+    $beforeSettings = is_array($data['before_asset_settings'] ?? null) ? $data['before_asset_settings'] : [];
+    $afterSettings = is_array($data['after_asset_settings'] ?? null) ? $data['after_asset_settings'] : [];
+    $changedKeys = sr_admin_asset_setting_changed_keys($beforeSettings, $afterSettings);
+    if ($changedKeys === []) {
+        return;
+    }
+
+    $metadata = [
+        'asset_settings_scope' => (string) ($data['asset_settings_scope'] ?? ''),
+        'before_asset_settings' => $beforeSettings,
+        'after_asset_settings' => $afterSettings,
+        'changed_asset_setting_keys' => $changedKeys,
+    ];
+    if (is_array($data['metadata'] ?? null)) {
+        $metadata = array_merge($metadata, $data['metadata']);
+    }
+
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) ($data['actor_account_id'] ?? 0),
+        'actor_type' => (string) ($data['actor_type'] ?? 'admin'),
+        'event_type' => (string) ($data['event_type'] ?? ''),
+        'target_type' => (string) ($data['target_type'] ?? ''),
+        'target_id' => (string) ($data['target_id'] ?? ''),
+        'result' => (string) ($data['result'] ?? 'success'),
+        'message' => (string) ($data['message'] ?? 'Asset settings updated.'),
+        'metadata' => $metadata,
+    ]);
 }
 
 function sr_admin_audit_log_result_filter(string $value): string
@@ -169,8 +276,13 @@ function sr_admin_audit_log_display_message(array $log): string
         'Community comment status updated.' => '커뮤니티 댓글 상태가 변경되었습니다.',
         'Community report status updated.' => '커뮤니티 신고 상태가 변경되었습니다.',
         'Community settings updated.' => '커뮤니티 설정이 변경되었습니다.',
+        'Community asset settings updated.' => '커뮤니티 자산 설정이 변경되었습니다.',
+        'Community board asset settings updated.' => '커뮤니티 게시판 자산 설정이 변경되었습니다.',
+        'Community board group asset settings updated.' => '커뮤니티 게시판 그룹 자산 설정이 변경되었습니다.',
         'Community level definitions updated.' => '커뮤니티 레벨 정의가 변경되었습니다.',
         'Community levels recalculated.' => '커뮤니티 레벨이 재계산되었습니다.',
+        'Content asset settings updated.' => '콘텐츠 자산 설정이 변경되었습니다.',
+        'Content group asset settings updated.' => '콘텐츠 그룹 자산 설정이 변경되었습니다.',
         'Site menu saved.' => '사이트 메뉴가 저장되었습니다.',
         'Site menu item saved.' => '사이트 메뉴 항목이 저장되었습니다.',
         'Site menu item deleted.' => '사이트 메뉴 항목이 삭제되었습니다.',
@@ -191,6 +303,9 @@ function sr_admin_audit_log_query_parts(array &$filters): array
     $params = [];
     $filters['field'] = sr_admin_audit_log_search_field((string) ($filters['field'] ?? 'event_type'));
     $filters['q'] = trim((string) ($filters['q'] ?? ''));
+    $filters['event_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['event_type'] ?? ''), 80);
+    $filters['target_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['target_type'] ?? ''), 60);
+    $filters['target_id'] = sr_admin_audit_log_target_id_filter((string) ($filters['target_id'] ?? ''), 80);
     $filters['result'] = sr_admin_audit_log_result_filter($filters['result']);
     $filters['date_from'] = sr_admin_audit_log_date_filter($filters['date_from']);
     $filters['date_to'] = sr_admin_audit_log_date_filter($filters['date_to']);
@@ -208,12 +323,33 @@ function sr_admin_audit_log_query_parts(array &$filters): array
                 $where[] = 'target_type = :audit_keyword';
                 $params['audit_keyword'] = $filters['q'];
             }
+        } elseif ($filters['field'] === 'target_id') {
+            $filters['q'] = sr_admin_audit_log_target_id_filter($filters['q'], 80);
+            if ($filters['q'] !== '') {
+                $where[] = 'target_id = :audit_keyword';
+                $params['audit_keyword'] = $filters['q'];
+            }
         } elseif (ctype_digit($filters['q'])) {
             $where[] = 'actor_account_id = :actor_account_id';
             $params['actor_account_id'] = (int) $filters['q'];
         } else {
             $filters['q'] = '';
         }
+    }
+
+    if ($filters['event_type'] !== '') {
+        $where[] = 'event_type = :event_type';
+        $params['event_type'] = $filters['event_type'];
+    }
+
+    if ($filters['target_type'] !== '') {
+        $where[] = 'target_type = :target_type';
+        $params['target_type'] = $filters['target_type'];
+    }
+
+    if ($filters['target_id'] !== '') {
+        $where[] = 'target_id = :target_id';
+        $params['target_id'] = $filters['target_id'];
     }
 
     if ($filters['result'] !== '') {

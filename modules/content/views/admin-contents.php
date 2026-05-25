@@ -10,6 +10,7 @@ if (is_array($sessionValues)) {
     $values = $sessionValues;
 }
 $editing = is_array($editPage);
+$contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.asset_settings.updated', 'content', (string) (int) ($editPage['id'] ?? 0)) : '';
 if ($values === []) {
     $values = $editing ? $editPage : [
         'title' => '',
@@ -368,7 +369,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></h2>
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></span>
+                <?php if ($contentAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span></div>
                 <div class="admin-form-field">
@@ -413,7 +421,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></h2>
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
+                <?php if ($contentAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.8bcecbe7'), $contentHelp['asset_action_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.active.8bcecbe7')); ?></span></div>
                 <div class="admin-form-field">
@@ -467,6 +482,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.a052b2f6')); ?></span>
                 <span class="admin-form-actions">
+                    <?php if ($contentAssetAuditUrl !== '') { ?>
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    <?php } ?>
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
                         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('content::ui.banner.42c18eb4')); ?></a>
                     <?php } ?>

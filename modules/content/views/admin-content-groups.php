@@ -8,6 +8,7 @@ $pageGroupStatusCounts = isset($pageGroupStatusCounts) && is_array($pageGroupSta
 $allowedGroupStatuses = isset($allowedGroupStatuses) && is_array($allowedGroupStatuses) ? $allowedGroupStatuses : sr_content_group_statuses();
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $editing = is_array($editPageGroup ?? null);
+$contentGroupAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content_group.asset_settings.updated', 'content_group', (string) (int) ($editPageGroup['id'] ?? 0)) : '';
 if (!is_array($values ?? null) || $values === []) {
     $values = $editing ? $editPageGroup : [
         'group_key' => '',
@@ -256,7 +257,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?></h2>
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?></span>
+                <?php if ($contentGroupAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($contentGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span>
                 <div class="admin-form-field">

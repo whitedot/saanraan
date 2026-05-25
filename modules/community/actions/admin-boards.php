@@ -536,6 +536,7 @@ if (sr_request_method() === 'POST') {
                 foreach ($assetSettings as $assetSettingKey => $assetSettingValue) {
                     $beforeAssetSettings[$assetSettingKey] = sr_community_board_setting_value($pdo, $boardId, (string) $assetSettingKey);
                 }
+                $beforeCurrentBoardAssetSettingsForAudit = sr_community_board_asset_settings_for_audit($pdo, $boardId);
                 sr_community_update_board($pdo, $boardId, [
                     'board_group_id' => $boardGroupId,
                     'title' => $title,
@@ -565,10 +566,29 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
-                sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
                     sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
                 }
+                $boardAssetAudits = [];
+                foreach ($assetSettingSources as $settingKey => $source) {
+                    foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) $source) as $targetBoardId) {
+                        $targetBoardId = (int) $targetBoardId;
+                        if ($targetBoardId < 1) {
+                            continue;
+                        }
+
+                        if (!isset($boardAssetAudits[$targetBoardId])) {
+                            $targetBoard = sr_community_board_by_id($pdo, $targetBoardId);
+                            $boardAssetAudits[$targetBoardId] = [
+                                'board_key' => is_array($targetBoard) ? (string) ($targetBoard['board_key'] ?? '') : '',
+                                'before_asset_settings' => $targetBoardId === $boardId ? $beforeCurrentBoardAssetSettingsForAudit : sr_community_board_asset_settings_for_audit($pdo, $targetBoardId),
+                                'applied_setting_keys' => [],
+                            ];
+                        }
+                        $boardAssetAudits[$targetBoardId]['applied_setting_keys'][(string) $settingKey] = true;
+                    }
+                }
+                sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
                 foreach ($assetSettingSources as $settingKey => $source) {
                     sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
                 }
@@ -632,6 +652,27 @@ if (sr_request_method() === 'POST') {
                         'setting_sources' => $settingSources,
                     ], $publicDisplayMetadata),
                 ]);
+                foreach ($boardAssetAudits as $targetBoardId => $boardAssetAudit) {
+                    $appliedSettingKeys = array_keys(is_array($boardAssetAudit['applied_setting_keys'] ?? null) ? $boardAssetAudit['applied_setting_keys'] : []);
+                    sort($appliedSettingKeys);
+                    sr_admin_audit_asset_settings_update($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'community.board.asset_settings.updated',
+                        'target_type' => 'community_board',
+                        'target_id' => (string) $targetBoardId,
+                        'asset_settings_scope' => 'community.board',
+                        'before_asset_settings' => is_array($boardAssetAudit['before_asset_settings'] ?? null) ? $boardAssetAudit['before_asset_settings'] : [],
+                        'after_asset_settings' => sr_community_board_asset_settings_for_audit($pdo, (int) $targetBoardId),
+                        'message' => 'Community board asset settings updated.',
+                        'metadata' => [
+                            'board_key' => (string) ($boardAssetAudit['board_key'] ?? ''),
+                            'source' => 'community_board',
+                            'source_board_key' => (string) $board['board_key'],
+                            'applied_setting_keys' => $appliedSettingKeys,
+                        ],
+                    ]);
+                }
 
                 $notice = sr_t('community::action.admin.board_updated');
             }

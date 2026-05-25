@@ -15,6 +15,7 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
+$communityAssetAuditUrl = sr_admin_asset_settings_audit_url('community.settings.asset_settings.updated', 'module', 'community');
 $messageWritePolicyLabels = [
     'member' => sr_t('community::ui.message_policy.member'),
     'group' => sr_t('community::ui.message_policy.group'),
@@ -164,7 +165,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></h2>
+        <h2>
+            <span><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></span>
+            <span class="admin-form-actions">
+                <a href="<?php echo sr_e($communityAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+            </span>
+        </h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.a3cc976c'), $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.a3cc976c')); ?></span></div>

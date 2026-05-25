@@ -46,6 +46,7 @@ if ($errors !== []) {
     sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
 }
 
+$beforeAssetSettings = $pageId > 0 ? sr_content_asset_settings_from_storage_for_audit($pdo, $pageId) : [];
 $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
 try {
     sr_content_save_files_from_request($pdo, $savedPageId, (int) $account['id'], $values);
@@ -72,6 +73,22 @@ sr_audit_log($pdo, [
         'layout_key' => (string) ($values['layout_key'] ?? ''),
     ],
 ]);
+if ($pageId > 0) {
+    sr_admin_audit_asset_settings_update($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'content.asset_settings.updated',
+        'target_type' => 'content',
+        'target_id' => (string) $savedPageId,
+        'asset_settings_scope' => 'content',
+        'before_asset_settings' => $beforeAssetSettings,
+        'after_asset_settings' => sr_content_asset_settings_from_storage_for_audit($pdo, $savedPageId),
+        'message' => 'Content asset settings updated.',
+        'metadata' => [
+            'slug' => (string) $values['slug'],
+        ],
+    ]);
+}
 
 $_SESSION['sr_content_admin_notice'] = $pageId > 0 ? '콘텐츠를 저장했습니다.' : '콘텐츠를 만들었습니다.';
 sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $savedPageId : '/admin/content');

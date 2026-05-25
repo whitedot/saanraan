@@ -230,6 +230,9 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'paid_attachment_download_amount' => (string) ($settings['paid_attachment_download_amount'] ?? 0),
     'paid_attachment_download_charge_policy' => (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'),
 ];
+$communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
+    ? sr_admin_asset_settings_audit_url('community.board.asset_settings.updated', 'community_board', (string) (int) ($formBoard['id'] ?? 0))
+    : '';
 if ($communityBoardsPage !== 'edit') {
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $formBoard['source_' . $assetSettingKey] = 'board';
@@ -649,7 +652,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></h2>
+            <h2>
+                <span><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></span>
+                <?php if ($communityBoardAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($communityBoardAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-grid">
                 <?php foreach ([
                     'post_reward' => sr_t('community::ui.text.a3cc976c'),

@@ -195,6 +195,9 @@ $formGroupSettings = [];
 if ($communityBoardGroupsPage === 'edit' && isset($formBoardGroup['id'])) {
     $formGroupSettings = is_array($boardGroupSettings[(int) $formBoardGroup['id']] ?? null) ? $boardGroupSettings[(int) $formBoardGroup['id']] : [];
 }
+$communityBoardGroupAssetAuditUrl = $communityBoardGroupsPage === 'edit'
+    ? sr_admin_asset_settings_audit_url('community.board_group.asset_settings.updated', 'community_board_group', (string) (int) ($formBoardGroup['id'] ?? 0))
+    : '';
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -526,7 +529,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></h2>
+            <h2>
+                <span><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></span>
+                <?php if ($communityBoardGroupAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($communityBoardGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-grid">
                 <?php foreach ([
                     'post_reward' => sr_t('community::ui.text.a3cc976c'),

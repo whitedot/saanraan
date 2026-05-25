@@ -1088,6 +1088,96 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
     return $values;
 }
 
+function sr_content_asset_settings_for_audit(array $values): array
+{
+    $values = sr_content_normalize_asset_values($values);
+    $settings = [];
+    foreach (sr_content_group_asset_setting_keys() as $settingKey) {
+        $settings[$settingKey] = $values[$settingKey] ?? '';
+        $settings['source_' . $settingKey] = sr_content_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'content'));
+    }
+    foreach (sr_content_group_file_asset_setting_keys() as $settingKey) {
+        $settings['source_' . $settingKey] = sr_content_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'content'));
+    }
+
+    return $settings;
+}
+
+function sr_content_file_asset_settings_for_audit(array $file): array
+{
+    $values = sr_content_normalize_file_asset_values([
+        'asset_download_enabled' => (int) ($file['asset_download_enabled'] ?? 0),
+        'asset_module' => (string) ($file['asset_module'] ?? ''),
+        'asset_download_amount' => (int) ($file['asset_download_amount'] ?? 0),
+        'asset_charge_policy' => (string) ($file['asset_charge_policy'] ?? 'once'),
+    ]);
+
+    return [
+        'asset_download_enabled' => (int) $values['asset_download_enabled'],
+        'asset_module' => (string) $values['asset_module'],
+        'asset_download_amount' => (int) $values['asset_download_amount'],
+        'asset_charge_policy' => (string) $values['asset_charge_policy'],
+    ];
+}
+
+function sr_content_files_asset_settings_for_audit(PDO $pdo, int $pageId): array
+{
+    $settings = [];
+    foreach (sr_content_files_for_content($pdo, $pageId) as $file) {
+        $settings[(string) (int) $file['id']] = sr_content_file_asset_settings_for_audit($file);
+    }
+
+    return $settings;
+}
+
+function sr_content_asset_settings_from_storage_for_audit(PDO $pdo, int $pageId): array
+{
+    $page = sr_content_by_id($pdo, $pageId);
+    if (!is_array($page)) {
+        return [];
+    }
+
+    $sources = sr_content_setting_sources($pdo, $pageId);
+    foreach (sr_content_group_asset_setting_keys() as $settingKey) {
+        $page['source_' . $settingKey] = $sources[$settingKey] ?? 'content';
+    }
+    foreach (sr_content_group_file_asset_setting_keys() as $settingKey) {
+        $page['source_' . $settingKey] = $sources[$settingKey] ?? 'content';
+    }
+
+    return [
+        'content' => sr_content_asset_settings_for_audit($page),
+        'files' => sr_content_files_asset_settings_for_audit($pdo, $pageId),
+    ];
+}
+
+function sr_content_group_asset_settings_for_audit(array $settings): array
+{
+    $assetSettings = sr_content_normalize_asset_values($settings);
+    $fileAssetSettings = sr_content_normalize_file_asset_values([
+        'asset_download_enabled' => $settings['file_asset_download_enabled'] ?? 0,
+        'asset_module' => $settings['file_asset_module'] ?? '',
+        'asset_download_amount' => $settings['file_asset_download_amount'] ?? 0,
+        'asset_charge_policy' => $settings['file_asset_charge_policy'] ?? 'once',
+    ]);
+
+    $auditSettings = [];
+    foreach (sr_content_group_asset_setting_keys() as $settingKey) {
+        $auditSettings[$settingKey] = $assetSettings[$settingKey] ?? '';
+    }
+    $auditSettings['file_asset_download_enabled'] = (int) $fileAssetSettings['asset_download_enabled'];
+    $auditSettings['file_asset_module'] = (string) $fileAssetSettings['asset_module'];
+    $auditSettings['file_asset_download_amount'] = (int) $fileAssetSettings['asset_download_amount'];
+    $auditSettings['file_asset_charge_policy'] = (string) $fileAssetSettings['asset_charge_policy'];
+
+    return $auditSettings;
+}
+
+function sr_content_group_asset_settings_from_storage_for_audit(PDO $pdo, int $groupId): array
+{
+    return sr_content_group_asset_settings_for_audit(sr_content_group_settings($pdo, $groupId));
+}
+
 function sr_content_input_values(): array
 {
     $pageGroupScope = sr_content_group_apply_scope(sr_post_string('content_group_scope', 20));

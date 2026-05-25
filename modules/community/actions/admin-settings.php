@@ -58,6 +58,7 @@ if (sr_request_method() === 'POST') {
         $assetSettings['comment_reward_reversal_enabled'] = ($_POST['comment_reward_reversal_enabled'] ?? '') === '1';
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
+        $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
         if ($levelPostScore === null) {
             $errors[] = sr_t('community::action.admin.post_score_invalid');
@@ -203,6 +204,17 @@ if (sr_request_method() === 'POST') {
                     'layout_key' => $layoutKey,
                     'asset_settings' => $assetSettings,
                 ],
+            ]);
+            sr_admin_audit_asset_settings_update($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.settings.asset_settings.updated',
+                'target_type' => 'module',
+                'target_id' => 'community',
+                'asset_settings_scope' => 'community.settings',
+                'before_asset_settings' => $beforeAssetSettings,
+                'after_asset_settings' => sr_community_asset_settings_for_audit($assetSettings, true),
+                'message' => 'Community asset settings updated.',
             ]);
 
             $notice = sr_t('community::action.admin.settings_saved');

@@ -6,6 +6,15 @@ $auditMetadataModals = [];
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
+    <?php if (($filters['event_type'] ?? '') !== '') { ?>
+        <input type="hidden" name="event_type" value="<?php echo sr_e((string) $filters['event_type']); ?>">
+    <?php } ?>
+    <?php if (($filters['target_type'] ?? '') !== '') { ?>
+        <input type="hidden" name="target_type" value="<?php echo sr_e((string) $filters['target_type']); ?>">
+    <?php } ?>
+    <?php if (($filters['target_id'] ?? '') !== '') { ?>
+        <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
+    <?php } ?>
     <div class="admin-filter-header">
         <strong><?php echo sr_e(sr_t('admin::ui.search.3aa5fca0')); ?></strong>
     </div>
@@ -13,7 +22,7 @@ $auditMetadataModals = [];
         <label class="admin-filter-field admin-audit-filter-field" for="modules_admin_audit_logs_field">
             <span class="admin-filter-label"><?php echo sr_e(sr_t('admin::ui.search.b79bc9c8')); ?></span>
             <select id="modules_admin_audit_logs_field" name="field" class="form-select">
-                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
+                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 ID', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
                     <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
                         <?php echo sr_e($label); ?>
                     </option>
@@ -44,6 +53,20 @@ $auditMetadataModals = [];
         </label>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
     </div>
+    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '') { ?>
+        <div class="admin-summary-stats">
+            <?php if (($filters['event_type'] ?? '') !== '') { ?>
+                <span class="admin-summary-meta">이벤트 <strong><?php echo sr_e((string) $filters['event_type']); ?></strong></span>
+            <?php } ?>
+            <?php if (($filters['target_type'] ?? '') !== '') { ?>
+                <span class="admin-summary-meta">대상 유형 <strong><?php echo sr_e(sr_admin_code_label((string) $filters['target_type'], 'target_type')); ?></strong></span>
+            <?php } ?>
+            <?php if (($filters['target_id'] ?? '') !== '') { ?>
+                <span class="admin-summary-meta">대상 ID <strong><?php echo sr_e((string) $filters['target_id']); ?></strong></span>
+            <?php } ?>
+            <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-summary-meta">필터 해제</a>
+        </div>
+    <?php } ?>
 </form>
 
 <div class="admin-card admin-list-card card admin-list-form">

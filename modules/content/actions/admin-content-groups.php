@@ -183,6 +183,7 @@ if (sr_request_method() === 'POST') {
         sr_redirect($isUpdate && $groupId > 0 ? '/admin/content-groups/edit?id=' . (string) $groupId : '/admin/content-groups/new');
     }
 
+    $beforeAssetSettings = $isUpdate ? sr_content_group_asset_settings_from_storage_for_audit($pdo, $groupId) : [];
     if ($isUpdate) {
         sr_content_update_group($pdo, $groupId, $values);
         $savedGroupId = $groupId;
@@ -212,6 +213,22 @@ if (sr_request_method() === 'POST') {
             'status' => $status,
         ],
     ]);
+    if ($isUpdate) {
+        sr_admin_audit_asset_settings_update($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'content_group.asset_settings.updated',
+            'target_type' => 'content_group',
+            'target_id' => (string) $savedGroupId,
+            'asset_settings_scope' => 'content_group',
+            'before_asset_settings' => $beforeAssetSettings,
+            'after_asset_settings' => sr_content_group_asset_settings_for_audit($groupSettings),
+            'message' => 'Content group asset settings updated.',
+            'metadata' => [
+                'group_key' => $groupKey,
+            ],
+        ]);
+    }
 
     $_SESSION['sr_content_group_admin_notice'] = $isUpdate ? '콘텐츠 그룹을 저장했습니다.' : '콘텐츠 그룹을 만들었습니다.';
     sr_redirect($isUpdate ? '/admin/content-groups/edit?id=' . (string) $savedGroupId : '/admin/content-groups');

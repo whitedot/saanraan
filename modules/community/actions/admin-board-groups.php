@@ -298,6 +298,10 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
+            $beforeAssetSettings = $intent === 'update_group'
+                ? sr_community_board_group_asset_settings_from_storage_for_audit($pdo, $groupId)
+                : [];
+
             if ($intent === 'create_group') {
                 $groupId = sr_community_create_board_group($pdo, [
                     'group_key' => $groupKey,
@@ -317,6 +321,40 @@ if (sr_request_method() === 'POST') {
                 ]);
                 $eventType = 'community.board_group.updated';
                 $notice = sr_t('community::action.admin.board_group_updated');
+            }
+
+            $applySettingKeys = [];
+            if (isset($_POST['apply_setting_keys']) && is_array($_POST['apply_setting_keys'])) {
+                foreach ($_POST['apply_setting_keys'] as $settingKey) {
+                    $settingKey = (string) $settingKey;
+                    if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
+                        $applySettingKeys[] = $settingKey;
+                    }
+                }
+            }
+            $applySettingKeys = array_values(array_unique($applySettingKeys));
+            $appliedBoardAssetAudits = [];
+            $assetApplySettingKeys = array_values(array_intersect($applySettingKeys, sr_community_board_group_asset_setting_keys()));
+            if ($intent === 'update_group' && $assetApplySettingKeys !== []) {
+                $stmt = $pdo->prepare(
+                    'SELECT id, board_key
+                     FROM sr_community_boards
+                     WHERE board_group_id = :group_id
+                     ORDER BY id ASC'
+                );
+                $stmt->execute(['group_id' => $groupId]);
+                foreach ($stmt->fetchAll() as $board) {
+                    $boardId = (int) ($board['id'] ?? 0);
+                    if ($boardId < 1) {
+                        continue;
+                    }
+
+                    $appliedBoardAssetAudits[] = [
+                        'id' => $boardId,
+                        'board_key' => (string) ($board['board_key'] ?? ''),
+                        'before_asset_settings' => sr_community_board_asset_settings_for_audit($pdo, $boardId),
+                    ];
+                }
             }
 
             sr_community_set_board_group_setting($pdo, $groupId, 'read_policy', $readPolicy);
@@ -346,20 +384,34 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $assetSettingKey, $settingValue, $valueType);
             }
 
-            $applySettingKeys = [];
-            if (isset($_POST['apply_setting_keys']) && is_array($_POST['apply_setting_keys'])) {
-                foreach ($_POST['apply_setting_keys'] as $settingKey) {
-                    $settingKey = (string) $settingKey;
-                    if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
-                        $applySettingKeys[] = $settingKey;
-                    }
-                }
-            }
-            $applySettingKeys = array_values(array_unique($applySettingKeys));
             $appliedBoardCount = 0;
             if ($applySettingKeys !== []) {
                 $appliedBoardCount = sr_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys);
                 $notice .= sr_t('community::action.admin.board_group_settings_applied', ['count' => (string) $appliedBoardCount]);
+            }
+            foreach ($appliedBoardAssetAudits as $appliedBoardAssetAudit) {
+                $appliedBoardId = (int) ($appliedBoardAssetAudit['id'] ?? 0);
+                if ($appliedBoardId < 1) {
+                    continue;
+                }
+
+                sr_admin_audit_asset_settings_update($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.board.asset_settings.updated',
+                    'target_type' => 'community_board',
+                    'target_id' => (string) $appliedBoardId,
+                    'asset_settings_scope' => 'community.board',
+                    'before_asset_settings' => is_array($appliedBoardAssetAudit['before_asset_settings'] ?? null) ? $appliedBoardAssetAudit['before_asset_settings'] : [],
+                    'after_asset_settings' => sr_community_board_asset_settings_for_audit($pdo, $appliedBoardId),
+                    'message' => 'Community board asset settings updated.',
+                    'metadata' => [
+                        'board_key' => (string) ($appliedBoardAssetAudit['board_key'] ?? ''),
+                        'source' => 'community_board_group',
+                        'group_key' => $groupKey,
+                        'applied_setting_keys' => $assetApplySettingKeys,
+                    ],
+                ]);
             }
 
             sr_audit_log($pdo, [
@@ -376,6 +428,24 @@ if (sr_request_method() === 'POST') {
                     'applied_board_count' => $appliedBoardCount,
                 ],
             ]);
+            if ($intent === 'update_group') {
+                sr_admin_audit_asset_settings_update($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.board_group.asset_settings.updated',
+                    'target_type' => 'community_board_group',
+                    'target_id' => (string) $groupId,
+                    'asset_settings_scope' => 'community.board_group',
+                    'before_asset_settings' => $beforeAssetSettings,
+                    'after_asset_settings' => sr_community_asset_settings_for_audit($assetSettings),
+                    'message' => 'Community board group asset settings updated.',
+                    'metadata' => [
+                        'group_key' => $groupKey,
+                        'applied_setting_keys' => $applySettingKeys,
+                        'applied_board_count' => $appliedBoardCount,
+                    ],
+                ]);
+            }
 
             if ($intent === 'create_group') {
                 sr_admin_flash_result(sr_admin_action_result([], $notice));
