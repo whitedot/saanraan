@@ -174,22 +174,10 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
     return $html . '</select>';
 };
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
-$newBoardGroupId = $communityBoardsPage === 'new' ? (int) ($boardGroupFilterId ?? 0) : 0;
 $newBoardDefaultSettings = $settings;
-if ($newBoardGroupId > 0 && is_array($boardGroupSettings[$newBoardGroupId] ?? null)) {
-    foreach ($boardGroupSettings[$newBoardGroupId] as $settingKey => $settingValue) {
-        if ((string) $settingKey === 'post_editor' && sr_community_post_editor_key((string) $settingValue, true) === 'inherit') {
-            continue;
-        }
-        $newBoardDefaultSettings[(string) $settingKey] = $settingValue;
-    }
-}
-$newBoardPostEditor = sr_community_post_editor_key((string) ($newBoardDefaultSettings['post_editor'] ?? ($settings['post_editor'] ?? 'textarea')), true);
-if ($newBoardPostEditor === 'inherit') {
-    $newBoardPostEditor = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
-}
+$newBoardPostEditor = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
 $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
-    'board_group_id' => $newBoardGroupId,
+    'board_group_id' => 0,
     'board_key' => '',
     'title' => '',
     'description' => '',
@@ -323,8 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
-            <?php $communityBoardNewUrl = (int) ($boardListFilters['group_id'] ?? 0) > 0 ? '/admin/community/boards/new?group_id=' . rawurlencode((string) (int) $boardListFilters['group_id']) : '/admin/community/boards/new'; ?>
-            <a href="<?php echo sr_e(sr_url($communityBoardNewUrl)); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
         <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
         <div class="table-wrapper">

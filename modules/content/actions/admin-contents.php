@@ -31,14 +31,6 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
 $pageGroups = sr_content_groups($pdo);
-$pageGroupIds = [];
-$pageGroupSettingsById = [];
-foreach ($pageGroups as $pageGroup) {
-    $pageGroupId = (int) ($pageGroup['id'] ?? 0);
-    if ($pageGroupId > 0) {
-        $pageGroupIds[$pageGroupId] = true;
-    }
-}
 
 if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);
@@ -49,17 +41,6 @@ if ($pageAdminPage === 'form') {
         }
         $editPage['setting_sources'] = sr_content_setting_sources($pdo, $pageId);
         $contentFiles = sr_content_files_for_content($pdo, $pageId);
-    }
-    foreach (array_keys($pageGroupIds) as $pageGroupId) {
-        $pageGroupSettingsById[$pageGroupId] = sr_content_group_settings($pdo, (int) $pageGroupId);
-    }
-    $contentGroupPrefillValue = sr_get_string('content_group_id', 20);
-    if ($contentGroupPrefillValue === '') {
-        $contentGroupPrefillValue = sr_get_string('group_id', 20);
-    }
-    $contentGroupPrefillId = preg_match('/\A[1-9][0-9]*\z/', $contentGroupPrefillValue) === 1 ? (int) $contentGroupPrefillValue : 0;
-    if ($contentGroupPrefillId > 0 && !isset($pageGroupIds[$contentGroupPrefillId])) {
-        $contentGroupPrefillId = 0;
     }
 } else {
     $filters = sr_content_admin_filters();

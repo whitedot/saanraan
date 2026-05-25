@@ -13,11 +13,10 @@ if ($hasSubmittedValues) {
 $editing = is_array($editPage);
 $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.asset_settings.updated', 'content', (string) (int) ($editPage['id'] ?? 0)) : '';
 if ($values === []) {
-    $defaultContentGroupId = !$editing ? (int) ($contentGroupPrefillId ?? 0) : 0;
     $values = $editing ? $editPage : [
         'title' => '',
         'content_group_scope' => 'here_only',
-        'content_group_id' => $defaultContentGroupId,
+        'content_group_id' => 0,
         'slug' => '',
         'summary' => '',
         'body_text' => '',
@@ -48,7 +47,6 @@ $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
-$pageGroupSettingsById = isset($pageGroupSettingsById) && is_array($pageGroupSettingsById) ? $pageGroupSettingsById : [];
 $newContentFileAssetSettings = [
     'file_asset_download_enabled' => 0,
     'file_asset_module' => '',
@@ -56,25 +54,6 @@ $newContentFileAssetSettings = [
     'file_asset_download_amounts_json' => '',
     'file_asset_charge_policy' => 'once',
 ];
-if (!$editing && !$hasSubmittedValues) {
-    $defaultContentGroupSettings = is_array($pageGroupSettingsById[(int) ($values['content_group_id'] ?? 0)] ?? null)
-        ? $pageGroupSettingsById[(int) ($values['content_group_id'] ?? 0)]
-        : [];
-    foreach (array_merge(
-        sr_content_group_basic_setting_keys(),
-        array_keys(sr_content_public_display_setting_labels()),
-        sr_content_group_asset_setting_keys()
-    ) as $defaultSettingKey) {
-        if (array_key_exists((string) $defaultSettingKey, $defaultContentGroupSettings)) {
-            $values[(string) $defaultSettingKey] = $defaultContentGroupSettings[(string) $defaultSettingKey];
-        }
-    }
-    foreach (sr_content_group_file_asset_setting_keys() as $defaultFileSettingKey) {
-        if (array_key_exists((string) $defaultFileSettingKey, $defaultContentGroupSettings)) {
-            $newContentFileAssetSettings[(string) $defaultFileSettingKey] = $defaultContentGroupSettings[(string) $defaultFileSettingKey];
-        }
-    }
-}
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, 'content_basic') : '';
@@ -773,8 +752,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('content::ui.status.content.slug.d9329b0b')); ?></p>
             </div>
-            <?php $contentNewUrl = (int) ($filters['content_group_id'] ?? 0) > 0 ? '/admin/content/new?content_group_id=' . rawurlencode((string) (int) $filters['content_group_id']) : '/admin/content/new'; ?>
-            <a href="<?php echo sr_e(sr_url($contentNewUrl)); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/content/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
         </div>
         <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         <div class="table-wrapper">
