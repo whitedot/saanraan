@@ -236,6 +236,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Member sessions revoked.' => '회원 세션이 폐기되었습니다.',
         'Member account created by admin.' => '관리자가 회원 계정을 생성했습니다.',
         'Member account updated by admin.' => '관리자가 회원 계정을 변경했습니다.',
+        'Member nickname updated by admin.' => '관리자가 회원 닉네임을 변경했습니다.',
         'Member account basics updated.' => '회원 기본 정보가 변경되었습니다.',
         'Member account withdrawn and anonymized.' => '회원 계정이 탈퇴 처리되고 익명화되었습니다.',
         'Member profile updated.' => '회원 프로필이 변경되었습니다.',

@@ -789,6 +789,190 @@ function sr_admin_member_status_counts(PDO $pdo): array
     return $counts;
 }
 
+function sr_admin_member_nickname_filter(PDO $pdo, array $config): array
+{
+    $field = sr_get_string('field', 30);
+    $keyword = trim(sr_get_string('q', 120));
+    $allowedFields = ['all', 'hash', 'email', 'name', 'nickname'];
+    if (!in_array($field, $allowedFields, true)) {
+        $field = 'all';
+    }
+
+    $accountId = 0;
+    if ($field === 'all' || $field === 'hash') {
+        $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
+    }
+
+    return [
+        'field' => $field,
+        'keyword' => $keyword,
+        'account_id' => $accountId,
+    ];
+}
+
+function sr_admin_member_nickname_query_parts(array $filter = []): array
+{
+    $params = [];
+    $where = [];
+    $field = (string) ($filter['field'] ?? 'all');
+    $keyword = trim((string) ($filter['keyword'] ?? ''));
+    $accountId = (int) ($filter['account_id'] ?? 0);
+
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+        if ($field === 'hash') {
+            $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
+            if ($accountId > 0) {
+                $params['account_id'] = $accountId;
+            }
+        } elseif ($field === 'email') {
+            $where[] = "a.email LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = $like;
+        } elseif ($field === 'name') {
+            $where[] = "a.display_name LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = $like;
+        } elseif ($field === 'nickname') {
+            $where[] = "p.nickname LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = $like;
+        } else {
+            $clauses = [
+                "a.email LIKE :keyword_email_like ESCAPE '\\\\'",
+                "a.display_name LIKE :keyword_name_like ESCAPE '\\\\'",
+                "p.nickname LIKE :keyword_nickname_like ESCAPE '\\\\'",
+            ];
+            $params['keyword_email_like'] = $like;
+            $params['keyword_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
+            if ($accountId > 0) {
+                $clauses[] = 'a.id = :account_id';
+                $params['account_id'] = $accountId;
+            }
+            $where[] = '(' . implode(' OR ', $clauses) . ')';
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_admin_member_nickname_count(PDO $pdo, array $filter = []): int
+{
+    $queryParts = sr_admin_member_nickname_query_parts($filter);
+    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_member_accounts a
+         LEFT JOIN sr_member_profiles p ON p.account_id = a.id
+         ' . $whereSql
+    );
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_member_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0, int $offset = 0): array
+{
+    $queryParts = sr_admin_member_nickname_query_parts($filter);
+    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
+    $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
+    $stmt = $pdo->prepare(
+        'SELECT a.id, a.email, a.display_name, a.status, a.created_at,
+                p.nickname, p.updated_at AS profile_updated_at
+         FROM sr_member_accounts a
+         LEFT JOIN sr_member_profiles p ON p.account_id = a.id
+         ' . $whereSql . '
+         ORDER BY a.id DESC' . $limitSql
+    );
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_admin_handle_member_nickname_post(PDO $pdo, array $account): array
+{
+    $errors = [];
+    $notice = '';
+    $targetAccountId = sr_admin_post_positive_int('account_id');
+    $nicknameInput = sr_post_string_without_truncation('nickname', 80);
+    $nickname = $nicknameInput === null ? '' : trim($nicknameInput);
+    $memberSettings = sr_member_settings($pdo);
+    $nicknameRequired = !empty($memberSettings['profile_nickname_enabled']) && !empty($memberSettings['profile_nickname_required']);
+
+    if ($targetAccountId <= 0) {
+        $errors[] = sr_t('member::action.admin.member_required');
+    }
+
+    if ($nicknameInput === null) {
+        $errors[] = sr_t('member::action.admin.nickname_too_long');
+    }
+
+    if ($nicknameRequired && $nickname === '') {
+        $errors[] = sr_t('member::profile.error.nickname_required');
+    }
+
+    $targetAccount = null;
+    if ($errors === []) {
+        $targetAccount = sr_admin_member_by_id($pdo, $targetAccountId);
+        if (!is_array($targetAccount)) {
+            $errors[] = sr_t('member::action.admin.member_not_found');
+        } elseif ((string) ($targetAccount['status'] ?? '') === 'anonymized') {
+            $errors[] = sr_t('member::action.admin.nickname_anonymized_disallowed');
+        }
+    }
+
+    $beforeNickname = '';
+    if ($errors === []) {
+        $profile = sr_member_profile($pdo, $targetAccountId);
+        $beforeNickname = (string) ($profile['nickname'] ?? '');
+        if ($beforeNickname !== $nickname) {
+            $now = sr_now();
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_member_profiles
+                    (account_id, nickname, created_at, updated_at)
+                 VALUES
+                    (:account_id, :nickname, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    nickname = VALUES(nickname),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'account_id' => $targetAccountId,
+                'nickname' => $nickname,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'member.nickname.updated',
+            'target_type' => 'member_account',
+            'target_id' => (string) $targetAccountId,
+            'result' => 'success',
+            'message' => 'Member nickname updated by admin.',
+            'metadata' => [
+                'nickname_changed' => $beforeNickname !== $nickname,
+                'nickname_set' => $nickname !== '',
+            ],
+        ]);
+
+        $notice = sr_t('member::action.admin.nickname_updated');
+    }
+
+    return sr_admin_action_result($errors, $notice);
+}
+
 function sr_admin_member_query_parts(string $statusFilter, array $searchFilter = []): array
 {
     $params = [];
