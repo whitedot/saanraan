@@ -379,18 +379,71 @@ function sr_admin_audit_log_query_parts(array &$filters): array
     ];
 }
 
-function sr_admin_audit_logs(PDO $pdo, array &$filters): array
+function sr_admin_audit_log_page_number(string $value): int
+{
+    if (preg_match('/\A[1-9][0-9]*\z/', $value) !== 1) {
+        return 1;
+    }
+
+    return max(1, min(1000000, (int) $value));
+}
+
+function sr_admin_audit_log_count(PDO $pdo, array $filters): int
 {
     $queryParts = sr_admin_audit_log_query_parts($filters);
     $where = $queryParts['where'];
     $params = $queryParts['params'];
+
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_audit_logs';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_audit_log_page_url(array $filters, int $page): string
+{
+    $query = [];
+    $field = sr_admin_audit_log_search_field((string) ($filters['field'] ?? 'event_type'));
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $query['field'] = $field;
+        $query['q'] = $keyword;
+    }
+
+    foreach (['event_type', 'target_type', 'target_id', 'result', 'date_from', 'date_to'] as $filterKey) {
+        $value = trim((string) ($filters[$filterKey] ?? ''));
+        if ($value !== '') {
+            $query[$filterKey] = $value;
+        }
+    }
+
+    if ($page > 1) {
+        $query['page'] = $page;
+    }
+
+    return sr_url('/admin/audit-logs' . ($query !== [] ? '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986) : ''));
+}
+
+function sr_admin_audit_logs(PDO $pdo, array &$filters, int $limit = 100, int $offset = 0): array
+{
+    $queryParts = sr_admin_audit_log_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
+    $limit = max(1, min(500, $limit));
+    $offset = max(0, $offset);
 
     $sql = 'SELECT id, actor_account_id, actor_type, event_type, target_type, target_id, result, ip_address, message, metadata_json, created_at
             FROM sr_audit_logs';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY id DESC LIMIT 100';
+    $sql .= ' ORDER BY id DESC LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset;
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

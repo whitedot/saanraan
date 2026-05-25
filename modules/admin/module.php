@@ -27,5 +27,6 @@ return [
     'settings' => [
         'admin_skin_key' => 'basic',
         'admin_color_scheme' => 'light',
+        'list_pagination_per_page' => 50,
     ],
 ];

@@ -332,7 +332,12 @@ function sr_admin_settings(PDO $pdo): array
         }
     }
 
-    return array_merge($baseSettings, $settings);
+    $mergedSettings = array_merge($baseSettings, $settings);
+    if (!isset($settings['list_pagination_per_page']) && isset($settings['audit_logs_per_page'])) {
+        $mergedSettings['list_pagination_per_page'] = $settings['audit_logs_per_page'];
+    }
+
+    return $mergedSettings;
 }
 
 function sr_admin_skin_options(): array
@@ -362,6 +367,13 @@ function sr_admin_color_scheme(array $settings): string
     return isset(sr_color_scheme_options()[$colorScheme]) ? $colorScheme : 'light';
 }
 
+function sr_admin_list_pagination_per_page(array $settings): int
+{
+    $perPage = $settings['list_pagination_per_page'] ?? ($settings['audit_logs_per_page'] ?? 50);
+
+    return max(10, min(500, (int) $perPage));
+}
+
 function sr_admin_skin_view(string $skinKey, string $viewKey): string
 {
     $options = sr_admin_skin_options();
@@ -389,6 +401,12 @@ function sr_admin_save_color_scheme(PDO $pdo, string $colorScheme): void
 {
     $colorScheme = sr_admin_color_scheme(['admin_color_scheme' => $colorScheme]);
     sr_admin_save_module_setting($pdo, 'admin_color_scheme', $colorScheme);
+}
+
+function sr_admin_save_list_pagination_per_page(PDO $pdo, int $perPage): void
+{
+    $perPage = sr_admin_list_pagination_per_page(['list_pagination_per_page' => $perPage]);
+    sr_admin_save_module_setting($pdo, 'list_pagination_per_page', (string) $perPage, 'int');
 }
 
 function sr_admin_save_module_setting(PDO $pdo, string $settingKey, string $settingValue, string $valueType = 'string'): void

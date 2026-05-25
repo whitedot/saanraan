@@ -11,6 +11,7 @@ return [
     'GET /admin/members' => 'actions/admin-members.php',
     'POST /admin/members' => 'actions/admin-members.php',
     'GET /admin/members/search' => 'actions/admin-member-search.php',
+    'GET /admin/members/summary' => 'actions/admin-member-summary.php',
     'GET /admin/members/new' => 'actions/admin-members-new.php',
     'GET /admin/members/edit' => 'actions/admin-members-edit.php',
     'POST /admin/members/save' => 'actions/admin-members-save.php',

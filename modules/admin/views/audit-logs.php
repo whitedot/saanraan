@@ -3,6 +3,14 @@
 $adminPageTitle = sr_t('admin::ui.admin.d0bd9568');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 $auditMetadataModals = [];
+$auditActorMemberModalId = 'admin-audit-actor-member-modal';
+$auditPage = (int) ($auditPagination['page'] ?? 1);
+$auditPerPage = (int) ($auditPagination['per_page'] ?? count($logs));
+$auditTotal = (int) ($auditPagination['total'] ?? count($logs));
+$auditTotalPages = (int) ($auditPagination['total_pages'] ?? 1);
+$auditListStart = $auditTotal > 0 ? (($auditPage - 1) * $auditPerPage) + 1 : 0;
+$auditListEnd = $auditTotal > 0 ? min($auditTotal, $auditPage * $auditPerPage) : 0;
+$auditPaginationItems = sr_admin_pagination_items($auditPage, $auditTotalPages, 2);
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
@@ -70,60 +78,157 @@ $auditMetadataModals = [];
 </form>
 
 <div class="admin-card admin-list-card card admin-list-form">
-<div class="table-wrapper">
-<table class="table admin-audit-log-table">
-    <thead class="ui-table-head">
-        <tr>
-            <th>ID</th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.faea4ccf')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.750086e9')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.46b289bb')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></th>
-            <th>IP</th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.4cd44bae')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.7d98432e')); ?></th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php if ($logs === []) { ?>
-            <tr>
-                <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.admin.7d324209')); ?></td>
-            </tr>
+    <div class="admin-list-summary">
+        <?php if ($auditTotal > 0) { ?>
+            <span>전체 <strong><?php echo sr_e((string) $auditTotal); ?></strong>건 중 <?php echo sr_e((string) $auditListStart); ?>-<?php echo sr_e((string) $auditListEnd); ?>건 표시</span>
+        <?php } else { ?>
+            <span>전체 <strong>0</strong>건</span>
         <?php } ?>
-        <?php foreach ($logs as $log) { ?>
+    </div>
+    <div class="table-wrapper">
+    <table class="table admin-audit-log-table">
+        <thead class="ui-table-head">
             <tr>
-                <td><?php echo sr_e((string) $log['id']); ?></td>
-                <td><?php echo sr_e((string) $log['created_at']); ?></td>
-                <td><?php echo sr_e((string) ($log['actor_account_id'] ?? $log['actor_type'])); ?></td>
-                <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
-                <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type') . ':' . (string) $log['target_id']); ?></td>
-                <td><?php echo sr_e(sr_admin_code_label((string) $log['result'], 'result')); ?></td>
-                <td><?php echo sr_e((string) $log['ip_address']); ?></td>
-                <td class="admin-audit-message"><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
-                <td class="admin-audit-metadata">
-                    <?php $metadata = sr_admin_audit_log_display_metadata($log); ?>
-                    <?php if ($metadata === '') { ?>
-                        -
-                    <?php } else { ?>
-                        <?php
-                        $metadataModalId = 'admin-audit-metadata-modal-' . (int) $log['id'];
-                        $auditMetadataModals[] = [
-                            'id' => $metadataModalId,
-                            'log_id' => (int) $log['id'],
-                            'created_at' => (string) $log['created_at'],
-                            'event_type' => sr_admin_event_type_label((string) $log['event_type']),
-                            'metadata' => $metadata,
-                        ];
-                        ?>
-                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($metadataModalId); ?>" data-overlay="#<?php echo sr_e($metadataModalId); ?>"><?php echo sr_material_icon_html('visibility'); ?></button>
-                    <?php } ?>
-                </td>
+                <th>ID</th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.faea4ccf')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.750086e9')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.46b289bb')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></th>
+                <th>IP</th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.4cd44bae')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.7d98432e')); ?></th>
             </tr>
-        <?php } ?>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <?php if ($logs === []) { ?>
+                <tr>
+                    <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.admin.7d324209')); ?></td>
+                </tr>
+            <?php } ?>
+            <?php foreach ($logs as $log) { ?>
+                <tr>
+                    <td><?php echo sr_e((string) $log['id']); ?></td>
+                    <td><?php echo sr_e((string) $log['created_at']); ?></td>
+                    <td>
+                        <?php $actorAccountId = (int) ($log['actor_account_id'] ?? 0); ?>
+                        <?php if ($actorAccountId > 0) { ?>
+                            <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($auditActorMemberModalId); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>" data-admin-audit-actor-member data-account-id="<?php echo sr_e((string) $actorAccountId); ?>" data-member-url="<?php echo sr_e(sr_url('/admin/members/summary?id=' . (string) $actorAccountId)); ?>">
+                                <?php echo sr_e('계정 #' . (string) $actorAccountId); ?>
+                            </button>
+                        <?php } else { ?>
+                            <?php echo sr_e((string) ($log['actor_type'] ?? '-')); ?>
+                        <?php } ?>
+                    </td>
+                    <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type') . ':' . (string) $log['target_id']); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $log['result'], 'result')); ?></td>
+                    <td><?php echo sr_e((string) $log['ip_address']); ?></td>
+                    <td class="admin-audit-message"><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
+                    <td class="admin-audit-metadata">
+                        <?php $metadata = sr_admin_audit_log_display_metadata($log); ?>
+                        <?php if ($metadata === '') { ?>
+                            -
+                        <?php } else { ?>
+                            <?php
+                            $metadataModalId = 'admin-audit-metadata-modal-' . (int) $log['id'];
+                            $auditMetadataModals[] = [
+                                'id' => $metadataModalId,
+                                'log_id' => (int) $log['id'],
+                                'created_at' => (string) $log['created_at'],
+                                'event_type' => sr_admin_event_type_label((string) $log['event_type']),
+                                'metadata' => $metadata,
+                            ];
+                            ?>
+                            <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($metadataModalId); ?>" data-overlay="#<?php echo sr_e($metadataModalId); ?>"><?php echo sr_material_icon_html('visibility'); ?></button>
+                        <?php } ?>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
 </div>
+
+<?php if ($auditTotalPages > 1) { ?>
+    <nav class="admin-pagination" aria-label="작업 로그 페이지">
+        <div class="admin-pagination-group" role="group" aria-label="작업 로그 페이지 이동">
+            <?php $auditPaginationIndex = 0; ?>
+            <?php $auditPaginationControlCount = count($auditPaginationItems) + 4; ?>
+            <?php if ($auditPage > 1) { ?>
+                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="처음 페이지" title="처음 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_left'); ?></a>
+            <?php } else { ?>
+                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="처음 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_left'); ?></span>
+            <?php } ?>
+            <?php $auditPaginationIndex++; ?>
+            <?php if ($auditPage > 1) { ?>
+                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPage - 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="이전 페이지" title="이전 페이지"><?php echo sr_material_icon_html('chevron_left'); ?></a>
+            <?php } else { ?>
+                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="이전 페이지"><?php echo sr_material_icon_html('chevron_left'); ?></span>
+            <?php } ?>
+            <?php $auditPaginationIndex++; ?>
+            <?php foreach ($auditPaginationItems as $auditPaginationItem) { ?>
+                <?php $auditPaginationGroupClass = sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount); ?>
+                <?php if (($auditPaginationItem['type'] ?? '') === 'gap') { ?>
+                    <span class="btn btn-sm btn-solid-light admin-pagination-gap <?php echo sr_e($auditPaginationGroupClass); ?>" aria-hidden="true">...</span>
+                <?php } else { ?>
+                    <?php $auditPaginationPage = (int) ($auditPaginationItem['page'] ?? 1); ?>
+                    <?php if (!empty($auditPaginationItem['current'])) { ?>
+                        <span class="btn btn-sm btn-solid-primary admin-pagination-page <?php echo sr_e($auditPaginationGroupClass); ?>" aria-current="page"><?php echo sr_e((string) $auditPaginationPage); ?></span>
+                    <?php } else { ?>
+                        <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPaginationPage)); ?>" class="btn btn-sm btn-solid-light admin-pagination-page <?php echo sr_e($auditPaginationGroupClass); ?>" aria-label="<?php echo sr_e((string) $auditPaginationPage); ?>페이지"><?php echo sr_e((string) $auditPaginationPage); ?></a>
+                    <?php } ?>
+                <?php } ?>
+                <?php $auditPaginationIndex++; ?>
+            <?php } ?>
+            <?php if ($auditPage < $auditTotalPages) { ?>
+                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPage + 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="다음 페이지" title="다음 페이지"><?php echo sr_material_icon_html('chevron_right'); ?></a>
+            <?php } else { ?>
+                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="다음 페이지"><?php echo sr_material_icon_html('chevron_right'); ?></span>
+            <?php } ?>
+            <?php $auditPaginationIndex++; ?>
+            <?php if ($auditPage < $auditTotalPages) { ?>
+                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditTotalPages)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="마지막 페이지" title="마지막 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_right'); ?></a>
+            <?php } else { ?>
+                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="마지막 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_right'); ?></span>
+            <?php } ?>
+        </div>
+    </nav>
+<?php } ?>
+
+<div id="<?php echo sr_e($auditActorMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($auditActorMemberModalId); ?>_title" aria-hidden="true" inert>
+    <div class="modal-dialog modal-dialog-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="<?php echo sr_e($auditActorMemberModalId); ?>_title" class="modal-title">처리자 회원 정보</h3>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>">
+                    <?php echo sr_material_icon_html('close'); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="admin-form-help" data-admin-audit-actor-loading>회원 정보를 불러오는 중입니다.</p>
+                <p class="admin-form-help hidden" data-admin-audit-actor-error></p>
+                <dl class="admin-module-detail-list hidden" data-admin-audit-actor-detail>
+                    <dt>공개 해시</dt>
+                    <dd data-admin-audit-actor-field="account_public_hash">-</dd>
+                    <dt>표시 이름</dt>
+                    <dd data-admin-audit-actor-field="display_name">-</dd>
+                    <dt>이메일</dt>
+                    <dd data-admin-audit-actor-field="email">-</dd>
+                    <dt>상태</dt>
+                    <dd data-admin-audit-actor-field="status_label">-</dd>
+                    <dt>이메일 인증</dt>
+                    <dd data-admin-audit-actor-field="email_verified_label">-</dd>
+                    <dt>마지막 로그인</dt>
+                    <dd data-admin-audit-actor-field="last_login_at">-</dd>
+                </dl>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-solid-primary hidden" data-admin-audit-actor-edit-link>회원 관리</a>
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php foreach ($auditMetadataModals as $auditMetadataModal) { ?>
@@ -151,5 +256,124 @@ $auditMetadataModals = [];
         </div>
     </div>
 <?php } ?>
+
+<script>
+(function () {
+    'use strict';
+
+    var modal = document.getElementById('<?php echo sr_e($auditActorMemberModalId); ?>');
+    if (!modal || !window.fetch) {
+        return;
+    }
+
+    var loading = modal.querySelector('[data-admin-audit-actor-loading]');
+    var error = modal.querySelector('[data-admin-audit-actor-error]');
+    var detail = modal.querySelector('[data-admin-audit-actor-detail]');
+    var editLink = modal.querySelector('[data-admin-audit-actor-edit-link]');
+    var fields = {};
+    modal.querySelectorAll('[data-admin-audit-actor-field]').forEach(function (field) {
+        fields[field.getAttribute('data-admin-audit-actor-field') || ''] = field;
+    });
+
+    function setText(field, value) {
+        if (!fields[field]) {
+            return;
+        }
+
+        fields[field].textContent = value ? String(value) : '-';
+    }
+
+    function resetModal() {
+        if (loading) {
+            loading.classList.remove('hidden');
+        }
+        if (error) {
+            error.classList.add('hidden');
+            error.textContent = '';
+        }
+        if (detail) {
+            detail.classList.add('hidden');
+        }
+        if (editLink) {
+            editLink.classList.add('hidden');
+            editLink.classList.remove('modal-action');
+            editLink.setAttribute('href', '#');
+        }
+        Object.keys(fields).forEach(function (field) {
+            fields[field].textContent = '-';
+        });
+    }
+
+    function showError(message) {
+        if (loading) {
+            loading.classList.add('hidden');
+        }
+        if (detail) {
+            detail.classList.add('hidden');
+        }
+        if (error) {
+            error.textContent = message || '회원 정보를 불러오지 못했습니다.';
+            error.classList.remove('hidden');
+        }
+    }
+
+    function showMember(member) {
+        if (loading) {
+            loading.classList.add('hidden');
+        }
+        if (error) {
+            error.classList.add('hidden');
+        }
+        setText('account_public_hash', member.account_public_hash || '');
+        setText('display_name', member.display_name || '');
+        setText('email', member.email || '');
+        setText('status_label', member.status_label || member.status || '');
+        setText('email_verified_label', member.email_verified_label || '');
+        setText('last_login_at', member.last_login_at || '');
+        if (editLink && member.edit_url) {
+            editLink.setAttribute('href', member.edit_url);
+            editLink.classList.add('modal-action');
+            editLink.classList.remove('hidden');
+        }
+        if (detail) {
+            detail.classList.remove('hidden');
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var trigger = event.target.closest('[data-admin-audit-actor-member]');
+        if (!trigger) {
+            return;
+        }
+
+        var url = trigger.getAttribute('data-member-url') || '';
+        resetModal();
+        if (!url) {
+            showError('회원 정보 조회 주소가 없습니다.');
+            return;
+        }
+
+        window.fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(function (response) {
+            return response.json().then(function (payload) {
+                if (!response.ok || !payload || !payload.ok) {
+                    throw new Error(payload && payload.message ? payload.message : '회원 정보를 불러오지 못했습니다.');
+                }
+
+                return payload;
+            });
+        }).then(function (payload) {
+            showMember(payload.member || {});
+        }).catch(function (fetchError) {
+            showError(fetchError && fetchError.message ? fetchError.message : '회원 정보를 불러오지 못했습니다.');
+        });
+    });
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

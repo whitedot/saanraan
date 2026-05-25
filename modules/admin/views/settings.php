@@ -85,6 +85,14 @@ $siteSettingsHelp = [
             'settings.help.admin_skin.body.2',
         ]),
     ],
+    'list_pagination_per_page' => [
+        'id' => 'admin-settings-list-pagination-per-page-help-modal',
+        'title' => sr_t('admin::settings.help.list_pagination_per_page.title'),
+        'body_html' => $siteSettingsHelpBodyHtml([
+            'settings.help.list_pagination_per_page.body.1',
+            'settings.help.list_pagination_per_page.body.2',
+        ]),
+    ],
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -225,6 +233,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_list_pagination_per_page', '페이징 기본수', $siteSettingsHelp['list_pagination_per_page']['id'], $siteSettingsHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <div class="input-group admin-input-unit">
+                    <input id="admin_settings_list_pagination_per_page" type="number" name="list_pagination_per_page" value="<?php echo sr_e((string) $values['list_pagination_per_page']); ?>" class="form-input" min="10" max="500" required>
+                    <span class="input-group-text">개</span>
+                </div>
             </div>
         </div>
     </section>
