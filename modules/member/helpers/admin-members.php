@@ -551,17 +551,12 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $runtimeConfig = sr_runtime_config();
         $supportedLocales = sr_supported_locales($site);
         $emailInput = sr_post_string_without_truncation('email', 255);
-        $loginIdInput = sr_post_string_without_truncation('login_id', 40);
         $email = sr_normalize_identifier((string) ($emailInput ?? ''));
-        $loginId = $loginIdInput === null ? '' : sr_member_normalize_login_id($loginIdInput);
-        $clearLoginId = ($_POST['clear_login_id'] ?? '') === '1';
         $displayName = trim(sr_post_string('display_name', 120));
         $locale = sr_post_string('locale', 20);
         $resultExtra['edit_values'] = [
             'id' => $targetAccountId,
             'email' => $email,
-            'login_id' => $loginId,
-            'clear_login_id' => $clearLoginId ? '1' : '0',
             'display_name' => $displayName,
             'locale' => $locale,
             'status' => $status,
@@ -571,16 +566,8 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             $errors[] = sr_t('member::action.register.email_too_long');
         }
 
-        if ($loginIdInput === null) {
-            $errors[] = sr_t('member::action.register.login_id_too_long');
-        }
-
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = sr_t('member::action.register.email_invalid');
-        }
-
-        if ($loginId !== '' && !sr_member_is_valid_login_id($loginId)) {
-            $errors[] = sr_t('member::action.register.login_id_invalid');
         }
 
         if ($displayName === '') {
@@ -604,40 +591,26 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
 
         $nextLoginIdHash = null;
-        if ($errors === [] && $loginId !== '') {
-            $nextLoginIdHash = sr_hmac_hash($loginId, $runtimeConfig);
-            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE (login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash) AND id <> :id LIMIT 1');
-            $stmt->execute([
-                'login_id_hash' => $nextLoginIdHash,
-                'id' => $targetAccountId,
-            ]);
-            if (is_array($stmt->fetch())) {
-                $errors[] = sr_t('member::action.admin.login_id_duplicate');
-            }
-        }
-
+        $currentHasLegacyLoginId = false;
         if ($errors === []) {
             $currentAccountIdentifierHash = (string) ($targetAccount['account_identifier_hash'] ?? '');
             $currentEmailHash = (string) ($targetAccount['email_hash'] ?? '');
             $currentLoginIdHash = (string) ($targetAccount['login_id_hash'] ?? '');
-            if ($clearLoginId) {
-                $nextLoginIdHash = null;
-                $accountIdentifierHash = $emailHash;
-            } elseif ($loginId !== '') {
-                $accountIdentifierHash = (string) $nextLoginIdHash;
-            } elseif ($currentLoginIdHash !== '') {
+            $currentHasLegacyLoginId = $currentAccountIdentifierHash !== ''
+                && $currentEmailHash !== ''
+                && !hash_equals($currentEmailHash, $currentAccountIdentifierHash);
+            if ($currentLoginIdHash !== '') {
                 $nextLoginIdHash = $currentLoginIdHash;
                 $accountIdentifierHash = (string) ($targetAccount['account_identifier_hash'] ?? '');
                 if ($accountIdentifierHash === '') {
                     $accountIdentifierHash = $currentLoginIdHash;
                 }
+            } elseif ($currentHasLegacyLoginId) {
+                $nextLoginIdHash = null;
+                $accountIdentifierHash = $currentAccountIdentifierHash;
             } else {
                 $nextLoginIdHash = null;
-                $accountIdentifierHash = $currentAccountIdentifierHash !== ''
-                    && $currentEmailHash !== ''
-                    && !hash_equals($currentEmailHash, $currentAccountIdentifierHash)
-                    ? $currentAccountIdentifierHash
-                    : $emailHash;
+                $accountIdentifierHash = $emailHash;
             }
 
             $pdo->beginTransaction();
@@ -692,8 +665,8 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
                     'email_changed' => $email !== (string) $targetAccount['email'],
-                    'login_id_changed' => $loginId !== '' || $clearLoginId,
-                    'login_id_set' => $nextLoginIdHash !== null,
+                    'login_id_changed' => false,
+                    'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
                 ],
             ]);
             $notice = sr_t('member::action.admin.updated');

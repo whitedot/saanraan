@@ -178,27 +178,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <?php echo sr_admin_form_label_help_html('member_admin_edit_login_id', sr_t('member::ui.login.0cdb28b5'), $memberAdminHelp['login_id']['id'], $memberAdminHelpOpenLabel); ?>
-                    <div class="admin-form-field">
-                        <?php
-                        $memberEditAccountIdentifierHash = (string) ($editMember['account_identifier_hash'] ?? '');
-                        $memberEditEmailHash = (string) ($editMember['email_hash'] ?? '');
-                        $memberEditHasLoginId = (string) ($editMember['login_id_hash'] ?? '') !== ''
-                            || (
-                                $memberEditAccountIdentifierHash !== ''
-                                && $memberEditEmailHash !== ''
-                                && !hash_equals($memberEditEmailHash, $memberEditAccountIdentifierHash)
-                            );
-                        ?>
-                        <input id="member_admin_edit_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberEditValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" placeholder="<?php echo sr_e(sr_t('member::ui.login.02a3f102')); ?>" data-admin-login-id-input>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.status.771e6888')); ?> <?php echo $memberEditHasLoginId ? sr_t('member::ui.create.1b9cb032') : sr_t('member::ui.text.72ea3d64'); ?><?php echo sr_e(sr_t('member::ui.login.status.ba691fb4')); ?></small>
-                        <label class="admin-form-check form-label" for="member_admin_edit_clear_login_id">
-                            <input id="member_admin_edit_clear_login_id" type="checkbox" name="clear_login_id" value="1" class="form-checkbox"<?php echo (string) ($memberEditValues['clear_login_id'] ?? '0') === '1' ? ' checked' : ''; ?>>
-                            <?php echo sr_admin_choice_label_html(sr_t('member::ui.login.bc4bcd11')); ?>
-                        </label>
-                    </div>
-                </div>
-                <div class="admin-form-row">
                     <label class="form-label" for="member_admin_edit_display_name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
