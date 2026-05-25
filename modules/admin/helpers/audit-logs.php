@@ -229,14 +229,41 @@ function sr_admin_audit_log_display_message(array $log): string
         'Popup layer saved.' => '팝업레이어가 저장되었습니다.',
         'SEO settings updated.' => 'SEO 설정이 변경되었습니다.',
         'Schema update lock could not be acquired.' => '스키마 업데이트 잠금을 얻지 못했습니다.',
+        'Schema update started.' => '스키마 업데이트를 시작했습니다.',
+        'Schema update completed.' => '스키마 업데이트가 완료되었습니다.',
+        'Schema update failed.' => '스키마 업데이트에 실패했습니다.',
         'Member sessions could not be revoked.' => '회원 세션을 폐기하지 못했습니다.',
         'Member sessions revoked.' => '회원 세션이 폐기되었습니다.',
         'Member account created by admin.' => '관리자가 회원 계정을 생성했습니다.',
+        'Member account updated by admin.' => '관리자가 회원 계정을 변경했습니다.',
+        'Member account basics updated.' => '회원 기본 정보가 변경되었습니다.',
+        'Member account withdrawn and anonymized.' => '회원 계정이 탈퇴 처리되고 익명화되었습니다.',
+        'Member profile updated.' => '회원 프로필이 변경되었습니다.',
         'Member status update failed.' => '회원 상태 변경에 실패했습니다.',
         'Member status updated.' => '회원 상태가 변경되었습니다.',
+        'Member registration blocked by throttle.' => '회원 가입이 제한 정책으로 차단되었습니다.',
+        'Member registered.' => '회원 가입이 완료되었습니다.',
+        'Member login blocked by throttle.' => '회원 로그인이 제한 정책으로 차단되었습니다.',
+        'Member login blocked until email verification.' => '이메일 인증 전이라 회원 로그인이 차단되었습니다.',
+        'Member login succeeded.' => '회원 로그인이 성공했습니다.',
+        'Member login failed.' => '회원 로그인이 실패했습니다.',
+        'Member login session could not be created.' => '회원 로그인 세션을 만들지 못했습니다.',
+        'Member logout completed.' => '회원 로그아웃이 완료되었습니다.',
+        'Member email verified.' => '회원 이메일 인증이 완료되었습니다.',
+        'Member email verification request blocked by throttle.' => '회원 이메일 인증 요청이 제한 정책으로 차단되었습니다.',
+        'Member email verification requested.' => '회원 이메일 인증이 요청되었습니다.',
+        'Member password reset request blocked by throttle.' => '회원 비밀번호 재설정 요청이 제한 정책으로 차단되었습니다.',
+        'Member password reset requested.' => '회원 비밀번호 재설정이 요청되었습니다.',
+        'Member password reset completed.' => '회원 비밀번호 재설정이 완료되었습니다.',
+        'Member password changed.' => '회원 비밀번호가 변경되었습니다.',
+        'Member password was changed but current session could not be rotated.' => '회원 비밀번호는 변경되었지만 현재 세션을 갱신하지 못했습니다.',
+        'Member privacy export downloaded.' => '회원 개인정보 사본이 다운로드되었습니다.',
+        'Member privacy export reauthentication blocked by throttle.' => '회원 개인정보 사본 다운로드 재인증이 제한 정책으로 차단되었습니다.',
+        'Member privacy export reauthentication failed.' => '회원 개인정보 사본 다운로드 재인증에 실패했습니다.',
         'Retention cleanup completed.' => '보관 정리가 완료되었습니다.',
         'Retention auto cleanup completed.' => '요청 기반 자동 정리가 완료되었습니다.',
         'Retention settings updated.' => '보관 기간 설정이 변경되었습니다.',
+        'Privacy request created.' => '개인정보 처리 요청이 생성되었습니다.',
         'Privacy request updated.' => '개인정보 처리 요청이 변경되었습니다.',
         'Privacy request export reauthentication blocked by throttle.' => '개인정보 처리 자료 다운로드 재인증이 제한 정책으로 차단되었습니다.',
         'Privacy request export reauthentication failed.' => '개인정보 처리 자료 다운로드 재인증에 실패했습니다.',
@@ -262,6 +289,8 @@ function sr_admin_audit_log_display_message(array $log): string
         'Sensitive module setting reauthentication failed.' => '민감한 모듈 설정 재인증에 실패했습니다.',
         'Module source write reauthentication blocked by throttle.' => '모듈 소스 쓰기 재인증이 제한 정책으로 차단되었습니다.',
         'Module source write reauthentication failed.' => '모듈 소스 쓰기 재인증에 실패했습니다.',
+        'Module installed version synced from updates screen.' => '업데이트 화면에서 모듈 설치 버전을 동기화했습니다.',
+        'Module installed version synced after schema updates.' => '스키마 업데이트 후 모듈 설치 버전을 동기화했습니다.',
         'Deposit transaction created.' => '예치금 거래가 생성되었습니다.',
         'Point transaction created.' => '포인트 거래가 생성되었습니다.',
         'Reward transaction created.' => '적립금 거래가 생성되었습니다.',
@@ -272,9 +301,21 @@ function sr_admin_audit_log_display_message(array $log): string
         'Community board created.' => '커뮤니티 게시판이 생성되었습니다.',
         'Community board updated.' => '커뮤니티 게시판이 변경되었습니다.',
         'Community board group saved.' => '커뮤니티 게시판 그룹이 저장되었습니다.',
+        'Community attachment created.' => '커뮤니티 첨부파일이 생성되었습니다.',
+        'Community post created.' => '커뮤니티 게시글이 생성되었습니다.',
+        'Community post updated by author.' => '커뮤니티 게시글이 작성자에 의해 변경되었습니다.',
+        'Community post deleted by author.' => '커뮤니티 게시글이 작성자에 의해 삭제되었습니다.',
         'Community post status updated.' => '커뮤니티 게시글 상태가 변경되었습니다.',
+        'Community comment created.' => '커뮤니티 댓글이 생성되었습니다.',
+        'Community comment updated by author.' => '커뮤니티 댓글이 작성자에 의해 변경되었습니다.',
+        'Community comment deleted by author.' => '커뮤니티 댓글이 작성자에 의해 삭제되었습니다.',
         'Community comment status updated.' => '커뮤니티 댓글 상태가 변경되었습니다.',
+        'Community report created.' => '커뮤니티 신고가 생성되었습니다.',
         'Community report status updated.' => '커뮤니티 신고 상태가 변경되었습니다.',
+        'Community message sent.' => '커뮤니티 쪽지가 발송되었습니다.',
+        'Community message deleted by account.' => '커뮤니티 쪽지가 계정에 의해 삭제되었습니다.',
+        'Community scrap added.' => '커뮤니티 스크랩이 추가되었습니다.',
+        'Community scrap removed.' => '커뮤니티 스크랩이 해제되었습니다.',
         'Community settings updated.' => '커뮤니티 설정이 변경되었습니다.',
         'Community asset settings updated.' => '커뮤니티 자산 설정이 변경되었습니다.',
         'Community board asset settings updated.' => '커뮤니티 게시판 자산 설정이 변경되었습니다.',
@@ -283,10 +324,16 @@ function sr_admin_audit_log_display_message(array $log): string
         'Community levels recalculated.' => '커뮤니티 레벨이 재계산되었습니다.',
         'Content asset settings updated.' => '콘텐츠 자산 설정이 변경되었습니다.',
         'Content group asset settings updated.' => '콘텐츠 그룹 자산 설정이 변경되었습니다.',
+        'Content hidden.' => '콘텐츠가 숨김 처리되었습니다.',
         'Site menu saved.' => '사이트 메뉴가 저장되었습니다.',
         'Site menu item saved.' => '사이트 메뉴 항목이 저장되었습니다.',
+        'Site menu item order saved.' => '사이트 메뉴 항목 순서가 저장되었습니다.',
         'Site menu item deleted.' => '사이트 메뉴 항목이 삭제되었습니다.',
         'Site menu deleted.' => '사이트 메뉴가 삭제되었습니다.',
+        'Logo asset uploaded and assigned.' => '로고 자산이 업로드되고 배치되었습니다.',
+        'Logo assignment created.' => '로고 배치가 생성되었습니다.',
+        'Logo asset status changed.' => '로고 자산 상태가 변경되었습니다.',
+        'Logo assignment status changed.' => '로고 배치 상태가 변경되었습니다.',
         'Member group saved.' => '회원 그룹이 저장되었습니다.',
         'Member group rule saved.' => '회원 그룹 규칙이 저장되었습니다.',
         'Member group rules evaluated.' => '회원 그룹 규칙이 평가되었습니다.',
@@ -294,7 +341,64 @@ function sr_admin_audit_log_display_message(array $log): string
         'Member settings updated.' => '회원 설정이 변경되었습니다.',
     ];
 
-    return (string) ($labels[$message] ?? $message);
+    if (isset($labels[$message])) {
+        return (string) $labels[$message];
+    }
+
+    if (preg_match('/\A[A-Za-z0-9 .:_-]+\.\z/', $message) === 1) {
+        $fallbackMessage = sr_admin_event_type_label((string) ($log['event_type'] ?? ''));
+        return $fallbackMessage !== '' ? $fallbackMessage : $message;
+    }
+
+    return $message;
+}
+
+function sr_admin_audit_log_display_actor_type(array $log): string
+{
+    return sr_admin_code_label((string) ($log['actor_type'] ?? '-'), 'actor_type');
+}
+
+function sr_admin_audit_log_display_target(array $log): string
+{
+    $targetType = (string) ($log['target_type'] ?? '');
+    $targetId = (string) ($log['target_id'] ?? '');
+    $moduleLabels = [
+        'admin' => '관리자',
+        'banner' => '배너',
+        'community' => '커뮤니티',
+        'content' => '콘텐츠',
+        'deposit' => '예치금',
+        'logo_manager' => '로고 관리',
+        'member' => '회원',
+        'notification' => '알림',
+        'point' => '포인트',
+        'popup_layer' => '팝업레이어',
+        'privacy' => '개인정보 처리',
+        'reward' => '적립금',
+        'seo' => 'SEO',
+        'site_menu' => '사이트 메뉴',
+    ];
+
+    if ($targetType === 'retention') {
+        return '데이터 정리';
+    }
+
+    if ($targetType === 'site_settings' || $targetType === 'site_setting') {
+        return '환경설정';
+    }
+
+    if ($targetType === 'module' && isset($moduleLabels[$targetId])) {
+        return $moduleLabels[$targetId];
+    }
+
+    if ($targetType === 'module' && str_contains($targetId, ':')) {
+        $moduleKey = strtok($targetId, ':');
+        if (is_string($moduleKey) && isset($moduleLabels[$moduleKey])) {
+            return $moduleLabels[$moduleKey];
+        }
+    }
+
+    return sr_admin_code_label($targetType, 'target_type');
 }
 
 function sr_admin_audit_log_query_parts(array &$filters): array

@@ -930,7 +930,11 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-audit-log-table .admin-audit-message {
     max-width: 17rem;
+    min-width: 12rem;
+    overflow-wrap: anywhere;
     white-space: normal;
+    width: 17rem;
+    word-break: break-word;
 }
 
 .admin-audit-log-table .admin-audit-metadata {

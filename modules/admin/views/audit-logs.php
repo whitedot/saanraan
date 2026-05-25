@@ -99,11 +99,11 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                                 회원 정보
                             </button>
                         <?php } else { ?>
-                            <?php echo sr_e((string) ($log['actor_type'] ?? '-')); ?>
+                            <?php echo sr_e(sr_admin_audit_log_display_actor_type($log)); ?>
                         <?php } ?>
                     </td>
                     <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type')); ?></td>
+                    <td><?php echo sr_e(sr_admin_audit_log_display_target($log)); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $log['result'], 'result')); ?></td>
                     <td><?php echo sr_e((string) $log['ip_address']); ?></td>
                     <td class="admin-audit-message"><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
@@ -121,7 +121,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                                 'metadata' => $metadata,
                             ];
                             ?>
-                            <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($metadataModalId); ?>" data-overlay="#<?php echo sr_e($metadataModalId); ?>"><?php echo sr_material_icon_html('visibility'); ?></button>
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.ac5b575f')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($metadataModalId); ?>" data-overlay="#<?php echo sr_e($metadataModalId); ?>"><?php echo sr_material_icon_html('visibility'); ?></button>
                         <?php } ?>
                     </td>
                 </tr>
