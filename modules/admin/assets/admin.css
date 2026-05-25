@@ -928,13 +928,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 1%;
 }
 
-.admin-audit-log-table .admin-audit-message {
+.admin-list-form .admin-audit-log-table tbody td.admin-audit-message {
     max-width: 17rem;
     min-width: 12rem;
     overflow-wrap: anywhere;
     white-space: normal;
     width: 17rem;
-    word-break: break-word;
+    word-break: break-all;
 }
 
 .admin-audit-log-table .admin-audit-metadata {
