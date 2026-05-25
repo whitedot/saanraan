@@ -437,7 +437,7 @@ function sr_content_group_key_exists(PDO $pdo, string $groupKey, int $exceptGrou
     return is_array($stmt->fetch());
 }
 
-function sr_content_published_by_slug(PDO $pdo, string $slug): ?array
+function sr_content_by_slug(PDO $pdo, string $slug): ?array
 {
     if (!sr_content_slug_is_valid($slug)) {
         return null;
@@ -456,8 +456,14 @@ function sr_content_published_by_slug(PDO $pdo, string $slug): ?array
         return null;
     }
 
-    $page = sr_content_with_effective_settings($pdo, $row);
-    return (string) ($page['status'] ?? '') === 'published' ? $page : null;
+    return sr_content_with_effective_settings($pdo, $row);
+}
+
+function sr_content_published_by_slug(PDO $pdo, string $slug): ?array
+{
+    $page = sr_content_by_slug($pdo, $slug);
+
+    return is_array($page) && (string) ($page['status'] ?? '') === 'published' ? $page : null;
 }
 
 function sr_content_slug_exists(PDO $pdo, string $slug, int $exceptPageId = 0): bool

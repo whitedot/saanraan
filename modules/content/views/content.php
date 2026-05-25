@@ -70,9 +70,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <ul>
                         <?php foreach ($contentFiles as $contentFile) { ?>
                             <li>
-                                <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']))); ?>">
-                                    <?php echo sr_e((string) $contentFile['title']); ?>
-                                </a>
+                                <?php if (empty($contentAdminPreview)) { ?>
+                                    <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']))); ?>">
+                                        <?php echo sr_e((string) $contentFile['title']); ?>
+                                    </a>
+                                <?php } else { ?>
+                                    <span>
+                                        <?php echo sr_e((string) $contentFile['title']); ?>
+                                    </span>
+                                <?php } ?>
                                 <small>
                                     <?php echo sr_e((string) $contentFile['original_name']); ?>
                                     · <?php echo sr_e(sr_content_format_bytes((int) $contentFile['size_bytes'])); ?>
@@ -86,7 +92,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     </ul>
                 </section>
             <?php } ?>
-            <?php if (sr_content_asset_action_required($page)) { ?>
+            <?php if (empty($contentAdminPreview) && sr_content_asset_action_required($page)) { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/content/action')); ?>" class="content-action-form">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
