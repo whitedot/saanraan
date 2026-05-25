@@ -500,6 +500,17 @@ function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array
         return [];
     }
 
+    $stmt = $pdo->prepare(
+        "SELECT i.id,
+                CASE WHEN d.refundable_policy = 'refundable' THEN 'refund_requested' ELSE 'withdrawn_expired' END AS next_status
+         FROM sr_coupon_issues i
+         INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+         WHERE i.account_id = :account_id
+           AND i.status = 'active'"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $pendingIssues = $stmt->fetchAll();
+
     $now = sr_now();
     $stmt = $pdo->prepare(
         "UPDATE sr_coupon_issues i
@@ -513,10 +524,23 @@ function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array
         'updated_at' => $now,
         'account_id' => $accountId,
     ]);
+    $updatedCount = $stmt->rowCount();
+
+    foreach ($pendingIssues as $pendingIssue) {
+        $issueId = (int) ($pendingIssue['id'] ?? 0);
+        $nextStatus = (string) ($pendingIssue['next_status'] ?? '');
+        if ($issueId <= 0 || !in_array($nextStatus, ['withdrawn_expired', 'refund_requested'], true)) {
+            continue;
+        }
+
+        sr_coupon_notify_issue_event($pdo, $issueId, 'issue.status_updated', null, [
+            'status_label' => sr_coupon_issue_status_label($nextStatus),
+        ]);
+    }
 
     return [
         'label' => '쿠폰·이용권',
-        'amount' => $stmt->rowCount(),
+        'amount' => $updatedCount,
         'process' => '소멸/환급 검토',
     ];
 }

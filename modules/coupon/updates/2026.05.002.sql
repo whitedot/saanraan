@@ -1,4 +1,5 @@
 UPDATE sr_modules
-SET version = '2026.05.002',
+SET name = '쿠폰·이용권',
+    version = '2026.05.002',
     updated_at = NOW()
 WHERE module_key = 'coupon';
