@@ -8,6 +8,8 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/member-nicknames', 'view');
 $canEditNicknames = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/member-nicknames', 'edit');
+$memberSettings = sr_member_settings($pdo);
+$nicknameRequired = !empty($memberSettings['profile_nickname_enabled']) && !empty($memberSettings['profile_nickname_required']);
 
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();

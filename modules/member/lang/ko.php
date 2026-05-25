@@ -297,6 +297,7 @@ return [
     'ui.member.nickname.placeholder.406cf915' => '공개 해시, 이메일, 이름, 닉네임',
     'ui.member.nicknames.6d5b7b92' => '닉네임 관리',
     'ui.member.nicknames.subtitle.1fbe38e7' => '회원 닉네임을 검색하고 운영자가 직접 수정합니다.',
+    'ui.member.profile_updated_at.8f8c0f24' => '프로필 수정일',
     'ui.member.settings.6b4c84f7' => '회원 환경설정',
     'ui.member.settings.df7b9920' => '회원 설정',
     'ui.member.status.edit.a11441b7' => '회원 기본 정보와 상태를 수정합니다.',

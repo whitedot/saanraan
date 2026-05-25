@@ -7,6 +7,7 @@ $nicknameFilter = isset($nicknameFilter) && is_array($nicknameFilter) ? $nicknam
 $nicknameRows = isset($nicknameRows) && is_array($nicknameRows) ? $nicknameRows : [];
 $nicknamePagination = isset($nicknamePagination) && is_array($nicknamePagination) ? $nicknamePagination : sr_admin_pagination_meta(0, 50, 1);
 $canEditNicknames = !empty($canEditNicknames);
+$nicknameRequired = !empty($nicknameRequired);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -43,9 +44,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.6211d967')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.text.6211d967')); ?><?php echo $nicknameRequired ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('admin::ui.edit.d3a98476')); ?></th>
+                    <th><?php echo sr_e(sr_t('member::ui.member.profile_updated_at.8f8c0f24')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
@@ -71,7 +72,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
                         <td>
-                            <input id="<?php echo sr_e($nicknameInputId); ?>" type="text" name="nickname" value="<?php echo sr_e((string) ($member['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo $nicknameEditable ? '' : ' readonly'; ?> form="member-admin-nickname-form-<?php echo sr_e((string) ((int) $member['id'])); ?>">
+                            <input id="<?php echo sr_e($nicknameInputId); ?>" type="text" name="nickname" value="<?php echo sr_e((string) ($member['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo $nicknameRequired && $nicknameEditable ? ' required' : ''; ?><?php echo $nicknameEditable ? '' : ' readonly'; ?> form="member-admin-nickname-form-<?php echo sr_e((string) ((int) $member['id'])); ?>">
                         </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['profile_updated_at'] ?? '')); ?></td>
