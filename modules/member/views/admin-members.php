@@ -314,7 +314,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="revoke_sessions">
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                 </form>
                             </div>
                         </td>

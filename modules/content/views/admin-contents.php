@@ -797,7 +797,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
-                                                <button type="submit" class="btn btn-sm btn-soft-danger"><?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?></button>
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                             </form>
                                         <?php } ?>
                                     </div>

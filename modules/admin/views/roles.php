@@ -405,7 +405,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
                                                 </label>
                                             <?php } ?>
-                                            <button type="button" class="btn btn-sm btn-solid-light" data-admin-permission-remove>삭제</button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-permission-remove aria-label="삭제" title="삭제"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </div>
                                     </div>
                                 <?php } ?>
@@ -573,9 +573,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         var remove = document.createElement('button');
         remove.type = 'button';
-        remove.className = 'btn btn-sm btn-solid-light';
+        remove.className = 'btn btn-sm btn-icon btn-outline-danger';
         remove.setAttribute('data-admin-permission-remove', '');
-        remove.textContent = '삭제';
+        remove.setAttribute('aria-label', '삭제');
+        remove.setAttribute('title', '삭제');
+        remove.innerHTML = <?php echo json_encode(sr_material_icon_html('delete'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
         actionWrap.appendChild(remove);
 
         row.appendChild(title);

@@ -630,7 +630,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                                                 <?php echo sr_csrf_field(); ?>
                                                                 <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
                                                                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('member::ui.text.293182ec')); ?></button>
+                                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.293182ec')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.293182ec')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                                             </form>
                                                         <?php } else { ?>
                                                             <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
