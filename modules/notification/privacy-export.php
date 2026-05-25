@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 return static function (PDO $pdo, int $accountId): array {
+    $accountEmail = '';
+    $stmt = $pdo->prepare('SELECT email FROM sr_member_accounts WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $accountId]);
+    $accountRow = $stmt->fetch();
+    if (is_array($accountRow)) {
+        $candidateEmail = sr_normalize_identifier((string) ($accountRow['email'] ?? ''));
+        $accountEmail = filter_var($candidateEmail, FILTER_VALIDATE_EMAIL) ? $candidateEmail : '';
+    }
+
     $stmt = $pdo->prepare(
         'SELECT id, account_id, audience, title, body_text, link_url, status, read_at, created_by_account_id, created_at, updated_at
          FROM sr_notifications
@@ -50,6 +59,10 @@ return static function (PDO $pdo, int $accountId): array {
         $accountPlaceholders = $accountNotificationIds !== [] ? implode(',', array_fill(0, count($accountNotificationIds), '?')) : '';
         $deliveryWhere = 'notification_id IN (' . $allPlaceholders . ') AND channel = ?';
         $deliveryParams = array_merge($notificationIds, ['site']);
+        if ($accountEmail !== '') {
+            $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $allPlaceholders . ') AND channel = ? AND recipient = ?)';
+            $deliveryParams = array_merge($deliveryParams, $notificationIds, ['email', $accountEmail]);
+        }
         if ($accountNotificationIds !== []) {
             $deliveryWhere = '(' . $deliveryWhere . ') OR notification_id IN (' . $accountPlaceholders . ')';
             $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);

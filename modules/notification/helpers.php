@@ -77,6 +77,48 @@ function sr_notification_admin_statuses(): array
     return ['queued', 'active', 'deleted'];
 }
 
+function sr_notification_account_email(PDO $pdo, int $accountId): string
+{
+    if ($accountId <= 0) {
+        return '';
+    }
+
+    $stmt = $pdo->prepare('SELECT email FROM sr_member_accounts WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $accountId]);
+    $row = $stmt->fetch();
+    $email = is_array($row) ? sr_normalize_identifier((string) ($row['email'] ?? '')) : '';
+
+    return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
+}
+
+function sr_notification_all_member_email_recipients(PDO $pdo): array
+{
+    $stmt = $pdo->query("SELECT email FROM sr_member_accounts WHERE status = 'active' ORDER BY id ASC");
+    $recipients = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $email = sr_normalize_identifier((string) ($row['email'] ?? ''));
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $recipients[$email] = $email;
+        }
+    }
+
+    return array_values($recipients);
+}
+
+function sr_notification_email_recipients(PDO $pdo, string $audience, ?int $accountId): array
+{
+    if ($audience === 'account') {
+        $email = sr_notification_account_email($pdo, (int) $accountId);
+        return $email === '' ? [] : [$email];
+    }
+
+    if ($audience === 'all') {
+        return sr_notification_all_member_email_recipients($pdo);
+    }
+
+    return [];
+}
+
 function sr_notification_admin_notification_query_parts(array $filters): array
 {
     $where = [];
@@ -224,8 +266,17 @@ function sr_notification_create(PDO $pdo, array $data): int
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
     }
-    if (sr_notification_external_channels($channels) !== [] && $recipient === '') {
-        throw new InvalidArgumentException('External notification delivery requires recipient.');
+    $externalChannels = sr_notification_external_channels($channels);
+    $emailRecipients = in_array('email', $channels, true)
+        ? sr_notification_email_recipients($pdo, $audience, $accountId)
+        : [];
+    if (in_array('email', $channels, true) && $emailRecipients === []) {
+        throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
+    }
+    foreach ($externalChannels as $externalChannel) {
+        if ($externalChannel !== 'email' && $recipient === '') {
+            throw new InvalidArgumentException('External notification delivery requires recipient.');
+        }
     }
 
     $createdByAccountId = isset($data['created_by_account_id']) && (int) $data['created_by_account_id'] > 0
@@ -258,7 +309,7 @@ function sr_notification_create(PDO $pdo, array $data): int
         ]);
 
         $notificationId = (int) $pdo->lastInsertId();
-        sr_notification_queue_deliveries($pdo, $notificationId, $channels, $recipient);
+        sr_notification_queue_deliveries($pdo, $notificationId, $channels, $audience, $accountId, $recipient);
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -274,15 +325,23 @@ function sr_notification_create(PDO $pdo, array $data): int
     return $notificationId;
 }
 
-function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $recipient): void
+function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $audience, ?int $accountId = null, string $recipient = ''): void
 {
     $channels = sr_notification_normalize_channels($channels);
     $recipient = sr_notification_clean_single_line($recipient, 255);
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
     }
-    if (sr_notification_external_channels($channels) !== [] && $recipient === '') {
-        throw new InvalidArgumentException('External notification delivery requires recipient.');
+    $emailRecipients = in_array('email', $channels, true)
+        ? sr_notification_email_recipients($pdo, $audience, $accountId)
+        : [];
+    if (in_array('email', $channels, true) && $emailRecipients === []) {
+        throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
+    }
+    foreach (sr_notification_external_channels($channels) as $externalChannel) {
+        if ($externalChannel !== 'email' && $recipient === '') {
+            throw new InvalidArgumentException('External notification delivery requires recipient.');
+        }
     }
 
     $now = sr_now();
@@ -294,15 +353,18 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
     );
 
     foreach ($channels as $channel) {
-        $stmt->execute([
-            'notification_id' => $notificationId,
-            'channel' => $channel,
-            'recipient' => $channel === 'site' ? '' : $recipient,
-            'status' => $channel === 'site' ? 'ready' : 'queued',
-            'provider_message_id' => '',
-            'error_message' => '',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $recipients = $channel === 'email' ? $emailRecipients : [$channel === 'site' ? '' : $recipient];
+        foreach ($recipients as $deliveryRecipient) {
+            $stmt->execute([
+                'notification_id' => $notificationId,
+                'channel' => $channel,
+                'recipient' => $deliveryRecipient,
+                'status' => $channel === 'site' ? 'ready' : 'queued',
+                'provider_message_id' => '',
+                'error_message' => '',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
     }
 }

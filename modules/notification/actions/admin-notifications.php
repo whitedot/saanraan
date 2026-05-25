@@ -28,7 +28,6 @@ $notificationCreateValues = [
     'title' => '',
     'body_text' => '',
     'link_url' => '',
-    'recipient' => '',
     'channels' => ['site'],
 ];
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
@@ -189,7 +188,6 @@ if (sr_request_method() === 'POST') {
         $bodyText = sr_notification_clean_text(sr_post_string('body_text', 5000), 5000);
         $rawLinkUrl = sr_post_string('link_url', 255);
         $linkUrl = sr_notification_clean_link_url($rawLinkUrl);
-        $recipient = sr_notification_clean_single_line(sr_post_string('recipient', 255), 255);
         $postedChannels = $_POST['channels'] ?? [];
         $channels = [];
         $notificationCreateValues = [
@@ -198,7 +196,6 @@ if (sr_request_method() === 'POST') {
             'title' => $title,
             'body_text' => $bodyText,
             'link_url' => $rawLinkUrl,
-            'recipient' => $recipient,
             'channels' => is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [],
         ];
 
@@ -234,8 +231,12 @@ if (sr_request_method() === 'POST') {
         if ($channels === []) {
             $errors[] = '발송 채널을 하나 이상 선택하세요.';
         }
-        if (sr_notification_external_channels(array_values($channels)) !== [] && $recipient === '') {
-            $errors[] = '이메일 채널은 외부 수신자를 입력해야 합니다.';
+        if (in_array('email', $channels, true)) {
+            if ($audience === 'account' && $accountId > 0 && sr_notification_account_email($pdo, $accountId) === '') {
+                $errors[] = '대상 회원의 이메일 주소를 확인할 수 없습니다.';
+            } elseif ($audience === 'all' && sr_notification_all_member_email_recipients($pdo) === []) {
+                $errors[] = '이메일을 발송할 활성 회원이 없습니다.';
+            }
         }
 
         if ($errors === []) {
@@ -247,7 +248,6 @@ if (sr_request_method() === 'POST') {
                     'body_text' => $bodyText,
                     'link_url' => $linkUrl,
                     'channels' => array_values($channels),
-                    'recipient' => $recipient,
                     'created_by_account_id' => (int) $account['id'],
                 ]);
 
@@ -273,7 +273,6 @@ if (sr_request_method() === 'POST') {
                     'title' => '',
                     'body_text' => '',
                     'link_url' => '',
-                    'recipient' => '',
                     'channels' => ['site'],
                 ];
             } catch (Throwable $exception) {

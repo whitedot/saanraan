@@ -25,10 +25,10 @@ $notificationCreateValues = isset($notificationCreateValues) && is_array($notifi
     'title' => '',
     'body_text' => '',
     'link_url' => '',
-    'recipient' => '',
     'channels' => ['site'],
 ];
 $notificationCreateChannels = is_array($notificationCreateValues['channels'] ?? null) ? $notificationCreateValues['channels'] : ['site'];
+$notificationCreateAudience = (string) ($notificationCreateValues['audience'] ?? 'account');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -288,7 +288,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="admin-form-row" data-notification-account-row<?php echo $notificationCreateAudience === 'account' ? '' : ' hidden'; ?>>
                         <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.900e04a5')); ?> <span class="sr-required-label" data-notification-account-required<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <div class="admin-lookup-control">
@@ -313,12 +313,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="form-label" for="notification_admin_notifications_link_url"><?php echo sr_e(sr_t('notification::ui.url.f7ca9b13')); ?></label>
                         <div class="admin-form-field">
                             <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="<?php echo sr_e(sr_t('notification::ui.path.https.example.com.a67f0fa1')); ?>">
-                        </div>
-                    </div>
-                    <div class="admin-form-row">
-                        <label class="form-label" for="notification_admin_notifications_recipient"><?php echo sr_e(sr_t('notification::ui.text.2ab1c735')); ?> <span class="sr-required-label" data-notification-recipient-required<?php echo in_array('email', $notificationCreateChannels, true) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
-                            <input id="notification_admin_notifications_recipient" type="text" name="recipient" value="<?php echo sr_e((string) ($notificationCreateValues['recipient'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" data-notification-recipient<?php echo in_array('email', $notificationCreateChannels, true) ? ' required' : ''; ?>>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -362,35 +356,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
 
         var audience = form.querySelector('[data-notification-audience]');
+        var accountRow = form.querySelector('[data-notification-account-row]');
         var accountInput = form.querySelector('[data-notification-account-identifier]');
         var accountRequired = form.querySelector('[data-notification-account-required]');
-        var recipientInput = form.querySelector('[data-notification-recipient]');
-        var recipientRequired = form.querySelector('[data-notification-recipient-required]');
         var channels = Array.prototype.slice.call(form.querySelectorAll('[data-notification-channel]'));
-
-        function hasEmailChannel() {
-            return channels.some(function (channel) {
-                return channel.checked && channel.value === 'email';
-            });
-        }
 
         function syncRequiredState() {
             var accountNeeded = audience && audience.value === 'account';
-            var recipientNeeded = hasEmailChannel();
             var channelSelected = channels.some(function (channel) {
                 return channel.checked;
             });
+            if (accountRow) {
+                accountRow.hidden = !accountNeeded;
+            }
             if (accountRequired) {
                 accountRequired.hidden = !accountNeeded;
             }
             if (accountInput) {
                 accountInput.required = accountNeeded;
-            }
-            if (recipientRequired) {
-                recipientRequired.hidden = !recipientNeeded;
-            }
-            if (recipientInput) {
-                recipientInput.required = recipientNeeded;
             }
             if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
                 channels[0].setCustomValidity(channelSelected ? '' : '발송 채널을 하나 이상 선택하세요.');
