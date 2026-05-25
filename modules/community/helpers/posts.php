@@ -268,16 +268,18 @@ function sr_community_admin_post_query_parts(array $filters): array
             $where[] = 'p.title LIKE :keyword';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'author') {
-            $where[] = '(a.display_name LIKE :keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :keyword))';
-            $params['keyword'] = '%' . $keyword . '%';
+            $where[] = '(a.display_name LIKE :author_display_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword))';
+            $params['author_display_keyword'] = '%' . $keyword . '%';
+            $params['author_nickname_keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'board') {
             $where[] = '(b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
+            $params['author_nickname_keyword'] = '%' . $keyword . '%';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         }
@@ -447,8 +449,9 @@ function sr_community_admin_comment_query_parts(array $filters): array
             $where[] = 'c.body_text LIKE :keyword';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'author') {
-            $where[] = '(a.display_name LIKE :keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :keyword))';
-            $params['keyword'] = '%' . $keyword . '%';
+            $where[] = '(a.display_name LIKE :author_display_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword))';
+            $params['author_display_keyword'] = '%' . $keyword . '%';
+            $params['author_nickname_keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'post') {
             $where[] = 'p.title LIKE :keyword';
             $params['keyword'] = '%' . $keyword . '%';
@@ -457,10 +460,11 @@ function sr_community_admin_comment_query_parts(array $filters): array
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['body_keyword'] = '%' . $keyword . '%';
             $params['post_title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
+            $params['author_nickname_keyword'] = '%' . $keyword . '%';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         }

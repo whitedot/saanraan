@@ -25,12 +25,19 @@ function sr_community_report_statuses(): array
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
-function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null): string
+function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null, ?string $nickname = null, ?array $communitySettings = null): string
 {
-    $label = trim((string) $displayName);
     if (sr_community_nickname_status_blocks_identity((string) $accountStatus)) {
         return sr_t('member::account.withdrawn_display_name');
     }
+
+    $label = is_array($communitySettings)
+        ? sr_community_public_display_name([
+            'display_name' => (string) $displayName,
+            'community_nickname' => (string) $nickname,
+            'status' => (string) $accountStatus,
+        ], $communitySettings)
+        : trim((string) $displayName);
 
     if ($label !== '') {
         return $label;
@@ -225,16 +232,19 @@ function sr_community_report_query_parts(array $filters): array
     if ($keyword !== '') {
         $field = (string) ($filters['field'] ?? 'all');
         if ($field === 'reporter') {
-            $where[] = '(reporter.display_name LIKE :reporter_name_keyword OR CAST(r.reporter_account_id AS CHAR) LIKE :reporter_id_keyword)';
+            $where[] = '(reporter.display_name LIKE :reporter_name_keyword OR (reporter.status NOT IN (\'withdrawn\', \'anonymized\') AND reporter_nickname.nickname LIKE :reporter_nickname_keyword) OR CAST(r.reporter_account_id AS CHAR) LIKE :reporter_id_keyword)';
             $params['reporter_name_keyword'] = '%' . $keyword . '%';
+            $params['reporter_nickname_keyword'] = '%' . $keyword . '%';
             $params['reporter_id_keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'reported') {
-            $where[] = '(reported.display_name LIKE :reported_name_keyword OR CAST(r.reported_account_id AS CHAR) LIKE :reported_id_keyword)';
+            $where[] = '(reported.display_name LIKE :reported_name_keyword OR (reported.status NOT IN (\'withdrawn\', \'anonymized\') AND reported_nickname.nickname LIKE :reported_nickname_keyword) OR CAST(r.reported_account_id AS CHAR) LIKE :reported_id_keyword)';
             $params['reported_name_keyword'] = '%' . $keyword . '%';
+            $params['reported_nickname_keyword'] = '%' . $keyword . '%';
             $params['reported_id_keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'reviewer') {
-            $where[] = '(reviewer.display_name LIKE :reviewer_name_keyword OR CAST(r.reviewer_account_id AS CHAR) LIKE :reviewer_id_keyword)';
+            $where[] = '(reviewer.display_name LIKE :reviewer_name_keyword OR (reviewer.status NOT IN (\'withdrawn\', \'anonymized\') AND reviewer_nickname.nickname LIKE :reviewer_nickname_keyword) OR CAST(r.reviewer_account_id AS CHAR) LIKE :reviewer_id_keyword)';
             $params['reviewer_name_keyword'] = '%' . $keyword . '%';
+            $params['reviewer_nickname_keyword'] = '%' . $keyword . '%';
             $params['reviewer_id_keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'memo') {
             $where[] = '(r.memo_text LIKE :memo_keyword OR r.review_note LIKE :review_note_keyword)';
@@ -245,12 +255,15 @@ function sr_community_report_query_parts(array $filters): array
             $params['target_type_keyword'] = '%' . $keyword . '%';
             $params['target_id_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(r.memo_text LIKE :memo_keyword OR r.review_note LIKE :review_note_keyword OR reporter.display_name LIKE :reporter_keyword OR reported.display_name LIKE :reported_keyword OR reviewer.display_name LIKE :reviewer_keyword OR r.target_type LIKE :target_type_keyword OR CAST(r.target_id AS CHAR) LIKE :target_id_keyword)';
+            $where[] = '(r.memo_text LIKE :memo_keyword OR r.review_note LIKE :review_note_keyword OR reporter.display_name LIKE :reporter_keyword OR (reporter.status NOT IN (\'withdrawn\', \'anonymized\') AND reporter_nickname.nickname LIKE :reporter_nickname_keyword) OR reported.display_name LIKE :reported_keyword OR (reported.status NOT IN (\'withdrawn\', \'anonymized\') AND reported_nickname.nickname LIKE :reported_nickname_keyword) OR reviewer.display_name LIKE :reviewer_keyword OR (reviewer.status NOT IN (\'withdrawn\', \'anonymized\') AND reviewer_nickname.nickname LIKE :reviewer_nickname_keyword) OR r.target_type LIKE :target_type_keyword OR CAST(r.target_id AS CHAR) LIKE :target_id_keyword)';
             $params['memo_keyword'] = '%' . $keyword . '%';
             $params['review_note_keyword'] = '%' . $keyword . '%';
             $params['reporter_keyword'] = '%' . $keyword . '%';
+            $params['reporter_nickname_keyword'] = '%' . $keyword . '%';
             $params['reported_keyword'] = '%' . $keyword . '%';
+            $params['reported_nickname_keyword'] = '%' . $keyword . '%';
             $params['reviewer_keyword'] = '%' . $keyword . '%';
+            $params['reviewer_nickname_keyword'] = '%' . $keyword . '%';
             $params['target_type_keyword'] = '%' . $keyword . '%';
             $params['target_id_keyword'] = '%' . $keyword . '%';
         }
@@ -269,7 +282,10 @@ function sr_community_report_count(PDO $pdo, array $filters = []): int
             FROM sr_community_reports r
             LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
             LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
-            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id';
+            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
+            LEFT JOIN sr_community_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
+            LEFT JOIN sr_community_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
+            LEFT JOIN sr_community_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -293,15 +309,21 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], i
     $sql = 'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
                    r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
                    reporter.display_name AS reporter_display_name,
+                   reporter_nickname.nickname AS reporter_nickname,
                    reporter.status AS reporter_account_status,
                    reported.display_name AS reported_display_name,
+                   reported_nickname.nickname AS reported_nickname,
                    reported.status AS reported_account_status,
                    reviewer.display_name AS reviewer_display_name,
+                   reviewer_nickname.nickname AS reviewer_nickname,
                    reviewer.status AS reviewer_account_status
             FROM sr_community_reports r
             LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
             LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
-            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id';
+            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
+            LEFT JOIN sr_community_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
+            LEFT JOIN sr_community_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
+            LEFT JOIN sr_community_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }

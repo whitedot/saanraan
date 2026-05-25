@@ -44,8 +44,8 @@ function sr_community_public_display_name(array $account, ?array $settings = nul
 
     $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_default_settings();
     $nickname = trim((string) ($account['community_nickname'] ?? ''));
-    if (!empty($settings['nickname_enabled']) && $nickname !== '') {
-        return $nickname;
+    if (!empty($settings['nickname_enabled'])) {
+        return $nickname !== '' ? $nickname : sr_t('community::report.account.member');
     }
 
     return trim((string) ($account['display_name'] ?? ''));

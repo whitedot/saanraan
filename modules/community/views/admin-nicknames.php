@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <label class="admin-filter-field">
             <span><?php echo sr_e(sr_t('community::ui.search.condition')); ?></span>
             <select name="field" class="form-select admin-filter-input">
-                <?php foreach (['all' => sr_t('community::ui.all'), 'hash' => sr_t('community::ui.public_hash'), 'email' => sr_t('community::ui.email'), 'name' => sr_t('community::ui.name'), 'nickname' => sr_t('community::ui.nickname')] as $fieldValue => $fieldLabel) { ?>
+                <?php foreach (['all' => sr_t('community::ui.all'), 'hash' => sr_t('community::ui.public_hash'), 'email' => sr_t('community::ui.email'), 'nickname' => sr_t('community::ui.nickname')] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($nicknameFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                 <?php } ?>
             </select>
@@ -60,7 +60,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th><?php echo sr_e(sr_t('community::ui.public_hash')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.email')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.name')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.nickname')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.status')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.nickname.updated_at')); ?></th>
@@ -70,11 +69,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if (!$nicknameSearchSubmitted) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.nickname.search_first')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.nickname.search_first')); ?></td>
                     </tr>
                 <?php } elseif ($nicknameRows === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.empty')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.empty')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($nicknameRows as $member) { ?>
@@ -90,7 +89,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap admin-member-hash-cell" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
                         <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
-                        <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
                         <td class="admin-table-break"><?php echo sr_e((string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['nickname_updated_at'] ?? '')); ?></td>

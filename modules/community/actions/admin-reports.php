@@ -11,6 +11,7 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/report
 
 $errors = [];
 $notice = '';
+$settings = sr_community_settings($pdo);
 $allowedStatuses = sr_community_report_statuses();
 $allowedReasonKeys = sr_community_report_reason_keys();
 $allowedTargetTypes = ['post', 'comment', 'message'];
