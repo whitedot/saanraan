@@ -314,14 +314,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.text.5d908ddd')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.text.776b723f')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($boards === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.112bc2dd')); ?></td>
+                        <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.112bc2dd')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
@@ -338,22 +337,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break admin-community-board-title-cell"><?php echo sr_e((string) $board['title']); ?></td>
                         <td class="admin-table-break admin-community-board-group-cell"><?php echo sr_e((string) ($board['board_group_title'] ?? '')); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardStatus, 'content_status')); ?></span></td>
-                        <td class="admin-table-nowrap">
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="update_skin">
-                                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $board['id']); ?>">
-                                <label class="sr-only" for="community_admin_board_skin_<?php echo sr_e((string) $board['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.83d35075')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <select id="community_admin_board_skin_<?php echo sr_e((string) $board['id']); ?>" name="skin_key" class="form-select">
-                                    <?php foreach ($communitySkinOptions as $skinKey => $skinOption) { ?>
-                                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($board['skin_key'] ?? 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.save.5fb92622')); ?></button>
-                            </form>
-                        </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>

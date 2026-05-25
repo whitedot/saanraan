@@ -91,40 +91,7 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if ($intent === 'update_skin') {
-        $boardIdValue = sr_post_string('board_id', 20);
-        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
-        $skinKey = sr_post_string('skin_key', 40);
-        $board = sr_community_board_by_id($pdo, $boardId);
-        if (!is_array($board)) {
-            $errors[] = sr_t('community::action.error.board_not_found');
-        }
-        if (!isset($communitySkinOptions[$skinKey])) {
-            $errors[] = sr_t('community::action.admin.board_skin_invalid');
-            $skinKey = 'basic';
-        }
-
-        if ($errors === [] && is_array($board)) {
-            $beforeSkinKey = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
-            sr_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.board.skin_updated',
-                'target_type' => 'community_board',
-                'target_id' => (string) $boardId,
-                'result' => 'success',
-                'message' => 'Community board skin updated.',
-                'metadata' => [
-                    'board_key' => (string) $board['board_key'],
-                    'before_skin_key' => $beforeSkinKey,
-                    'after_skin_key' => $skinKey,
-                ],
-            ]);
-
-            $notice = sr_t('community::action.admin.board_skin_saved');
-        }
-    } elseif (in_array($intent, ['create', 'update'], true)) {
+    if (in_array($intent, ['create', 'update'], true)) {
         $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);

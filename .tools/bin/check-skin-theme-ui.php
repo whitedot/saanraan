@@ -345,14 +345,12 @@ $targets = [
         ],
         'action_needles' => [
             '$communitySkinOptions = sr_community_skin_options()',
-            '$intent === \'update_skin\'',
             "sr_post_string('skin_key', 40)",
             'if (!isset($communitySkinOptions[$skinKey]))',
             "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
         ],
         'view_needles' => [
             "sr_admin_form_label_help_html('community_admin_boards_skin_key'",
-            '<input type="hidden" name="intent" value="update_skin">',
             'name="skin_key" class="form-select"',
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',
         ],
