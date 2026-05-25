@@ -320,7 +320,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Community asset settings updated.' => '커뮤니티 자산 설정이 변경되었습니다.',
         'Community board asset settings updated.' => '커뮤니티 게시판 자산 설정이 변경되었습니다.',
         'Community board group asset settings updated.' => '커뮤니티 게시판 그룹 자산 설정이 변경되었습니다.',
-        'Community level definitions updated.' => '커뮤니티 레벨 정의가 변경되었습니다.',
+        'Community level definitions updated.' => '커뮤니티 레벨 설정이 변경되었습니다.',
         'Community levels recalculated.' => '커뮤니티 레벨이 재계산되었습니다.',
         'Content asset settings updated.' => '콘텐츠 자산 설정이 변경되었습니다.',
         'Content group asset settings updated.' => '콘텐츠 그룹 자산 설정이 변경되었습니다.',
