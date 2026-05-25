@@ -341,7 +341,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <th><?php echo sr_e(sr_t('site_menu::ui.text.8c609deb')); ?></th>
                     <th>URL</th>
                     <th><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('site_menu::ui.text.ff0e602e')); ?></th>
+                    <th class="admin-menu-sort-order-cell"><?php echo sr_e(sr_t('site_menu::ui.text.ff0e602e')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('site_menu::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
@@ -359,7 +359,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             $addItemModalId = 'site_menu_add_item_menu_' . $menuId;
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-0">
-                                <td></td>
+                                <td class="admin-menu-sort-order-cell"></td>
                                 <td><span class="admin-menu-scope-badge admin-menu-scope-category"><?php echo sr_e(sr_t('site_menu::ui.menu.13b36d6d')); ?></span></td>
                                 <td class="admin-menu-target-cell">
                                     <div class="admin-menu-target admin-menu-target-depth-0">
@@ -406,8 +406,8 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 </td>
                                 <td class="admin-table-break"><?php echo sr_e((string) $row['url']); ?></td>
                                 <td><span class="admin-status <?php echo (string) $row['status'] === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
-                                <td>
-                                    <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-order-form" data-admin-sort-order class="form-input">
+                                <td class="admin-menu-sort-order-cell">
+                                    <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-order-form" data-admin-sort-order class="form-input admin-menu-sort-order-input">
                                 </td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
