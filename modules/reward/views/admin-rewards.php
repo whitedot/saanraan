@@ -208,7 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td>
                                 <?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br>
                                 <?php echo sr_e(sr_admin_member_email_display($transaction)); ?><br>
-                                <?php echo sr_e((string) $transaction['account_public_hash']); ?>
+                                <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $transaction['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a>
                             </td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></td>
@@ -247,7 +247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('reward::ui.member.900e04a5')); ?></th>
+                    <th>회원 정보</th>
                     <th><?php echo sr_e(sr_t('reward::ui.member.e335b899')); ?></th>
                     <th><?php echo sr_e(sr_t('reward::ui.status.e10195a1')); ?></th>
                     <th><?php echo sr_e(sr_t('reward::ui.text.b099377c')); ?></th>
@@ -263,7 +263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } else { ?>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
-                            <td><?php echo sr_e((string) $balance['account_public_hash']); ?></td>
+                            <td><a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $balance['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a></td>
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></td>
