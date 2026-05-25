@@ -16,7 +16,7 @@ $errors = [];
 $notice = '';
 $recipientAccountHash = strtolower(trim(sr_get_string('to_account', 40)));
 $presetRecipient = sr_member_public_account_hash_is_valid($recipientAccountHash)
-    ? sr_member_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)
+    ? sr_community_public_account_summary_by_hash($pdo, $config, $recipientAccountHash)
     : null;
 $values = [
     'recipient_account_hash' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (string) $presetRecipient['public_hash'] : '',
@@ -25,7 +25,7 @@ $values = [
 ];
 $recipientPresetNotice = $values['recipient_account_hash'] !== '' ? sr_t('community::action.notice.recipient_preset') : '';
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
-    ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config)
+    ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config, (string) $presetRecipient['status'], (string) ($presetRecipient['community_nickname'] ?? ''), $settings)
     : '';
 
 if (sr_request_method() === 'POST') {
@@ -35,10 +35,10 @@ if (sr_request_method() === 'POST') {
     $errors = sr_community_validate_message_input($values);
     $recipient = null;
     $submittedRecipient = is_string($values['recipient_account_hash'] ?? null) && (string) $values['recipient_account_hash'] !== ''
-        ? sr_member_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
+        ? sr_community_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
         : null;
     if (is_array($submittedRecipient)) {
-        $recipientLabel = sr_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config);
+        $recipientLabel = sr_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config, (string) $submittedRecipient['status'], (string) ($submittedRecipient['community_nickname'] ?? ''), $settings);
     }
     if ($errors === []) {
         if (is_array($submittedRecipient)) {
@@ -53,7 +53,9 @@ if (sr_request_method() === 'POST') {
         }
     }
     if (is_array($recipient)) {
-        $recipientLabel = sr_community_message_account_label((string) $recipient['display_name'], (int) $recipient['id'], $canViewMemberIdentifiers, $config);
+        $recipientSummary = sr_community_public_account_summary($pdo, (int) $recipient['id']);
+        $recipientLabelAccount = is_array($recipientSummary) ? $recipientSummary : $recipient;
+        $recipientLabel = sr_community_message_account_label((string) ($recipientLabelAccount['display_name'] ?? ''), (int) $recipient['id'], $canViewMemberIdentifiers, $config, (string) ($recipientLabelAccount['status'] ?? $recipient['status'] ?? ''), (string) ($recipientLabelAccount['community_nickname'] ?? ''), $settings);
     }
 
     if ($errors === [] && sr_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
@@ -63,6 +65,15 @@ if (sr_request_method() === 'POST') {
     if ($errors === [] && is_array($recipient)) {
         $messageId = sr_community_create_message($pdo, (int) $account['id'], (int) $recipient['id'], (string) $values['body_text']);
         sr_community_record_message_rate_limit($pdo, (int) $account['id'], $settings);
+        $senderLabel = sr_community_message_account_label(
+            (string) ($account['display_name'] ?? ''),
+            (int) $account['id'],
+            false,
+            null,
+            (string) ($account['status'] ?? ''),
+            sr_community_member_nickname($pdo, (int) $account['id']),
+            $settings
+        );
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
@@ -80,7 +91,7 @@ if (sr_request_method() === 'POST') {
             (int) $recipient['id'],
             sr_t('community::notification.message.title'),
             sr_t('community::notification.message.body', [
-                'account' => sr_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']),
+                'account' => $senderLabel,
             ]),
             '/community/message?id=' . (string) $messageId,
             (int) $account['id']

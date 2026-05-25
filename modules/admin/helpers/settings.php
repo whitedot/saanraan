@@ -206,6 +206,7 @@ function sr_admin_event_type_label(string $eventType): string
 {
     $labels = [
         'member.account.created' => '회원 계정 생성',
+        'member.nickname.updated' => '회원 닉네임 변경',
         'member.sessions.revoked' => '회원 세션 폐기',
         'member.status.updated' => '회원 상태 변경',
         'privacy.request.updated' => '개인정보 처리 요청 상태 변경',
@@ -223,6 +224,7 @@ function sr_admin_event_type_label(string $eventType): string
         'admin.permissions.changed' => '관리자 권한 변경',
         'content.asset_settings.updated' => '콘텐츠 자산 설정 변경',
         'content_group.asset_settings.updated' => '콘텐츠 그룹 자산 설정 변경',
+        'community.nickname.updated' => '커뮤니티 닉네임 변경',
         'community.settings.asset_settings.updated' => '커뮤니티 자산 설정 변경',
         'community.board.asset_settings.updated' => '커뮤니티 게시판 자산 설정 변경',
         'community.board_group.asset_settings.updated' => '커뮤니티 게시판 그룹 자산 설정 변경',

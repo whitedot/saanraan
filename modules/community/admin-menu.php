@@ -25,6 +25,11 @@ return [
             'order' => 40,
         ],
         [
+            'label' => sr_t('community::ui.nickname.manage'),
+            'path' => '/admin/community/nicknames',
+            'order' => 45,
+        ],
+        [
             'label' => sr_t('community::ui.nav.comments'),
             'path' => '/admin/community/comments',
             'order' => 50,

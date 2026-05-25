@@ -15,8 +15,6 @@ return [
     'GET /admin/members/new' => 'actions/admin-members-new.php',
     'GET /admin/members/edit' => 'actions/admin-members-edit.php',
     'POST /admin/members/save' => 'actions/admin-members-save.php',
-    'GET /admin/member-nicknames' => 'actions/admin-nicknames.php',
-    'POST /admin/member-nicknames' => 'actions/admin-nicknames.php',
     'GET /admin/member-settings' => 'actions/admin-settings.php',
     'POST /admin/member-settings' => 'actions/admin-settings.php',
     'GET /admin/member-groups' => 'actions/admin-groups.php',

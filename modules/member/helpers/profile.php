@@ -5,7 +5,6 @@ declare(strict_types=1);
 function sr_member_empty_profile(): array
 {
     return [
-        'nickname' => '',
         'phone' => '',
         'birth_date' => '',
         'avatar_path' => '',
@@ -16,7 +15,7 @@ function sr_member_empty_profile(): array
 function sr_member_profile(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(
-        'SELECT nickname, phone, birth_date, avatar_path, profile_text
+        'SELECT phone, birth_date, avatar_path, profile_text
          FROM sr_member_profiles
          WHERE account_id = :account_id
          LIMIT 1'
@@ -29,7 +28,6 @@ function sr_member_profile(PDO $pdo, int $accountId): array
     }
 
     return [
-        'nickname' => (string) $profile['nickname'],
         'phone' => (string) $profile['phone'],
         'birth_date' => is_string($profile['birth_date']) ? $profile['birth_date'] : '',
         'avatar_path' => (string) $profile['avatar_path'],
@@ -47,11 +45,10 @@ function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_member_profiles
-            (account_id, nickname, phone, birth_date, avatar_path, profile_text, created_at, updated_at)
+            (account_id, phone, birth_date, avatar_path, profile_text, created_at, updated_at)
          VALUES
-            (:account_id, :nickname, :phone, :birth_date, :avatar_path, :profile_text, :created_at, :updated_at)
+            (:account_id, :phone, :birth_date, :avatar_path, :profile_text, :created_at, :updated_at)
          ON DUPLICATE KEY UPDATE
-            nickname = VALUES(nickname),
             phone = VALUES(phone),
             birth_date = VALUES(birth_date),
             avatar_path = VALUES(avatar_path),
@@ -60,7 +57,6 @@ function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
     );
     $stmt->execute([
         'account_id' => $accountId,
-        'nickname' => trim((string) ($profile['nickname'] ?? '')),
         'phone' => trim((string) ($profile['phone'] ?? '')),
         'birth_date' => $birthDate,
         'avatar_path' => trim((string) ($profile['avatar_path'] ?? '')),
@@ -79,9 +75,6 @@ function sr_member_delete_profile(PDO $pdo, int $accountId): void
 function sr_member_profile_values_from_post(array $policies, array $baseProfile): array
 {
     $profile = array_merge(sr_member_empty_profile(), $baseProfile);
-    if (!empty($policies['nickname']['visible'])) {
-        $profile['nickname'] = sr_post_string('nickname', 80);
-    }
     if (!empty($policies['phone']['visible'])) {
         $profile['phone'] = sr_post_string('phone', 40);
     }
@@ -141,7 +134,6 @@ function sr_member_profile_validation_errors(array $profile, array $policies, ar
 function sr_member_profile_required_message(string $field): string
 {
     return match ($field) {
-        'nickname' => sr_t('member::profile.error.nickname_required'),
         'phone' => sr_t('member::profile.error.phone_required'),
         'birth_date' => sr_t('member::profile.error.birth_date_required'),
         'profile_text' => sr_t('member::profile.error.profile_text_required'),

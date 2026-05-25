@@ -33,6 +33,8 @@ function sr_community_default_settings(): array
         'message_write_policy' => is_string($settings['message_write_policy'] ?? null) ? (string) $settings['message_write_policy'] : 'member',
         'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
+        'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
+        'nickname_required' => (bool) ($settings['nickname_required'] ?? false),
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
@@ -103,6 +105,8 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
+    $settings['nickname_enabled'] = sr_community_bool_setting($settings['nickname_enabled'] ?? true);
+    $settings['nickname_required'] = sr_community_bool_setting($settings['nickname_required'] ?? false);
     $settings['theme_key'] = sr_community_theme_key($settings);
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {

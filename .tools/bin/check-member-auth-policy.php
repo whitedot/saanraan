@@ -197,7 +197,6 @@ $settingsHelper = sr_member_auth_policy_read('modules/member/helpers/settings.ph
 if ($settingsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_setting_keys') !== false
-            && strpos($settingsHelper, 'profile_nickname_enabled') !== false
             && strpos($settingsHelper, 'profile_phone_enabled') !== false
             && strpos($settingsHelper, 'profile_birth_date_enabled') !== false
             && strpos($settingsHelper, 'profile_avatar_enabled') !== false
@@ -207,9 +206,24 @@ if ($settingsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_settings') !== false
             && strpos($settingsHelper, 'function sr_member_profile_field_policies') !== false
-            && strpos($settingsHelper, 'profile_nickname_required') !== false
+            && strpos($settingsHelper, 'profile_phone_required') !== false
             && strpos($settingsHelper, 'profile_avatar_required') !== false,
         'Member settings helper should expose normalized optional profile visibility and required policies.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($settingsHelper, 'profile_nickname_enabled') === false
+            && strpos($settingsHelper, 'profile_nickname_required') === false,
+        'Member settings helper should not define nickname policies because community owns nicknames.'
+    );
+}
+
+$profileHelper = sr_member_auth_policy_read('modules/member/helpers/profile.php');
+if ($profileHelper !== '') {
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, "sr_post_string('nickname'") === false
+            && strpos($profileHelper, "'nickname' =>") === false
+            && strpos($profileHelper, 'SELECT nickname') === false,
+        'Member profile helper should not accept, return, or read member-owned nicknames.'
     );
 }
 
@@ -662,7 +676,6 @@ $accountView = sr_member_auth_policy_read('modules/member/views/account.php');
 if ($accountView !== '') {
     sr_member_auth_policy_assert(
         strpos($accountView, 'if ($profileFieldsEnabled)') !== false
-            && strpos($accountView, "if (!empty(\$profilePolicies['nickname']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['birth_date']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['avatar_path']['visible']))") !== false

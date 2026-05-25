@@ -51,6 +51,7 @@ if (sr_request_method() === 'POST') {
             }
             $withdrawnConsents = sr_member_record_consent_withdrawals($pdo, (int) $account['id']);
             sr_member_anonymize_account($pdo, $config, (int) $account['id']);
+            $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, (int) $account['id'], 'member.anonymized');
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -73,6 +74,7 @@ if (sr_request_method() === 'POST') {
                 'revoked_sessions' => $revokedSessions,
                 'withdrawn_consents' => $withdrawnConsents,
                 'processed_assets' => $processedAssets,
+                'privacy_cleanup' => $privacyCleanupResults ?? [],
                 'deposit_refund_account_provided' => isset($processedAssets['deposit']),
             ],
         ]);

@@ -36,6 +36,20 @@ function sr_enabled_module_keys(PDO $pdo): array
     return $moduleKeys;
 }
 
+function sr_installed_module_keys(PDO $pdo): array
+{
+    $stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY id ASC');
+    $moduleKeys = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $moduleKey = (string) ($row['module_key'] ?? '');
+        if (sr_is_safe_module_key($moduleKey)) {
+            $moduleKeys[] = $moduleKey;
+        }
+    }
+
+    return $moduleKeys;
+}
+
 function sr_is_safe_module_key(string $moduleKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1;
@@ -162,6 +176,47 @@ function sr_enabled_module_contract_files(PDO $pdo, string $contractFile, array 
 
     $files = [];
     foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
+        if (isset($excluded[$moduleKey])) {
+            continue;
+        }
+
+        if (!sr_module_contract_is_loadable($moduleKey)) {
+            continue;
+        }
+
+        $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+        $file = $moduleDir . '/' . $contractFile;
+        if (!is_file($file)) {
+            continue;
+        }
+
+        $realModuleDir = realpath($moduleDir);
+        $realFile = realpath($file);
+        if ($realModuleDir === false || $realFile === false || strpos($realFile, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
+            continue;
+        }
+
+        $files[$moduleKey] = $realFile;
+    }
+
+    return $files;
+}
+
+function sr_installed_module_contract_files(PDO $pdo, string $contractFile, array $excludedModuleKeys = []): array
+{
+    if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1) {
+        return [];
+    }
+
+    $excluded = [];
+    foreach ($excludedModuleKeys as $moduleKey) {
+        if (is_string($moduleKey) && sr_is_safe_module_key($moduleKey)) {
+            $excluded[$moduleKey] = true;
+        }
+    }
+
+    $files = [];
+    foreach (sr_installed_module_keys($pdo) as $moduleKey) {
         if (isset($excluded[$moduleKey])) {
             continue;
         }
@@ -476,6 +531,7 @@ function sr_module_known_contract_files(): array
         'output-slots.php',
         'extension-points.php',
         'privacy-export.php',
+        'privacy-cleanup.php',
         'sitemap.php',
         'menu-links.php',
         'member-group-rules.php',

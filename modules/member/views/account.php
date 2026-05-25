@@ -109,14 +109,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>"<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="profile">
-                    <?php if (!empty($profilePolicies['nickname']['visible'])) { ?>
-                        <p>
-                            <label for="modules_member_account_nickname">
-                                <span><?php echo sr_e(sr_t('member::ui.text.6211d967')); ?><?php echo !empty($profilePolicies['nickname']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
-                                <input id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e($profile['nickname']); ?>" maxlength="80"<?php echo !empty($profilePolicies['nickname']['required']) ? ' required' : ''; ?>>
-                            </label>
-                        </p>
-                    <?php } ?>
                     <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_phone">

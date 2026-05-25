@@ -24,7 +24,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 (int) $message['sender_account_id'],
                 $canViewMemberIdentifiers,
                 $config,
-                is_string($message['sender_account_status'] ?? null) ? $message['sender_account_status'] : null
+                is_string($message['sender_account_status'] ?? null) ? $message['sender_account_status'] : null,
+                is_string($message['sender_nickname'] ?? null) ? $message['sender_nickname'] : null,
+                isset($communitySettings) && is_array($communitySettings) ? $communitySettings : null
             )); ?></dd>
             <dt><?php echo sr_e(sr_t('community::ui.member.a8116cfc')); ?></dt>
             <dd><?php echo sr_e(sr_community_message_account_label(
@@ -32,7 +34,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                 (int) $message['recipient_account_id'],
                 $canViewMemberIdentifiers,
                 $config,
-                is_string($message['recipient_account_status'] ?? null) ? $message['recipient_account_status'] : null
+                is_string($message['recipient_account_status'] ?? null) ? $message['recipient_account_status'] : null,
+                is_string($message['recipient_nickname'] ?? null) ? $message['recipient_nickname'] : null,
+                isset($communitySettings) && is_array($communitySettings) ? $communitySettings : null
             )); ?></dd>
             <dt><?php echo sr_e(sr_t('community::ui.text.4f639f73')); ?></dt>
             <dd><?php echo sr_e((string) $message['created_at']); ?></dd>

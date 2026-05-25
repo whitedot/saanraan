@@ -45,6 +45,8 @@ if (sr_request_method() === 'POST') {
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
+        $nicknameEnabled = ($_POST['nickname_enabled'] ?? '') === '1';
+        $nicknameRequired = $nicknameEnabled && ($_POST['nickname_required'] ?? '') === '1';
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
@@ -149,6 +151,8 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
+                ['nickname_enabled', $nicknameEnabled ? '1' : '0', 'bool'],
+                ['nickname_required', $nicknameRequired ? '1' : '0', 'bool'],
                 ['theme_key', 'basic', 'string'],
                 ['layout_key', $layoutKey, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
@@ -219,6 +223,8 @@ if (sr_request_method() === 'POST') {
                     'level_auto_recalculate' => $levelAutoRecalculate,
                     'message_write_policy' => $messageWritePolicy,
                     'message_write_min_level' => $messageWriteMinLevel,
+                    'nickname_enabled' => $nicknameEnabled,
+                    'nickname_required' => $nicknameRequired,
                     'layout_key' => $layoutKey,
                     'asset_settings' => $assetSettings,
                 ],

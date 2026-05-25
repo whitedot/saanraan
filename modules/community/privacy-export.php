@@ -9,6 +9,7 @@ return static function (PDO $pdo, int $accountId): array {
         'attachments' => [],
         'reports' => [],
         'messages' => [],
+        'nickname' => [],
         'scraps' => [],
         'level' => [],
         'level_logs' => [],
@@ -71,6 +72,16 @@ return static function (PDO $pdo, int $accountId): array {
         'recipient_account_id' => $accountId,
     ]);
     $empty['messages'] = $stmt->fetchAll();
+
+    $stmt = $pdo->prepare(
+        'SELECT nickname, created_at, updated_at
+         FROM sr_community_member_nicknames
+         WHERE account_id = :account_id
+         LIMIT 1'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $nickname = $stmt->fetch();
+    $empty['nickname'] = is_array($nickname) ? $nickname : [];
 
     $stmt = $pdo->prepare(
         'SELECT id, post_id, created_at

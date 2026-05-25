@@ -817,7 +817,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     justify-content: start;
 }
 
-.admin-page-member-nicknames .admin-member-search-grid {
+.admin-page-community-nicknames .admin-member-search-grid {
     grid-template-columns: minmax(0, 10rem) minmax(16rem, 1fr) auto;
 }
 

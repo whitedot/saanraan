@@ -45,7 +45,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                     $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id'],
                                     $canViewMemberIdentifiers,
                                     $config,
-                                    is_string($message['other_account_status'] ?? null) ? $message['other_account_status'] : null
+                                    is_string($message['other_account_status'] ?? null) ? $message['other_account_status'] : null,
+                                    is_string($message['other_nickname'] ?? null) ? $message['other_nickname'] : null,
+                                    isset($communitySettings) && is_array($communitySettings) ? $communitySettings : null
                                 )); ?>
                             </td>
                             <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.62808119') : sr_t('community::ui.text.3fe5701c')) : ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.eacc746d') : sr_t('community::ui.text.3fe5701c')); ?></td>

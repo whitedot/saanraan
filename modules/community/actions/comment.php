@@ -79,12 +79,21 @@ sr_audit_log($pdo, [
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 if ((int) $post['author_account_id'] !== (int) $account['id']) {
+    $commentAuthorLabel = sr_community_message_account_label(
+        (string) ($account['display_name'] ?? ''),
+        (int) $account['id'],
+        false,
+        null,
+        (string) ($account['status'] ?? ''),
+        sr_community_member_nickname($pdo, (int) $account['id']),
+        $settings
+    );
     sr_community_create_account_notification(
         $pdo,
         (int) $post['author_account_id'],
         sr_t('community::notification.comment.title'),
         sr_t('community::notification.comment.body', [
-            'account' => sr_community_message_account_label((string) ($account['display_name'] ?? ''), (int) $account['id']),
+            'account' => $commentAuthorLabel,
         ]),
         '/community/post?id=' . (string) $postId . '#comments',
         (int) $account['id']

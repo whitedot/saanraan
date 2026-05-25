@@ -268,14 +268,14 @@ function sr_community_admin_post_query_parts(array $filters): array
             $where[] = 'p.title LIKE :keyword';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'author') {
-            $where[] = 'a.display_name LIKE :keyword';
+            $where[] = '(a.display_name LIKE :keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :keyword))';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'board') {
             $where[] = '(b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
             $params['board_title_keyword'] = '%' . $keyword . '%';
@@ -295,7 +295,8 @@ function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
     $sql = 'SELECT COUNT(*) AS count_value
             FROM sr_community_posts p
             INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id';
+            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
+            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -319,12 +320,14 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     $sql = 'SELECT p.id, p.board_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
+                   author_nickname.nickname AS author_nickname,
                    a.status AS author_account_status,
                    (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                    (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
             FROM sr_community_posts p
             INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id';
+            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
+            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
@@ -356,10 +359,12 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
         'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
+                author_nickname.nickname AS author_nickname,
                 a.status AS author_account_status
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
+         LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id
          WHERE p.id = :id
          LIMIT 1'
     );
@@ -442,7 +447,7 @@ function sr_community_admin_comment_query_parts(array $filters): array
             $where[] = 'c.body_text LIKE :keyword';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'author') {
-            $where[] = 'a.display_name LIKE :keyword';
+            $where[] = '(a.display_name LIKE :keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :keyword))';
             $params['keyword'] = '%' . $keyword . '%';
         } elseif ($field === 'post') {
             $where[] = 'p.title LIKE :keyword';
@@ -452,7 +457,7 @@ function sr_community_admin_comment_query_parts(array $filters): array
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['body_keyword'] = '%' . $keyword . '%';
             $params['post_title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
@@ -474,7 +479,8 @@ function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
             FROM sr_community_comments c
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id';
+            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -499,11 +505,13 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
+                   author_nickname.nickname AS author_nickname,
                    a.status AS author_account_status
             FROM sr_community_comments c
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id';
+            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
@@ -535,11 +543,13 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
         'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
-                a.display_name AS author_display_name
+                a.display_name AS author_display_name,
+                author_nickname.nickname AS author_nickname
          FROM sr_community_comments c
          INNER JOIN sr_community_posts p ON p.id = c.post_id
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id
          WHERE c.id = :id
          LIMIT 1'
     );
@@ -974,12 +984,18 @@ function sr_community_rate_limits_table_exists(PDO $pdo): bool
 
 function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showIdentifier = false, ?array $config = null): string
 {
-    $summary = sr_member_public_account_summary($pdo, $accountId);
-    if (!is_array($summary) || (string) $summary['status'] === 'anonymized') {
+    $summary = sr_community_public_account_summary($pdo, $accountId);
+    if (!is_array($summary) || sr_community_nickname_status_blocks_identity((string) $summary['status'])) {
         return sr_t('member::account.withdrawn_display_name');
     }
 
-    $displayName = trim((string) $summary['display_name']);
+    static $communitySettingsCache = [];
+    $settingsCacheKey = (string) spl_object_id($pdo);
+    if (!isset($communitySettingsCache[$settingsCacheKey])) {
+        $communitySettingsCache[$settingsCacheKey] = sr_community_settings($pdo);
+    }
+
+    $displayName = sr_community_public_display_name($summary, $communitySettingsCache[$settingsCacheKey]);
     $label = $displayName !== '' ? $displayName : sr_t('community::report.account.member');
     $runtimeConfig = is_array($config) ? $config : sr_runtime_config();
 

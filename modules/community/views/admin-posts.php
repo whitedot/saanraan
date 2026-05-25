@@ -119,7 +119,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-break admin-community-post-author-cell"><?php echo sr_e(sr_community_report_account_label(
-                            is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : null,
+                            sr_community_public_display_name([
+                                'display_name' => is_string($post['author_display_name'] ?? null) ? $post['author_display_name'] : '',
+                                'community_nickname' => is_string($post['author_nickname'] ?? null) ? $post['author_nickname'] : '',
+                                'status' => is_string($post['author_account_status'] ?? null) ? $post['author_account_status'] : '',
+                            ], isset($settings) && is_array($settings) ? $settings : null),
                             (int) $post['author_account_id'],
                             is_string($post['author_account_status'] ?? null) ? $post['author_account_status'] : null
                         )); ?></td>
@@ -247,7 +251,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </a>
                         </td>
                         <td class="admin-table-break admin-community-comment-author-cell"><?php echo sr_e(sr_community_report_account_label(
-                            is_string($comment['author_display_name'] ?? null) ? $comment['author_display_name'] : null,
+                            sr_community_public_display_name([
+                                'display_name' => is_string($comment['author_display_name'] ?? null) ? $comment['author_display_name'] : '',
+                                'community_nickname' => is_string($comment['author_nickname'] ?? null) ? $comment['author_nickname'] : '',
+                                'status' => is_string($comment['author_account_status'] ?? null) ? $comment['author_account_status'] : '',
+                            ], isset($settings) && is_array($settings) ? $settings : null),
                             (int) $comment['author_account_id'],
                             is_string($comment['author_account_status'] ?? null) ? $comment['author_account_status'] : null
                         )); ?></td>

@@ -28,8 +28,6 @@ function sr_member_default_settings(): array
         'register_throttle_window_seconds' => (int) ($settings['register_throttle_window_seconds'] ?? 900),
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
         'member_skin_key' => is_string($settings['member_skin_key'] ?? null) ? (string) $settings['member_skin_key'] : 'basic',
-        'profile_nickname_enabled' => (bool) ($settings['profile_nickname_enabled'] ?? true),
-        'profile_nickname_required' => (bool) ($settings['profile_nickname_required'] ?? false),
         'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
         'profile_phone_required' => (bool) ($settings['profile_phone_required'] ?? false),
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
@@ -187,11 +185,6 @@ function sr_member_profile_field_required_setting_keys(): array
 function sr_member_profile_field_definitions(): array
 {
     return [
-        'nickname' => [
-            'label' => sr_t('member::settings.profile.nickname'),
-            'enabled_key' => 'profile_nickname_enabled',
-            'required_key' => 'profile_nickname_required',
-        ],
         'phone' => [
             'label' => sr_t('member::settings.profile.phone'),
             'enabled_key' => 'profile_phone_enabled',

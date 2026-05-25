@@ -7,6 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
+$communitySettings = sr_community_settings($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $box = sr_get_string('box', 20);
 $box = $box === 'sent' ? 'sent' : 'inbox';

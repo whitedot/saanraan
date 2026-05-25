@@ -58,6 +58,33 @@ function sr_member_record_consent_withdrawals(PDO $pdo, int $accountId): int
     return $count;
 }
 
+function sr_member_run_privacy_cleanup_contracts(PDO $pdo, int $accountId, string $eventType): array
+{
+    $results = [];
+    if ($accountId < 1) {
+        return $results;
+    }
+
+    foreach (sr_installed_module_contract_files($pdo, 'privacy-cleanup.php', ['member']) as $moduleKey => $cleanupFile) {
+        try {
+            $cleanup = sr_load_module_contract_file($moduleKey, $cleanupFile);
+            if (!is_callable($cleanup)) {
+                throw new RuntimeException('Privacy cleanup contract is not callable.');
+            }
+
+            $result = $cleanup($pdo, $accountId, ['event_type' => $eventType]);
+            if (is_array($result)) {
+                $results[$moduleKey] = $result;
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'member_privacy_cleanup_' . $moduleKey);
+            throw new RuntimeException('Member privacy cleanup failed for module: ' . $moduleKey, 0, $exception);
+        }
+    }
+
+    return $results;
+}
+
 function sr_member_privacy_request_list_preview(?string $value, int $maxLength = 120): string
 {
     $maxLength = max(1, $maxLength);

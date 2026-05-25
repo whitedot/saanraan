@@ -66,6 +66,7 @@ modules/{module_key}/
 - output-slots.php (optional)
 - extension-points.php (optional)
 - privacy-export.php (optional)
+- privacy-cleanup.php (optional)
 - sitemap.php (optional)
 - dashboard.php (optional)
 - actions/ (optional)
@@ -111,6 +112,7 @@ modules/board/
 - extension-points.php
 - sitemap.php
 - privacy-export.php
+- privacy-cleanup.php
 - actions/list.php
 - actions/view.php
 - actions/admin-posts.php
@@ -952,7 +954,7 @@ return [
 
 ## 15-2. 계약 파일 소비 지도
 
-계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `sr_enabled_module_contract_files()`와 `sr_load_module_contract_file()`로 명시적으로 읽는다.
+계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `sr_enabled_module_contract_files()`와 `sr_load_module_contract_file()`로 명시적으로 읽는다. 단, 회원 탈퇴/익명화 개인정보 정리처럼 보관 데이터 삭제가 목적인 계약은 비활성 모듈의 데이터도 정리해야 하므로 설치된 모듈의 `privacy-cleanup.php`를 읽는다.
 
 코어가 읽는 계약 파일은 특정 모듈의 `contracts.consumes`에 적지 않는다. 예를 들어 front controller가 읽는 `paths.php`와 `sr_render_output_slot()`이 읽는 `output-slots.php`는 코어 실행 기반의 소비다.
 
@@ -968,6 +970,7 @@ return [
 | `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
 | `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출 시 | 저장된 출력 규칙 렌더링 |
 | `privacy-export.php` | `privacy` 모듈 | 개인정보 사본 생성 | 모듈별 회원 귀속 데이터 수집 |
+| `privacy-cleanup.php` | `member` 모듈 | 회원 탈퇴/익명화 트랜잭션 | 설치된 모듈별 회원 재식별 개인정보 정리. 계약 로드 또는 실행 실패 시 탈퇴 처리를 중단 |
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
@@ -978,7 +981,7 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php`, `privacy-cleanup.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
@@ -990,7 +993,7 @@ return [
 | `point` | `paths.php`, `admin-menu.php` | 없음 |
 | `deposit` | `paths.php`, `admin-menu.php` | 없음 |
 | `reward` | `paths.php`, `admin-menu.php` | 없음 |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 
 모듈 메타데이터 작성 기준:
 

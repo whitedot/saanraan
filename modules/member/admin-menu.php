@@ -15,11 +15,6 @@ return [
             'order' => 10,
         ],
         [
-            'label' => sr_t('member::ui.member.nicknames.6d5b7b92'),
-            'path' => '/admin/member-nicknames',
-            'order' => 15,
-        ],
-        [
             'label' => sr_t('member::ui.member.7482bebf'),
             'path' => '/admin/member-groups',
             'order' => 20,

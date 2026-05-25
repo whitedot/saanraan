@@ -28,7 +28,7 @@ function sr_community_report_statuses(): array
 function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null): string
 {
     $label = trim((string) $displayName);
-    if ((string) $accountStatus === 'anonymized' && $label === 'withdrawn') {
+    if (sr_community_nickname_status_blocks_identity((string) $accountStatus)) {
         return sr_t('member::account.withdrawn_display_name');
     }
 

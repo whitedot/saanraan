@@ -12,9 +12,11 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     if ($box === 'sent') {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        recipient.display_name AS other_display_name,
+                       recipient_nickname.nickname AS other_nickname,
                        recipient.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
+                LEFT JOIN sr_community_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
                 WHERE m.sender_account_id = :account_id
                   AND m.sender_deleted_at IS NULL
                 ORDER BY m.id DESC
@@ -22,9 +24,11 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     } else {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        sender.display_name AS other_display_name,
+                       sender_nickname.nickname AS other_nickname,
                        sender.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
+                LEFT JOIN sr_community_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
                 WHERE m.recipient_account_id = :account_id
                   AND m.recipient_deleted_at IS NULL
                 ORDER BY m.id DESC
@@ -39,10 +43,14 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     return $stmt->fetchAll();
 }
 
-function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null): string
+function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null, ?string $nickname = null, ?array $communitySettings = null): string
 {
-    $label = trim((string) $displayName);
-    if ((string) $accountStatus === 'anonymized' && $label === 'withdrawn') {
+    $label = sr_community_public_display_name([
+        'display_name' => (string) $displayName,
+        'community_nickname' => (string) $nickname,
+        'status' => (string) $accountStatus,
+    ], $communitySettings);
+    if (sr_community_nickname_status_blocks_identity((string) $accountStatus)) {
         $label = sr_t('member::account.withdrawn_display_name');
     }
 
@@ -68,12 +76,16 @@ function sr_community_message_by_id_for_account(PDO $pdo, int $messageId, int $a
     $stmt = $pdo->prepare(
         'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                 sender.display_name AS sender_display_name,
+                sender_nickname.nickname AS sender_nickname,
                 sender.status AS sender_account_status,
                 recipient.display_name AS recipient_display_name,
+                recipient_nickname.nickname AS recipient_nickname,
                 recipient.status AS recipient_account_status
          FROM sr_community_messages m
          LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
+         LEFT JOIN sr_community_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
          LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
+         LEFT JOIN sr_community_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
          WHERE m.id = :id
            AND (
                 (m.sender_account_id = :sender_account_id AND m.sender_deleted_at IS NULL)

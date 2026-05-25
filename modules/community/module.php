@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.05.015',
+    'version' => '2026.05.017',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -28,6 +28,7 @@ return [
             'menu-links.php',
             'extension-points.php',
             'privacy-export.php',
+            'privacy-cleanup.php',
             'sitemap.php',
             'member-group-rules.php',
             'dashboard.php',
@@ -64,6 +65,8 @@ return [
         'message_write_policy' => 'member',
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,
+        'nickname_enabled' => true,
+        'nickname_required' => false,
         'theme_key' => 'basic',
         'layout_key' => 'community.basic',
         'post_reward_enabled' => false,
