@@ -17,6 +17,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.auth_logs.body.1',
             'retention.help.auth_logs.body.2',
+            'retention.help.auth_logs.body.3',
         ]),
     ],
     'audit_logs_days' => [
@@ -25,6 +26,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.audit_logs.body.1',
             'retention.help.audit_logs.body.2',
+            'retention.help.audit_logs.body.3',
         ]),
     ],
     'used_tokens_days' => [
@@ -33,6 +35,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.used_tokens.body.1',
             'retention.help.used_tokens.body.2',
+            'retention.help.used_tokens.body.3',
         ]),
     ],
     'sessions_days' => [
@@ -41,6 +44,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.sessions.body.1',
             'retention.help.sessions.body.2',
+            'retention.help.sessions.body.3',
         ]),
     ],
     'notifications_days' => [
@@ -49,6 +53,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.notifications.body.1',
             'retention.help.notifications.body.2',
+            'retention.help.notifications.body.3',
         ]),
     ],
     'module_backups_days' => [
@@ -57,6 +62,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.module_backups.body.1',
             'retention.help.module_backups.body.2',
+            'retention.help.module_backups.body.3',
         ]),
     ],
     'auto_cleanup_enabled' => [
@@ -65,6 +71,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.auto_cleanup_enabled.body.1',
             'retention.help.auto_cleanup_enabled.body.2',
+            'retention.help.auto_cleanup_enabled.body.3',
         ]),
     ],
     'auto_cleanup_interval_hours' => [
@@ -73,6 +80,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.auto_cleanup_interval.body.1',
             'retention.help.auto_cleanup_interval.body.2',
+            'retention.help.auto_cleanup_interval.body.3',
         ]),
     ],
     'auto_cleanup_batch_size' => [
@@ -81,6 +89,7 @@ $retentionHelp = [
         'body_html' => $retentionHelpBodyHtml([
             'retention.help.auto_cleanup_batch.body.1',
             'retention.help.auto_cleanup_batch.body.2',
+            'retention.help.auto_cleanup_batch.body.3',
         ]),
     ],
 ];
@@ -164,7 +173,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">
+        <button type="button" class="btn btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">
             <?php echo sr_e(sr_t('admin::ui.text.90922df1')); ?>
         </button>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.864e6c0c')); ?></button>
