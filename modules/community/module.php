@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.05.014',
+    'version' => '2026.05.015',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -77,16 +77,20 @@ return [
         'write_charge_enabled' => false,
         'write_charge_asset_module' => 'point',
         'write_charge_amount' => 0,
+        'write_charge_amounts_json' => '',
         'comment_charge_enabled' => false,
         'comment_charge_asset_module' => 'point',
         'comment_charge_amount' => 0,
+        'comment_charge_amounts_json' => '',
         'paid_read_enabled' => false,
         'paid_read_asset_module' => 'point',
         'paid_read_amount' => 0,
+        'paid_read_amounts_json' => '',
         'paid_read_charge_policy' => 'once',
         'paid_attachment_download_enabled' => false,
         'paid_attachment_download_asset_module' => 'point',
         'paid_attachment_download_amount' => 0,
+        'paid_attachment_download_amounts_json' => '',
         'paid_attachment_download_charge_policy' => 'once',
     ],
 ];

@@ -77,21 +77,30 @@ if (sr_request_method() === 'POST') {
     $description = sr_content_clean_text(sr_post_string('description', 2000), 2000);
     $status = sr_post_string('status', 30);
     $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
+    $groupAccessAssetModules = sr_content_asset_module_keys_from_value($_POST['group_asset_module'] ?? '');
+    $groupAccessAmount = (int) sr_post_string('group_asset_access_amount', 20);
+    $groupActionAssetModules = sr_content_asset_module_keys_from_value($_POST['group_asset_action_module'] ?? '');
+    $groupActionAmount = (int) sr_post_string('group_asset_action_amount', 20);
+    $groupFileAssetModules = sr_content_asset_module_keys_from_value($_POST['group_file_asset_module'] ?? '');
+    $groupFileAmount = (int) sr_post_string('group_file_asset_download_amount', 20);
     $groupSettings = [
         'status' => sr_post_string('group_content_status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('group_layout_key', 80)),
         'asset_access_enabled' => sr_post_string('group_asset_access_enabled', 1) === '1' ? 1 : 0,
-        'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['group_asset_module'] ?? '')),
-        'asset_access_amount' => (int) sr_post_string('group_asset_access_amount', 20),
+        'asset_module' => sr_content_asset_module_value_from_keys($groupAccessAssetModules),
+        'asset_access_amount' => $groupAccessAmount,
+        'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_asset_access_amounts', $groupAccessAssetModules, $groupAccessAmount)),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('group_asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('group_asset_action_enabled', 1) === '1' ? 1 : 0,
-        'asset_action_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['group_asset_action_module'] ?? '')),
-        'asset_action_amount' => (int) sr_post_string('group_asset_action_amount', 20),
+        'asset_action_module' => sr_content_asset_module_value_from_keys($groupActionAssetModules),
+        'asset_action_amount' => $groupActionAmount,
+        'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_asset_action_amounts', $groupActionAssetModules, $groupActionAmount)),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('group_asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('group_asset_action_label', 80), 80),
         'file_asset_download_enabled' => sr_post_string('group_file_asset_download_enabled', 1) === '1' ? 1 : 0,
-        'file_asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['group_file_asset_module'] ?? '')),
-        'file_asset_download_amount' => (int) sr_post_string('group_file_asset_download_amount', 20),
+        'file_asset_module' => sr_content_asset_module_value_from_keys($groupFileAssetModules),
+        'file_asset_download_amount' => $groupFileAmount,
+        'file_asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_file_asset_download_amounts', $groupFileAssetModules, $groupFileAmount)),
         'file_asset_charge_policy' => sr_content_clean_slug(sr_post_string('group_file_asset_charge_policy', 20)),
     ];
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
@@ -103,11 +112,13 @@ if (sr_request_method() === 'POST') {
         'asset_download_enabled' => $groupSettings['file_asset_download_enabled'] ?? 0,
         'asset_module' => $groupSettings['file_asset_module'] ?? '',
         'asset_download_amount' => $groupSettings['file_asset_download_amount'] ?? 0,
+        'asset_download_amounts_json' => $groupSettings['file_asset_download_amounts_json'] ?? '',
         'asset_charge_policy' => $groupSettings['file_asset_charge_policy'] ?? 'once',
     ], false);
     $groupSettings['file_asset_download_enabled'] = (int) ($groupFileAssetSettings['asset_download_enabled'] ?? 0);
     $groupSettings['file_asset_module'] = (string) ($groupFileAssetSettings['asset_module'] ?? '');
     $groupSettings['file_asset_download_amount'] = (int) ($groupFileAssetSettings['asset_download_amount'] ?? 0);
+    $groupSettings['file_asset_download_amounts_json'] = (string) ($groupFileAssetSettings['asset_download_amounts_json'] ?? '{}');
     $groupSettings['file_asset_charge_policy'] = (string) ($groupFileAssetSettings['asset_charge_policy'] ?? 'once');
 
     if (!$isUpdate && !sr_content_group_key_is_valid($groupKey)) {

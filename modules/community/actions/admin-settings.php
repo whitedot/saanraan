@@ -53,6 +53,16 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? ''))
                 : sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
+            if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module']);
+                $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
+                    sr_community_asset_amounts_from_post($assetPrefix . '_amounts', $assetModules, (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0))
+                );
+                $assetSettings[$assetPrefix . '_amount'] = sr_community_asset_amount_total(
+                    sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'], $assetModules),
+                    (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0)
+                );
+            }
         }
         $assetSettings['post_reward_reversal_enabled'] = ($_POST['post_reward_reversal_enabled'] ?? '') === '1';
         $assetSettings['comment_reward_reversal_enabled'] = ($_POST['comment_reward_reversal_enabled'] ?? '') === '1';
@@ -93,6 +103,10 @@ if (sr_request_method() === 'POST') {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
                         $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
+                    }
+                    $amounts = sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'] ?? '', $assetModules);
+                    if (count($amounts) < count($assetModules)) {
+                        $errors[] = sr_t('community::action.admin.asset_amounts_required', ['label' => $assetLabel]);
                     }
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
                     $errors[] = sr_t('community::action.admin.asset_module_inactive', [
@@ -148,16 +162,20 @@ if (sr_request_method() === 'POST') {
                 ['write_charge_enabled', $assetSettings['write_charge_enabled'] ? '1' : '0', 'bool'],
                 ['write_charge_asset_module', (string) $assetSettings['write_charge_asset_module'], 'string'],
                 ['write_charge_amount', (string) $assetSettings['write_charge_amount'], 'int'],
+                ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
+                ['comment_charge_amounts_json', (string) $assetSettings['comment_charge_amounts_json'], 'json'],
                 ['paid_read_enabled', $assetSettings['paid_read_enabled'] ? '1' : '0', 'bool'],
                 ['paid_read_asset_module', (string) $assetSettings['paid_read_asset_module'], 'string'],
                 ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
+                ['paid_read_amounts_json', (string) $assetSettings['paid_read_amounts_json'], 'json'],
                 ['paid_read_charge_policy', (string) $assetSettings['paid_read_charge_policy'], 'string'],
                 ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
                 ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
+                ['paid_attachment_download_amounts_json', (string) $assetSettings['paid_attachment_download_amounts_json'], 'json'],
                 ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
             ];
             $stmt = $pdo->prepare(

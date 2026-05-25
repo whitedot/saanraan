@@ -105,7 +105,7 @@ foreach (sr_community_asset_deduction_order() as $assetModule) {
     }
 }
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
-    ? sr_t('community::ui.text.706623d8') . implode(' > ', $assetDeductionPriorityLabels)
+    ? sr_t('community::ui.text.706623d8') . implode(', ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
 $memberGroupAccessHelpModalId = 'community-board-group-member-group-access-help-modal';
 $memberGroupAccessHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.member_group_access_help_policy')) . '</p>'
@@ -573,7 +573,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                                     <?php } ?>
                                 </div>
-                                <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
+                                <?php if ($usesCompositeAsset) { ?>
+                                    <input type="hidden" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>">
+                                    <?php echo sr_community_asset_amount_inputs_html('group_' . (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $groupSettingValue($formGroupSettings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0)), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
+                                <?php } else { ?>
+                                    <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
+                                <?php } ?>
                                 <?php if ($assetPrefix === 'paid_read') { ?>
                                     <select name="group_paid_read_charge_policy" class="form-select">
                                         <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>

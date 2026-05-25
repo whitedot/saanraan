@@ -86,6 +86,9 @@ function sr_community_board_group_asset_setting_keys(): array
         $keys[] = $prefix . '_enabled';
         $keys[] = $prefix . '_asset_module';
         $keys[] = $prefix . '_amount';
+        if (in_array($prefix, ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'], true)) {
+            $keys[] = $prefix . '_amounts_json';
+        }
     }
     $keys[] = 'paid_read_charge_policy';
     $keys[] = 'paid_attachment_download_charge_policy';
@@ -210,7 +213,7 @@ function sr_community_board_setting_value_type(string $settingKey): string
         return 'bool';
     }
 
-    if (in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
+    if (in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true) || str_ends_with($settingKey, '_amounts_json')) {
         return 'json';
     }
 

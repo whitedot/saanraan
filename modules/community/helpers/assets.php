@@ -203,6 +203,9 @@ function sr_community_asset_prefix_setting_keys(string $prefix): array
         $prefix . '_asset_module',
         $prefix . '_amount',
     ];
+    if (sr_community_asset_prefix_uses_composite($prefix)) {
+        $keys[] = $prefix . '_amounts_json';
+    }
 
     if (in_array($prefix, ['paid_read', 'paid_attachment_download'], true)) {
         $keys[] = $prefix . '_charge_policy';
@@ -311,6 +314,15 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($moduleValue))
             : sr_community_asset_module_key($moduleValue);
         $auditSettings[$assetPrefix . '_amount'] = max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0));
+        if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+            $auditSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
+                sr_community_asset_amounts_from_value(
+                    $settings[$assetPrefix . '_amounts_json'] ?? '',
+                    sr_community_asset_module_keys_from_value($auditSettings[$assetPrefix . '_asset_module']),
+                    $auditSettings[$assetPrefix . '_amount']
+                )
+            );
+        }
         if (in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true)) {
             $auditSettings[$assetPrefix . '_charge_policy'] = sr_community_asset_charge_policy(
                 (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'),
@@ -422,6 +434,127 @@ function sr_community_allocate_asset_use(PDO $pdo, array $assetModules, int $acc
     return $remaining === 0 ? $allocations : [];
 }
 
+function sr_community_asset_amounts_from_value(mixed $value, array $assetModules = [], int $fallbackAmount = 0): array
+{
+    $decoded = null;
+    if (is_string($value) && trim($value) !== '') {
+        $decoded = json_decode($value, true);
+    } elseif (is_array($value)) {
+        $decoded = $value;
+    }
+
+    $amounts = [];
+    if (is_array($decoded)) {
+        foreach ($decoded as $assetModule => $amount) {
+            $assetModule = sr_community_asset_module_key((string) $assetModule);
+            $amounts[$assetModule] = min(999999999, max(0, (int) $amount));
+        }
+    }
+
+    $ordered = [];
+    foreach (sr_community_asset_module_keys_from_value($assetModules) as $assetModule) {
+        $amount = $amounts[$assetModule] ?? 0;
+        if ($amount <= 0 && $fallbackAmount > 0 && count(sr_community_asset_module_keys_from_value($assetModules)) === 1) {
+            $amount = $fallbackAmount;
+        }
+        if ($amount > 0) {
+            $ordered[$assetModule] = $amount;
+        }
+    }
+
+    return $ordered;
+}
+
+function sr_community_asset_amounts_json_from_map(array $amounts): string
+{
+    $normalized = [];
+    foreach (sr_community_asset_deduction_order() as $assetModule) {
+        $amount = min(999999999, max(0, (int) ($amounts[$assetModule] ?? 0)));
+        if ($amount > 0) {
+            $normalized[$assetModule] = $amount;
+        }
+    }
+
+    $encoded = json_encode($normalized, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return is_string($encoded) ? $encoded : '{}';
+}
+
+function sr_community_asset_amounts_from_post(string $fieldName, array $assetModules, int $fallbackAmount = 0): array
+{
+    if (!array_key_exists($fieldName, $_POST)) {
+        return sr_community_asset_amounts_from_value([], $assetModules, $fallbackAmount);
+    }
+
+    $values = $_POST[$fieldName] ?? [];
+    return sr_community_asset_amounts_from_value(is_array($values) ? $values : [], $assetModules, 0);
+}
+
+function sr_community_asset_amount_input_values(mixed $amountsValue, array $assetModules, int $fallbackAmount = 0): array
+{
+    $amounts = sr_community_asset_amounts_from_value($amountsValue, $assetModules, 0);
+    if ($amounts === [] && $fallbackAmount > 0) {
+        $firstModule = sr_community_asset_module_keys_from_value($assetModules)[0] ?? '';
+        if ($firstModule !== '') {
+            $amounts[$firstModule] = $fallbackAmount;
+        }
+    }
+
+    return $amounts;
+}
+
+function sr_community_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix): string
+{
+    $amounts = sr_community_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
+    $html = '<div class="admin-asset-amount-grid">';
+    foreach ($assetModuleOptions as $assetModule => $assetOption) {
+        $assetModule = (string) $assetModule;
+        $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
+        $html .= '<label class="admin-asset-amount-field">'
+            . '<span>' . sr_e($label) . '</span>'
+            . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '</label>';
+    }
+    $html .= '</div>';
+
+    return $html;
+}
+
+function sr_community_asset_amount_total(array $amounts, int $fallbackAmount = 0): int
+{
+    return $amounts !== [] ? array_sum(array_map('intval', $amounts)) : max(0, $fallbackAmount);
+}
+
+function sr_community_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
+{
+    $allocations = [];
+    foreach (sr_community_asset_deduction_order() as $assetModule) {
+        $amount = (int) ($amounts[$assetModule] ?? 0);
+        if ($amount <= 0) {
+            continue;
+        }
+        if (sr_community_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+            return [];
+        }
+        $allocations[] = [
+            'asset_module' => $assetModule,
+            'amount' => $amount,
+        ];
+    }
+
+    return $allocations;
+}
+
+function sr_community_asset_use_balance_available(PDO $pdo, array $config, int $accountId): bool
+{
+    $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '');
+    $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
+    if ($amounts !== []) {
+        return sr_community_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) !== [];
+    }
+
+    return sr_community_asset_combined_balance($pdo, $assetModules, $accountId) >= (int) ($config['amount'] ?? 0);
+}
+
 function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, array $data): int
 {
     if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
@@ -482,6 +615,16 @@ function sr_community_asset_event_config(PDO $pdo, array $board, array $settings
         ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($assetModuleValue))
         : sr_community_asset_module_key((string) $assetModuleValue);
     $amount = sr_community_asset_amount_config($pdo, $board, $settings, $prefix . '_amount');
+    $amounts = sr_community_asset_prefix_uses_composite($prefix)
+        ? sr_community_asset_amounts_from_value(
+            sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_amounts_json', ''),
+            sr_community_asset_module_keys_from_value($assetModule),
+            $amount
+        )
+        : [];
+    if ($amounts !== []) {
+        $amount = sr_community_asset_amount_total($amounts);
+    }
     $policy = sr_community_asset_charge_policy(sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_charge_policy', $defaultPolicy), $defaultPolicy);
 
     return [
@@ -489,6 +632,7 @@ function sr_community_asset_event_config(PDO $pdo, array $board, array $settings
         'asset_module' => $assetModule,
         'asset_modules' => sr_community_asset_module_keys_from_value($assetModule),
         'amount' => $amount,
+        'amounts' => $amounts,
         'charge_policy' => $policy,
     ];
 }
@@ -623,7 +767,8 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
 {
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '');
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules);
-    $amount = (int) ($config['amount'] ?? 0);
+    $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
+    $amount = $amounts !== [] ? sr_community_asset_amount_total($amounts) : (int) ($config['amount'] ?? 0);
     $chargePolicy = (string) ($config['charge_policy'] ?? 'once');
 
     if ($accountId <= 0 || $subjectId <= 0 || $amount <= 0 || $assetModules === []) {
@@ -656,7 +801,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
     }
 
     $allocations = $direction === 'use'
-        ? sr_community_allocate_asset_use($pdo, $assetModules, $accountId, $amount)
+        ? ($amounts !== [] ? sr_community_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_community_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
     if ($direction === 'use' && $allocations === []) {
         return [

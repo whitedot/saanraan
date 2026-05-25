@@ -133,6 +133,16 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? ''))
                 : sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
+            if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module']);
+                $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
+                    sr_community_asset_amounts_from_post($assetPrefix . '_amounts', $assetModules, (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0))
+                );
+                $assetSettings[$assetPrefix . '_amount'] = sr_community_asset_amount_total(
+                    sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'], $assetModules),
+                    (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0)
+                );
+            }
         }
         $legacyAssetPolicySource = sr_community_asset_policy_source(sr_post_string('asset_policy_source', 20));
         $legacyAssetSettingSource = $legacyAssetPolicySource === 'global' ? 'all' : $legacyAssetPolicySource;
@@ -349,6 +359,10 @@ if (sr_request_method() === 'POST') {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
                         $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
+                    }
+                    $amounts = sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'] ?? '', $assetModules);
+                    if (count($amounts) < count($assetModules)) {
+                        $errors[] = sr_t('community::action.admin.asset_amounts_required', ['label' => $assetLabel]);
                     }
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
                     $errors[] = sr_t('community::action.admin.asset_module_inactive', [
@@ -690,6 +704,9 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
         $board[$assetPrefix . '_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_enabled', !empty($settings[$assetPrefix . '_enabled']) ? '1' : '0');
         $board[$assetPrefix . '_asset_module'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));
         $board[$assetPrefix . '_amount'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0));
+        if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+            $board[$assetPrefix . '_amounts_json'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? ''));
+        }
         if (in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true)) {
             $board[$assetPrefix . '_charge_policy'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_charge_policy', (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'));
         }

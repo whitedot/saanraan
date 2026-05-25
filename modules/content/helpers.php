@@ -84,6 +84,7 @@ function sr_content_group_asset_access_setting_keys(): array
         'asset_access_enabled',
         'asset_module',
         'asset_access_amount',
+        'asset_access_amounts_json',
         'asset_charge_policy',
     ];
 }
@@ -94,6 +95,7 @@ function sr_content_group_asset_action_setting_keys(): array
         'asset_action_enabled',
         'asset_action_module',
         'asset_action_amount',
+        'asset_action_amounts_json',
         'asset_action_direction',
         'asset_action_label',
     ];
@@ -110,6 +112,7 @@ function sr_content_group_file_asset_setting_keys(): array
         'file_asset_download_enabled',
         'file_asset_module',
         'file_asset_download_amount',
+        'file_asset_download_amounts_json',
         'file_asset_charge_policy',
     ];
 }
@@ -304,6 +307,119 @@ function sr_content_asset_combined_balance(PDO $pdo, array $assetModules, int $a
     }
 
     return $balance;
+}
+
+function sr_content_asset_amounts_from_value(mixed $value, array $assetModules = [], int $fallbackAmount = 0): array
+{
+    $decoded = null;
+    if (is_string($value) && trim($value) !== '') {
+        $decoded = json_decode($value, true);
+    } elseif (is_array($value)) {
+        $decoded = $value;
+    }
+
+    $amounts = [];
+    if (is_array($decoded)) {
+        foreach ($decoded as $assetModule => $amount) {
+            $assetModule = sr_content_clean_slug((string) $assetModule);
+            if (isset(sr_content_asset_modules()[$assetModule])) {
+                $amounts[$assetModule] = min(999999999, max(0, (int) $amount));
+            }
+        }
+    }
+
+    $ordered = [];
+    $modules = sr_content_asset_module_keys_from_value($assetModules);
+    foreach ($modules as $assetModule) {
+        $amount = $amounts[$assetModule] ?? 0;
+        if ($amount <= 0 && $fallbackAmount > 0 && count($modules) === 1) {
+            $amount = $fallbackAmount;
+        }
+        if ($amount > 0) {
+            $ordered[$assetModule] = $amount;
+        }
+    }
+
+    return $ordered;
+}
+
+function sr_content_asset_amounts_from_post(string $fieldName, array $assetModules, int $fallbackAmount = 0): array
+{
+    if (!array_key_exists($fieldName, $_POST)) {
+        return sr_content_asset_amounts_from_value([], $assetModules, $fallbackAmount);
+    }
+
+    $values = $_POST[$fieldName] ?? [];
+    return sr_content_asset_amounts_from_value(is_array($values) ? $values : [], $assetModules, 0);
+}
+
+function sr_content_asset_amount_input_values(mixed $amountsValue, array $assetModules, int $fallbackAmount = 0): array
+{
+    $amounts = sr_content_asset_amounts_from_value($amountsValue, $assetModules, 0);
+    if ($amounts === [] && $fallbackAmount > 0) {
+        $firstModule = sr_content_asset_module_keys_from_value($assetModules)[0] ?? '';
+        if ($firstModule !== '') {
+            $amounts[$firstModule] = $fallbackAmount;
+        }
+    }
+
+    return $amounts;
+}
+
+function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix): string
+{
+    $amounts = sr_content_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
+    $html = '<div class="admin-asset-amount-grid">';
+    foreach ($assetModuleOptions as $assetModule => $assetOption) {
+        $assetModule = (string) $assetModule;
+        $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
+        $html .= '<label class="admin-asset-amount-field">'
+            . '<span>' . sr_e($label) . '</span>'
+            . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '</label>';
+    }
+    $html .= '</div>';
+
+    return $html;
+}
+
+function sr_content_asset_amounts_json_from_map(array $amounts): string
+{
+    $normalized = [];
+    foreach (sr_content_asset_deduction_order() as $assetModule) {
+        $amount = min(999999999, max(0, (int) ($amounts[$assetModule] ?? 0)));
+        if ($amount > 0) {
+            $normalized[$assetModule] = $amount;
+        }
+    }
+
+    $encoded = json_encode($normalized, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return is_string($encoded) ? $encoded : '{}';
+}
+
+function sr_content_asset_amount_total(array $amounts, int $fallbackAmount = 0): int
+{
+    return $amounts !== [] ? array_sum(array_map('intval', $amounts)) : max(0, $fallbackAmount);
+}
+
+function sr_content_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
+{
+    $allocations = [];
+    foreach (sr_content_asset_deduction_order() as $assetModule) {
+        $amount = (int) ($amounts[$assetModule] ?? 0);
+        if ($amount <= 0) {
+            continue;
+        }
+        if (sr_content_asset_balance($pdo, $assetModule, $accountId) < $amount) {
+            return [];
+        }
+        $allocations[] = [
+            'asset_module' => $assetModule,
+            'amount' => $amount,
+        ];
+    }
+
+    return $allocations;
 }
 
 function sr_content_reserved_slugs(): array
@@ -1143,6 +1259,7 @@ function sr_content_public_display_setting_labels(): array
 function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = true): array
 {
     $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''));
+    $accessAmounts = sr_content_asset_amounts_from_value($values['asset_access_amounts_json'] ?? '', sr_content_asset_module_keys_from_value($assetModule), (int) ($values['asset_access_amount'] ?? 0));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_content_asset_charge_policies()[$chargePolicy])) {
@@ -1151,19 +1268,26 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
 
     $values['asset_access_enabled'] = (int) ($values['asset_access_enabled'] ?? 0) === 1 ? 1 : 0;
     $values['asset_module'] = $assetModule;
-    $values['asset_access_amount'] = max(0, (int) ($values['asset_access_amount'] ?? 0));
+    $values['asset_access_amount'] = sr_content_asset_amount_total($accessAmounts, max(0, (int) ($values['asset_access_amount'] ?? 0)));
+    $values['asset_access_amounts_json'] = sr_content_asset_amounts_json_from_map($accessAmounts);
     $values['asset_charge_policy'] = $chargePolicy;
-
-    $actionModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''));
 
     $actionDirection = (string) ($values['asset_action_direction'] ?? 'grant');
     if ($coerceInvalid && !isset(sr_content_asset_action_directions()[$actionDirection])) {
         $actionDirection = 'grant';
     }
 
+    $actionModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''));
+    $actionAmounts = $actionDirection === 'use'
+        ? sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', sr_content_asset_module_keys_from_value($actionModule), (int) ($values['asset_action_amount'] ?? 0))
+        : [];
+
     $values['asset_action_enabled'] = (int) ($values['asset_action_enabled'] ?? 0) === 1 ? 1 : 0;
     $values['asset_action_module'] = $actionModule;
-    $values['asset_action_amount'] = max(0, (int) ($values['asset_action_amount'] ?? 0));
+    $values['asset_action_amount'] = $actionDirection === 'use'
+        ? sr_content_asset_amount_total($actionAmounts, max(0, (int) ($values['asset_action_amount'] ?? 0)))
+        : max(0, (int) ($values['asset_action_amount'] ?? 0));
+    $values['asset_action_amounts_json'] = sr_content_asset_amounts_json_from_map($actionAmounts);
     $values['asset_action_direction'] = $actionDirection;
     $values['asset_action_label'] = sr_content_clean_single_line((string) ($values['asset_action_label'] ?? '완료'), 80);
     if ((string) $values['asset_action_label'] === '') {
@@ -1194,6 +1318,7 @@ function sr_content_file_asset_settings_for_audit(array $file): array
         'asset_download_enabled' => (int) ($file['asset_download_enabled'] ?? 0),
         'asset_module' => (string) ($file['asset_module'] ?? ''),
         'asset_download_amount' => (int) ($file['asset_download_amount'] ?? 0),
+        'asset_download_amounts_json' => (string) ($file['asset_download_amounts_json'] ?? ''),
         'asset_charge_policy' => (string) ($file['asset_charge_policy'] ?? 'once'),
     ]);
 
@@ -1201,6 +1326,7 @@ function sr_content_file_asset_settings_for_audit(array $file): array
         'asset_download_enabled' => (int) $values['asset_download_enabled'],
         'asset_module' => (string) $values['asset_module'],
         'asset_download_amount' => (int) $values['asset_download_amount'],
+        'asset_download_amounts_json' => (string) $values['asset_download_amounts_json'],
         'asset_charge_policy' => (string) $values['asset_charge_policy'],
     ];
 }
@@ -1243,6 +1369,7 @@ function sr_content_group_asset_settings_for_audit(array $settings): array
         'asset_download_enabled' => $settings['file_asset_download_enabled'] ?? 0,
         'asset_module' => $settings['file_asset_module'] ?? '',
         'asset_download_amount' => $settings['file_asset_download_amount'] ?? 0,
+        'asset_download_amounts_json' => $settings['file_asset_download_amounts_json'] ?? '',
         'asset_charge_policy' => $settings['file_asset_charge_policy'] ?? 'once',
     ]);
 
@@ -1253,6 +1380,7 @@ function sr_content_group_asset_settings_for_audit(array $settings): array
     $auditSettings['file_asset_download_enabled'] = (int) $fileAssetSettings['asset_download_enabled'];
     $auditSettings['file_asset_module'] = (string) $fileAssetSettings['asset_module'];
     $auditSettings['file_asset_download_amount'] = (int) $fileAssetSettings['asset_download_amount'];
+    $auditSettings['file_asset_download_amounts_json'] = (string) $fileAssetSettings['asset_download_amounts_json'];
     $auditSettings['file_asset_charge_policy'] = (string) $fileAssetSettings['asset_charge_policy'];
 
     return $auditSettings;
@@ -1283,10 +1411,12 @@ function sr_content_input_values(): array
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
         'asset_access_amount' => (int) sr_post_string('asset_access_amount', 20),
+        'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_access_amounts', sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? ''), (int) sr_post_string('asset_access_amount', 20))),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('asset_action_enabled', 1) === '1' ? 1 : 0,
         'asset_action_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? '')),
         'asset_action_amount' => (int) sr_post_string('asset_action_amount', 20),
+        'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_action_amounts', sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? ''), (int) sr_post_string('asset_action_amount', 20))),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('asset_action_label', 80), 80),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
@@ -1327,6 +1457,9 @@ function sr_content_input_values(): array
             ? sr_content_normalize_setting_source($postedSource)
             : $legacyFileSource;
     }
+    $values['source_asset_access_amounts_json'] = $values['source_asset_access_amount'] ?? $legacyAccessSource;
+    $values['source_asset_action_amounts_json'] = $values['source_asset_action_amount'] ?? $legacyActionSource;
+    $values['source_file_asset_download_amounts_json'] = $values['source_file_asset_download_amount'] ?? $legacyFileSource;
 
     return sr_content_normalize_asset_values($values, false);
 }
@@ -1401,6 +1534,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if ($amount < 1 || $amount > 999999999) {
             $errors[] = '유료 열람 금액은 1부터 999999999 사이로 입력하세요.';
         }
+        $amounts = sr_content_asset_amounts_from_value($values['asset_access_amounts_json'] ?? '', $assetModules);
+        if (count($amounts) < count($assetModules)) {
+            $errors[] = '유료 열람 자산별 금액은 선택한 자산마다 1 이상으로 입력하세요.';
+        }
 
         if (!isset(sr_content_asset_view_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
             $errors[] = '유료 열람 과금 방식이 올바르지 않습니다.';
@@ -1419,9 +1556,14 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if ($amount < 1 || $amount > 999999999) {
             $errors[] = '완료 버튼 금액은 1부터 999999999 사이로 입력하세요.';
         }
-
         if (!isset(sr_content_asset_action_directions()[(string) ($values['asset_action_direction'] ?? '')])) {
             $errors[] = '완료 버튼 지급/차감 방향이 올바르지 않습니다.';
+        }
+        if ((string) ($values['asset_action_direction'] ?? '') === 'use') {
+            $amounts = sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', $assetModules);
+            if (count($amounts) < count($assetModules)) {
+                $errors[] = '완료 버튼 차감 금액은 선택한 자산마다 1 이상으로 입력하세요.';
+            }
         }
 
         if ((string) ($values['asset_action_label'] ?? '') === '') {
@@ -1475,10 +1617,12 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                      asset_access_enabled = :asset_access_enabled,
                      asset_module = :asset_module,
                      asset_access_amount = :asset_access_amount,
+                     asset_access_amounts_json = :asset_access_amounts_json,
                      asset_charge_policy = :asset_charge_policy,
                      asset_action_enabled = :asset_action_enabled,
                      asset_action_module = :asset_action_module,
                      asset_action_amount = :asset_action_amount,
+                     asset_action_amounts_json = :asset_action_amounts_json,
                      asset_action_direction = :asset_action_direction,
                      asset_action_label = :asset_action_label,
                      banner_before_content_id = :banner_before_content_id,
@@ -1501,10 +1645,12 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
+                'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
                 'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
+                'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -1520,9 +1666,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -1536,10 +1682,12 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
+                'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
                 'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
+                'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -1589,9 +1737,9 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_revisions
-            (content_id, content_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (content_id, content_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:content_id, :content_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:content_id, :content_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1605,10 +1753,12 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
         'asset_module' => (string) ($values['asset_module'] ?? ''),
         'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
+        'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
         'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
         'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
         'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
         'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
+        'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
         'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
         'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
         'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -1773,6 +1923,7 @@ function sr_content_published_file_by_id(PDO $pdo, int $fileId): ?array
 function sr_content_normalize_file_asset_values(array $values, bool $coerceInvalid = true): array
 {
     $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''));
+    $downloadAmounts = sr_content_asset_amounts_from_value($values['asset_download_amounts_json'] ?? '', sr_content_asset_module_keys_from_value($assetModule), (int) ($values['asset_download_amount'] ?? 0));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_content_asset_download_charge_policies()[$chargePolicy])) {
@@ -1781,7 +1932,8 @@ function sr_content_normalize_file_asset_values(array $values, bool $coerceInval
 
     $values['asset_download_enabled'] = (int) ($values['asset_download_enabled'] ?? 0) === 1 ? 1 : 0;
     $values['asset_module'] = $assetModule;
-    $values['asset_download_amount'] = max(0, (int) ($values['asset_download_amount'] ?? 0));
+    $values['asset_download_amount'] = sr_content_asset_amount_total($downloadAmounts, max(0, (int) ($values['asset_download_amount'] ?? 0)));
+    $values['asset_download_amounts_json'] = sr_content_asset_amounts_json_from_map($downloadAmounts);
     $values['asset_charge_policy'] = $chargePolicy;
 
     return $values;
@@ -1804,6 +1956,10 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
     $amount = (int) ($values['asset_download_amount'] ?? 0);
     if ($amount < 1 || $amount > 999999999) {
         $errors[] = $labelPrefix . ' 금액은 1부터 999999999 사이로 입력하세요.';
+    }
+    $amounts = sr_content_asset_amounts_from_value($values['asset_download_amounts_json'] ?? '', $assetModules);
+    if (count($amounts) < count($assetModules)) {
+        $errors[] = $labelPrefix . ' 자산별 금액은 선택한 자산마다 1 이상으로 입력하세요.';
     }
 
     if (!isset(sr_content_asset_download_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
@@ -1860,13 +2016,18 @@ function sr_content_file_values_from_post(int $fileId): array
     $enabledValues = is_array($_POST['content_file_asset_download_enabled'] ?? null) ? $_POST['content_file_asset_download_enabled'] : [];
     $moduleValues = is_array($_POST['content_file_asset_module'] ?? null) ? $_POST['content_file_asset_module'] : [];
     $amountValues = is_array($_POST['content_file_asset_download_amount'] ?? null) ? $_POST['content_file_asset_download_amount'] : [];
+    $amountsValues = is_array($_POST['content_file_asset_download_amounts'] ?? null) ? $_POST['content_file_asset_download_amounts'] : [];
     $policyValues = is_array($_POST['content_file_asset_charge_policy'] ?? null) ? $_POST['content_file_asset_charge_policy'] : [];
+    $assetModules = sr_content_asset_module_keys_from_value($moduleValues[$fileId] ?? '');
+    $fallbackAmount = (int) ($amountValues[$fileId] ?? 0);
+    $postedAmounts = is_array($amountsValues[$fileId] ?? null) ? $amountsValues[$fileId] : null;
 
     return sr_content_normalize_file_asset_values([
         'title' => sr_content_clean_single_line((string) ($titleValues[$fileId] ?? ''), 160),
         'asset_download_enabled' => (string) ($enabledValues[$fileId] ?? '') === '1' ? 1 : 0,
-        'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($moduleValues[$fileId] ?? '')),
-        'asset_download_amount' => (int) ($amountValues[$fileId] ?? 0),
+        'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
+        'asset_download_amount' => $fallbackAmount,
+        'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_value(is_array($postedAmounts) ? $postedAmounts : [], $assetModules, is_array($postedAmounts) ? 0 : $fallbackAmount)),
         'asset_charge_policy' => sr_content_clean_slug((string) ($policyValues[$fileId] ?? '')),
     ], false);
 }
@@ -1877,17 +2038,21 @@ function sr_content_file_asset_values_from_group(PDO $pdo, int $groupId): array
         'asset_download_enabled' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_enabled') ?? 0),
         'asset_module' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_module') ?? ''),
         'asset_download_amount' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amount') ?? 0),
+        'asset_download_amounts_json' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amounts_json') ?? ''),
         'asset_charge_policy' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_charge_policy') ?? 'once'),
     ]);
 }
 
 function sr_content_new_file_values_from_post(?PDO $pdo = null, array $pageValues = []): array
 {
+    $assetModules = sr_content_asset_module_keys_from_value($_POST['new_content_file_asset_module'] ?? '');
+    $fallbackAmount = (int) sr_post_string('new_content_file_asset_download_amount', 20);
     $values = sr_content_normalize_file_asset_values([
         'title' => sr_content_clean_single_line(sr_post_string('new_content_file_title', 160), 160),
         'asset_download_enabled' => sr_post_string('new_content_file_asset_download_enabled', 1) === '1' ? 1 : 0,
-        'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['new_content_file_asset_module'] ?? '')),
-        'asset_download_amount' => (int) sr_post_string('new_content_file_asset_download_amount', 20),
+        'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
+        'asset_download_amount' => $fallbackAmount,
+        'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('new_content_file_asset_download_amounts', $assetModules, $fallbackAmount)),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('new_content_file_asset_charge_policy', 20)),
     ], false);
 
@@ -1941,6 +2106,7 @@ function sr_content_update_file(PDO $pdo, int $fileId, array $values): void
              asset_download_enabled = :asset_download_enabled,
              asset_module = :asset_module,
              asset_download_amount = :asset_download_amount,
+             asset_download_amounts_json = :asset_download_amounts_json,
              asset_charge_policy = :asset_charge_policy,
              updated_at = :updated_at
          WHERE id = :id'
@@ -1950,6 +2116,7 @@ function sr_content_update_file(PDO $pdo, int $fileId, array $values): void
         'asset_download_enabled' => (int) $values['asset_download_enabled'],
         'asset_module' => (string) $values['asset_module'],
         'asset_download_amount' => (int) $values['asset_download_amount'],
+        'asset_download_amounts_json' => (string) ($values['asset_download_amounts_json'] ?? '{}'),
         'asset_charge_policy' => (string) $values['asset_charge_policy'],
         'updated_at' => sr_now(),
         'id' => $fileId,
@@ -1998,9 +2165,9 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
 
         $stmt = $pdo->prepare(
             "INSERT INTO sr_content_files
-                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_charge_policy, created_by, created_at, updated_at)
+                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_amounts_json, asset_charge_policy, created_by, created_at, updated_at)
              VALUES
-                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_charge_policy, :created_by, :created_at, :updated_at)"
+                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_download_amounts_json, :asset_charge_policy, :created_by, :created_at, :updated_at)"
         );
         $now = sr_now();
         $stmt->execute([
@@ -2017,6 +2184,7 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
             'asset_download_enabled' => (int) $values['asset_download_enabled'],
             'asset_module' => (string) $values['asset_module'],
             'asset_download_amount' => (int) $values['asset_download_amount'],
+            'asset_download_amounts_json' => (string) ($values['asset_download_amounts_json'] ?? '{}'),
             'asset_charge_policy' => (string) $values['asset_charge_policy'],
             'created_by' => $accountId,
             'created_at' => $now,
@@ -2183,7 +2351,8 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
     $assetModuleValue = sr_content_asset_module_value_from_keys($assetModules);
     $chargePolicy = (string) ($page['asset_charge_policy'] ?? 'once');
-    $amount = (int) ($page['asset_access_amount'] ?? 0);
+    $amounts = sr_content_asset_amounts_from_value($page['asset_access_amounts_json'] ?? '', $assetModules, (int) ($page['asset_access_amount'] ?? 0));
+    $amount = $amounts !== [] ? sr_content_asset_amount_total($amounts) : (int) ($page['asset_access_amount'] ?? 0);
 
     if ($pageId <= 0 || $accountId <= 0 || !sr_content_asset_access_required($page)) {
         return ['allowed' => true, 'charged' => false, 'message' => ''];
@@ -2223,7 +2392,9 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ];
     }
 
-    $allocations = sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    $allocations = $amounts !== []
+        ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
+        : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
     if ($allocations === []) {
         return [
             'allowed' => false,
@@ -2231,7 +2402,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '선택한 자산의 합산 잔액이 부족해 콘텐츠를 열람할 수 없습니다.',
+            'message' => '선택한 자산 잔액이 부족해 콘텐츠를 열람할 수 없습니다.',
         ];
     }
 
@@ -2301,7 +2472,8 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
     $assetModules = sr_content_asset_module_keys_from_value($file['asset_module'] ?? '');
     $assetModuleValue = sr_content_asset_module_value_from_keys($assetModules);
     $chargePolicy = (string) ($file['asset_charge_policy'] ?? 'once');
-    $amount = (int) ($file['asset_download_amount'] ?? 0);
+    $amounts = sr_content_asset_amounts_from_value($file['asset_download_amounts_json'] ?? '', $assetModules, (int) ($file['asset_download_amount'] ?? 0));
+    $amount = $amounts !== [] ? sr_content_asset_amount_total($amounts) : (int) ($file['asset_download_amount'] ?? 0);
 
     if ($pageId <= 0 || $fileId <= 0 || $accountId <= 0 || !sr_content_file_download_required($file)) {
         return ['allowed' => true, 'charged' => false, 'message' => ''];
@@ -2341,7 +2513,9 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         ];
     }
 
-    $allocations = sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    $allocations = $amounts !== []
+        ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
+        : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
     if ($allocations === []) {
         return [
             'allowed' => false,
@@ -2349,7 +2523,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '선택한 자산의 합산 잔액이 부족해 파일을 다운로드할 수 없습니다.',
+            'message' => '선택한 자산 잔액이 부족해 파일을 다운로드할 수 없습니다.',
         ];
     }
 
@@ -2502,7 +2676,10 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_action_module'] ?? '');
     $assetModuleValue = sr_content_asset_module_value_from_keys($assetModules);
     $direction = (string) ($page['asset_action_direction'] ?? 'grant');
-    $amount = (int) ($page['asset_action_amount'] ?? 0);
+    $amounts = $direction === 'use'
+        ? sr_content_asset_amounts_from_value($page['asset_action_amounts_json'] ?? '', $assetModules, (int) ($page['asset_action_amount'] ?? 0))
+        : [];
+    $amount = $amounts !== [] ? sr_content_asset_amount_total($amounts) : (int) ($page['asset_action_amount'] ?? 0);
 
     if ($pageId <= 0 || $accountId <= 0 || !sr_content_asset_action_required($page)) {
         return ['allowed' => false, 'completed' => false, 'message' => '콘텐츠 완료 버튼을 사용할 수 없습니다.'];
@@ -2536,7 +2713,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
     }
 
     $allocations = $direction === 'use'
-        ? sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount)
+        ? ($amounts !== [] ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
     if ($direction === 'use' && $allocations === []) {
         return [
@@ -2545,7 +2722,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue),
             'amount' => $amount,
-            'message' => '선택한 자산의 합산 잔액이 부족해 완료 처리할 수 없습니다.',
+            'message' => '선택한 자산 잔액이 부족해 완료 처리할 수 없습니다.',
         ];
     }
 

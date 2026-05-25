@@ -117,6 +117,16 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST['group_' . $assetPrefix . '_asset_module'] ?? ''))
                 : sr_community_asset_module_key(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_amount', 0, 999999999);
+            if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module']);
+                $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
+                    sr_community_asset_amounts_from_post('group_' . $assetPrefix . '_amounts', $assetModules, (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0))
+                );
+                $assetSettings[$assetPrefix . '_amount'] = sr_community_asset_amount_total(
+                    sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'], $assetModules),
+                    (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0)
+                );
+            }
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('group_paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('group_paid_attachment_download_charge_policy', 20), 'once');
@@ -283,6 +293,10 @@ if (sr_request_method() === 'POST') {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
                         $errors[] = sr_t('community::action.admin.board_group_asset_modules_required_active', ['label' => $assetLabel]);
+                    }
+                    $amounts = sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'] ?? '', $assetModules);
+                    if (count($amounts) < count($assetModules)) {
+                        $errors[] = sr_t('community::action.admin.asset_amounts_required', ['label' => $assetLabel]);
                     }
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
                     $errors[] = sr_t('community::action.admin.board_group_asset_module_inactive', [
