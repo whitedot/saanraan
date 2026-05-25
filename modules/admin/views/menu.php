@@ -13,14 +13,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.admin.menu.settings.80f94b6f')); ?></h2>
     </div>
     <div class="table-wrapper">
-    <table class="table">
+    <table class="table admin-menu-table">
         <thead class="ui-table-head">
             <tr>
                 <th><?php echo sr_e(sr_t('admin::ui.text.83b651b8')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.a9e7497f')); ?></th>
-                <th><?php echo sr_e(sr_t('admin::ui.text.ff0e602e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></th>
+                <th class="admin-menu-sort-order-cell"><?php echo sr_e(sr_t('admin::ui.text.ff0e602e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.0eeb676f')); ?></th>
             </tr>
         </thead>
@@ -56,7 +56,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </td>
                     <td><?php echo sr_e((string) $row['default_order']); ?></td>
-                    <td>
+                    <td class="admin-menu-sort-order-cell">
                         <input
                             type="number"
                             name="sort_order[<?php echo sr_e((string) $row['form_key']); ?>]"
@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             data-admin-sort-order
                             min="-999999"
                             max="999999"
-                            required class="form-input">
+                            required class="form-input admin-menu-sort-order-input">
                     </td>
                     <td>
                         <?php if ($canHide) { ?>

@@ -468,6 +468,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-menu-target-copy{min-width:0;display:grid;gap:.15rem}
 .admin-menu-target-label{font-weight:var(--font-weight-medium);color:var(--color-default-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-menu-target-context{font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-default-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-menu-sort-order-cell{width:1%;white-space:nowrap}
+.admin-menu-sort-order-input{min-width:0;width:4.25rem;text-align:right}
 .admin-menu-scope-badge{min-width:3.75rem;border:1px solid var(--color-default-300);background:var(--color-card);color:var(--color-default-700);border-radius:999px;justify-content:center;align-items:center;padding:.22rem .55rem;font-size:var(--text-xs);line-height:1.4;font-weight:var(--font-weight-medium);white-space:nowrap;display:inline-flex}
 .admin-menu-scope-category{border-color:color-mix(in oklab, var(--color-primary) 32%, var(--color-default-300));color:var(--color-primary)}
 .admin-menu-scope-group{border-color:color-mix(in oklab, var(--color-info) 30%, var(--color-default-300));color:var(--color-info-hover)}
