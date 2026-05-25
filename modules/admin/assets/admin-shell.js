@@ -173,7 +173,8 @@ window.AdminShell = {
             const roots = Array.prototype.slice.call(form.querySelectorAll('[data-admin-asset-enable-target]'));
             const hasDisabledAssetSelection = roots.some(root => {
                 const enabledInput = assetEnableTargetInput(root);
-                return assetEnableTouchedRoots.has(root)
+                const alwaysCheck = root.getAttribute('data-admin-asset-enable-submit-check') === 'always';
+                return (alwaysCheck || assetEnableTouchedRoots.has(root))
                     && enabledInput
                     && !enabledInput.checked
                     && assetEnableRootSelectionActive(root);

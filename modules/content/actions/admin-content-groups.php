@@ -101,12 +101,12 @@ if (sr_request_method() === 'POST') {
     $groupSettings = sr_content_normalize_asset_values($groupSettings, false);
     $groupFileAssetSettings = sr_content_normalize_file_asset_values([
         'asset_download_enabled' => $groupSettings['file_asset_download_enabled'] ?? 0,
-        'asset_module' => $groupSettings['file_asset_module'] ?? 'point',
+        'asset_module' => $groupSettings['file_asset_module'] ?? '',
         'asset_download_amount' => $groupSettings['file_asset_download_amount'] ?? 0,
         'asset_charge_policy' => $groupSettings['file_asset_charge_policy'] ?? 'once',
     ], false);
     $groupSettings['file_asset_download_enabled'] = (int) ($groupFileAssetSettings['asset_download_enabled'] ?? 0);
-    $groupSettings['file_asset_module'] = (string) ($groupFileAssetSettings['asset_module'] ?? 'point');
+    $groupSettings['file_asset_module'] = (string) ($groupFileAssetSettings['asset_module'] ?? '');
     $groupSettings['file_asset_download_amount'] = (int) ($groupFileAssetSettings['asset_download_amount'] ?? 0);
     $groupSettings['file_asset_charge_policy'] = (string) ($groupFileAssetSettings['asset_charge_policy'] ?? 'once');
 

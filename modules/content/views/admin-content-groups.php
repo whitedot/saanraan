@@ -269,8 +269,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
-                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled">
-                        <?php echo sr_admin_checkbox_list_html('content_group_asset_module', 'group_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', 'point')), sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled" data-admin-asset-enable-submit-check="always">
+                        <?php echo sr_admin_checkbox_list_html('content_group_asset_module', 'group_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
@@ -323,8 +323,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_action_module"><?php echo sr_e(sr_t('content::ui.text.2f2b6193')); ?></label>
                 <div class="admin-form-field">
-                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_action_enabled">
-                        <?php echo sr_admin_checkbox_list_html('content_group_asset_action_module', 'group_asset_action_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', 'point')), sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_action_enabled" data-admin-asset-enable-submit-check="always">
+                        <?php echo sr_admin_checkbox_list_html('content_group_asset_action_module', 'group_asset_action_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                 </div>
             </div>
@@ -347,8 +347,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
-                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled">
-                        <?php echo sr_admin_checkbox_list_html('content_group_file_asset_module', 'group_file_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', 'point')), sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
+                        <?php echo sr_admin_checkbox_list_html('content_group_file_asset_module', 'group_file_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>

@@ -267,7 +267,7 @@ function sr_content_asset_module_keys_from_value(mixed $value): array
         }
     }
 
-    return $ordered !== [] ? $ordered : ['point'];
+    return $ordered;
 }
 
 function sr_content_asset_module_value_from_keys(array $assetModules): string
@@ -1057,7 +1057,7 @@ function sr_content_public_display_setting_labels(): array
 
 function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = true): array
 {
-    $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? 'point'));
+    $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_content_asset_charge_policies()[$chargePolicy])) {
@@ -1069,13 +1069,7 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
     $values['asset_access_amount'] = max(0, (int) ($values['asset_access_amount'] ?? 0));
     $values['asset_charge_policy'] = $chargePolicy;
 
-    if ((int) $values['asset_access_enabled'] !== 1) {
-        $values['asset_module'] = 'point';
-        $values['asset_access_amount'] = 0;
-        $values['asset_charge_policy'] = 'once';
-    }
-
-    $actionModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? 'point'));
+    $actionModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''));
 
     $actionDirection = (string) ($values['asset_action_direction'] ?? 'grant');
     if ($coerceInvalid && !isset(sr_content_asset_action_directions()[$actionDirection])) {
@@ -1088,13 +1082,6 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
     $values['asset_action_direction'] = $actionDirection;
     $values['asset_action_label'] = sr_content_clean_single_line((string) ($values['asset_action_label'] ?? '완료'), 80);
     if ((string) $values['asset_action_label'] === '') {
-        $values['asset_action_label'] = '완료';
-    }
-
-    if ((int) $values['asset_action_enabled'] !== 1) {
-        $values['asset_action_module'] = 'point';
-        $values['asset_action_amount'] = 0;
-        $values['asset_action_direction'] = 'grant';
         $values['asset_action_label'] = '완료';
     }
 
@@ -1337,11 +1324,11 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
-                'asset_module' => (string) ($values['asset_module'] ?? 'point'),
+                'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
-                'asset_action_module' => (string) ($values['asset_action_module'] ?? 'point'),
+                'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
@@ -1372,11 +1359,11 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
-                'asset_module' => (string) ($values['asset_module'] ?? 'point'),
+                'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
-                'asset_action_module' => (string) ($values['asset_action_module'] ?? 'point'),
+                'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
@@ -1441,11 +1428,11 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'status' => (string) $values['status'],
         'layout_key' => (string) ($values['layout_key'] ?? ''),
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
-        'asset_module' => (string) ($values['asset_module'] ?? 'point'),
+        'asset_module' => (string) ($values['asset_module'] ?? ''),
         'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
         'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
         'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
-        'asset_action_module' => (string) ($values['asset_action_module'] ?? 'point'),
+        'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
         'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
         'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
         'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
@@ -1610,7 +1597,7 @@ function sr_content_published_file_by_id(PDO $pdo, int $fileId): ?array
 
 function sr_content_normalize_file_asset_values(array $values, bool $coerceInvalid = true): array
 {
-    $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? 'point'));
+    $assetModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''));
 
     $chargePolicy = (string) ($values['asset_charge_policy'] ?? 'once');
     if ($coerceInvalid && !isset(sr_content_asset_download_charge_policies()[$chargePolicy])) {
@@ -1621,12 +1608,6 @@ function sr_content_normalize_file_asset_values(array $values, bool $coerceInval
     $values['asset_module'] = $assetModule;
     $values['asset_download_amount'] = max(0, (int) ($values['asset_download_amount'] ?? 0));
     $values['asset_charge_policy'] = $chargePolicy;
-
-    if ((int) $values['asset_download_enabled'] !== 1) {
-        $values['asset_module'] = 'point';
-        $values['asset_download_amount'] = 0;
-        $values['asset_charge_policy'] = 'once';
-    }
 
     return $values;
 }
@@ -1719,7 +1700,7 @@ function sr_content_file_asset_values_from_group(PDO $pdo, int $groupId): array
 {
     return sr_content_normalize_file_asset_values([
         'asset_download_enabled' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_enabled') ?? 0),
-        'asset_module' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_module') ?? 'point'),
+        'asset_module' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_module') ?? ''),
         'asset_download_amount' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amount') ?? 0),
         'asset_charge_policy' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_charge_policy') ?? 'once'),
     ]);
