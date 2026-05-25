@@ -25,9 +25,9 @@ function sr_community_create_account_notification(
     string $bodyText,
     string $linkUrl,
     ?int $createdByAccountId = null
-): void {
+): bool {
     if ($accountId < 1 || !sr_community_notification_available($pdo)) {
-        return;
+        return false;
     }
 
     try {
@@ -40,9 +40,12 @@ function sr_community_create_account_notification(
             'channels' => ['site'],
             'created_by_account_id' => $createdByAccountId,
         ]);
+        return true;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'community_notification_create');
     }
+
+    return false;
 }
 
 function sr_community_admin_permission_tables_exist(PDO $pdo): bool

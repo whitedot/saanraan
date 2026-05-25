@@ -85,6 +85,52 @@ function sr_community_member_nickname(PDO $pdo, int $accountId): string
     return $cache[$cacheKey];
 }
 
+function sr_community_set_member_nickname(PDO $pdo, int $accountId, string $nickname): void
+{
+    if ($accountId < 1) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_member_nicknames
+            (account_id, nickname, created_at, updated_at)
+         VALUES
+            (:account_id, :nickname, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            nickname = VALUES(nickname),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'nickname' => $nickname,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_community_clear_member_nickname_cache($pdo, $accountId);
+}
+
+function sr_community_create_member_nickname(PDO $pdo, int $accountId, string $nickname): void
+{
+    if ($accountId < 1) {
+        return;
+    }
+
+    sr_community_set_member_nickname($pdo, $accountId, $nickname);
+    sr_audit_log($pdo, [
+        'actor_account_id' => $accountId,
+        'actor_type' => 'member',
+        'event_type' => 'community.nickname.created',
+        'target_type' => 'member_account',
+        'target_id' => (string) $accountId,
+        'result' => 'success',
+        'message' => 'Community nickname created by member.',
+        'metadata' => [
+            'nickname_set' => true,
+        ],
+    ]);
+}
+
 function sr_community_clear_member_nickname_cache(PDO $pdo, int $accountId): void
 {
     if (!isset($GLOBALS['sr_community_member_nickname_cache']) || !is_array($GLOBALS['sr_community_member_nickname_cache'])) {
@@ -176,7 +222,10 @@ function sr_community_nickname_filter(PDO $pdo, array $config): array
 function sr_community_nickname_query_parts(array $filter = []): array
 {
     $params = [];
-    $where = [];
+    $where = [
+        "a.status NOT IN ('withdrawn', 'anonymized')",
+        "n.nickname <> ''",
+    ];
     $field = (string) ($filter['field'] ?? 'all');
     $keyword = trim((string) ($filter['keyword'] ?? ''));
     $accountId = (int) ($filter['account_id'] ?? 0);
@@ -227,7 +276,7 @@ function sr_community_nickname_count(PDO $pdo, array $filter = []): int
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_member_accounts a
-         LEFT JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
          ' . $whereSql
     );
     $stmt->execute($queryParts['params']);
@@ -246,7 +295,7 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
                 CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN \'\' ELSE COALESCE(n.nickname, \'\') END AS nickname,
                 CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN NULL ELSE n.updated_at END AS nickname_updated_at
          FROM sr_member_accounts a
-         LEFT JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
          ' . $whereSql . '
          ORDER BY a.id DESC' . $limitSql
     );
@@ -262,25 +311,151 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
     return $stmt->fetchAll();
 }
 
-function sr_community_handle_nickname_post(PDO $pdo, array $account, array $settings): array
+function sr_community_member_nickname_exists(PDO $pdo, string $nickname): bool
+{
+    $nickname = trim($nickname);
+    if ($nickname === '') {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT 1
+         FROM sr_community_member_nicknames
+         WHERE nickname = :nickname
+         LIMIT 1'
+    );
+    $stmt->execute(['nickname' => $nickname]);
+
+    return is_array($stmt->fetch());
+}
+
+function sr_community_random_member_nickname(PDO $pdo, string $currentNickname = ''): string
+{
+    $currentNickname = trim($currentNickname);
+    for ($attempt = 0; $attempt < 50; $attempt++) {
+        $nickname = '회원' . (string) random_int(100000, 999999);
+        if ($nickname !== $currentNickname && !sr_community_member_nickname_exists($pdo, $nickname)) {
+            return $nickname;
+        }
+    }
+
+    return '회원' . bin2hex(random_bytes(4));
+}
+
+function sr_community_nickname_reset_reason_options(): array
+{
+    return [
+        'inappropriate' => sr_t('community::nickname_reset_reason.inappropriate'),
+        'personal_info' => sr_t('community::nickname_reset_reason.personal_info'),
+        'impersonation' => sr_t('community::nickname_reset_reason.impersonation'),
+        'spam' => sr_t('community::nickname_reset_reason.spam'),
+        'policy' => sr_t('community::nickname_reset_reason.policy'),
+    ];
+}
+
+function sr_community_nickname_reset_reason_label(string $reason): string
+{
+    $reason = trim($reason);
+    $options = sr_community_nickname_reset_reason_options();
+
+    return isset($options[$reason]) ? (string) $options[$reason] : '';
+}
+
+function sr_community_safe_next_path(string $next, string $fallback = '/community'): string
+{
+    $next = trim($next);
+    $parts = parse_url($next);
+    if (!is_array($parts)
+        || isset($parts['scheme'])
+        || isset($parts['host'])
+        || str_contains($next, "\r")
+        || str_contains($next, "\n")
+    ) {
+        return $fallback;
+    }
+
+    $path = (string) ($parts['path'] ?? '');
+    if ($path === ''
+        || ($path !== '/community' && !str_starts_with($path, '/community/'))
+        || $path === '/community/nickname'
+    ) {
+        return $fallback;
+    }
+
+    $query = isset($parts['query']) && is_string($parts['query']) && $parts['query'] !== ''
+        ? '?' . $parts['query']
+        : '';
+    $fragment = isset($parts['fragment']) && is_string($parts['fragment']) && $parts['fragment'] !== ''
+        ? '#' . $parts['fragment']
+        : '';
+
+    return $path . $query . $fragment;
+}
+
+function sr_community_member_needs_nickname(PDO $pdo, array $account, array $settings): bool
+{
+    if (empty($settings['nickname_enabled']) || empty($settings['nickname_required'])) {
+        return false;
+    }
+
+    if (sr_community_nickname_status_blocks_identity((string) ($account['status'] ?? ''))) {
+        return false;
+    }
+
+    return sr_community_member_nickname($pdo, (int) ($account['id'] ?? 0)) === '';
+}
+
+function sr_community_require_member_nickname(PDO $pdo, array $account, array $settings, string $nextPath): void
+{
+    if (!sr_community_member_needs_nickname($pdo, $account, $settings)) {
+        return;
+    }
+
+    sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path($nextPath)));
+}
+
+function sr_community_handle_member_nickname_setup_post(PDO $pdo, array $account): array
+{
+    $errors = [];
+    $notice = '';
+    $nicknameInput = sr_post_string_without_truncation('nickname', 80);
+    $nickname = $nicknameInput === null ? '' : trim($nicknameInput);
+
+    if (sr_community_nickname_status_blocks_identity((string) ($account['status'] ?? ''))) {
+        $errors[] = sr_t('community::action.nickname_setup_blocked');
+    }
+
+    if ($nicknameInput === null) {
+        $errors[] = sr_t('community::action.nickname_too_long');
+    } elseif ($nickname === '') {
+        $errors[] = sr_t('community::action.nickname_required');
+    }
+
+    if ($errors === []) {
+        sr_community_create_member_nickname($pdo, (int) $account['id'], $nickname);
+        $notice = sr_t('community::action.nickname_saved');
+    }
+
+    return [
+        'errors' => $errors,
+        'notice' => $notice,
+    ];
+}
+
+function sr_community_handle_nickname_reset_post(PDO $pdo, array $account): array
 {
     $errors = [];
     $notice = '';
     $targetAccountId = sr_admin_post_positive_int('account_id');
-    $nicknameInput = sr_post_string_without_truncation('nickname', 80);
-    $nickname = $nicknameInput === null ? '' : trim($nicknameInput);
-    $nicknameRequired = !empty($settings['nickname_enabled']) && !empty($settings['nickname_required']);
+    $resetReason = sr_post_string('reset_reason', 40);
+    $resetReasonLabel = sr_community_nickname_reset_reason_label($resetReason);
 
     if ($targetAccountId <= 0) {
         $errors[] = sr_t('member::action.admin.member_required');
     }
 
-    if ($nicknameInput === null) {
-        $errors[] = sr_t('community::action.admin.nickname_too_long');
-    }
-
-    if ($nicknameRequired && $nickname === '') {
-        $errors[] = sr_t('community::action.admin.nickname_required');
+    if ($resetReasonLabel === '') {
+        $errors[] = sr_t('community::action.admin.nickname_reset_reason_required');
     }
 
     $targetAccount = null;
@@ -296,41 +471,57 @@ function sr_community_handle_nickname_post(PDO $pdo, array $account, array $sett
     $beforeNickname = '';
     if ($errors === []) {
         $beforeNickname = sr_community_member_nickname($pdo, $targetAccountId);
-        if ($beforeNickname !== $nickname) {
-            $now = sr_now();
-            $stmt = $pdo->prepare(
-                'INSERT INTO sr_community_member_nicknames
-                    (account_id, nickname, created_at, updated_at)
-                 VALUES
-                    (:account_id, :nickname, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE
-                    nickname = VALUES(nickname),
-                    updated_at = VALUES(updated_at)'
-            );
-            $stmt->execute([
-                'account_id' => $targetAccountId,
-                'nickname' => $nickname,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-            sr_community_clear_member_nickname_cache($pdo, $targetAccountId);
+        if ($beforeNickname === '') {
+            $errors[] = sr_t('community::action.admin.nickname_reset_requires_existing');
         }
+    }
+
+    if ($errors === []) {
+        $nickname = sr_community_random_member_nickname($pdo, $beforeNickname);
+        sr_community_set_member_nickname($pdo, $targetAccountId, $nickname);
+
+        $notificationAvailable = sr_community_notification_available($pdo);
+        $notificationSent = $notificationAvailable
+            ? sr_community_create_account_notification(
+                $pdo,
+                $targetAccountId,
+                sr_t('community::notification.nickname_reset.title'),
+                sr_t('community::notification.nickname_reset.body', [
+                    'nickname' => $nickname,
+                    'reason' => $resetReasonLabel,
+                ]),
+                '/account/notifications',
+                (int) $account['id']
+            )
+            : false;
 
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
-            'event_type' => 'community.nickname.updated',
+            'event_type' => 'community.nickname.reset',
             'target_type' => 'member_account',
             'target_id' => (string) $targetAccountId,
             'result' => 'success',
-            'message' => 'Community nickname updated by admin.',
+            'message' => 'Community nickname reset by admin.',
             'metadata' => [
-                'nickname_changed' => $beforeNickname !== $nickname,
+                'nickname_changed' => true,
+                'nickname_was_set' => $beforeNickname !== '',
                 'nickname_set' => $nickname !== '',
+                'previous_nickname' => $beforeNickname,
+                'reset_reason' => $resetReason,
+                'reset_reason_label' => $resetReasonLabel,
+                'notification_available' => $notificationAvailable,
+                'notification_sent' => $notificationSent,
             ],
         ]);
 
-        $notice = sr_t('community::action.admin.nickname_updated');
+        if ($notificationSent) {
+            $notice = sr_t('community::action.admin.nickname_reset');
+        } elseif ($notificationAvailable) {
+            $notice = sr_t('community::action.admin.nickname_reset_notification_failed');
+        } else {
+            $notice = sr_t('community::action.admin.nickname_reset_without_notification');
+        }
     }
 
     return sr_admin_action_result($errors, $notice);

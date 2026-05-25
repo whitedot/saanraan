@@ -6,8 +6,23 @@ $adminContainerClass = 'admin-page-community-nicknames admin-ui-scope';
 $nicknameFilter = isset($nicknameFilter) && is_array($nicknameFilter) ? $nicknameFilter : ['field' => 'all', 'keyword' => ''];
 $nicknameRows = isset($nicknameRows) && is_array($nicknameRows) ? $nicknameRows : [];
 $nicknamePagination = isset($nicknamePagination) && is_array($nicknamePagination) ? $nicknamePagination : sr_admin_pagination_meta(0, 50, 1);
-$canEditNicknames = !empty($canEditNicknames);
-$nicknameRequired = !empty($nicknameRequired);
+$canResetNicknames = !empty($canResetNicknames);
+$nicknameSearchSubmitted = !empty($nicknameSearchSubmitted);
+$nicknameNotificationAvailable = !empty($nicknameNotificationAvailable);
+$nicknameResetReasonOptions = function_exists('sr_community_nickname_reset_reason_options')
+    ? sr_community_nickname_reset_reason_options()
+    : [];
+$nicknameReturnPath = (string) ($_SERVER['REQUEST_URI'] ?? '/admin/community/nicknames');
+$nicknameReturnPathInfo = parse_url($nicknameReturnPath);
+if (!is_array($nicknameReturnPathInfo)
+    || isset($nicknameReturnPathInfo['scheme'])
+    || isset($nicknameReturnPathInfo['host'])
+    || (string) ($nicknameReturnPathInfo['path'] ?? '') !== '/admin/community/nicknames'
+    || str_contains($nicknameReturnPath, "\r")
+    || str_contains($nicknameReturnPath, "\n")
+) {
+    $nicknameReturnPath = '/admin/community/nicknames';
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -35,7 +50,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.nickname.list')); ?></h2>
     </div>
-    <?php echo sr_admin_pagination_summary_html($nicknamePagination); ?>
+    <?php if ($nicknameSearchSubmitted) { ?>
+        <?php echo sr_admin_pagination_summary_html($nicknamePagination); ?>
+    <?php } ?>
     <div class="table-wrapper">
         <table class="table admin-member-nickname-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.nickname.list')); ?></caption>
@@ -44,14 +61,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th><?php echo sr_e(sr_t('community::ui.public_hash')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.email')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.name')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.nickname')); ?><?php echo $nicknameRequired ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required')) . '</span>' : ''; ?></th>
+                    <th><?php echo sr_e(sr_t('community::ui.nickname')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.status')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.nickname.updated_at')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('community::ui.manage')); ?></th>
                 </tr>
             </thead>
             <tbody>
-                <?php if ($nicknameRows === []) { ?>
+                <?php if (!$nicknameSearchSubmitted) { ?>
+                    <tr>
+                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.nickname.search_first')); ?></td>
+                    </tr>
+                <?php } elseif ($nicknameRows === []) { ?>
                     <tr>
                         <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.empty')); ?></td>
                     </tr>
@@ -64,25 +85,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         'suspended', 'pending' => 'is-blocked',
                         default => 'is-left',
                     };
-                    $nicknameEditable = $canEditNicknames && !sr_community_nickname_status_blocks_identity($memberStatus);
-                    $nicknameInputId = 'community_admin_nickname_' . (string) ((int) ($member['id'] ?? 0));
+                    $nicknameResettable = $canResetNicknames && !sr_community_nickname_status_blocks_identity($memberStatus);
                     ?>
                     <tr>
                         <td class="admin-table-nowrap admin-member-hash-cell" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
                         <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
-                        <td>
-                            <input id="<?php echo sr_e($nicknameInputId); ?>" type="text" name="nickname" value="<?php echo sr_e((string) ($member['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo $nicknameRequired && $nicknameEditable ? ' required' : ''; ?><?php echo $nicknameEditable ? '' : ' readonly'; ?> form="community-admin-nickname-form-<?php echo sr_e((string) ((int) $member['id'])); ?>">
-                        </td>
+                        <td class="admin-table-break"><?php echo sr_e((string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['nickname_updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <form id="community-admin-nickname-form-<?php echo sr_e((string) ((int) $member['id'])); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) ((int) $member['id'])); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('community::ui.save')); ?>" title="<?php echo sr_e(sr_t('community::ui.save')); ?>"<?php echo $nicknameEditable ? '' : ' disabled'; ?>><?php echo sr_material_icon_html('edit'); ?></button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-admin-nickname-reset-modal-<?php echo sr_e((string) ((int) $member['id'])); ?>" data-overlay="#community-admin-nickname-reset-modal-<?php echo sr_e((string) ((int) $member['id'])); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>" title="<?php echo sr_e(sr_t('community::ui.nickname.reset')); ?>"<?php echo $nicknameResettable ? '' : ' disabled'; ?>><?php echo sr_material_icon_html('restart_alt'); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -92,13 +106,72 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<?php echo sr_admin_pagination_html($nicknamePagination, '닉네임 관리 목록 페이지'); ?>
+<?php if ($nicknameSearchSubmitted) { ?>
+    <?php echo sr_admin_pagination_html($nicknamePagination, '닉네임 관리 목록 페이지'); ?>
+<?php } ?>
+
+<?php foreach ($nicknameRows as $member) { ?>
+    <?php
+    $memberId = (int) ($member['id'] ?? 0);
+    $memberStatus = (string) ($member['status'] ?? '');
+    $nicknameResettable = $memberId > 0 && $canResetNicknames && !sr_community_nickname_status_blocks_identity($memberStatus);
+    if (!$nicknameResettable) {
+        continue;
+    }
+    $modalId = 'community-admin-nickname-reset-modal-' . (string) $memberId;
+    $nicknameDisplay = (string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-';
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label">
+        <div class="modal-dialog-sm">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.nickname.reset')); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>">
+                        <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
+                    <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
+                    <p><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>
+                    <dl class="admin-module-detail-list">
+                        <div>
+                            <dt><?php echo sr_e(sr_t('community::ui.public_hash')); ?></dt>
+                            <dd><?php echo sr_e((string) ($member['account_public_hash'] ?? '')); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php echo sr_e(sr_t('community::ui.nickname')); ?></dt>
+                            <dd><?php echo sr_e($nicknameDisplay); ?></dd>
+                        </div>
+                    </dl>
+                    <p>
+                        <label for="<?php echo sr_e($modalId); ?>-reason">
+                            <span><?php echo sr_e(sr_t('community::ui.nickname.reset.reason')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                            <select id="<?php echo sr_e($modalId); ?>-reason" name="reset_reason" class="form-select" required>
+                                <option value=""><?php echo sr_e(sr_t('community::ui.select.placeholder')); ?></option>
+                                <?php foreach ($nicknameResetReasonOptions as $reasonValue => $reasonLabel) { ?>
+                                    <option value="<?php echo sr_e((string) $reasonValue); ?>"><?php echo sr_e((string) $reasonLabel); ?></option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                        <small><?php echo sr_e(sr_t('community::ui.nickname.reset.reason.help')); ?></small>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>
+                    <button type="submit" class="btn btn-outline-secondary modal-action" data-overlay-focus><?php echo sr_e(sr_t('community::ui.nickname.reset')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 
 <div class="admin-notice">
     <span class="admin-notice-icon" aria-hidden="true">i</span>
     <div class="admin-notice-copy">
         <strong><?php echo sr_e(sr_t('community::ui.nickname.notice.title')); ?></strong>
-        <p><?php echo sr_e(sr_t('community::ui.nickname.notice.body')); ?></p>
+        <p><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.notice.body' : 'community::ui.nickname.notice.body_no_notification')); ?></p>
     </div>
 </div>
 

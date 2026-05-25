@@ -6,6 +6,10 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_current_account($pdo);
+$settings = sr_community_settings($pdo);
+if (is_array($account)) {
+    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
+}
 $boards = [];
 foreach (sr_community_enabled_boards($pdo) as $board) {
     if (sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
@@ -34,7 +38,6 @@ foreach ($boards as $board) {
         $ungroupedBoards[] = $board;
     }
 }
-$settings = sr_community_settings($pdo);
 $communityLayoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
 $themeView = sr_community_layout_home_view($communityLayoutKey, $pdo);
 

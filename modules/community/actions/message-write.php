@@ -9,6 +9,9 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $account = sr_member_require_login($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $settings = sr_community_settings($pdo);
+if (sr_request_method() !== 'POST') {
+    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
+}
 if (!sr_community_account_can_write_message($pdo, $account, $settings)) {
     sr_render_error(403, sr_t('community::action.error.message_send_forbidden'));
 }
@@ -30,6 +33,9 @@ $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRe
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    if (sr_community_member_needs_nickname($pdo, $account, $settings)) {
+        sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/community'))));
+    }
 
     $values = sr_community_message_input_values();
     $errors = sr_community_validate_message_input($values);

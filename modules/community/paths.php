@@ -2,6 +2,8 @@
 
 return [
     'GET /community' => 'actions/home.php',
+    'GET /community/nickname' => 'actions/nickname.php',
+    'POST /community/nickname' => 'actions/nickname.php',
     'GET /community/board' => 'actions/list.php',
     'GET /community/post' => 'actions/view.php',
     'GET /community/attachment' => 'actions/attachment.php',

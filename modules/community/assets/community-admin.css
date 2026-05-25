@@ -88,6 +88,7 @@
 .admin-page-community-report-list .admin-community-report-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
 .admin-page-community-report-list .admin-community-report-table td form .form-select{min-width:8rem}
 .admin-page-community-report-list .admin-community-report-table td form .form-textarea{min-width:10rem;max-width:12rem;min-height:2.5rem;resize:vertical}
+@media (min-width:1024px){.admin-page-community-nicknames .admin-member-search-grid{grid-template-columns:max-content fit-content(32rem) max-content;justify-content:start;width:fit-content;max-width:100%}.admin-page-community-nicknames .admin-member-filter .admin-filter-field{min-width:0;width:fit-content;max-width:100%}.admin-page-community-nicknames .admin-member-filter .admin-filter-input{width:fit-content;max-width:100%}.admin-page-community-nicknames .admin-member-filter input.admin-filter-input{min-width:20rem}.admin-page-community-nicknames .admin-member-filter .admin-filter-submit{width:fit-content}}
 .community-point-adjust-form{margin-bottom:calc(var(--spacing) * 5)}
 .community-point-adjust-actions{margin-bottom:calc(var(--spacing) * 5);justify-content:flex-end}
 .admin-list-actions.community-bulk-actions{justify-content:flex-start;gap:calc(var(--spacing) * 2)}

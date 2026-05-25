@@ -26,6 +26,9 @@ if (!is_array($board)) {
     ];
 }
 $settings = sr_community_settings($pdo);
+if (sr_request_method() !== 'POST') {
+    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
+}
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
 $errors = [];
@@ -36,6 +39,9 @@ $values = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
+    if (sr_community_member_needs_nickname($pdo, $account, $settings)) {
+        sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/community'))));
+    }
 
     $submittedPostIdValue = sr_post_string('post_id', 20);
     $submittedPostId = preg_match('/\A[1-9][0-9]*\z/', $submittedPostIdValue) === 1 ? (int) $submittedPostIdValue : 0;

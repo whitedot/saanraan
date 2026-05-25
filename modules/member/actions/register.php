@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
+$communityRegistrationNicknameAvailable = false;
+if (sr_module_enabled($pdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers.php')) {
+    require_once SR_ROOT . '/modules/community/helpers.php';
+    $communityRegistrationNicknameAvailable = function_exists('sr_community_settings')
+        && function_exists('sr_community_create_member_nickname');
+}
+
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
     if (sr_request_method() === 'POST') {
@@ -13,6 +20,9 @@ if ($account !== null) {
 }
 
 $memberSettings = sr_member_settings($pdo);
+$communitySettings = $communityRegistrationNicknameAvailable ? sr_community_settings($pdo) : [];
+$communityRegistrationNicknameEnabled = $communityRegistrationNicknameAvailable && !empty($communitySettings['nickname_enabled']);
+$communityRegistrationNicknameRequired = $communityRegistrationNicknameEnabled && !empty($communitySettings['nickname_required']);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
@@ -23,6 +33,7 @@ $values = [
     'email' => '',
     'login_id' => '',
     'display_name' => '',
+    'community_nickname' => '',
 ];
 $profileValues = sr_member_empty_profile();
 
@@ -49,7 +60,16 @@ if (sr_request_method() === 'POST') {
         'email' => $email,
         'login_id' => sr_member_normalize_login_id($loginId),
         'display_name' => sr_post_string('display_name', 120),
+        'community_nickname' => '',
     ];
+    if ($communityRegistrationNicknameEnabled) {
+        $communityNicknameInput = sr_post_string_without_truncation('community_nickname', 80);
+        if ($communityNicknameInput === null) {
+            $errors[] = sr_t('community::action.nickname_too_long');
+        } else {
+            $values['community_nickname'] = trim($communityNicknameInput);
+        }
+    }
     $password = sr_post_string_without_truncation('password', 255);
     $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
     $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
@@ -69,6 +89,10 @@ if (sr_request_method() === 'POST') {
 
     if ($values['display_name'] === '') {
         $errors[] = sr_t('member::action.register.display_name_required');
+    }
+
+    if ($communityRegistrationNicknameRequired && $values['community_nickname'] === '') {
+        $errors[] = sr_t('community::action.nickname_required');
     }
 
     if ($password === null || $passwordConfirm === null) {
@@ -176,6 +200,9 @@ if (sr_request_method() === 'POST') {
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
             }
+            if ($communityRegistrationNicknameEnabled && $values['community_nickname'] !== '') {
+                sr_community_create_member_nickname($pdo, $accountId, $values['community_nickname']);
+            }
 
             $pdo->commit();
         } catch (Throwable $exception) {
@@ -221,6 +248,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Member registered.',
                 'metadata' => [
                     'email_verification_mail_sent' => $verificationMailSent,
+                    'community_nickname_set' => $communityRegistrationNicknameEnabled && $values['community_nickname'] !== '',
                 ],
             ]);
 

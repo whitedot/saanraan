@@ -42,6 +42,9 @@ if (is_array($postBoard)) {
     }
 }
 $settings = sr_community_settings($pdo);
+if (is_array($account)) {
+    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
+}
 $assetReadNotices = [];
 if (is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
