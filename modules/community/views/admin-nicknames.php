@@ -160,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>
-                    <button type="submit" class="btn btn-outline-secondary modal-action" data-overlay-focus><?php echo sr_e(sr_t('community::ui.nickname.reset')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action" data-overlay-focus><?php echo sr_e(sr_t('community::ui.nickname.reset')); ?></button>
                 </div>
             </form>
         </div>
