@@ -19,6 +19,8 @@ $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 
 $settingSourceLabels = [
+    'group' => ['visible' => sr_t('community::ui.text.5d908ddd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
+    'all' => ['visible' => sr_t('community::ui.all.a4b69faf'), 'sr' => sr_t('community::ui.text.6a1c963d')],
     'board' => ['visible' => sr_t('community::ui.text.c0e39cdd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
 ];
 $settingSourceLabelHtml = static function (array $label): string {

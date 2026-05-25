@@ -71,6 +71,8 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('content::ui.text.706623d8') . implode(', ', $assetDeductionPriorityLabels)
     : sr_t('content::ui.text.3e195cdd');
 $pageGroupScopeLabels = [
+    'group' => ['visible' => sr_t('content::ui.text.5d908ddd'), 'sr' => sr_t('content::ui.text.6a1c963d')],
+    'all' => ['visible' => sr_t('content::ui.all.a4b69faf'), 'sr' => sr_t('content::ui.text.6a1c963d')],
     'here_only' => ['visible' => sr_t('content::ui.text.c0e39cdd'), 'sr' => sr_t('content::ui.text.6a1c963d')],
 ];
 $pageScopeLabelHtml = static function (array $label): string {
@@ -90,6 +92,8 @@ $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope)
     return $html . '</div>';
 };
 $pageSettingSourceLabels = [
+    'group' => $pageGroupScopeLabels['group'],
+    'all' => $pageGroupScopeLabels['all'],
     'content' => $pageGroupScopeLabels['here_only'],
 ];
 $pageSettingSource = static function (array $values, string $key): string {

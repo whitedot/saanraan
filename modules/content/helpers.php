@@ -222,12 +222,16 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
 
 function sr_content_setting_source_values(): array
 {
-    return ['content'];
+    return ['content', 'group', 'all'];
 }
 
 function sr_content_normalize_setting_source(string $source): string
 {
-    return 'content';
+    if ($source === 'here_only') {
+        return 'content';
+    }
+
+    return in_array($source, sr_content_setting_source_values(), true) ? $source : 'content';
 }
 
 function sr_content_asset_modules(): array
@@ -873,13 +877,29 @@ function sr_content_admin_filters(): array
 
 function sr_content_group_apply_scope(string $scope): string
 {
-    return 'here_only';
+    if ($scope === 'board') {
+        return 'here_only';
+    }
+
+    return in_array($scope, ['group', 'all', 'here_only'], true) ? $scope : 'here_only';
 }
 
 function sr_content_apply_scope_target_ids(PDO $pdo, int $pageId, int $pageGroupId, string $scope): array
 {
     if ($pageId < 1) {
         return [];
+    }
+
+    $scope = sr_content_group_apply_scope($scope);
+    if ($scope === 'all') {
+        $stmt = $pdo->query('SELECT id FROM sr_content_items ORDER BY id ASC');
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    if ($scope === 'group' && $pageGroupId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM sr_content_items WHERE content_group_id = :content_group_id ORDER BY id ASC');
+        $stmt->execute(['content_group_id' => $pageGroupId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     return [$pageId];
@@ -1550,6 +1570,36 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_content_group_by_id($pdo, $pageGroupId)))) {
         $errors[] = '콘텐츠 그룹 값이 올바르지 않습니다.';
     }
+    if (sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
+        $errors[] = '그룹적용을 선택하려면 콘텐츠 그룹을 선택하세요.';
+    }
+
+    $sourceLabels = [
+        'source_status' => '상태',
+        'source_layout_key' => '콘텐츠 레이아웃',
+    ];
+    foreach (sr_content_group_asset_access_setting_keys() as $settingKey) {
+        $sourceLabels['source_' . $settingKey] = '유료 열람';
+    }
+    foreach (sr_content_group_asset_action_setting_keys() as $settingKey) {
+        $sourceLabels['source_' . $settingKey] = '완료 버튼';
+    }
+    foreach ([
+        'file_asset_download_enabled' => '파일 다운로드 사용',
+        'file_asset_module' => '파일 다운로드 자산',
+        'file_asset_download_amount' => '파일 다운로드 금액',
+        'file_asset_download_amounts_json' => '파일 다운로드 자산별 금액',
+        'file_asset_charge_policy' => '파일 다운로드 과금 방식',
+        'asset_action_label' => '완료 버튼 문구',
+    ] as $settingKey => $sourceLabel) {
+        $sourceLabels['source_' . $settingKey] = $sourceLabel;
+    }
+    foreach ($sourceLabels as $sourceKey => $sourceLabel) {
+        if (sr_content_normalize_setting_source((string) ($values[$sourceKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
+            $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용할 수 있습니다.';
+        }
+    }
+
     $slug = (string) ($values['slug'] ?? '');
     if (!sr_content_slug_is_valid($slug)) {
         $errors[] = 'slug는 3-120자의 소문자 영문, 숫자, 하이픈만 사용할 수 있으며 예약어는 사용할 수 없습니다.';

@@ -307,6 +307,20 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
 
+        foreach ($settingSources as $settingKey => $source) {
+            if ($source === 'group' && $boardGroupId < 1) {
+                $errors[] = sr_t('community::action.admin.setting_group_source_requires_group', ['setting' => $settingKey]);
+            }
+        }
+
+        foreach ($assetSettingSources as $settingKey => $source) {
+            if ($source === 'group' && $boardGroupId < 1) {
+                $assetPrefix = sr_community_asset_prefix_from_setting_key((string) $settingKey);
+                $assetLabel = (string) ($assetSettingLabels[$assetPrefix] ?? $settingKey);
+                $errors[] = sr_t('community::action.admin.asset_group_source_requires_group', ['label' => $assetLabel]);
+            }
+        }
+
         foreach ([
             ['label' => sr_t('community::action.admin.label.read_group'), 'value' => $readGroupKeysInput],
             ['label' => sr_t('community::action.admin.label.write_group'), 'value' => $writeGroupKeysInput],

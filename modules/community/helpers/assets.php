@@ -570,14 +570,7 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
 function sr_community_asset_board_setting(PDO $pdo, array $board, array $settings, string $key, mixed $default): string
 {
     $boardId = (int) ($board['id'] ?? 0);
-    $prefix = sr_community_asset_prefix_from_setting_key($key);
-    $source = 'all';
-    if ($boardId > 0 && $prefix !== '') {
-        $source = is_string($board['source_' . $key] ?? null)
-            ? sr_community_normalize_board_setting_source((string) $board['source_' . $key])
-            : sr_community_board_asset_setting_key_source($pdo, $boardId, $key);
-    }
-    if ($boardId > 0 && $source === 'board') {
+    if ($boardId > 0) {
         $value = sr_community_board_setting_value($pdo, $boardId, $key);
         if (is_string($value) && $value !== '') {
             return $value;

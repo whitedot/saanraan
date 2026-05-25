@@ -199,18 +199,34 @@ function sr_community_board_group_column_setting_keys(): array
 
 function sr_community_board_setting_source_values(): array
 {
-    return ['board'];
+    return ['board', 'group', 'all'];
 }
 
 function sr_community_normalize_board_setting_source(string $source): string
 {
-    return 'board';
+    if ($source === 'here_only') {
+        return 'board';
+    }
+
+    return in_array($source, sr_community_board_setting_source_values(), true) ? $source : 'board';
 }
 
 function sr_community_board_scope_target_ids(PDO $pdo, int $boardId, int $boardGroupId, string $source): array
 {
     if ($boardId < 1) {
         return [];
+    }
+
+    $source = sr_community_normalize_board_setting_source($source);
+    if ($source === 'all') {
+        $stmt = $pdo->query('SELECT id FROM sr_community_boards ORDER BY id ASC');
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    if ($source === 'group' && $boardGroupId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM sr_community_boards WHERE board_group_id = :board_group_id ORDER BY id ASC');
+        $stmt->execute(['board_group_id' => $boardGroupId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     return [$boardId];
