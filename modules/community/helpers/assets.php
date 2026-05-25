@@ -577,16 +577,6 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
             ? sr_community_normalize_board_setting_source((string) $board['source_' . $key])
             : sr_community_board_asset_setting_key_source($pdo, $boardId, $key);
     }
-    if ($source === 'group') {
-        $groupId = (int) ($board['board_group_id'] ?? 0);
-        if ($groupId > 0) {
-            $value = sr_community_board_group_setting_value($pdo, $groupId, $key);
-            if (is_string($value) && $value !== '') {
-                return $value;
-            }
-        }
-    }
-
     if ($boardId > 0 && $source === 'board') {
         $value = sr_community_board_setting_value($pdo, $boardId, $key);
         if (is_string($value) && $value !== '') {
@@ -594,7 +584,8 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
         }
     }
 
-    $value = $settings[$key] ?? $default;
+    $defaultSettings = sr_community_default_settings();
+    $value = $defaultSettings[$key] ?? $default;
     if (is_array($value)) {
         if (str_ends_with($key, '_amounts_json')) {
             return sr_community_asset_amounts_json_from_map(sr_community_asset_amounts_from_value($value));

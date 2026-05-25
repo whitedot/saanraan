@@ -194,11 +194,7 @@ $formBoardGroup = $communityBoardGroupsPage === 'edit' ? $selectedBoardGroup : [
 ];
 $formGroupSettings = [];
 if ($communityBoardGroupsPage === 'new') {
-    foreach (array_merge(['post_editor'], sr_community_board_group_asset_setting_keys()) as $settingKey) {
-        if (array_key_exists((string) $settingKey, $settings)) {
-            $formGroupSettings[(string) $settingKey] = $settings[(string) $settingKey];
-        }
-    }
+    $formGroupSettings = sr_community_board_group_default_settings($settings);
 }
 if ($communityBoardGroupsPage === 'edit' && isset($formBoardGroup['id'])) {
     $formGroupSettings = is_array($boardGroupSettings[(int) $formBoardGroup['id']] ?? null) ? $boardGroupSettings[(int) $formBoardGroup['id']] : [];
@@ -368,12 +364,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <select id="community_admin_board_groups_group_post_editor" name="group_post_editor" class="form-select" required>
                             <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
-                                <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'post_editor', 'inherit') === (string) $editorKey ? ' selected' : ''; ?>>
+                                <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'post_editor', 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
                                     <?php echo sr_e((string) $editorLabel); ?>
                                 </option>
                             <?php } ?>
                         </select>
-                        <p class="admin-form-help">게시판이 상위 설정을 사용할 때 이 값이 적용됩니다.</p>
+                        <p class="admin-form-help">새 게시판을 만들 때 참고할 그룹 기본값입니다.</p>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -616,18 +612,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </div>
         </section>
-        <?php if ($communityBoardGroupsPage === 'edit') { ?>
-            <section class="admin-card card">
-                <h2><?php echo sr_e(sr_t('community::ui.text.206dd316')); ?></h2>
-                <p><?php echo sr_e(sr_t('community::ui.settings.select.62b200b8')); ?></p>
-                <?php foreach ($settingLabels as $settingKey => $settingLabel) { ?>
-                    <label class="admin-form-check form-label" for="modules_community_admin_board_groups_apply_setting_keys">
-                        <input id="modules_community_admin_board_groups_apply_setting_keys" type="checkbox" name="apply_setting_keys[]" value="<?php echo sr_e($settingKey); ?>" class="form-checkbox">
-                        <?php echo sr_e($settingLabel); ?>
-                    </label>
-                <?php } ?>
-            </section>
-        <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319'); ?></button>

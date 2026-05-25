@@ -20,7 +20,7 @@ if (!is_array($values ?? null) || $values === []) {
 }
 $groupSettings = is_array($values['group_settings'] ?? null)
     ? $values['group_settings']
-    : (is_array($pageGroupSettings ?? null) ? $pageGroupSettings : []);
+    : ($editing && is_array($pageGroupSettings ?? null) ? $pageGroupSettings : sr_content_group_default_settings($site ?? null, $pdo ?? null));
 $groupSettingValue = static function (array $settings, string $key, string $default): string {
     return (string) ($settings[$key] ?? $default);
 };

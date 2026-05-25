@@ -19,8 +19,6 @@ $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 
 $settingSourceLabels = [
-    'group' => ['visible' => sr_t('community::ui.text.5d908ddd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
-    'all' => ['visible' => sr_t('community::ui.all.a4b69faf'), 'sr' => sr_t('community::ui.text.6a1c963d')],
     'board' => ['visible' => sr_t('community::ui.text.c0e39cdd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
 ];
 $settingSourceLabelHtml = static function (array $label): string {
@@ -438,13 +436,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <select id="community_admin_boards_post_editor" name="post_editor" class="form-select" required>
                         <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
-                            <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $boardField($formBoard, 'post_editor', 'inherit') === (string) $editorKey ? ' selected' : ''; ?>>
+                            <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $boardField($formBoard, 'post_editor', 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) $editorLabel); ?>
                             </option>
                         <?php } ?>
                     </select>
                     <?php echo $settingSourceRadioHtml('source_post_editor', $boardSettingSource($formBoard, 'post_editor')); ?>
-                    <p class="admin-form-help">상위 설정을 사용하면 게시판 그룹, 커뮤니티 환경설정 순서로 적용됩니다.</p>
+                    <p class="admin-form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 설정 변경의 영향을 받지 않습니다.</p>
                 </div>
             </div>
 

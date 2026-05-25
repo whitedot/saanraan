@@ -28,7 +28,7 @@ $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $maxLevel = sr_community_max_level_value();
 $settings = sr_community_settings($pdo);
-$editorOptions = sr_editor_options($pdo, true);
+$editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -95,7 +95,7 @@ if (sr_request_method() === 'POST') {
         $writePolicy = sr_post_string('group_write_policy', 30);
         $commentPolicy = sr_post_string('group_comment_policy', 30);
         $postEditorInput = sr_post_string('group_post_editor', 30);
-        $postEditor = sr_community_post_editor_key($postEditorInput, true);
+        $postEditor = sr_community_post_editor_key($postEditorInput);
         $attachmentMaxBytes = sr_admin_post_int_in_range('group_attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('group_attachment_max_count', 0, 10);
         $imageUploadsEnabled = ($_POST['group_image_uploads_enabled'] ?? '') === '1';
@@ -175,7 +175,7 @@ if (sr_request_method() === 'POST') {
 
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
             $errors[] = '게시판 그룹 에디터 값이 올바르지 않습니다.';
-            $postEditor = 'inherit';
+            $postEditor = 'textarea';
         }
 
         if ($attachmentMaxBytes === null) {
@@ -346,15 +346,6 @@ if (sr_request_method() === 'POST') {
             }
 
             $applySettingKeys = [];
-            if (isset($_POST['apply_setting_keys']) && is_array($_POST['apply_setting_keys'])) {
-                foreach ($_POST['apply_setting_keys'] as $settingKey) {
-                    $settingKey = (string) $settingKey;
-                    if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
-                        $applySettingKeys[] = $settingKey;
-                    }
-                }
-            }
-            $applySettingKeys = array_values(array_unique($applySettingKeys));
             $appliedBoardAssetAudits = [];
             $assetApplySettingKeys = array_values(array_intersect($applySettingKeys, sr_community_board_group_asset_setting_keys()));
             if ($intent === 'update_group' && $assetApplySettingKeys !== []) {
@@ -408,10 +399,6 @@ if (sr_request_method() === 'POST') {
             }
 
             $appliedBoardCount = 0;
-            if ($applySettingKeys !== []) {
-                $appliedBoardCount = sr_community_apply_board_group_settings_to_boards($pdo, $groupId, $applySettingKeys);
-                $notice .= sr_t('community::action.admin.board_group_settings_applied', ['count' => (string) $appliedBoardCount]);
-            }
             foreach ($appliedBoardAssetAudits as $appliedBoardAssetAudit) {
                 $appliedBoardId = (int) ($appliedBoardAssetAudit['id'] ?? 0);
                 if ($appliedBoardId < 1) {
