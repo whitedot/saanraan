@@ -187,7 +187,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?></th>
                     <th><?php echo sr_e(sr_t('point::ui.text.5cf2792b')); ?></th>
                     <th><?php echo sr_e(sr_t('point::ui.text.4a12f983')); ?></th>
@@ -201,12 +200,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.f50f4b9d')); ?></td>
+                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.f50f4b9d')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
                         <tr>
-                            <td><?php echo sr_e((string) $transaction['id']); ?></td>
                             <td>
                                 <?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br>
                                 <?php echo sr_e(sr_admin_member_email_display($transaction)); ?><br>
@@ -216,7 +214,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> P</td>
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> P</td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
-                            <td><?php echo sr_e((string) $transaction['reference_type'] . ((string) $transaction['reference_id'] !== '' ? ':' . (string) $transaction['reference_id'] : '')); ?></td>
+                            <td><?php echo sr_e((string) $transaction['reference_type']); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -421,7 +419,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="account_identifier" value="<?php echo sr_e((string) $pointRefundTransaction['account_public_hash']); ?>">
                         <input type="hidden" name="reference_id" value="<?php echo sr_e($pointRefundReferenceId); ?>">
                         <div class="admin-summary-stats">
-                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.da1026da')); ?> <strong>#<?php echo sr_e((string) $pointRefundTransactionId); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?> <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointRefundTransaction)); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointRefundTransaction)); ?></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.18e61249')); ?> <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> P</strong></span>

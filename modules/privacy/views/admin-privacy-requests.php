@@ -83,8 +83,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th>ID</th>
-                <th><?php echo sr_e(sr_t('privacy::ui.text.b0b3d3bc')); ?></th>
                 <th><?php echo sr_e(sr_t('privacy::ui.text.5cf2792b')); ?></th>
                 <th><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></th>
                 <th><?php echo sr_e(sr_t('privacy::ui.text.16bf0f07')); ?></th>
@@ -96,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($requests === []) { ?>
                 <tr>
-                    <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('privacy::ui.privacy.b027f225')); ?></td>
+                    <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('privacy::ui.privacy.b027f225')); ?></td>
                 </tr>
             <?php } ?>
             <?php foreach ($requests as $request) { ?>
@@ -114,8 +112,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $completedRequired = $requestStatus === 'completed';
                 ?>
                 <tr>
-                    <td><?php echo sr_e((string) $request['id']); ?></td>
-                    <td><?php echo sr_e((string) ($request['account_id'] ?? '')); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
                     <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($requestStatus, 'privacy_request_status')); ?></span></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_requester_display($request)); ?></td>

@@ -46,7 +46,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th><?php echo sr_e(sr_t('privacy::ui.text.5cf2792b')); ?></th>
                     <th><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></th>
                     <th><?php echo sr_e(sr_t('privacy::ui.text.e470d24b')); ?></th>
@@ -57,12 +56,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <tbody>
                 <?php if ($requests === []) { ?>
                     <tr>
-                        <td colspan="6"><?php echo sr_e(sr_t('privacy::ui.text.1969657d')); ?></td>
+                        <td colspan="5"><?php echo sr_e(sr_t('privacy::ui.text.1969657d')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($requests as $request) { ?>
                     <tr>
-                        <td><?php echo sr_e((string) $request['id']); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
                         <td><?php echo sr_e(sr_admin_code_label((string) $request['status'], 'privacy_request_status')); ?></td>
                         <td><?php echo sr_e((string) $request['created_at']); ?></td>

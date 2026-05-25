@@ -310,7 +310,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th>key</th>
                     <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
                     <th><?php echo sr_e(sr_t('community::ui.text.5d908ddd')); ?></th>
@@ -322,7 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($boards === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.112bc2dd')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.112bc2dd')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($boards as $board) { ?>
@@ -335,7 +334,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     };
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap community-id"><?php echo sr_e((string) $board['id']); ?></td>
                         <td class="admin-table-nowrap admin-community-board-key-cell"><?php echo sr_e((string) $board['board_key']); ?></td>
                         <td class="admin-table-break admin-community-board-title-cell"><?php echo sr_e((string) $board['title']); ?></td>
                         <td class="admin-table-break admin-community-board-group-cell"><?php echo sr_e((string) ($board['board_group_title'] ?? '')); ?></td>

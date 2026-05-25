@@ -23,7 +23,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
         <label class="admin-filter-field admin-audit-filter-field" for="modules_admin_audit_logs_field">
             <span class="admin-filter-label"><?php echo sr_e(sr_t('admin::ui.search.b79bc9c8')); ?></span>
             <select id="modules_admin_audit_logs_field" name="field" class="form-select">
-                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 ID', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
+                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
                     <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
                         <?php echo sr_e($label); ?>
                     </option>
@@ -62,9 +62,6 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
             <?php if (($filters['target_type'] ?? '') !== '') { ?>
                 <span class="admin-summary-meta">대상 유형 <strong><?php echo sr_e(sr_admin_code_label((string) $filters['target_type'], 'target_type')); ?></strong></span>
             <?php } ?>
-            <?php if (($filters['target_id'] ?? '') !== '') { ?>
-                <span class="admin-summary-meta">대상 ID <strong><?php echo sr_e((string) $filters['target_id']); ?></strong></span>
-            <?php } ?>
             <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-summary-meta">필터 해제</a>
         </div>
     <?php } ?>
@@ -76,7 +73,6 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
     <table class="table admin-audit-log-table">
         <thead class="ui-table-head">
             <tr>
-                <th>ID</th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.faea4ccf')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.750086e9')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.46b289bb')); ?></th>
@@ -90,25 +86,24 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
         <tbody>
             <?php if ($logs === []) { ?>
                 <tr>
-                    <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.admin.7d324209')); ?></td>
+                    <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('admin::ui.admin.7d324209')); ?></td>
                 </tr>
             <?php } ?>
             <?php foreach ($logs as $log) { ?>
                 <tr>
-                    <td><?php echo sr_e((string) $log['id']); ?></td>
                     <td><?php echo sr_e((string) $log['created_at']); ?></td>
                     <td>
                         <?php $actorAccountId = (int) ($log['actor_account_id'] ?? 0); ?>
                         <?php if ($actorAccountId > 0) { ?>
                             <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($auditActorMemberModalId); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>" data-admin-audit-actor-member data-account-id="<?php echo sr_e((string) $actorAccountId); ?>" data-member-url="<?php echo sr_e(sr_url('/admin/members/summary?id=' . (string) $actorAccountId)); ?>">
-                                <?php echo sr_e('계정 #' . (string) $actorAccountId); ?>
+                                회원 정보
                             </button>
                         <?php } else { ?>
                             <?php echo sr_e((string) ($log['actor_type'] ?? '-')); ?>
                         <?php } ?>
                     </td>
                     <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
-                    <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type') . ':' . (string) $log['target_id']); ?></td>
+                    <td><?php echo sr_e(sr_admin_code_label((string) $log['target_type'], 'target_type')); ?></td>
                     <td><?php echo sr_e(sr_admin_code_label((string) $log['result'], 'result')); ?></td>
                     <td><?php echo sr_e((string) $log['ip_address']); ?></td>
                     <td class="admin-audit-message"><?php echo sr_e(sr_admin_audit_log_display_message($log)); ?></td>
@@ -121,7 +116,6 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                             $metadataModalId = 'admin-audit-metadata-modal-' . (int) $log['id'];
                             $auditMetadataModals[] = [
                                 'id' => $metadataModalId,
-                                'log_id' => (int) $log['id'],
                                 'created_at' => (string) $log['created_at'],
                                 'event_type' => sr_admin_event_type_label((string) $log['event_type']),
                                 'metadata' => $metadata,
@@ -186,7 +180,6 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                 </div>
                 <div class="modal-body">
                     <div class="admin-summary-stats">
-                        <span class="admin-summary-meta"><?php echo sr_e(sr_t('admin::ui.text.e0918eb0')); ?> <strong>#<?php echo sr_e((string) $auditMetadataModal['log_id']); ?></strong></span>
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['event_type']); ?></span>
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['created_at']); ?></span>
                     </div>

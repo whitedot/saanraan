@@ -80,7 +80,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th>ID</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
@@ -94,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($posts === []) { ?>
                 <tr>
-                    <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
+                    <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
@@ -109,7 +108,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $postStatusSelectId = 'community_admin_post_status_' . (string) $post['id'];
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap community-id"><?php echo sr_e((string) $post['id']); ?></td>
                         <td class="admin-table-break admin-community-post-board-cell"><?php echo sr_e((string) $post['board_title']); ?></td>
                         <td class="admin-table-break admin-community-post-title-cell">
                             <?php if ((string) $post['status'] === 'published') { ?>
@@ -218,7 +216,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th>ID</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.0b138cfe')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?></th>
@@ -230,7 +227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($comments === []) { ?>
                 <tr>
-                    <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></td>
+                    <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($comments as $comment) { ?>
@@ -244,7 +241,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $commentStatusSelectId = 'community_admin_comment_status_' . (string) $comment['id'];
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap community-id"><?php echo sr_e((string) $comment['id']); ?></td>
                         <td class="admin-table-break admin-community-comment-post-cell">
                             <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $comment['post_id'])); ?>">
                                 <?php echo sr_e((string) $comment['post_title']); ?>

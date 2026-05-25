@@ -343,7 +343,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th>key</th>
                     <th><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
@@ -355,7 +354,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <tbody>
                 <?php if ($groups === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.4ef35a24')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.4ef35a24')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
@@ -371,7 +370,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     $assignmentHistoryModalId = 'member-group-assignment-history-modal-' . $groupId;
                     ?>
                     <tr>
-                        <td><?php echo sr_e((string) $group['id']); ?></td>
                         <td class="admin-table-nowrap admin-member-group-key-cell"><?php echo sr_e((string) $group['group_key']); ?></td>
                         <td class="admin-member-group-title-cell"><?php echo sr_e((string) $group['title']); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
@@ -603,7 +601,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 <table class="table">
                                     <thead class="ui-table-head">
                                         <tr>
-                                            <th>ID</th>
                                             <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.text.5cf2792b')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
@@ -614,12 +611,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                     <tbody>
                                         <?php if ($groupMemberships === []) { ?>
                                             <tr>
-                                                <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.6bfe04ee')); ?></td>
+                                                <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.6bfe04ee')); ?></td>
                                             </tr>
                                         <?php } ?>
                                         <?php foreach ($groupMemberships as $membership) { ?>
                                             <tr>
-                                                <td><?php echo sr_e((string) $membership['id']); ?></td>
                                                 <td>
                                                     <?php echo sr_e((string) $membership['account_public_hash']); ?><br>
                                                     <?php echo sr_e(sr_admin_member_display_name_preview($membership)); ?>
@@ -656,7 +652,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 <table class="table">
                                     <thead class="ui-table-head">
                                         <tr>
-                                            <th>ID</th>
                                             <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.text.46b289bb')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.text.4cd44bae')); ?></th>
@@ -666,12 +661,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                     <tbody>
                                         <?php if ($groupMembershipLogs === []) { ?>
                                             <tr>
-                                                <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.537aa44f')); ?></td>
+                                                <td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.537aa44f')); ?></td>
                                             </tr>
                                         <?php } ?>
                                         <?php foreach ($groupMembershipLogs as $log) { ?>
                                             <tr>
-                                                <td><?php echo sr_e((string) $log['id']); ?></td>
                                                 <td>
                                                     <?php echo sr_e((string) $log['account_public_hash']); ?><br>
                                                     <?php echo sr_e(sr_admin_member_display_name_preview($log)); ?>
@@ -704,7 +698,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></th>
@@ -716,12 +709,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <tbody>
                 <?php if ($groupRules === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.1998c6cf')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.text.1998c6cf')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groupRules as $rule) { ?>
                     <tr>
-                        <td><?php echo sr_e((string) $rule['id']); ?></td>
                         <td><?php echo sr_e((string) $rule['group_title']); ?></td>
                         <td>
                             <?php echo sr_e((string) $rule['source_module_key']); ?><br>

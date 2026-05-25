@@ -103,7 +103,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th>ID</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
@@ -119,7 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($reports === []) { ?>
                 <tr>
-                    <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.7efff05f')); ?></td>
+                    <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.7efff05f')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($reports as $report) { ?>
@@ -135,8 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $reportReviewNoteId = 'community_admin_report_review_note_' . (string) $report['id'];
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap community-id"><?php echo sr_e((string) $report['id']); ?></td>
-                        <td class="admin-table-nowrap admin-community-report-target-cell"><?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type')) . ' #' . (string) $report['target_id']); ?></td>
+                        <td class="admin-table-nowrap admin-community-report-target-cell"><?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?></td>
                         <td class="admin-table-nowrap admin-community-report-reason-cell"><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
                         <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(

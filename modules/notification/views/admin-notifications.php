@@ -101,7 +101,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.56c30db0')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></th>
                     <th><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?></th>
                     <th><?php echo sr_e(sr_t('notification::ui.text.fb3853ea')); ?></th>
@@ -112,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($deliveries === []) { ?>
-                    <tr><td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.text.4ecdd323')); ?></td></tr>
+                    <tr><td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.text.4ecdd323')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($deliveries as $delivery) { ?>
                         <?php
@@ -124,10 +123,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
-                            <td class="admin-table-nowrap notification-id"><?php echo sr_e((string) $delivery['id']); ?></td>
                             <td class="admin-table-break admin-notification-delivery-title-cell">
-                                <?php echo sr_e((string) ($delivery['notification_title'] ?? '')); ?><br>
-                                <span class="admin-table-subtext">#<?php echo sr_e((string) $delivery['notification_id']); ?></span>
+                                <?php echo sr_e((string) ($delivery['notification_title'] ?? '')); ?>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
                             <td class="admin-table-break admin-notification-delivery-recipient-cell"><?php echo sr_e((string) (($delivery['recipient'] ?? '') !== '' ? $delivery['recipient'] : '-')); ?></td>
@@ -226,7 +223,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>ID</th>
                     <th><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?></th>
                     <th><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></th>
                     <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
@@ -236,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($notifications === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.create.notification.f92f6fb2')); ?></td></tr>
+                    <tr><td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('notification::ui.create.notification.f92f6fb2')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($notifications as $notification) { ?>
                         <?php
@@ -248,7 +244,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
-                            <td class="admin-table-nowrap notification-id"><?php echo sr_e((string) $notification['id']); ?></td>
                             <td class="admin-table-break admin-notification-title-cell"><?php echo sr_e((string) ($notification['title'] ?? '')); ?></td>
                             <td class="admin-table-nowrap admin-notification-audience-cell"><?php echo sr_e(sr_admin_code_label((string) $notification['audience'], 'notification_audience')); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($notificationStatus, 'notification_status')); ?></span></td>
