@@ -258,6 +258,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('popup_layer::ui.text.bbd10514')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($popupPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-popup-layer-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></caption>
@@ -325,6 +326,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($popupPagination, '팝업레이어 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>

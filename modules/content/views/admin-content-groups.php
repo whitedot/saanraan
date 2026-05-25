@@ -96,6 +96,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.text.6de46476')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($pageGroupPagination); ?>
         <div class="table-wrapper">
             <table class="table admin-content-group-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></caption>
@@ -147,6 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($pageGroupPagination, '콘텐츠 그룹 목록 페이지'); ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

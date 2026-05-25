@@ -738,6 +738,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         <div class="table-wrapper">
             <table class="table admin-content-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
@@ -808,6 +809,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($pagePagination, '콘텐츠 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($pageAdminPage === 'form') { ?>

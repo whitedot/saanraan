@@ -374,5 +374,10 @@ $stmt->execute($bannerParams);
 foreach ($stmt->fetchAll() as $row) {
     $banners[] = $row;
 }
+$bannerPagination = sr_admin_paginate_array($pdo, $banners);
+if ($bannerAdminPage === 'list') {
+    $banners = $bannerPagination['rows'];
+}
+$bannerPagination = $bannerPagination['pagination'];
 
 include SR_ROOT . '/modules/banner/views/admin-banners.php';

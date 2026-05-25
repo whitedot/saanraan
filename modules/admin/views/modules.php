@@ -21,6 +21,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
     </button>
 </div>
+<?php echo sr_admin_pagination_summary_html($installableModulePagination); ?>
 <?php if ($installableModules === []) { ?>
     <section class="admin-card admin-list-card card">
         <p><?php echo sr_e(sr_t('admin::ui.text.228a1836')); ?></p>
@@ -149,11 +150,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         <?php } ?>
     </div>
+    <?php echo sr_admin_pagination_html($installableModulePagination, '설치 가능 모듈 목록 페이지'); ?>
 <?php } ?>
 
 <div class="admin-section-heading">
     <h2><?php echo sr_e(sr_t('admin::ui.text.9c3c31da')); ?></h2>
 </div>
+<?php echo sr_admin_pagination_summary_html($modulePagination); ?>
 <div class="admin-module-card-grid">
     <?php foreach ($modules as $module) { ?>
         <?php $moduleKey = (string) $module['module_key']; ?>
@@ -389,6 +392,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     <?php } ?>
 </div>
+<?php echo sr_admin_pagination_html($modulePagination, '설치된 모듈 목록 페이지'); ?>
 
 <?php $moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable) ? 'module-upload-modal-label-unavailable' : 'module-upload-modal-label'; ?>
 <div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleUploadModalLabelId); ?>">

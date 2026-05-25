@@ -44,6 +44,10 @@ $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_conf
 $searchFilter = sr_admin_member_search_filter($pdo, $runtimeConfig);
 $statusCounts = sr_admin_member_status_counts($pdo);
 $members = sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter));
+$memberPagination = sr_admin_pagination_meta(count($members), sr_admin_list_pagination_per_page(sr_admin_settings($pdo)), sr_admin_page_number_from_request());
+if ($memberAdminPage === 'members') {
+    $members = array_slice($members, ((int) $memberPagination['page'] - 1) * (int) $memberPagination['per_page'], (int) $memberPagination['per_page']);
+}
 $editMember = null;
 if ($memberAdminPage === 'edit_form') {
     $editMemberIdValue = sr_get_string('edit_id', 20);

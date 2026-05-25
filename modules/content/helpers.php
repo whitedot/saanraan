@@ -592,8 +592,7 @@ function sr_content_admin_group_list(PDO $pdo, array $filters): array
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
     $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
-              ORDER BY g.sort_order ASC, g.id ASC
-              LIMIT 200';
+              ORDER BY g.sort_order ASC, g.id ASC';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -747,7 +746,7 @@ function sr_content_admin_list(PDO $pdo, array $filters): array
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY p.updated_at DESC, p.id DESC LIMIT 200';
+    $sql .= ' ORDER BY p.updated_at DESC, p.id DESC';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

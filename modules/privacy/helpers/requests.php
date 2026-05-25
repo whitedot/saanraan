@@ -240,8 +240,7 @@ function sr_admin_privacy_requests(PDO $pdo, array $filters): array
     $sql = 'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
             FROM sr_privacy_requests
             ' . $whereSql . '
-            ORDER BY id DESC
-            LIMIT 100';
+            ORDER BY id DESC';
 
     if ($params === []) {
         $stmt = $pdo->query($sql);

@@ -324,5 +324,10 @@ $stmt->execute($popupParams);
 foreach ($stmt->fetchAll() as $row) {
     $popups[] = $row;
 }
+$popupPagination = sr_admin_paginate_array($pdo, $popups);
+if ($popupLayerAdminPage === 'list') {
+    $popups = $popupPagination['rows'];
+}
+$popupPagination = $popupPagination['pagination'];
 
 include SR_ROOT . '/modules/popup_layer/views/admin-popup-layers.php';

@@ -337,6 +337,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <?php } ?>
             </div>
         </div>
+        <?php echo sr_admin_pagination_summary_html($groupPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-member-group-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
@@ -389,6 +390,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </table>
         </div>
     </section>
+
+    <?php echo sr_admin_pagination_html($groupPagination, '회원 그룹 목록 페이지'); ?>
 
     <?php if ($hasAutoRuleEvaluationRules) { ?>
         <div id="<?php echo sr_e($autoRuleEvaluationModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($autoRuleEvaluationFieldPrefix); ?>_title" aria-hidden="true" inert>
@@ -696,6 +699,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
         </div>
+        <?php echo sr_admin_pagination_summary_html($groupRulePagination); ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -737,6 +741,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </table>
         </div>
     </section>
+
+    <?php echo sr_admin_pagination_html($groupRulePagination, '회원 그룹 규칙 목록 페이지'); ?>
 
     <div id="member-group-rule-create-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member_group_rule_create_modal_title" aria-hidden="true" inert>
         <div class="modal-dialog modal-dialog-lg">

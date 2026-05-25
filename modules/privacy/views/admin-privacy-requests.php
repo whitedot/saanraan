@@ -77,6 +77,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></h2>
     </div>
+    <?php echo sr_admin_pagination_summary_html($privacyRequestPagination); ?>
     <div class="table-wrapper">
     <table class="table admin-privacy-request-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></caption>
@@ -171,6 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($privacyRequestPagination, '개인정보 요청 목록 페이지'); ?>
 
 <script>
 (function () {

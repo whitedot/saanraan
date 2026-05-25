@@ -49,6 +49,9 @@ if ($pageAdminPage === 'form') {
     }
     $pageStatusCounts = sr_content_admin_status_counts($pdo);
     $pages = sr_content_admin_list($pdo, $filters);
+    $pagePagination = sr_admin_paginate_array($pdo, $pages);
+    $pages = $pagePagination['rows'];
+    $pagePagination = $pagePagination['pagination'];
 }
 
 include SR_ROOT . '/modules/content/views/admin-contents.php';

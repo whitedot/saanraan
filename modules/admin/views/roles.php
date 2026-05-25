@@ -128,6 +128,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal">권한 추가</button>
 </div>
+<?php echo sr_admin_pagination_summary_html($accountPagination); ?>
 <div class="table-wrapper">
 <table class="table">
     <thead class="ui-table-head">
@@ -192,6 +193,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </table>
 </div>
 </div>
+<?php echo sr_admin_pagination_html($accountPagination, '관리자 권한 회원 목록 페이지'); ?>
 
 <div id="admin-permission-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0 admin-permission-add-modal" role="dialog" tabindex="-1" aria-labelledby="admin-permission-add-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog">

@@ -272,19 +272,23 @@ $stmt = $pdo->query(
     'SELECT id, usage_key, title, alt_text, storage_driver, storage_key, public_url, mime_type,
             size_bytes, width, height, status, created_at, updated_at
      FROM sr_logo_manager_assets
-     ORDER BY id DESC
-     LIMIT 200'
+     ORDER BY id DESC'
 );
 $assets = $stmt->fetchAll();
+$assetPagination = sr_admin_paginate_array($pdo, $assets, 'asset_page');
+$assets = $assetPagination['rows'];
+$assetPagination = $assetPagination['pagination'];
 
 $stmt = $pdo->query(
     'SELECT a.id, a.usage_key, a.asset_id, a.alt_text, a.link_url, a.status, a.starts_at, a.ends_at,
             a.sort_order, a.created_at, asset.title, asset.storage_driver, asset.storage_key, asset.public_url
      FROM sr_logo_manager_assignments a
      INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
-     ORDER BY a.usage_key ASC, a.sort_order ASC, a.id DESC
-     LIMIT 300'
+     ORDER BY a.usage_key ASC, a.sort_order ASC, a.id DESC'
 );
 $assignments = $stmt->fetchAll();
+$assignmentPagination = sr_admin_paginate_array($pdo, $assignments, 'assignment_page');
+$assignments = $assignmentPagination['rows'];
+$assignmentPagination = $assignmentPagination['pagination'];
 
 include SR_ROOT . '/modules/logo_manager/views/admin-logo-manager.php';

@@ -182,6 +182,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($rewardAdminPage === 'transactions') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('reward::ui.text.ce41e3f6')); ?></h2></div>
+        <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -234,6 +235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($transactionPagination, '적립금 거래 목록 페이지'); ?>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
@@ -242,6 +244,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php $rewardHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/rewards/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/rewards/balances'; ?>
             <a href="<?php echo sr_e(sr_url($rewardHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($rewardHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('reward::ui.text.7535b737')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -281,6 +284,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($balancePagination, '적립금 잔액 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($rewardAdminPage === 'balances' && $rewardAdjustModalAccounts !== []) { ?>

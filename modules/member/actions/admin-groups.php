@@ -334,7 +334,15 @@ $groupStatusCounts = sr_admin_member_group_status_counts($allGroups);
 $groups = $memberGroupsPage === 'groups'
     ? sr_admin_member_group_filter_rows($allGroups, $groupListFilter)
     : $allGroups;
+$groupPagination = sr_admin_pagination_meta(count($groups), sr_admin_list_pagination_per_page(sr_admin_settings($pdo)), sr_admin_page_number_from_request());
+if ($memberGroupsPage === 'groups') {
+    $groups = array_slice($groups, ((int) $groupPagination['page'] - 1) * (int) $groupPagination['per_page'], (int) $groupPagination['per_page']);
+}
 $groupRules = sr_member_group_rules($pdo);
+$groupRulePagination = sr_admin_pagination_meta(count($groupRules), sr_admin_list_pagination_per_page(sr_admin_settings($pdo)), sr_admin_page_number_from_request());
+if ($memberGroupsPage === 'rules') {
+    $groupRules = array_slice($groupRules, ((int) $groupRulePagination['page'] - 1) * (int) $groupRulePagination['per_page'], (int) $groupRulePagination['per_page']);
+}
 $membershipsByGroupId = [];
 $membershipLogsByGroupId = [];
 if ($memberGroupsPage === 'groups') {

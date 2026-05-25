@@ -182,6 +182,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($pointAdminPage === 'transactions') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('point::ui.text.ce41e3f6')); ?></h2></div>
+        <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -234,6 +235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($transactionPagination, '포인트 거래 목록 페이지'); ?>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
@@ -242,6 +244,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php $pointHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/points/balances'; ?>
             <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.7535b737')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -281,6 +284,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($balancePagination, '포인트 잔액 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($pointAdminPage === 'balances' && $pointAdjustModalAccounts !== []) { ?>

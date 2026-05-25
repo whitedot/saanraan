@@ -501,6 +501,11 @@ if ($communityBoardGroupsPage === 'list') {
         return false;
     }));
 }
+$boardGroupPagination = sr_admin_paginate_array($pdo, $boardGroups);
+if ($communityBoardGroupsPage === 'list') {
+    $boardGroups = $boardGroupPagination['rows'];
+}
+$boardGroupPagination = $boardGroupPagination['pagination'];
 $boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupSettings[(int) $boardGroup['id']] = sr_community_board_group_settings($pdo, (int) $boardGroup['id']);

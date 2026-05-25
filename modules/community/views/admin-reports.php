@@ -97,6 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.27da9d14')); ?></h2></div>
+    <?php echo sr_admin_pagination_summary_html($reportPagination); ?>
     <div class="table-wrapper">
     <table class="table admin-community-report-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
@@ -184,5 +185,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($reportPagination, '신고 목록 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

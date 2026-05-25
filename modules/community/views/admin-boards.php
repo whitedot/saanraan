@@ -304,6 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-community-board-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
@@ -367,6 +368,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($boardPagination, '게시판 목록 페이지'); ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

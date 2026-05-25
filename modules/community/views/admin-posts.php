@@ -74,6 +74,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.3956e082')); ?></h2></div>
+    <?php echo sr_admin_pagination_summary_html($postPagination); ?>
     <div class="table-wrapper">
     <table class="table admin-community-post-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
@@ -151,6 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($postPagination, '게시글 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($communityPostsPage === 'comments') { ?>
@@ -210,6 +212,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.78c1708d')); ?></h2></div>
+    <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
     <div class="table-wrapper">
     <table class="table admin-community-comment-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
@@ -278,6 +281,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($commentPagination, '댓글 목록 페이지'); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

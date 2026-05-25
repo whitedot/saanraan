@@ -201,6 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-upload-modal" data-overlay="#logo-manager-upload-modal"><?php echo sr_e(sr_t('logo_manager::ui.create.d7f97185')); ?></button>
     </div>
+    <?php echo sr_admin_pagination_summary_html($assetPagination); ?>
     <div class="table-wrapper">
         <table class="table logo-manager-assets-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.list.5caa43ae')); ?></caption>
@@ -245,6 +246,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($assetPagination, '로고 자산 목록 페이지'); ?>
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
@@ -254,6 +256,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-assignment-modal" data-overlay="#logo-manager-assignment-modal"><?php echo sr_e(sr_t('logo_manager::ui.text.e3241f70')); ?></button>
     </div>
+    <?php echo sr_admin_pagination_summary_html($assignmentPagination); ?>
     <div class="table-wrapper">
         <table class="table logo-manager-assignments-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.list.4b760897')); ?></caption>
@@ -299,5 +302,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($assignmentPagination, '로고 적용 목록 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

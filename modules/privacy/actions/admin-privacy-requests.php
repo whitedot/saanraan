@@ -26,6 +26,9 @@ if (sr_request_method() === 'POST') {
 $privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);
 $privacyRequestStatusCounts = sr_admin_privacy_request_status_counts($pdo, $allowedStatuses);
 $requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters);
+$privacyRequestPagination = sr_admin_paginate_array($pdo, $requests);
+$requests = $privacyRequestPagination['rows'];
+$privacyRequestPagination = $privacyRequestPagination['pagination'];
 
 if (sr_request_method() === 'GET') {
     sr_audit_log($pdo, [
@@ -38,7 +41,7 @@ if (sr_request_method() === 'GET') {
         'message' => 'Privacy request list viewed.',
         'metadata' => [
             'filters' => $privacyRequestListFilters,
-            'result_count' => count($requests),
+            'result_count' => (int) $privacyRequestPagination['total'],
         ],
     ]);
 }

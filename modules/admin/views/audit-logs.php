@@ -4,13 +4,6 @@ $adminPageTitle = sr_t('admin::ui.admin.d0bd9568');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 $auditMetadataModals = [];
 $auditActorMemberModalId = 'admin-audit-actor-member-modal';
-$auditPage = (int) ($auditPagination['page'] ?? 1);
-$auditPerPage = (int) ($auditPagination['per_page'] ?? count($logs));
-$auditTotal = (int) ($auditPagination['total'] ?? count($logs));
-$auditTotalPages = (int) ($auditPagination['total_pages'] ?? 1);
-$auditListStart = $auditTotal > 0 ? (($auditPage - 1) * $auditPerPage) + 1 : 0;
-$auditListEnd = $auditTotal > 0 ? min($auditTotal, $auditPage * $auditPerPage) : 0;
-$auditPaginationItems = sr_admin_pagination_items($auditPage, $auditTotalPages, 2);
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
@@ -78,13 +71,7 @@ $auditPaginationItems = sr_admin_pagination_items($auditPage, $auditTotalPages, 
 </form>
 
 <div class="admin-card admin-list-card card admin-list-form">
-    <div class="admin-list-summary">
-        <?php if ($auditTotal > 0) { ?>
-            <span>전체 <strong><?php echo sr_e((string) $auditTotal); ?></strong>건 중 <?php echo sr_e((string) $auditListStart); ?>-<?php echo sr_e((string) $auditListEnd); ?>건 표시</span>
-        <?php } else { ?>
-            <span>전체 <strong>0</strong>건</span>
-        <?php } ?>
-    </div>
+    <?php echo sr_admin_pagination_summary_html($auditPagination); ?>
     <div class="table-wrapper">
     <table class="table admin-audit-log-table">
         <thead class="ui-table-head">
@@ -150,51 +137,7 @@ $auditPaginationItems = sr_admin_pagination_items($auditPage, $auditTotalPages, 
     </div>
 </div>
 
-<?php if ($auditTotalPages > 1) { ?>
-    <nav class="admin-pagination" aria-label="작업 로그 페이지">
-        <div class="admin-pagination-group" role="group" aria-label="작업 로그 페이지 이동">
-            <?php $auditPaginationIndex = 0; ?>
-            <?php $auditPaginationControlCount = count($auditPaginationItems) + 4; ?>
-            <?php if ($auditPage > 1) { ?>
-                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="처음 페이지" title="처음 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_left'); ?></a>
-            <?php } else { ?>
-                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="처음 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_left'); ?></span>
-            <?php } ?>
-            <?php $auditPaginationIndex++; ?>
-            <?php if ($auditPage > 1) { ?>
-                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPage - 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="이전 페이지" title="이전 페이지"><?php echo sr_material_icon_html('chevron_left'); ?></a>
-            <?php } else { ?>
-                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="이전 페이지"><?php echo sr_material_icon_html('chevron_left'); ?></span>
-            <?php } ?>
-            <?php $auditPaginationIndex++; ?>
-            <?php foreach ($auditPaginationItems as $auditPaginationItem) { ?>
-                <?php $auditPaginationGroupClass = sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount); ?>
-                <?php if (($auditPaginationItem['type'] ?? '') === 'gap') { ?>
-                    <span class="btn btn-sm btn-solid-light admin-pagination-gap <?php echo sr_e($auditPaginationGroupClass); ?>" aria-hidden="true">...</span>
-                <?php } else { ?>
-                    <?php $auditPaginationPage = (int) ($auditPaginationItem['page'] ?? 1); ?>
-                    <?php if (!empty($auditPaginationItem['current'])) { ?>
-                        <span class="btn btn-sm btn-solid-primary admin-pagination-page <?php echo sr_e($auditPaginationGroupClass); ?>" aria-current="page"><?php echo sr_e((string) $auditPaginationPage); ?></span>
-                    <?php } else { ?>
-                        <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPaginationPage)); ?>" class="btn btn-sm btn-solid-light admin-pagination-page <?php echo sr_e($auditPaginationGroupClass); ?>" aria-label="<?php echo sr_e((string) $auditPaginationPage); ?>페이지"><?php echo sr_e((string) $auditPaginationPage); ?></a>
-                    <?php } ?>
-                <?php } ?>
-                <?php $auditPaginationIndex++; ?>
-            <?php } ?>
-            <?php if ($auditPage < $auditTotalPages) { ?>
-                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditPage + 1)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="다음 페이지" title="다음 페이지"><?php echo sr_material_icon_html('chevron_right'); ?></a>
-            <?php } else { ?>
-                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="다음 페이지"><?php echo sr_material_icon_html('chevron_right'); ?></span>
-            <?php } ?>
-            <?php $auditPaginationIndex++; ?>
-            <?php if ($auditPage < $auditTotalPages) { ?>
-                <a href="<?php echo sr_e(sr_admin_audit_log_page_url($filters, $auditTotalPages)); ?>" class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-label="마지막 페이지" title="마지막 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_right'); ?></a>
-            <?php } else { ?>
-                <span class="btn btn-sm btn-icon btn-solid-light <?php echo sr_e(sr_admin_pagination_group_class($auditPaginationIndex, $auditPaginationControlCount)); ?>" aria-disabled="true" aria-label="마지막 페이지"><?php echo sr_material_icon_html('keyboard_double_arrow_right'); ?></span>
-            <?php } ?>
-        </div>
-    </nav>
-<?php } ?>
+<?php echo sr_admin_pagination_html($auditPagination, '작업 로그 페이지'); ?>
 
 <div id="<?php echo sr_e($auditActorMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($auditActorMemberModalId); ?>_title" aria-hidden="true" inert>
     <div class="modal-dialog modal-dialog-lg">

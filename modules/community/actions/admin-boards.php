@@ -785,6 +785,11 @@ if ($communityBoardsPage === 'list') {
         return false;
     }));
 }
+$boardPagination = sr_admin_paginate_array($pdo, $boards);
+if ($communityBoardsPage === 'list') {
+    $boards = $boardPagination['rows'];
+}
+$boardPagination = $boardPagination['pagination'];
 
 $editBoard = null;
 if ($communityBoardsPage === 'edit') {

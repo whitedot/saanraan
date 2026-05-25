@@ -181,7 +181,12 @@ foreach ($postStatusCountStmt->fetchAll() as $row) {
     $postStatusCounts['total'] += $count;
 }
 
-$posts = sr_community_admin_posts($pdo, 100, $postListFilters);
+$posts = sr_community_admin_posts($pdo, 0, $postListFilters);
+$postPagination = sr_admin_paginate_array($pdo, $posts);
+if ($communityPostsPage === 'posts') {
+    $posts = $postPagination['rows'];
+}
+$postPagination = $postPagination['pagination'];
 $commentStatusCounts = ['total' => 0];
 foreach ($allowedCommentStatuses as $status) {
     $commentStatusCounts[$status] = 0;
@@ -196,6 +201,11 @@ foreach ($commentStatusCountStmt->fetchAll() as $row) {
     $commentStatusCounts['total'] += $count;
 }
 
-$comments = sr_community_admin_comments($pdo, 100, $commentListFilters);
+$comments = sr_community_admin_comments($pdo, 0, $commentListFilters);
+$commentPagination = sr_admin_paginate_array($pdo, $comments);
+if ($communityPostsPage === 'comments') {
+    $comments = $commentPagination['rows'];
+}
+$commentPagination = $commentPagination['pagination'];
 
 include SR_ROOT . '/modules/community/views/admin-posts.php';

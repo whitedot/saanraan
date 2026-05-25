@@ -40,5 +40,11 @@ if (sr_request_method() === 'POST') {
 $viewData = sr_load_module_management_view_data($pdo);
 $modules = $viewData['modules'];
 $installableModules = $viewData['installable_modules'];
+$installableModulePagination = sr_admin_paginate_array($pdo, $installableModules, 'installable_page');
+$installableModules = $installableModulePagination['rows'];
+$installableModulePagination = $installableModulePagination['pagination'];
+$modulePagination = sr_admin_paginate_array($pdo, $modules, 'module_page');
+$modules = $modulePagination['rows'];
+$modulePagination = $modulePagination['pagination'];
 
 include SR_ROOT . '/modules/admin/views/modules.php';

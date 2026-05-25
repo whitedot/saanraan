@@ -95,6 +95,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.077631f5')); ?></h2>
         </div>
+        <?php echo sr_admin_pagination_summary_html($deliveryPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-notification-delivery-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.56c30db0')); ?></caption>
@@ -156,6 +157,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($deliveryPagination, '알림 발송 목록 페이지'); ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
@@ -218,6 +220,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></h2>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
         </div>
+        <?php echo sr_admin_pagination_summary_html($notificationPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-notification-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
@@ -266,6 +269,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($notificationPagination, '알림 목록 페이지'); ?>
 
     <div id="<?php echo sr_e($notificationCreateModalId); ?>" class="modal-overlay modal-overlay-fade overlay<?php echo $notificationCreateModalOpen ? ' overlay-open open' : ' hidden pointer-events-none opacity-0'; ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($notificationCreateModalId); ?>_title" aria-hidden="<?php echo $notificationCreateModalOpen ? 'false' : 'true'; ?>"<?php echo $notificationCreateModalOpen ? '' : ' inert'; ?>>
         <div class="modal-dialog">

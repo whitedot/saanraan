@@ -248,7 +248,10 @@ function sr_community_post_statuses(): array
 
 function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = []): array
 {
-    $limit = max(1, min(200, $limit));
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(200, $limit));
+    }
     $where = [];
     $params = [];
 
@@ -296,13 +299,18 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY p.id DESC LIMIT :limit_value';
+    $sql .= ' ORDER BY p.id DESC';
+    if ($useLimit) {
+        $sql .= ' LIMIT :limit_value';
+    }
 
     $stmt = $pdo->prepare($sql);
     foreach ($params as $paramKey => $paramValue) {
         $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    if ($useLimit) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    }
     $stmt->execute();
 
     return $stmt->fetchAll();
@@ -384,7 +392,10 @@ function sr_community_comment_statuses(): array
 
 function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = []): array
 {
-    $limit = max(1, min(200, $limit));
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(200, $limit));
+    }
     $where = [];
     $params = [];
 
@@ -436,13 +447,18 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY c.id DESC LIMIT :limit_value';
+    $sql .= ' ORDER BY c.id DESC';
+    if ($useLimit) {
+        $sql .= ' LIMIT :limit_value';
+    }
 
     $stmt = $pdo->prepare($sql);
     foreach ($params as $paramKey => $paramValue) {
         $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    if ($useLimit) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    }
     $stmt->execute();
 
     return $stmt->fetchAll();

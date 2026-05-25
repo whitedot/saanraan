@@ -79,7 +79,10 @@ function sr_notification_admin_statuses(): array
 
 function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = []): array
 {
-    $limit = max(1, min(200, $limit));
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(200, $limit));
+    }
     $where = [];
     $params = [];
 
@@ -126,13 +129,18 @@ function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY n.id DESC LIMIT :limit_value';
+    $sql .= ' ORDER BY n.id DESC';
+    if ($useLimit) {
+        $sql .= ' LIMIT :limit_value';
+    }
 
     $stmt = $pdo->prepare($sql);
     foreach ($params as $paramKey => $paramValue) {
         $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
     }
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    if ($useLimit) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    }
     $stmt->execute();
 
     return $stmt->fetchAll();

@@ -288,7 +288,12 @@ if (sr_request_method() === 'POST') {
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
-$notifications = sr_notification_admin_notifications($pdo, 100, $notificationListFilters);
+$notifications = sr_notification_admin_notifications($pdo, 0, $notificationListFilters);
+$notificationPagination = sr_admin_paginate_array($pdo, $notifications);
+if ($notificationAdminPage === 'list') {
+    $notifications = $notificationPagination['rows'];
+}
+$notificationPagination = $notificationPagination['pagination'];
 
 $deliveryStatusCounts = ['total' => 0];
 foreach ($allowedDeliveryStatuses as $status) {
@@ -346,11 +351,16 @@ if ($deliveryListFilters['q'] !== '') {
 if ($deliveryWhere !== []) {
     $deliverySql .= ' WHERE ' . implode(' AND ', $deliveryWhere);
 }
-$deliverySql .= ' ORDER BY d.id DESC LIMIT 100';
+$deliverySql .= ' ORDER BY d.id DESC';
 $stmt = $pdo->prepare($deliverySql);
 $stmt->execute($deliveryParams);
 foreach ($stmt->fetchAll() as $row) {
     $deliveries[] = $row;
 }
+$deliveryPagination = sr_admin_paginate_array($pdo, $deliveries);
+if ($notificationAdminPage === 'deliveries') {
+    $deliveries = $deliveryPagination['rows'];
+}
+$deliveryPagination = $deliveryPagination['pagination'];
 
 include SR_ROOT . '/modules/notification/views/admin-notifications.php';

@@ -164,12 +164,16 @@ $stmt = $pdo->query(
     'SELECT b.account_id, b.balance, b.updated_at, a.email, a.display_name, a.status
      FROM sr_deposit_balances b
      INNER JOIN sr_member_accounts a ON a.id = b.account_id
-     ORDER BY b.updated_at DESC
-     LIMIT 50'
+     ORDER BY b.updated_at DESC'
 );
 foreach ($stmt->fetchAll() as $row) {
     $balances[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
 }
+$balancePagination = sr_admin_paginate_array($pdo, $balances);
+if ($depositAdminPage === 'balances') {
+    $balances = $balancePagination['rows'];
+}
+$balancePagination = $balancePagination['pagination'];
 
 $transactions = [];
 if ($accountIdFilter > 0) {
@@ -179,8 +183,7 @@ if ($accountIdFilter > 0) {
          FROM sr_deposit_transactions t
          INNER JOIN sr_member_accounts a ON a.id = t.account_id
          WHERE t.account_id = :account_id
-         ORDER BY t.id DESC
-         LIMIT 100'
+         ORDER BY t.id DESC'
     );
     $stmt->execute(['account_id' => $accountIdFilter]);
 } else {
@@ -189,12 +192,16 @@ if ($accountIdFilter > 0) {
                 a.email, a.display_name
          FROM sr_deposit_transactions t
          INNER JOIN sr_member_accounts a ON a.id = t.account_id
-         ORDER BY t.id DESC
-         LIMIT 100'
+         ORDER BY t.id DESC'
     );
 }
 foreach ($stmt->fetchAll() as $row) {
     $transactions[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
 }
+$transactionPagination = sr_admin_paginate_array($pdo, $transactions);
+if ($depositAdminPage === 'transactions') {
+    $transactions = $transactionPagination['rows'];
+}
+$transactionPagination = $transactionPagination['pagination'];
 
 include SR_ROOT . '/modules/deposit/views/admin-deposits.php';

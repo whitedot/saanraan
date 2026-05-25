@@ -287,6 +287,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('banner::ui.banner.c0e70d2c')); ?></a>
         </div>
+        <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
         <div class="table-wrapper">
         <table class="table admin-banner-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
@@ -361,6 +362,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
