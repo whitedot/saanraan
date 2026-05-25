@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /account/deposits' => 'actions/account-deposits.php',
     'GET /admin/deposits' => 'actions/admin-deposits.php',
     'POST /admin/deposits' => 'actions/admin-deposits.php',
     'GET /admin/deposits/adjust' => 'actions/admin-deposits-adjust.php',

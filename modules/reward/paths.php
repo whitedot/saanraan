@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /account/rewards' => 'actions/account-rewards.php',
     'GET /admin/rewards' => 'actions/admin-rewards.php',
     'POST /admin/rewards' => 'actions/admin-rewards.php',
     'GET /admin/rewards/adjust' => 'actions/admin-rewards-adjust.php',

@@ -184,6 +184,97 @@ function sr_notification_external_channels(array $channels): array
     return $externalChannels;
 }
 
+function sr_notification_event_template(PDO $pdo, string $moduleKey, string $eventKey): ?array
+{
+    if (!sr_is_safe_module_key($moduleKey) || preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
+        return null;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT module_key, event_key, title_template, body_template, link_template, channels_json, status
+             FROM sr_notification_event_templates
+             WHERE module_key = :module_key AND event_key = :event_key
+             LIMIT 1"
+        );
+        $stmt->execute([
+            'module_key' => $moduleKey,
+            'event_key' => $eventKey,
+        ]);
+        $row = $stmt->fetch();
+    } catch (Throwable) {
+        return null;
+    }
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_notification_render_template(string $template, array $metadata): string
+{
+    $values = [];
+    foreach ($metadata as $key => $value) {
+        if (is_scalar($value) || $value === null) {
+            $values['{' . (string) $key . '}'] = (string) $value;
+        }
+    }
+
+    return strtr($template, $values);
+}
+
+function sr_notification_template_channels(?string $channelsJson): array
+{
+    $decoded = is_string($channelsJson) && trim($channelsJson) !== '' ? json_decode($channelsJson, true) : null;
+    if (!is_array($decoded)) {
+        return ['site'];
+    }
+
+    $channels = [];
+    foreach ($decoded as $channel) {
+        if (is_string($channel)) {
+            $channels[] = $channel;
+        }
+    }
+
+    $channels = sr_notification_normalize_channels($channels);
+    return $channels === [] ? ['site'] : $channels;
+}
+
+function sr_notification_create_account_event(PDO $pdo, array $data): ?int
+{
+    $accountId = (int) ($data['account_id'] ?? 0);
+    $moduleKey = (string) ($data['module_key'] ?? '');
+    $eventKey = (string) ($data['event_key'] ?? '');
+    if ($accountId <= 0 || !sr_is_safe_module_key($moduleKey) || preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
+        return null;
+    }
+
+    $template = sr_notification_event_template($pdo, $moduleKey, $eventKey);
+    if (!is_array($template) || (string) ($template['status'] ?? '') !== 'active') {
+        return null;
+    }
+
+    $metadata = isset($data['metadata']) && is_array($data['metadata']) ? $data['metadata'] : [];
+    $title = sr_notification_render_template((string) ($template['title_template'] ?? ''), $metadata);
+    $bodyText = sr_notification_render_template((string) ($template['body_template'] ?? ''), $metadata);
+    $linkUrl = sr_notification_render_template((string) ($template['link_template'] ?? ''), $metadata);
+    $channels = isset($data['channels']) && is_array($data['channels'])
+        ? sr_notification_normalize_channels($data['channels'])
+        : sr_notification_template_channels(is_string($template['channels_json'] ?? null) ? (string) $template['channels_json'] : null);
+    if ($channels === []) {
+        $channels = ['site'];
+    }
+
+    return sr_notification_create($pdo, [
+        'account_id' => $accountId,
+        'audience' => 'account',
+        'title' => $title,
+        'body_text' => $bodyText,
+        'link_url' => $linkUrl,
+        'channels' => $channels,
+        'created_by_account_id' => isset($data['created_by_account_id']) ? (int) $data['created_by_account_id'] : null,
+    ]);
+}
+
 function sr_notification_admin_statuses(): array
 {
     return ['active', 'deleted'];
