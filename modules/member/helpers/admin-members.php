@@ -94,8 +94,17 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
         $loginId = sr_member_normalize_login_id($keyword);
         if (sr_member_is_valid_login_id($loginId)) {
             $loginIdHash = sr_hmac_hash($loginId, $config);
-            $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash LIMIT 1');
-            $stmt->execute(['login_id_hash' => $loginIdHash]);
+            $stmt = $pdo->prepare(
+                'SELECT id
+                 FROM sr_member_accounts
+                 WHERE login_id_hash = :login_id_hash
+                    OR account_identifier_hash = :account_identifier_hash
+                 LIMIT 1'
+            );
+            $stmt->execute([
+                'login_id_hash' => $loginIdHash,
+                'account_identifier_hash' => $loginIdHash,
+            ]);
             $row = $stmt->fetch();
             if (is_array($row)) {
                 return (int) $row['id'];

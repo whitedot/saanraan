@@ -122,7 +122,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $nicknameDisplay = (string) ($member['nickname'] ?? '') !== '' ? (string) $member['nickname'] : '-';
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label">
-        <div class="modal-dialog-sm">
+        <div class="modal-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/nicknames')); ?>" class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.nickname.reset')); ?></h3>
@@ -134,29 +134,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
                     <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
-                    <p><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>
-                    <dl class="admin-module-detail-list">
+                    <p class="community-nickname-reset-copy"><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>
+                    <div class="community-nickname-reset-summary" aria-label="<?php echo sr_e(sr_t('community::ui.nickname.reset.target')); ?>">
                         <div>
-                            <dt><?php echo sr_e(sr_t('community::ui.public_hash')); ?></dt>
-                            <dd><?php echo sr_e((string) ($member['account_public_hash'] ?? '')); ?></dd>
+                            <span><?php echo sr_e(sr_t('community::ui.public_hash')); ?></span>
+                            <strong><?php echo sr_e((string) ($member['account_public_hash'] ?? '')); ?></strong>
                         </div>
                         <div>
-                            <dt><?php echo sr_e(sr_t('community::ui.nickname')); ?></dt>
-                            <dd><?php echo sr_e($nicknameDisplay); ?></dd>
+                            <span><?php echo sr_e(sr_t('community::ui.nickname')); ?></span>
+                            <strong><?php echo sr_e($nicknameDisplay); ?></strong>
                         </div>
-                    </dl>
-                    <p>
-                        <label for="<?php echo sr_e($modalId); ?>-reason">
-                            <span><?php echo sr_e(sr_t('community::ui.nickname.reset.reason')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <select id="<?php echo sr_e($modalId); ?>-reason" name="reset_reason" class="form-select" required>
-                                <option value=""><?php echo sr_e(sr_t('community::ui.select.placeholder')); ?></option>
-                                <?php foreach ($nicknameResetReasonOptions as $reasonValue => $reasonLabel) { ?>
-                                    <option value="<?php echo sr_e((string) $reasonValue); ?>"><?php echo sr_e((string) $reasonLabel); ?></option>
-                                <?php } ?>
-                            </select>
+                    </div>
+                    <div class="community-nickname-reset-reason">
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>-reason">
+                            <?php echo sr_e(sr_t('community::ui.nickname.reset.reason')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span>
                         </label>
-                        <small><?php echo sr_e(sr_t('community::ui.nickname.reset.reason.help')); ?></small>
-                    </p>
+                        <select id="<?php echo sr_e($modalId); ?>-reason" name="reset_reason" class="form-select" required>
+                            <option value=""><?php echo sr_e(sr_t('community::ui.select.placeholder')); ?></option>
+                            <?php foreach ($nicknameResetReasonOptions as $reasonValue => $reasonLabel) { ?>
+                                <option value="<?php echo sr_e((string) $reasonValue); ?>"><?php echo sr_e((string) $reasonLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.nickname.reset.reason.help')); ?></p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>

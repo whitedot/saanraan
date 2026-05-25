@@ -463,6 +463,7 @@ return [
     'ui.nickname.reset.confirm_body_no_notification' => '이 회원의 커뮤니티 닉네임을 다른 무작위 닉네임으로 초기화합니다. 알림 모듈을 사용하지 않아 사이트 내 알림은 발송되지 않습니다.',
     'ui.nickname.reset.reason' => '초기화 사유',
     'ui.nickname.reset.reason.help' => '관리자 작업 로그에 남기며, 알림 모듈 사용 시 회원 알림에도 포함됩니다.',
+    'ui.nickname.reset.target' => '닉네임 초기화 대상',
     'ui.nickname.search.placeholder' => '공개 해시, 이메일, 이름, 커뮤니티 닉네임',
     'ui.nickname.search_first' => '검색 조건을 입력하고 조회하면 닉네임을 설정한 회원 목록이 표시됩니다.',
     'ui.nickname.section' => '회원 표시',
