@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS sr_community_member_nicknames (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_community_member_nicknames_account (account_id),
-    KEY idx_sr_community_member_nicknames_nickname (nickname)
+    UNIQUE KEY uq_sr_community_member_nicknames_nickname (nickname)
 );
 
 CREATE TABLE IF NOT EXISTS sr_community_scraps (

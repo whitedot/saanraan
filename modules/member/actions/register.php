@@ -95,6 +95,15 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('community::action.nickname_required');
     }
 
+    if (
+        $communityRegistrationNicknameEnabled
+        && $values['community_nickname'] !== ''
+        && function_exists('sr_community_member_nickname_exists')
+        && sr_community_member_nickname_exists($pdo, $values['community_nickname'])
+    ) {
+        $errors[] = sr_t('community::action.nickname_duplicate');
+    }
+
     if ($password === null || $passwordConfirm === null) {
         $errors[] = sr_t('member::action.register.password_too_long');
         $password = '';
@@ -201,7 +210,17 @@ if (sr_request_method() === 'POST') {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
             }
             if ($communityRegistrationNicknameEnabled && $values['community_nickname'] !== '') {
-                sr_community_create_member_nickname($pdo, $accountId, $values['community_nickname']);
+                try {
+                    sr_community_create_member_nickname($pdo, $accountId, $values['community_nickname']);
+                } catch (Throwable $exception) {
+                    if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
+                        throw $exception;
+                    }
+                    if ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
+                        throw new RuntimeException('community_nickname_duplicate', 0, $exception);
+                    }
+                    throw $exception;
+                }
             }
 
             $pdo->commit();
@@ -215,7 +234,9 @@ if (sr_request_method() === 'POST') {
                 sr_member_delete_avatar_reference($uploadedAvatarReference);
                 $profileValues['avatar_path'] = '';
             }
-            $errors[] = sr_t('member::action.register.create_failed');
+            $errors[] = $exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate'
+                ? sr_t('community::action.nickname_duplicate')
+                : sr_t('member::action.register.create_failed');
         }
 
         if ($errors === [] && $accountId !== null) {

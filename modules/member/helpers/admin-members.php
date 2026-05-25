@@ -622,6 +622,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 $accountIdentifierHash = $emailHash;
             }
 
+            $privacyCleanupResults = [];
             $pdo->beginTransaction();
             try {
                 $stmt = $pdo->prepare(
@@ -652,6 +653,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 if ($revokedSessions < 0) {
                     throw new RuntimeException('Member sessions could not be revoked after account update.');
                 }
+                if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
+                    $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status);
+                }
                 $pdo->commit();
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -676,11 +680,13 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'email_changed' => $email !== (string) $targetAccount['email'],
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
+                    'privacy_cleanup' => $privacyCleanupResults,
                 ],
             ]);
             $notice = sr_t('member::action.admin.updated');
         }
     } elseif ($errors === []) {
+        $privacyCleanupResults = [];
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
@@ -696,6 +702,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
             if ($revokedSessions < 0) {
                 throw new RuntimeException('Member sessions could not be revoked after status update.');
+            }
+            if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
+                $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status);
             }
             $pdo->commit();
         } catch (Throwable $exception) {
@@ -733,6 +742,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
                     'revoked_sessions' => $revokedSessions,
+                    'privacy_cleanup' => $privacyCleanupResults,
                 ],
             ]);
 

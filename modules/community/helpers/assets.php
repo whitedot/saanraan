@@ -594,7 +594,16 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
         }
     }
 
-    return (string) ($settings[$key] ?? $default);
+    $value = $settings[$key] ?? $default;
+    if (is_array($value)) {
+        if (str_ends_with($key, '_amounts_json')) {
+            return sr_community_asset_amounts_json_from_map(sr_community_asset_amounts_from_value($value));
+        }
+
+        return implode(',', array_map('strval', $value));
+    }
+
+    return (string) $value;
 }
 
 function sr_community_asset_bool_config(PDO $pdo, array $board, array $settings, string $key, bool $default = false): bool

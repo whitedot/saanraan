@@ -115,6 +115,15 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? 'point'))
             : sr_community_asset_module_key((string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));
         $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
+        if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+            $settings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
+                sr_community_asset_amounts_from_value(
+                    $settings[$assetPrefix . '_amounts_json'] ?? '',
+                    sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module']),
+                    (int) $settings[$assetPrefix . '_amount']
+                )
+            );
+        }
     }
     $settings['post_reward_reversal_enabled'] = sr_community_bool_setting($settings['post_reward_reversal_enabled'] ?? true);
     $settings['comment_reward_reversal_enabled'] = sr_community_bool_setting($settings['comment_reward_reversal_enabled'] ?? true);
@@ -229,6 +238,29 @@ function sr_community_account_level_snapshot(PDO $pdo, int $accountId): array
     $snapshot = $stmt->fetch();
 
     return is_array($snapshot) ? $snapshot : sr_community_empty_account_level_snapshot($accountId);
+}
+
+function sr_community_delete_account_level_data(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1 || !sr_community_level_tables_exist($pdo)) {
+        return [
+            'account_level_deleted' => false,
+            'level_log_deleted_count' => 0,
+        ];
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM sr_community_account_levels WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+    $accountLevelDeleted = $stmt->rowCount() > 0;
+
+    $stmt = $pdo->prepare('DELETE FROM sr_community_level_logs WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+    $levelLogDeletedCount = $stmt->rowCount();
+
+    return [
+        'account_level_deleted' => $accountLevelDeleted,
+        'level_log_deleted_count' => $levelLogDeletedCount,
+    ];
 }
 
 function sr_community_empty_account_level_snapshot(int $accountId): array

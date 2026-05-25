@@ -91,15 +91,33 @@ function sr_community_set_member_nickname(PDO $pdo, int $accountId, string $nick
         return;
     }
 
+    $nickname = trim($nickname);
+    if (sr_community_member_nickname_exists($pdo, $nickname, $accountId)) {
+        throw new RuntimeException('community_nickname_duplicate');
+    }
+
     $now = sr_now();
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_member_nicknames
+         SET nickname = :nickname,
+             updated_at = :updated_at
+         WHERE account_id = :account_id'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'nickname' => $nickname,
+        'updated_at' => $now,
+    ]);
+    if ($stmt->rowCount() > 0) {
+        sr_community_clear_member_nickname_cache($pdo, $accountId);
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_member_nicknames
             (account_id, nickname, created_at, updated_at)
          VALUES
-            (:account_id, :nickname, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE
-            nickname = VALUES(nickname),
-            updated_at = VALUES(updated_at)'
+            (:account_id, :nickname, :created_at, :updated_at)'
     );
     $stmt->execute([
         'account_id' => $accountId,
@@ -336,20 +354,26 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
     return $stmt->fetchAll();
 }
 
-function sr_community_member_nickname_exists(PDO $pdo, string $nickname): bool
+function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $excludeAccountId = 0): bool
 {
     $nickname = trim($nickname);
     if ($nickname === '') {
         return false;
     }
 
+    $excludeSql = $excludeAccountId > 0 ? ' AND account_id <> :exclude_account_id' : '';
     $stmt = $pdo->prepare(
         'SELECT 1
          FROM sr_community_member_nicknames
          WHERE nickname = :nickname
+         ' . $excludeSql . '
          LIMIT 1'
     );
-    $stmt->execute(['nickname' => $nickname]);
+    $params = ['nickname' => $nickname];
+    if ($excludeAccountId > 0) {
+        $params['exclude_account_id'] = $excludeAccountId;
+    }
+    $stmt->execute($params);
 
     return is_array($stmt->fetch());
 }
@@ -454,11 +478,23 @@ function sr_community_handle_member_nickname_setup_post(PDO $pdo, array $account
         $errors[] = sr_t('community::action.nickname_too_long');
     } elseif ($nickname === '') {
         $errors[] = sr_t('community::action.nickname_required');
+    } elseif (sr_community_member_nickname_exists($pdo, $nickname, (int) ($account['id'] ?? 0))) {
+        $errors[] = sr_t('community::action.nickname_duplicate');
     }
 
     if ($errors === []) {
-        sr_community_create_member_nickname($pdo, (int) $account['id'], $nickname);
-        $notice = sr_t('community::action.nickname_saved');
+        try {
+            sr_community_create_member_nickname($pdo, (int) $account['id'], $nickname);
+            $notice = sr_t('community::action.nickname_saved');
+        } catch (Throwable $exception) {
+            if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
+                $errors[] = sr_t('community::action.nickname_duplicate');
+            } elseif ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
+                $errors[] = sr_t('community::action.nickname_duplicate');
+            } else {
+                throw $exception;
+            }
+        }
     }
 
     return [
@@ -502,8 +538,20 @@ function sr_community_handle_nickname_reset_post(PDO $pdo, array $account): arra
     }
 
     if ($errors === []) {
-        $nickname = sr_community_random_member_nickname($pdo, $beforeNickname);
-        sr_community_set_member_nickname($pdo, $targetAccountId, $nickname);
+        $nickname = '';
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $nickname = sr_community_random_member_nickname($pdo, $beforeNickname);
+            try {
+                sr_community_set_member_nickname($pdo, $targetAccountId, $nickname);
+                break;
+            } catch (Throwable $exception) {
+                $isDuplicate = ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate')
+                    || ($exception instanceof PDOException && (string) $exception->getCode() === '23000');
+                if (!$isDuplicate || $attempt >= 9) {
+                    throw $exception;
+                }
+            }
+        }
 
         $notificationAvailable = sr_community_notification_available($pdo);
         $notificationSent = $notificationAvailable

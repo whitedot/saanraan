@@ -140,7 +140,7 @@ modules/member_migration/sources/imweb.php
 - `mb_id` -> login_id 후보
 - `mb_email` -> email
 - `mb_name` -> display_name
-- `mb_nick` -> 커뮤니티 `sr_community_member_nicknames.nickname`
+- `mb_nick` -> 커뮤니티 `sr_community_member_nicknames.nickname` (중복 닉네임은 커뮤니티 업데이트/가져오기 전에 운영 정책에 맞게 정리)
 - `mb_hp` -> phone
 - `mb_birth` -> birth_date
 - `mb_datetime` -> created_at 참고값

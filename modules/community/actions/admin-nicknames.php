@@ -101,45 +101,83 @@ if (sr_request_method() === 'POST') {
             $postResult['notice'] = sr_t('community::action.admin.member_message_sent');
         }
     } elseif ($intent === 'update_level') {
-        $targetAccountIdValue = sr_post_string('account_id', 20);
-        $targetAccountId = preg_match('/\A[1-9][0-9]*\z/', $targetAccountIdValue) === 1 ? (int) $targetAccountIdValue : 0;
+        $accountIdInputs = $_POST['account_ids'] ?? [];
+        $accountIdInputs = is_array($accountIdInputs) ? $accountIdInputs : [];
+        $targetAccountIds = [];
+        foreach ($accountIdInputs as $accountIdInput) {
+            $accountIdValue = is_scalar($accountIdInput) ? (string) $accountIdInput : '';
+            if (preg_match('/\A[1-9][0-9]*\z/', $accountIdValue) === 1) {
+                $targetAccountIds[] = (int) $accountIdValue;
+            }
+        }
+        $targetAccountIds = array_values(array_unique($targetAccountIds));
         $levelValueInput = sr_post_string('level_value', 20);
         $levelValue = preg_match('/\A[0-9]+\z/', $levelValueInput) === 1 ? (int) $levelValueInput : -1;
         $postResult = [
             'errors' => [],
             'notice' => '',
         ];
-        $targetAccount = $targetAccountId > 0 ? sr_community_public_account_summary($pdo, $targetAccountId) : null;
         if (!$communityLevelEnabled) {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_disabled');
         } elseif (!$communityLevelManualEditable) {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_auto_recalculate_enabled');
-        } elseif (!is_array($targetAccount) || sr_community_member_nickname($pdo, $targetAccountId) === '') {
-            $postResult['errors'][] = sr_t('community::action.admin.member_level_target_not_found');
-        } elseif ((string) ($targetAccount['status'] ?? '') !== 'active') {
-            $postResult['errors'][] = sr_t('community::action.admin.member_level_active_required');
+        } elseif ($targetAccountIds === []) {
+            $postResult['errors'][] = sr_t('community::action.admin.member_level_targets_required');
+        } elseif (count($targetAccountIds) > 500) {
+            $postResult['errors'][] = sr_t('community::action.admin.member_level_targets_too_many');
         } elseif ($levelValue < 0 || $levelValue > sr_community_max_level_value()) {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_invalid');
         }
 
+        $targetAccounts = [];
         if ($postResult['errors'] === []) {
-            $beforeLevel = sr_community_account_level_snapshot($pdo, $targetAccountId);
-            $afterLevel = sr_community_set_account_level($pdo, $targetAccountId, $levelValue);
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.member.level_updated',
-                'target_type' => 'member_account',
-                'target_id' => (string) $targetAccountId,
-                'result' => 'success',
-                'message' => 'Community member level updated by admin.',
-                'metadata' => [
-                    'before_level_value' => (int) ($beforeLevel['level_value'] ?? 0),
-                    'after_level_value' => (int) ($afterLevel['level_value'] ?? 0),
-                    'score_value' => (int) ($afterLevel['score_value'] ?? 0),
-                ],
-            ]);
-            $postResult['notice'] = sr_t('community::action.admin.member_level_updated');
+            foreach ($targetAccountIds as $targetAccountId) {
+                $targetAccount = sr_community_public_account_summary($pdo, $targetAccountId);
+                if (!is_array($targetAccount) || sr_community_member_nickname($pdo, $targetAccountId) === '') {
+                    $postResult['errors'][] = sr_t('community::action.admin.member_level_target_not_found');
+                    break;
+                }
+                if ((string) ($targetAccount['status'] ?? '') !== 'active') {
+                    $postResult['errors'][] = sr_t('community::action.admin.member_level_active_required');
+                    break;
+                }
+                $targetAccounts[$targetAccountId] = $targetAccount;
+            }
+        }
+
+        if ($postResult['errors'] === []) {
+            $updatedCount = 0;
+            $pdo->beginTransaction();
+            try {
+                foreach (array_keys($targetAccounts) as $targetAccountId) {
+                    $beforeLevel = sr_community_account_level_snapshot($pdo, $targetAccountId);
+                    $afterLevel = sr_community_set_account_level($pdo, $targetAccountId, $levelValue);
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'community.member.level_updated',
+                        'target_type' => 'member_account',
+                        'target_id' => (string) $targetAccountId,
+                        'result' => 'success',
+                        'message' => 'Community member level updated by admin.',
+                        'metadata' => [
+                            'before_level_value' => (int) ($beforeLevel['level_value'] ?? 0),
+                            'after_level_value' => (int) ($afterLevel['level_value'] ?? 0),
+                            'score_value' => (int) ($afterLevel['score_value'] ?? 0),
+                            'bulk_update' => true,
+                            'bulk_target_count' => count($targetAccounts),
+                        ],
+                    ]);
+                    $updatedCount++;
+                }
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
+            }
+            $postResult['notice'] = sr_t('community::action.admin.member_level_bulk_updated', ['count' => (string) $updatedCount]);
         }
     } elseif ($intent === 'reset_nickname') {
         $postResult = sr_community_handle_nickname_reset_post($pdo, $account);
@@ -160,7 +198,9 @@ if (sr_request_method() === 'POST') {
 }
 
 $nicknameFilter = sr_community_nickname_filter($pdo, $runtimeConfig, $communityLevelEnabled);
-$nicknameSearchSubmitted = trim((string) ($nicknameFilter['keyword'] ?? '')) !== '' || ($nicknameFilter['level_value'] ?? null) !== null;
+$nicknameSearchSubmitted = array_key_exists('field', $_GET)
+    || array_key_exists('q', $_GET)
+    || ($communityLevelEnabled && array_key_exists('level', $_GET));
 $nicknameTotal = $nicknameSearchSubmitted ? sr_community_nickname_count($pdo, $nicknameFilter) : 0;
 $nicknamePagination = $nicknameSearchSubmitted
     ? sr_admin_pagination_from_total($pdo, $nicknameTotal)
