@@ -46,7 +46,7 @@ if (sr_request_method() === 'POST') {
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $nicknameEnabled = ($_POST['nickname_enabled'] ?? '') === '1';
-        $nicknameRequired = $nicknameEnabled && ($_POST['nickname_required'] ?? '') === '1';
+        $nicknameRequired = $nicknameEnabled;
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {

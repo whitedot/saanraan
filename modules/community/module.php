@@ -66,7 +66,7 @@ return [
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,
         'nickname_enabled' => true,
-        'nickname_required' => false,
+        'nickname_required' => true,
         'theme_key' => 'basic',
         'layout_key' => 'community.basic',
         'post_reward_enabled' => false,

@@ -394,7 +394,7 @@ function sr_community_safe_next_path(string $next, string $fallback = '/communit
 
 function sr_community_member_needs_nickname(PDO $pdo, array $account, array $settings): bool
 {
-    if (empty($settings['nickname_enabled']) || empty($settings['nickname_required'])) {
+    if (empty($settings['nickname_enabled'])) {
         return false;
     }
 

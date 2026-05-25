@@ -182,16 +182,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.nickname.enabled.help')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.nickname.required'), $communitySettingsHelp['nickname']['id']); ?><span><?php echo sr_e(sr_t('community::ui.nickname.required')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_settings_nickname_required">
-                        <input id="modules_community_admin_settings_nickname_required" type="checkbox" name="nickname_required" value="1" class="form-checkbox"<?php echo !empty($settings['nickname_required']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.nickname.required.choice')); ?>
-                    </label>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.nickname.required.help')); ?></p>
-                </div>
-            </div>
         </div>
     </section>
 

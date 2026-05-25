@@ -22,7 +22,7 @@ if ($account !== null) {
 $memberSettings = sr_member_settings($pdo);
 $communitySettings = $communityRegistrationNicknameAvailable ? sr_community_settings($pdo) : [];
 $communityRegistrationNicknameEnabled = $communityRegistrationNicknameAvailable && !empty($communitySettings['nickname_enabled']);
-$communityRegistrationNicknameRequired = $communityRegistrationNicknameEnabled && !empty($communitySettings['nickname_required']);
+$communityRegistrationNicknameRequired = $communityRegistrationNicknameEnabled;
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
