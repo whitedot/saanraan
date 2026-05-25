@@ -318,16 +318,27 @@ if ($filters['q'] !== '') {
 if ($popupWhere !== []) {
     $popupSql .= ' WHERE ' . implode(' AND ', $popupWhere);
 }
-$popupSql .= ' ORDER BY p.id DESC';
-$stmt = $pdo->prepare($popupSql);
-$stmt->execute($popupParams);
-foreach ($stmt->fetchAll() as $row) {
-    $popups[] = $row;
-}
-$popupPagination = sr_admin_paginate_array($pdo, $popups);
+$popupPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($popupLayerAdminPage === 'list') {
-    $popups = $popupPagination['rows'];
+    $popupCountSql = 'SELECT COUNT(*) AS count_value
+                      FROM sr_popup_layers p
+                      LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id'
+        . ($popupWhere !== [] ? ' WHERE ' . implode(' AND ', $popupWhere) : '');
+    $stmt = $pdo->prepare($popupCountSql);
+    $stmt->execute($popupParams);
+    $popupCountRow = $stmt->fetch();
+    $popupPagination = sr_admin_pagination_from_total($pdo, is_array($popupCountRow) ? (int) ($popupCountRow['count_value'] ?? 0) : 0);
+    $popupSql .= ' ORDER BY p.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($popupSql);
+    $stmt->bindValue('limit_value', (int) $popupPagination['per_page'], PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', sr_admin_pagination_offset($popupPagination), PDO::PARAM_INT);
+    foreach ($popupParams as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $popups[] = $row;
+    }
 }
-$popupPagination = $popupPagination['pagination'];
 
 include SR_ROOT . '/modules/popup_layer/views/admin-popup-layers.php';

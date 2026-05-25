@@ -155,7 +155,7 @@ $targets = [
             "'admin_skin_key' => \$adminSkinKey",
         ],
         'view_needles' => [
-            '<label class="form-label" for="admin_settings_admin_skin_key">관리자 스킨</label>',
+            "sr_admin_form_label_help_html('admin_settings_admin_skin_key'",
             '<select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">',
             'foreach ($adminSkinOptions as $skinKey => $skinOption)',
         ],
@@ -195,7 +195,7 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<label class="form-label" for="banner_admin_banner_settings_banner_skin_key">배너 스킨</label>',
+            'for="banner_admin_banner_settings_banner_skin_key"',
             '<select id="banner_admin_banner_settings_banner_skin_key" name="banner_skin_key" class="form-select">',
             '<select id="banner_admin_banners_skin_key" name="skin_key" class="form-select">',
             'foreach ($bannerSkinOptions as $skinKey => $skinOption)',
@@ -232,9 +232,9 @@ $targets = [
             "'skin_key' => \$skinKey",
         ],
         'view_needles' => [
-            '<label class="form-label" for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key">팝업레이어 스킨</label>',
+            'for="popup_layer_admin_popup_layer_settings_popup_layer_skin_key"',
             '<select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select">',
-            '<label class="form-label" for="popup_layer_admin_popup_layers_skin_key">팝업 스킨</label>',
+            "sr_admin_form_label_help_html('popup_layer_admin_popup_layers_skin_key'",
             '<select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">',
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
@@ -273,7 +273,7 @@ $targets = [
             "'login' => SR_ROOT . '/modules/member/skins/basic/login.php'",
             'sr_member_required_skin_view_keys()',
             'function sr_member_required_skin_view_keys(): array',
-            '기본 회원 스킨 view 파일이 누락되었습니다.',
+            "sr_t('member::settings.skin.default_missing')",
         ],
         'action_needles' => [
             "sr_post_string('member_skin_key', 40)",
@@ -281,7 +281,7 @@ $targets = [
             "['member_skin_key', (string) \$settings['member_skin_key'], 'string']",
         ],
         'view_needles' => [
-            '<label class="form-label" for="member_admin_settings_member_skin_key">회원 스킨</label>',
+            "sr_admin_form_label_help_html('member_admin_settings_member_skin_key'",
             '<select id="member_admin_settings_member_skin_key" name="member_skin_key" class="form-select">',
             'foreach (sr_member_skin_options() as $skinKey => $skinOption)',
         ],
@@ -303,7 +303,7 @@ $targets = [
             'sr_filter_view_options([',
             "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
             "], ['home'], 'community theme')",
-            '기본 커뮤니티 테마 view 파일이 누락되었습니다.',
+            "sr_t('community::runtime.theme_view_missing')",
         ],
         'action_needles' => [
             '$communityLayoutOptions = sr_public_layout_options($pdo)',
@@ -312,7 +312,7 @@ $targets = [
             "['layout_key', \$layoutKey, 'string']",
         ],
         'view_needles' => [
-            '<label class="form-label" for="community_admin_settings_layout_key">커뮤니티 레이아웃</label>',
+            "sr_admin_form_label_help_html('community_admin_settings_layout_key'",
             '<select id="community_admin_settings_layout_key" name="layout_key" class="form-select">',
             'foreach ($communityLayoutOptions as $layoutKey => $layoutOption)',
         ],
@@ -351,9 +351,9 @@ $targets = [
             "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
         ],
         'view_needles' => [
-            '<label class="form-label" for="community_admin_boards_skin_key">게시판 스킨</label>',
+            "sr_admin_form_label_help_html('community_admin_boards_skin_key'",
             '<input type="hidden" name="intent" value="update_skin">',
-            '<select name="skin_key" class="form-select">',
+            'name="skin_key" class="form-select"',
             'foreach ($communitySkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [

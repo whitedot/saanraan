@@ -534,9 +534,8 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
     return sr_admin_action_result($errors, $notice);
 }
 
-function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = ''): array
+function sr_admin_permission_account_query_parts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = ''): array
 {
-    $accounts = [];
     $where = [];
     $having = '';
     $params = [];
@@ -591,6 +590,43 @@ function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array
     $permissionJoin = sr_admin_permissions_table_exists($pdo)
         ? 'LEFT JOIN sr_admin_account_permissions p ON p.account_id = a.id'
         : 'LEFT JOIN (SELECT NULL AS account_id, NULL AS menu_path, NULL AS action_key) p ON 1 = 0';
+
+    return [
+        'where_sql' => $whereSql,
+        'permission_join' => $permissionJoin,
+        'having' => $having,
+        'params' => $params,
+    ];
+}
+
+function sr_admin_permission_account_count(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = ''): int
+{
+    $queryParts = sr_admin_permission_account_query_parts($pdo, $statusFilter, $searchFilter, $permissionFilter);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM (
+             SELECT a.id,
+                    COUNT(DISTINCT r.id) AS owner_count,
+                    COUNT(DISTINCT CONCAT(p.menu_path, "|", p.action_key)) AS permission_count
+             FROM sr_member_accounts a
+             LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = "owner"
+             ' . $queryParts['permission_join'] . '
+             ' . $queryParts['where_sql'] . '
+             GROUP BY a.id
+             ' . $queryParts['having'] . '
+         ) permission_accounts'
+    );
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = '', int $limit = 100, int $offset = 0): array
+{
+    $accounts = [];
+    $queryParts = sr_admin_permission_account_query_parts($pdo, $statusFilter, $searchFilter, $permissionFilter);
+    $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
     $stmt = $pdo->prepare(
         'SELECT a.id, a.email, a.display_name, a.status,
                 COUNT(DISTINCT r.id) AS owner_count,
@@ -598,14 +634,21 @@ function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array
                 GROUP_CONCAT(DISTINCT CONCAT(p.menu_path, "|", p.action_key) ORDER BY p.menu_path, p.action_key SEPARATOR ",") AS permission_keys
          FROM sr_member_accounts a
          LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = "owner"
-         ' . $permissionJoin . '
-         ' . $whereSql . '
+         ' . $queryParts['permission_join'] . '
+         ' . $queryParts['where_sql'] . '
          GROUP BY a.id, a.email, a.display_name, a.status
-         ' . $having . '
-         ORDER BY a.id DESC
-         LIMIT 100'
+         ' . $queryParts['having'] . '
+         ORDER BY a.id DESC'
+        . $limitSql
     );
-    $stmt->execute($params);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     foreach ($stmt->fetchAll() as $row) {
         $permissionKeys = (string) ($row['permission_keys'] ?? '');

@@ -192,7 +192,7 @@ function sr_admin_privacy_request_status_counts(PDO $pdo, array $allowedStatuses
     return $counts;
 }
 
-function sr_admin_privacy_requests(PDO $pdo, array $filters): array
+function sr_admin_privacy_request_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
@@ -236,18 +236,46 @@ function sr_admin_privacy_requests(PDO $pdo, array $filters): array
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_admin_privacy_request_count(PDO $pdo, array $filters): int
+{
+    $queryParts = sr_admin_privacy_request_query_parts($filters);
+    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
+    $stmt = $pdo->prepare('SELECT COUNT(*) AS count_value FROM sr_privacy_requests ' . $whereSql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_privacy_requests(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+{
+    $queryParts = sr_admin_privacy_request_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
     $sql = 'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
             FROM sr_privacy_requests
             ' . $whereSql . '
             ORDER BY id DESC';
-
-    if ($params === []) {
-        $stmt = $pdo->query($sql);
-    } else {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     $requests = [];
     foreach ($stmt->fetchAll() as $row) {

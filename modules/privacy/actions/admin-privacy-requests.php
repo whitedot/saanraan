@@ -25,10 +25,8 @@ if (sr_request_method() === 'POST') {
 
 $privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);
 $privacyRequestStatusCounts = sr_admin_privacy_request_status_counts($pdo, $allowedStatuses);
-$requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters);
-$privacyRequestPagination = sr_admin_paginate_array($pdo, $requests);
-$requests = $privacyRequestPagination['rows'];
-$privacyRequestPagination = $privacyRequestPagination['pagination'];
+$privacyRequestPagination = sr_admin_pagination_from_total($pdo, sr_admin_privacy_request_count($pdo, $privacyRequestListFilters));
+$requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters, (int) $privacyRequestPagination['per_page'], sr_admin_pagination_offset($privacyRequestPagination));
 
 if (sr_request_method() === 'GET') {
     sr_audit_log($pdo, [

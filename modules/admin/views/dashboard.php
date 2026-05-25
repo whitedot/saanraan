@@ -1,6 +1,8 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.admin.dashboard.e12d3646');
+$sensitiveSettingsDashboardTitle = '고위험 설정';
+$authRuntimeDashboardTitle = '인증 런타임';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -73,9 +75,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="sensitive_settings" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.settings.a22146cd')); ?>" data-admin-dashboard-default-visible="1">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="sensitive_settings" data-admin-dashboard-label="<?php echo sr_e($sensitiveSettingsDashboardTitle); ?>" data-admin-dashboard-default-visible="1">
     <div class="card-header">
-        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.settings.a22146cd')); ?></h2>
+        <h2 class="card-title"><?php echo sr_e($sensitiveSettingsDashboardTitle); ?></h2>
         <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.settings.54c2c2b2')); ?>"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">
@@ -106,9 +108,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="auth_runtime" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.text.67a2e6fa')); ?>" data-admin-dashboard-default-visible="1">
+<section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="auth_runtime" data-admin-dashboard-label="<?php echo sr_e($authRuntimeDashboardTitle); ?>" data-admin-dashboard-default-visible="1">
     <div class="card-header">
-        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.67a2e6fa')); ?></h2>
+        <h2 class="card-title"><?php echo sr_e($authRuntimeDashboardTitle); ?></h2>
         <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.b9c1866e')); ?>"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
     </div>
     <div class="table-wrapper">

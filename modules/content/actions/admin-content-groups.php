@@ -236,10 +236,10 @@ if (sr_request_method() === 'POST') {
 
 $pageGroupFilters = sr_content_admin_group_filters();
 $pageGroupStatusCounts = sr_content_admin_group_status_counts($pdo);
-$pageGroups = $pageGroupsPage === 'list' ? sr_content_admin_group_list($pdo, $pageGroupFilters) : [];
-$pageGroupPagination = sr_admin_paginate_array($pdo, $pageGroups);
-$pageGroups = $pageGroupsPage === 'list' ? $pageGroupPagination['rows'] : [];
-$pageGroupPagination = $pageGroupPagination['pagination'];
+$pageGroupPagination = sr_admin_pagination_from_total($pdo, $pageGroupsPage === 'list' ? sr_content_admin_group_count($pdo, $pageGroupFilters) : 0);
+$pageGroups = $pageGroupsPage === 'list'
+    ? sr_content_admin_group_list($pdo, $pageGroupFilters, (int) $pageGroupPagination['per_page'], sr_admin_pagination_offset($pageGroupPagination))
+    : [];
 $values = is_array($sessionValues) ? $sessionValues : [];
 $pageGroupSettings = [];
 if ($pageGroupsPage === 'edit' && is_array($editPageGroup)) {

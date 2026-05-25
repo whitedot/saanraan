@@ -246,12 +246,8 @@ function sr_community_post_statuses(): array
     return ['published', 'hidden', 'deleted', 'pending'];
 }
 
-function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_community_admin_post_query_parts(array $filters): array
 {
-    $useLimit = $limit > 0;
-    if ($useLimit) {
-        $limit = max(1, min(200, $limit));
-    }
     $where = [];
     $params = [];
 
@@ -287,6 +283,39 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
+{
+    $queryParts = sr_community_admin_post_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_community_posts p
+            INNER JOIN sr_community_boards b ON b.id = p.board_id
+            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(1000, $limit));
+    }
+    $queryParts = sr_community_admin_post_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT p.id, p.board_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
@@ -301,7 +330,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     }
     $sql .= ' ORDER BY p.id DESC';
     if ($useLimit) {
-        $sql .= ' LIMIT :limit_value';
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
 
     $stmt = $pdo->prepare($sql);
@@ -310,6 +339,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     }
     if ($useLimit) {
         $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     }
     $stmt->execute();
 
@@ -390,12 +420,8 @@ function sr_community_comment_statuses(): array
     return ['published', 'hidden', 'deleted'];
 }
 
-function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_community_admin_comment_query_parts(array $filters): array
 {
-    $useLimit = $limit > 0;
-    if ($useLimit) {
-        $limit = max(1, min(200, $limit));
-    }
     $where = [];
     $params = [];
 
@@ -435,6 +461,40 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
+{
+    $queryParts = sr_community_admin_comment_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_community_comments c
+            INNER JOIN sr_community_posts p ON p.id = c.post_id
+            INNER JOIN sr_community_boards b ON b.id = p.board_id
+            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(1000, $limit));
+    }
+    $queryParts = sr_community_admin_comment_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
@@ -449,7 +509,7 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     }
     $sql .= ' ORDER BY c.id DESC';
     if ($useLimit) {
-        $sql .= ' LIMIT :limit_value';
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
 
     $stmt = $pdo->prepare($sql);
@@ -458,6 +518,7 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     }
     if ($useLimit) {
         $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     }
     $stmt->execute();
 

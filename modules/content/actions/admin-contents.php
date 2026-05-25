@@ -48,10 +48,8 @@ if ($pageAdminPage === 'form') {
         $filters['content_group_id'] = 0;
     }
     $pageStatusCounts = sr_content_admin_status_counts($pdo);
-    $pages = sr_content_admin_list($pdo, $filters);
-    $pagePagination = sr_admin_paginate_array($pdo, $pages);
-    $pages = $pagePagination['rows'];
-    $pagePagination = $pagePagination['pagination'];
+    $pagePagination = sr_admin_pagination_from_total($pdo, sr_content_admin_count($pdo, $filters));
+    $pages = sr_content_admin_list($pdo, $filters, (int) $pagePagination['per_page'], sr_admin_pagination_offset($pagePagination));
 }
 
 include SR_ROOT . '/modules/content/views/admin-contents.php';

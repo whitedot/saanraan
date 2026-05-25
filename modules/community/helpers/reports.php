@@ -201,12 +201,8 @@ function sr_community_record_report_rate_limit(PDO $pdo, int $accountId, array $
     sr_rate_limit_increment($pdo, 'community.report.account', (string) $accountId, $windowSeconds);
 }
 
-function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_community_report_query_parts(array $filters): array
 {
-    $useLimit = $limit > 0;
-    if ($useLimit) {
-        $limit = max(1, min(200, $limit));
-    }
     $where = [];
     $params = [];
 
@@ -260,6 +256,40 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): 
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_report_count(PDO $pdo, array $filters = []): int
+{
+    $queryParts = sr_community_report_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_community_reports r
+            LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
+            LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
+            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(1000, $limit));
+    }
+    $queryParts = sr_community_report_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
                    r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
                    reporter.display_name AS reporter_display_name,
@@ -277,7 +307,7 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): 
     }
     $sql .= ' ORDER BY r.id DESC';
     if ($useLimit) {
-        $sql .= ' LIMIT :limit_value';
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
 
     $stmt = $pdo->prepare($sql);
@@ -286,6 +316,7 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = []): 
     }
     if ($useLimit) {
         $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     }
     $stmt->execute();
 

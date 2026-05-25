@@ -809,10 +809,8 @@ function sr_admin_member_status_counts(PDO $pdo): array
     return $counts;
 }
 
-function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = []): array
+function sr_admin_member_query_parts(string $statusFilter, array $searchFilter = []): array
 {
-    $members = [];
-    $hasSessionTable = sr_member_sessions_table_exists($pdo);
     $params = [];
     $where = [];
 
@@ -857,7 +855,32 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_admin_member_count(PDO $pdo, string $statusFilter, array $searchFilter = []): int
+{
+    $queryParts = sr_admin_member_query_parts($statusFilter, $searchFilter);
+    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
+    $stmt = $pdo->prepare('SELECT COUNT(*) AS count_value FROM sr_member_accounts a ' . $whereSql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0): array
+{
+    $members = [];
+    $hasSessionTable = sr_member_sessions_table_exists($pdo);
+    $queryParts = sr_admin_member_query_parts($statusFilter, $searchFilter);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
+    $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
     if ($hasSessionTable) {
         $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
                        COUNT(s.id) AS active_session_count
@@ -865,19 +888,26 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
                 LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
                 ' . $whereSql . '
                 GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
-                ORDER BY a.id DESC
-                LIMIT 50';
+                ORDER BY a.id DESC'
+                . $limitSql;
         $params['now'] = sr_now();
     } else {
         $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at, 0 AS active_session_count
                 FROM sr_member_accounts a
                 ' . $whereSql . '
-                ORDER BY a.id DESC
-                LIMIT 50';
+                ORDER BY a.id DESC'
+                . $limitSql;
     }
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
     foreach ($stmt->fetchAll() as $row) {
         $members[] = $row;
     }

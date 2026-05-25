@@ -77,12 +77,8 @@ function sr_notification_admin_statuses(): array
     return ['queued', 'active', 'deleted'];
 }
 
-function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_notification_admin_notification_query_parts(array $filters): array
 {
-    $useLimit = $limit > 0;
-    if ($useLimit) {
-        $limit = max(1, min(200, $limit));
-    }
     $where = [];
     $params = [];
 
@@ -124,6 +120,36 @@ function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_notification_admin_notification_count(PDO $pdo, array $filters = []): int
+{
+    $queryParts = sr_notification_admin_notification_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_notifications n';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    $useLimit = $limit > 0;
+    if ($useLimit) {
+        $limit = max(1, min(1000, $limit));
+    }
+    $queryParts = sr_notification_admin_notification_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT n.id, n.audience, n.account_id, n.title, n.status, n.created_at
             FROM sr_notifications n';
     if ($where !== []) {
@@ -131,7 +157,7 @@ function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $
     }
     $sql .= ' ORDER BY n.id DESC';
     if ($useLimit) {
-        $sql .= ' LIMIT :limit_value';
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
 
     $stmt = $pdo->prepare($sql);
@@ -140,6 +166,7 @@ function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $
     }
     if ($useLimit) {
         $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     }
     $stmt->execute();
 

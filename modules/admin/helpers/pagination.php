@@ -101,6 +101,18 @@ function sr_admin_paginate_array(PDO $pdo, array $rows, string $pageParam = 'pag
     ];
 }
 
+function sr_admin_pagination_from_total(PDO $pdo, int $total, string $pageParam = 'page'): array
+{
+    $adminSettings = sr_admin_settings($pdo);
+
+    return sr_admin_pagination_meta($total, sr_admin_list_pagination_per_page($adminSettings), sr_admin_page_number_from_request($pageParam), $pageParam);
+}
+
+function sr_admin_pagination_offset(array $pagination): int
+{
+    return max(0, ((int) ($pagination['page'] ?? 1) - 1) * (int) ($pagination['per_page'] ?? 1));
+}
+
 function sr_admin_pagination_url(int $page, string $pageParam = 'page'): string
 {
     $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');

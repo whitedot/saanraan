@@ -94,9 +94,7 @@ foreach ($reportStatusCountStmt->fetchAll() as $row) {
     $reportStatusCounts['total'] += $count;
 }
 
-$reports = sr_community_reports($pdo, 0, $reportListFilters);
-$reportPagination = sr_admin_paginate_array($pdo, $reports);
-$reports = $reportPagination['rows'];
-$reportPagination = $reportPagination['pagination'];
+$reportPagination = sr_admin_pagination_from_total($pdo, sr_community_report_count($pdo, $reportListFilters));
+$reports = sr_community_reports($pdo, (int) $reportPagination['per_page'], $reportListFilters, sr_admin_pagination_offset($reportPagination));
 
 include SR_ROOT . '/modules/community/views/admin-reports.php';

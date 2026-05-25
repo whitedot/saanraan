@@ -368,16 +368,27 @@ if ($filters['q'] !== '') {
 if ($bannerWhere !== []) {
     $bannerSql .= ' WHERE ' . implode(' AND ', $bannerWhere);
 }
-$bannerSql .= ' ORDER BY b.sort_order ASC, b.id DESC';
-$stmt = $pdo->prepare($bannerSql);
-$stmt->execute($bannerParams);
-foreach ($stmt->fetchAll() as $row) {
-    $banners[] = $row;
-}
-$bannerPagination = sr_admin_paginate_array($pdo, $banners);
+$bannerPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($bannerAdminPage === 'list') {
-    $banners = $bannerPagination['rows'];
+    $bannerCountSql = 'SELECT COUNT(*) AS count_value
+                       FROM sr_banners b
+                       LEFT JOIN sr_banner_targets t ON t.banner_id = b.id'
+        . ($bannerWhere !== [] ? ' WHERE ' . implode(' AND ', $bannerWhere) : '');
+    $stmt = $pdo->prepare($bannerCountSql);
+    $stmt->execute($bannerParams);
+    $bannerCountRow = $stmt->fetch();
+    $bannerPagination = sr_admin_pagination_from_total($pdo, is_array($bannerCountRow) ? (int) ($bannerCountRow['count_value'] ?? 0) : 0);
+    $bannerSql .= ' ORDER BY b.sort_order ASC, b.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($bannerSql);
+    $stmt->bindValue('limit_value', (int) $bannerPagination['per_page'], PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', sr_admin_pagination_offset($bannerPagination), PDO::PARAM_INT);
+    foreach ($bannerParams as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $banners[] = $row;
+    }
 }
-$bannerPagination = $bannerPagination['pagination'];
 
 include SR_ROOT . '/modules/banner/views/admin-banners.php';

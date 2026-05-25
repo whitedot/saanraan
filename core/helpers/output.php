@@ -289,7 +289,9 @@ function sr_color_scheme_options(): array
 
 function sr_color_scheme(?array $site = null): string
 {
-    return 'light';
+    $colorScheme = (string) (($site ?? [])['ui_color_scheme'] ?? 'light');
+
+    return isset(sr_color_scheme_options()[$colorScheme]) ? $colorScheme : 'light';
 }
 
 function sr_public_layout_default_key(): string

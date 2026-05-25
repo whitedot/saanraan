@@ -556,12 +556,8 @@ function sr_content_admin_group_status_counts(PDO $pdo): array
     return $counts;
 }
 
-function sr_content_admin_group_list(PDO $pdo, array $filters): array
+function sr_content_admin_group_query_parts(array $filters): array
 {
-    if (!sr_content_groups_table_exists($pdo)) {
-        return [];
-    }
-
     $where = [];
     $params = [];
     if ((string) ($filters['status'] ?? '') !== '') {
@@ -584,6 +580,40 @@ function sr_content_admin_group_list(PDO $pdo, array $filters): array
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_content_admin_group_count(PDO $pdo, array $filters): int
+{
+    if (!sr_content_groups_table_exists($pdo)) {
+        return 0;
+    }
+
+    $queryParts = sr_content_admin_group_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_content_groups g';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_content_admin_group_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+{
+    if (!sr_content_groups_table_exists($pdo)) {
+        return [];
+    }
+
+    $queryParts = sr_content_admin_group_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT g.*,
                    COUNT(p.id) AS content_count
             FROM sr_content_groups g
@@ -593,9 +623,19 @@ function sr_content_admin_group_list(PDO $pdo, array $filters): array
     }
     $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
               ORDER BY g.sort_order ASC, g.id ASC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }
@@ -708,7 +748,7 @@ function sr_content_admin_status_counts(PDO $pdo): array
     return $counts;
 }
 
-function sr_content_admin_list(PDO $pdo, array $filters): array
+function sr_content_admin_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
@@ -737,6 +777,36 @@ function sr_content_admin_list(PDO $pdo, array $filters): array
         }
     }
 
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_content_admin_count(PDO $pdo, array $filters): int
+{
+    $queryParts = sr_content_admin_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_content_items p
+            LEFT JOIN sr_content_groups g ON g.id = p.content_group_id
+            LEFT JOIN sr_member_accounts creator ON creator.id = p.created_by
+            LEFT JOIN sr_member_accounts updater ON updater.id = p.updated_by';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+{
+    $queryParts = sr_content_admin_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
     $sql = 'SELECT p.*, g.group_key AS content_group_key, g.title AS content_group_title,
                    creator.display_name AS created_by_name, updater.display_name AS updated_by_name
             FROM sr_content_items p
@@ -747,9 +817,19 @@ function sr_content_admin_list(PDO $pdo, array $filters): array
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
     $sql .= ' ORDER BY p.updated_at DESC, p.id DESC';
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

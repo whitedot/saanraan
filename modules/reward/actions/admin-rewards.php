@@ -160,48 +160,73 @@ if ($accountIdFilter > 0) {
 }
 
 $balances = [];
-$stmt = $pdo->query(
-    'SELECT b.account_id, b.balance, b.updated_at, a.email, a.display_name, a.status
-     FROM sr_reward_balances b
-     INNER JOIN sr_member_accounts a ON a.id = b.account_id
-     ORDER BY b.updated_at DESC'
-);
-foreach ($stmt->fetchAll() as $row) {
-    $balances[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
-}
-$balancePagination = sr_admin_paginate_array($pdo, $balances);
+$balancePagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'balances') {
-    $balances = $balancePagination['rows'];
+    $stmt = $pdo->query(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_reward_balances b
+         INNER JOIN sr_member_accounts a ON a.id = b.account_id'
+    );
+    $balanceCountRow = $stmt->fetch();
+    $balancePagination = sr_admin_pagination_from_total($pdo, is_array($balanceCountRow) ? (int) ($balanceCountRow['count_value'] ?? 0) : 0);
+    $stmt = $pdo->query(
+        'SELECT b.account_id, b.balance, b.updated_at, a.email, a.display_name, a.status
+         FROM sr_reward_balances b
+         INNER JOIN sr_member_accounts a ON a.id = b.account_id
+         ORDER BY b.updated_at DESC
+         LIMIT ' . (int) $balancePagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($balancePagination)
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $balances[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
+    }
 }
-$balancePagination = $balancePagination['pagination'];
 
 $transactions = [];
-if ($accountIdFilter > 0) {
-    $stmt = $pdo->prepare(
-        'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
-                a.email, a.display_name
-         FROM sr_reward_transactions t
-         INNER JOIN sr_member_accounts a ON a.id = t.account_id
-         WHERE t.account_id = :account_id
-         ORDER BY t.id DESC'
-    );
-    $stmt->execute(['account_id' => $accountIdFilter]);
-} else {
-    $stmt = $pdo->query(
-        'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
-                a.email, a.display_name
-         FROM sr_reward_transactions t
-         INNER JOIN sr_member_accounts a ON a.id = t.account_id
-         ORDER BY t.id DESC'
-    );
-}
-foreach ($stmt->fetchAll() as $row) {
-    $transactions[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
-}
-$transactionPagination = sr_admin_paginate_array($pdo, $transactions);
+$transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'transactions') {
-    $transactions = $transactionPagination['rows'];
+    if ($accountIdFilter > 0) {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS count_value
+             FROM sr_reward_transactions t
+             INNER JOIN sr_member_accounts a ON a.id = t.account_id
+             WHERE t.account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountIdFilter]);
+        $transactionCountRow = $stmt->fetch();
+        $transactionPagination = sr_admin_pagination_from_total($pdo, is_array($transactionCountRow) ? (int) ($transactionCountRow['count_value'] ?? 0) : 0);
+        $stmt = $pdo->prepare(
+            'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
+                    a.email, a.display_name
+             FROM sr_reward_transactions t
+             INNER JOIN sr_member_accounts a ON a.id = t.account_id
+             WHERE t.account_id = :account_id
+             ORDER BY t.id DESC
+             LIMIT :limit_value OFFSET :offset_value'
+        );
+        $stmt->bindValue('account_id', $accountIdFilter, PDO::PARAM_INT);
+        $stmt->bindValue('limit_value', (int) $transactionPagination['per_page'], PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', sr_admin_pagination_offset($transactionPagination), PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        $stmt = $pdo->query(
+            'SELECT COUNT(*) AS count_value
+             FROM sr_reward_transactions t
+             INNER JOIN sr_member_accounts a ON a.id = t.account_id'
+        );
+        $transactionCountRow = $stmt->fetch();
+        $transactionPagination = sr_admin_pagination_from_total($pdo, is_array($transactionCountRow) ? (int) ($transactionCountRow['count_value'] ?? 0) : 0);
+        $stmt = $pdo->query(
+            'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
+                    a.email, a.display_name
+             FROM sr_reward_transactions t
+             INNER JOIN sr_member_accounts a ON a.id = t.account_id
+             ORDER BY t.id DESC
+             LIMIT ' . (int) $transactionPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($transactionPagination)
+        );
+    }
+    foreach ($stmt->fetchAll() as $row) {
+        $transactions[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
+    }
 }
-$transactionPagination = $transactionPagination['pagination'];
 
 include SR_ROOT . '/modules/reward/views/admin-rewards.php';

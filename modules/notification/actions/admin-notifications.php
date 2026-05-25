@@ -288,12 +288,10 @@ if (sr_request_method() === 'POST') {
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
-$notifications = sr_notification_admin_notifications($pdo, 0, $notificationListFilters);
-$notificationPagination = sr_admin_paginate_array($pdo, $notifications);
-if ($notificationAdminPage === 'list') {
-    $notifications = $notificationPagination['rows'];
-}
-$notificationPagination = $notificationPagination['pagination'];
+$notificationPagination = sr_admin_pagination_from_total($pdo, $notificationAdminPage === 'list' ? sr_notification_admin_notification_count($pdo, $notificationListFilters) : 0);
+$notifications = $notificationAdminPage === 'list'
+    ? sr_notification_admin_notifications($pdo, (int) $notificationPagination['per_page'], $notificationListFilters, sr_admin_pagination_offset($notificationPagination))
+    : [];
 
 $deliveryStatusCounts = ['total' => 0];
 foreach ($allowedDeliveryStatuses as $status) {
@@ -351,16 +349,27 @@ if ($deliveryListFilters['q'] !== '') {
 if ($deliveryWhere !== []) {
     $deliverySql .= ' WHERE ' . implode(' AND ', $deliveryWhere);
 }
-$deliverySql .= ' ORDER BY d.id DESC';
-$stmt = $pdo->prepare($deliverySql);
-$stmt->execute($deliveryParams);
-foreach ($stmt->fetchAll() as $row) {
-    $deliveries[] = $row;
-}
-$deliveryPagination = sr_admin_paginate_array($pdo, $deliveries);
+$deliveryPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($notificationAdminPage === 'deliveries') {
-    $deliveries = $deliveryPagination['rows'];
+    $deliveryCountSql = 'SELECT COUNT(*) AS count_value
+                         FROM sr_notification_deliveries d
+                         LEFT JOIN sr_notifications n ON n.id = d.notification_id'
+        . ($deliveryWhere !== [] ? ' WHERE ' . implode(' AND ', $deliveryWhere) : '');
+    $stmt = $pdo->prepare($deliveryCountSql);
+    $stmt->execute($deliveryParams);
+    $deliveryCountRow = $stmt->fetch();
+    $deliveryPagination = sr_admin_pagination_from_total($pdo, is_array($deliveryCountRow) ? (int) ($deliveryCountRow['count_value'] ?? 0) : 0);
+    $deliverySql .= ' ORDER BY d.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($deliverySql);
+    $stmt->bindValue('limit_value', (int) $deliveryPagination['per_page'], PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', sr_admin_pagination_offset($deliveryPagination), PDO::PARAM_INT);
+    foreach ($deliveryParams as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $deliveries[] = $row;
+    }
 }
-$deliveryPagination = $deliveryPagination['pagination'];
 
 include SR_ROOT . '/modules/notification/views/admin-notifications.php';
