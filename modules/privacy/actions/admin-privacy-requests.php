@@ -39,7 +39,7 @@ if (sr_request_method() === 'GET') {
         'message' => 'Privacy request list viewed.',
         'metadata' => [
             'filters' => $privacyRequestListFilters,
-            'result_count' => (int) $privacyRequestPagination['total'],
+            'result_count' => count($requests),
         ],
     ]);
 }

@@ -38,6 +38,9 @@ function sr_member_auth_policy_read(string $path): string
     return str_replace(["\r\n", "\r"], "\n", $content);
 }
 
+$memberLang = sr_member_auth_policy_read('modules/member/lang/ko.php');
+$privacyLang = sr_member_auth_policy_read('modules/privacy/lang/ko.php');
+
 $unverifiedAccount = [
     'id' => 1,
     'status' => 'active',
@@ -140,7 +143,10 @@ if ($loginAction !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($loginAction, "sr_get_string('password_reset', 10) === '1'") !== false
-            && strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false,
+            && (
+                strpos($loginAction, "sr_t('member::action.login.password_reset_notice')") !== false
+                || strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false
+            ),
         'Login action should show a fixed completion notice after password reset redirect.'
     );
 }
@@ -281,7 +287,10 @@ $accountAction = sr_member_auth_policy_read('modules/member/actions/account.php'
 if ($accountAction !== '') {
     sr_member_auth_policy_assert(
         strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password'], true)") !== false
-            && strpos($accountAction, '계정 작업 값이 올바르지 않습니다.') !== false,
+            && (
+                strpos($accountAction, "sr_t('member::action.account.intent_invalid')") !== false
+                || strpos($accountAction, '계정 작업 값이 올바르지 않습니다.') !== false
+            ),
         'Account action should allowlist account update intents.'
     );
     sr_member_auth_policy_assert(
@@ -516,7 +525,8 @@ $adminPrivacyRequestsView = sr_member_auth_policy_read('modules/privacy/views/ad
 if ($adminPrivacyRequestsView !== '') {
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') !== false
-            && strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") === false,
+            && strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") === false
+            && strpos($adminPrivacyRequestsView, "><?php echo sr_e(\$request['admin_note'] ?? ''); ?></textarea>") === false,
         'Admin privacy request view should not prefill stored admin notes in list forms.'
     );
     sr_member_auth_policy_assert(
@@ -562,12 +572,20 @@ if ($registerAction !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, 'sr_member_login($pdo, $newAccount)') !== false
-            && strpos($registerAction, '로그인 세션을 만들 수 없습니다') !== false,
+            && (
+                strpos($registerAction, "sr_t('member::action.register.login_session_failed_notice')") !== false
+                || strpos($registerAction, '로그인 세션을 만들 수 없습니다') !== false
+                || strpos($memberLang, '로그인 세션을 만들 수 없습니다') !== false
+            ),
         'Register action should keep auto-login for immediately verified accounts.'
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, "sr_redirect('/login')") !== false
-            && strpos($registerAction, '이메일 인증을 완료한 뒤 로그인하세요') !== false,
+            && (
+                strpos($registerAction, "sr_t('member::action.register.email_verification_notice')") !== false
+                || strpos($registerAction, '이메일 인증을 완료한 뒤 로그인하세요') !== false
+                || strpos($memberLang, '이메일 인증을 완료한 뒤 로그인하세요') !== false
+            ),
         'Register action should not auto-login unverified accounts.'
     );
     sr_member_auth_policy_assert(
@@ -623,7 +641,11 @@ $registerView = sr_member_auth_policy_read('modules/member/views/register.php');
 if ($registerView !== '') {
     sr_member_auth_policy_assert(
         strpos($registerView, 'name="login_id"') !== false
-            && strpos($registerView, '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.') !== false,
+            && (
+                strpos($registerView, "sr_t('member::ui.email.login.email.active.eb627985')") !== false
+                || strpos($registerView, '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.') !== false
+                || strpos($memberLang, '비워두면 이메일로 로그인하고, 입력하면 이메일과 아이디를 모두 사용할 수 있습니다.') !== false
+            ),
         'Register view should render optional login_id input for email and login_id parallel login.'
     );
     sr_member_auth_policy_assert(
@@ -660,11 +682,19 @@ $adminSettingsView = sr_member_auth_policy_read('modules/member/views/admin-sett
 if ($adminSettingsView !== '') {
     sr_member_auth_policy_assert(
         strpos($adminSettingsView, 'name="login_identifier"') === false
-            && strpos($adminSettingsView, '이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.') !== false,
+            && (
+                strpos($adminSettingsView, "sr_t('member::ui.email.login.login.login.44f3662f')") !== false
+                || strpos($adminSettingsView, '이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.') !== false
+                || strpos($memberLang, '이메일 로그인은 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디로도 로그인할 수 있습니다.') !== false
+            ),
         'Member settings view should show the fixed email and login_id parallel login policy without a selector.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminSettingsView, '선택 프로필 항목') !== false
+        (
+            strpos($adminSettingsView, "sr_t('member::ui.select.da5d4203')") !== false
+            || strpos($adminSettingsView, '선택 프로필 항목') !== false
+            || strpos($memberLang, '선택 프로필 항목') !== false
+        )
             && strpos($adminSettingsView, 'sr_member_profile_field_definitions()') !== false
             && strpos($adminSettingsView, '$enabledKey') !== false
             && strpos($adminSettingsView, '$requiredKey') !== false,

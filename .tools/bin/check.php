@@ -151,6 +151,7 @@ function sr_check_module_lifecycle_metadata(): void
         'layout-options.php' => true,
         'menu-links.php' => true,
         'output-slots.php' => true,
+        'privacy-cleanup.php' => true,
         'paths.php' => true,
         'privacy-export.php' => true,
         'sitemap.php' => true,
@@ -237,10 +238,11 @@ function sr_check_module_lifecycle_ui_contract(): void
 {
     $moduleActions = file_get_contents('modules/admin/helpers/module-actions.php');
     $moduleView = file_get_contents('modules/admin/views/modules.php');
+    $adminLang = file_get_contents('modules/admin/lang/ko.php');
     $updatesHelper = file_get_contents('modules/admin/helpers/updates.php');
     $moduleSources = file_get_contents('modules/admin/helpers/module-sources.php');
     $moduleLifecycle = file_get_contents('core/helpers/module-lifecycle.php');
-    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($updatesHelper) || !is_string($moduleSources) || !is_string($moduleLifecycle)) {
+    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($adminLang) || !is_string($updatesHelper) || !is_string($moduleSources) || !is_string($moduleLifecycle)) {
         sr_check_add_error('Admin module lifecycle files cannot be read.');
         return;
     }
@@ -260,8 +262,9 @@ function sr_check_module_lifecycle_ui_contract(): void
         }
     }
 
+    $moduleViewText = $moduleView . "\n" . $adminLang;
     foreach (['수명주기', '파일 재배치 필요', '설치 차단'] as $needle) {
-        if (!str_contains($moduleView, $needle)) {
+        if (!str_contains($moduleViewText, $needle)) {
             sr_check_add_error('Admin module lifecycle UI label is missing: ' . $needle);
         }
     }
@@ -289,6 +292,7 @@ function sr_check_module_contract_files(): void
         'layout-options.php',
         'menu-links.php',
         'output-slots.php',
+        'privacy-cleanup.php',
         'paths.php',
         'privacy-export.php',
         'sitemap.php',

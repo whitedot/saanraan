@@ -504,7 +504,8 @@ if (!is_string($adminPrivacyRequestsView)) {
     || strpos($adminPrivacyRequestsView, "sr_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
     || strpos($adminPrivacyRequestsView, 'name="admin_password"') === false
     || strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') === false
-    || strpos($adminPrivacyRequestsView, "\$request['admin_note'] ?? ''") !== false
+    || strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") !== false
+    || strpos($adminPrivacyRequestsView, "><?php echo sr_e(\$request['admin_note'] ?? ''); ?></textarea>") !== false
 ) {
     $errors[] = 'Admin privacy requests view must reduce requester/message exposure and avoid prefilled admin notes.';
 }
@@ -757,12 +758,18 @@ if (
     || strpos($communityNotificationsHelper, 'function sr_community_create_admin_report_notifications') === false
     || strpos($communityNotificationsHelper, "p.menu_path = '/admin/community/reports'") === false
     || strpos($communityNotificationsHelper, "p.action_key = 'view'") === false
-    || strpos($memberAccountsHelper, 'function sr_member_public_account_summaries_by_hash') === false
+    || (
+        strpos($memberAccountsHelper, 'function sr_member_public_account_summaries_by_hash') === false
+        && strpos($memberAccountsHelper, 'function sr_member_public_account_summary_by_hash') === false
+    )
     || strpos($memberAccountsHelper, 'static $cachedMaps = [];') === false
     || strpos($communityMessagesHelper, 'recipient_account_hash') === false
     || strpos($communityMessagesHelper, "return \$label;") === false
     || strpos($communityMessageWriteAction, 'sr_community_create_account_notification(') === false
-    || strpos($communityMessageWriteAction, 'sr_member_public_account_summary_by_hash($pdo, $config,') === false
+    || (
+        strpos($communityMessageWriteAction, 'sr_member_public_account_summary_by_hash($pdo, $config,') === false
+        && strpos($communityMessageWriteAction, 'sr_community_public_account_summary_by_hash($pdo, $config,') === false
+    )
     || strpos($communityMessageWriteAction, "sr_get_string('to',") !== false
     || strpos($communityMessageWriteAction, "'recipient_identifier' => ''") === false
     || strpos($communityMessageViewAction, 'sr_member_public_account_hash($config, $replyAccountId)') === false

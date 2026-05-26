@@ -230,7 +230,9 @@ function sr_render_error(int $statusCode, string $message, ?Throwable $exception
 {
     sr_enforce_request_contract('before_error');
 
-    http_response_code($statusCode);
+    if (!headers_sent()) {
+        http_response_code($statusCode);
+    }
     if ($exception instanceof Throwable) {
         sr_log_exception($exception, 'render_error_' . $statusCode);
     }
