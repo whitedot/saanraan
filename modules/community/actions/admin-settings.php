@@ -190,67 +190,78 @@ if (sr_request_method() === 'POST') {
                 ['paid_attachment_download_amounts_json', (string) $assetSettings['paid_attachment_download_amounts_json'], 'json'],
                 ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
             ];
-            $stmt = $pdo->prepare(
-                'INSERT INTO sr_module_settings
-                    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
-                 VALUES
-                    (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
-                 ON DUPLICATE KEY UPDATE
-                    setting_value = VALUES(setting_value),
-                    value_type = VALUES(value_type),
-                    updated_at = VALUES(updated_at)'
-            );
-            foreach ($rows as $row) {
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'INSERT INTO sr_module_settings
+                        (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+                     VALUES
+                        (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+                     ON DUPLICATE KEY UPDATE
+                        setting_value = VALUES(setting_value),
+                        value_type = VALUES(value_type),
+                        updated_at = VALUES(updated_at)'
+                );
+                $now = sr_now();
+                foreach ($rows as $row) {
+                    $stmt->execute([
+                        'module_id' => (int) $communityModule['id'],
+                        'setting_key' => $row[0],
+                        'setting_value' => $row[1],
+                        'value_type' => $row[2],
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+                $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
                 $stmt->execute([
                     'module_id' => (int) $communityModule['id'],
-                    'setting_key' => $row[0],
-                    'setting_value' => $row[1],
-                    'value_type' => $row[2],
-                    'created_at' => sr_now(),
-                    'updated_at' => sr_now(),
+                    'setting_key' => 'access_condition_priority',
                 ]);
+                $pdo->commit();
+                sr_clear_module_settings_cache('community');
+                $settings = sr_community_settings($pdo);
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.settings.updated',
+                    'target_type' => 'module',
+                    'target_id' => 'community',
+                    'result' => 'success',
+                    'message' => 'Community settings updated.',
+                    'metadata' => [
+                        'level_enabled' => $levelEnabled,
+                        'level_auto_recalculate' => $levelAutoRecalculate,
+                        'message_write_policy' => $messageWritePolicy,
+                        'message_write_min_level' => $messageWriteMinLevel,
+                        'nickname_enabled' => $nicknameEnabled,
+                        'nickname_required' => $nicknameRequired,
+                        'layout_key' => $layoutKey,
+                        'post_editor' => $postEditor,
+                        'asset_settings' => $assetSettings,
+                    ],
+                ]);
+                sr_admin_audit_asset_settings_update($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.settings.asset_settings.updated',
+                    'target_type' => 'module',
+                    'target_id' => 'community',
+                    'asset_settings_scope' => 'community.settings',
+                    'before_asset_settings' => $beforeAssetSettings,
+                    'after_asset_settings' => sr_community_asset_settings_for_audit($assetSettings, true),
+                    'message' => 'Community asset settings updated.',
+                ]);
+
+                $notice = sr_t('community::action.admin.settings_saved');
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                sr_log_exception($exception, 'community_settings_save_failed');
+                $errors[] = sr_t('community::action.admin.settings_save_failed');
             }
-            $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
-            $stmt->execute([
-                'module_id' => (int) $communityModule['id'],
-                'setting_key' => 'access_condition_priority',
-            ]);
-            sr_clear_module_settings_cache('community');
-            $settings = sr_community_settings($pdo);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.settings.updated',
-                'target_type' => 'module',
-                'target_id' => 'community',
-                'result' => 'success',
-                'message' => 'Community settings updated.',
-                'metadata' => [
-                    'level_enabled' => $levelEnabled,
-                    'level_auto_recalculate' => $levelAutoRecalculate,
-                    'message_write_policy' => $messageWritePolicy,
-                    'message_write_min_level' => $messageWriteMinLevel,
-                    'nickname_enabled' => $nicknameEnabled,
-                    'nickname_required' => $nicknameRequired,
-                    'layout_key' => $layoutKey,
-                    'post_editor' => $postEditor,
-                    'asset_settings' => $assetSettings,
-                ],
-            ]);
-            sr_admin_audit_asset_settings_update($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.settings.asset_settings.updated',
-                'target_type' => 'module',
-                'target_id' => 'community',
-                'asset_settings_scope' => 'community.settings',
-                'before_asset_settings' => $beforeAssetSettings,
-                'after_asset_settings' => sr_community_asset_settings_for_audit($assetSettings, true),
-                'message' => 'Community asset settings updated.',
-            ]);
-
-            $notice = sr_t('community::action.admin.settings_saved');
         }
     } elseif ($intent === 'save_level_definitions') {
         $rawMinScores = $_POST['level_min_score'] ?? [];

@@ -217,8 +217,8 @@ function sr_fail_request_contract(string $message, string $stage, array $contrac
     $actionFile = is_string($contract['action_file'] ?? null) ? (string) $contract['action_file'] : '';
     error_log('[saanraan] request contract violation: ' . $message . ' at ' . $stage . ' ' . $path . ' ' . $actionFile);
 
+    sr_set_response_status_if_possible(500);
     if (!headers_sent()) {
-        http_response_code(500);
         header('Content-Type: text/plain; charset=UTF-8');
     }
 
@@ -228,14 +228,12 @@ function sr_fail_request_contract(string $message, string $stage, array $contrac
 
 function sr_render_error(int $statusCode, string $message, ?Throwable $exception = null): void
 {
-    sr_enforce_request_contract('before_error');
-
-    if (!headers_sent()) {
-        http_response_code($statusCode);
-    }
     if ($exception instanceof Throwable) {
         sr_log_exception($exception, 'render_error_' . $statusCode);
     }
+    sr_enforce_request_contract('before_error');
+
+    sr_set_response_status_if_possible($statusCode);
 
     $config = [];
     if (is_file(SR_ROOT . '/config/config.php')) {
@@ -250,6 +248,21 @@ function sr_render_error(int $statusCode, string $message, ?Throwable $exception
     $pageTitle = (string) $statusCode;
     include SR_ROOT . '/core/views/error.php';
     sr_finish_response();
+}
+
+function sr_set_response_status_if_possible(int $statusCode): bool
+{
+    if (headers_sent()) {
+        return false;
+    }
+
+    try {
+        http_response_code($statusCode);
+        return true;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'response_status_failed_' . $statusCode);
+        return false;
+    }
 }
 
 function sr_log_exception(Throwable $exception, string $context): void

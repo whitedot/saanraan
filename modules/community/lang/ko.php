@@ -169,6 +169,7 @@ return [
     'action.admin.read_policy_invalid' => '읽기 정책 값이 올바르지 않습니다.',
     'action.admin.setting_group_source_requires_group' => '{setting} 설정은 게시판 그룹이 있어야 그룹 적용할 수 있습니다.',
     'action.admin.settings_saved' => '커뮤니티 설정을 저장했습니다.',
+    'action.admin.settings_save_failed' => '커뮤니티 설정 저장 중 오류가 발생했습니다. 오류 로그를 확인하세요.',
     'action.admin.sort_order_invalid' => '정렬 순서는 0 이상의 정수여야 합니다.',
     'action.admin.write_min_level_invalid' => '쓰기 최소 레벨은 0 이상 {max} 이하의 정수여야 합니다.',
     'action.admin.write_policy_invalid' => '쓰기 정책 값이 올바르지 않습니다.',
