@@ -385,7 +385,7 @@ return [
     'ui.menu.menu.8e3b133d' => '드롭다운 메뉴 내부에 헤더를 추가하여 관련 메뉴 항목을 명확하게 그룹화하거나 레이블을 지정하십시오.',
     'ui.menu.menu.active.deecc2cd' => '드롭다운 메뉴 내에 폼을 넣거나 드롭다운 메뉴로 만들고, 마진 또는 패딩 유틸리티를 사용하여 필요한
                                     여백을 주십시오.',
-    'ui.menu.settings.save.914d293b' => '메뉴 표시 설정 저장',
+    'ui.menu.settings.save.914d293b' => '순서 적용하기',
     'ui.modal.position.60f37d79' => '모달 위치 (Modal Position)',
     'ui.modals.c78d69ef' => '모달 (Modals)',
     'ui.module.fb45cdc5' => '구조라면 module key를 입력하세요.',

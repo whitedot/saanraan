@@ -83,6 +83,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
   - `revert`: revert a previous commit
 - Do not use project-area prefixes such as `core`, `member`, `admin`, or `install` as the commit type.
 - Put the affected area in the Korean message or body when useful.
+- When a commit handles a GitHub issue, include the issue number such as `#26` in the subject.
 - Keep the subject concise and describe the actual change.
 - Add a Korean body for non-trivial changes, especially when multiple files or behaviors are affected.
 

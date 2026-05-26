@@ -82,8 +82,7 @@
 }
 
 .admin-page-banner-list .admin-banner-table {
-    min-width: 78rem;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 .admin-page-banner-list .admin-banner-table th,
@@ -143,5 +142,13 @@
     .admin-page-banner-list .admin-banner-filter-keyword,
     .admin-page-banner-list .admin-banner-filter .admin-filter-submit {
         grid-column: auto;
+    }
+
+    .admin-page-banner-list .admin-banner-table :is(th, td):nth-child(3),
+    .admin-page-banner-list .admin-banner-table :is(th, td):nth-child(4),
+    .admin-page-banner-list .admin-banner-table :is(th, td):nth-child(5),
+    .admin-page-banner-list .admin-banner-table :is(th, td):nth-child(7),
+    .admin-page-banner-list .admin-banner-table :is(th, td):nth-child(8) {
+        display: none;
     }
 }

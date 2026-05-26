@@ -35,5 +35,15 @@
 @media (max-width:767px){
     .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:1fr}
     .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3){grid-column:auto}
+    .admin-content-list .admin-content-table :is(th,td):nth-child(2),
+    .admin-content-list .admin-content-table :is(th,td):nth-child(3),
+    .admin-content-list .admin-content-table :is(th,td):nth-child(5),
+    .admin-content-list .admin-content-table :is(th,td):nth-child(6),
+    .admin-content-list .admin-content-table :is(th,td):nth-child(7),
+    .admin-content-list .admin-content-table :is(th,td):nth-child(8){display:none}
+    .admin-content-group-list .admin-content-group-table :is(th,td):nth-child(2),
+    .admin-content-group-list .admin-content-group-table :is(th,td):nth-child(4),
+    .admin-content-group-list .admin-content-group-table :is(th,td):nth-child(5),
+    .admin-content-group-list .admin-content-group-table :is(th,td):nth-child(6){display:none}
     .admin-content-file-charge-main{align-items:flex-start;flex-direction:column}
 }

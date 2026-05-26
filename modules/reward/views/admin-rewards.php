@@ -184,7 +184,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('reward::ui.text.ce41e3f6')); ?></h2></div>
         <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-asset-transaction-table">
             <thead class="ui-table-head">
                 <tr>
                     <th>회원 정보</th>
@@ -242,7 +242,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
         <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-asset-balance-table">
             <thead class="ui-table-head">
                 <tr>
                     <th>회원 정보</th>

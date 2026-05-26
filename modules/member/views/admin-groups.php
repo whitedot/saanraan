@@ -347,14 +347,13 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <th><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
                     <th><?php echo sr_e(sr_t('member::ui.member.984c7e2b')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.3788952d')); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($groups === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.4ef35a24')); ?></td>
+                        <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.4ef35a24')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($groups as $group) { ?>
@@ -374,7 +373,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         <td class="admin-member-group-title-cell"><?php echo sr_e((string) $group['title']); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['active_member_count']); ?></td>
-                        <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['sort_order']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($manualAssignModalId); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></button>

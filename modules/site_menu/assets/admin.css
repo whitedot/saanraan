@@ -92,4 +92,11 @@
     .site-menu-dashboard-meter {
         justify-self: start;
     }
+
+    .admin-page-site-menu .admin-site-menu-form .table :is(th, td:not(.admin-empty-state)):nth-child(1),
+    .admin-page-site-menu .admin-site-menu-form .table :is(th, td):nth-child(2),
+    .admin-page-site-menu .admin-site-menu-form .table :is(th, td):nth-child(4),
+    .admin-page-site-menu .admin-site-menu-form .table :is(th, td):nth-child(6) {
+        display: none;
+    }
 }

@@ -14,3 +14,4 @@
 .admin-list-form .privacy-request-manage .form-textarea{width:100%}
 .admin-list-form .privacy-request-manage .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 @media (max-width:1023px){.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:1fr}.admin-page-privacy-request-list .admin-filter-submit{justify-content:center;width:100%}}
+@media (max-width:767px){.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td):nth-child(5){display:none}.admin-list-form .privacy-request-manage{min-width:14rem}}

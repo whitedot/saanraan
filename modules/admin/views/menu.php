@@ -19,8 +19,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th><?php echo sr_e(sr_t('admin::ui.text.83b651b8')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
-                <th><?php echo sr_e(sr_t('admin::ui.text.a9e7497f')); ?></th>
-                <th class="admin-menu-sort-order-cell"><?php echo sr_e(sr_t('admin::ui.text.ff0e602e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.0eeb676f')); ?></th>
             </tr>
         </thead>
@@ -34,7 +32,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $hiddenInputId = 'modules_admin_menu_is_hidden_' . preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $row['form_key']);
                 ?>
                 <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
-                    <td><span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
+                    <td>
+                        <input type="hidden" name="sort_order[<?php echo sr_e((string) $row['form_key']); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" data-admin-sort-order>
+                        <span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                    </td>
                     <td>
                         <span class="admin-menu-scope-badge admin-menu-scope-<?php echo sr_e((string) $row['scope']); ?>">
                             <?php echo sr_e(sr_admin_code_label((string) $row['scope'], 'admin_menu_scope')); ?>
@@ -54,17 +55,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </span>
                         </div>
-                    </td>
-                    <td><?php echo sr_e((string) $row['default_order']); ?></td>
-                    <td class="admin-menu-sort-order-cell">
-                        <input
-                            type="number"
-                            name="sort_order[<?php echo sr_e((string) $row['form_key']); ?>]"
-                            value="<?php echo sr_e((string) $row['sort_order']); ?>"
-                            data-admin-sort-order
-                            min="-999999"
-                            max="999999"
-                            required class="form-input admin-menu-sort-order-input">
                     </td>
                     <td>
                         <?php if ($canHide) { ?>

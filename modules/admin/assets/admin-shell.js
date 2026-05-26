@@ -674,8 +674,7 @@ window.AdminShell = {
         if (sortableRows.length > 0) {
             let draggedRow = null;
             let draggedRows = [];
-            let dropTargetRow = null;
-            let dropAfterTarget = false;
+            let placeholderRow = null;
 
             const renumberRows = (scope, parent) => {
                 const rows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]')).filter(row => {
@@ -689,17 +688,17 @@ window.AdminShell = {
                 });
             };
 
-            const clearSortableDropLine = () => {
-                if (dropTargetRow) {
-                    dropTargetRow.classList.remove('is-drop-before', 'is-drop-after');
-                }
-                dropTargetRow = null;
-                dropAfterTarget = false;
-            };
-
             const rowDepth = row => {
                 const depth = Number.parseInt(row.dataset.sortDepth || '0', 10);
                 return Number.isFinite(depth) ? depth : 0;
+            };
+
+            const sortablePeers = (scope, parent) => {
+                return Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]')).filter(row => {
+                    return row.dataset.sortScope === scope
+                        && row.dataset.sortParent === parent
+                        && !draggedRows.includes(row);
+                });
             };
 
             const sortableRowBlock = row => {
@@ -714,6 +713,8 @@ window.AdminShell = {
                 return rows;
             };
 
+            const sortableContainers = Array.from(new Set(sortableRows.map(row => row.parentNode))).filter(Boolean);
+
             const targetInsertionReference = row => {
                 let reference = row;
                 const depth = rowDepth(row);
@@ -726,23 +727,83 @@ window.AdminShell = {
                 return reference.nextSibling;
             };
 
-            const canDropSortableRow = row => {
-                return draggedRow
-                    && draggedRow !== row
-                    && !draggedRows.includes(row)
-                    && draggedRow.dataset.sortScope === row.dataset.sortScope
-                    && draggedRow.dataset.sortParent === row.dataset.sortParent;
+            const removePlaceholder = () => {
+                if (placeholderRow && placeholderRow.parentNode) {
+                    placeholderRow.parentNode.removeChild(placeholderRow);
+                }
+                placeholderRow = null;
             };
 
-            const showSortableDropLine = (row, after) => {
-                if (dropTargetRow && (dropTargetRow !== row || dropAfterTarget !== after)) {
-                    dropTargetRow.classList.remove('is-drop-before', 'is-drop-after');
+            const ensurePlaceholder = () => {
+                if (placeholderRow) {
+                    return placeholderRow;
                 }
 
-                dropTargetRow = row;
-                dropAfterTarget = after;
-                row.classList.toggle('is-drop-before', !after);
-                row.classList.toggle('is-drop-after', after);
+                const columnCount = draggedRow && draggedRow.cells ? Math.max(1, draggedRow.cells.length) : 1;
+                placeholderRow = document.createElement('tr');
+                placeholderRow.className = 'admin-sort-placeholder-row';
+                placeholderRow.setAttribute('aria-hidden', 'true');
+
+                const cell = document.createElement('td');
+                cell.className = 'admin-sort-placeholder-cell';
+                cell.colSpan = columnCount;
+                placeholderRow.appendChild(cell);
+
+                return placeholderRow;
+            };
+
+            const placePlaceholder = (container, reference) => {
+                const placeholder = ensurePlaceholder();
+                if (placeholder.parentNode !== container || placeholder.nextSibling !== reference) {
+                    container.insertBefore(placeholder, reference);
+                }
+            };
+
+            const updatePlaceholder = event => {
+                if (!draggedRow) {
+                    return false;
+                }
+
+                const scope = draggedRow.dataset.sortScope || '';
+                const parent = draggedRow.dataset.sortParent || '';
+                const peers = sortablePeers(scope, parent);
+                if (peers.length === 0) {
+                    removePlaceholder();
+                    return false;
+                }
+
+                let targetPeer = peers[peers.length - 1];
+                let reference = targetInsertionReference(targetPeer);
+
+                for (const peer of peers) {
+                    const rect = peer.getBoundingClientRect();
+                    if (event.clientY < rect.top + rect.height / 2) {
+                        targetPeer = peer;
+                        reference = peer;
+                        break;
+                    }
+                }
+
+                placePlaceholder(targetPeer.parentNode, reference);
+                return true;
+            };
+
+            const finishSortableDrag = row => {
+                draggedRows.forEach(blockRow => blockRow.classList.remove('is-dragging'));
+
+                const movedScope = draggedRow ? draggedRow.dataset.sortScope || '' : row.dataset.sortScope || '';
+                const movedParent = draggedRow ? draggedRow.dataset.sortParent || '' : row.dataset.sortParent || '';
+                if (placeholderRow && placeholderRow.parentNode && draggedRow) {
+                    const parent = placeholderRow.parentNode;
+                    draggedRows.forEach(blockRow => {
+                        parent.insertBefore(blockRow, placeholderRow);
+                    });
+                }
+
+                removePlaceholder();
+                draggedRow = null;
+                draggedRows = [];
+                renumberRows(movedScope, movedParent);
             };
 
             sortableRows.forEach(row => {
@@ -760,41 +821,35 @@ window.AdminShell = {
                 });
 
                 handle.addEventListener('dragend', () => {
-                    draggedRows.forEach(blockRow => blockRow.classList.remove('is-dragging'));
-                    const movedScope = draggedRow ? draggedRow.dataset.sortScope || '' : row.dataset.sortScope || '';
-                    const movedParent = draggedRow ? draggedRow.dataset.sortParent || '' : row.dataset.sortParent || '';
-                    if (dropTargetRow && draggedRow) {
-                        const parent = dropTargetRow.parentNode;
-                        const reference = dropAfterTarget ? targetInsertionReference(dropTargetRow) : dropTargetRow;
-                        draggedRows.forEach(blockRow => {
-                            parent.insertBefore(blockRow, reference);
-                        });
-                    }
-                    clearSortableDropLine();
-                    draggedRow = null;
-                    draggedRows = [];
-                    renumberRows(movedScope, movedParent);
+                    finishSortableDrag(row);
                 });
+            });
 
-                row.addEventListener('dragover', event => {
-                    if (!canDropSortableRow(row)) {
-                        clearSortableDropLine();
+            sortableContainers.forEach(container => {
+                container.addEventListener('dragover', event => {
+                    if (!updatePlaceholder(event)) {
                         return;
                     }
 
                     event.preventDefault();
                     event.dataTransfer.dropEffect = 'move';
-                    const rect = row.getBoundingClientRect();
-                    const after = event.clientY > rect.top + rect.height / 2;
-                    showSortableDropLine(row, after);
                 });
 
-                row.addEventListener('drop', event => {
-                    if (!canDropSortableRow(row)) {
+                container.addEventListener('drop', event => {
+                    if (!draggedRow) {
                         return;
                     }
 
                     event.preventDefault();
+                    finishSortableDrag(draggedRow);
+                });
+
+                container.addEventListener('dragleave', event => {
+                    if (!draggedRow || container.contains(event.relatedTarget)) {
+                        return;
+                    }
+
+                    removePlaceholder();
                 });
             });
         }
