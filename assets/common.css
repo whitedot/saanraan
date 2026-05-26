@@ -75,7 +75,7 @@ code{color:var(--color-rose-400)}
 .btn-soft-warning{background-color:color-mix(in oklab,var(--color-warning) 15%,transparent)}
 .btn-soft-info{background-color:color-mix(in oklab,var(--color-info) 15%,transparent)}
 .btn-soft-dark{background-color:color-mix(in oklab,var(--color-dark) 10%,transparent)}
-@media.btn-pill{border-radius:9999px}
+.btn-pill{border-radius:9999px}
 .btn-choice-primary{border-color:var(--color-primary);color:var(--color-primary);background-color:transparent}
 .btn-choice-secondary{border-color:var(--color-secondary);color:var(--color-secondary);background-color:transparent}
 input:checked + .btn-choice-primary,.btn-choice-primary.is-active,.btn-choice-primary[aria-pressed=true]{background-color:var(--color-primary);border-color:var(--color-primary);color:var(--color-white)}
