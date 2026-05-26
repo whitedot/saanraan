@@ -572,47 +572,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 ] as $assetPrefix => $assetLabel) { ?>
                         <?php $assetEnabledId = 'community_board_group_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                         <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
+                        <?php $usesGroupedAssetAmounts = $usesCompositeAsset; ?>
                         <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', 'point'), true); ?>
                         <div class="admin-form-row">
                             <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
                             <div class="admin-form-field">
-                                <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                    <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
-                                </label>
-                                <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
-                                    <?php if ($usesCompositeAsset) { ?>
-                                        <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_group_' . (string) $assetPrefix . '_asset_amounts', 'group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $groupSettingValue($formGroupSettings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0)), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
-                                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                    <?php } else { ?>
-                                        <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
-                                            <?php if ($assetModuleOptions === []) { ?>
-                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                <div class="admin-asset-setting-line">
+                                    <div class="admin-asset-setting-control<?php echo $usesGroupedAssetAmounts ? ' admin-asset-setting-control-full' : ''; ?>">
+                                        <div class="admin-asset-setting-primary">
+                                            <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                                <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                                <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
+                                            </label>
+                                            <?php if (!$usesGroupedAssetAmounts) { ?>
+                                                <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
+                                                    <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
+                                                        <?php if ($assetModuleOptions === []) { ?>
+                                                            <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                                        <?php } ?>
+                                                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
+                                                                <?php echo sr_e((string) $assetOption['label']); ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
                                             <?php } ?>
-                                            <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e((string) $assetOption['label']); ?>
-                                                </option>
-                                            <?php } ?>
-                                        </select>
-                                    <?php } ?>
+                                        </div>
+                                        <?php if ($usesGroupedAssetAmounts) { ?>
+                                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
+                                                <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_group_' . (string) $assetPrefix . '_asset_amounts', 'group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $groupSettingValue($formGroupSettings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0)), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
+                                                <input type="hidden" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>">
+                                            </div>
+                                        <?php } else { ?>
+                                            <div class="admin-asset-setting-secondary">
+                                                <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e(sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>">
+                                            </div>
+                                        <?php } ?>
+                                        <?php if ($assetPrefix === 'paid_read' || $assetPrefix === 'paid_attachment_download') { ?>
+                                            <div class="admin-asset-setting-secondary">
+                                                <?php if ($assetPrefix === 'paid_read') { ?>
+                                                    <select name="group_paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
+                                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                        <option value="every_view"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
+                                                    </select>
+                                                <?php } else { ?>
+                                                    <select name="group_paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
+                                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                        <option value="every_download"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
+                                                    </select>
+                                                <?php } ?>
+                                            </div>
+                                        <?php } ?>
+                                        <?php if ($usesCompositeAsset) { ?>
+                                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                                        <?php } ?>
+                                    </div>
                                 </div>
-                                <?php if ($usesCompositeAsset) { ?>
-                                    <input type="hidden" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>">
-                                <?php } else { ?>
-                                    <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
-                                <?php } ?>
-                                <?php if ($assetPrefix === 'paid_read') { ?>
-                                    <select name="group_paid_read_charge_policy" class="form-select">
-                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                        <option value="every_view"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
-                                    </select>
-                                <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                                    <select name="group_paid_attachment_download_charge_policy" class="form-select">
-                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                        <option value="every_download"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
-                                    </select>
-                                <?php } ?>
                             </div>
                         </div>
                 <?php } ?>

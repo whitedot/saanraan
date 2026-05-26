@@ -95,9 +95,9 @@ $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope)
     return $html . '</div>';
 };
 $pageSettingSourceLabels = [
+    'content' => $pageGroupScopeLabels['here_only'],
     'group' => $pageGroupScopeLabels['group'],
     'all' => $pageGroupScopeLabels['all'],
-    'content' => $pageGroupScopeLabels['here_only'],
 ];
 $pageSettingSource = static function (array $values, string $key): string {
     if (array_key_exists('source_' . $key, $values)) {
@@ -397,28 +397,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span></div>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
+                    <div class="admin-asset-setting-line">
+                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
+                            <div class="admin-asset-setting-primary">
+                                <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
                                             <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
-                                        </label>
-                                        <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
-                                        <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.member.content.42c8795b')); ?></p>
+                                </label>
+                                <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
+                                    <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
+                                </div>
+                            </div>
+                            <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.member.content.42c8795b')); ?></p>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.7d96defe'), $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''); ?>
-                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_access_enabled" data-admin-asset-enable-submit-check="always">
-                        <input id="content_admin_contents_asset_access_amount" type="hidden" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>">
-                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_access_amounts_grouped', 'asset_module', 'asset_access_amounts', $assetModuleOptions, $selectedAccessAssetModules, $values['asset_access_amounts_json'] ?? '', (int) ($values['asset_access_amount'] ?? 0), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-line" data-admin-setting-source-group>
+                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
+                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_access_enabled" data-admin-asset-enable-submit-check="always">
+                                <input id="content_admin_contents_asset_access_amount" type="hidden" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>">
+                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_access_amounts_grouped', 'asset_module', 'asset_access_amounts', $assetModuleOptions, $selectedAccessAssetModules, $values['asset_access_amounts_json'] ?? '', (int) ($values['asset_access_amount'] ?? 0), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
+                            </div>
+                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                        </div>
+                        <div class="admin-asset-setting-scope">
+                            <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module'), true); ?>
+                            <input type="hidden" name="source_asset_access_amount" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
+                            <input type="hidden" name="source_asset_access_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
+                        </div>
                     </div>
-                    <div data-admin-setting-source-group>
-                        <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module'), true); ?>
-                        <input type="hidden" name="source_asset_access_amount" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
-                        <input type="hidden" name="source_asset_access_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
-                    </div>
-                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -657,29 +669,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.text.b065b16b'), $contentHelp['file_charge']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span></div>
                 <div class="admin-form-field">
-                    <div class="admin-content-file-charge-control">
-                        <div class="admin-content-file-charge-main">
+                    <div class="admin-content-file-charge-control admin-asset-setting-line">
+                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
+                            <div class="admin-asset-setting-primary">
                             <label class="admin-form-check form-label" for="modules_content_admin_contents_new_content_file_asset_download_enabled">
                                 <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array((string) ($newContentFileAssetSettings['file_asset_download_enabled'] ?? '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
                             </label>
+                                <label for="content_admin_contents_new_content_file_asset_charge_policy">
+                                    <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?></span>
+                                    <select id="content_admin_contents_new_content_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select admin-asset-setting-policy">
+                                        <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($newContentFileAssetSettings['file_asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                                <?php echo sr_e((string) $policyLabel); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </label>
+                            </div>
                             <?php $selectedNewFileAssetModules = sr_content_asset_module_keys_from_value($newContentFileAssetSettings['file_asset_module'] ?? ''); ?>
                             <div class="admin-content-file-charge-assets admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_new_content_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                                 <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_new_content_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedNewFileAssetModules, $newContentFileAssetSettings['file_asset_download_amounts_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0), sr_t('content::ui.text.63526029'), sr_t('content::ui.text.3e195cdd')); ?>
                             </div>
                             <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0)); ?>">
-                            <label for="content_admin_contents_new_content_file_asset_charge_policy">
-                                <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?></span>
-                                <select id="content_admin_contents_new_content_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select admin-content-file-charge-policy">
-                                    <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($newContentFileAssetSettings['file_asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $policyLabel); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </label>
+                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         </div>
-                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                     </div>
                 </div>
             </div>
