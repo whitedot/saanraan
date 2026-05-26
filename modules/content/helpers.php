@@ -383,7 +383,12 @@ function sr_content_asset_module_labels(string $assetModuleValue): string
 
 function sr_content_asset_modules_available(PDO $pdo, array $assetModules): bool
 {
-    foreach (sr_content_asset_module_keys_from_value($assetModules) as $assetModule) {
+    $assetModules = sr_content_asset_module_keys_from_value($assetModules);
+    if ($assetModules === []) {
+        return false;
+    }
+
+    foreach ($assetModules as $assetModule) {
         if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
             return false;
         }
