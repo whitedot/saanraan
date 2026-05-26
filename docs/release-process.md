@@ -9,6 +9,8 @@
 - 릴리스 태그를 만들었다면 태그가 배포할 commit SHA를 가리키는지 확인한다.
 - 배포할 모듈이 있다면 saanraan.git 안의 `modules/{module_key}` 폴더에 포함되어 있는지 확인한다.
 - 각 모듈의 `module.php` version, `saanraan.min_version`, `saanraan.module_contract`, `contracts.provides`를 확인한다. `saanraan.min_version`은 현재 본체 버전이 충족해야 하고, `saanraan.module_contract`는 현재 `SR_MODULE_CONTRACT_VERSION`과 같아야 하며, 실제 계약 파일과 `contracts.provides` 선언이 일치해야 한다.
+- 1.0 릴리스 후보라면 [1.0 범위 잠금 기준](1.0-scope.md)의 포함/제외 범위를 확인하고, 계획 문서 단계의 본인확인, 회원 마이그레이션, 결제 플러그인이 안정화 범위에 섞이지 않았는지 확인한다.
+- Wiki 구현 명세 정리 전이라면 [1.0 전 구현 스냅샷](implementation-snapshot.md)이 현재 번들 모듈, 대표 경로, 주요 DB 테이블과 맞는지 확인한다.
 - 기본 점검을 통과시키고, 필요한 경우 로컬/스테이징 HTTP 스모크 점검을 실행한다.
 
 ```sh
@@ -77,6 +79,7 @@ Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. `.tools
 - 포함된 모듈 목록과 각 모듈 버전
 - 포함 모듈의 산란 최소 버전과 모듈 계약 버전
 - DB update SQL이 있는 모듈 목록
+- 정적 점검, HTTP 스모크, 브라우저 수동 점검 결과
 - 수동 백업과 `/admin/updates` 실행 안내
 
 ## 5. 배포 후 확인

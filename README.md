@@ -54,9 +54,9 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 보완 중인 부분:
 
 - 관리자 쿠폰 사용 로그 조회 화면은 아직 발급 목록 중심이라 더 다듬어야 합니다.
-- 본인확인, 회원 마이그레이션, 결제 플러그인은 계획 문서 단계입니다.
-- `.tools/bin/check.php` 통합 점검에는 기존 정책 점검 실패 항목이 남아 있습니다.
+- 본인확인, 회원 마이그레이션, 결제 플러그인은 계획 문서 단계이며 1.0 범위에서는 새 구현을 잠급니다.
 - 브라우저 수동 점검과 운영 데이터 기반 검증은 계속 필요한 상태입니다.
+- Wiki 구현 명세는 1.0 배포 정리 때 맞추되, 그 전까지는 저장소의 임시 구현 스냅샷을 함께 봅니다.
 
 ## 번들 모듈
 
@@ -80,13 +80,15 @@ find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n 1 php -l
 php .tools/bin/check.php
 ```
 
-현재 `php -l` 전체 문법 검사는 통과하는 상태입니다. `php .tools/bin/check.php`는 프로젝트 정책 점검용이며, 진행 중인 보완 항목 때문에 실패할 수 있습니다.
+현재 `php -l` 전체 문법 검사와 `php .tools/bin/check.php` 통합 정책 점검은 통과하는 상태입니다. 변경 후에는 두 명령을 다시 실행하고, HTTP/브라우저 스모크 점검이 필요한 변경인지 함께 판단합니다.
 
 ## 주요 문서
 
 | 목적 | 문서 |
 | --- | --- |
 | 문서 구분 | [저장소 문서 기준](docs/README.md) |
+| 1.0 범위 | [1.0 범위 잠금 기준](docs/1.0-scope.md) |
+| 구현 스냅샷 | [1.0 전 구현 스냅샷](docs/implementation-snapshot.md) |
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
 | 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
 | 보안 | [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
