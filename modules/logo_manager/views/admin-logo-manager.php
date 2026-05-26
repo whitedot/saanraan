@@ -3,8 +3,12 @@
 $adminPageTitle = sr_t('logo_manager::ui.text.e046e24f');
 $adminPageSubtitle = sr_t('logo_manager::ui.text.52f5a11e');
 $adminContainerClass = 'admin-page-logo-manager admin-ui-scope';
-$assetSort = isset($assetSort) && is_array($assetSort) ? $assetSort : sr_admin_logo_asset_default_sort();
-$assignmentSort = isset($assignmentSort) && is_array($assignmentSort) ? $assignmentSort : sr_admin_logo_assignment_default_sort();
+$assetSortOptions = sr_admin_logo_asset_sort_options();
+$assetDefaultSort = sr_admin_logo_asset_default_sort();
+$assignmentSortOptions = sr_admin_logo_assignment_sort_options();
+$assignmentDefaultSort = sr_admin_logo_assignment_default_sort();
+$assetSort = isset($assetSort) && is_array($assetSort) ? $assetSort : $assetDefaultSort;
+$assignmentSort = isset($assignmentSort) && is_array($assignmentSort) ? $assignmentSort : $assignmentDefaultSort;
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
