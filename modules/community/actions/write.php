@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === [] && sr_community_asset_event_required($writeChargeConfig)) {
-        $assetModules = sr_community_asset_module_keys_from_value($writeChargeConfig['asset_module'] ?? 'point');
+        $assetModules = sr_community_asset_module_keys_from_value($writeChargeConfig['asset_module'] ?? 'point', true);
         if (!sr_community_asset_modules_available($pdo, $assetModules)) {
             $errors[] = sr_t('community::action.error.write_asset_modules_unavailable');
         } elseif (!sr_community_asset_use_balance_available($pdo, $writeChargeConfig, (int) $account['id'])) {

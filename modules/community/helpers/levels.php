@@ -114,14 +114,14 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
-            ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? 'point'))
+            ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? 'point', true), true)
             : sr_community_asset_module_key((string) ($settings[$assetPrefix . '_asset_module'] ?? 'point'));
         $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
             $settings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
                 sr_community_asset_amounts_from_value(
                     $settings[$assetPrefix . '_amounts_json'] ?? '',
-                    sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module']),
+                    sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'], true),
                     (int) $settings[$assetPrefix . '_amount']
                 )
             );

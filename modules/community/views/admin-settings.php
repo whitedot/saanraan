@@ -244,13 +244,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_settings_write_charge_enabled" type="checkbox" name="write_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['write_charge_enabled']) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.98b7dd61')); ?>
                                         </label>
-                                        <?php $writeChargeAssetModules = sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? 'point'); ?>
+                                        <?php $writeChargeAssetModules = sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? 'point', true); ?>
                                         <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_write_charge_enabled">
                                             <?php echo sr_admin_checkbox_list_html('community_admin_settings_write_charge_asset_module', 'write_charge_asset_module', $assetModuleChoiceOptions, $writeChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="hidden" name="write_charge_amount" value="<?php echo sr_e((string) $settings['write_charge_amount']); ?>">
-                                        <?php echo sr_community_asset_amount_inputs_html('write_charge_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? ''), $settings['write_charge_amounts_json'] ?? '', (int) ($settings['write_charge_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.ce1392a2')])); ?>
+                                        <?php echo sr_community_asset_amount_inputs_html('write_charge_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['write_charge_asset_module'] ?? '', true), $settings['write_charge_amounts_json'] ?? '', (int) ($settings['write_charge_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.ce1392a2')])); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -260,13 +260,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_settings_comment_charge_enabled" type="checkbox" name="comment_charge_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['comment_charge_enabled']) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.5f0ef7af')); ?>
                                         </label>
-                                        <?php $commentChargeAssetModules = sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? 'point'); ?>
+                                        <?php $commentChargeAssetModules = sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? 'point', true); ?>
                                         <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_comment_charge_enabled">
                                             <?php echo sr_admin_checkbox_list_html('community_admin_settings_comment_charge_asset_module', 'comment_charge_asset_module', $assetModuleChoiceOptions, $commentChargeAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="hidden" name="comment_charge_amount" value="<?php echo sr_e((string) $settings['comment_charge_amount']); ?>">
-                                        <?php echo sr_community_asset_amount_inputs_html('comment_charge_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? ''), $settings['comment_charge_amounts_json'] ?? '', (int) ($settings['comment_charge_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.629c5136')])); ?>
+                                        <?php echo sr_community_asset_amount_inputs_html('comment_charge_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['comment_charge_asset_module'] ?? '', true), $settings['comment_charge_amounts_json'] ?? '', (int) ($settings['comment_charge_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.629c5136')])); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -276,13 +276,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_settings_paid_read_enabled" type="checkbox" name="paid_read_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_read_enabled']) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.11ad75bb')); ?>
                                         </label>
-                                        <?php $paidReadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? 'point'); ?>
+                                        <?php $paidReadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? 'point', true); ?>
                                         <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_paid_read_enabled">
                                             <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_read_asset_module', 'paid_read_asset_module', $assetModuleChoiceOptions, $paidReadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="hidden" name="paid_read_amount" value="<?php echo sr_e((string) $settings['paid_read_amount']); ?>">
-                                        <?php echo sr_community_asset_amount_inputs_html('paid_read_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? ''), $settings['paid_read_amounts_json'] ?? '', (int) ($settings['paid_read_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.c9b3e6f0')])); ?>
+                                        <?php echo sr_community_asset_amount_inputs_html('paid_read_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['paid_read_asset_module'] ?? '', true), $settings['paid_read_amounts_json'] ?? '', (int) ($settings['paid_read_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.c9b3e6f0')])); ?>
                                         <select name="paid_read_charge_policy" class="form-select">
                                             <option value="once"<?php echo (string) $settings['paid_read_charge_policy'] === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
                                             <option value="every_view"<?php echo (string) $settings['paid_read_charge_policy'] === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
@@ -296,13 +296,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input id="modules_community_admin_settings_paid_attachment_download_enabled" type="checkbox" name="paid_attachment_download_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_enabled']) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.ac757b6f')); ?>
                                         </label>
-                                        <?php $paidAttachmentDownloadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? 'point'); ?>
+                                        <?php $paidAttachmentDownloadAssetModules = sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? 'point', true); ?>
                                         <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_community_admin_settings_paid_attachment_download_enabled">
                                             <?php echo sr_admin_checkbox_list_html('community_admin_settings_paid_attachment_download_asset_module', 'paid_attachment_download_asset_module', $assetModuleChoiceOptions, $paidAttachmentDownloadAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                         </div>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                         <input type="hidden" name="paid_attachment_download_amount" value="<?php echo sr_e((string) $settings['paid_attachment_download_amount']); ?>">
-                                        <?php echo sr_community_asset_amount_inputs_html('paid_attachment_download_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? ''), $settings['paid_attachment_download_amounts_json'] ?? '', (int) ($settings['paid_attachment_download_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.5b864b9e')])); ?>
+                                        <?php echo sr_community_asset_amount_inputs_html('paid_attachment_download_amounts', $assetModuleOptions, sr_community_asset_module_keys_from_value($settings['paid_attachment_download_asset_module'] ?? '', true), $settings['paid_attachment_download_amounts_json'] ?? '', (int) ($settings['paid_attachment_download_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => sr_t('community::ui.text.5b864b9e')])); ?>
                                         <select name="paid_attachment_download_charge_policy" class="form-select">
                                             <option value="once"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
                                             <option value="every_download"<?php echo (string) $settings['paid_attachment_download_charge_policy'] === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>

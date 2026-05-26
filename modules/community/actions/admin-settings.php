@@ -55,11 +55,11 @@ if (sr_request_method() === 'POST') {
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
             $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
-                ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? ''))
+                ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
-                $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module']);
+                $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
                     sr_community_asset_amounts_from_post($assetPrefix . '_amounts', $assetModules, (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0))
                 );
@@ -109,7 +109,7 @@ if (sr_request_method() === 'POST') {
             if (!empty($assetSettings[$assetPrefix . '_enabled']) && (int) $assetSettings[$assetPrefix . '_amount'] > 0) {
                 $assetModule = (string) $assetSettings[$assetPrefix . '_asset_module'];
                 if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
-                    $assetModules = sr_community_asset_module_keys_from_value($assetModule);
+                    $assetModules = sr_community_asset_module_keys_from_value($assetModule, true);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
                         $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
                     }
