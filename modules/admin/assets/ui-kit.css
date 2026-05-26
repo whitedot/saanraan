@@ -18,12 +18,6 @@
     font-weight: var(--font-weight-bold);
 }
 
-.admin-page-ui-kit .card:not(.card-inverse) > .card-header {
-    background-color: color-mix(in oklab, var(--color-light) 78%, var(--color-default-400));
-    border-start-start-radius: var(--radius);
-    border-start-end-radius: var(--radius);
-}
-
 .admin-ui-kit-samples .card-header.ui-kit-block-flow {
     display: block;
 }
