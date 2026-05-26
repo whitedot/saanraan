@@ -1003,6 +1003,158 @@ function sr_content_admin_query_parts(array $filters): array
     ];
 }
 
+function sr_content_admin_sort_options(): array
+{
+    return [
+        'title' => [
+            'label' => '제목',
+            'columns' => ['p.title', 'p.id'],
+        ],
+        'content_group' => [
+            'label' => '콘텐츠 그룹',
+            'columns' => ['g.title', 'p.id'],
+        ],
+        'slug' => [
+            'label' => 'Slug',
+            'columns' => ['p.slug', 'p.id'],
+        ],
+        'status' => [
+            'label' => '상태',
+            'columns' => ['p.status', 'p.id'],
+        ],
+        'asset_access' => [
+            'label' => '유료 열람',
+            'columns' => ['p.asset_access_enabled', 'p.asset_module', 'p.asset_access_amount', 'p.id'],
+        ],
+        'created_by' => [
+            'label' => '작성자',
+            'columns' => ["COALESCE(creator.display_name, '')", 'p.id'],
+        ],
+        'updated_at' => [
+            'label' => '수정일',
+            'columns' => ['p.updated_at', 'p.id'],
+        ],
+        'published_at' => [
+            'label' => '공개일',
+            'columns' => ['p.published_at', 'p.id'],
+        ],
+    ];
+}
+
+function sr_content_admin_default_sort(): array
+{
+    return [
+        'key' => 'updated_at',
+        'dir' => 'desc',
+    ];
+}
+
+function sr_content_admin_sort_from_request(): array
+{
+    $defaultSort = sr_content_admin_default_sort();
+    $sortKey = sr_get_string('sort', 40);
+    $sortDir = strtolower(sr_get_string('dir', 10));
+    $sortOptions = sr_content_admin_sort_options();
+
+    if (!isset($sortOptions[$sortKey])) {
+        $sortKey = (string) $defaultSort['key'];
+        $sortDir = (string) $defaultSort['dir'];
+    }
+    if (!in_array($sortDir, ['asc', 'desc'], true)) {
+        $sortDir = (string) $defaultSort['dir'];
+    }
+
+    return [
+        'key' => $sortKey,
+        'dir' => $sortDir,
+        'is_default' => $sortKey === (string) $defaultSort['key'] && $sortDir === (string) $defaultSort['dir'],
+    ];
+}
+
+function sr_content_admin_sort_order_sql(array $sort): string
+{
+    $sortOptions = sr_content_admin_sort_options();
+    $defaultSort = sr_content_admin_default_sort();
+    $sortKey = (string) ($sort['key'] ?? $defaultSort['key']);
+    $sortDir = strtolower((string) ($sort['dir'] ?? $defaultSort['dir']));
+    if (!isset($sortOptions[$sortKey])) {
+        $sortKey = (string) $defaultSort['key'];
+        $sortDir = (string) $defaultSort['dir'];
+    }
+    if (!in_array($sortDir, ['asc', 'desc'], true)) {
+        $sortDir = (string) $defaultSort['dir'];
+    }
+
+    $orderParts = [];
+    foreach ($sortOptions[$sortKey]['columns'] as $column) {
+        $orderParts[] = $column . ' ' . strtoupper($sortDir);
+    }
+
+    return ' ORDER BY ' . implode(', ', $orderParts);
+}
+
+function sr_content_admin_sort_url(string $sortKey = '', string $sortDir = ''): string
+{
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    $path = (string) (parse_url($uri, PHP_URL_PATH) ?: '/');
+    $queryString = (string) (parse_url($uri, PHP_URL_QUERY) ?: '');
+    $params = [];
+    if ($queryString !== '') {
+        parse_str($queryString, $params);
+        if (!is_array($params)) {
+            $params = [];
+        }
+    }
+
+    unset($params['page'], $params['sort'], $params['dir']);
+
+    $sortOptions = sr_content_admin_sort_options();
+    $defaultSort = sr_content_admin_default_sort();
+    $sortDir = strtolower($sortDir);
+    if (isset($sortOptions[$sortKey]) && in_array($sortDir, ['asc', 'desc'], true)) {
+        if ($sortKey !== (string) $defaultSort['key'] || $sortDir !== (string) $defaultSort['dir']) {
+            $params['sort'] = $sortKey;
+            $params['dir'] = $sortDir;
+        }
+    }
+
+    $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+
+    return sr_url($path . ($query !== '' ? '?' . $query : ''));
+}
+
+function sr_content_admin_sort_header_html(string $label, string $sortKey, array $currentSort): string
+{
+    $currentKey = (string) ($currentSort['key'] ?? '');
+    $currentDir = (string) ($currentSort['dir'] ?? 'desc');
+    $isCurrent = $currentKey === $sortKey;
+    $ascActive = $isCurrent && $currentDir === 'asc';
+    $descActive = $isCurrent && $currentDir === 'desc';
+
+    $ascClass = 'btn btn-sm admin-sort-button btn-group-start ' . ($ascActive ? 'btn-solid-primary' : 'btn-solid-light');
+    $descClass = 'btn btn-sm admin-sort-button btn-group-end ' . ($descActive ? 'btn-solid-primary' : 'btn-solid-light');
+    $ascLabel = $label . ' 오름차순 정렬';
+    $descLabel = $label . ' 내림차순 정렬';
+
+    return '<div class="admin-sort-header">'
+        . '<span class="admin-sort-label">' . sr_e($label) . '</span>'
+        . '<span class="admin-sort-button-group" role="group" aria-label="' . sr_e($label . ' 정렬 방향') . '">'
+        . '<a href="' . sr_e(sr_content_admin_sort_url($sortKey, 'asc')) . '" class="' . sr_e($ascClass) . '" aria-label="' . sr_e($ascLabel) . '" title="' . sr_e($ascLabel) . '"' . ($ascActive ? ' aria-current="true"' : '') . '>' . sr_material_icon_html('arrow_upward') . '</a>'
+        . '<a href="' . sr_e(sr_content_admin_sort_url($sortKey, 'desc')) . '" class="' . sr_e($descClass) . '" aria-label="' . sr_e($descLabel) . '" title="' . sr_e($descLabel) . '"' . ($descActive ? ' aria-current="true"' : '') . '>' . sr_material_icon_html('arrow_downward') . '</a>'
+        . '</span>'
+        . ($isCurrent ? '<span class="sr-only">현재 ' . sr_e($currentDir === 'asc' ? '오름차순' : '내림차순') . '</span>' : '')
+        . '</div>';
+}
+
+function sr_content_admin_sort_aria(string $sortKey, array $currentSort): string
+{
+    if ((string) ($currentSort['key'] ?? '') !== $sortKey) {
+        return '';
+    }
+
+    return (string) ($currentSort['dir'] ?? 'desc') === 'asc' ? ' aria-sort="ascending"' : ' aria-sort="descending"';
+}
+
 function sr_content_admin_count(PDO $pdo, array $filters): int
 {
     $queryParts = sr_content_admin_query_parts($filters);
@@ -1022,7 +1174,7 @@ function sr_content_admin_count(PDO $pdo, array $filters): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_content_admin_query_parts($filters);
     $where = $queryParts['where'];
@@ -1036,7 +1188,7 @@ function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $of
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY p.updated_at DESC, p.id DESC';
+    $sql .= sr_content_admin_sort_order_sql($sort);
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

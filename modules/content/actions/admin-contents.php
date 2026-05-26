@@ -47,9 +47,10 @@ if ($pageAdminPage === 'form') {
     if ((int) ($filters['content_group_id'] ?? 0) > 0 && !is_array(sr_content_group_by_id($pdo, (int) $filters['content_group_id']))) {
         $filters['content_group_id'] = 0;
     }
+    $contentSort = sr_content_admin_sort_from_request();
     $pageStatusCounts = sr_content_admin_status_counts($pdo);
     $pagePagination = sr_admin_pagination_from_total($pdo, sr_content_admin_count($pdo, $filters));
-    $pages = sr_content_admin_list($pdo, $filters, (int) $pagePagination['per_page'], sr_admin_pagination_offset($pagePagination));
+    $pages = sr_content_admin_list($pdo, $filters, (int) $pagePagination['per_page'], sr_admin_pagination_offset($pagePagination), $contentSort);
 }
 
 include SR_ROOT . '/modules/content/views/admin-contents.php';

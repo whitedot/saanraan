@@ -45,6 +45,7 @@ $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.cont
 $adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('content::ui.content.status.85bf8a35') : sr_t('content::ui.content.status.search.29f7335b');
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-scope' : 'admin-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
+$contentSort = isset($contentSort) && is_array($contentSort) ? $contentSort : sr_content_admin_default_sort();
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
 $newContentFileAssetSettings = [
@@ -756,20 +757,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
+        <div class="admin-content-list-summary">
+            <?php if (empty($contentSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_content_admin_sort_url()); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-content-sort-reset" aria-label="콘텐츠 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
+        </div>
         <div class="table-wrapper">
             <table class="table admin-content-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th><?php echo sr_e(sr_t('content::ui.text.08b17e43')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></th>
-                        <th>Slug</th>
-                        <th><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.text.f2ee20a7')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.edit.d3a98476')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.text.84b7c221')); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('title', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.08b17e43'), 'title', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('content_group', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.5d908ddd'), 'content_group', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('slug', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('Slug', 'slug', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('status', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('asset_access', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.c9b3e6f0'), 'asset_access', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('created_by', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.f2ee20a7'), 'created_by', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('updated_at', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.edit.d3a98476'), 'updated_at', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('published_at', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.84b7c221'), 'published_at', $contentSort); ?></th>
                         <th class="text-end"><?php echo sr_e(sr_t('content::ui.text.29ae8f30')); ?></th>
                     </tr>
                 </thead>
