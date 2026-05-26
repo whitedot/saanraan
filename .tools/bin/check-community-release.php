@@ -102,6 +102,48 @@ function sr_community_release_require_list_values(array $actualValues, array $re
     }
 }
 
+function sr_community_release_wrapper_action(string $path, array $requiredNeedles, string $includeNeedle, string $label): void
+{
+    if (!is_file($path)) {
+        sr_community_release_error('Required community release file is missing: ' . $path);
+        return;
+    }
+
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        sr_community_release_error('Required community release file cannot be read: ' . $path);
+        return;
+    }
+
+    $normalizedContent = str_replace(["\r\n", "\r"], "\n", trim($content));
+    foreach ($requiredNeedles as $needle) {
+        if (!str_contains($normalizedContent, $needle)) {
+            sr_community_release_error($label . ' must contain: ' . $needle);
+        }
+    }
+    if (!str_contains($normalizedContent, $includeNeedle)) {
+        sr_community_release_error($label . ' must include shared action: ' . $includeNeedle);
+    }
+    if (substr_count($normalizedContent, 'include ') !== 1) {
+        sr_community_release_error($label . ' must include exactly one shared action.');
+    }
+
+    $forbiddenFragments = [
+        'sr_post_',
+        '$_FILES',
+        'sr_audit_log(',
+        'sr_admin_require_permission(',
+        'sr_community_create_',
+        'sr_community_update_',
+        'sr_community_delete_',
+    ];
+    foreach ($forbiddenFragments as $fragment) {
+        if (str_contains($normalizedContent, $fragment)) {
+            sr_community_release_error($label . ' must remain a thin wrapper and not contain state-changing logic: ' . $fragment);
+        }
+    }
+}
+
 $module = sr_community_release_array_file('modules/community/module.php');
 $paths = sr_community_release_array_file('modules/community/paths.php');
 $adminMenu = sr_community_release_array_file('modules/community/admin-menu.php');
@@ -651,6 +693,31 @@ $stateChangingActions = [
 foreach ($stateChangingActions as $actionPath) {
     sr_community_release_file_contains($actionPath, ['sr_require_csrf('], $actionPath);
 }
+
+sr_community_release_wrapper_action('modules/community/actions/admin-board-create.php', [
+    '$communityBoardsPage = \'new\'',
+    '$_POST[\'intent\'] = \'create\'',
+], "include SR_ROOT . '/modules/community/actions/admin-boards.php';", 'Community admin board create wrapper');
+sr_community_release_wrapper_action('modules/community/actions/admin-board-update.php', [
+    '$communityBoardsPage = \'edit\'',
+    '$_POST[\'intent\'] = \'update\'',
+    '$_GET[\'edit_id\'] = $_POST[\'board_id\']',
+], "include SR_ROOT . '/modules/community/actions/admin-boards.php';", 'Community admin board update wrapper');
+sr_community_release_wrapper_action('modules/community/actions/admin-board-group-create.php', [
+    '$communityBoardGroupsPage = \'new\'',
+    '$_POST[\'intent\'] = \'create_group\'',
+], "include SR_ROOT . '/modules/community/actions/admin-board-groups.php';", 'Community admin board group create wrapper');
+sr_community_release_wrapper_action('modules/community/actions/admin-board-group-update.php', [
+    '$communityBoardGroupsPage = \'edit\'',
+    '$_POST[\'intent\'] = \'update_group\'',
+    '$_GET[\'edit_id\'] = $_POST[\'group_id\']',
+], "include SR_ROOT . '/modules/community/actions/admin-board-groups.php';", 'Community admin board group update wrapper');
+sr_community_release_wrapper_action('modules/community/actions/admin-comments.php', [
+    '$communityPostsPage = \'comments\'',
+], "include SR_ROOT . '/modules/community/actions/admin-posts.php';", 'Community admin comments wrapper');
+sr_community_release_wrapper_action('modules/community/actions/admin-levels.php', [
+    '$communitySettingsPage = \'levels\'',
+], "include SR_ROOT . '/modules/community/actions/admin-settings.php';", 'Community admin levels wrapper');
 
 foreach (sr_community_release_files('modules/community/assets', ['css']) as $assetFile) {
     if (!str_starts_with(basename($assetFile), 'community-')) {
