@@ -129,9 +129,16 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-error{border-color:color-mix(in oklab, var(--color-danger) 30%, transparent)}}
 .admin-flash-message-error{color:var(--color-danger-hover);background:#feecef}
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-error{background:color-mix(in oklab, var(--color-danger) 10%, white)}}
-[data-admin-toast-stack]{position:fixed;left:50%;top:calc(var(--admin-shell-bar-height) + 1rem);z-index:80;width:min(24rem,calc(100vw - 2rem));transform:translateX(-50%);display:grid;gap:.75rem}
+.alert{align-items:center;border:0;border-radius:var(--radius);display:flex;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3)}
+.alert-secondary{background:#f0effb;color:var(--color-secondary)}
+@supports (color:color-mix(in lab, red, red)){.alert-secondary{background:color-mix(in oklab, var(--color-secondary) 15%, white)}}
+.alert-warning{background:#fff1e5;color:var(--color-warning)}
+@supports (color:color-mix(in lab, red, red)){.alert-warning{background:color-mix(in oklab, var(--color-warning) 15%, white)}}
+[data-admin-toast-stack]{position:fixed;left:50%;top:calc(var(--admin-shell-bar-height) + 1rem);z-index:90;width:min(24rem,calc(100vw - 2rem));transform:translateX(-50%);display:grid;gap:.75rem}
+[data-admin-toast-stack]:empty{display:none}
 [data-admin-toast-stack] .admin-flash-message{margin-bottom:calc(var(--spacing) * 0);padding-right:calc(var(--spacing) * 11);display:grid;gap:calc(var(--spacing) * .8);position:relative}
-[data-admin-toast-close]{position:absolute;right:calc(var(--spacing) * 2.5);top:calc(var(--spacing) * 2);border-color:transparent;background-color:transparent;color:var(--color-default-600)}
+.admin-flash-message-notice{border-color:transparent;box-shadow:none}
+[data-admin-toast-close]{position:absolute;right:calc(var(--spacing) * 2.5);top:calc(var(--spacing) * 2);border-color:transparent!important;background-color:transparent!important;color:currentColor}
 [data-admin-toast-close] .admin-toast-close-icon{font-size:1.125rem;line-height:1}
 @media (hover:hover){[data-admin-toast-close]:hover{background-color:transparent;color:var(--color-default-900)}}
 .admin-flash-message[data-admin-toast]{animation:admin-toast-in .18s ease-out}
@@ -242,6 +249,10 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:14px;line-height:1.5;min-height:calc(var(--spacing) * 9.25)}
+.admin-setting-source-options>.admin-form-check:has(input:disabled),
+.admin-setting-source-options>.admin-form-check.is-disabled-look{cursor:not-allowed;opacity:.5}
+.admin-setting-source-options>.admin-form-check:has(input:disabled) input,
+.admin-setting-source-options>.admin-form-check.is-disabled-look input{cursor:not-allowed}
 .admin-setting-source-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25);width:100%}
 .admin-setting-source-line>.form-control-full{flex:1 1 18rem;width:auto}
 .admin-setting-source-line>.admin-setting-source-options{margin-left:auto}

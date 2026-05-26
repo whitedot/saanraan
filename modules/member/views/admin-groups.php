@@ -493,7 +493,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
             function showToast(message) {
                 var toast = document.createElement('div');
-                toast.className = 'admin-flash-message admin-flash-message-error';
+                toast.className = 'admin-flash-message admin-flash-message-notice alert alert-warning';
                 toast.setAttribute('data-admin-toast', '');
 
                 var strong = document.createElement('strong');

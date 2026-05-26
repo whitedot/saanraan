@@ -854,6 +854,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 fallback.checked = true;
             }
         };
+        var syncDisabledLook = function (option) {
+            var label = option && option.closest ? option.closest('.admin-form-check') : null;
+            if (label) {
+                label.classList.toggle('is-disabled-look', option.disabled);
+            }
+        };
         var syncGroupScope = function () {
             if (!groupSelect || scopeOptions.length === 0) {
                 return;
@@ -864,6 +870,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     return;
                 }
                 option.disabled = !hasGroup;
+                syncDisabledLook(option);
                 if (!hasGroup && option.checked) {
                     selectFallbackOption(option, 'here_only');
                 }
@@ -873,6 +880,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     return;
                 }
                 option.disabled = !hasGroup;
+                syncDisabledLook(option);
                 if (!hasGroup && option.checked) {
                     selectFallbackOption(option, 'content');
                 }

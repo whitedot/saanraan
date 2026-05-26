@@ -209,7 +209,7 @@ window.AdminShell = {
 
             const stack = ensureToastStack();
             const toast = document.createElement('div');
-            toast.className = 'admin-flash-message admin-flash-message-notice';
+            toast.className = 'admin-flash-message admin-flash-message-notice alert alert-secondary';
             toast.setAttribute('data-admin-toast', '');
 
             const text = document.createElement('span');

@@ -798,12 +798,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!groupSelect) {
             return;
         }
+        var syncDisabledLook = function (input) {
+            var optionLabel = input && input.closest ? input.closest('.admin-form-check') : null;
+            if (optionLabel) {
+                optionLabel.classList.toggle('is-disabled-look', input.disabled);
+            }
+        };
         var hasGroup = groupSelect.value !== '0';
         Array.prototype.slice.call(document.querySelectorAll('input[name^="source_"]')).forEach(function (input) {
             if (input.value !== 'group') {
                 return;
             }
             input.disabled = !hasGroup;
+            syncDisabledLook(input);
             if (!hasGroup && input.checked) {
                 var fallback = document.querySelector('input[name="' + input.name + '"][value="board"]');
                 if (fallback) {
