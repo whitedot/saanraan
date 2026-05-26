@@ -346,7 +346,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
-            <h3><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></h3>
+        </section>
+        <section class="admin-card card">
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span>
+                <?php if ($contentGroupAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($contentGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
