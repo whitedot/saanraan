@@ -396,7 +396,22 @@ function sr_notification_admin_notification_count(PDO $pdo, array $filters = [])
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+function sr_notification_admin_notification_sort_options(): array
+{
+    return [
+        'title' => ['columns' => ['n.title', 'n.id']],
+        'audience' => ['columns' => ['n.audience', 'n.id']],
+        'status' => ['columns' => ['n.status', 'n.id']],
+        'created_at' => ['columns' => ['n.created_at', 'n.id']],
+    ];
+}
+
+function sr_notification_admin_notification_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0, array $sort = []): array
 {
     $useLimit = $limit > 0;
     if ($useLimit) {
@@ -410,7 +425,7 @@ function sr_notification_admin_notifications(PDO $pdo, int $limit = 100, array $
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY n.id DESC';
+    $sql .= sr_admin_sort_order_sql(sr_notification_admin_notification_sort_options(), $sort, sr_notification_admin_notification_default_sort());
     if ($useLimit) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

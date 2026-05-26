@@ -300,9 +300,10 @@ if (sr_request_method() === 'POST') {
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
+$notificationSort = sr_admin_sort_from_request(sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort());
 $notificationPagination = sr_admin_pagination_from_total($pdo, $notificationAdminPage === 'list' ? sr_notification_admin_notification_count($pdo, $notificationListFilters) : 0);
 $notifications = $notificationAdminPage === 'list'
-    ? sr_notification_admin_notifications($pdo, (int) $notificationPagination['per_page'], $notificationListFilters, sr_admin_pagination_offset($notificationPagination))
+    ? sr_notification_admin_notifications($pdo, (int) $notificationPagination['per_page'], $notificationListFilters, sr_admin_pagination_offset($notificationPagination), $notificationSort)
     : [];
 
 $deliveryStatusCounts = ['total' => 0];
@@ -320,6 +321,15 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $deliveries = [];
+$deliverySortOptions = [
+    'notification' => ['columns' => ['n.title', 'd.id']],
+    'channel' => ['columns' => ['d.channel', 'd.id']],
+    'recipient' => ['columns' => ['d.recipient', 'd.id']],
+    'status' => ['columns' => ['d.status', 'd.id']],
+    'updated_at' => ['columns' => ['d.updated_at', 'd.id']],
+];
+$deliveryDefaultSort = sr_admin_sort_default('updated_at', 'desc');
+$deliverySort = sr_admin_sort_from_request($deliverySortOptions, $deliveryDefaultSort);
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
                        n.title AS notification_title
                 FROM sr_notification_deliveries d
@@ -371,7 +381,7 @@ if ($notificationAdminPage === 'deliveries') {
     $stmt->execute($deliveryParams);
     $deliveryCountRow = $stmt->fetch();
     $deliveryPagination = sr_admin_pagination_from_total($pdo, is_array($deliveryCountRow) ? (int) ($deliveryCountRow['count_value'] ?? 0) : 0);
-    $deliverySql .= ' ORDER BY d.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $deliverySql .= sr_admin_sort_order_sql($deliverySortOptions, $deliverySort, $deliveryDefaultSort) . ' LIMIT :limit_value OFFSET :offset_value';
     $stmt = $pdo->prepare($deliverySql);
     $stmt->bindValue('limit_value', (int) $deliveryPagination['per_page'], PDO::PARAM_INT);
     $stmt->bindValue('offset_value', sr_admin_pagination_offset($deliveryPagination), PDO::PARAM_INT);

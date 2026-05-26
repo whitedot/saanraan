@@ -405,7 +405,23 @@ function sr_community_admin_board_count(PDO $pdo, array $filters): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+function sr_community_admin_board_sort_options(): array
+{
+    return [
+        'board_key' => ['columns' => ['b.board_key', 'b.id']],
+        'title' => ['columns' => ['b.title', 'b.id']],
+        'board_group' => ['columns' => ['g.title', 'b.id']],
+        'status' => ['columns' => ['b.status', 'b.id']],
+        'sort_order' => ['columns' => ['COALESCE(g.sort_order, 1000000)', 'g.id', 'b.sort_order', 'b.id']],
+    ];
+}
+
+function sr_community_admin_board_default_sort(): array
+{
+    return sr_admin_sort_default('sort_order', 'asc');
+}
+
+function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_community_admin_board_query_parts($filters);
     $sql = 'SELECT ' . sr_community_board_select_columns('b') . ',
@@ -418,7 +434,7 @@ function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
-    $sql .= ' ORDER BY COALESCE(g.sort_order, 1000000) ASC, g.id ASC, b.sort_order ASC, b.id ASC';
+    $sql .= sr_admin_sort_order_sql(sr_community_admin_board_sort_options(), $sort, sr_community_admin_board_default_sort());
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
@@ -665,7 +681,23 @@ function sr_community_admin_board_group_count(PDO $pdo, array $filters): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_community_admin_board_groups(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+function sr_community_admin_board_group_sort_options(): array
+{
+    return [
+        'group_key' => ['columns' => ['g.group_key', 'g.id']],
+        'title' => ['columns' => ['g.title', 'g.id']],
+        'status' => ['columns' => ['g.status', 'g.id']],
+        'board_count' => ['columns' => ['board_count', 'g.id']],
+        'sort_order' => ['columns' => ['g.sort_order', 'g.id']],
+    ];
+}
+
+function sr_community_admin_board_group_default_sort(): array
+{
+    return sr_admin_sort_default('sort_order', 'asc');
+}
+
+function sr_community_admin_board_groups(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_community_admin_board_group_query_parts($filters);
     $sql = 'SELECT g.*,
@@ -675,8 +707,8 @@ function sr_community_admin_board_groups(PDO $pdo, array $filters, int $limit = 
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
-    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
-              ORDER BY g.sort_order ASC, g.id ASC';
+    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at'
+        . sr_admin_sort_order_sql(sr_community_admin_board_group_sort_options(), $sort, sr_community_admin_board_group_default_sort());
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

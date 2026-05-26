@@ -825,7 +825,24 @@ function sr_content_admin_group_count(PDO $pdo, array $filters): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_content_admin_group_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+function sr_content_admin_group_sort_options(): array
+{
+    return [
+        'title' => ['columns' => ['g.title', 'g.id']],
+        'group_key' => ['columns' => ['g.group_key', 'g.id']],
+        'status' => ['columns' => ['g.status', 'g.id']],
+        'content_count' => ['columns' => ['content_count', 'g.id']],
+        'sort_order' => ['columns' => ['g.sort_order', 'g.id']],
+        'updated_at' => ['columns' => ['g.updated_at', 'g.id']],
+    ];
+}
+
+function sr_content_admin_group_default_sort(): array
+{
+    return sr_admin_sort_default('sort_order', 'asc');
+}
+
+function sr_content_admin_group_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     if (!sr_content_groups_table_exists($pdo)) {
         return [];
@@ -841,8 +858,8 @@ function sr_content_admin_group_list(PDO $pdo, array $filters, int $limit = 0, i
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at
-              ORDER BY g.sort_order ASC, g.id ASC';
+    $sql .= ' GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at'
+        . sr_admin_sort_order_sql(sr_content_admin_group_sort_options(), $sort, sr_content_admin_group_default_sort());
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

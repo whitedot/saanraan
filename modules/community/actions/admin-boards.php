@@ -727,10 +727,11 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
 };
 
 $boardStatusCounts = sr_community_admin_board_status_counts($pdo, $allowedStatuses);
+$boardSort = sr_admin_sort_from_request(sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort());
 $boardPagination = sr_admin_pagination_from_total($pdo, $communityBoardsPage === 'list' ? sr_community_admin_board_count($pdo, $boardListFilters) : 0);
 $boards = [];
 if ($communityBoardsPage === 'list') {
-    foreach (sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination)) as $board) {
+    foreach (sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination), $boardSort) as $board) {
         $boards[] = $communityAdminPrepareBoard($board);
     }
 }

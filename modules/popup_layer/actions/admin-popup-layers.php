@@ -319,6 +319,16 @@ if ($popupWhere !== []) {
     $popupSql .= ' WHERE ' . implode(' AND ', $popupWhere);
 }
 $popupPagination = sr_admin_pagination_from_total($pdo, 0);
+$popupSortOptions = [
+    'title' => ['columns' => ['p.title', 'p.id']],
+    'status' => ['columns' => ['p.status', 'p.id']],
+    'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
+    'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
+    'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],
+    'updated_at' => ['columns' => ['p.updated_at', 'p.id']],
+];
+$popupDefaultSort = sr_admin_sort_default('updated_at', 'desc');
+$popupSort = sr_admin_sort_from_request($popupSortOptions, $popupDefaultSort);
 if ($popupLayerAdminPage === 'list') {
     $popupCountSql = 'SELECT COUNT(*) AS count_value
                       FROM sr_popup_layers p
@@ -328,7 +338,7 @@ if ($popupLayerAdminPage === 'list') {
     $stmt->execute($popupParams);
     $popupCountRow = $stmt->fetch();
     $popupPagination = sr_admin_pagination_from_total($pdo, is_array($popupCountRow) ? (int) ($popupCountRow['count_value'] ?? 0) : 0);
-    $popupSql .= ' ORDER BY p.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $popupSql .= sr_admin_sort_order_sql($popupSortOptions, $popupSort, $popupDefaultSort) . ' LIMIT :limit_value OFFSET :offset_value';
     $stmt = $pdo->prepare($popupSql);
     $stmt->bindValue('limit_value', (int) $popupPagination['per_page'], PDO::PARAM_INT);
     $stmt->bindValue('offset_value', sr_admin_pagination_offset($popupPagination), PDO::PARAM_INT);

@@ -42,10 +42,11 @@ if (sr_request_method() === 'POST') {
 $statusFilter = sr_admin_member_status_filter($allowedStatuses);
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $searchFilter = sr_admin_member_search_filter($pdo, $runtimeConfig);
+$memberSort = sr_admin_sort_from_request(sr_admin_member_sort_options(), sr_admin_member_default_sort());
 $statusCounts = sr_admin_member_status_counts($pdo);
 $memberPagination = sr_admin_pagination_from_total($pdo, $memberAdminPage === 'members' ? sr_admin_member_count($pdo, $statusFilter, $searchFilter) : 0);
 $members = $memberAdminPage === 'members'
-    ? sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter, (int) $memberPagination['per_page'], sr_admin_pagination_offset($memberPagination)))
+    ? sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter, (int) $memberPagination['per_page'], sr_admin_pagination_offset($memberPagination), $memberSort))
     : [];
 $editMember = null;
 if ($memberAdminPage === 'edit_form') {

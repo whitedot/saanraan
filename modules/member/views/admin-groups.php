@@ -1,6 +1,7 @@
 <?php
 
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
+$groupSort = isset($groupSort) && is_array($groupSort) ? $groupSort : sr_admin_member_group_default_sort();
 $adminContainerClass = 'admin-page-member-groups admin-ui-scope';
 $adminPageTitle = sr_t('member::ui.member.7482bebf');
 if ($memberGroupsPage === 'group_form') {
@@ -337,16 +338,21 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <?php } ?>
             </div>
         </div>
-        <?php echo sr_admin_pagination_summary_html($groupPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($groupSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="회원 그룹 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($groupPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-member-group-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>key</th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.member.984c7e2b')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_key', $groupSort); ?>><?php echo sr_admin_sort_header_html('key', 'group_key', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.97e73d18'), 'title', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('active_member_count', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.member.984c7e2b'), 'active_member_count', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

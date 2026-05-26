@@ -14,6 +14,7 @@ if ($memberAdminPage === 'create_form') {
 $statusCounts = isset($statusCounts) && is_array($statusCounts) ? $statusCounts : [];
 $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
+$memberSort = isset($memberSort) && is_array($memberSort) ? $memberSort : sr_admin_member_default_sort();
 $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
 $createStatuses = sr_admin_member_create_allowed_statuses();
@@ -266,20 +267,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.member.list.d8e6279a')); ?></h2>
         <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>
     </div>
-    <?php echo sr_admin_pagination_summary_html($memberPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($memberSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_member_sort_options(), sr_admin_member_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($memberPagination); ?>
+    </div>
     <div class="table-wrapper">
         <table class="table admin-member-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.login.677d154e')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.fda1ae9a')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.5efd3ddd')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.name.253d1510'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('email_verified_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.2f905abd'), 'email_verified_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('last_login_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.login.677d154e'), 'last_login_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('active_session_count', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.fda1ae9a'), 'active_session_count', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('created_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.5efd3ddd'), 'created_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

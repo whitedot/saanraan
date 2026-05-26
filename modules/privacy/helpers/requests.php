@@ -253,7 +253,22 @@ function sr_admin_privacy_request_count(PDO $pdo, array $filters): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_admin_privacy_requests(PDO $pdo, array $filters, int $limit = 0, int $offset = 0): array
+function sr_admin_privacy_request_sort_options(): array
+{
+    return [
+        'request_type' => ['columns' => ['request_type', 'id']],
+        'status' => ['columns' => ['status', 'id']],
+        'handled_at' => ['columns' => ['handled_at', 'id']],
+        'created_at' => ['columns' => ['created_at', 'id']],
+    ];
+}
+
+function sr_admin_privacy_request_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_admin_privacy_requests(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_admin_privacy_request_query_parts($filters);
     $where = $queryParts['where'];
@@ -261,8 +276,8 @@ function sr_admin_privacy_requests(PDO $pdo, array $filters, int $limit = 0, int
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
     $sql = 'SELECT id, account_id, request_type, status, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at
             FROM sr_privacy_requests
-            ' . $whereSql . '
-            ORDER BY id DESC';
+            ' . $whereSql
+        . sr_admin_sort_order_sql(sr_admin_privacy_request_sort_options(), $sort, sr_admin_privacy_request_default_sort());
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

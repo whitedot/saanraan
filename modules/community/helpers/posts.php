@@ -310,7 +310,25 @@ function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+function sr_community_admin_post_sort_options(): array
+{
+    return [
+        'board' => ['columns' => ['b.title', 'p.id']],
+        'title' => ['columns' => ['p.title', 'p.id']],
+        'author' => ['columns' => ["COALESCE(author_nickname.nickname, a.display_name, '')", 'p.id']],
+        'status' => ['columns' => ['p.status', 'p.id']],
+        'published_comment_count' => ['columns' => ['published_comment_count', 'p.id']],
+        'active_attachment_count' => ['columns' => ['active_attachment_count', 'p.id']],
+        'created_at' => ['columns' => ['p.created_at', 'p.id']],
+    ];
+}
+
+function sr_community_admin_post_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0, array $sort = []): array
 {
     $useLimit = $limit > 0;
     if ($useLimit) {
@@ -333,7 +351,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY p.id DESC';
+    $sql .= sr_admin_sort_order_sql(sr_community_admin_post_sort_options(), $sort, sr_community_admin_post_default_sort());
     if ($useLimit) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }
@@ -501,7 +519,23 @@ function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+function sr_community_admin_comment_sort_options(): array
+{
+    return [
+        'post' => ['columns' => ['p.title', 'c.id']],
+        'author' => ['columns' => ["COALESCE(author_nickname.nickname, a.display_name, '')", 'c.id']],
+        'body' => ['columns' => ['c.body_text', 'c.id']],
+        'status' => ['columns' => ['c.status', 'c.id']],
+        'created_at' => ['columns' => ['c.created_at', 'c.id']],
+    ];
+}
+
+function sr_community_admin_comment_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0, array $sort = []): array
 {
     $useLimit = $limit > 0;
     if ($useLimit) {
@@ -524,7 +558,7 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY c.id DESC';
+    $sql .= sr_admin_sort_order_sql(sr_community_admin_comment_sort_options(), $sort, sr_community_admin_comment_default_sort());
     if ($useLimit) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

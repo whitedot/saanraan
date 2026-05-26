@@ -14,6 +14,7 @@ if ($communityBoardsPage === 'new') {
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 }
 $boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => '', 'group_id' => 0, 'field' => 'all', 'q' => ''];
+$boardSort = isset($boardSort) && is_array($boardSort) ? $boardSort : sr_community_admin_board_default_sort();
 $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ? $boardStatusCounts : [];
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
@@ -314,16 +315,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($boardSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="게시판 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-community-board-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th>key</th>
-                    <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.text.5d908ddd')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('board_key', $boardSort); ?>><?php echo sr_admin_sort_header_html('key', 'board_key', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('board_group', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.5d908ddd'), 'board_group', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

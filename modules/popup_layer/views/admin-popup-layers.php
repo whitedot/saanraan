@@ -6,6 +6,16 @@ $adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? sr_t('popup_laye
 $adminPageSubtitle = $popupLayerAdminPage === 'form' ? sr_t('popup_layer::ui.close.130bd932') : sr_t('popup_layer::ui.status.search.2a2d14e6');
 $adminContainerClass = $popupLayerAdminPage === 'form' ? 'admin-page-popup-layer-form admin-ui-scope' : 'admin-page-popup-layer-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$popupSortOptions = isset($popupSortOptions) && is_array($popupSortOptions) ? $popupSortOptions : [
+    'title' => ['columns' => ['p.title', 'p.id']],
+    'status' => ['columns' => ['p.status', 'p.id']],
+    'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
+    'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
+    'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],
+    'updated_at' => ['columns' => ['p.updated_at', 'p.id']],
+];
+$popupDefaultSort = isset($popupDefaultSort) && is_array($popupDefaultSort) ? $popupDefaultSort : sr_admin_sort_default('updated_at', 'desc');
+$popupSort = isset($popupSort) && is_array($popupSort) ? $popupSort : $popupDefaultSort;
 $popupStatusCounts = isset($popupStatusCounts) && is_array($popupStatusCounts) ? $popupStatusCounts : [];
 $totalPopups = (int) ($popupStatusCounts['total'] ?? count($popups ?? []));
 $targetLabels = [];
@@ -258,19 +268,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('popup_layer::ui.text.bbd10514')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($popupPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($popupSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($popupSortOptions, $popupDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="팝업레이어 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($popupPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-popup-layer-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.text.08b17e43')); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.text.776b723f')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.08b17e43'), 'title', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.status.e10195a1'), 'status', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('skin_key', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.776b723f'), 'skin_key', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('popup_layer::ui.text.8c609deb')); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.text.b918d5af')); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.close.06cddc6e')); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.edit.d3a98476')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.b918d5af'), 'starts_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('dismiss_cookie_days', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.close.06cddc6e'), 'dismiss_cookie_days', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('updated_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.edit.d3a98476'), 'updated_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('popup_layer::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

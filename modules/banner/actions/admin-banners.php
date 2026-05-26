@@ -340,6 +340,16 @@ $bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_a
               LEFT JOIN sr_banner_targets t ON t.banner_id = b.id';
 $bannerParams = [];
 $bannerWhere = [];
+$bannerSortOptions = [
+    'title' => ['columns' => ['b.title', 'b.id']],
+    'status' => ['columns' => ['b.status', 'b.id']],
+    'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
+    'click_count' => ['columns' => ['b.click_count', 'b.id']],
+    'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
+    'sort_order' => ['columns' => ['b.sort_order', 'b.id']],
+];
+$bannerDefaultSort = sr_admin_sort_default('sort_order', 'asc');
+$bannerSort = sr_admin_sort_from_request($bannerSortOptions, $bannerDefaultSort);
 if ($filters['status'] !== '') {
     $bannerWhere[] = 'b.status = :status';
     $bannerParams['status'] = $filters['status'];
@@ -378,7 +388,7 @@ if ($bannerAdminPage === 'list') {
     $stmt->execute($bannerParams);
     $bannerCountRow = $stmt->fetch();
     $bannerPagination = sr_admin_pagination_from_total($pdo, is_array($bannerCountRow) ? (int) ($bannerCountRow['count_value'] ?? 0) : 0);
-    $bannerSql .= ' ORDER BY b.sort_order ASC, b.id DESC LIMIT :limit_value OFFSET :offset_value';
+    $bannerSql .= sr_admin_sort_order_sql($bannerSortOptions, $bannerSort, $bannerDefaultSort) . ' LIMIT :limit_value OFFSET :offset_value';
     $stmt = $pdo->prepare($bannerSql);
     $stmt->bindValue('limit_value', (int) $bannerPagination['per_page'], PDO::PARAM_INT);
     $stmt->bindValue('offset_value', sr_admin_pagination_offset($bannerPagination), PDO::PARAM_INT);

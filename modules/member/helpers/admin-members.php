@@ -871,7 +871,25 @@ function sr_admin_member_count(PDO $pdo, string $statusFilter, array $searchFilt
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0): array
+function sr_admin_member_sort_options(): array
+{
+    return [
+        'email' => ['columns' => ['a.email', 'a.id']],
+        'name' => ['columns' => ['a.display_name', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'email_verified_at' => ['columns' => ['a.email_verified_at', 'a.id']],
+        'last_login_at' => ['columns' => ['a.last_login_at', 'a.id']],
+        'active_session_count' => ['columns' => ['active_session_count', 'a.id']],
+        'created_at' => ['columns' => ['a.created_at', 'a.id']],
+    ];
+}
+
+function sr_admin_member_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $members = [];
     $hasSessionTable = sr_member_sessions_table_exists($pdo);
@@ -880,6 +898,7 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
     $params = $queryParts['params'];
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
     $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
+    $orderSql = sr_admin_sort_order_sql(sr_admin_member_sort_options(), $sort, sr_admin_member_default_sort());
     if ($hasSessionTable) {
         $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
                        COUNT(s.id) AS active_session_count
@@ -887,14 +906,14 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
                 LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
                 ' . $whereSql . '
                 GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
-                ORDER BY a.id DESC'
+                ' . $orderSql
                 . $limitSql;
         $params['now'] = sr_now();
     } else {
         $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at, 0 AS active_session_count
                 FROM sr_member_accounts a
                 ' . $whereSql . '
-                ORDER BY a.id DESC'
+                ' . $orderSql
                 . $limitSql;
     }
 

@@ -329,11 +329,12 @@ if ($editRuleIdValue !== '' && preg_match('/\A[1-9][0-9]*\z/', $editRuleIdValue)
 $editGroup = $editGroupId > 0 ? sr_member_group_by_id($pdo, $editGroupId) : null;
 $editRule = $editRuleId > 0 ? sr_member_group_rule_by_id($pdo, $editRuleId) : null;
 $groupListFilter = sr_admin_member_group_list_filter($allowedStatuses);
+$groupSort = sr_admin_sort_from_request(sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort());
 $groups = in_array($memberGroupsPage, ['rules', 'rule_form'], true) ? sr_member_groups($pdo) : [];
 $groupStatusCounts = sr_admin_member_group_status_counts($pdo);
 $groupPagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'groups' ? sr_admin_member_group_count($pdo, $groupListFilter) : 0);
 if ($memberGroupsPage === 'groups') {
-    $groups = sr_admin_member_group_list($pdo, $groupListFilter, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination));
+    $groups = sr_admin_member_group_list($pdo, $groupListFilter, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination), $groupSort);
 }
 $groupRules = [];
 $groupRulePagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'rules' ? sr_member_group_rule_count($pdo) : 0);

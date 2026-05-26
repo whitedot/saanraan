@@ -10,6 +10,7 @@ $privacyRequestListFilters = isset($privacyRequestListFilters) && is_array($priv
     'q' => '',
 ];
 $privacyRequestStatusCounts = isset($privacyRequestStatusCounts) && is_array($privacyRequestStatusCounts) ? $privacyRequestStatusCounts : [];
+$privacyRequestSort = isset($privacyRequestSort) && is_array($privacyRequestSort) ? $privacyRequestSort : sr_admin_privacy_request_default_sort();
 $allowedTypes = isset($allowedTypes) && is_array($allowedTypes) ? $allowedTypes : [];
 $totalPrivacyRequests = (int) ($privacyRequestStatusCounts['total'] ?? count($requests ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -77,17 +78,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></h2>
     </div>
-    <?php echo sr_admin_pagination_summary_html($privacyRequestPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($privacyRequestSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="개인정보 요청 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($privacyRequestPagination); ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-privacy-request-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th><?php echo sr_e(sr_t('privacy::ui.text.5cf2792b')); ?></th>
-                <th><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></th>
+                <th<?php echo sr_admin_sort_aria('request_type', $privacyRequestSort); ?>><?php echo sr_admin_sort_header_html(sr_t('privacy::ui.text.5cf2792b'), 'request_type', $privacyRequestSort, sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $privacyRequestSort); ?>><?php echo sr_admin_sort_header_html(sr_t('privacy::ui.status.e10195a1'), 'status', $privacyRequestSort, sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort()); ?></th>
                 <th><?php echo sr_e(sr_t('privacy::ui.text.16bf0f07')); ?></th>
                 <th><?php echo sr_e(sr_t('privacy::ui.text.c165c36d')); ?></th>
-                <th><?php echo sr_e(sr_t('privacy::ui.text.73bb6cce')); ?></th>
+                <th<?php echo sr_admin_sort_aria('handled_at', $privacyRequestSort); ?>><?php echo sr_admin_sort_header_html(sr_t('privacy::ui.text.73bb6cce'), 'handled_at', $privacyRequestSort, sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort()); ?></th>
                 <th class="text-end"><?php echo sr_e(sr_t('privacy::ui.text.16f64fe4')); ?></th>
             </tr>
         </thead>

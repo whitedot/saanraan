@@ -160,6 +160,7 @@ if ($accountIdFilter > 0) {
 }
 
 $balances = [];
+$balanceSort = sr_admin_sort_from_request(sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort());
 $balancePagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'balances') {
     $stmt = $pdo->query(
@@ -173,7 +174,7 @@ if ($rewardAdminPage === 'balances') {
         'SELECT b.account_id, b.balance, b.updated_at, a.email, a.display_name, a.status
          FROM sr_reward_balances b
          INNER JOIN sr_member_accounts a ON a.id = b.account_id
-         ORDER BY b.updated_at DESC
+         ' . sr_admin_sort_order_sql(sr_admin_asset_balance_sort_options(), $balanceSort, sr_admin_asset_balance_default_sort()) . '
          LIMIT ' . (int) $balancePagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($balancePagination)
     );
     foreach ($stmt->fetchAll() as $row) {
@@ -182,6 +183,7 @@ if ($rewardAdminPage === 'balances') {
 }
 
 $transactions = [];
+$transactionSort = sr_admin_sort_from_request(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort());
 $transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'transactions') {
     if ($accountIdFilter > 0) {
@@ -200,7 +202,7 @@ if ($rewardAdminPage === 'transactions') {
              FROM sr_reward_transactions t
              INNER JOIN sr_member_accounts a ON a.id = t.account_id
              WHERE t.account_id = :account_id
-             ORDER BY t.id DESC
+             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $transactionSort, sr_admin_asset_transaction_default_sort()) . '
              LIMIT :limit_value OFFSET :offset_value'
         );
         $stmt->bindValue('account_id', $accountIdFilter, PDO::PARAM_INT);
@@ -220,7 +222,7 @@ if ($rewardAdminPage === 'transactions') {
                     a.email, a.display_name
              FROM sr_reward_transactions t
              INNER JOIN sr_member_accounts a ON a.id = t.account_id
-             ORDER BY t.id DESC
+             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $transactionSort, sr_admin_asset_transaction_default_sort()) . '
              LIMIT ' . (int) $transactionPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($transactionPagination)
         );
     }

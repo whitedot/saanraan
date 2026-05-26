@@ -181,9 +181,10 @@ foreach ($postStatusCountStmt->fetchAll() as $row) {
     $postStatusCounts['total'] += $count;
 }
 
+$postSort = sr_admin_sort_from_request(sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort());
 $postPagination = sr_admin_pagination_from_total($pdo, $communityPostsPage === 'posts' ? sr_community_admin_post_count($pdo, $postListFilters) : 0);
 $posts = $communityPostsPage === 'posts'
-    ? sr_community_admin_posts($pdo, (int) $postPagination['per_page'], $postListFilters, sr_admin_pagination_offset($postPagination))
+    ? sr_community_admin_posts($pdo, (int) $postPagination['per_page'], $postListFilters, sr_admin_pagination_offset($postPagination), $postSort)
     : [];
 $commentStatusCounts = ['total' => 0];
 foreach ($allowedCommentStatuses as $status) {
@@ -199,9 +200,10 @@ foreach ($commentStatusCountStmt->fetchAll() as $row) {
     $commentStatusCounts['total'] += $count;
 }
 
+$commentSort = sr_admin_sort_from_request(sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort());
 $commentPagination = sr_admin_pagination_from_total($pdo, $communityPostsPage === 'comments' ? sr_community_admin_comment_count($pdo, $commentListFilters) : 0);
 $comments = $communityPostsPage === 'comments'
-    ? sr_community_admin_comments($pdo, (int) $commentPagination['per_page'], $commentListFilters, sr_admin_pagination_offset($commentPagination))
+    ? sr_community_admin_comments($pdo, (int) $commentPagination['per_page'], $commentListFilters, sr_admin_pagination_offset($commentPagination), $commentSort)
     : [];
 
 include SR_ROOT . '/modules/community/views/admin-posts.php';

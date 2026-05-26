@@ -5,6 +5,7 @@ $adminPageSubtitle = $pageGroupsPage === 'list' ? sr_t('content::ui.content.stat
 $adminContainerClass = $pageGroupsPage === 'list' ? 'admin-content-group-list admin-ui-scope' : 'admin-content-group-form admin-ui-scope';
 $contentGroupFormPage = $pageGroupsPage !== 'list';
 $pageGroupFilters = isset($pageGroupFilters) && is_array($pageGroupFilters) ? $pageGroupFilters : ['status' => '', 'field' => 'all', 'q' => ''];
+$pageGroupSort = isset($pageGroupSort) && is_array($pageGroupSort) ? $pageGroupSort : sr_content_admin_group_default_sort();
 $pageGroupStatusCounts = isset($pageGroupStatusCounts) && is_array($pageGroupStatusCounts) ? $pageGroupStatusCounts : [];
 $allowedGroupStatuses = isset($allowedGroupStatuses) && is_array($allowedGroupStatuses) ? $allowedGroupStatuses : sr_content_group_statuses();
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
@@ -97,18 +98,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.text.6de46476')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($pageGroupPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($pageGroupSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="콘텐츠 그룹 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($pageGroupPagination); ?>
+        </div>
         <div class="table-wrapper">
             <table class="table admin-content-group-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th><?php echo sr_e(sr_t('content::ui.name.253d1510')); ?></th>
-                        <th>Key</th>
-                        <th><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.content.5ed1a7cd')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.text.3788952d')); ?></th>
-                        <th><?php echo sr_e(sr_t('content::ui.edit.d3a98476')); ?></th>
+                        <th<?php echo sr_admin_sort_aria('title', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.name.253d1510'), 'title', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('group_key', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html('Key', 'group_key', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('status', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('content_count', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.content.5ed1a7cd'), 'content_count', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('sort_order', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.text.3788952d'), 'sort_order', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('updated_at', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.edit.d3a98476'), 'updated_at', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
                         <th class="text-end"><?php echo sr_e(sr_t('content::ui.text.29ae8f30')); ?></th>
                     </tr>
                 </thead>

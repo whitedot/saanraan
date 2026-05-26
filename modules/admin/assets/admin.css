@@ -369,6 +369,14 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-summary-meta strong{color:var(--color-default-900)}
 .admin-list-summary{border-bottom:1px solid var(--color-default-200);color:var(--color-default-700);font-size:.8125rem;padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}
 .admin-list-summary strong{color:var(--color-default-900)}
+.admin-list-summary-row{align-items:center;border-bottom:1px solid var(--color-default-200);display:flex;gap:calc(var(--spacing) * 2);justify-content:space-between;padding:0 calc(var(--spacing) * 4)}
+.admin-list-summary-row .admin-list-summary{border-bottom:0;flex:1 1 auto;padding-left:0;padding-right:0}
+.admin-sort-reset{flex:0 0 auto}
+.admin-sort-header{align-items:center;display:flex;flex-wrap:nowrap;gap:calc(var(--spacing) * 1.5);white-space:nowrap}
+.admin-sort-label{font-weight:inherit}
+.admin-sort-button-group{display:inline-flex;flex:0 0 auto}
+.admin-sort-button{min-height:calc(var(--spacing) * 6);min-width:calc(var(--spacing) * 6);padding:calc(var(--spacing) * .75)}
+.admin-sort-button .material-symbols-outlined{font-size:.875rem;line-height:1}
 .admin-pagination{display:flex;justify-content:center;padding-block:calc(var(--spacing) * 4)}
 .admin-pagination-group{align-items:stretch;display:inline-flex}
 .admin-pagination-group>*:not(:first-child){margin-inline-start:-1px}

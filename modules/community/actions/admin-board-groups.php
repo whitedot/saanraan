@@ -468,13 +468,14 @@ if (sr_request_method() === 'POST') {
 }
 
 $boardGroupStatusCounts = sr_community_admin_board_group_status_counts($pdo, $allowedGroupStatuses);
+$boardGroupSort = sr_admin_sort_from_request(sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort());
 $boardGroupPagination = sr_admin_pagination_from_total(
     $pdo,
     $communityBoardGroupsPage === 'list' ? sr_community_admin_board_group_count($pdo, $boardGroupListFilters) : 0
 );
 $boardGroups = [];
 if ($communityBoardGroupsPage === 'list') {
-    $boardGroups = sr_community_admin_board_groups($pdo, $boardGroupListFilters, (int) $boardGroupPagination['per_page'], sr_admin_pagination_offset($boardGroupPagination));
+    $boardGroups = sr_community_admin_board_groups($pdo, $boardGroupListFilters, (int) $boardGroupPagination['per_page'], sr_admin_pagination_offset($boardGroupPagination), $boardGroupSort);
 }
 
 $boardGroupSettings = [];

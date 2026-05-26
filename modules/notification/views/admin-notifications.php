@@ -11,6 +11,16 @@ $notificationListFilters = isset($notificationListFilters) && is_array($notifica
 $deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilters) ? $deliveryListFilters : ['delivery_channel' => '', 'delivery_status' => '', 'field' => 'all', 'q' => ''];
 $notificationStatusCounts = isset($notificationStatusCounts) && is_array($notificationStatusCounts) ? $notificationStatusCounts : [];
 $deliveryStatusCounts = isset($deliveryStatusCounts) && is_array($deliveryStatusCounts) ? $deliveryStatusCounts : [];
+$notificationSort = isset($notificationSort) && is_array($notificationSort) ? $notificationSort : sr_notification_admin_notification_default_sort();
+$deliverySortOptions = isset($deliverySortOptions) && is_array($deliverySortOptions) ? $deliverySortOptions : [
+    'notification' => ['columns' => ['n.title', 'd.id']],
+    'channel' => ['columns' => ['d.channel', 'd.id']],
+    'recipient' => ['columns' => ['d.recipient', 'd.id']],
+    'status' => ['columns' => ['d.status', 'd.id']],
+    'updated_at' => ['columns' => ['d.updated_at', 'd.id']],
+];
+$deliveryDefaultSort = isset($deliveryDefaultSort) && is_array($deliveryDefaultSort) ? $deliveryDefaultSort : sr_admin_sort_default('updated_at', 'desc');
+$deliverySort = isset($deliverySort) && is_array($deliverySort) ? $deliverySort : $deliveryDefaultSort;
 $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($allowedNotificationStatuses) ? $allowedNotificationStatuses : [];
 $allowedDeliveryChannels = isset($allowedDeliveryChannels) && is_array($allowedDeliveryChannels) ? $allowedDeliveryChannels : ['email'];
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
@@ -98,17 +108,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.077631f5')); ?></h2>
         </div>
-        <?php echo sr_admin_pagination_summary_html($deliveryPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($deliverySort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($deliverySortOptions, $deliveryDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="알림 발송 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($deliveryPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-notification-delivery-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.56c30db0')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.text.fb3853ea')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.edit.d3a98476')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('notification', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.notification.12ddd6ca'), 'notification', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('channel', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.a391a59a'), 'channel', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('recipient', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.fb3853ea'), 'recipient', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.status.e10195a1'), 'status', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('updated_at', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.edit.d3a98476'), 'updated_at', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('notification::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
@@ -220,16 +235,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></h2>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
         </div>
-        <?php echo sr_admin_pagination_summary_html($notificationPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($notificationSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="알림 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($notificationPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-notification-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('notification::ui.text.5efd3ddd')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $notificationSort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.08b17e43'), 'title', $notificationSort, sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('audience', $notificationSort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.8c609deb'), 'audience', $notificationSort, sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $notificationSort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.status.e10195a1'), 'status', $notificationSort, sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('created_at', $notificationSort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.5efd3ddd'), 'created_at', $notificationSort, sr_notification_admin_notification_sort_options(), sr_notification_admin_notification_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('notification::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

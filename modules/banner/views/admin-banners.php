@@ -6,6 +6,16 @@ $adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? sr_t('banner::ui.ban
 $adminPageSubtitle = $bannerAdminPage === 'form' ? sr_t('banner::ui.banner.71184934') : sr_t('banner::ui.banner.status.search.ae378c83');
 $adminContainerClass = $bannerAdminPage === 'form' ? 'admin-page-banner-form admin-ui-scope' : 'admin-page-banner-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$bannerSortOptions = isset($bannerSortOptions) && is_array($bannerSortOptions) ? $bannerSortOptions : [
+    'title' => ['columns' => ['b.title', 'b.id']],
+    'status' => ['columns' => ['b.status', 'b.id']],
+    'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
+    'click_count' => ['columns' => ['b.click_count', 'b.id']],
+    'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
+    'sort_order' => ['columns' => ['b.sort_order', 'b.id']],
+];
+$bannerDefaultSort = isset($bannerDefaultSort) && is_array($bannerDefaultSort) ? $bannerDefaultSort : sr_admin_sort_default('sort_order', 'asc');
+$bannerSort = isset($bannerSort) && is_array($bannerSort) ? $bannerSort : $bannerDefaultSort;
 $bannerStatusCounts = isset($bannerStatusCounts) && is_array($bannerStatusCounts) ? $bannerStatusCounts : [];
 $totalBanners = (int) ($bannerStatusCounts['total'] ?? count($banners ?? []));
 $selectedTargetOption = sr_banner_public_target_option_value();
@@ -287,20 +297,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('banner::ui.banner.c0e70d2c')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($bannerSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($bannerSortOptions, $bannerDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="배너 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-banner-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.08b17e43')); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.776b723f')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.08b17e43'), 'title', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.status.e10195a1'), 'status', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('skin_key', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.776b723f'), 'skin_key', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('banner::ui.text.3d54da9c')); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.a6bb9eae')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('click_count', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.a6bb9eae'), 'click_count', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.b918d5af')); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.3788952d')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.b918d5af'), 'starts_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('sort_order', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.3788952d'), 'sort_order', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('banner::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

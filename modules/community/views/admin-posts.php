@@ -5,10 +5,12 @@ $adminPageTitle = $communityPostsPage === 'comments' ? sr_t('community::ui.commu
 $adminPageSubtitle = $communityPostsPage === 'comments' ? sr_t('community::ui.status.6bd8f817') : sr_t('community::ui.status.search.af9eb6e6');
 $adminContainerClass = $communityPostsPage === 'comments' ? 'admin-page-community-comment-list admin-ui-scope' : 'admin-page-community-post-list admin-ui-scope';
 $postListFilters = isset($postListFilters) && is_array($postListFilters) ? $postListFilters : ['status' => '', 'board_id' => 0, 'field' => 'all', 'q' => ''];
+$postSort = isset($postSort) && is_array($postSort) ? $postSort : sr_community_admin_post_default_sort();
 $postStatusCounts = isset($postStatusCounts) && is_array($postStatusCounts) ? $postStatusCounts : [];
 $postBoardOptions = isset($postBoardOptions) && is_array($postBoardOptions) ? $postBoardOptions : [];
 $totalPosts = (int) ($postStatusCounts['total'] ?? count($posts ?? []));
 $commentListFilters = isset($commentListFilters) && is_array($commentListFilters) ? $commentListFilters : ['status' => '', 'board_id' => 0, 'field' => 'all', 'q' => ''];
+$commentSort = isset($commentSort) && is_array($commentSort) ? $commentSort : sr_community_admin_comment_default_sort();
 $commentStatusCounts = isset($commentStatusCounts) && is_array($commentStatusCounts) ? $commentStatusCounts : [];
 $totalComments = (int) ($commentStatusCounts['total'] ?? count($comments ?? []));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -74,19 +76,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.3956e082')); ?></h2></div>
-    <?php echo sr_admin_pagination_summary_html($postPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($postSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="게시글 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($postPagination); ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-community-post-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.353b76cf')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
+                <th<?php echo sr_admin_sort_aria('board', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.4732a58f'), 'board', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('title', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.08b17e43'), 'title', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('author', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('published_comment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.c9fff683'), 'published_comment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('active_attachment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.353b76cf'), 'active_attachment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('created_at', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.26c8f2fa'), 'created_at', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?></th>
             </tr>
         </thead>
@@ -214,17 +221,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.78c1708d')); ?></h2></div>
-    <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($commentSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="댓글 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-community-comment-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th><?php echo sr_e(sr_t('community::ui.text.0b138cfe')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
+                <th<?php echo sr_admin_sort_aria('post', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.0b138cfe'), 'post', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('author', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('body', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.9118bb57'), 'body', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('created_at', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.26c8f2fa'), 'created_at', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
                 <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?></th>
             </tr>
         </thead>

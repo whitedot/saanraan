@@ -24,9 +24,10 @@ if (sr_request_method() === 'POST') {
 }
 
 $privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);
+$privacyRequestSort = sr_admin_sort_from_request(sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort());
 $privacyRequestStatusCounts = sr_admin_privacy_request_status_counts($pdo, $allowedStatuses);
 $privacyRequestPagination = sr_admin_pagination_from_total($pdo, sr_admin_privacy_request_count($pdo, $privacyRequestListFilters));
-$requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters, (int) $privacyRequestPagination['per_page'], sr_admin_pagination_offset($privacyRequestPagination));
+$requests = sr_admin_privacy_requests($pdo, $privacyRequestListFilters, (int) $privacyRequestPagination['per_page'], sr_admin_pagination_offset($privacyRequestPagination), $privacyRequestSort);
 
 if (sr_request_method() === 'GET') {
     sr_audit_log($pdo, [

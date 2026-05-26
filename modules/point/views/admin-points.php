@@ -6,6 +6,8 @@ if ($pointAdminPage === 'transactions') {
     $adminPageTitle = sr_t('point::ui.point.cd2b311f');
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
+$balanceSort = isset($balanceSort) && is_array($balanceSort) ? $balanceSort : sr_admin_asset_balance_default_sort();
+$transactionSort = isset($transactionSort) && is_array($transactionSort) ? $transactionSort : sr_admin_asset_transaction_default_sort();
 $pointReferenceTypeOptions = [
     '' => sr_t('point::ui.text.72ea3d64'),
     'order' => sr_t('point::ui.text.d64a64f0'),
@@ -182,19 +184,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($pointAdminPage === 'transactions') { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('point::ui.text.ce41e3f6')); ?></h2></div>
-        <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($transactionSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="포인트 거래 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-asset-transaction-table">
             <thead class="ui-table-head">
                 <tr>
                     <th>회원 정보</th>
-                    <th><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.5cf2792b')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.4a12f983')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.87f9c4c8')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.ab9442a2')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.fbc8ad58')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.5efd3ddd')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('member', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.member.e335b899'), 'member', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('transaction_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.5cf2792b'), 'transaction_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('amount', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.4a12f983'), 'amount', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('balance_after', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.87f9c4c8'), 'balance_after', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('reason', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.ab9442a2'), 'reason', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('reference_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.fbc8ad58'), 'reference_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('created_at', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.5efd3ddd'), 'created_at', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('point::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
@@ -240,16 +247,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php $pointHeaderAdjustUrl = is_array($selectedAccount) ? '/admin/points/balances?account_identifier=' . rawurlencode((string) $selectedAccount['account_public_hash']) : '/admin/points/balances'; ?>
             <a href="<?php echo sr_e(sr_url($pointHeaderAdjustUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointHeaderAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointHeaderAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.7535b737')); ?></a>
         </div>
-        <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($balanceSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="포인트 잔액 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table admin-asset-balance-table">
             <thead class="ui-table-head">
                 <tr>
                     <th>회원 정보</th>
-                    <th><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.text.b099377c')); ?></th>
-                    <th><?php echo sr_e(sr_t('point::ui.edit.d3a98476')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('member', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.member.e335b899'), 'member', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.status.e10195a1'), 'status', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('balance', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.b099377c'), 'balance', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('updated_at', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.edit.d3a98476'), 'updated_at', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('point::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
