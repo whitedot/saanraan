@@ -40,6 +40,7 @@
 - [본인확인 플러그인 계획](identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](member-migration-plan.md)
 - [결제 플러그인 계획](payment-plugin-plan.md)
+- [포인트 표시명 설정 계획](point-display-name-plan.md)
 
 ## Wiki로 충분한 문서
 
