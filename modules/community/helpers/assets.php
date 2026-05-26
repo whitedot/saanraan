@@ -512,14 +512,15 @@ function sr_community_asset_amount_input_values(mixed $amountsValue, array $asse
     return $amounts;
 }
 
-function sr_community_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix): string
+function sr_community_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, bool $syncSelected = false): string
 {
     $amounts = sr_community_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
-    $html = '<div class="admin-asset-amount-grid">';
+    $html = '<div class="admin-asset-amount-grid"' . ($syncSelected ? ' data-admin-asset-amount-sync' : '') . '>';
     foreach ($assetModuleOptions as $assetModule => $assetOption) {
         $assetModule = (string) $assetModule;
         $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
-        $html .= '<label class="admin-asset-amount-field">'
+        $isSelected = in_array($assetModule, $selectedAssetModules, true);
+        $html .= '<label class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
             . '<span>' . sr_e($label) . '</span>'
             . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
             . '</label>';
@@ -527,6 +528,46 @@ function sr_community_asset_amount_inputs_html(string $fieldName, array $assetMo
     $html .= '</div>';
 
     return $html;
+}
+
+function sr_community_asset_grouped_amount_inputs_html(string $id, string $moduleFieldName, string $amountFieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, string $emptyLabel): string
+{
+    $amounts = sr_community_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
+    $selectedMap = [];
+    foreach ($selectedAssetModules as $selectedAssetModule) {
+        $selectedMap[(string) $selectedAssetModule] = true;
+    }
+
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'community_asset_amounts';
+    $html = '<div id="' . sr_e($id) . '" class="admin-asset-amount-grid admin-asset-grouped-amount-grid" role="group" data-admin-asset-amount-sync>';
+    if ($assetModuleOptions === []) {
+        return $html . '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span></div>';
+    }
+
+    $index = 0;
+    foreach ($assetModuleOptions as $assetModule => $assetOption) {
+        $assetModule = (string) $assetModule;
+        if ($assetModule === '') {
+            continue;
+        }
+
+        $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
+        $inputId = $idBase . '_' . (string) $index;
+        $isSelected = isset($selectedMap[$assetModule]);
+        $html .= '<div class="admin-asset-amount-field admin-asset-grouped-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
+            . '<div class="input-group admin-asset-grouped-input-group">'
+            . '<label class="input-group-text admin-form-check form-label" for="' . sr_e($inputId) . '">'
+            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($moduleFieldName) . '[]" value="' . sr_e($assetModule) . '" class="form-checkbox"' . ($isSelected ? ' checked' : '') . '>'
+            . sr_admin_choice_label_html($label)
+            . '</label>'
+            . '<input type="number" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '</div>'
+            . '</div>';
+        $index++;
+    }
+
+    return $html . '</div>';
 }
 
 function sr_community_asset_amount_total(array $amounts, int $fallbackAmount = 0): int

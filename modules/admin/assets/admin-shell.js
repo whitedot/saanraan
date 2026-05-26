@@ -187,6 +187,120 @@ window.AdminShell = {
             return window.confirm(message);
         };
 
+        const ensureToastStack = () => {
+            let stack = document.querySelector('[data-admin-toast-stack]');
+            if (stack) {
+                return stack;
+            }
+
+            stack = document.createElement('div');
+            stack.setAttribute('data-admin-toast-stack', '');
+            stack.setAttribute('role', 'status');
+            stack.setAttribute('aria-live', 'polite');
+            stack.setAttribute('aria-atomic', 'false');
+            document.body.appendChild(stack);
+            return stack;
+        };
+
+        const showAdminToast = message => {
+            if (!message) {
+                return;
+            }
+
+            const stack = ensureToastStack();
+            const toast = document.createElement('div');
+            toast.className = 'admin-flash-message admin-flash-message-notice';
+            toast.setAttribute('data-admin-toast', '');
+
+            const text = document.createElement('span');
+            text.textContent = message;
+            toast.appendChild(text);
+
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn btn-sm btn-icon';
+            closeButton.setAttribute('data-admin-toast-close', '');
+            closeButton.setAttribute('aria-label', '닫기');
+            closeButton.innerHTML = '<span class="sr-icon admin-toast-close-icon" aria-hidden="true" data-sr-material-icon>close</span>';
+            closeButton.addEventListener('click', () => {
+                toast.classList.add('is-hiding');
+                window.setTimeout(() => {
+                    toast.remove();
+                    if (stack.children.length === 0) {
+                        stack.remove();
+                    }
+                }, 180);
+            });
+            toast.appendChild(closeButton);
+
+            stack.appendChild(toast);
+            window.setTimeout(() => {
+                toast.classList.add('is-hiding');
+                window.setTimeout(() => {
+                    toast.remove();
+                    if (stack.children.length === 0) {
+                        stack.remove();
+                    }
+                }, 180);
+            }, 4500);
+        };
+
+        const syncAssetAmountGroup = root => {
+            if (!root || !root.querySelectorAll || !root.closest) {
+                return;
+            }
+
+            const line = root.closest('.admin-asset-setting-line');
+            const targetRoot = root.closest('.admin-asset-setting-target');
+            const context = line || targetRoot || root;
+            const selectedModules = new Set();
+            if (context) {
+                Array.prototype.slice.call(context.querySelectorAll('.admin-asset-setting-target input, .admin-asset-setting-target select, input, select')).forEach(control => {
+                    if (control.disabled || !control.value) {
+                        return;
+                    }
+
+                    if ((control.type === 'checkbox' || control.type === 'radio') && !control.checked) {
+                        return;
+                    }
+
+                    if (control.tagName !== 'SELECT' && control.type !== 'checkbox' && control.type !== 'radio') {
+                        return;
+                    }
+
+                    selectedModules.add(String(control.value));
+                });
+            }
+
+            Array.prototype.slice.call(root.querySelectorAll('[data-admin-asset-amount-field]')).forEach(field => {
+                const moduleKey = field.getAttribute('data-admin-asset-module') || '';
+                field.classList.toggle('is-selected', selectedModules.has(moduleKey));
+            });
+        };
+
+        const syncAssetAmountGroupsNear = target => {
+            const line = target && target.closest ? target.closest('.admin-asset-setting-line') : null;
+            const roots = line
+                ? Array.prototype.slice.call(line.querySelectorAll('[data-admin-asset-amount-sync]'))
+                : Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-amount-sync]'));
+            roots.forEach(syncAssetAmountGroup);
+        };
+
+        const syncSettingSourceGroup = root => {
+            if (!root || !root.querySelectorAll) {
+                return;
+            }
+
+            const checked = root.querySelector('[data-admin-setting-source-master]:checked');
+            if (!checked) {
+                return;
+            }
+
+            Array.prototype.slice.call(root.querySelectorAll('[data-admin-setting-source-mirror]')).forEach(input => {
+                input.value = checked.value;
+            });
+        };
+
         const syncRestrictedInputValue = (input, normalizeValue) => {
             if (!input || input.readOnly || input.disabled) {
                 return;
@@ -659,11 +773,30 @@ window.AdminShell = {
             const control = assetEnableControl(event.target);
             if (control) {
                 confirmAssetEnableSelection(control);
+                syncAssetAmountGroupsNear(control);
                 return;
             }
 
+            const scopeToastControl = event.target && event.target.closest
+                ? event.target.closest('[data-admin-scope-toast]')
+                : null;
+            if (scopeToastControl && scopeToastControl.checked) {
+                showAdminToast(scopeToastControl.getAttribute('data-admin-scope-toast') || '');
+            }
+
+            const sourceGroup = event.target && event.target.closest
+                ? event.target.closest('[data-admin-setting-source-group]')
+                : null;
+            if (sourceGroup) {
+                syncSettingSourceGroup(sourceGroup);
+            }
+
             markAssetEnableTargetTouched(event.target);
+            syncAssetAmountGroupsNear(event.target);
         });
+
+        document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(syncAssetAmountGroup);
+        document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
 
         document.addEventListener('submit', event => {
             if (!confirmAssetEnableSubmit(event.target)) {

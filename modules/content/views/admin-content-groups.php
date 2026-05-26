@@ -288,16 +288,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_group_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled" data-admin-asset-enable-submit-check="always">
-                        <?php echo sr_admin_checkbox_list_html('content_group_asset_module', 'group_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), sr_t('content::ui.text.3e195cdd')); ?>
+                        <input id="content_group_asset_access_amount" type="hidden" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>">
+                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_asset_access_amounts_grouped', 'group_asset_module', 'group_asset_access_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), $groupSettingValue($groupSettings, 'asset_access_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="content_group_asset_access_amount"><?php echo sr_e(sr_t('content::ui.text.a9f15a8b')); ?></label>
-                <div class="admin-form-field">
-                    <input id="content_group_asset_access_amount" type="hidden" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>">
-                    <?php echo sr_content_asset_amount_inputs_html('group_asset_access_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), $groupSettingValue($groupSettings, 'asset_access_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_amount', '0'), sr_t('content::ui.text.a9f15a8b')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -351,7 +345,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_group_asset_action_amount"><?php echo sr_e(sr_t('content::ui.text.5c705e1a')); ?></label>
                 <div class="admin-form-field">
                     <input id="content_group_asset_action_amount" type="number" name="group_asset_action_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_action_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1" data-content-action-grant-amount<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? ' hidden' : ''; ?>>
-                    <div data-content-action-use-amounts<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? '' : ' hidden'; ?>>
+                    <div class="admin-asset-setting-target" data-content-action-use-amounts<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? '' : ' hidden'; ?>>
                         <?php echo sr_content_asset_amount_inputs_html('group_asset_action_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')), $groupSettingValue($groupSettings, 'asset_action_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_amount', '0'), sr_t('content::ui.text.5c705e1a')); ?>
                     </div>
                 </div>
@@ -370,16 +364,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
-                        <?php echo sr_admin_checkbox_list_html('content_group_file_asset_module', 'group_file_asset_module', $assetModuleChoiceOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), sr_t('content::ui.text.3e195cdd')); ?>
+                        <input id="content_group_file_asset_download_amount" type="hidden" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>">
+                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_file_asset_download_amounts_grouped', 'group_file_asset_module', 'group_file_asset_download_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), $groupSettingValue($groupSettings, 'file_asset_download_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="content_group_file_asset_download_amount"><?php echo sr_e(sr_t('content::ui.text.a9f15a8b')); ?></label>
-                <div class="admin-form-field">
-                    <input id="content_group_file_asset_download_amount" type="hidden" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>">
-                    <?php echo sr_content_asset_amount_inputs_html('group_file_asset_download_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), $groupSettingValue($groupSettings, 'file_asset_download_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_amount', '0'), sr_t('content::ui.text.a9f15a8b')); ?>
                 </div>
             </div>
             <div class="admin-form-row">

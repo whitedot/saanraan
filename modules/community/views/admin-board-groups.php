@@ -582,7 +582,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                                 <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
                                     <?php if ($usesCompositeAsset) { ?>
-                                        <?php echo sr_admin_checkbox_list_html('community_board_group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
+                                        <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_group_' . (string) $assetPrefix . '_asset_amounts', 'group_' . (string) $assetPrefix . '_asset_module', 'group_' . (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $groupSettingValue($formGroupSettings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0)), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
                                         <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                     <?php } else { ?>
                                         <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
@@ -599,7 +599,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                                 <?php if ($usesCompositeAsset) { ?>
                                     <input type="hidden" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>">
-                                    <?php echo sr_community_asset_amount_inputs_html('group_' . (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $groupSettingValue($formGroupSettings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0)), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
                                 <?php } else { ?>
                                     <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input">
                                 <?php } ?>

@@ -464,14 +464,15 @@ function sr_content_asset_amount_input_values(mixed $amountsValue, array $assetM
     return $amounts;
 }
 
-function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix): string
+function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, bool $syncSelected = false): string
 {
     $amounts = sr_content_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
-    $html = '<div class="admin-asset-amount-grid">';
+    $html = '<div class="admin-asset-amount-grid"' . ($syncSelected ? ' data-admin-asset-amount-sync' : '') . '>';
     foreach ($assetModuleOptions as $assetModule => $assetOption) {
         $assetModule = (string) $assetModule;
         $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
-        $html .= '<label class="admin-asset-amount-field">'
+        $isSelected = in_array($assetModule, $selectedAssetModules, true);
+        $html .= '<label class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
             . '<span>' . sr_e($label) . '</span>'
             . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
             . '</label>';
@@ -479,6 +480,46 @@ function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModu
     $html .= '</div>';
 
     return $html;
+}
+
+function sr_content_asset_grouped_amount_inputs_html(string $id, string $moduleFieldName, string $amountFieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, string $emptyLabel): string
+{
+    $amounts = sr_content_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
+    $selectedMap = [];
+    foreach ($selectedAssetModules as $selectedAssetModule) {
+        $selectedMap[(string) $selectedAssetModule] = true;
+    }
+
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'content_asset_amounts';
+    $html = '<div id="' . sr_e($id) . '" class="admin-asset-amount-grid admin-asset-grouped-amount-grid" role="group" data-admin-asset-amount-sync>';
+    if ($assetModuleOptions === []) {
+        return $html . '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span></div>';
+    }
+
+    $index = 0;
+    foreach ($assetModuleOptions as $assetModule => $assetOption) {
+        $assetModule = (string) $assetModule;
+        if ($assetModule === '') {
+            continue;
+        }
+
+        $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
+        $inputId = $idBase . '_' . (string) $index;
+        $isSelected = isset($selectedMap[$assetModule]);
+        $html .= '<div class="admin-asset-amount-field admin-asset-grouped-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
+            . '<div class="input-group admin-asset-grouped-input-group">'
+            . '<label class="input-group-text admin-form-check form-label" for="' . sr_e($inputId) . '">'
+            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($moduleFieldName) . '[]" value="' . sr_e($assetModule) . '" class="form-checkbox"' . ($isSelected ? ' checked' : '') . '>'
+            . sr_admin_choice_label_html($label)
+            . '</label>'
+            . '<input type="number" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '</div>'
+            . '</div>';
+        $index++;
+    }
+
+    return $html . '</div>';
 }
 
 function sr_content_asset_amounts_json_from_map(array $amounts): string
@@ -1745,7 +1786,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = '콘텐츠 그룹 값이 올바르지 않습니다.';
     }
     if (sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
-        $errors[] = '그룹에 복사를 선택하려면 콘텐츠 그룹을 선택하세요.';
+        $errors[] = '그룹 적용을 선택하려면 콘텐츠 그룹을 선택하세요.';
     }
 
     $sourceLabels = [
@@ -1770,7 +1811,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     }
     foreach ($sourceLabels as $sourceKey => $sourceLabel) {
         if (sr_content_normalize_setting_source((string) ($values[$sourceKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹에 복사할 수 있습니다.';
+            $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
         }
     }
 
@@ -1846,7 +1887,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
         $displayId = (int) ($values[$settingKey] ?? 0);
         if (sr_content_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $settingLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹에 복사할 수 있습니다.';
+            $errors[] = $settingLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
         }
 
         if ($displayId < 0) {
