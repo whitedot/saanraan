@@ -24,7 +24,7 @@
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
-| 회원 | `coupon` | 쿠폰·이용권 정의, 발급, 사용 기록 |
+| 회원 | `coupon` | 쿠폰·이용권 정의, 발급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
 | 사이트 | `logo_manager` | 로고 자산과 기간별 대체 |
 | 사이트 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
@@ -71,6 +71,8 @@
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
 
 상세 컬럼과 인덱스는 설치 SQL과 Wiki DB 명세를 정본으로 본다. 이 문서는 1.0 전 구현 표면을 빠르게 확인하기 위한 보조 문서다.
+
+현재 포인트, 적립금, 예치금은 각 모듈의 balance/transaction 테이블을 사용하고, 공통 원자적 갱신은 `core/helpers/ledger.php`의 helper로 줄인다. 쿠폰·이용권은 통합 금액 원장에 합치지 않고 `sr_coupon_issues`와 `sr_coupon_redemptions`로 발급 상태와 사용 이력을 따로 기록한다. 현재 런타임 연동은 콘텐츠/커뮤니티 유료 열람에서 쿠폰을 먼저 사용하고, 사용할 쿠폰이 없으면 포인트/적립금/예치금 차감으로 내려가는 구조다. 할인액, 정액 차감권, 주문 할인처럼 금액 계산이 필요한 쿠폰 유형은 쿠폰 모듈이 단독으로 먼저 일반화하지 않고, 실제 적용 도메인이 생길 때 해당 모듈과 함께 계약을 정의한다.
 
 ## 검증 기준
 
