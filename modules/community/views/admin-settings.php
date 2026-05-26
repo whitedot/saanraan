@@ -214,6 +214,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
+                                    <?php if ($assetPrefix === 'paid_read') { ?>
+                                        <select name="paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
+                                            <option value="once"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_view"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
+                                        </select>
+                                    <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                        <select name="paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
+                                            <option value="once"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                            <option value="every_download"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
+                                        </select>
+                                    <?php } ?>
                                     <?php if ($isRewardAsset) { ?>
                                         <div class="admin-asset-setting-target">
                                             <select name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select">
@@ -239,17 +250,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </div>
                                     <div class="admin-asset-setting-secondary">
                                         <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_amount" value="<?php echo sr_e((string) ($settings[$assetPrefix . '_amount'] ?? 0)); ?>">
-                                        <?php if ($assetPrefix === 'paid_read') { ?>
-                                            <select name="paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
-                                                <option value="once"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                                <option value="every_view"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
-                                            </select>
-                                        <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                                            <select name="paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
-                                                <option value="once"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                                <option value="every_download"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
-                                            </select>
-                                        <?php } ?>
                                     </div>
                                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                 <?php } ?>

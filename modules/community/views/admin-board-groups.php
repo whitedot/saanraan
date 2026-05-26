@@ -584,6 +584,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                                 <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                             </label>
+                                            <?php if ($assetPrefix === 'paid_read') { ?>
+                                                <select name="group_paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
+                                                    <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                    <option value="every_view"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
+                                                </select>
+                                            <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
+                                                <select name="group_paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
+                                                    <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
+                                                    <option value="every_download"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
+                                                </select>
+                                            <?php } ?>
                                             <?php if (!$usesGroupedAssetAmounts) { ?>
                                                 <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
                                                     <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
@@ -605,21 +616,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } else { ?>
                                             <div class="admin-asset-setting-secondary">
                                                 <input type="number" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_amount" min="0" max="999999999" value="<?php echo sr_e($groupSettingValue($formGroupSettings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0))); ?>" class="form-input admin-asset-setting-amount" aria-label="<?php echo sr_e(sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>">
-                                            </div>
-                                        <?php } ?>
-                                        <?php if ($assetPrefix === 'paid_read' || $assetPrefix === 'paid_attachment_download') { ?>
-                                            <div class="admin-asset-setting-secondary">
-                                                <?php if ($assetPrefix === 'paid_read') { ?>
-                                                    <select name="group_paid_read_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?>">
-                                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                                        <option value="every_view"<?php echo $groupSettingValue($formGroupSettings, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
-                                                    </select>
-                                                <?php } else { ?>
-                                                    <select name="group_paid_attachment_download_charge_policy" class="form-select admin-asset-setting-policy" aria-label="<?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?>">
-                                                        <option value="once"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                                        <option value="every_download"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
-                                                    </select>
-                                                <?php } ?>
                                             </div>
                                         <?php } ?>
                                         <?php if ($usesCompositeAsset) { ?>
