@@ -10,6 +10,9 @@ $canResetNicknames = !empty($canResetNicknames);
 $canSendMemberMessages = !empty($canSendMemberMessages);
 $memberMessageSendingEnabled = !empty($memberMessageSendingEnabled);
 $communityLevelEnabled = !empty($communityLevelEnabled);
+$nicknameSortOptions = isset($nicknameSortOptions) && is_array($nicknameSortOptions) ? $nicknameSortOptions : sr_community_admin_nickname_sort_options($communityLevelEnabled);
+$nicknameDefaultSort = isset($nicknameDefaultSort) && is_array($nicknameDefaultSort) ? $nicknameDefaultSort : sr_community_admin_nickname_default_sort();
+$nicknameSort = isset($nicknameSort) && is_array($nicknameSort) ? $nicknameSort : $nicknameDefaultSort;
 $canEditMemberLevels = !empty($canEditMemberLevels);
 $memberLevelBulkEditable = $communityLevelEnabled && $canEditMemberLevels;
 $communityLevels = isset($communityLevels) && is_array($communityLevels) ? $communityLevels : [];
@@ -105,6 +108,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <button type="submit" class="btn btn-outline-success community-action-submit"><span class="sr-only"><?php echo sr_e(sr_t('community::ui.member.selected')); ?></span><?php echo sr_e(sr_t('community::ui.member.level.bulk_update')); ?></button>
                 </form>
             <?php } ?>
+            <?php if (empty($nicknameSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($nicknameSortOptions, $nicknameDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="멤버 관리 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
             <span class="community-member-list-summary-text">
                 <?php if ((int) ($nicknamePagination['total'] ?? 0) <= 0) { ?>
                     전체 <strong>0</strong>건
@@ -123,13 +129,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th class="admin-table-select-cell"><span class="sr-only"><?php echo sr_e(sr_t('community::ui.member.select')); ?></span></th>
                     <?php } ?>
                     <th><?php echo sr_e(sr_t('community::ui.public_hash')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.email')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.nickname')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('email', $nicknameSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.email'), 'email', $nicknameSort, $nicknameSortOptions, $nicknameDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('nickname', $nicknameSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.nickname'), 'nickname', $nicknameSort, $nicknameSortOptions, $nicknameDefaultSort); ?></th>
                     <?php if ($communityLevelEnabled) { ?>
-                        <th><?php echo sr_e(sr_t('community::ui.member.level')); ?></th>
+                        <?php if (isset($nicknameSortOptions['level_value'])) { ?>
+                            <th<?php echo sr_admin_sort_aria('level_value', $nicknameSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.member.level'), 'level_value', $nicknameSort, $nicknameSortOptions, $nicknameDefaultSort); ?></th>
+                        <?php } else { ?>
+                            <th><?php echo sr_e(sr_t('community::ui.member.level')); ?></th>
+                        <?php } ?>
                     <?php } ?>
-                    <th><?php echo sr_e(sr_t('community::ui.status')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.nickname.updated_at')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $nicknameSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status'), 'status', $nicknameSort, $nicknameSortOptions, $nicknameDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('updated_at', $nicknameSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.nickname.updated_at'), 'updated_at', $nicknameSort, $nicknameSortOptions, $nicknameDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('community::ui.manage')); ?></th>
                 </tr>
             </thead>

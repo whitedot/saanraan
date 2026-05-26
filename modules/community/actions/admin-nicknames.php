@@ -205,10 +205,13 @@ $nicknameTotal = $nicknameSearchSubmitted ? sr_community_nickname_count($pdo, $n
 $nicknamePagination = $nicknameSearchSubmitted
     ? sr_admin_pagination_from_total($pdo, $nicknameTotal)
     : sr_admin_pagination_meta(0, 50, 1);
+$nicknameSortOptions = sr_community_admin_nickname_sort_options($communityLevelEnabled && sr_community_level_tables_exist($pdo));
+$nicknameDefaultSort = sr_community_admin_nickname_default_sort();
+$nicknameSort = sr_admin_sort_from_request($nicknameSortOptions, $nicknameDefaultSort);
 $nicknameRows = $nicknameSearchSubmitted
     ? sr_admin_member_rows_with_public_hash(
         $runtimeConfig,
-        sr_community_nickname_rows($pdo, $nicknameFilter, (int) $nicknamePagination['per_page'], sr_admin_pagination_offset($nicknamePagination))
+        sr_community_nickname_rows($pdo, $nicknameFilter, (int) $nicknamePagination['per_page'], sr_admin_pagination_offset($nicknamePagination), $nicknameSort)
     )
     : [];
 

@@ -314,12 +314,36 @@ function sr_community_nickname_count(PDO $pdo, array $filter = []): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0, int $offset = 0): array
+function sr_community_admin_nickname_sort_options(bool $levelEnabled = false): array
+{
+    $options = [
+        'email' => ['columns' => ['a.email', 'a.id']],
+        'nickname' => ['columns' => ['n.nickname', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'updated_at' => ['columns' => ['n.updated_at', 'a.id']],
+        'created_at' => ['columns' => ['a.id']],
+    ];
+
+    if ($levelEnabled) {
+        $options['level_value'] = ['columns' => ['COALESCE(l.level_value, 0)', 'a.id']];
+    }
+
+    return $options;
+}
+
+function sr_community_admin_nickname_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_community_nickname_query_parts($filter);
     $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
     $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
     $includeLevel = !empty($filter['level_enabled']) && sr_community_level_tables_exist($pdo);
+    $sortOptions = sr_community_admin_nickname_sort_options($includeLevel);
+    $defaultSort = sr_community_admin_nickname_default_sort();
     $levelSelectSql = $includeLevel
         ? ',
                 COALESCE(l.level_value, 0) AS community_level_value,
@@ -340,7 +364,7 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
          INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
          ' . $levelJoinSql . '
          ' . $whereSql . '
-         ORDER BY a.id DESC' . $limitSql
+         ' . sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort) . $limitSql
     );
     foreach ($queryParts['params'] as $paramKey => $paramValue) {
         $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
