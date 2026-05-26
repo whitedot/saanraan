@@ -139,7 +139,7 @@ function sr_community_board_group_default_settings(array $settings): array
     }
 
     foreach (sr_community_board_group_asset_setting_keys() as $settingKey) {
-        $value = $settings[(string) $settingKey] ?? (str_ends_with((string) $settingKey, '_asset_module') ? 'point' : '0');
+        $value = $settings[(string) $settingKey] ?? (str_ends_with((string) $settingKey, '_asset_module') ? '' : '0');
         if (is_bool($value)) {
             $value = $value ? '1' : '0';
         } elseif (is_array($value)) {

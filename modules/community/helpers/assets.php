@@ -90,6 +90,16 @@ function sr_community_asset_module_key(string $value): string
     return isset(sr_community_asset_modules()[$value]) ? $value : 'point';
 }
 
+function sr_community_asset_module_key_or_empty(string $value): string
+{
+    $value = strtolower(trim($value));
+    if ($value === '') {
+        return '';
+    }
+
+    return isset(sr_community_asset_modules()[$value]) ? $value : 'point';
+}
+
 function sr_community_asset_composite_prefixes(): array
 {
     return ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
@@ -317,11 +327,11 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
 {
     $auditSettings = [];
     foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
-        $moduleValue = (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point');
+        $moduleValue = (string) ($settings[$assetPrefix . '_asset_module'] ?? '');
         $auditSettings[$assetPrefix . '_enabled'] = sr_community_asset_bool_value_for_audit($settings[$assetPrefix . '_enabled'] ?? false);
         $auditSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($moduleValue, true), true)
-            : sr_community_asset_module_key($moduleValue);
+            : sr_community_asset_module_key_or_empty($moduleValue);
         $auditSettings[$assetPrefix . '_amount'] = max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
             $auditSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
@@ -341,8 +351,8 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
     }
 
     if ($includeReversalSettings) {
-        $auditSettings['post_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['post_reward_reversal_enabled'] ?? true);
-        $auditSettings['comment_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['comment_reward_reversal_enabled'] ?? true);
+        $auditSettings['post_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['post_reward_reversal_enabled'] ?? false);
+        $auditSettings['comment_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['comment_reward_reversal_enabled'] ?? false);
     }
 
     return $auditSettings;
@@ -367,7 +377,7 @@ function sr_community_board_asset_settings_for_audit(PDO $pdo, int $boardId, boo
             $board,
             $communitySettings,
             (string) $assetSettingKey,
-            str_ends_with((string) $assetSettingKey, '_asset_module') ? 'point' : '0'
+            str_ends_with((string) $assetSettingKey, '_asset_module') ? '' : '0'
         );
     }
     $auditSettings = sr_community_asset_settings_for_audit($settings);
@@ -628,7 +638,7 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
             is_string($value)
             && (
                 $value !== ''
-                || (str_ends_with($key, '_asset_module') && sr_community_asset_prefix_uses_composite(sr_community_asset_prefix_from_setting_key($key)))
+                || str_ends_with($key, '_asset_module')
             )
         ) {
             return $value;
@@ -661,10 +671,10 @@ function sr_community_asset_amount_config(PDO $pdo, array $board, array $setting
 function sr_community_asset_event_config(PDO $pdo, array $board, array $settings, string $prefix, string $defaultPolicy = 'once'): array
 {
     $enabled = sr_community_asset_bool_config($pdo, $board, $settings, $prefix . '_enabled');
-    $assetModuleValue = sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_asset_module', 'point');
+    $assetModuleValue = sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_asset_module', '');
     $assetModule = sr_community_asset_prefix_uses_composite($prefix)
         ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($assetModuleValue, true), true)
-        : sr_community_asset_module_key((string) $assetModuleValue);
+        : sr_community_asset_module_key_or_empty((string) $assetModuleValue);
     $amount = sr_community_asset_amount_config($pdo, $board, $settings, $prefix . '_amount');
     $amounts = sr_community_asset_prefix_uses_composite($prefix)
         ? sr_community_asset_amounts_from_value(

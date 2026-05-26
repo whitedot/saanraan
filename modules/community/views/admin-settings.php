@@ -203,7 +203,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             ] as $assetPrefix => $assetLabel) { ?>
                 <?php $assetEnabledId = 'modules_community_admin_settings_' . (string) $assetPrefix . '_enabled'; ?>
                 <?php $isRewardAsset = in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true); ?>
-                <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? 'point', true); ?>
+                <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? '', true); ?>
                 <div class="admin-form-row">
                     <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel, $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
                     <div class="admin-form-field">
@@ -217,9 +217,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php if ($isRewardAsset) { ?>
                                         <div class="admin-asset-setting-target">
                                             <select name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select">
-                                                <?php if ($assetModuleOptions === []) { ?>
-                                                    <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                                <?php } ?>
+                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                                 <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                     <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($settings[$assetPrefix . '_asset_module'] ?? '') === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                                                 <?php } ?>

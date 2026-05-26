@@ -118,7 +118,7 @@ if (sr_request_method() === 'POST') {
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST['group_' . $assetPrefix . '_enabled'] ?? '') === '1';
             $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST['group_' . $assetPrefix . '_asset_module'] ?? '', true), true)
-                : sr_community_asset_module_key(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
+                : sr_community_asset_module_key_or_empty(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_amount', 0, 999999999);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);

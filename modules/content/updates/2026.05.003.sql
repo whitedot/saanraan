@@ -1,13 +1,13 @@
 ALTER TABLE sr_content_items
     ADD COLUMN asset_access_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER status,
-    ADD COLUMN asset_module VARCHAR(20) NOT NULL DEFAULT 'point' AFTER asset_access_enabled,
+    ADD COLUMN asset_module VARCHAR(20) NOT NULL DEFAULT '' AFTER asset_access_enabled,
     ADD COLUMN asset_access_amount BIGINT NOT NULL DEFAULT 0 AFTER asset_module,
     ADD COLUMN asset_charge_policy VARCHAR(20) NOT NULL DEFAULT 'once' AFTER asset_access_amount,
     ADD KEY idx_sr_content_items_asset_access (asset_access_enabled, asset_module);
 
 ALTER TABLE sr_content_revisions
     ADD COLUMN asset_access_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER status,
-    ADD COLUMN asset_module VARCHAR(20) NOT NULL DEFAULT 'point' AFTER asset_access_enabled,
+    ADD COLUMN asset_module VARCHAR(20) NOT NULL DEFAULT '' AFTER asset_access_enabled,
     ADD COLUMN asset_access_amount BIGINT NOT NULL DEFAULT 0 AFTER asset_module,
     ADD COLUMN asset_charge_policy VARCHAR(20) NOT NULL DEFAULT 'once' AFTER asset_access_amount;
 

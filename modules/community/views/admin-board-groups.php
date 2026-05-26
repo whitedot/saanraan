@@ -573,7 +573,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $assetEnabledId = 'community_board_group_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                         <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
                         <?php $usesGroupedAssetAmounts = $usesCompositeAsset; ?>
-                        <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', 'point'), true); ?>
+                        <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', ''), true); ?>
                         <div class="admin-form-row">
                             <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
                             <div class="admin-form-field">
@@ -587,11 +587,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php if (!$usesGroupedAssetAmounts) { ?>
                                                 <div class="admin-asset-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
                                                     <select name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_asset_module" class="form-select">
-                                                        <?php if ($assetModuleOptions === []) { ?>
-                                                            <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                                        <?php } ?>
+                                                        <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                                         <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? 'point')) === (string) $assetModule ? ' selected' : ''; ?>>
+                                                            <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? '')) === (string) $assetModule ? ' selected' : ''; ?>>
                                                                 <?php echo sr_e((string) $assetOption['label']); ?>
                                                             </option>
                                                         <?php } ?>

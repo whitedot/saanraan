@@ -35,7 +35,7 @@ if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id
 }
 
 if ($errors === [] && sr_community_asset_event_required($commentChargeConfig)) {
-    $assetModules = sr_community_asset_module_keys_from_value($commentChargeConfig['asset_module'] ?? 'point', true);
+    $assetModules = sr_community_asset_module_keys_from_value($commentChargeConfig['asset_module'] ?? '', true);
     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
         $errors[] = sr_t('community::action.error.comment_asset_modules_unavailable');
     } elseif (!sr_community_asset_use_balance_available($pdo, $commentChargeConfig, (int) $account['id'])) {

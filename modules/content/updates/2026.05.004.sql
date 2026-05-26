@@ -1,6 +1,6 @@
 ALTER TABLE sr_content_items
     ADD COLUMN asset_action_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER asset_charge_policy,
-    ADD COLUMN asset_action_module VARCHAR(20) NOT NULL DEFAULT 'point' AFTER asset_action_enabled,
+    ADD COLUMN asset_action_module VARCHAR(20) NOT NULL DEFAULT '' AFTER asset_action_enabled,
     ADD COLUMN asset_action_amount BIGINT NOT NULL DEFAULT 0 AFTER asset_action_module,
     ADD COLUMN asset_action_direction VARCHAR(20) NOT NULL DEFAULT 'grant' AFTER asset_action_amount,
     ADD COLUMN asset_action_label VARCHAR(80) NOT NULL DEFAULT '완료' AFTER asset_action_direction,
@@ -8,7 +8,7 @@ ALTER TABLE sr_content_items
 
 ALTER TABLE sr_content_revisions
     ADD COLUMN asset_action_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER asset_charge_policy,
-    ADD COLUMN asset_action_module VARCHAR(20) NOT NULL DEFAULT 'point' AFTER asset_action_enabled,
+    ADD COLUMN asset_action_module VARCHAR(20) NOT NULL DEFAULT '' AFTER asset_action_enabled,
     ADD COLUMN asset_action_amount BIGINT NOT NULL DEFAULT 0 AFTER asset_action_module,
     ADD COLUMN asset_action_direction VARCHAR(20) NOT NULL DEFAULT 'grant' AFTER asset_action_amount,
     ADD COLUMN asset_action_label VARCHAR(80) NOT NULL DEFAULT '완료' AFTER asset_action_direction;
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS sr_content_files (
     checksum_sha256 CHAR(64) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     asset_download_enabled TINYINT(1) NOT NULL DEFAULT 0,
-    asset_module VARCHAR(20) NOT NULL DEFAULT 'point',
+    asset_module VARCHAR(20) NOT NULL DEFAULT '',
     asset_download_amount BIGINT NOT NULL DEFAULT 0,
     asset_charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
     created_by BIGINT UNSIGNED NULL,

@@ -216,28 +216,28 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'skin_key' => 'basic',
     'post_editor' => $newBoardPostEditor,
     'post_reward_enabled' => !empty($newBoardDefaultSettings['post_reward_enabled']) ? '1' : '0',
-    'post_reward_asset_module' => (string) ($newBoardDefaultSettings['post_reward_asset_module'] ?? 'point'),
+    'post_reward_asset_module' => (string) ($newBoardDefaultSettings['post_reward_asset_module'] ?? ''),
     'post_reward_amount' => (string) ($newBoardDefaultSettings['post_reward_amount'] ?? 0),
     'post_reward_amounts_json' => (string) ($newBoardDefaultSettings['post_reward_amounts_json'] ?? ''),
     'comment_reward_enabled' => !empty($newBoardDefaultSettings['comment_reward_enabled']) ? '1' : '0',
-    'comment_reward_asset_module' => (string) ($newBoardDefaultSettings['comment_reward_asset_module'] ?? 'point'),
+    'comment_reward_asset_module' => (string) ($newBoardDefaultSettings['comment_reward_asset_module'] ?? ''),
     'comment_reward_amount' => (string) ($newBoardDefaultSettings['comment_reward_amount'] ?? 0),
     'comment_reward_amounts_json' => (string) ($newBoardDefaultSettings['comment_reward_amounts_json'] ?? ''),
     'write_charge_enabled' => !empty($newBoardDefaultSettings['write_charge_enabled']) ? '1' : '0',
-    'write_charge_asset_module' => (string) ($newBoardDefaultSettings['write_charge_asset_module'] ?? 'point'),
+    'write_charge_asset_module' => (string) ($newBoardDefaultSettings['write_charge_asset_module'] ?? ''),
     'write_charge_amount' => (string) ($newBoardDefaultSettings['write_charge_amount'] ?? 0),
     'write_charge_amounts_json' => (string) ($newBoardDefaultSettings['write_charge_amounts_json'] ?? ''),
     'comment_charge_enabled' => !empty($newBoardDefaultSettings['comment_charge_enabled']) ? '1' : '0',
-    'comment_charge_asset_module' => (string) ($newBoardDefaultSettings['comment_charge_asset_module'] ?? 'point'),
+    'comment_charge_asset_module' => (string) ($newBoardDefaultSettings['comment_charge_asset_module'] ?? ''),
     'comment_charge_amount' => (string) ($newBoardDefaultSettings['comment_charge_amount'] ?? 0),
     'comment_charge_amounts_json' => (string) ($newBoardDefaultSettings['comment_charge_amounts_json'] ?? ''),
     'paid_read_enabled' => !empty($newBoardDefaultSettings['paid_read_enabled']) ? '1' : '0',
-    'paid_read_asset_module' => (string) ($newBoardDefaultSettings['paid_read_asset_module'] ?? 'point'),
+    'paid_read_asset_module' => (string) ($newBoardDefaultSettings['paid_read_asset_module'] ?? ''),
     'paid_read_amount' => (string) ($newBoardDefaultSettings['paid_read_amount'] ?? 0),
     'paid_read_amounts_json' => (string) ($newBoardDefaultSettings['paid_read_amounts_json'] ?? ''),
     'paid_read_charge_policy' => (string) ($newBoardDefaultSettings['paid_read_charge_policy'] ?? 'once'),
     'paid_attachment_download_enabled' => !empty($newBoardDefaultSettings['paid_attachment_download_enabled']) ? '1' : '0',
-    'paid_attachment_download_asset_module' => (string) ($newBoardDefaultSettings['paid_attachment_download_asset_module'] ?? 'point'),
+    'paid_attachment_download_asset_module' => (string) ($newBoardDefaultSettings['paid_attachment_download_asset_module'] ?? ''),
     'paid_attachment_download_amount' => (string) ($newBoardDefaultSettings['paid_attachment_download_amount'] ?? 0),
     'paid_attachment_download_amounts_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_amounts_json'] ?? ''),
     'paid_attachment_download_charge_policy' => (string) ($newBoardDefaultSettings['paid_attachment_download_charge_policy'] ?? 'once'),
@@ -686,7 +686,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php $assetEnabledId = 'community_board_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $assetPrefix) . '_enabled'; ?>
                     <?php $usesCompositeAsset = sr_community_asset_prefix_uses_composite((string) $assetPrefix); ?>
                     <?php $usesGroupedAssetAmounts = $usesCompositeAsset; ?>
-                    <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($boardField($formBoard, $assetPrefix . '_asset_module', 'point'), true); ?>
+                    <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($boardField($formBoard, $assetPrefix . '_asset_module', ''), true); ?>
                     <div class="admin-form-row">
                         <div class="form-label admin-form-label-help"><?php echo $communityBoardHelpButtonHtml($assetLabel, $communityBoardHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
 	                        <div class="admin-form-field">
@@ -708,11 +708,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
                                             <?php } else { ?>
                                                 <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select">
-                                                    <?php if ($assetModuleOptions === []) { ?>
-                                                        <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                                    <?php } ?>
+                                                    <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
                                                     <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                        <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', 'point') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                        <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', '') === (string) $assetModule ? ' selected' : ''; ?>>
                                                             <?php echo sr_e((string) $assetOption['label']); ?>
                                                         </option>
                                                     <?php } ?>
