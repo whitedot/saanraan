@@ -50,7 +50,7 @@ return [
     'ui.name.661e423c' => '항목 이름',
     'ui.required.1f227c67' => '(필수)',
     'ui.save.964f6f83' => '항목 저장',
-    'ui.save.cc86610d' => '표시 순서 저장',
+    'ui.save.cc86610d' => '순서 적용하기',
     'ui.select.635a3c01' => '종류 선택',
     'ui.select.a33d6c70' => '자산 선택',
     'ui.status.e10195a1' => '상태',

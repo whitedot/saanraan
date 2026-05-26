@@ -84,7 +84,7 @@
     overflow: visible;
 }
 
-.admin-page-site-menu .admin-site-menu-form .admin-menu-sort-order-cell {
+.admin-page-site-menu .admin-site-menu-form .table :is(th, td):nth-child(6) {
     display: none;
 }
 
