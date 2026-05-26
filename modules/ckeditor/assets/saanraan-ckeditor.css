@@ -1,0 +1,11 @@
+.sr-ckeditor {
+  max-width: 100%;
+}
+
+.sr-ckeditor .ck-editor__editable_inline {
+  min-height: 22rem;
+}
+
+.sr-ckeditor .ck-source-editing-area textarea {
+  min-height: 22rem;
+}

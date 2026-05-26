@@ -111,7 +111,10 @@
         return;
       }
 
-      ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor)).then(function () {
+      ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor)).then(function (editor) {
+        if (editor.ui && editor.ui.view && editor.ui.view.element) {
+          editor.ui.view.element.classList.add('sr-ckeditor');
+        }
         textarea.dataset.srEditorReady = '1';
         markHtmlFormat(textarea);
       }).catch(function () {
@@ -125,6 +128,7 @@
     var stylesheetUrl = config.assetMode === 'self_hosted' ? config.selfHostedStylesheetUrl : config.cdnStylesheetUrl;
 
     loadStylesheet(stylesheetUrl);
+    loadStylesheet(config.pluginStylesheetUrl);
     loadScript(scriptUrl).then(enhance).catch(function () {
       document.documentElement.classList.add('sr-ckeditor-unavailable');
     });

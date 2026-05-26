@@ -8,7 +8,6 @@ function sr_ckeditor_default_settings(): array
         'asset_mode' => 'self_hosted',
         'cdn_version' => '48.1.0',
         'license_key' => 'GPL',
-        'community_posts_enabled' => true,
         'toolbar_preset' => 'community_post_basic',
     ];
 }
@@ -21,7 +20,6 @@ function sr_ckeditor_settings(PDO $pdo): array
         : 'self_hosted';
     $settings['cdn_version'] = sr_ckeditor_clean_version((string) $settings['cdn_version']);
     $settings['license_key'] = sr_ckeditor_clean_license_key((string) $settings['license_key']);
-    $settings['community_posts_enabled'] = (bool) $settings['community_posts_enabled'];
     $settings['toolbar_preset'] = isset(sr_ckeditor_toolbar_presets()[(string) $settings['toolbar_preset']])
         ? (string) $settings['toolbar_preset']
         : 'community_post_basic';
@@ -91,7 +89,6 @@ function sr_ckeditor_save_settings(PDO $pdo, array $settings): void
         ['asset_mode', (string) $settings['asset_mode'], 'string'],
         ['cdn_version', sr_ckeditor_clean_version((string) $settings['cdn_version']), 'string'],
         ['license_key', sr_ckeditor_clean_license_key((string) $settings['license_key']), 'string'],
-        ['community_posts_enabled', !empty($settings['community_posts_enabled']) ? '1' : '0', 'bool'],
         ['toolbar_preset', (string) $settings['toolbar_preset'], 'string'],
     ];
 
@@ -120,11 +117,6 @@ function sr_ckeditor_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('ckeditor');
 }
 
-function sr_ckeditor_community_posts_enabled(PDO $pdo): bool
-{
-    return sr_module_enabled($pdo, 'ckeditor') && !empty(sr_ckeditor_settings($pdo)['community_posts_enabled']);
-}
-
 function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post_basic'): array
 {
     $settings = sr_ckeditor_settings($pdo);
@@ -140,8 +132,9 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
         'toolbar' => $preset['items'],
         'cdnScriptUrl' => 'https://cdn.ckeditor.com/ckeditor5/' . rawurlencode($cdnVersion) . '/ckeditor5.umd.js',
         'cdnStylesheetUrl' => 'https://cdn.ckeditor.com/ckeditor5/' . rawurlencode($cdnVersion) . '/ckeditor5.css',
-        'selfHostedScriptUrl' => sr_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js'),
-        'selfHostedStylesheetUrl' => sr_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'),
+        'selfHostedScriptUrl' => sr_asset_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js'),
+        'selfHostedStylesheetUrl' => sr_asset_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'),
+        'pluginStylesheetUrl' => sr_asset_url('/modules/ckeditor/assets/saanraan-ckeditor.css'),
     ];
 }
 

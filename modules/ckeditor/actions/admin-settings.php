@@ -28,7 +28,6 @@ if (sr_request_method() === 'POST') {
         'asset_mode' => sr_post_string('asset_mode', 30),
         'cdn_version' => sr_post_string('cdn_version', 20),
         'license_key' => sr_post_string_without_truncation('license_key', 255),
-        'community_posts_enabled' => sr_post_string('community_posts_enabled', 1) === '1',
         'toolbar_preset' => sr_post_string('toolbar_preset', 60),
     ];
 
@@ -40,6 +39,12 @@ if (sr_request_method() === 'POST') {
     }
     if (!isset($toolbarPresets[$postedSettings['toolbar_preset']])) {
         $errors[] = '툴바 구성이 올바르지 않습니다.';
+    }
+    if (
+        (string) $postedSettings['asset_mode'] === 'cdn'
+        && sr_ckeditor_clean_license_key((string) $postedSettings['license_key']) === 'GPL'
+    ) {
+        $errors[] = 'GPL 라이선스 키는 직접 호스팅 방식에서만 사용할 수 있습니다.';
     }
 
     if ($errors === []) {
@@ -55,7 +60,6 @@ if (sr_request_method() === 'POST') {
             'message' => 'CKEditor settings updated.',
             'metadata' => [
                 'asset_mode' => (string) $settings['asset_mode'],
-                'community_posts_enabled' => !empty($settings['community_posts_enabled']),
                 'toolbar_preset' => (string) $settings['toolbar_preset'],
             ],
         ]);

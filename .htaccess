@@ -15,6 +15,7 @@ Options -Indexes
     # Allow public static assets.
     RewriteRule ^assets/ - [L]
     RewriteRule ^modules/[a-z][a-z0-9_]{1,39}/assets/ - [L]
+    RewriteRule ^modules/ckeditor/vendor/ckeditor5/ckeditor5\.(?:umd\.js|css)$ - [L]
 
     # Block internal project directories.
     RewriteRule ^(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$) - [F,L]

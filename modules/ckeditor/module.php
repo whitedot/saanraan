@@ -4,13 +4,14 @@ return [
     'name' => 'CKEditor',
     'version' => '2026.05.001',
     'type' => 'plugin',
-    'description' => '커뮤니티 게시글 textarea에 CKEditor 5 편집기를 선택적으로 붙이는 플러그인입니다.',
+    'description' => '설정된 textarea에 CKEditor 5 편집기를 붙이는 에디터 플러그인입니다.',
     'admin' => [
-        'category' => 'site',
-        'category_label' => '사이트',
-        'category_order' => 20,
-        'menu_order' => 80,
+        'category' => 'plugin',
+        'category_label' => '플러그인',
+        'category_order' => 45,
+        'menu_order' => 10,
         'icon' => ['type' => 'symbol', 'name' => 'content'],
+        'settings_path' => '/admin/ckeditor/settings',
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
@@ -18,7 +19,7 @@ return [
         'module_contract' => '2.0',
     ],
     'requires' => [
-        'modules' => ['member', 'admin', 'community'],
+        'modules' => ['admin'],
     ],
     'contracts' => [
         'provides' => [
@@ -30,7 +31,6 @@ return [
         'asset_mode' => 'self_hosted',
         'cdn_version' => '48.1.0',
         'license_key' => 'GPL',
-        'community_posts_enabled' => true,
         'toolbar_preset' => 'community_post_basic',
     ],
 ];

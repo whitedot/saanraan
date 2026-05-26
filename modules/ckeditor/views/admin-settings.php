@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = 'CKEditor 설정';
-$adminPageSubtitle = '커뮤니티 게시글 작성 화면의 CKEditor 연결 방식을 관리합니다.';
+$adminPageSubtitle = '콘텐츠, 커뮤니티, 관리자 본문 입력 화면의 CKEditor 연결 방식을 관리합니다.';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -21,7 +21,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="<?php echo sr_e((string) $assetMode); ?>"<?php echo (string) $settings['asset_mode'] === (string) $assetMode ? ' selected' : ''; ?>><?php echo sr_e((string) $assetModeLabel); ?></option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">직접 호스팅은 modules/ckeditor/vendor/ckeditor5/에 CKEditor ZIP 배포 파일을 배치했을 때 사용합니다.</p>
+                <p class="admin-form-help">직접 호스팅은 modules/ckeditor/vendor/ckeditor5/에 포함된 CKEditor 5 배포 파일을 사용합니다.</p>
             </div>
         </div>
 
@@ -37,7 +37,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="ckeditor_admin_license_key">라이선스 키 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <input id="ckeditor_admin_license_key" type="text" name="license_key" class="form-control" maxlength="255" value="<?php echo sr_e((string) $settings['license_key']); ?>" required>
-                <p class="admin-form-help">GPL 조건으로 사용할 때는 GPL을 입력합니다. CKEditor 5 v44 이상은 라이선스 키 설정이 필요합니다.</p>
+                <p class="admin-form-help">GPL 조건으로 직접 호스팅할 때는 GPL을 입력합니다. CDN 방식은 해당 배포 채널에서 유효한 라이선스 키가 필요합니다.</p>
             </div>
         </div>
 
@@ -52,20 +52,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
 
-        <div class="admin-form-row">
-            <label class="form-label" for="ckeditor_admin_community_posts_enabled">커뮤니티 게시글 편집기</label>
-            <div class="admin-form-field">
-                <label class="admin-check">
-                    <input id="ckeditor_admin_community_posts_enabled" type="checkbox" name="community_posts_enabled" value="1"<?php echo !empty($settings['community_posts_enabled']) ? ' checked' : ''; ?>>
-                    <span>사용</span>
-                </label>
-                <p class="admin-form-help">사용 중이어도 CKEditor 에셋 로딩에 실패하면 일반 textarea로 제출됩니다.</p>
-            </div>
-        </div>
+        <p class="admin-form-help">콘텐츠, 커뮤니티, 관리자 화면 중 어디에 CKEditor를 적용할지는 각 모듈의 에디터 설정에서 결정합니다. 에셋 로딩에 실패하면 일반 textarea로 제출됩니다.</p>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="btn btn-solid-light">플러그인 목록</a>
+        <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="btn btn-solid-light">모듈 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>

@@ -2,7 +2,7 @@
 
 return [
     'label' => 'CKEditor',
-    'order' => 80,
+    'order' => 10,
     'items' => [
         [
             'label' => '설정',

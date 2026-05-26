@@ -1046,11 +1046,6 @@ function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?ar
         return false;
     }
 
-    require_once SR_ROOT . '/modules/ckeditor/helpers.php';
-    if (!function_exists('sr_ckeditor_community_posts_enabled') || !sr_ckeditor_community_posts_enabled($pdo)) {
-        return false;
-    }
-
     if (is_array($board)) {
         return sr_community_effective_post_editor($pdo, $board, $settings) === 'ckeditor';
     }
