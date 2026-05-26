@@ -622,7 +622,7 @@ function sr_admin_permission_account_count(PDO $pdo, string $statusFilter = '', 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = '', int $limit = 100, int $offset = 0): array
+function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = '', int $limit = 100, int $offset = 0, array $sort = []): array
 {
     $accounts = [];
     $queryParts = sr_admin_permission_account_query_parts($pdo, $statusFilter, $searchFilter, $permissionFilter);
@@ -638,7 +638,7 @@ function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array
          ' . $queryParts['where_sql'] . '
          GROUP BY a.id, a.email, a.display_name, a.status
          ' . $queryParts['having'] . '
-         ORDER BY a.id DESC'
+         ' . sr_admin_sort_order_sql(sr_admin_permission_account_sort_options(), $sort, sr_admin_permission_account_default_sort())
         . $limitSql
     );
     foreach ($queryParts['params'] as $paramKey => $paramValue) {

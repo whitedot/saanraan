@@ -5,6 +5,7 @@ $adminPageSubtitle = sr_t('admin::ui.member.search.admin.411aa70f');
 $adminContainerClass = 'admin-page-role-list admin-ui-scope';
 $permissionOptions = isset($permissionOptions) && is_array($permissionOptions) ? $permissionOptions : [];
 $permissionActions = isset($permissionActions) && is_array($permissionActions) ? $permissionActions : sr_admin_permission_actions();
+$accountSort = isset($accountSort) && is_array($accountSort) ? $accountSort : sr_admin_permission_account_default_sort();
 $permissionFormAction = sr_url('/admin/roles');
 $memberSearchUrl = sr_url('/admin/members/search');
 $permissionOptionMap = [];
@@ -128,16 +129,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal">권한 추가</button>
 </div>
-<?php echo sr_admin_pagination_summary_html($accountPagination); ?>
+<div class="admin-list-summary-row">
+    <?php if (empty($accountSort['is_default'])) { ?>
+        <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_permission_account_sort_options(), sr_admin_permission_account_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="관리자 권한 회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+    <?php } ?>
+    <?php echo sr_admin_pagination_summary_html($accountPagination); ?>
+</div>
 <div class="table-wrapper">
 <table class="table">
     <thead class="ui-table-head">
         <tr>
             <th><?php echo sr_e(sr_t('admin::ui.text.4ca2f9ab')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.email.3b7dbc4c')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.e8857c35')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.status.3808960c')); ?></th>
-            <th><?php echo sr_e(sr_t('admin::ui.text.4b72a63a')); ?></th>
+            <th<?php echo sr_admin_sort_aria('email', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.email.3b7dbc4c'), 'email', $accountSort, sr_admin_permission_account_sort_options(), sr_admin_permission_account_default_sort()); ?></th>
+            <th<?php echo sr_admin_sort_aria('display_name', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.e8857c35'), 'display_name', $accountSort, sr_admin_permission_account_sort_options(), sr_admin_permission_account_default_sort()); ?></th>
+            <th<?php echo sr_admin_sort_aria('status', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.status.3808960c'), 'status', $accountSort, sr_admin_permission_account_sort_options(), sr_admin_permission_account_default_sort()); ?></th>
+            <th<?php echo sr_admin_sort_aria('permission_count', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4b72a63a'), 'permission_count', $accountSort, sr_admin_permission_account_sort_options(), sr_admin_permission_account_default_sort()); ?></th>
             <th class="text-end"><?php echo sr_e(sr_t('admin::ui.text.16f64fe4')); ?></th>
         </tr>
     </thead>

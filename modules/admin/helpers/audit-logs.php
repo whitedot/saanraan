@@ -538,7 +538,7 @@ function sr_admin_audit_log_page_url(array $filters, int $page): string
     return sr_url('/admin/audit-logs' . ($query !== [] ? '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986) : ''));
 }
 
-function sr_admin_audit_logs(PDO $pdo, array &$filters, int $limit = 100, int $offset = 0): array
+function sr_admin_audit_logs(PDO $pdo, array &$filters, int $limit = 100, int $offset = 0, array $sort = []): array
 {
     $queryParts = sr_admin_audit_log_query_parts($filters);
     $where = $queryParts['where'];
@@ -551,7 +551,8 @@ function sr_admin_audit_logs(PDO $pdo, array &$filters, int $limit = 100, int $o
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY id DESC LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset;
+    $sql .= sr_admin_sort_order_sql(sr_admin_audit_log_sort_options(), $sort, sr_admin_audit_log_default_sort())
+        . ' LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset;
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

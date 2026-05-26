@@ -3,6 +3,8 @@
 $adminPageTitle = sr_t('logo_manager::ui.text.e046e24f');
 $adminPageSubtitle = sr_t('logo_manager::ui.text.52f5a11e');
 $adminContainerClass = 'admin-page-logo-manager admin-ui-scope';
+$assetSort = isset($assetSort) && is_array($assetSort) ? $assetSort : sr_admin_logo_asset_default_sort();
+$assignmentSort = isset($assignmentSort) && is_array($assignmentSort) ? $assignmentSort : sr_admin_logo_assignment_default_sort();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -201,18 +203,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-upload-modal" data-overlay="#logo-manager-upload-modal"><?php echo sr_e(sr_t('logo_manager::ui.create.d7f97185')); ?></button>
     </div>
-    <?php echo sr_admin_pagination_summary_html($assetPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($assetSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), '', '', 'asset_sort', 'asset_dir', 'asset_page')); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="로고 자산 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($assetPagination); ?>
+    </div>
     <div class="table-wrapper">
         <table class="table logo-manager-assets-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.list.5caa43ae')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
                     <th><?php echo sr_e(sr_t('logo_manager::ui.text.dcb06beb')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.name.253d1510')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.82232621')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.create.7aeae93b')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $assetSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.name.253d1510'), 'title', $assetSort, sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), 'asset_sort', 'asset_dir', 'asset_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('usage_key', $assetSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.dfa401cd'), 'usage_key', $assetSort, sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), 'asset_sort', 'asset_dir', 'asset_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('size_bytes', $assetSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.82232621'), 'size_bytes', $assetSort, sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), 'asset_sort', 'asset_dir', 'asset_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $assetSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $assetSort, sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), 'asset_sort', 'asset_dir', 'asset_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('created_at', $assetSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.create.7aeae93b'), 'created_at', $assetSort, sr_admin_logo_asset_sort_options(), sr_admin_logo_asset_default_sort(), 'asset_sort', 'asset_dir', 'asset_page'); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('logo_manager::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
@@ -256,17 +263,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-assignment-modal" data-overlay="#logo-manager-assignment-modal"><?php echo sr_e(sr_t('logo_manager::ui.text.e3241f70')); ?></button>
     </div>
-    <?php echo sr_admin_pagination_summary_html($assignmentPagination); ?>
+    <div class="admin-list-summary-row">
+        <?php if (empty($assignmentSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), '', '', 'assignment_sort', 'assignment_dir', 'assignment_page')); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="로고 적용 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($assignmentPagination); ?>
+    </div>
     <div class="table-wrapper">
         <table class="table logo-manager-assignments-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.list.4b760897')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.dfa401cd')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.ac97396d')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.b918d5af')); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('usage_key', $assignmentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.dfa401cd'), 'usage_key', $assignmentSort, sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), 'assignment_sort', 'assignment_dir', 'assignment_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $assignmentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $assignmentSort, sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), 'assignment_sort', 'assignment_dir', 'assignment_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $assignmentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $assignmentSort, sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), 'assignment_sort', 'assignment_dir', 'assignment_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $assignmentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.b918d5af'), 'starts_at', $assignmentSort, sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), 'assignment_sort', 'assignment_dir', 'assignment_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('sort_order', $assignmentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.3788952d'), 'sort_order', $assignmentSort, sr_admin_logo_assignment_sort_options(), sr_admin_logo_assignment_default_sort(), 'assignment_sort', 'assignment_dir', 'assignment_page'); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('logo_manager::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

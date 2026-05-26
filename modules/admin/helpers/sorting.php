@@ -155,3 +155,68 @@ function sr_admin_asset_transaction_default_sort(): array
 {
     return sr_admin_sort_default('created_at', 'desc');
 }
+
+function sr_admin_logo_asset_sort_options(): array
+{
+    return [
+        'usage_key' => ['columns' => ['usage_key', 'id']],
+        'title' => ['columns' => ['title', 'id']],
+        'size_bytes' => ['columns' => ['size_bytes', 'id']],
+        'status' => ['columns' => ['status', 'id']],
+        'created_at' => ['columns' => ['created_at', 'id']],
+    ];
+}
+
+function sr_admin_logo_asset_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_admin_logo_assignment_sort_options(): array
+{
+    return [
+        'usage_key' => ['columns' => ['a.usage_key', 'a.sort_order', 'a.id']],
+        'title' => ['columns' => ['asset.title', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'starts_at' => ['columns' => ['a.starts_at', 'a.ends_at', 'a.id']],
+        'sort_order' => ['columns' => ['a.sort_order', 'a.id']],
+    ];
+}
+
+function sr_admin_logo_assignment_default_sort(): array
+{
+    return sr_admin_sort_default('usage_key', 'asc');
+}
+
+function sr_admin_audit_log_sort_options(): array
+{
+    return [
+        'created_at' => ['columns' => ['created_at', 'id']],
+        'actor_account_id' => ['columns' => ['actor_account_id', 'id']],
+        'event_type' => ['columns' => ['event_type', 'id']],
+        'target_type' => ['columns' => ['target_type', 'target_id', 'id']],
+        'result' => ['columns' => ['result', 'id']],
+        'ip_address' => ['columns' => ['ip_address', 'id']],
+    ];
+}
+
+function sr_admin_audit_log_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_admin_permission_account_sort_options(): array
+{
+    return [
+        'email' => ['columns' => ['a.email', 'a.id']],
+        'display_name' => ['columns' => ["COALESCE(a.display_name, '')", 'a.email', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'permission_count' => ['columns' => ['owner_count', 'permission_count', 'a.id']],
+        'created_at' => ['columns' => ['a.created_at', 'a.id']],
+    ];
+}
+
+function sr_admin_permission_account_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
