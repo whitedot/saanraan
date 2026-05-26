@@ -359,6 +359,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('community::ui.settings.021ed27a')); ?></h2>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.group_defaults_help')); ?></p>
                 <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
@@ -369,7 +370,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                        <p class="admin-form-help">새 게시판을 만들 때 참고할 그룹 기본값입니다.</p>
+                        <p class="admin-form-help">새 게시판을 만들 때 참고할 그룹 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
                     </div>
                 </div>
                 <div class="admin-form-row">

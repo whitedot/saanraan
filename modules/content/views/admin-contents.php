@@ -71,12 +71,13 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('content::ui.text.706623d8') . implode(', ', $assetDeductionPriorityLabels)
     : sr_t('content::ui.text.3e195cdd');
 $pageGroupScopeLabels = [
-    'group' => ['visible' => sr_t('content::ui.text.5d908ddd'), 'sr' => sr_t('content::ui.text.6a1c963d')],
-    'all' => ['visible' => sr_t('content::ui.all.a4b69faf'), 'sr' => sr_t('content::ui.text.6a1c963d')],
-    'here_only' => ['visible' => sr_t('content::ui.text.c0e39cdd'), 'sr' => sr_t('content::ui.text.6a1c963d')],
+    'group' => ['visible' => sr_t('content::ui.scope.copy_group'), 'sr' => ''],
+    'all' => ['visible' => sr_t('content::ui.scope.copy_all'), 'sr' => ''],
+    'here_only' => ['visible' => sr_t('content::ui.scope.current_only'), 'sr' => ''],
 ];
 $pageScopeLabelHtml = static function (array $label): string {
-    return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
+    $srLabel = (string) ($label['sr'] ?? '');
+    return sr_e((string) ($label['visible'] ?? '')) . ($srLabel !== '' ? '<span class="sr-only">' . sr_e($srLabel) . '</span>' : '');
 };
 $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope) use ($pageGroupScopeLabels, $pageScopeLabelHtml): string {
     $selectedScope = array_key_exists($selectedScope, $pageGroupScopeLabels) ? $selectedScope : 'here_only';
@@ -175,7 +176,7 @@ $contentHelp = [
     'content_group' => [
         'id' => 'content_admin_help_content_group',
         'title' => sr_t('content::help.content_group.title'),
-        'body' => $contentHelpBodyHtml(['content::help.content_group.body.1', 'content::help.content_group.body.2']),
+        'body' => $contentHelpBodyHtml(['content::help.content_group.body.1', 'content::help.content_group.body.2', 'content::help.content_group.body.3']),
     ],
     'summary' => [
         'id' => 'content_admin_help_summary',
@@ -324,6 +325,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <?php echo $pageGroupScopeRadioHtml('content_group_scope', (string) ($values['content_group_scope'] ?? 'here_only')); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">

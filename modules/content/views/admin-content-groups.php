@@ -201,6 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('content::ui.content.settings.c384599a')); ?></h2>
+            <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.group_defaults_help')); ?></p>
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_content_status"><?php echo sr_e(sr_t('content::ui.content.status.ff88bb94')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">

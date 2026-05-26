@@ -1576,7 +1576,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = '콘텐츠 그룹 값이 올바르지 않습니다.';
     }
     if (sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
-        $errors[] = '그룹적용을 선택하려면 콘텐츠 그룹을 선택하세요.';
+        $errors[] = '그룹에 복사를 선택하려면 콘텐츠 그룹을 선택하세요.';
     }
 
     $sourceLabels = [
@@ -1601,7 +1601,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     }
     foreach ($sourceLabels as $sourceKey => $sourceLabel) {
         if (sr_content_normalize_setting_source((string) ($values[$sourceKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용할 수 있습니다.';
+            $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹에 복사할 수 있습니다.';
         }
     }
 
@@ -1677,7 +1677,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
         $displayId = (int) ($values[$settingKey] ?? 0);
         if (sr_content_normalize_setting_source((string) ($values['source_' . $settingKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
-            $errors[] = $settingLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용할 수 있습니다.';
+            $errors[] = $settingLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹에 복사할 수 있습니다.';
         }
 
         if ($displayId < 0) {

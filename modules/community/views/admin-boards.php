@@ -19,12 +19,13 @@ $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 
 $settingSourceLabels = [
-    'group' => ['visible' => sr_t('community::ui.text.5d908ddd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
-    'all' => ['visible' => sr_t('community::ui.all.a4b69faf'), 'sr' => sr_t('community::ui.text.6a1c963d')],
-    'board' => ['visible' => sr_t('community::ui.text.c0e39cdd'), 'sr' => sr_t('community::ui.text.6a1c963d')],
+    'group' => ['visible' => sr_t('community::ui.scope.copy_group'), 'sr' => ''],
+    'all' => ['visible' => sr_t('community::ui.scope.copy_all'), 'sr' => ''],
+    'board' => ['visible' => sr_t('community::ui.scope.current_only'), 'sr' => ''],
 ];
 $settingSourceLabelHtml = static function (array $label): string {
-    return sr_e((string) ($label['visible'] ?? '')) . '<span class="sr-only">' . sr_e((string) ($label['sr'] ?? '')) . '</span>';
+    $srLabel = (string) ($label['sr'] ?? '');
+    return sr_e((string) ($label['visible'] ?? '')) . ($srLabel !== '' ? '<span class="sr-only">' . sr_e($srLabel) . '</span>' : '');
 };
 $boardSettingSource = static function (array $board, string $key): string {
     if (array_key_exists('source_' . $key, $board)) {
@@ -109,7 +110,7 @@ $communityBoardHelp = [
     'board_group' => [
         'id' => 'community_board_help_board_group',
         'title' => sr_t('community::help.board_group.title'),
-        'body' => $communityBoardHelpBodyHtml(['community::help.board_group.body.1', 'community::help.board_group.body.2']),
+        'body' => $communityBoardHelpBodyHtml(['community::help.board_group.body.1', 'community::help.board_group.body.2', 'community::help.board_group.body.3']),
     ],
     'status' => [
         'id' => 'community_board_help_status',

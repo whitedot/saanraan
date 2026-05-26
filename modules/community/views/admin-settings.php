@@ -336,7 +336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">게시판에서 별도 값을 고르지 않으면 게시판 그룹, 환경설정 순서로 적용됩니다.</p>
+                <p class="admin-form-help">새 게시판 그룹과 새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
     </section>
