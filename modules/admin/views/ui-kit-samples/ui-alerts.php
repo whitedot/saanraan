@@ -1,4 +1,4 @@
-<div class="ui-kit-sample-section" data-ui-kit-sample="ui-alerts">
+<div class="ui-kit-sample-section" data-ui-kit-sample="alerts">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card">
@@ -8,21 +8,21 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
-                                    <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-primary"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.notification.d580c4ec')); ?></div>
-                                    <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-secondary"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.notification.35f492d6')); ?></div>
-                                    <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-success"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.text.11ddc0f7')); ?></div>
-                                    <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-danger"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.text.33aeda90')); ?></div>
-                                    <div class="ui-kit-surface-warning-soft ui-kit-ink-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-warning"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.text.f4527ae1')); ?></div>
-                                    <div class="ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
+                                    <div class="alert alert-info" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.5e7d9c8d')); ?></div>
-                                    <div class="ui-kit-surface-light-muted ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
+                                    <div class="alert alert-light" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.notification.2691ea90')); ?></div>
-                                    <div class="ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
+                                    <div class="alert alert-dark" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.active.3ad3f954')); ?></div>
                                 </div>
                             </div>
@@ -37,21 +37,21 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
-                                    <div class="ui-kit-surface-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-primary" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.24d8286c')); ?></div>
-                                    <div class="ui-kit-surface-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse"
+                                    <div class="alert alert-solid alert-secondary"
                                         role="alert"><?php echo sr_e(sr_t('admin::ui.notification.notification.8e06bbc8')); ?></div>
-                                    <div class="ui-kit-surface-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-success" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.11ddc0f7')); ?></div>
-                                    <div class="ui-kit-surface-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-danger" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.3fed08ed')); ?></div>
-                                    <div class="ui-kit-surface-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-warning" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.b09653ed')); ?></div>
-                                    <div class="ui-kit-surface-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-info" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.16aedd3a')); ?></div>
-                                    <div class="ui-kit-surface-light ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3" role="alert">
+                                    <div class="alert alert-solid alert-light" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.d3b9ac61')); ?></div>
-                                    <div class="ui-kit-surface-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3 ui-kit-ink-inverse" role="alert">
+                                    <div class="alert alert-solid alert-dark" role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.notification.658000c0')); ?></div>
                                 </div>
                             </div>
@@ -66,48 +66,48 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
-                                    <div class="ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-primary ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.f07cf6a0')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.5c2efd36')); ?></a>
                                         <?php echo sr_e(sr_t('admin::ui.text.4b939808')); ?>
                                     </div>
 
-                                    <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-secondary ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.72e9f01e')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.3823379a')); ?></a>
                                         <?php echo sr_e(sr_t('admin::ui.text.52d8ddad')); ?>
                                     </div>
 
-                                    <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-success ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.4817d465')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.a0eef836')); ?></a>
                                     </div>
 
-                                    <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-danger ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.b15c56a2')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.notification.e3884fc0')); ?></a>
                                         <?php echo sr_e(sr_t('admin::ui.text.51fe477f')); ?>
                                     </div>
 
-                                    <div class="ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-info ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.c0d1dbd0')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.e33399f2')); ?></a>
                                         <?php echo sr_e(sr_t('admin::ui.text.80fc4c0d')); ?>
                                     </div>
 
-                                    <div class="ui-kit-surface-light ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-solid alert-light ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.text.dd6189c1')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.5a7e51f7')); ?></a>
                                         <?php echo sr_e(sr_t('admin::ui.notification.7aac0421')); ?>
                                     </div>
 
-                                    <div class="ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-gap-1 ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                    <div class="alert alert-dark ui-kit-gap-1"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.048c4ad7')); ?>
                                         <a href="#" class="ui-kit-weight-bold"><?php echo sr_e(sr_t('admin::ui.text.40950d5b')); ?></a>
@@ -126,14 +126,14 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
-                                    <div class="ui-kit-surface-success-soft ui-kit-ink-success ui-kit-radius-base ui-kit-pad-6" role="alert">
+                                    <div class="alert alert-success alert-block ui-kit-pad-6" role="alert">
                                         <h4 class="ui-kit-ink-success ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.text.9e47abeb')); ?></h4>
                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.notification.46327dc4')); ?></p>
                                         <hr class="ui-kit-line-success-soft ui-kit-block-space-4" />
                                         <p><?php echo sr_e(sr_t('admin::ui.active.af1b6fe3')); ?></p>
                                     </div>
 
-                                    <div class="ui-kit-surface-secondary-soft ui-kit-ink-secondary ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
+                                    <div class="alert alert-secondary ui-kit-gap-3 ui-kit-pad-6" role="alert">
                                         <span class="ui-kit-icon-text">alarm-snooze</span>
                                         <div>
                                             <h4 class="ui-kit-ink-secondary ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.text.812eeb2e')); ?></h4>
@@ -144,7 +144,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-gap-3 ui-kit-radius-base ui-kit-pad-6" role="alert">
+                                    <div class="alert alert-danger ui-kit-gap-3 ui-kit-pad-6" role="alert">
                                         <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div>
                                             <h4 class="ui-kit-ink-danger ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.notification.2526ab43')); ?></h4>
@@ -166,7 +166,7 @@
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div id="dark-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-divider-bottom-strong ui-kit-line-dark ui-kit-surface-dark-soft ui-kit-ink-dark ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-divider-bottom-strong ui-kit-line-dark alert alert-dark"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.08d4de3e')); ?>
 
@@ -176,7 +176,7 @@
                                     </div>
 
                                     <div id="success-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-dashed ui-kit-line-success ui-kit-surface-success-soft ui-kit-ink-success ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-dashed ui-kit-line-success alert alert-success"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.6ed99ebf')); ?>
 
@@ -186,7 +186,7 @@
                                     </div>
 
                                     <div id="danger-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-danger ui-kit-surface-danger-soft ui-kit-ink-danger ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-frame-strong ui-kit-line-danger alert alert-danger"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.0a99c4bf')); ?>
 
@@ -196,7 +196,7 @@
                                     </div>
 
                                     <div id="warning-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-surface-warning-soft ui-kit-ink-warning ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 alert alert-warning"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.close.notification.8d72e773')); ?>
 
@@ -208,7 +208,7 @@
                                     </div>
 
                                     <div id="info-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-surface-info-soft ui-kit-ink-info ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 alert alert-info"
                                         role="alert">
                                         <div class="ui-kit-cluster ui-kit-gap-3 ui-kit-align-items-center">
                                             <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.6c0f7510')); ?></span>
@@ -220,7 +220,7 @@
                                         </button>
                                     </div>
 
-                                    <div class="ui-kit-line-light ui-kit-surface-light-faint ui-kit-ink-light ui-kit-cluster ui-kit-align-items-center ui-kit-gap-base ui-kit-radius-base ui-kit-frame-strong ui-kit-pad-6"
+                                    <div class="alert alert-light ui-kit-gap-base ui-kit-frame-strong ui-kit-pad-6"
                                         role="alert">
                                         <span class="ui-kit-icon-text">phone-ringing</span>
                                         <div class="ui-kit-ink-default-400">
@@ -242,7 +242,7 @@
                             <div class="card-body">
                                 <div class="ui-kit-stack-4">
                                     <div id="dismiss-alert"
-                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 ui-kit-line-primary ui-kit-surface-primary-soft ui-kit-ink-primary ui-kit-cluster ui-kit-align-items-center ui-kit-radius-base ui-kit-frame ui-kit-inline-pad-4 ui-kit-block-pad-3"
+                                        class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 alert alert-primary ui-kit-frame"
                                         role="alert">
                                         <?php echo sr_e(sr_t('admin::ui.notification.close.notification.e9cfda1f')); ?>
 
