@@ -524,7 +524,7 @@ if ($adminPrivacyRequestsHelper !== '') {
 $adminPrivacyRequestsView = sr_member_auth_policy_read('modules/privacy/views/admin-privacy-requests.php');
 if ($adminPrivacyRequestsView !== '') {
     sr_member_auth_policy_assert(
-        strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') !== false
+        strpos($adminPrivacyRequestsView, "placeholder=\"<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>\"") !== false
             && strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") === false
             && strpos($adminPrivacyRequestsView, "><?php echo sr_e(\$request['admin_note'] ?? ''); ?></textarea>") === false,
         'Admin privacy request view should not prefill stored admin notes in list forms.'

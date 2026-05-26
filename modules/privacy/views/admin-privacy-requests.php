@@ -143,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </label>
                                     <label for="privacy_note_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?> <span class="sr-required-label" data-privacy-note-required<?php echo $noteRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-                                        <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="새 관리자 메모" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
+                                        <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
                                     </label>
                                     <label class="admin-form-check form-label" for="modules_privacy_admin_privacy_requests_identity_confirmed_<?php echo sr_e($requestId); ?>">
                                         <input id="modules_privacy_admin_privacy_requests_identity_confirmed_<?php echo sr_e($requestId); ?>" type="checkbox" name="identity_confirmed" value="1" class="form-checkbox" data-privacy-completed-check<?php echo $completedRequired ? ' required' : ''; ?>>

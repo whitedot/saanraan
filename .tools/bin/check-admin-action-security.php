@@ -503,7 +503,7 @@ if (!is_string($adminPrivacyRequestsView)) {
     strpos($adminPrivacyRequestsView, 'sr_admin_privacy_request_requester_display($request)') === false
     || strpos($adminPrivacyRequestsView, "sr_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
     || strpos($adminPrivacyRequestsView, 'name="admin_password"') === false
-    || strpos($adminPrivacyRequestsView, 'placeholder="새 관리자 메모"') === false
+    || strpos($adminPrivacyRequestsView, "placeholder=\"<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>\"") === false
     || strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") !== false
     || strpos($adminPrivacyRequestsView, "><?php echo sr_e(\$request['admin_note'] ?? ''); ?></textarea>") !== false
 ) {
