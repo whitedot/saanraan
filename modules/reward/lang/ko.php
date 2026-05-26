@@ -44,7 +44,7 @@ return [
     'ui.active.d2de5076' => '지급/환불은 양수, 사용/만료는 음수, 조정은 양수 또는 음수로 입력합니다.',
     'ui.all.a4b69faf' => '전체',
     'ui.close.1e8c1020' => '닫기',
-    'ui.edit.d3a98476' => '수정일',
+    'ui.edit.d3a98476' => '마지막 변동일',
     'ui.email.3b7dbc4c' => '이메일',
     'ui.email.login.name.c26ba637' => '해시 아이디, 이메일, 로그인 아이디, 이름',
     'ui.id.0b5dbcb4' => '환불 참조 ID:',

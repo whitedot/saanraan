@@ -52,7 +52,7 @@ return [
     'ui.deposit.93f727b8' => '예치금 거래 내역',
     'ui.deposit.c7bac029' => '예치금',
     'ui.deposit.save.4f951908' => '환불 거래는 양수 예치금으로 저장됩니다.',
-    'ui.edit.d3a98476' => '수정일',
+    'ui.edit.d3a98476' => '마지막 변동일',
     'ui.email.3b7dbc4c' => '이메일',
     'ui.email.login.name.c26ba637' => '해시 아이디, 이메일, 로그인 아이디, 이름',
     'ui.id.0b5dbcb4' => '환불 참조 ID:',
