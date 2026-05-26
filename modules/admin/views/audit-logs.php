@@ -1,6 +1,8 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.admin.d0bd9568');
+$auditSortOptions = sr_admin_audit_log_sort_options();
+$auditDefaultSort = sr_admin_audit_log_default_sort();
 $auditSort = isset($auditSort) && is_array($auditSort) ? $auditSort : sr_admin_audit_log_default_sort();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 $auditMetadataModals = [];
@@ -71,7 +73,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
 <div class="admin-card admin-list-card card admin-list-form">
     <div class="admin-list-summary-row">
         <?php if (empty($auditSort['is_default'])) { ?>
-            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="작업 로그 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <a href="<?php echo sr_e(sr_admin_sort_url($auditSortOptions, $auditDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="작업 로그 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
         <?php echo sr_admin_pagination_summary_html($auditPagination); ?>
     </div>
@@ -79,12 +81,12 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
     <table class="table admin-audit-log-table">
         <thead class="ui-table-head">
             <tr>
-                <th<?php echo sr_admin_sort_aria('created_at', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.faea4ccf'), 'created_at', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
-                <th<?php echo sr_admin_sort_aria('actor_account_id', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.750086e9'), 'actor_account_id', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
-                <th<?php echo sr_admin_sort_aria('event_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.46b289bb'), 'event_type', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
-                <th<?php echo sr_admin_sort_aria('target_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.8c609deb'), 'target_type', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
-                <th<?php echo sr_admin_sort_aria('result', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.109383e3'), 'result', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
-                <th<?php echo sr_admin_sort_aria('ip_address', $auditSort); ?>><?php echo sr_admin_sort_header_html('IP', 'ip_address', $auditSort, sr_admin_audit_log_sort_options(), sr_admin_audit_log_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('created_at', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.faea4ccf'), 'created_at', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th<?php echo sr_admin_sort_aria('actor_account_id', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.750086e9'), 'actor_account_id', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th<?php echo sr_admin_sort_aria('event_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.46b289bb'), 'event_type', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th<?php echo sr_admin_sort_aria('target_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.8c609deb'), 'target_type', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th<?php echo sr_admin_sort_aria('result', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.109383e3'), 'result', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th<?php echo sr_admin_sort_aria('ip_address', $auditSort); ?>><?php echo sr_admin_sort_header_html('IP', 'ip_address', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.4cd44bae')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.7d98432e')); ?></th>
             </tr>
