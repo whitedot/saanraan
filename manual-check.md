@@ -189,6 +189,7 @@
 - [ ] `/admin/content-groups` 콘텐츠 그룹 목록
 - [ ] `/admin/content-groups/new` 콘텐츠 그룹 생성
 - [ ] `/admin/content-groups/edit?id=...` 콘텐츠 그룹 수정
+- [ ] 콘텐츠 그룹 목록/생성/수정 화면에서 콘솔 오류가 없고 관리자 사이드 메뉴 1차/2차 항목이 클릭된다
 - [ ] slug 중복 차단
 - [ ] 예약어 slug 차단
 - [ ] 본문 상단 / 하단 공용 배너 선택 저장
