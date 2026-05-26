@@ -212,7 +212,7 @@ function sr_admin_permission_account_sort_options(): array
         'display_name' => ['columns' => ["COALESCE(a.display_name, '')", 'a.email', 'a.id']],
         'status' => ['columns' => ['a.status', 'a.id']],
         'permission_count' => ['columns' => ['owner_count', 'permission_count', 'a.id']],
-        'created_at' => ['columns' => ['a.created_at', 'a.id']],
+        'created_at' => ['columns' => ['a.id']],
     ];
 }
 
