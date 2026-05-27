@@ -5,6 +5,11 @@ return [
     'order' => 60,
     'items' => [
         [
+            'label' => '환경설정',
+            'path' => '/admin/rewards/settings',
+            'order' => 5,
+        ],
+        [
             'label' => sr_t('reward::ui.text.abe10d3e'),
             'path' => '/admin/rewards/balances',
             'order' => 10,

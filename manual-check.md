@@ -156,6 +156,8 @@
 - [ ] `/admin/member-group-rules/edit?id=...` 그룹 규칙 수정
 - [ ] `/admin/member-group-evaluations` 그룹 평가
 - [ ] `/admin/member-group-assignments` 그룹 수동 배정
+- [ ] `/admin/points/settings`, `/admin/rewards/settings`, `/admin/deposits/settings` 수동 조정 회원 그룹 정책 저장
+- [ ] 포인트/적립금/예치금 수동 조정 시 회원 그룹 정책이 최종 금액과 감사 로그 metadata에 반영됨
 
 메모:
 

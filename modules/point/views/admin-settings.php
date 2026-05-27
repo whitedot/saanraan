@@ -2,7 +2,7 @@
 
 $adminPageTitle = sr_t('point::ui.settings.title');
 $adminPageSubtitle = sr_t('point::ui.settings.subtitle');
-$settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P'];
+$settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P', 'manual_adjust_group_policies_json' => ''];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -27,6 +27,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <input id="point_settings_unit_label" type="text" name="unit_label" value="<?php echo sr_e((string) ($settings['unit_label'] ?? 'P')); ?>" class="form-input" maxlength="20">
                 <small class="admin-form-help"><?php echo sr_e(sr_t('point::ui.settings.unit_label_help')); ?></small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="point_settings_manual_adjust_group_policies_json">수동 조정 회원 그룹 정책</label>
+            <div class="admin-form-field">
+                <textarea id="point_settings_manual_adjust_group_policies_json" name="manual_adjust_group_policies_json" class="form-textarea form-control-full" rows="10"><?php echo sr_e((string) ($settings['manual_adjust_group_policies_json'] ?? '')); ?></textarea>
+                <small class="admin-form-help">JSON 배열로 입력합니다. 예: [{"group_key":"vip","mode":"multiplier","value":"1.5","priority":100,"status":"active"}]</small>
             </div>
         </div>
     </section>

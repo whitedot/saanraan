@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
 require_once SR_ROOT . '/modules/point/helpers.php';
 
 if (sr_request_method() === 'GET' && sr_request_path() === '/admin/points') {
@@ -56,6 +58,8 @@ if (sr_request_method() === 'POST') {
     }
 
     $amount = (int) $amountInput;
+    $baseAmount = $amount;
+    $groupPolicySnapshot = null;
     if ($amount === 0) {
         $errors[] = sr_t('point::action.admin.amount_nonzero');
     }
@@ -82,6 +86,22 @@ if (sr_request_method() === 'POST') {
         $stmt->execute(['id' => $targetAccountId]);
         if (!is_array($stmt->fetch())) {
             $errors[] = sr_t('point::action.admin.member_not_found');
+        }
+    }
+
+    if ($errors === [] && $transactionType !== 'refund') {
+        try {
+            $settings = sr_point_settings($pdo);
+            $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) ($settings['manual_adjust_group_policies_json'] ?? ''));
+            $groupPolicySnapshot = sr_admin_asset_group_policy_apply($pdo, $targetAccountId, $baseAmount, $manualAdjustGroupPolicies);
+            $amount = (int) ($groupPolicySnapshot['final_amount'] ?? $baseAmount);
+            if ($amount === 0) {
+                $errors[] = '회원 그룹 정책 적용 결과가 0입니다. 수동 조정 거래는 0으로 저장할 수 없습니다.';
+            } elseif (!sr_point_transaction_type_allows_amount($transactionType, $amount)) {
+                $errors[] = sr_t('point::action.admin.amount_sign_invalid');
+            }
+        } catch (InvalidArgumentException) {
+            $errors[] = '수동 조정 회원 그룹 정책 JSON이 올바르지 않습니다. 포인트 환경설정을 확인하세요.';
         }
     }
 
@@ -121,8 +141,10 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Point transaction created.',
                 'metadata' => [
                     'transaction_id' => $transactionId,
+                    'base_amount' => $baseAmount,
                     'amount' => $amount,
                     'transaction_type' => $transactionType,
+                    'group_policy_snapshot' => $groupPolicySnapshot,
                 ],
             ]);
 
