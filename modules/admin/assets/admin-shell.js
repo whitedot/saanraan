@@ -331,6 +331,9 @@ window.AdminShell = {
             }
 
             const line = root.closest('.admin-asset-setting-line') || root.parentElement;
+            const targetRoot = root.closest('[data-admin-asset-enable-target]');
+            const enabledInput = targetRoot ? assetEnableTargetInput(targetRoot) : null;
+            const enabled = !enabledInput || enabledInput.checked;
             const select = line ? line.querySelector('[data-admin-asset-unit-select]') : null;
             const label = root.querySelector('[data-admin-asset-unit-label]');
             if (!label) {
@@ -340,6 +343,7 @@ window.AdminShell = {
             if (select) {
                 const option = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
                 label.textContent = option ? (option.getAttribute('data-admin-asset-unit') || '') : '';
+                root.hidden = !enabled || !select.value;
                 return;
             }
 
@@ -366,6 +370,7 @@ window.AdminShell = {
                 return true;
             });
             label.textContent = selected ? (unitOptions[selected.value] || '') : '';
+            root.hidden = !enabled || !selected;
         };
 
         const syncAssetUnitGroupsNear = target => {
@@ -376,6 +381,17 @@ window.AdminShell = {
                 : (form
                     ? Array.prototype.slice.call(form.querySelectorAll('[data-admin-asset-unit-group]'))
                     : Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-unit-group]')));
+            if (target && target.matches && target.matches('input')) {
+                const linkedRoots = Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-enable-target] [data-admin-asset-unit-group]')).filter(root => {
+                    const targetRoot = root.closest('[data-admin-asset-enable-target]');
+                    return targetRoot && assetEnableTargetInput(targetRoot) === target;
+                });
+                linkedRoots.forEach(root => {
+                    if (!roots.includes(root)) {
+                        roots.push(root);
+                    }
+                });
+            }
             roots.forEach(syncAssetUnitGroup);
         };
 
