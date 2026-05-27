@@ -332,8 +332,8 @@ window.AdminShell = {
 
             const line = root.closest('.admin-asset-setting-line') || root.parentElement;
             const targetRoot = root.closest('[data-admin-asset-enable-target]');
-            const enabledInput = targetRoot ? assetEnableTargetInput(targetRoot) : null;
-            const enabled = !enabledInput || enabledInput.checked;
+            let enabledInput = targetRoot ? assetEnableTargetInput(targetRoot) : null;
+            let enabled = !enabledInput || enabledInput.checked;
             const select = line ? line.querySelector('[data-admin-asset-unit-select]') : null;
             const label = root.querySelector('[data-admin-asset-unit-label]');
             if (!label) {
@@ -369,6 +369,11 @@ window.AdminShell = {
 
                 return true;
             });
+            const selectedTargetRoot = selected && selected.closest ? selected.closest('[data-admin-asset-enable-target]') : null;
+            if (!enabledInput && selectedTargetRoot) {
+                enabledInput = assetEnableTargetInput(selectedTargetRoot);
+                enabled = !enabledInput || enabledInput.checked;
+            }
             label.textContent = selected ? (unitOptions[selected.value] || '') : '';
             root.hidden = !enabled || !selected;
         };
@@ -385,6 +390,23 @@ window.AdminShell = {
                 const linkedRoots = Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-enable-target] [data-admin-asset-unit-group]')).filter(root => {
                     const targetRoot = root.closest('[data-admin-asset-enable-target]');
                     return targetRoot && assetEnableTargetInput(targetRoot) === target;
+                });
+                const sourceLinkedRoots = Array.prototype.slice.call((form || document).querySelectorAll('[data-admin-asset-unit-group][data-admin-asset-unit-source]')).filter(root => {
+                    const sourceName = root.getAttribute('data-admin-asset-unit-source') || '';
+                    if (sourceName === '') {
+                        return false;
+                    }
+
+                    const rootForm = root.closest('form') || document;
+                    return Array.prototype.slice.call(rootForm.querySelectorAll('input, select')).some(control => {
+                        const sourceRoot = control.name === sourceName && control.closest ? control.closest('[data-admin-asset-enable-target]') : null;
+                        return sourceRoot && assetEnableTargetInput(sourceRoot) === target;
+                    });
+                });
+                sourceLinkedRoots.forEach(root => {
+                    if (!linkedRoots.includes(root)) {
+                        linkedRoots.push(root);
+                    }
                 });
                 linkedRoots.forEach(root => {
                     if (!roots.includes(root)) {
