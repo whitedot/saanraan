@@ -5,9 +5,29 @@ declare(strict_types=1);
 return static function (PDO $pdo, int $accountId): array {
     if ($accountId < 1) {
         return [
+            'access_entitlements' => [],
             'asset_access_logs' => [],
             'asset_action_logs' => [],
         ];
+    }
+
+    $accessEntitlements = [];
+    if (!function_exists('sr_content_access_entitlements_table_exists')) {
+        require_once SR_ROOT . '/modules/content/helpers.php';
+    }
+    if (sr_content_access_entitlements_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT e.id, e.account_id, e.content_id, p.slug, p.title, e.subject_type, e.subject_id,
+                    e.access_kind, e.source_kind, e.source_asset_module, e.source_charge_policy,
+                    e.source_reference, e.granted_at, e.created_at
+             FROM sr_content_access_entitlements e
+             LEFT JOIN sr_content_items p ON p.id = e.content_id
+             WHERE e.account_id = :account_id
+             ORDER BY e.id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $accessEntitlements = $stmt->fetchAll();
     }
 
     $stmt = $pdo->prepare(
@@ -35,6 +55,7 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt->execute(['account_id' => $accountId]);
 
     return [
+        'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
         'asset_action_logs' => $stmt->fetchAll(),
     ];

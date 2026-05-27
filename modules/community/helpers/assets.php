@@ -890,18 +890,135 @@ function sr_community_has_coupon_access_history(PDO $pdo, int $accountId, string
     return sr_coupon_has_redemption($pdo, $accountId, $dedupeKey);
 }
 
+function sr_community_access_entitlements_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT 1 FROM sr_community_access_entitlements LIMIT 1');
+        $exists = $stmt !== false;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_grant_access_entitlement(PDO $pdo, int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceAssetModule = '', string $sourceChargePolicy = 'once', string $sourceReference = ''): void
+{
+    if ($accountId <= 0 || $subjectType === '' || $subjectId <= 0 || $eventKey === '' || !sr_community_access_entitlements_table_exists($pdo)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT IGNORE INTO sr_community_access_entitlements
+            (account_id, subject_type, subject_id, event_key, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
+         VALUES
+            (:account_id, :subject_type, :subject_id, :event_key, :source_kind, :source_asset_module, :source_charge_policy, :source_reference, :granted_at, :created_at)'
+    );
+    $now = sr_now();
+    $stmt->execute([
+        'account_id' => $accountId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'event_key' => $eventKey,
+        'source_kind' => $sourceKind,
+        'source_asset_module' => $sourceAssetModule,
+        'source_charge_policy' => $sourceChargePolicy,
+        'source_reference' => $sourceReference,
+        'granted_at' => $now,
+        'created_at' => $now,
+    ]);
+}
+
+function sr_community_anonymize_access_entitlements(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0 || !sr_community_access_entitlements_table_exists($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_access_entitlements
+         SET account_id = NULL,
+             source_reference = \'\',
+             anonymized_at = :anonymized_at
+         WHERE account_id = :account_id'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'anonymized_at' => sr_now(),
+    ]);
+
+    return $stmt->rowCount();
+}
+
+function sr_community_has_access_entitlement(PDO $pdo, array $assetModules, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $couponDedupeKey, string $policy): bool
+{
+    $policy = sr_community_once_history_policy($policy);
+    if (!sr_community_access_entitlements_table_exists($pdo)) {
+        if (sr_community_has_asset_event_history($pdo, $assetModules, $accountId, $eventKey, $subjectId, $policy)) {
+            return true;
+        }
+
+        return $policy === 'all_access'
+            && $couponDedupeKey !== ''
+            && sr_community_has_coupon_access_history($pdo, $accountId, $couponDedupeKey);
+    }
+
+    $conditions = [
+        'account_id = :account_id',
+        'subject_type = :subject_type',
+        'subject_id = :subject_id',
+        'event_key = :event_key',
+        'anonymized_at IS NULL',
+    ];
+    $params = [
+        'account_id' => $accountId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'event_key' => $eventKey,
+    ];
+
+    if ($policy === 'asset_any') {
+        $conditions[] = 'source_kind = \'asset\'';
+    } elseif ($policy === 'current_asset_once') {
+        $moduleKeys = sr_community_asset_module_keys_from_value($assetModules, true);
+        if ($moduleKeys === []) {
+            return false;
+        }
+        $placeholders = [];
+        foreach ($moduleKeys as $index => $assetModule) {
+            $key = 'asset_module_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $assetModule;
+        }
+        $conditions[] = 'source_kind = \'asset\'';
+        $conditions[] = 'source_charge_policy = \'once\'';
+        $conditions[] = 'source_asset_module IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_community_access_entitlements
+         WHERE ' . implode(' AND ', $conditions) . '
+         LIMIT 1'
+    );
+    $stmt->execute($params);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_community_once_access_already_granted(PDO $pdo, array $config, int $accountId, string $eventKey, int $subjectId, string $couponDedupeKey = ''): bool
 {
     $settings = sr_community_settings($pdo);
     $policy = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
-    if (sr_community_has_asset_event_history($pdo, $assetModules, $accountId, $eventKey, $subjectId, $policy)) {
-        return true;
-    }
+    $subjectType = $eventKey === 'attachment_download' ? 'community.attachment' : 'community.post';
 
-    return $policy === 'all_access'
-        && $couponDedupeKey !== ''
-        && sr_community_has_coupon_access_history($pdo, $accountId, $couponDedupeKey);
+    return sr_community_has_access_entitlement($pdo, $assetModules, $accountId, $eventKey, $subjectType, $subjectId, $couponDedupeKey, $policy);
 }
 
 function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
@@ -982,7 +1099,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
     if ($once && $direction === 'use') {
         $settings = sr_community_settings($pdo);
         $onceHistoryPolicy = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
-        $alreadyProcessed = sr_community_has_asset_event_history($pdo, $assetModules, $accountId, $eventKey, $subjectId, $onceHistoryPolicy);
+        $alreadyProcessed = sr_community_has_access_entitlement($pdo, $assetModules, $accountId, $eventKey, $subjectType, $subjectId, '', $onceHistoryPolicy);
     } elseif ($once) {
         $alreadyProcessed = sr_community_has_asset_event_for_modules($pdo, $assetModules, $accountId, $eventKey, $subjectId);
     }
@@ -1054,6 +1171,9 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
                 'created_by_account_id' => null,
             ]);
             sr_community_update_asset_log_transaction($pdo, $dedupeKey, $transactionId);
+            if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
+                sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+            }
             $processed = true;
         }
     } catch (Throwable $exception) {

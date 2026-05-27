@@ -250,6 +250,26 @@ CREATE TABLE IF NOT EXISTS sr_community_asset_logs (
     KEY idx_sr_community_asset_logs_transaction (asset_module, transaction_id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_access_entitlements (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NULL,
+    subject_type VARCHAR(60) NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    event_key VARCHAR(60) NOT NULL,
+    source_kind VARCHAR(30) NOT NULL DEFAULT 'asset',
+    source_asset_module VARCHAR(20) NOT NULL DEFAULT '',
+    source_charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
+    source_reference VARCHAR(160) NOT NULL DEFAULT '',
+    granted_at DATETIME NOT NULL,
+    anonymized_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_access_entitlements_account_subject (account_id, subject_type, subject_id, event_key),
+    KEY idx_sr_community_access_entitlements_subject (subject_type, subject_id, event_key),
+    KEY idx_sr_community_access_entitlements_account (account_id, granted_at),
+    KEY idx_sr_community_access_entitlements_anonymized (anonymized_at)
+);
+
 INSERT IGNORE INTO sr_community_boards
     (board_key, title, description, status, read_policy, write_policy, comment_policy, image_uploads_enabled, sort_order, created_at, updated_at)
 VALUES

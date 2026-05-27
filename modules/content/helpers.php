@@ -2688,17 +2688,139 @@ function sr_content_has_coupon_access_history(PDO $pdo, int $pageId, int $accoun
     return sr_coupon_has_redemption($pdo, $accountId, 'content.view:coupon:' . (string) $accountId . ':' . (string) $pageId);
 }
 
+function sr_content_access_entitlements_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT 1 FROM sr_content_access_entitlements LIMIT 1');
+        $exists = $stmt !== false;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_access_entitlement_subject_type(string $accessKind): string
+{
+    return $accessKind === 'download' ? 'content_file' : 'content';
+}
+
+function sr_content_grant_access_entitlement(PDO $pdo, int $accountId, int $contentId, string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceAssetModule = '', string $sourceChargePolicy = 'once', string $sourceReference = ''): void
+{
+    if ($accountId <= 0 || $contentId <= 0 || $subjectId <= 0 || $subjectType === '' || $accessKind === '' || !sr_content_access_entitlements_table_exists($pdo)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT IGNORE INTO sr_content_access_entitlements
+            (account_id, content_id, subject_type, subject_id, access_kind, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
+         VALUES
+            (:account_id, :content_id, :subject_type, :subject_id, :access_kind, :source_kind, :source_asset_module, :source_charge_policy, :source_reference, :granted_at, :created_at)'
+    );
+    $now = sr_now();
+    $stmt->execute([
+        'account_id' => $accountId,
+        'content_id' => $contentId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'access_kind' => $accessKind,
+        'source_kind' => $sourceKind,
+        'source_asset_module' => $sourceAssetModule,
+        'source_charge_policy' => $sourceChargePolicy,
+        'source_reference' => $sourceReference,
+        'granted_at' => $now,
+        'created_at' => $now,
+    ]);
+}
+
+function sr_content_anonymize_access_entitlements(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0 || !sr_content_access_entitlements_table_exists($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_content_access_entitlements
+         SET account_id = NULL,
+             source_reference = \'\',
+             anonymized_at = :anonymized_at
+         WHERE account_id = :account_id'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'anonymized_at' => sr_now(),
+    ]);
+
+    return $stmt->rowCount();
+}
+
+function sr_content_has_access_entitlement(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind, string $policy): bool
+{
+    $policy = sr_content_once_history_policy($policy);
+    if (!sr_content_access_entitlements_table_exists($pdo)) {
+        if (sr_content_has_asset_access_history($pdo, $assetModules, $accountId, $subjectId, $accessKind, $policy)) {
+            return true;
+        }
+
+        return $policy === 'all_access'
+            && $accessKind === 'view'
+            && sr_content_has_coupon_access_history($pdo, $subjectId, $accountId);
+    }
+
+    $conditions = [
+        'account_id = :account_id',
+        'subject_type = :subject_type',
+        'subject_id = :subject_id',
+        'access_kind = :access_kind',
+        'anonymized_at IS NULL',
+    ];
+    $params = [
+        'account_id' => $accountId,
+        'subject_type' => sr_content_access_entitlement_subject_type($accessKind),
+        'subject_id' => $subjectId,
+        'access_kind' => $accessKind,
+    ];
+
+    if ($policy === 'asset_any') {
+        $conditions[] = 'source_kind = \'asset\'';
+    } elseif ($policy === 'current_asset_once') {
+        $moduleKeys = sr_content_asset_module_keys_from_value($assetModules);
+        if ($moduleKeys === []) {
+            return false;
+        }
+        $placeholders = [];
+        foreach ($moduleKeys as $index => $assetModule) {
+            $key = 'asset_module_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $assetModule;
+        }
+        $conditions[] = 'source_kind = \'asset\'';
+        $conditions[] = 'source_charge_policy = \'once\'';
+        $conditions[] = 'source_asset_module IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_content_access_entitlements
+         WHERE ' . implode(' AND ', $conditions) . '
+         LIMIT 1'
+    );
+    $stmt->execute($params);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_content_once_access_already_granted(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind = 'view'): bool
 {
     $settings = sr_content_settings($pdo);
     $policy = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
-    if (sr_content_has_asset_access_history($pdo, $assetModules, $accountId, $subjectId, $accessKind, $policy)) {
-        return true;
-    }
 
-    return $policy === 'all_access'
-        && $accessKind === 'view'
-        && sr_content_has_coupon_access_history($pdo, $subjectId, $accountId);
+    return sr_content_has_access_entitlement($pdo, $assetModules, $accountId, $subjectId, $accessKind, $policy);
 }
 
 function sr_content_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
@@ -2848,6 +2970,8 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
 
     $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy);
     if (!empty($couponResult['allowed'])) {
+        sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+
         return [
             'allowed' => true,
             'charged' => false,
@@ -2899,6 +3023,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
                 'created_by_account_id' => null,
             ]);
             sr_content_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+            sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
         }
     } catch (Throwable $exception) {
         if ($dedupeKey !== '') {
@@ -2944,12 +3069,15 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, str
         $dedupeKey .= ':' . bin2hex(random_bytes(8));
     }
 
-    return sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, [
+    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, [
         'dedupe_key' => $dedupeKey,
         'reference_module' => 'content',
         'reference_type' => 'content.view',
         'reference_id' => (string) $pageId,
     ]);
+    $result['dedupe_key'] = $dedupeKey;
+
+    return $result;
 }
 
 function sr_content_file_download_required(array $file): bool
@@ -3044,6 +3172,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
                 'created_by_account_id' => null,
             ]);
             sr_content_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
+            sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
         }
     } catch (Throwable $exception) {
         if ($dedupeKey !== '') {

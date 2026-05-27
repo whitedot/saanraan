@@ -451,6 +451,7 @@ $requiredTables = [
     'sr_community_level_logs',
     'sr_community_member_nicknames',
     'sr_community_asset_logs',
+    'sr_community_access_entitlements',
 ];
 foreach ($requiredTables as $tableName) {
     if (!str_contains($installSql, 'CREATE TABLE IF NOT EXISTS ' . $tableName)) {
@@ -509,6 +510,11 @@ $requiredInstallFragments = [
     'sr_community_asset_logs' => [
         'dedupe_key VARCHAR(160) NOT NULL',
         'UNIQUE KEY uq_sr_community_asset_logs_dedupe (dedupe_key)',
+    ],
+    'sr_community_access_entitlements' => [
+        'account_id BIGINT UNSIGNED NULL',
+        'UNIQUE KEY uq_sr_community_access_entitlements_account_subject (account_id, subject_type, subject_id, event_key)',
+        'KEY idx_sr_community_access_entitlements_anonymized (anonymized_at)',
     ],
 ];
 foreach ($requiredInstallFragments as $tableName => $fragments) {

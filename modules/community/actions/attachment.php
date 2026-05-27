@@ -97,6 +97,9 @@ if (is_array($board)) {
                     'use',
                     'community.post.read'
                 );
+            if (!empty($couponReadResult['allowed'])) {
+                sr_community_grant_access_entitlement($pdo, (int) $account['id'], 'community.post', (int) $post['id'], 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+            }
             if (empty($paidReadResult['allowed'])) {
                 sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed')));
             }

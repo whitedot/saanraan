@@ -13,6 +13,7 @@ return static function (PDO $pdo, int $accountId): array {
         'scraps' => [],
         'level' => [],
         'level_logs' => [],
+        'access_entitlements' => [],
         'asset_logs' => [],
     ];
 
@@ -114,6 +115,22 @@ return static function (PDO $pdo, int $accountId): array {
         $stmt->execute(['account_id' => $accountId]);
         $empty['level_logs'] = $stmt->fetchAll();
 
+        if (!function_exists('sr_community_access_entitlements_table_exists')) {
+            require_once SR_ROOT . '/modules/community/helpers/assets.php';
+        }
+        if (sr_community_access_entitlements_table_exists($pdo)) {
+            $stmt = $pdo->prepare(
+                'SELECT id, account_id, subject_type, subject_id, event_key, source_kind,
+                        source_asset_module, source_charge_policy, source_reference, granted_at, created_at
+                 FROM sr_community_access_entitlements
+                 WHERE account_id = :account_id
+                 ORDER BY id ASC
+                 LIMIT 1000'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $empty['access_entitlements'] = $stmt->fetchAll();
+        }
+
         $stmt = $pdo->prepare(
             'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, created_at
              FROM sr_community_asset_logs
@@ -126,6 +143,7 @@ return static function (PDO $pdo, int $accountId): array {
     } catch (Throwable $exception) {
         $empty['level'] = [];
         $empty['level_logs'] = [];
+        $empty['access_entitlements'] = [];
         $empty['asset_logs'] = [];
     }
 

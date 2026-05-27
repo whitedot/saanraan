@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.05.011',
+    'version' => '2026.05.012',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -32,6 +32,7 @@ return [
             'extension-points.php',
             'menu-links.php',
             'privacy-export.php',
+            'privacy-cleanup.php',
             'sitemap.php',
             'member-group-rules.php',
         ],

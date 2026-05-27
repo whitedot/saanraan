@@ -130,6 +130,27 @@ CREATE TABLE IF NOT EXISTS sr_content_asset_access_logs (
     KEY idx_sr_content_asset_access_transaction (asset_module, transaction_id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_content_access_entitlements (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NULL,
+    content_id BIGINT UNSIGNED NOT NULL,
+    subject_type VARCHAR(40) NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    access_kind VARCHAR(40) NOT NULL DEFAULT 'view',
+    source_kind VARCHAR(30) NOT NULL DEFAULT 'asset',
+    source_asset_module VARCHAR(20) NOT NULL DEFAULT '',
+    source_charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
+    source_reference VARCHAR(160) NOT NULL DEFAULT '',
+    granted_at DATETIME NOT NULL,
+    anonymized_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_content_access_entitlements_account_subject (account_id, subject_type, subject_id, access_kind),
+    KEY idx_sr_content_access_entitlements_content (content_id, subject_type, subject_id),
+    KEY idx_sr_content_access_entitlements_account (account_id, granted_at),
+    KEY idx_sr_content_access_entitlements_anonymized (anonymized_at)
+);
+
 CREATE TABLE IF NOT EXISTS sr_content_files (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     content_id BIGINT UNSIGNED NOT NULL,
