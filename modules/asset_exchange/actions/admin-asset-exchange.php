@@ -75,11 +75,12 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
         $errors[] = $message;
+        $editPolicy = $policyInput;
     }
 }
 
 $editPolicyId = (int) ($_GET['edit'] ?? 0);
-if ($editPolicyId > 0) {
+if ($editPolicy === null && $editPolicyId > 0) {
     $editPolicy = sr_asset_exchange_policy($pdo, $editPolicyId);
 }
 $policies = sr_asset_exchange_policies($pdo);

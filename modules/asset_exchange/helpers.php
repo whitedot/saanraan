@@ -120,16 +120,16 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     $rateNumerator = sr_asset_exchange_positive_int($data['rate_numerator'] ?? 0, '비율 분자는 1 이상이어야 합니다.');
     $rateDenominator = sr_asset_exchange_positive_int($data['rate_denominator'] ?? 0, '비율 분모는 1 이상이어야 합니다.');
     $minAmount = sr_asset_exchange_positive_int($data['min_amount'] ?? 0, '최소 환전량은 1 이상이어야 합니다.');
-    $maxAmount = sr_asset_exchange_nullable_int($data['max_amount'] ?? null);
+    $maxAmount = sr_asset_exchange_nullable_int($data['max_amount'] ?? null, '최대 환전량은 0 이상의 정수로 입력하세요.');
     if ($maxAmount !== null && $maxAmount < $minAmount) {
         throw new InvalidArgumentException('최대 환전량은 최소 환전량 이상이어야 합니다.');
     }
 
-    $feeRateNumerator = max(0, sr_asset_exchange_int_string($data['fee_rate_numerator'] ?? 0));
-    $feeRateDenominator = max(1, sr_asset_exchange_int_string($data['fee_rate_denominator'] ?? 1));
-    $feeFixedAmount = max(0, sr_asset_exchange_int_string($data['fee_fixed_amount'] ?? 0));
-    $feeMinAmount = sr_asset_exchange_nullable_int($data['fee_min_amount'] ?? null);
-    $feeMaxAmount = sr_asset_exchange_nullable_int($data['fee_max_amount'] ?? null);
+    $feeRateNumerator = sr_asset_exchange_optional_non_negative_int($data['fee_rate_numerator'] ?? null, 0, '수수료율 분자는 0 이상의 정수로 입력하세요.');
+    $feeRateDenominator = sr_asset_exchange_optional_positive_int($data['fee_rate_denominator'] ?? null, 1, '수수료율 분모는 1 이상의 정수로 입력하세요.');
+    $feeFixedAmount = sr_asset_exchange_optional_non_negative_int($data['fee_fixed_amount'] ?? null, 0, '정액 수수료는 0 이상의 정수로 입력하세요.');
+    $feeMinAmount = sr_asset_exchange_nullable_int($data['fee_min_amount'] ?? null, '최소 수수료는 0 이상의 정수로 입력하세요.');
+    $feeMaxAmount = sr_asset_exchange_nullable_int($data['fee_max_amount'] ?? null, '최대 수수료는 0 이상의 정수로 입력하세요.');
     if ($feeMaxAmount !== null && $feeMinAmount !== null && $feeMaxAmount < $feeMinAmount) {
         throw new InvalidArgumentException('최대 수수료는 최소 수수료 이상이어야 합니다.');
     }
@@ -170,7 +170,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         'fee_fixed_amount' => $feeFixedAmount,
         'fee_min_amount' => $feeMinAmount,
         'fee_max_amount' => $feeMaxAmount,
-        'sort_order' => sr_asset_exchange_int_string($data['sort_order'] ?? 0),
+        'sort_order' => sr_asset_exchange_optional_int($data['sort_order'] ?? null, 0, '정렬순서는 정수로 입력하세요.'),
         'updated_at' => $now,
     ];
 
@@ -485,13 +485,57 @@ function sr_asset_exchange_positive_int(mixed $value, string $message): int
     return $intValue;
 }
 
-function sr_asset_exchange_nullable_int(mixed $value): ?int
+function sr_asset_exchange_nullable_int(mixed $value, string $message): ?int
 {
     if ($value === null || trim((string) $value) === '') {
         return null;
     }
 
-    return max(0, sr_asset_exchange_int_string($value));
+    $intValue = sr_asset_exchange_required_int($value, $message);
+    if ($intValue < 0) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $intValue;
+}
+
+function sr_asset_exchange_optional_int(mixed $value, int $default, string $message): int
+{
+    if ($value === null || trim((string) $value) === '') {
+        return $default;
+    }
+
+    return sr_asset_exchange_required_int($value, $message);
+}
+
+function sr_asset_exchange_optional_positive_int(mixed $value, int $default, string $message): int
+{
+    $intValue = sr_asset_exchange_optional_int($value, $default, $message);
+    if ($intValue <= 0) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $intValue;
+}
+
+function sr_asset_exchange_optional_non_negative_int(mixed $value, int $default, string $message): int
+{
+    $intValue = sr_asset_exchange_optional_int($value, $default, $message);
+    if ($intValue < 0) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $intValue;
+}
+
+function sr_asset_exchange_required_int(mixed $value, string $message): int
+{
+    $string = trim((string) $value);
+    if (preg_match('/\A-?\d+\z/', $string) !== 1) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return (int) $string;
 }
 
 function sr_asset_exchange_int_string(mixed $value): int
