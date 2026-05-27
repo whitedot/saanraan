@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/settings', 'view');
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/asset-policy-sets', 'view');
 
 $errors = [];
 $notice = $_SESSION['sr_community_asset_policy_set_notice'] ?? '';
@@ -34,7 +34,7 @@ if ($policySetPage === 'edit') {
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/settings', 'edit');
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/asset-policy-sets', 'edit');
     sr_require_csrf();
 
     $setId = (int) sr_post_string('set_id', 20);
@@ -54,12 +54,12 @@ if (sr_request_method() === 'POST') {
     ];
 
     if (!sr_community_asset_policy_set_key_is_valid((string) $values['set_key'])) {
-        $errors[] = '세트 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '회원 그룹 정책 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_community_asset_policy_set_key_exists($pdo, (string) $values['set_key'], $setId)) {
-        $errors[] = '이미 사용 중인 세트 key입니다.';
+        $errors[] = '이미 사용 중인 회원 그룹 정책 key입니다.';
     }
     if ((string) $values['title'] === '') {
-        $errors[] = '세트 이름을 입력하세요.';
+        $errors[] = '회원 그룹 정책 이름을 입력하세요.';
     }
     if (!in_array((string) $values['status'], sr_community_asset_policy_set_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';

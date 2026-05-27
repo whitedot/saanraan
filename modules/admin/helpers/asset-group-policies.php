@@ -287,6 +287,11 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
             return $priority;
         }
 
+        $minLevel = (int) ($right['min_level'] ?? 0) <=> (int) ($left['min_level'] ?? 0);
+        if ($minLevel !== 0) {
+            return $minLevel;
+        }
+
         $policy = (int) ($left['policy_id'] ?? 0) <=> (int) ($right['policy_id'] ?? 0);
         if ($policy !== 0) {
             return $policy;
