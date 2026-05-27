@@ -1,6 +1,14 @@
 <?php
 
 $adminPageTitle = '콘텐츠 환경설정';
+$contentOnceHistoryPolicyHelpId = 'content_settings_help_once_history_policy';
+$contentOnceHistoryPolicyHelpBody = '<p>유료 열람이나 다운로드를 최초 1회 결제로 운영할 때, 예전에 이용한 회원을 다시 결제시킬지 정합니다.</p>'
+    . '<ul>'
+    . '<li><strong>결제/쿠폰 이력</strong>: 포인트, 예치금, 적립금 결제나 쿠폰 이용 이력이 있으면 다시 결제하지 않습니다.</li>'
+    . '<li><strong>결제 이력만</strong>: 포인트, 예치금, 적립금으로 결제한 이력만 인정하고 쿠폰 이용자는 다시 결제합니다.</li>'
+    . '<li><strong>현재 결제수단 이력만</strong>: 지금 선택한 결제수단으로 최초 1회 결제한 이력만 인정합니다. 예를 들어 지금 포인트만 받으면 예전에 포인트로 결제한 회원만 다시 결제하지 않습니다.</li>'
+    . '</ul>'
+    . '<p>이 설정은 앞으로의 재결제 여부만 바꾸며, 기존 원장 거래와 쿠폰 사용 로그를 환불하거나 추가 차감하지 않습니다.</p>';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -22,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_once_history_policy">기존 이용자 재결제 기준 <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
             <div class="admin-form-field">
                 <select id="content_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
                     <?php foreach (sr_content_once_history_policy_values() as $policyKey => $policyLabel) { ?>
@@ -39,5 +47,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
+
+<?php echo sr_admin_help_modal_html($contentOnceHistoryPolicyHelpId, '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpBody); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

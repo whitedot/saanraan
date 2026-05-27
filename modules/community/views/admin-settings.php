@@ -79,6 +79,17 @@ $communitySettingsHelp = [
         'title' => sr_t('community::help.asset_settings.title'),
         'body' => $communitySettingsHelpBodyHtml(['community::help.asset_settings.body.1', 'community::help.asset_settings.body.2', 'community::help.asset_settings.body.3']),
     ],
+    'once_history_policy' => [
+        'id' => 'community_settings_help_once_history_policy',
+        'title' => sr_t('community::ui.once_history_policy.label'),
+        'body' => '<p>' . sr_e('유료 열람이나 첨부 다운로드를 최초 1회 결제로 운영할 때, 예전에 이용한 회원을 다시 결제시킬지 정합니다.') . '</p>'
+            . '<ul>'
+            . '<li><strong>' . sr_e('결제/쿠폰 이력') . '</strong>: ' . sr_e('포인트, 예치금, 적립금 결제나 쿠폰 이용 이력이 있으면 다시 결제하지 않습니다.') . '</li>'
+            . '<li><strong>' . sr_e('결제 이력만') . '</strong>: ' . sr_e('포인트, 예치금, 적립금으로 결제한 이력만 인정하고 쿠폰 이용자는 다시 결제합니다.') . '</li>'
+            . '<li><strong>' . sr_e('현재 결제수단 이력만') . '</strong>: ' . sr_e('지금 선택한 결제수단으로 최초 1회 결제한 이력만 인정합니다. 예를 들어 지금 포인트만 받으면 예전에 포인트로 결제한 회원만 다시 결제하지 않습니다.') . '</li>'
+            . '</ul>'
+            . '<p>' . sr_e('이 설정은 앞으로의 재결제 여부만 바꾸며, 기존 원장 거래와 쿠폰 사용 로그를 환불하거나 추가 차감하지 않습니다.') . '</p>',
+    ],
     'layout' => [
         'id' => 'community_settings_help_layout',
         'title' => sr_t('community::help.layout.title'),
@@ -270,7 +281,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="modules_community_admin_settings_once_history_policy"><?php echo sr_e(sr_t('community::ui.once_history_policy.label')); ?> <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="modules_community_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
                     <?php foreach (sr_community_once_history_policy_values() as $policyKey => $policyLabel) { ?>
