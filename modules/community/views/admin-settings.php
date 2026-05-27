@@ -215,9 +215,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
                                     <?php if ($isRewardAsset) { ?>
-                                        <div class="admin-asset-setting-target admin-asset-single-setting-target">
+                                        <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
                                             <select name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
-                                                <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                                <option value=""><?php echo sr_e($assetModuleOptions === [] ? sr_t('community::ui.text.3e195cdd') : sr_t('community::ui.text.asset_none')); ?></option>
                                                 <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                                     <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo (string) ($settings[$assetPrefix . '_asset_module'] ?? '') === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
                                                 <?php } ?>

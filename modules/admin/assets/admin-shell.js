@@ -171,12 +171,26 @@ window.AdminShell = {
         const confirmAssetEnableSelection = control => {
             markAssetEnableTouched(control);
             const enabledInput = assetEnableTargetInput(control);
-            if (!enabledInput || enabledInput.checked || !assetEnableSelectionActive(control)) {
+            const root = assetEnableRoot(control);
+            if (!enabledInput) {
                 rememberAssetEnableValue(control);
                 return;
             }
 
-            const root = assetEnableRoot(control);
+            if (!assetEnableSelectionActive(control)) {
+                if (enabledInput.checked && !assetEnableRootSelectionActive(root)) {
+                    enabledInput.checked = false;
+                    enabledInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                rememberAssetEnableValue(control);
+                return;
+            }
+
+            if (enabledInput.checked) {
+                rememberAssetEnableValue(control);
+                return;
+            }
+
             const message = (root ? root.getAttribute('data-admin-asset-enable-confirm') : '')
                 || '자산을 선택하면 이 항목의 사용/과금 체크가 함께 켜집니다. 계속할까요?';
             if (!window.confirm(message)) {

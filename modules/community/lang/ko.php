@@ -717,4 +717,5 @@ return [
     'ui.text.f99bc7dd' => '작성자:',
     'ui.text.fe95ead0' => '파일 첨부 허용',
     'ui.text.ff4a5d06' => '댓글이 없습니다.',
+    'ui.text.asset_none' => '선택안함',
 ];

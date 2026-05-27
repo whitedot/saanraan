@@ -716,9 +716,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_' . (string) $assetPrefix . '_asset_amounts', (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $boardField($formBoard, $assetPrefix . '_amounts_json', ''), (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
                                 </div>
                             <?php } else { ?>
-                                <div class="admin-asset-setting-target admin-asset-single-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
+                                <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
                                     <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
-                                        <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                        <option value=""><?php echo sr_e($assetModuleOptions === [] ? sr_t('community::ui.text.3e195cdd') : sr_t('community::ui.text.asset_none')); ?></option>
                                         <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
                                             <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', '') === (string) $assetModule ? ' selected' : ''; ?>>
                                                 <?php echo sr_e((string) $assetOption['label']); ?>
