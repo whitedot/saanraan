@@ -2,6 +2,12 @@
 
 이 디렉터리는 산란 구현과 함께 버전이 맞아야 하는 기준 문서를 둔다. 사람 개발자가 현재 구현을 이해하기 위한 설명서와 화면/DB 명세는 GitHub Wiki를 우선한다.
 
+## 문서 배치
+
+`docs/` 루트에는 자주 참조하는 현재 기준 문서를 둔다. 구현 전 계획은 `docs/plans/`, 일회성 점검 기록은 `docs/records/`에 둔다.
+
+계획 문서가 실제 구현으로 바뀌면 완료된 기준은 관련 유지 문서나 모듈 README로 옮기고, 계획 문서는 삭제하거나 아직 남은 계획만 남긴다. 점검 기록은 같은 기준으로 반복 확인할 필요가 있는 경우에만 유지한다.
+
 ## 저장소에 남기는 문서
 
 다음 성격의 문서는 `docs/`에 남긴다.
@@ -29,18 +35,25 @@
 | [스모크 테스트 기준](smoke-test.md) | 배포 전후 최소 검증 |
 | [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |
 | [관리자 목록 컬럼 기준](admin-list-columns.md) | 관리자 목록별 노출 컬럼과 좁은 화면 기준 |
-| [관리자 화면 레이아웃 점검 기록 - 2026-05-18](admin-layout-audit-2026-05-18.md) | 관리자 화면 브라우저 확인 결과 |
 
 ## 임시 보관 계획 문서
 
-아직 구현하지 않은 기능 계획은 구현 전까지 `docs/`에 보관한다. 실제 구현과 검증이 끝나면 계획 문서는 삭제하고, 계속 유지해야 할 기준만 관련 유지 문서나 모듈 README로 옮긴다.
+아직 구현하지 않은 기능 계획은 구현 전까지 `docs/plans/`에 보관한다.
 
 현재 계획 문서:
 
-- [본인확인 플러그인 계획](identity-verification-plugin-plan.md)
-- [회원 마이그레이션 계획](member-migration-plan.md)
-- [결제 플러그인 계획](payment-plugin-plan.md)
-- [포인트 표시명 설정 계획](point-display-name-plan.md)
+- [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md)
+- [회원 마이그레이션 계획](plans/member-migration-plan.md)
+- [결제 플러그인 계획](plans/payment-plugin-plan.md)
+- [포인트 표시명 설정 계획](plans/point-display-name-plan.md)
+
+## 점검 기록
+
+일회성 브라우저 확인, 화면 감사, 릴리스 후보 점검처럼 특정 시점의 기록은 `docs/records/`에 둔다.
+
+현재 점검 기록:
+
+- [관리자 화면 레이아웃 점검 기록 - 2026-05-18](records/admin-layout-audit-2026-05-18.md)
 
 ## Wiki로 충분한 문서
 
