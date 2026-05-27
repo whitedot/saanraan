@@ -15,10 +15,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
 
         <div class="admin-form-row">
-            <label class="form-label" for="deposit_settings_manual_adjust_group_policies_json">수동 조정 회원 그룹 정책</label>
+            <span class="form-label">수동 조정 회원 그룹 정책</span>
             <div class="admin-form-field">
-                <textarea id="deposit_settings_manual_adjust_group_policies_json" name="manual_adjust_group_policies_json" class="form-textarea form-control-full" rows="10"><?php echo sr_e((string) ($settings['manual_adjust_group_policies_json'] ?? '')); ?></textarea>
-                <small class="admin-form-help">JSON 배열로 입력합니다. 예: [{"group_key":"vip","mode":"multiplier","value":"1.5","priority":100,"status":"active"}]</small>
+                <?php
+                $assetGroupPolicyFieldName = 'manual_adjust_group_policies';
+                $assetGroupPolicyInputId = 'deposit_settings_manual_adjust_group_policies';
+                $assetGroupPolicyRows = isset($manualAdjustGroupPolicies) && is_array($manualAdjustGroupPolicies) ? $manualAdjustGroupPolicies : [];
+                $assetGroupPolicyGroups = isset($memberGroups) && is_array($memberGroups) ? $memberGroups : [];
+                $assetGroupPolicyHelpText = '회원 그룹별로 예치금 수동 조정 금액을 다르게 적용합니다.';
+                include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
+                ?>
             </div>
         </div>
     </section>

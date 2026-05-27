@@ -15,6 +15,8 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_point_settings($pdo);
+$memberGroups = sr_member_groups($pdo);
+$manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) ($settings['manual_adjust_group_policies_json'] ?? ''));
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -23,7 +25,6 @@ if (sr_request_method() === 'POST') {
     $postedSettings = [
         'display_name' => sr_point_clean_text(sr_post_string('display_name', 80), 40),
         'unit_label' => sr_point_clean_text(sr_post_string('unit_label', 40), 20),
-        'manual_adjust_group_policies_json' => sr_post_string('manual_adjust_group_policies_json', 20000),
     ];
     $settings = array_merge($settings, $postedSettings);
 
@@ -31,14 +32,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('point::action.admin.settings.display_name_required');
     }
 
-    try {
-        $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) $postedSettings['manual_adjust_group_policies_json']);
-        $postedSettings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies);
-        $settings['manual_adjust_group_policies_json'] = $postedSettings['manual_adjust_group_policies_json'];
-        $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, $settings['display_name']));
-    } catch (InvalidArgumentException) {
-        $errors[] = '수동 조정 회원 그룹 정책 JSON이 올바르지 않습니다.';
-    }
+    $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_post('manual_adjust_group_policies');
+    $postedSettings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies);
+    $settings['manual_adjust_group_policies_json'] = $postedSettings['manual_adjust_group_policies_json'];
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, $settings['display_name']));
 
     if ($errors === []) {
         try {

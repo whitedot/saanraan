@@ -99,7 +99,7 @@ if (sr_request_method() === 'POST') {
                 $errors[] = sr_t('reward::action.admin.amount_sign_invalid');
             }
         } catch (InvalidArgumentException) {
-            $errors[] = '수동 조정 회원 그룹 정책 JSON이 올바르지 않습니다. 적립금 환경설정을 확인하세요.';
+            $errors[] = '수동 조정 회원 그룹 정책 설정이 올바르지 않습니다. 적립금 환경설정을 확인하세요.';
         }
     }
 

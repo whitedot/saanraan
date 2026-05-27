@@ -45,6 +45,45 @@ function sr_admin_asset_group_policies_from_json(string $json): array
     return $policies;
 }
 
+function sr_admin_asset_group_policies_from_post(string $fieldName): array
+{
+    $posted = $_POST[$fieldName] ?? [];
+    if (!is_array($posted)) {
+        return [];
+    }
+
+    $groupKeys = is_array($posted['group_key'] ?? null) ? $posted['group_key'] : [];
+    $modes = is_array($posted['mode'] ?? null) ? $posted['mode'] : [];
+    $values = is_array($posted['value'] ?? null) ? $posted['value'] : [];
+    $priorities = is_array($posted['priority'] ?? null) ? $posted['priority'] : [];
+    $statuses = is_array($posted['status'] ?? null) ? $posted['status'] : [];
+    $maxRows = max(count($groupKeys), count($modes), count($values), count($priorities), count($statuses));
+
+    $policies = [];
+    for ($index = 0; $index < $maxRows; $index += 1) {
+        $row = [
+            'group_key' => is_scalar($groupKeys[$index] ?? null) ? (string) $groupKeys[$index] : '',
+            'mode' => is_scalar($modes[$index] ?? null) ? (string) $modes[$index] : '',
+            'value' => is_scalar($values[$index] ?? null) ? (string) $values[$index] : '',
+            'priority' => is_scalar($priorities[$index] ?? null) ? (string) $priorities[$index] : '',
+            'status' => is_scalar($statuses[$index] ?? null) ? (string) $statuses[$index] : '',
+        ];
+
+        $allBlank = trim($row['group_key']) === ''
+            && trim($row['mode']) === ''
+            && trim($row['value']) === ''
+            && in_array(trim($row['priority']), ['', '0'], true)
+            && in_array(trim($row['status']), ['', 'active'], true);
+        if ($allBlank) {
+            continue;
+        }
+
+        $policies[] = sr_admin_asset_group_policy_normalize($row, count($policies) + 1);
+    }
+
+    return $policies;
+}
+
 function sr_admin_asset_group_policy_normalize(array $row, int $policyId): array
 {
     $mode = strtolower(trim((string) ($row['mode'] ?? $row['adjustment_mode'] ?? '')));
@@ -120,6 +159,24 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
     }
 
     return $errors;
+}
+
+function sr_admin_asset_group_policy_mode_label(string $mode): string
+{
+    $labels = [
+        'fixed' => '고정 금액',
+        'multiplier' => '배율',
+        'delta' => '증감액',
+        'exempt' => '면제',
+        'disabled' => '미지급/미차감',
+    ];
+
+    return (string) ($labels[$mode] ?? $mode);
+}
+
+function sr_admin_asset_group_policy_status_label(string $status): string
+{
+    return $status === 'inactive' ? '비활성' : '활성';
 }
 
 function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAmount, array $policies): array

@@ -15,24 +15,19 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_reward_settings($pdo);
+$memberGroups = sr_member_groups($pdo);
+$manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) ($settings['manual_adjust_group_policies_json'] ?? ''));
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/rewards/settings', 'edit');
 
+    $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_post('manual_adjust_group_policies');
     $postedSettings = [
-        'manual_adjust_group_policies_json' => sr_post_string('manual_adjust_group_policies_json', 20000),
+        'manual_adjust_group_policies_json' => sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies),
     ];
     $settings = array_merge($settings, $postedSettings);
-
-    try {
-        $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) $postedSettings['manual_adjust_group_policies_json']);
-        $postedSettings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies);
-        $settings['manual_adjust_group_policies_json'] = $postedSettings['manual_adjust_group_policies_json'];
-        $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, '적립금'));
-    } catch (InvalidArgumentException) {
-        $errors[] = '수동 조정 회원 그룹 정책 JSON이 올바르지 않습니다.';
-    }
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, '적립금'));
 
     if ($errors === []) {
         try {
