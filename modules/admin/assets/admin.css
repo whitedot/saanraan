@@ -176,6 +176,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-help-modal-body>*{margin-block:0}
 .admin-help-modal-body>*+*{margin-top:calc(var(--spacing) * 3)}
 .admin-help-modal-body ul,.admin-help-modal-body ol{padding-left:calc(var(--spacing) * 5)}
+.admin-help-modal-body ul{list-style:disc}
+.admin-help-modal-body ol{list-style:decimal}
 .admin-help-modal-body li+li{margin-top:calc(var(--spacing) * 1.5)}
 .admin-form>section.card{margin-bottom:calc(var(--spacing) * 5);overflow:hidden}
 .admin-form>section.card>.card-header{padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75)}
