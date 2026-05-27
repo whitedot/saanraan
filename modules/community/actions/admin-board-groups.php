@@ -30,6 +30,7 @@ $maxLevel = sr_community_max_level_value();
 $settings = sr_community_settings($pdo);
 $editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
+$assetPolicySets = sr_community_asset_policy_sets($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
     : [];
@@ -120,6 +121,8 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST['group_' . $assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key_or_empty(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_amount', 0, 999999999);
+            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_post('group_' . $assetPrefix . '_group_policies');
+            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_policy_set_id', 0, 999999999) ?? 0;
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
@@ -312,6 +315,10 @@ if (sr_request_method() === 'POST') {
                         'module' => sr_community_asset_module_label($assetModule, $pdo),
                     ]);
                 }
+            }
+            $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($assetSettings[$assetPrefix . '_group_policies_json'] ?? ''), $assetLabel));
+            if ((int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0) > 0 && !is_array(sr_community_asset_policy_set_by_id($pdo, (int) $assetSettings[$assetPrefix . '_policy_set_id']))) {
+                $errors[] = $assetLabel . ' 회원 그룹 정책을 찾을 수 없습니다.';
             }
         }
 

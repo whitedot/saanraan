@@ -218,28 +218,40 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
     'post_reward_enabled' => !empty($newBoardDefaultSettings['post_reward_enabled']) ? '1' : '0',
     'post_reward_asset_module' => (string) ($newBoardDefaultSettings['post_reward_asset_module'] ?? ''),
     'post_reward_amount' => (string) ($newBoardDefaultSettings['post_reward_amount'] ?? 0),
+    'post_reward_group_policies_json' => (string) ($newBoardDefaultSettings['post_reward_group_policies_json'] ?? ''),
+    'post_reward_policy_set_id' => (string) ($newBoardDefaultSettings['post_reward_policy_set_id'] ?? 0),
     'post_reward_amounts_json' => (string) ($newBoardDefaultSettings['post_reward_amounts_json'] ?? ''),
     'comment_reward_enabled' => !empty($newBoardDefaultSettings['comment_reward_enabled']) ? '1' : '0',
     'comment_reward_asset_module' => (string) ($newBoardDefaultSettings['comment_reward_asset_module'] ?? ''),
     'comment_reward_amount' => (string) ($newBoardDefaultSettings['comment_reward_amount'] ?? 0),
+    'comment_reward_group_policies_json' => (string) ($newBoardDefaultSettings['comment_reward_group_policies_json'] ?? ''),
+    'comment_reward_policy_set_id' => (string) ($newBoardDefaultSettings['comment_reward_policy_set_id'] ?? 0),
     'comment_reward_amounts_json' => (string) ($newBoardDefaultSettings['comment_reward_amounts_json'] ?? ''),
     'write_charge_enabled' => !empty($newBoardDefaultSettings['write_charge_enabled']) ? '1' : '0',
     'write_charge_asset_module' => (string) ($newBoardDefaultSettings['write_charge_asset_module'] ?? ''),
     'write_charge_amount' => (string) ($newBoardDefaultSettings['write_charge_amount'] ?? 0),
     'write_charge_amounts_json' => (string) ($newBoardDefaultSettings['write_charge_amounts_json'] ?? ''),
+    'write_charge_group_policies_json' => (string) ($newBoardDefaultSettings['write_charge_group_policies_json'] ?? ''),
+    'write_charge_policy_set_id' => (string) ($newBoardDefaultSettings['write_charge_policy_set_id'] ?? 0),
     'comment_charge_enabled' => !empty($newBoardDefaultSettings['comment_charge_enabled']) ? '1' : '0',
     'comment_charge_asset_module' => (string) ($newBoardDefaultSettings['comment_charge_asset_module'] ?? ''),
     'comment_charge_amount' => (string) ($newBoardDefaultSettings['comment_charge_amount'] ?? 0),
     'comment_charge_amounts_json' => (string) ($newBoardDefaultSettings['comment_charge_amounts_json'] ?? ''),
+    'comment_charge_group_policies_json' => (string) ($newBoardDefaultSettings['comment_charge_group_policies_json'] ?? ''),
+    'comment_charge_policy_set_id' => (string) ($newBoardDefaultSettings['comment_charge_policy_set_id'] ?? 0),
     'paid_read_enabled' => !empty($newBoardDefaultSettings['paid_read_enabled']) ? '1' : '0',
     'paid_read_asset_module' => (string) ($newBoardDefaultSettings['paid_read_asset_module'] ?? ''),
     'paid_read_amount' => (string) ($newBoardDefaultSettings['paid_read_amount'] ?? 0),
     'paid_read_amounts_json' => (string) ($newBoardDefaultSettings['paid_read_amounts_json'] ?? ''),
+    'paid_read_group_policies_json' => (string) ($newBoardDefaultSettings['paid_read_group_policies_json'] ?? ''),
+    'paid_read_policy_set_id' => (string) ($newBoardDefaultSettings['paid_read_policy_set_id'] ?? 0),
     'paid_read_charge_policy' => (string) ($newBoardDefaultSettings['paid_read_charge_policy'] ?? 'once'),
     'paid_attachment_download_enabled' => !empty($newBoardDefaultSettings['paid_attachment_download_enabled']) ? '1' : '0',
     'paid_attachment_download_asset_module' => (string) ($newBoardDefaultSettings['paid_attachment_download_asset_module'] ?? ''),
     'paid_attachment_download_amount' => (string) ($newBoardDefaultSettings['paid_attachment_download_amount'] ?? 0),
     'paid_attachment_download_amounts_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_amounts_json'] ?? ''),
+    'paid_attachment_download_group_policies_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_group_policies_json'] ?? ''),
+    'paid_attachment_download_policy_set_id' => (string) ($newBoardDefaultSettings['paid_attachment_download_policy_set_id'] ?? 0),
     'paid_attachment_download_charge_policy' => (string) ($newBoardDefaultSettings['paid_attachment_download_charge_policy'] ?? 'once'),
 ];
 $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
@@ -733,6 +745,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
+                            </div>
+                            <?php echo sr_community_asset_policy_set_select_html('community_board_' . (string) $assetPrefix . '_policy_set_id', (string) $assetPrefix . '_policy_set_id', $assetPolicySets ?? [], (int) $boardField($formBoard, $assetPrefix . '_policy_set_id', '0')); ?>
+                            <p class="admin-form-help">회원 그룹 정책은 커뮤니티 회원 그룹 정책 화면에서 관리합니다.</p>
+                            <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_policy_set_id', $boardSettingSource($formBoard, (string) $assetPrefix . '_policy_set_id')); ?>
                             </div>
                         </div>
                     </div>

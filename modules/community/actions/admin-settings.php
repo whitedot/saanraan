@@ -17,6 +17,7 @@ sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermis
 $communityLayoutOptions = sr_public_layout_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
+$assetPolicySets = sr_community_asset_policy_sets($pdo);
 $levels = sr_community_levels($pdo);
 $maxLevel = sr_community_max_level_value();
 $memberGroups = sr_member_groups($pdo);
@@ -60,6 +61,8 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key_or_empty(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
+            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_post($assetPrefix . '_group_policies');
+            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_admin_post_int_in_range($assetPrefix . '_policy_set_id', 0, 999999999) ?? 0;
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
@@ -130,6 +133,10 @@ if (sr_request_method() === 'POST') {
                     ]);
                 }
             }
+            $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($assetSettings[$assetPrefix . '_group_policies_json'] ?? ''), $assetLabel));
+            if ((int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0) > 0 && !is_array(sr_community_asset_policy_set_by_id($pdo, (int) $assetSettings[$assetPrefix . '_policy_set_id']))) {
+                $errors[] = $assetLabel . ' 회원 그룹 정책을 찾을 수 없습니다.';
+            }
         }
 
         if (sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
@@ -172,29 +179,41 @@ if (sr_request_method() === 'POST') {
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
                 ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
+                ['post_reward_group_policies_json', (string) $assetSettings['post_reward_group_policies_json'], 'json'],
+                ['post_reward_policy_set_id', (string) $assetSettings['post_reward_policy_set_id'], 'int'],
                 ['post_reward_reversal_enabled', $assetSettings['post_reward_reversal_enabled'] ? '1' : '0', 'bool'],
                 ['comment_reward_enabled', $assetSettings['comment_reward_enabled'] ? '1' : '0', 'bool'],
                 ['comment_reward_asset_module', (string) $assetSettings['comment_reward_asset_module'], 'string'],
                 ['comment_reward_amount', (string) $assetSettings['comment_reward_amount'], 'int'],
+                ['comment_reward_group_policies_json', (string) $assetSettings['comment_reward_group_policies_json'], 'json'],
+                ['comment_reward_policy_set_id', (string) $assetSettings['comment_reward_policy_set_id'], 'int'],
                 ['comment_reward_reversal_enabled', $assetSettings['comment_reward_reversal_enabled'] ? '1' : '0', 'bool'],
                 ['write_charge_enabled', $assetSettings['write_charge_enabled'] ? '1' : '0', 'bool'],
                 ['write_charge_asset_module', (string) $assetSettings['write_charge_asset_module'], 'string'],
                 ['write_charge_amount', (string) $assetSettings['write_charge_amount'], 'int'],
                 ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
+                ['write_charge_group_policies_json', (string) $assetSettings['write_charge_group_policies_json'], 'json'],
+                ['write_charge_policy_set_id', (string) $assetSettings['write_charge_policy_set_id'], 'int'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
                 ['comment_charge_amounts_json', (string) $assetSettings['comment_charge_amounts_json'], 'json'],
+                ['comment_charge_group_policies_json', (string) $assetSettings['comment_charge_group_policies_json'], 'json'],
+                ['comment_charge_policy_set_id', (string) $assetSettings['comment_charge_policy_set_id'], 'int'],
                 ['paid_read_enabled', $assetSettings['paid_read_enabled'] ? '1' : '0', 'bool'],
                 ['paid_read_asset_module', (string) $assetSettings['paid_read_asset_module'], 'string'],
                 ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
                 ['paid_read_amounts_json', (string) $assetSettings['paid_read_amounts_json'], 'json'],
+                ['paid_read_group_policies_json', (string) $assetSettings['paid_read_group_policies_json'], 'json'],
+                ['paid_read_policy_set_id', (string) $assetSettings['paid_read_policy_set_id'], 'int'],
                 ['paid_read_charge_policy', (string) $assetSettings['paid_read_charge_policy'], 'string'],
                 ['once_history_policy', $onceHistoryPolicy, 'string'],
                 ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
                 ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
                 ['paid_attachment_download_amounts_json', (string) $assetSettings['paid_attachment_download_amounts_json'], 'json'],
+                ['paid_attachment_download_group_policies_json', (string) $assetSettings['paid_attachment_download_group_policies_json'], 'json'],
+                ['paid_attachment_download_policy_set_id', (string) $assetSettings['paid_attachment_download_policy_set_id'], 'int'],
                 ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
             ];
             try {

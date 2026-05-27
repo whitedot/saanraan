@@ -169,6 +169,8 @@ function sr_content_group_asset_access_setting_keys(): array
         'asset_module',
         'asset_access_amount',
         'asset_access_amounts_json',
+        'asset_access_group_policies_json',
+        'asset_access_policy_set_id',
         'asset_charge_policy',
     ];
 }
@@ -180,6 +182,8 @@ function sr_content_group_asset_action_setting_keys(): array
         'asset_action_module',
         'asset_action_amount',
         'asset_action_amounts_json',
+        'asset_action_group_policies_json',
+        'asset_action_policy_set_id',
         'asset_action_direction',
         'asset_action_label',
     ];
@@ -197,6 +201,8 @@ function sr_content_group_file_asset_setting_keys(): array
         'file_asset_module',
         'file_asset_download_amount',
         'file_asset_download_amounts_json',
+        'file_asset_download_group_policies_json',
+        'file_asset_download_policy_set_id',
         'file_asset_charge_policy',
     ];
 }
@@ -220,17 +226,23 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
         'asset_module' => '',
         'asset_access_amount' => '0',
         'asset_access_amounts_json' => '',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => '0',
         'asset_charge_policy' => 'once',
         'asset_action_enabled' => '0',
         'asset_action_module' => '',
         'asset_action_amount' => '0',
         'asset_action_amounts_json' => '',
+        'asset_action_group_policies_json' => '',
+        'asset_action_policy_set_id' => '0',
         'asset_action_direction' => 'grant',
         'asset_action_label' => sr_t('content::ui.text.727333ab'),
         'file_asset_download_enabled' => '0',
         'file_asset_module' => '',
         'file_asset_download_amount' => '0',
         'file_asset_download_amounts_json' => '',
+        'file_asset_download_group_policies_json' => '',
+        'file_asset_download_policy_set_id' => '0',
         'file_asset_charge_policy' => 'once',
     ];
 
@@ -458,6 +470,157 @@ function sr_content_asset_module_labels(string $assetModuleValue, ?PDO $pdo = nu
     }
 
     return $labels !== [] ? implode(', ', $labels) : '회원 자산';
+}
+
+function sr_content_require_asset_group_policy_helpers(): void
+{
+    if (!function_exists('sr_admin_asset_group_policies_from_json')) {
+        require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
+    }
+}
+
+function sr_content_asset_group_policy_json_from_value(mixed $value): string
+{
+    sr_content_require_asset_group_policy_helpers();
+
+    return sr_admin_asset_group_policy_json_from_value($value);
+}
+
+function sr_content_asset_group_policies_from_value(mixed $value): array
+{
+    sr_content_require_asset_group_policy_helpers();
+
+    try {
+        return sr_admin_asset_group_policies_from_json(is_string($value) ? $value : sr_admin_asset_group_policy_json_from_value($value));
+    } catch (Throwable $exception) {
+        return [];
+    }
+}
+
+function sr_content_asset_group_policy_json_from_post(string $fieldName): string
+{
+    sr_content_require_asset_group_policy_helpers();
+
+    return sr_admin_asset_group_policy_json_from_value(sr_admin_asset_group_policies_from_post($fieldName));
+}
+
+function sr_content_asset_group_policy_json_from_input(mixed $input): string
+{
+    sr_content_require_asset_group_policy_helpers();
+
+    return sr_admin_asset_group_policy_json_from_value(sr_admin_asset_group_policies_from_input($input));
+}
+
+function sr_content_asset_policy_set_key_is_valid(string $setKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $setKey) === 1;
+}
+
+function sr_content_asset_policy_set_statuses(): array
+{
+    return ['enabled', 'disabled', 'archived'];
+}
+
+function sr_content_asset_policy_sets(PDO $pdo, bool $enabledOnly = false): array
+{
+    try {
+        $sql = 'SELECT * FROM sr_content_asset_policy_sets';
+        if ($enabledOnly) {
+            $sql .= " WHERE status = 'enabled'";
+        }
+        $sql .= ' ORDER BY title ASC, id ASC';
+        $stmt = $pdo->query($sql);
+        return $stmt !== false ? $stmt->fetchAll() : [];
+    } catch (Throwable $exception) {
+        return [];
+    }
+}
+
+function sr_content_asset_policy_set_by_id(PDO $pdo, int $setId): ?array
+{
+    if ($setId < 1) {
+        return null;
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM sr_content_asset_policy_sets WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $setId]);
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
+    } catch (Throwable $exception) {
+        return null;
+    }
+}
+
+function sr_content_asset_policy_set_key_exists(PDO $pdo, string $setKey, int $exceptId = 0): bool
+{
+    $stmt = $pdo->prepare(
+        'SELECT id FROM sr_content_asset_policy_sets WHERE set_key = :set_key AND id <> :id LIMIT 1'
+    );
+    $stmt->execute([
+        'set_key' => $setKey,
+        'id' => $exceptId,
+    ]);
+
+    return is_array($stmt->fetch());
+}
+
+function sr_content_save_asset_policy_set(PDO $pdo, array $values, int $accountId, int $setId = 0): int
+{
+    $now = sr_now();
+    $params = [
+        'set_key' => (string) ($values['set_key'] ?? ''),
+        'title' => (string) ($values['title'] ?? ''),
+        'description' => (string) ($values['description'] ?? ''),
+        'status' => (string) ($values['status'] ?? 'enabled'),
+        'policies_json' => sr_content_asset_group_policy_json_from_value($values['policies_json'] ?? ''),
+        'updated_by' => $accountId,
+        'updated_at' => $now,
+    ];
+
+    if ($setId > 0) {
+        $params['id'] = $setId;
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_asset_policy_sets
+             SET set_key = :set_key, title = :title, description = :description, status = :status,
+                 policies_json = :policies_json, updated_by = :updated_by, updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute($params);
+        return $setId;
+    }
+
+    $params['created_by'] = $accountId;
+    $params['created_at'] = $now;
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_content_asset_policy_sets
+            (set_key, title, description, status, policies_json, created_by, updated_by, created_at, updated_at)
+         VALUES
+            (:set_key, :title, :description, :status, :policies_json, :created_by, :updated_by, :created_at, :updated_at)'
+    );
+    $stmt->execute($params);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_content_asset_policy_set_select_html(string $id, string $name, array $policySets, int $selectedId): string
+{
+    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
+    $html .= '<option value="0"' . ($selectedId === 0 ? ' selected' : '') . '>선택 안 함</option>';
+    foreach ($policySets as $policySet) {
+        $setId = (int) ($policySet['id'] ?? 0);
+        if ($setId < 1) {
+            continue;
+        }
+        $html .= '<option value="' . sr_e((string) $setId) . '"' . ($selectedId === $setId ? ' selected' : '') . '>';
+        $html .= sr_e((string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId));
+        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
+            $html .= ' (' . sr_e(sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status')) . ')';
+        }
+        $html .= '</option>';
+    }
+
+    return $html . '</select>';
 }
 
 function sr_content_asset_modules_available(PDO $pdo, array $assetModules): bool
@@ -1657,6 +1820,8 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
     $values['asset_module'] = $assetModule;
     $values['asset_access_amount'] = sr_content_asset_amount_total($accessAmounts, max(0, (int) ($values['asset_access_amount'] ?? 0)));
     $values['asset_access_amounts_json'] = sr_content_asset_amounts_json_from_map($accessAmounts);
+    $values['asset_access_group_policies_json'] = sr_content_asset_group_policy_json_from_value($values['asset_access_group_policies_json'] ?? '');
+    $values['asset_access_policy_set_id'] = max(0, (int) ($values['asset_access_policy_set_id'] ?? 0));
     $values['asset_charge_policy'] = $chargePolicy;
 
     $actionDirection = (string) ($values['asset_action_direction'] ?? 'grant');
@@ -1675,6 +1840,8 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
         ? sr_content_asset_amount_total($actionAmounts, max(0, (int) ($values['asset_action_amount'] ?? 0)))
         : max(0, (int) ($values['asset_action_amount'] ?? 0));
     $values['asset_action_amounts_json'] = sr_content_asset_amounts_json_from_map($actionAmounts);
+    $values['asset_action_group_policies_json'] = sr_content_asset_group_policy_json_from_value($values['asset_action_group_policies_json'] ?? '');
+    $values['asset_action_policy_set_id'] = max(0, (int) ($values['asset_action_policy_set_id'] ?? 0));
     $values['asset_action_direction'] = $actionDirection;
     $values['asset_action_label'] = sr_content_clean_single_line((string) ($values['asset_action_label'] ?? '완료'), 80);
     if ((string) $values['asset_action_label'] === '') {
@@ -1706,6 +1873,8 @@ function sr_content_file_asset_settings_for_audit(array $file): array
         'asset_module' => (string) ($file['asset_module'] ?? ''),
         'asset_download_amount' => (int) ($file['asset_download_amount'] ?? 0),
         'asset_download_amounts_json' => (string) ($file['asset_download_amounts_json'] ?? ''),
+        'asset_download_group_policies_json' => (string) ($file['asset_download_group_policies_json'] ?? ''),
+        'asset_download_policy_set_id' => (int) ($file['asset_download_policy_set_id'] ?? 0),
         'asset_charge_policy' => (string) ($file['asset_charge_policy'] ?? 'once'),
     ]);
 
@@ -1757,6 +1926,8 @@ function sr_content_group_asset_settings_for_audit(array $settings): array
         'asset_module' => $settings['file_asset_module'] ?? '',
         'asset_download_amount' => $settings['file_asset_download_amount'] ?? 0,
         'asset_download_amounts_json' => $settings['file_asset_download_amounts_json'] ?? '',
+        'asset_download_group_policies_json' => $settings['file_asset_download_group_policies_json'] ?? '',
+        'asset_download_policy_set_id' => $settings['file_asset_download_policy_set_id'] ?? 0,
         'asset_charge_policy' => $settings['file_asset_charge_policy'] ?? 'once',
     ]);
 
@@ -1768,6 +1939,8 @@ function sr_content_group_asset_settings_for_audit(array $settings): array
     $auditSettings['file_asset_module'] = (string) $fileAssetSettings['asset_module'];
     $auditSettings['file_asset_download_amount'] = (int) $fileAssetSettings['asset_download_amount'];
     $auditSettings['file_asset_download_amounts_json'] = (string) $fileAssetSettings['asset_download_amounts_json'];
+    $auditSettings['file_asset_download_group_policies_json'] = (string) $fileAssetSettings['asset_download_group_policies_json'];
+    $auditSettings['file_asset_download_policy_set_id'] = (int) $fileAssetSettings['asset_download_policy_set_id'];
     $auditSettings['file_asset_charge_policy'] = (string) $fileAssetSettings['asset_charge_policy'];
 
     return $auditSettings;
@@ -1810,11 +1983,15 @@ function sr_content_input_values(?PDO $pdo = null): array
         'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
         'asset_access_amount' => sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0,
         'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_access_amounts', sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? ''), sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0)),
+        'asset_access_group_policies_json' => sr_content_asset_group_policy_json_from_post('asset_access_group_policies'),
+        'asset_access_policy_set_id' => sr_admin_post_int_in_range('asset_access_policy_set_id', 0, 999999999) ?? 0,
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('asset_action_enabled', 1) === '1' ? 1 : 0,
         'asset_action_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? '')),
         'asset_action_amount' => sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0,
         'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_action_amounts', sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? ''), sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0)),
+        'asset_action_group_policies_json' => sr_content_asset_group_policy_json_from_post('asset_action_group_policies'),
+        'asset_action_policy_set_id' => sr_admin_post_int_in_range('asset_action_policy_set_id', 0, 999999999) ?? 0,
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('asset_action_label', 80), 80),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
@@ -1943,6 +2120,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if (!isset(sr_content_asset_view_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
             $errors[] = '유료 열람 과금 방식이 올바르지 않습니다.';
         }
+        if ((int) ($values['asset_access_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_access_policy_set_id']))) {
+            $errors[] = '유료 열람 회원 그룹 정책을 찾을 수 없습니다.';
+        }
+        $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_access_group_policies_json'] ?? ''), '유료 열람'));
     }
 
     if ((int) ($values['asset_action_enabled'] ?? 0) === 1) {
@@ -1970,6 +2151,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if ((string) ($values['asset_action_label'] ?? '') === '') {
             $errors[] = '완료 버튼 문구를 입력하세요.';
         }
+        if ((int) ($values['asset_action_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_action_policy_set_id']))) {
+            $errors[] = '완료 버튼 회원 그룹 정책을 찾을 수 없습니다.';
+        }
+        $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_action_group_policies_json'] ?? ''), '완료 버튼'));
     }
 
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
@@ -2019,11 +2204,15 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                      asset_module = :asset_module,
                      asset_access_amount = :asset_access_amount,
                      asset_access_amounts_json = :asset_access_amounts_json,
+                     asset_access_group_policies_json = :asset_access_group_policies_json,
+                     asset_access_policy_set_id = :asset_access_policy_set_id,
                      asset_charge_policy = :asset_charge_policy,
                      asset_action_enabled = :asset_action_enabled,
                      asset_action_module = :asset_action_module,
                      asset_action_amount = :asset_action_amount,
                      asset_action_amounts_json = :asset_action_amounts_json,
+                     asset_action_group_policies_json = :asset_action_group_policies_json,
+                     asset_action_policy_set_id = :asset_action_policy_set_id,
                      asset_action_direction = :asset_action_direction,
                      asset_action_label = :asset_action_label,
                      banner_before_content_id = :banner_before_content_id,
@@ -2047,11 +2236,15 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
                 'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
+                'asset_access_group_policies_json' => (string) ($values['asset_access_group_policies_json'] ?? ''),
+                'asset_access_policy_set_id' => (int) ($values['asset_access_policy_set_id'] ?? 0),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
                 'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
                 'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
+                'asset_action_group_policies_json' => (string) ($values['asset_action_group_policies_json'] ?? ''),
+                'asset_action_policy_set_id' => (int) ($values['asset_action_policy_set_id'] ?? 0),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -2067,9 +2260,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -2084,11 +2277,15 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
                 'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
+                'asset_access_group_policies_json' => (string) ($values['asset_access_group_policies_json'] ?? ''),
+                'asset_access_policy_set_id' => (int) ($values['asset_access_policy_set_id'] ?? 0),
                 'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
                 'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
                 'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
                 'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
                 'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
+                'asset_action_group_policies_json' => (string) ($values['asset_action_group_policies_json'] ?? ''),
+                'asset_action_policy_set_id' => (int) ($values['asset_action_policy_set_id'] ?? 0),
                 'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
                 'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -2138,9 +2335,9 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_revisions
-            (content_id, content_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (content_id, content_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:content_id, :content_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:content_id, :content_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -2155,11 +2352,15 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'asset_module' => (string) ($values['asset_module'] ?? ''),
         'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
         'asset_access_amounts_json' => (string) ($values['asset_access_amounts_json'] ?? '{}'),
+        'asset_access_group_policies_json' => (string) ($values['asset_access_group_policies_json'] ?? ''),
+        'asset_access_policy_set_id' => (int) ($values['asset_access_policy_set_id'] ?? 0),
         'asset_charge_policy' => (string) ($values['asset_charge_policy'] ?? 'once'),
         'asset_action_enabled' => (int) ($values['asset_action_enabled'] ?? 0),
         'asset_action_module' => (string) ($values['asset_action_module'] ?? ''),
         'asset_action_amount' => (int) ($values['asset_action_amount'] ?? 0),
         'asset_action_amounts_json' => (string) ($values['asset_action_amounts_json'] ?? '{}'),
+        'asset_action_group_policies_json' => (string) ($values['asset_action_group_policies_json'] ?? ''),
+        'asset_action_policy_set_id' => (int) ($values['asset_action_policy_set_id'] ?? 0),
         'asset_action_direction' => (string) ($values['asset_action_direction'] ?? 'grant'),
         'asset_action_label' => (string) ($values['asset_action_label'] ?? '완료'),
         'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
@@ -2335,6 +2536,8 @@ function sr_content_normalize_file_asset_values(array $values, bool $coerceInval
     $values['asset_module'] = $assetModule;
     $values['asset_download_amount'] = sr_content_asset_amount_total($downloadAmounts, max(0, (int) ($values['asset_download_amount'] ?? 0)));
     $values['asset_download_amounts_json'] = sr_content_asset_amounts_json_from_map($downloadAmounts);
+    $values['asset_download_group_policies_json'] = sr_content_asset_group_policy_json_from_value($values['asset_download_group_policies_json'] ?? '');
+    $values['asset_download_policy_set_id'] = max(0, (int) ($values['asset_download_policy_set_id'] ?? 0));
     $values['asset_charge_policy'] = $chargePolicy;
 
     return $values;
@@ -2366,6 +2569,11 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
     if (!isset(sr_content_asset_download_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
         $errors[] = $labelPrefix . ' 과금 방식이 올바르지 않습니다.';
     }
+    if ((int) ($values['asset_download_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_download_policy_set_id']))) {
+        $errors[] = $labelPrefix . ' 회원 그룹 정책을 찾을 수 없습니다.';
+    }
+
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_download_group_policies_json'] ?? ''), $labelPrefix));
 
     return $errors;
 }
@@ -2418,6 +2626,7 @@ function sr_content_file_values_from_post(int $fileId): array
     $moduleValues = is_array($_POST['content_file_asset_module'] ?? null) ? $_POST['content_file_asset_module'] : [];
     $amountValues = is_array($_POST['content_file_asset_download_amount'] ?? null) ? $_POST['content_file_asset_download_amount'] : [];
     $amountsValues = is_array($_POST['content_file_asset_download_amounts'] ?? null) ? $_POST['content_file_asset_download_amounts'] : [];
+    $groupPolicyValues = is_array($_POST['content_file_asset_download_group_policies'] ?? null) ? $_POST['content_file_asset_download_group_policies'] : [];
     $policyValues = is_array($_POST['content_file_asset_charge_policy'] ?? null) ? $_POST['content_file_asset_charge_policy'] : [];
     $assetModules = sr_content_asset_module_keys_from_value($moduleValues[$fileId] ?? '');
     $fallbackAmount = (int) ($amountValues[$fileId] ?? 0);
@@ -2429,6 +2638,8 @@ function sr_content_file_values_from_post(int $fileId): array
         'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
         'asset_download_amount' => $fallbackAmount,
         'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_value(is_array($postedAmounts) ? $postedAmounts : [], $assetModules, is_array($postedAmounts) ? 0 : $fallbackAmount)),
+        'asset_download_group_policies_json' => sr_content_asset_group_policy_json_from_input($groupPolicyValues[$fileId] ?? []),
+        'asset_download_policy_set_id' => (int) ((is_array($_POST['content_file_asset_download_policy_set_id'] ?? null) ? $_POST['content_file_asset_download_policy_set_id'] : [])[$fileId] ?? 0),
         'asset_charge_policy' => sr_content_clean_slug((string) ($policyValues[$fileId] ?? '')),
     ], false);
 }
@@ -2440,6 +2651,8 @@ function sr_content_file_asset_values_from_group(PDO $pdo, int $groupId): array
         'asset_module' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_module') ?? ''),
         'asset_download_amount' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amount') ?? 0),
         'asset_download_amounts_json' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amounts_json') ?? ''),
+        'asset_download_group_policies_json' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_group_policies_json') ?? ''),
+        'asset_download_policy_set_id' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_policy_set_id') ?? 0),
         'asset_charge_policy' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_charge_policy') ?? 'once'),
     ]);
 }
@@ -2454,6 +2667,8 @@ function sr_content_new_file_values_from_post(?PDO $pdo = null, array $pageValue
         'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
         'asset_download_amount' => $fallbackAmount,
         'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('new_content_file_asset_download_amounts', $assetModules, $fallbackAmount)),
+        'asset_download_group_policies_json' => sr_content_asset_group_policy_json_from_post('new_content_file_asset_download_group_policies'),
+        'asset_download_policy_set_id' => sr_admin_post_int_in_range('new_content_file_asset_download_policy_set_id', 0, 999999999) ?? 0,
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('new_content_file_asset_charge_policy', 20)),
     ], false);
 
@@ -2508,6 +2723,8 @@ function sr_content_update_file(PDO $pdo, int $fileId, array $values): void
              asset_module = :asset_module,
              asset_download_amount = :asset_download_amount,
              asset_download_amounts_json = :asset_download_amounts_json,
+             asset_download_group_policies_json = :asset_download_group_policies_json,
+             asset_download_policy_set_id = :asset_download_policy_set_id,
              asset_charge_policy = :asset_charge_policy,
              updated_at = :updated_at
          WHERE id = :id'
@@ -2518,6 +2735,8 @@ function sr_content_update_file(PDO $pdo, int $fileId, array $values): void
         'asset_module' => (string) $values['asset_module'],
         'asset_download_amount' => (int) $values['asset_download_amount'],
         'asset_download_amounts_json' => (string) ($values['asset_download_amounts_json'] ?? '{}'),
+        'asset_download_group_policies_json' => (string) ($values['asset_download_group_policies_json'] ?? ''),
+        'asset_download_policy_set_id' => (int) ($values['asset_download_policy_set_id'] ?? 0),
         'asset_charge_policy' => (string) $values['asset_charge_policy'],
         'updated_at' => sr_now(),
         'id' => $fileId,
@@ -2566,9 +2785,9 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
 
         $stmt = $pdo->prepare(
             "INSERT INTO sr_content_files
-                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_amounts_json, asset_charge_policy, created_by, created_at, updated_at)
+                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_amounts_json, asset_download_group_policies_json, asset_download_policy_set_id, asset_charge_policy, created_by, created_at, updated_at)
              VALUES
-                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_download_amounts_json, :asset_charge_policy, :created_by, :created_at, :updated_at)"
+                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_download_amounts_json, :asset_download_group_policies_json, :asset_download_policy_set_id, :asset_charge_policy, :created_by, :created_at, :updated_at)"
         );
         $now = sr_now();
         $stmt->execute([
@@ -2586,6 +2805,8 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
             'asset_module' => (string) $values['asset_module'],
             'asset_download_amount' => (int) $values['asset_download_amount'],
             'asset_download_amounts_json' => (string) ($values['asset_download_amounts_json'] ?? '{}'),
+            'asset_download_group_policies_json' => (string) ($values['asset_download_group_policies_json'] ?? ''),
+            'asset_download_policy_set_id' => (int) ($values['asset_download_policy_set_id'] ?? 0),
             'asset_charge_policy' => (string) $values['asset_charge_policy'],
             'created_by' => $accountId,
             'created_at' => $now,
@@ -2603,6 +2824,54 @@ function sr_content_asset_access_required(array $page): bool
 {
     return (int) ($page['asset_access_enabled'] ?? 0) === 1
         && (int) ($page['asset_access_amount'] ?? 0) > 0;
+}
+
+function sr_content_asset_amounts_with_group_policy(PDO $pdo, int $accountId, array $assetModules, array $amounts, int $fallbackAmount, mixed $policyValue, int $policySetId = 0): array
+{
+    sr_content_require_asset_group_policy_helpers();
+    $policySet = $policySetId > 0 ? sr_content_asset_policy_set_by_id($pdo, $policySetId) : null;
+    $policySetActive = is_array($policySet) && (string) ($policySet['status'] ?? '') === 'enabled';
+    $policies = $policySetActive
+        ? sr_content_asset_group_policies_from_value((string) ($policySet['policies_json'] ?? ''))
+        : sr_content_asset_group_policies_from_value($policyValue);
+    $adjustedAmounts = [];
+    $snapshots = [];
+    $sourceAmounts = $amounts;
+    if ($sourceAmounts === [] && $assetModules !== []) {
+        $sourceAmounts[(string) $assetModules[0]] = $fallbackAmount;
+    }
+
+    foreach ($sourceAmounts as $assetModule => $baseAmount) {
+        $baseAmount = max(0, (int) $baseAmount);
+        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies);
+        $finalAmount = max(0, (int) ($snapshot['final_amount'] ?? $baseAmount));
+        $snapshot['asset_module'] = (string) $assetModule;
+        $snapshot['policy_set_id'] = $policySetActive ? (int) ($policySet['id'] ?? 0) : 0;
+        $snapshot['policy_set_key'] = $policySetActive ? (string) ($policySet['set_key'] ?? '') : '';
+        $snapshot['policy_set_title'] = $policySetActive ? (string) ($policySet['title'] ?? '') : '';
+        $snapshot['final_amount'] = $finalAmount;
+        $snapshots[(string) $assetModule] = $snapshot;
+        if ($finalAmount > 0) {
+            $adjustedAmounts[(string) $assetModule] = $finalAmount;
+        }
+    }
+
+    return [
+        'amounts' => $adjustedAmounts,
+        'amount' => sr_content_asset_amount_total($adjustedAmounts),
+        'snapshots' => $snapshots,
+        'policies_applied' => $policies !== [],
+    ];
+}
+
+function sr_content_asset_group_policy_snapshot_json(array $snapshots): string
+{
+    if ($snapshots === []) {
+        return '';
+    }
+
+    $json = json_encode(array_values($snapshots), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '';
 }
 
 function sr_content_asset_access_reference_id(int $pageId): string
@@ -2634,7 +2903,7 @@ function sr_content_has_paid_access(PDO $pdo, string $assetModule, int $accountI
     $dedupeKey = sr_content_asset_access_dedupe_key($assetModule, $accountId, $subjectId, $accessKind);
     $log = sr_content_asset_access_log($pdo, $dedupeKey);
 
-    return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
+    return is_array($log) && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
 }
 
 function sr_content_has_paid_access_for_modules(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind = 'view'): bool
@@ -2666,7 +2935,7 @@ function sr_content_has_asset_access_history(PDO $pdo, array $assetModules, int 
          WHERE account_id = :account_id
            AND reference_id = :reference_id
            AND access_kind = :access_kind
-           AND transaction_id > 0'
+           AND (transaction_id > 0 OR amount = 0)'
         . ' LIMIT 1'
     );
     $stmt->execute($params);
@@ -2874,13 +3143,13 @@ function sr_content_allocate_asset_use(PDO $pdo, array $assetModules, int $accou
     return $remaining === 0 ? $allocations : [];
 }
 
-function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view'): bool
+function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = ''): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_access_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -2891,6 +3160,7 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
         'access_kind' => $accessKind,
         'charge_policy' => $chargePolicy,
         'amount' => $amount,
+        'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
         'created_at' => sr_now(),
     ]);
@@ -2956,6 +3226,27 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ];
     }
 
+    $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($page['asset_access_amount'] ?? 0), $page['asset_access_group_policies_json'] ?? '', (int) ($page['asset_access_policy_set_id'] ?? 0));
+    $amounts = $policyAmounts['amounts'];
+    $amount = (int) $policyAmounts['amount'];
+    if ($amount <= 0) {
+        $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
+        $dedupeKey = $chargePolicy === 'once'
+            ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $pageId)
+            : 'content.view:' . $assetModule . ':' . (string) $accountId . ':' . (string) $pageId . ':' . bin2hex(random_bytes(8));
+        sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, 0, $chargePolicy, $dedupeKey, 'content.view', null, 'view', sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+        sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+        return [
+            'allowed' => true,
+            'charged' => false,
+            'group_policy_applied' => true,
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => 0,
+            'message' => '',
+        ];
+    }
+
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
         return [
             'allowed' => true,
@@ -3008,7 +3299,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             $dedupeKey = $chargePolicy === 'once'
                 ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $pageId)
                 : 'content.view:' . $assetModule . ':' . (string) $accountId . ':' . (string) $pageId . ':' . bin2hex(random_bytes(8));
-            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey);
+            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.view', null, 'view', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
             if (!$inserted) {
                 continue;
             }
@@ -3122,6 +3413,27 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         ];
     }
 
+    $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($file['asset_download_amount'] ?? 0), $file['asset_download_group_policies_json'] ?? '', (int) ($file['asset_download_policy_set_id'] ?? 0));
+    $amounts = $policyAmounts['amounts'];
+    $amount = (int) $policyAmounts['amount'];
+    if ($amount <= 0) {
+        $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
+        $dedupeKey = $chargePolicy === 'once'
+            ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $fileId, 'download')
+            : 'content.download:' . $assetModule . ':' . (string) $accountId . ':' . (string) $fileId . ':' . bin2hex(random_bytes(8));
+        sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, 0, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+        sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+        return [
+            'allowed' => true,
+            'charged' => false,
+            'group_policy_applied' => true,
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => 0,
+            'message' => '',
+        ];
+    }
+
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return [
             'allowed' => true,
@@ -3157,7 +3469,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             $dedupeKey = $chargePolicy === 'once'
                 ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $fileId, 'download')
                 : 'content.download:' . $assetModule . ':' . (string) $accountId . ':' . (string) $fileId . ':' . bin2hex(random_bytes(8));
-            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download');
+            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
             if (!$inserted) {
                 continue;
             }
@@ -3231,7 +3543,7 @@ function sr_content_has_completed_asset_action(PDO $pdo, string $assetModule, in
 {
     $log = sr_content_asset_action_log($pdo, sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId));
 
-    return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
+    return is_array($log) && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
 }
 
 function sr_content_has_completed_asset_action_for_modules(PDO $pdo, array $assetModules, int $accountId, int $pageId): bool
@@ -3245,13 +3557,13 @@ function sr_content_has_completed_asset_action_for_modules(PDO $pdo, array $asse
     return false;
 }
 
-function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey): bool
+function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey, string $groupPolicySnapshotJson = ''): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_action_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -3262,6 +3574,7 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
         'action_key' => 'complete',
         'direction' => $direction,
         'amount' => $amount,
+        'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
         'created_at' => sr_now(),
     ]);
@@ -3334,6 +3647,26 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
         ];
     }
 
+    $baseActionAmounts = $direction === 'use' ? $amounts : [(string) $assetModules[0] => $amount];
+    $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $baseActionAmounts, $amount, $page['asset_action_group_policies_json'] ?? '', (int) ($page['asset_action_policy_set_id'] ?? 0));
+    $amounts = $direction === 'use' ? $policyAmounts['amounts'] : [];
+    $amount = (int) $policyAmounts['amount'];
+    if ($amount <= 0) {
+        $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
+        $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
+        sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, 0, $dedupeKey, sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+        return [
+            'allowed' => true,
+            'completed' => true,
+            'group_policy_applied' => true,
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => 0,
+            'direction' => $direction,
+            'message' => '',
+        ];
+    }
+
     $allocations = $direction === 'use'
         ? ($amounts !== [] ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
@@ -3354,7 +3687,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) $allocation['amount'];
             $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
-            $inserted = sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey);
+            $inserted = sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey, sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
             if (!$inserted) {
                 continue;
             }

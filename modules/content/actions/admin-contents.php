@@ -29,8 +29,10 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
     ? sr_popup_layer_public_layers($pdo)
     : [];
 $assetModuleOptions = sr_content_asset_module_options($pdo);
+$assetPolicySets = sr_content_asset_policy_sets($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
 $pageGroups = sr_content_groups($pdo);
+$memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
 
 if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);

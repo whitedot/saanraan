@@ -5,19 +5,24 @@ return [
     'order' => 30,
     'items' => [
         [
-            'label' => sr_t('content::ui.content.list.771ca9aa'),
+            'label' => '콘텐츠 관리',
             'path' => '/admin/content',
             'order' => 10,
         ],
         [
-            'label' => '환경설정',
-            'path' => '/admin/content/settings',
-            'order' => 5,
-        ],
-        [
-            'label' => sr_t('content::ui.content.5875c5b3'),
+            'label' => '콘텐츠 그룹 관리',
             'path' => '/admin/content-groups',
             'order' => 20,
+        ],
+        [
+            'label' => '환경설정',
+            'path' => '/admin/content/settings',
+            'order' => 30,
+        ],
+        [
+            'label' => '회원 그룹 정책',
+            'path' => '/admin/content/asset-policy-sets',
+            'order' => 40,
         ],
     ],
 ];

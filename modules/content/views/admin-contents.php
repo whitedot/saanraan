@@ -26,11 +26,15 @@ if ($values === []) {
         'asset_module' => '',
         'asset_access_amount' => 0,
         'asset_access_amounts_json' => '',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
         'asset_charge_policy' => 'once',
         'asset_action_enabled' => 0,
         'asset_action_module' => '',
         'asset_action_amount' => 0,
         'asset_action_amounts_json' => '',
+        'asset_action_group_policies_json' => '',
+        'asset_action_policy_set_id' => 0,
         'asset_action_direction' => 'grant',
         'asset_action_label' => sr_t('content::ui.text.727333ab'),
         'banner_before_content_id' => 0,
@@ -53,6 +57,7 @@ $newContentFileAssetSettings = [
     'file_asset_module' => '',
     'file_asset_download_amount' => 0,
     'file_asset_download_amounts_json' => '',
+    'file_asset_download_policy_set_id' => 0,
     'file_asset_charge_policy' => 'once',
 ];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
@@ -71,6 +76,8 @@ foreach (sr_content_asset_deduction_order() as $assetModule) {
 $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('content::ui.text.706623d8') . implode(', ', $assetDeductionPriorityLabels)
     : sr_t('content::ui.text.3e195cdd');
+$memberGroups = isset($memberGroups) && is_array($memberGroups) ? $memberGroups : [];
+$assetPolicySets = isset($assetPolicySets) && is_array($assetPolicySets) ? $assetPolicySets : [];
 $pageGroupScopeLabels = [
     'here_only' => ['visible' => sr_t('content::ui.scope.current_only'), 'sr' => '적용', 'toast' => ''],
     'group' => ['visible' => sr_t('content::ui.scope.copy_group'), 'sr' => '적용', 'toast' => '이 설정을 같은 그룹 콘텐츠에 적용합니다.'],
@@ -436,6 +443,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="source_asset_access_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
                         </div>
                     </div>
+                    <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_access_policy_set_id', 'asset_access_policy_set_id', $assetPolicySets, (int) ($values['asset_access_policy_set_id'] ?? 0)); ?>
+                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
                 </div>
             </div>
         </section>
@@ -498,6 +508,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_amount', $pageSettingSource($values, 'asset_action_amount')); ?>
                     <input type="hidden" name="source_asset_action_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_amount')); ?>">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label"><?php echo sr_e('회원 그룹 정책'); ?></span>
+                <div class="admin-form-field">
+                    <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_action_policy_set_id', 'asset_action_policy_set_id', $assetPolicySets, (int) ($values['asset_action_policy_set_id'] ?? 0)); ?>
+                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
                 </div>
             </div>
         </section>
@@ -629,6 +647,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_content_asset_grouped_amount_inputs_html($contentFileAssetModuleId . '_amounts_grouped', 'content_file_asset_module[' . (string) $fileId . ']', 'content_file_asset_download_amounts[' . (string) $fileId . ']', $assetModuleOptions, $selectedFileAssetModules, $contentFile['asset_download_amounts_json'] ?? '', (int) ($contentFile['asset_download_amount'] ?? 0), sr_t('content::ui.text.c871de35'), sr_t('content::ui.text.3e195cdd')); ?>
                                         </div>
                                         <input id="<?php echo sr_e($contentFileAmountId); ?>" type="hidden" name="content_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($contentFile['asset_download_amount'] ?? 0)); ?>">
+                                        <?php echo sr_content_asset_policy_set_select_html('content_file_asset_download_policy_set_id_' . (string) $fileId, 'content_file_asset_download_policy_set_id[' . (string) $fileId . ']', $assetPolicySets, (int) ($contentFile['asset_download_policy_set_id'] ?? 0)); ?>
                                     </td>
                                     <td>
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($contentFileDeleteId); ?>">
@@ -690,6 +709,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0)); ?>">
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                    <?php echo sr_content_asset_policy_set_select_html('new_content_file_asset_download_policy_set_id', 'new_content_file_asset_download_policy_set_id', $assetPolicySets, (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0)); ?>
                 </div>
             </div>
         </section>

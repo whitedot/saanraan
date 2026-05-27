@@ -5,11 +5,14 @@ $assetGroupPolicyInputId = isset($assetGroupPolicyInputId) ? (string) $assetGrou
 $assetGroupPolicyRows = isset($assetGroupPolicyRows) && is_array($assetGroupPolicyRows) ? $assetGroupPolicyRows : [];
 $assetGroupPolicyGroups = isset($assetGroupPolicyGroups) && is_array($assetGroupPolicyGroups) ? $assetGroupPolicyGroups : [];
 $assetGroupPolicyHelpText = isset($assetGroupPolicyHelpText) ? (string) $assetGroupPolicyHelpText : '회원 그룹별로 수동 조정 금액을 다르게 적용합니다.';
+$assetGroupPolicyLevelEnabled = !empty($assetGroupPolicyLevelEnabled);
+$assetGroupPolicyMaxLevel = isset($assetGroupPolicyMaxLevel) ? max(0, (int) $assetGroupPolicyMaxLevel) : 0;
 if ($assetGroupPolicyRows === []) {
     $assetGroupPolicyRows[] = [
         'group_key' => '',
         'mode' => '',
         'value' => '',
+        'min_level' => 0,
         'priority' => 0,
         'status' => 'active',
     ];
@@ -26,6 +29,9 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
             <thead class="ui-table-head">
                 <tr>
                     <th><?php echo sr_e('회원 그룹'); ?></th>
+                    <?php if ($assetGroupPolicyLevelEnabled) { ?>
+                        <th><?php echo sr_e('최소 레벨'); ?></th>
+                    <?php } ?>
                     <th><?php echo sr_e('적용 방식'); ?></th>
                     <th><?php echo sr_e('값'); ?></th>
                     <th><?php echo sr_e('우선순위'); ?></th>
@@ -38,6 +44,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     <?php
                     $assetGroupPolicyRowId = $assetGroupPolicyInputId . '_' . (int) $assetGroupPolicyIndex;
                     $assetGroupPolicyGroupKey = (string) ($assetGroupPolicyRow['group_key'] ?? '');
+                    $assetGroupPolicyMinLevel = max(0, (int) ($assetGroupPolicyRow['min_level'] ?? 0));
                     $assetGroupPolicyMode = (string) ($assetGroupPolicyRow['mode'] ?? '');
                     $assetGroupPolicyValue = (string) ($assetGroupPolicyRow['value'] ?? '');
                     $assetGroupPolicyPriority = (string) ($assetGroupPolicyRow['priority'] ?? '0');
@@ -58,6 +65,18 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                                 <?php } ?>
                             </select>
                         </td>
+                        <?php if ($assetGroupPolicyLevelEnabled) { ?>
+                            <td>
+                                <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_min_level"><?php echo sr_e('최소 레벨'); ?></label>
+                                <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_min_level" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[min_level][]" class="form-select">
+                                    <?php for ($assetGroupPolicyLevel = 0; $assetGroupPolicyLevel <= $assetGroupPolicyMaxLevel; $assetGroupPolicyLevel += 1) { ?>
+                                        <option value="<?php echo sr_e((string) $assetGroupPolicyLevel); ?>"<?php echo $assetGroupPolicyMinLevel === $assetGroupPolicyLevel ? ' selected' : ''; ?>>
+                                            <?php echo $assetGroupPolicyLevel === 0 ? sr_e('제한 없음') : sr_e((string) $assetGroupPolicyLevel); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        <?php } ?>
                         <td>
                             <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_mode"><?php echo sr_e('적용 방식'); ?></label>
                             <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_mode" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[mode][]" class="form-select">
@@ -111,6 +130,15 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     <?php } ?>
                 </select>
             </td>
+            <?php if ($assetGroupPolicyLevelEnabled) { ?>
+                <td>
+                    <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[min_level][]" class="form-select">
+                        <?php for ($assetGroupPolicyLevel = 0; $assetGroupPolicyLevel <= $assetGroupPolicyMaxLevel; $assetGroupPolicyLevel += 1) { ?>
+                            <option value="<?php echo sr_e((string) $assetGroupPolicyLevel); ?>"><?php echo $assetGroupPolicyLevel === 0 ? sr_e('제한 없음') : sr_e((string) $assetGroupPolicyLevel); ?></option>
+                        <?php } ?>
+                    </select>
+                </td>
+            <?php } ?>
             <td>
                 <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[mode][]" class="form-select">
                     <option value=""><?php echo sr_e('선택 안 함'); ?></option>

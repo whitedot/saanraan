@@ -203,6 +203,192 @@ function sr_community_asset_module_labels(string $assetModuleValue, ?PDO $pdo = 
     return $labels !== [] ? implode(', ', $labels) : sr_t('community::asset.member_asset');
 }
 
+function sr_community_require_asset_group_policy_helpers(): void
+{
+    if (!function_exists('sr_admin_asset_group_policies_from_json')) {
+        require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
+    }
+    if (!function_exists('sr_community_account_meets_min_level') && is_file(SR_ROOT . '/modules/community/helpers/levels.php')) {
+        require_once SR_ROOT . '/modules/community/helpers/levels.php';
+    }
+}
+
+function sr_community_asset_group_policy_json_from_value(mixed $value): string
+{
+    sr_community_require_asset_group_policy_helpers();
+
+    return sr_admin_asset_group_policy_json_from_value($value);
+}
+
+function sr_community_asset_group_policies_from_value(mixed $value): array
+{
+    sr_community_require_asset_group_policy_helpers();
+
+    try {
+        return sr_admin_asset_group_policies_from_json(is_string($value) ? $value : sr_admin_asset_group_policy_json_from_value($value));
+    } catch (Throwable $exception) {
+        return [];
+    }
+}
+
+function sr_community_asset_group_policy_json_from_post(string $fieldName): string
+{
+    sr_community_require_asset_group_policy_helpers();
+
+    return sr_admin_asset_group_policy_json_from_value(sr_admin_asset_group_policies_from_post($fieldName));
+}
+
+function sr_community_asset_policy_set_key_is_valid(string $setKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $setKey) === 1;
+}
+
+function sr_community_asset_policy_set_statuses(): array
+{
+    return ['enabled', 'disabled', 'archived'];
+}
+
+function sr_community_asset_policy_sets(PDO $pdo, bool $enabledOnly = false): array
+{
+    try {
+        $sql = 'SELECT * FROM sr_community_asset_policy_sets';
+        if ($enabledOnly) {
+            $sql .= " WHERE status = 'enabled'";
+        }
+        $sql .= ' ORDER BY title ASC, id ASC';
+        $stmt = $pdo->query($sql);
+        return $stmt !== false ? $stmt->fetchAll() : [];
+    } catch (Throwable $exception) {
+        return [];
+    }
+}
+
+function sr_community_asset_policy_set_by_id(PDO $pdo, int $setId): ?array
+{
+    if ($setId < 1) {
+        return null;
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM sr_community_asset_policy_sets WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $setId]);
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
+    } catch (Throwable $exception) {
+        return null;
+    }
+}
+
+function sr_community_asset_policy_set_key_exists(PDO $pdo, string $setKey, int $exceptId = 0): bool
+{
+    $stmt = $pdo->prepare('SELECT id FROM sr_community_asset_policy_sets WHERE set_key = :set_key AND id <> :id LIMIT 1');
+    $stmt->execute(['set_key' => $setKey, 'id' => $exceptId]);
+    return is_array($stmt->fetch());
+}
+
+function sr_community_save_asset_policy_set(PDO $pdo, array $values, int $accountId, int $setId = 0): int
+{
+    $now = sr_now();
+    $params = [
+        'set_key' => (string) ($values['set_key'] ?? ''),
+        'title' => (string) ($values['title'] ?? ''),
+        'description' => (string) ($values['description'] ?? ''),
+        'status' => (string) ($values['status'] ?? 'enabled'),
+        'policies_json' => sr_community_asset_group_policy_json_from_value($values['policies_json'] ?? ''),
+        'updated_by' => $accountId,
+        'updated_at' => $now,
+    ];
+
+    if ($setId > 0) {
+        $params['id'] = $setId;
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_asset_policy_sets
+             SET set_key = :set_key, title = :title, description = :description, status = :status,
+                 policies_json = :policies_json, updated_by = :updated_by, updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute($params);
+        return $setId;
+    }
+
+    $params['created_by'] = $accountId;
+    $params['created_at'] = $now;
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_asset_policy_sets
+            (set_key, title, description, status, policies_json, created_by, updated_by, created_at, updated_at)
+         VALUES
+            (:set_key, :title, :description, :status, :policies_json, :created_by, :updated_by, :created_at, :updated_at)'
+    );
+    $stmt->execute($params);
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_community_asset_policy_set_select_html(string $id, string $name, array $policySets, int $selectedId): string
+{
+    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
+    $html .= '<option value="0"' . ($selectedId === 0 ? ' selected' : '') . '>선택 안 함</option>';
+    foreach ($policySets as $policySet) {
+        $setId = (int) ($policySet['id'] ?? 0);
+        if ($setId < 1) {
+            continue;
+        }
+        $html .= '<option value="' . sr_e((string) $setId) . '"' . ($selectedId === $setId ? ' selected' : '') . '>';
+        $html .= sr_e((string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId));
+        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
+            $html .= ' (' . sr_e(sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status')) . ')';
+        }
+        $html .= '</option>';
+    }
+    return $html . '</select>';
+}
+
+function sr_community_asset_amounts_with_group_policy(PDO $pdo, int $accountId, array $assetModules, array $amounts, int $fallbackAmount, mixed $policyValue, int $policySetId = 0): array
+{
+    sr_community_require_asset_group_policy_helpers();
+    $policySet = $policySetId > 0 ? sr_community_asset_policy_set_by_id($pdo, $policySetId) : null;
+    $policySetActive = is_array($policySet) && (string) ($policySet['status'] ?? '') === 'enabled';
+    $policies = $policySetActive
+        ? sr_community_asset_group_policies_from_value((string) ($policySet['policies_json'] ?? ''))
+        : sr_community_asset_group_policies_from_value($policyValue);
+    $sourceAmounts = $amounts;
+    if ($sourceAmounts === [] && $assetModules !== []) {
+        $sourceAmounts[(string) $assetModules[0]] = $fallbackAmount;
+    }
+
+    $adjustedAmounts = [];
+    $snapshots = [];
+    foreach ($sourceAmounts as $assetModule => $baseAmount) {
+        $baseAmount = max(0, (int) $baseAmount);
+        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies);
+        $finalAmount = max(0, (int) ($snapshot['final_amount'] ?? $baseAmount));
+        $snapshot['asset_module'] = (string) $assetModule;
+        $snapshot['policy_set_id'] = $policySetActive ? (int) ($policySet['id'] ?? 0) : 0;
+        $snapshot['policy_set_key'] = $policySetActive ? (string) ($policySet['set_key'] ?? '') : '';
+        $snapshot['policy_set_title'] = $policySetActive ? (string) ($policySet['title'] ?? '') : '';
+        $snapshot['final_amount'] = $finalAmount;
+        $snapshots[(string) $assetModule] = $snapshot;
+        if ($finalAmount > 0) {
+            $adjustedAmounts[(string) $assetModule] = $finalAmount;
+        }
+    }
+
+    return [
+        'amounts' => $adjustedAmounts,
+        'amount' => sr_community_asset_amount_total($adjustedAmounts),
+        'snapshots' => $snapshots,
+        'policies_applied' => $policies !== [],
+    ];
+}
+
+function sr_community_asset_group_policy_snapshot_json(array $snapshots): string
+{
+    if ($snapshots === []) {
+        return '';
+    }
+
+    $json = json_encode(array_values($snapshots), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '';
+}
+
 function sr_community_asset_modules_available(PDO $pdo, array $assetModules): bool
 {
     $assetModules = sr_community_asset_module_keys_from_value($assetModules, true);
@@ -283,6 +469,8 @@ function sr_community_asset_prefix_setting_keys(string $prefix): array
         $prefix . '_enabled',
         $prefix . '_asset_module',
         $prefix . '_amount',
+        $prefix . '_group_policies_json',
+        $prefix . '_policy_set_id',
     ];
     if (sr_community_asset_prefix_uses_composite($prefix)) {
         $keys[] = $prefix . '_amounts_json';
@@ -395,6 +583,8 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($moduleValue, true), true)
             : sr_community_asset_module_key_or_empty($moduleValue);
         $auditSettings[$assetPrefix . '_amount'] = max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0));
+        $auditSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_value($settings[$assetPrefix . '_group_policies_json'] ?? '');
+        $auditSettings[$assetPrefix . '_policy_set_id'] = max(0, (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
             $auditSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
                 sr_community_asset_amounts_from_value(
@@ -748,6 +938,8 @@ function sr_community_asset_event_config(PDO $pdo, array $board, array $settings
         ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($assetModuleValue, true), true)
         : sr_community_asset_module_key_or_empty((string) $assetModuleValue);
     $amount = sr_community_asset_amount_config($pdo, $board, $settings, $prefix . '_amount');
+    $groupPoliciesJson = sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_group_policies_json', '');
+    $policySetId = (int) sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_policy_set_id', '0');
     $amounts = sr_community_asset_prefix_uses_composite($prefix)
         ? sr_community_asset_amounts_from_value(
             sr_community_asset_board_setting($pdo, $board, $settings, $prefix . '_amounts_json', ''),
@@ -766,6 +958,8 @@ function sr_community_asset_event_config(PDO $pdo, array $board, array $settings
         'asset_modules' => sr_community_asset_module_keys_from_value($assetModule, true),
         'amount' => $amount,
         'amounts' => $amounts,
+        'group_policies_json' => sr_community_asset_group_policy_json_from_value($groupPoliciesJson),
+        'policy_set_id' => $policySetId,
         'charge_policy' => $policy,
     ];
 }
@@ -835,7 +1029,7 @@ function sr_community_has_asset_event(PDO $pdo, string $assetModule, int $accoun
 {
     $log = sr_community_asset_log($pdo, sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId));
 
-    return is_array($log) && (int) ($log['transaction_id'] ?? 0) > 0;
+    return is_array($log) && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
 }
 
 function sr_community_has_asset_event_for_modules(PDO $pdo, array $assetModules, int $accountId, string $eventKey, int $subjectId): bool
@@ -868,7 +1062,7 @@ function sr_community_has_asset_event_history(PDO $pdo, array $assetModules, int
            AND event_key = :event_key
            AND subject_id = :subject_id
            AND direction = \'use\'
-           AND transaction_id > 0'
+           AND (transaction_id > 0 OR amount = 0)'
         . ' LIMIT 1'
     );
     $stmt->execute($params);
@@ -1025,9 +1219,9 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_community_asset_logs
-            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, dedupe_key, created_at)
+            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :dedupe_key, :created_at)'
+            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'account_id' => (int) $row['account_id'],
@@ -1040,6 +1234,7 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
         'direction' => (string) $row['direction'],
         'charge_policy' => (string) $row['charge_policy'],
         'amount' => (int) $row['amount'],
+        'group_policy_snapshot_json' => (string) ($row['group_policy_snapshot_json'] ?? ''),
         'dedupe_key' => (string) $row['dedupe_key'],
         'created_at' => sr_now(),
     ]);
@@ -1115,6 +1310,44 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         ];
     }
 
+    $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0));
+    $amounts = $amounts !== [] ? $policyAmounts['amounts'] : [];
+    $amount = (int) $policyAmounts['amount'];
+    if ($amount <= 0) {
+        $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
+        $dedupeKey = $once
+            ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
+            : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
+        sr_community_insert_asset_log_placeholder($pdo, [
+            'account_id' => $accountId,
+            'asset_module' => $assetModule,
+            'reference_type' => $subjectType,
+            'reference_id' => (string) $subjectId,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'event_key' => $eventKey,
+            'direction' => $direction,
+            'charge_policy' => $chargePolicy,
+            'amount' => 0,
+            'group_policy_snapshot_json' => sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']),
+            'dedupe_key' => $dedupeKey,
+        ]);
+        if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
+            sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+        }
+
+        return [
+            'allowed' => true,
+            'processed' => true,
+            'group_policy_applied' => true,
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => 0,
+            'direction' => $direction,
+            'message' => '',
+        ];
+    }
+
     $allocations = $direction === 'use'
         ? ($amounts !== [] ? sr_community_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_community_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
@@ -1151,6 +1384,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
                 'direction' => $direction,
                 'charge_policy' => $chargePolicy,
                 'amount' => $allocatedAmount,
+                'group_policy_snapshot_json' => sr_community_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []),
                 'dedupe_key' => $dedupeKey,
             ]);
             if (!$inserted) {

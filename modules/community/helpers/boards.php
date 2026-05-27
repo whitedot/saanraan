@@ -87,6 +87,8 @@ function sr_community_board_group_asset_setting_keys(): array
         $keys[] = $prefix . '_enabled';
         $keys[] = $prefix . '_asset_module';
         $keys[] = $prefix . '_amount';
+        $keys[] = $prefix . '_group_policies_json';
+        $keys[] = $prefix . '_policy_set_id';
         if (in_array($prefix, ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'], true)) {
             $keys[] = $prefix . '_amounts_json';
         }

@@ -48,6 +48,11 @@ function sr_admin_asset_group_policies_from_json(string $json): array
 function sr_admin_asset_group_policies_from_post(string $fieldName): array
 {
     $posted = $_POST[$fieldName] ?? [];
+    return sr_admin_asset_group_policies_from_input($posted);
+}
+
+function sr_admin_asset_group_policies_from_input(mixed $posted): array
+{
     if (!is_array($posted)) {
         return [];
     }
@@ -55,9 +60,10 @@ function sr_admin_asset_group_policies_from_post(string $fieldName): array
     $groupKeys = is_array($posted['group_key'] ?? null) ? $posted['group_key'] : [];
     $modes = is_array($posted['mode'] ?? null) ? $posted['mode'] : [];
     $values = is_array($posted['value'] ?? null) ? $posted['value'] : [];
+    $minLevels = is_array($posted['min_level'] ?? null) ? $posted['min_level'] : [];
     $priorities = is_array($posted['priority'] ?? null) ? $posted['priority'] : [];
     $statuses = is_array($posted['status'] ?? null) ? $posted['status'] : [];
-    $maxRows = max(count($groupKeys), count($modes), count($values), count($priorities), count($statuses));
+    $maxRows = max(count($groupKeys), count($modes), count($values), count($minLevels), count($priorities), count($statuses));
 
     $policies = [];
     for ($index = 0; $index < $maxRows; $index += 1) {
@@ -65,6 +71,7 @@ function sr_admin_asset_group_policies_from_post(string $fieldName): array
             'group_key' => is_scalar($groupKeys[$index] ?? null) ? (string) $groupKeys[$index] : '',
             'mode' => is_scalar($modes[$index] ?? null) ? (string) $modes[$index] : '',
             'value' => is_scalar($values[$index] ?? null) ? (string) $values[$index] : '',
+            'min_level' => is_scalar($minLevels[$index] ?? null) ? (string) $minLevels[$index] : '0',
             'priority' => is_scalar($priorities[$index] ?? null) ? (string) $priorities[$index] : '',
             'status' => is_scalar($statuses[$index] ?? null) ? (string) $statuses[$index] : '',
         ];
@@ -72,6 +79,7 @@ function sr_admin_asset_group_policies_from_post(string $fieldName): array
         $allBlank = trim($row['group_key']) === ''
             && trim($row['mode']) === ''
             && trim($row['value']) === ''
+            && in_array(trim($row['min_level']), ['', '0'], true)
             && in_array(trim($row['priority']), ['', '0'], true)
             && in_array(trim($row['status']), ['', 'active'], true);
         if ($allBlank) {
@@ -90,12 +98,14 @@ function sr_admin_asset_group_policy_normalize(array $row, int $policyId): array
     $groupKey = strtolower(trim((string) ($row['group_key'] ?? '')));
     $status = strtolower(trim((string) ($row['status'] ?? 'active')));
     $value = array_key_exists('value', $row) ? $row['value'] : ($row['amount'] ?? ($row['multiplier'] ?? ''));
+    $minLevel = array_key_exists('min_level', $row) ? $row['min_level'] : 0;
 
     return [
         'policy_id' => (int) ($row['policy_id'] ?? $policyId),
         'group_key' => preg_replace('/[^a-z0-9_]/', '', $groupKey) ?? '',
         'mode' => $mode,
         'value' => is_scalar($value) ? trim((string) $value) : '',
+        'min_level' => max(0, (int) $minLevel),
         'priority' => (int) ($row['priority'] ?? 0),
         'status' => $status === 'inactive' ? 'inactive' : 'active',
     ];
@@ -116,6 +126,7 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         $groupKey = (string) ($policy['group_key'] ?? '');
         $mode = (string) ($policy['mode'] ?? '');
         $value = (string) ($policy['value'] ?? '');
+        $minLevel = max(0, (int) ($policy['min_level'] ?? 0));
         $status = (string) ($policy['status'] ?? 'active');
 
         if (!function_exists('sr_member_group_key_is_valid')) {
@@ -138,6 +149,10 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
             $errors[] = $rowLabel . '의 적용 방식이 올바르지 않습니다.';
         }
 
+        if ($minLevel > 0 && function_exists('sr_community_max_level_value') && $minLevel > sr_community_max_level_value()) {
+            $errors[] = $rowLabel . '의 최소 레벨은 ' . (string) sr_community_max_level_value() . ' 이하로 입력하세요.';
+        }
+
         if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A-?\d+\z/', $value) !== 1) {
             $errors[] = $rowLabel . '의 금액은 정수로 입력하세요.';
         }
@@ -151,10 +166,11 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         }
 
         if ($status === 'active') {
-            if (isset($seenActiveGroups[$groupKey])) {
-                $errors[] = $label . ' 그룹 정책에서 같은 회원 그룹의 활성 정책을 중복 저장할 수 없습니다.';
+            $conditionKey = $groupKey . '|' . (string) $minLevel;
+            if (isset($seenActiveGroups[$conditionKey])) {
+                $errors[] = $label . ' 그룹 정책에서 같은 회원 그룹과 최소 레벨의 활성 정책을 중복 저장할 수 없습니다.';
             }
-            $seenActiveGroups[$groupKey] = true;
+            $seenActiveGroups[$conditionKey] = true;
         }
     }
 
@@ -187,6 +203,8 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         'matched' => false,
         'matched_group_id' => 0,
         'matched_group_key' => '',
+        'matched_min_level' => 0,
+        'matched_level_value' => 0,
         'applied_policy_id' => 0,
         'adjustment_mode' => '',
         'adjustment_value' => '',
@@ -230,6 +248,7 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
     }
 
     $matches = [];
+    $levelSnapshot = null;
     foreach ($policies as $policy) {
         if (!is_array($policy) || (string) ($policy['status'] ?? 'active') !== 'active') {
             continue;
@@ -238,6 +257,20 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         $groupKey = (string) ($policy['group_key'] ?? '');
         if (!isset($memberGroups[$groupKey])) {
             continue;
+        }
+
+        $minLevel = max(0, (int) ($policy['min_level'] ?? 0));
+        if ($minLevel > 0) {
+            if (!function_exists('sr_community_account_meets_min_level')) {
+                continue;
+            }
+            if (!sr_community_account_meets_min_level($pdo, $accountId, $minLevel)) {
+                continue;
+            }
+            if ($levelSnapshot === null && function_exists('sr_community_account_level_snapshot')) {
+                $levelSnapshot = sr_community_account_level_snapshot($pdo, $accountId);
+            }
+            $policy['matched_level_value'] = is_array($levelSnapshot) ? (int) ($levelSnapshot['level_value'] ?? 0) : 0;
         }
 
         $policy['group_id'] = $memberGroups[$groupKey];
@@ -283,6 +316,8 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         'matched' => true,
         'matched_group_id' => (int) ($policy['group_id'] ?? 0),
         'matched_group_key' => (string) ($policy['group_key'] ?? ''),
+        'matched_min_level' => max(0, (int) ($policy['min_level'] ?? 0)),
+        'matched_level_value' => max(0, (int) ($policy['matched_level_value'] ?? 0)),
         'applied_policy_id' => (int) ($policy['policy_id'] ?? 0),
         'adjustment_mode' => $mode,
         'adjustment_value' => $value,

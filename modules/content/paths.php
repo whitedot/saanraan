@@ -8,6 +8,8 @@ return [
     'GET /admin/content' => 'actions/admin-contents.php',
     'GET /admin/content/settings' => 'actions/admin-settings.php',
     'POST /admin/content/settings' => 'actions/admin-settings.php',
+    'GET /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
+    'POST /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'GET /admin/content/new' => 'actions/admin-content-new.php',
     'GET /admin/content/edit' => 'actions/admin-content-edit.php',
     'POST /admin/content/save' => 'actions/admin-content-save.php',

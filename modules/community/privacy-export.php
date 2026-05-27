@@ -132,7 +132,7 @@ return static function (PDO $pdo, int $accountId): array {
         }
 
         $stmt = $pdo->prepare(
-            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, created_at
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, group_policy_snapshot_json, created_at
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC

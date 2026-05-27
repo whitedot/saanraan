@@ -70,6 +70,22 @@ CREATE TABLE IF NOT EXISTS sr_community_board_setting_sources (
     KEY idx_sr_community_board_setting_sources_board (board_id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_asset_policy_sets (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    set_key VARCHAR(60) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'enabled',
+    policies_json TEXT NULL,
+    created_by BIGINT UNSIGNED NULL,
+    updated_by BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_asset_policy_sets_key (set_key),
+    KEY idx_sr_community_asset_policy_sets_status (status, title)
+);
+
 CREATE TABLE IF NOT EXISTS sr_community_posts (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     board_id BIGINT UNSIGNED NOT NULL,
@@ -241,6 +257,7 @@ CREATE TABLE IF NOT EXISTS sr_community_asset_logs (
     direction VARCHAR(20) NOT NULL,
     charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
     amount BIGINT NOT NULL,
+    group_policy_snapshot_json TEXT NULL,
     dedupe_key VARCHAR(160) NOT NULL,
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
