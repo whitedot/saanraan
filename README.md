@@ -17,7 +17,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
 | 기본 설치 | `core + member + admin + privacy` |
-| 선택 번들 | 커뮤니티, 콘텐츠, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 쿠폰·이용권, CKEditor |
+| 선택 번들 | 커뮤니티, 콘텐츠, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 자산 환전, 쿠폰·이용권, CKEditor |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅 |
@@ -46,7 +46,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 - 콘텐츠와 커뮤니티 공개 화면, 관리자 화면, sitemap 후보, 회원 그룹 규칙 연동.
 - 사이트 메뉴, 로고 매니저, SEO, 배너, 팝업레이어 같은 사이트 운영 모듈.
 - 알림 모듈, 사이트 알림, 이메일 delivery queue, 도메인 이벤트 템플릿.
-- 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면.
+- 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면, 자산 간 환전 정책과 실행 로그.
 - 쿠폰·이용권 모듈과 콘텐츠/커뮤니티 유료 열람 우선 적용, 회원 탈퇴 시 쿠폰 상태 처리.
 - CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
 - 로컬 파일 저장과 S3 호환 저장소 helper, Apache 배포 보호 기준.

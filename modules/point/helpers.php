@@ -175,11 +175,11 @@ function sr_point_transaction_type_allows_amount(string $transactionType, int $a
         return false;
     }
 
-    if (in_array($transactionType, ['grant', 'refund'], true)) {
+    if (in_array($transactionType, ['grant', 'refund', 'exchange_in'], true)) {
         return $amount > 0;
     }
 
-    if (in_array($transactionType, ['use', 'expire'], true)) {
+    if (in_array($transactionType, ['use', 'expire', 'exchange_out', 'exchange_fee'], true)) {
         return $amount < 0;
     }
 

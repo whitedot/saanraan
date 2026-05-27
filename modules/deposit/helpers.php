@@ -129,11 +129,11 @@ function sr_deposit_transaction_type_allows_amount(string $transactionType, int 
         return false;
     }
 
-    if (in_array($transactionType, ['deposit', 'refund'], true)) {
+    if (in_array($transactionType, ['deposit', 'refund', 'exchange_in'], true)) {
         return $amount > 0;
     }
 
-    if (in_array($transactionType, ['use', 'withdraw'], true)) {
+    if (in_array($transactionType, ['use', 'withdraw', 'exchange_out', 'exchange_fee'], true)) {
         return $amount < 0;
     }
 

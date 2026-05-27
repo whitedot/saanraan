@@ -160,6 +160,9 @@
 - [ ] `/admin/member-group-assignments` 그룹 수동 배정
 - [ ] `/admin/points/settings`, `/admin/rewards/settings`, `/admin/deposits/settings` 수동 조정 회원 그룹 정책 저장
 - [ ] 포인트/적립금/예치금 수동 조정 시 회원 그룹 정책이 최종 금액과 감사 로그 metadata에 반영됨
+- [ ] `/admin/asset-exchange` 자산 환전 정책 저장, 중복 조합/비율/금액/수수료 서버 검증
+- [ ] `/account/asset-exchange` 환전 예상 금액 확인 후 확정 시 출금/입금/수수료 원장과 환전 로그가 같은 묶음 ID로 저장됨
+- [ ] 자산 모듈 비활성화 후 환전 정책 후보 제외와 기존 정책 실행 불가 표시 확인
 
 메모:
 

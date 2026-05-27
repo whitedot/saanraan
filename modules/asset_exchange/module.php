@@ -1,16 +1,16 @@
 <?php
 
 return [
-    'name' => '적립금',
+    'name' => '자산 환전',
     'version' => '2026.05.001',
     'type' => 'module',
-    'description' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
+    'description' => '설치된 자산 모듈 간 환전 정책과 실행 로그를 관리합니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',
         'category_order' => 10,
-        'menu_order' => 40,
-        'icon' => ['type' => 'symbol', 'name' => 'gift'],
+        'menu_order' => 60,
+        'icon' => ['type' => 'symbol', 'name' => 'wallet'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
@@ -26,7 +26,6 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
-            'asset-exchange.php',
         ],
     ],
 ];

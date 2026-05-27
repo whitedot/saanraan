@@ -861,6 +861,7 @@ return [
 - `member-group-rules.php`: 회원 그룹 자동 부여 조건 후보
 - `dashboard.php`: 관리자 대시보드 모듈 섹션 후보
 - `layout-options.php`: 공개 레이아웃 후보
+- `asset-exchange.php`: 자산 환전 후보와 원장 helper 계약
 
 계약 파일 규칙:
 
@@ -908,6 +909,14 @@ return [
 - 각 항목은 `point_key`, `label`, 선택 `surface`, `output`, `slots`, `subjects`를 가진다.
 - `point_key`는 `board.post.view`처럼 모듈 안에서 안정적인 key로 둔다.
 - `slots`가 있으면 각 slot은 `slot_key`를 가진 배열이다.
+
+`asset-exchange.php`:
+
+- 배열을 반환한다.
+- 자산 모듈 폴더 기준 `helpers`, `balance_function`, `transaction_function`, 표시용 `label` 또는 `label_function`, `unit_label` 또는 `unit_function`을 제공한다.
+- `cash_like`는 예치금처럼 환금성 자산 재환전 수수료 판단에 사용할 수 있는 좁은 힌트다.
+- 거래 유형은 기본적으로 `exchange_out`, `exchange_in`, `exchange_fee`이며 자산 모듈의 서버 측 거래 유형 검증에서 부호를 다시 확인해야 한다.
+- 자산 모듈은 자기 balance/transaction 테이블을 계속 소유하고, 환전 모듈은 `reference_type=asset_exchange`와 환전 묶음 ID를 넘겨 원장 간 연결만 남긴다.
 
 `privacy-export.php`:
 

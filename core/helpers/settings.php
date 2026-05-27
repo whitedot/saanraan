@@ -537,6 +537,7 @@ function sr_module_known_contract_files(): array
         'member-group-rules.php',
         'dashboard.php',
         'layout-options.php',
+        'asset-exchange.php',
     ];
 }
 
