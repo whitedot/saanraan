@@ -7,6 +7,8 @@ require_once SR_ROOT . '/modules/point/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $balance = sr_point_balance($pdo, (int) $account['id']);
+$pointDisplayName = sr_point_display_name($pdo);
+$pointUnitLabel = sr_point_unit_label($pdo);
 $stmt = $pdo->prepare(
     'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_at
      FROM sr_point_transactions

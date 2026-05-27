@@ -89,7 +89,7 @@ if (is_array($postBoard)) {
         sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         if (!empty($paidReadResult['processed'])) {
             $assetReadNotices[] = sr_t('community::action.notice.asset_used', [
-                'asset' => sr_community_asset_module_labels((string) $paidReadConfig['asset_module']),
+                'asset' => sr_community_asset_module_labels((string) $paidReadConfig['asset_module'], $pdo),
                 'amount' => number_format((int) $paidReadConfig['amount']),
             ]);
         } elseif (!empty($paidReadResult['coupon_used'])) {

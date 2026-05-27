@@ -234,11 +234,31 @@ function sr_content_normalize_setting_source(string $source): string
     return in_array($source, sr_content_setting_source_values(), true) ? $source : 'content';
 }
 
-function sr_content_asset_modules(): array
+function sr_content_point_asset_label(?PDO $pdo = null): string
+{
+    if (!$pdo instanceof PDO) {
+        return sr_t('content::asset.point');
+    }
+
+    $helper = SR_ROOT . '/modules/point/helpers.php';
+    if (!is_file($helper)) {
+        return sr_t('content::asset.point');
+    }
+
+    require_once $helper;
+    if (function_exists('sr_point_asset_option')) {
+        $option = sr_point_asset_option($pdo);
+        return (string) ($option['label'] ?? sr_t('content::asset.point'));
+    }
+
+    return function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('content::asset.point');
+}
+
+function sr_content_asset_modules(?PDO $pdo = null): array
 {
     return [
         'point' => [
-            'label' => sr_t('content::asset.point'),
+            'label' => sr_content_point_asset_label($pdo),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -304,7 +324,7 @@ function sr_content_asset_action_directions(): array
 
 function sr_content_asset_module_is_available(PDO $pdo, string $assetModule): bool
 {
-    $options = sr_content_asset_modules();
+    $options = sr_content_asset_modules($pdo);
     if (!isset($options[$assetModule])) {
         return false;
     }
@@ -325,7 +345,7 @@ function sr_content_asset_module_is_available(PDO $pdo, string $assetModule): bo
 function sr_content_asset_module_options(PDO $pdo): array
 {
     $available = [];
-    foreach (sr_content_asset_modules() as $assetModule => $option) {
+    foreach (sr_content_asset_modules($pdo) as $assetModule => $option) {
         if (sr_content_asset_module_is_available($pdo, (string) $assetModule)) {
             $available[$assetModule] = $option;
         }
@@ -334,9 +354,9 @@ function sr_content_asset_module_options(PDO $pdo): array
     return $available;
 }
 
-function sr_content_asset_module_label(string $assetModule): string
+function sr_content_asset_module_label(string $assetModule, ?PDO $pdo = null): string
 {
-    $options = sr_content_asset_modules();
+    $options = sr_content_asset_modules($pdo);
     return isset($options[$assetModule]) ? (string) $options[$assetModule]['label'] : '회원 자산';
 }
 
@@ -371,11 +391,11 @@ function sr_content_asset_module_value_from_keys(array $assetModules): string
     return implode(',', sr_content_asset_module_keys_from_value($assetModules));
 }
 
-function sr_content_asset_module_labels(string $assetModuleValue): string
+function sr_content_asset_module_labels(string $assetModuleValue, ?PDO $pdo = null): string
 {
     $labels = [];
     foreach (sr_content_asset_module_keys_from_value($assetModuleValue) as $assetModule) {
-        $labels[] = sr_content_asset_module_label($assetModule);
+        $labels[] = sr_content_asset_module_label($assetModule, $pdo);
     }
 
     return $labels !== [] ? implode(', ', $labels) : '회원 자산';
@@ -2566,7 +2586,7 @@ function sr_content_asset_balance(PDO $pdo, string $assetModule, int $accountId)
         return 0;
     }
 
-    $option = sr_content_asset_modules()[$assetModule];
+    $option = sr_content_asset_modules($pdo)[$assetModule];
     $balanceFunction = (string) $option['balance_function'];
 
     return (int) $balanceFunction($pdo, $accountId);
@@ -2578,7 +2598,7 @@ function sr_content_create_asset_transaction(PDO $pdo, string $assetModule, arra
         throw new RuntimeException('Page asset module is not available.');
     }
 
-    $option = sr_content_asset_modules()[$assetModule];
+    $option = sr_content_asset_modules($pdo)[$assetModule];
     $transactionFunction = (string) $option['transaction_function'];
 
     return (int) $transactionFunction($pdo, $data);
@@ -2676,7 +2696,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '콘텐츠 유료 열람 설정이 올바르지 않아 열람할 수 없습니다.',
         ];
@@ -2687,7 +2707,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 모듈을 모두 사용할 수 없어 콘텐츠를 열람할 수 없습니다.',
         ];
@@ -2699,7 +2719,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'charged' => false,
             'already_paid' => true,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '',
         ];
@@ -2728,7 +2748,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 잔액이 부족해 콘텐츠를 열람할 수 없습니다.',
         ];
@@ -2739,7 +2759,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) $allocation['amount'];
-            $assetOption = sr_content_asset_modules()[$assetModule];
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $dedupeKey = $chargePolicy === 'once'
                 ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $pageId)
                 : 'content.view:' . $assetModule . ':' . (string) $accountId . ':' . (string) $pageId . ':' . bin2hex(random_bytes(8));
@@ -2771,7 +2791,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '회원 자산 차감에 실패해 콘텐츠를 열람할 수 없습니다.',
         ];
@@ -2781,7 +2801,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         'allowed' => true,
         'charged' => true,
         'asset_module' => $assetModuleValue,
-        'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+        'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'message' => '',
     ];
@@ -2831,7 +2851,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '콘텐츠 파일 다운로드 설정이 올바르지 않아 다운로드할 수 없습니다.',
         ];
@@ -2842,7 +2862,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 모듈을 모두 사용할 수 없어 파일을 다운로드할 수 없습니다.',
         ];
@@ -2854,7 +2874,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'charged' => false,
             'already_paid' => true,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '',
         ];
@@ -2868,7 +2888,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 잔액이 부족해 파일을 다운로드할 수 없습니다.',
         ];
@@ -2879,7 +2899,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) $allocation['amount'];
-            $assetOption = sr_content_asset_modules()[$assetModule];
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $dedupeKey = $chargePolicy === 'once'
                 ? sr_content_asset_access_dedupe_key($assetModule, $accountId, $fileId, 'download')
                 : 'content.download:' . $assetModule . ':' . (string) $accountId . ':' . (string) $fileId . ':' . bin2hex(random_bytes(8));
@@ -2911,7 +2931,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             'allowed' => false,
             'charged' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '회원 자산 차감에 실패해 파일을 다운로드할 수 없습니다.',
         ];
@@ -2921,7 +2941,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         'allowed' => true,
         'charged' => true,
         'asset_module' => $assetModuleValue,
-        'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+        'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'message' => '',
     ];
@@ -3041,7 +3061,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'allowed' => false,
             'completed' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 모듈을 모두 사용할 수 없어 완료 처리할 수 없습니다.',
         ];
@@ -3053,7 +3073,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'completed' => false,
             'already_completed' => true,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '이미 완료 처리되었습니다.',
         ];
@@ -3067,7 +3087,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'allowed' => false,
             'completed' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '선택한 자산 잔액이 부족해 완료 처리할 수 없습니다.',
         ];
@@ -3084,7 +3104,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
                 continue;
             }
 
-            $assetOption = sr_content_asset_modules()[$assetModule];
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $signedAmount = $direction === 'grant' ? $allocatedAmount : -$allocatedAmount;
             $transactionType = $direction === 'grant'
                 ? (string) ($assetOption['credit_type'] ?? 'grant')
@@ -3112,7 +3132,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'allowed' => false,
             'completed' => false,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '회원 자산 처리에 실패했습니다.',
         ];
@@ -3122,7 +3142,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
         'allowed' => true,
         'completed' => true,
         'asset_module' => $assetModuleValue,
-        'asset_label' => sr_content_asset_module_labels($assetModuleValue),
+        'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'direction' => $direction,
         'message' => '',

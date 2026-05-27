@@ -1,9 +1,11 @@
 <?php
 
 $pointAdminPage = isset($pointAdminPage) ? (string) $pointAdminPage : 'balances';
-$adminPageTitle = sr_t('point::ui.point.47719e8e');
+$pointDisplayName = (string) ($pointDisplayName ?? '포인트');
+$pointUnitLabel = (string) ($pointUnitLabel ?? 'P');
+$adminPageTitle = $pointDisplayName . ' ' . sr_t('point::ui.text.b099377c');
 if ($pointAdminPage === 'transactions') {
-    $adminPageTitle = sr_t('point::ui.point.cd2b311f');
+    $adminPageTitle = $pointDisplayName . ' ' . sr_t('point::ui.text.754ef98b');
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
 $balanceSort = isset($balanceSort) && is_array($balanceSort) ? $balanceSort : sr_admin_asset_balance_default_sort();
@@ -174,7 +176,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?> <strong><?php echo sr_e(sr_admin_member_display_name_preview($selectedAccount)); ?></strong></span>
             <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($selectedAccount)); ?></span>
-            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.b099377c')); ?> <strong><?php echo sr_e(number_format((int) $selectedBalance)); ?> P</strong></span>
+            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.b099377c')); ?> <strong><?php echo sr_e(number_format((int) $selectedBalance)); ?> <?php echo sr_e($pointUnitLabel); ?></strong></span>
         </div>
     </div>
 <?php } elseif ((string) ($accountLookupFilter['keyword'] ?? '') !== '') { ?>
@@ -186,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('point::ui.text.ce41e3f6')); ?></h2></div>
         <div class="admin-list-summary-row">
             <?php if (empty($transactionSort['is_default'])) { ?>
-                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="포인트 거래 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="<?php echo sr_e($pointDisplayName); ?> 거래 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
         </div>
@@ -208,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.f50f4b9d')); ?></td>
+                        <td colspan="9" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 거래가 없습니다.'); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
@@ -216,8 +218,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $transaction['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a></td>
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($transaction)); ?><br><?php echo sr_e(sr_admin_member_email_display($transaction)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
-                            <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> P</td>
-                            <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> P</td>
+                            <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
+                            <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e((string) $transaction['reference_type']); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
@@ -238,7 +240,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
-    <?php echo sr_admin_pagination_html($transactionPagination, '포인트 거래 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($transactionPagination, $pointDisplayName . ' 거래 목록 페이지'); ?>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
@@ -249,7 +251,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-list-summary-row">
             <?php if (empty($balanceSort['is_default'])) { ?>
-                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="포인트 잔액 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="<?php echo sr_e($pointDisplayName); ?> 잔액 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
         </div>
@@ -268,7 +270,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($balances === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('point::ui.point.8bceaefc')); ?></td>
+                        <td colspan="6" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 잔액이 없습니다.'); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($balances as $balance) { ?>
@@ -276,7 +278,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $balance['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a></td>
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
-                            <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> P</td>
+                            <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
                             <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -292,7 +294,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
-    <?php echo sr_admin_pagination_html($balancePagination, '포인트 잔액 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($balancePagination, $pointDisplayName . ' 잔액 목록 페이지'); ?>
 <?php } ?>
 
 <?php if ($pointAdminPage === 'balances' && $pointAdjustModalAccounts !== []) { ?>
@@ -310,7 +312,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-dialog">
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme" data-admin-reference-pair>
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('point::ui.point.c7027855')); ?></h3>
+                        <h3 id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($pointDisplayName . ' 조정'); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
@@ -322,7 +324,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-summary-stats">
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?> <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointAdjustModalAccount)); ?></strong></span>
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointAdjustModalAccount)); ?></span>
-                                <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.4993967a')); ?> <strong><?php echo sr_e(number_format((int) $pointAdjustModalAccount['balance'])); ?> P</strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.4993967a')); ?> <strong><?php echo sr_e(number_format((int) $pointAdjustModalAccount['balance'])); ?> <?php echo sr_e($pointUnitLabel); ?></strong></span>
                             </div>
                         <?php } else { ?>
                             <div class="admin-form-row">
@@ -417,7 +419,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-dialog">
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $pointRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($pointRefundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('point::ui.point.d16a50d1')); ?></h3>
+                        <h3 id="<?php echo sr_e($pointRefundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($pointDisplayName . ' 환불 처리'); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointRefundModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
@@ -431,7 +433,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?> <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointRefundTransaction)); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointRefundTransaction)); ?></span>
-                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.18e61249')); ?> <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> P</strong></span>
+                            <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.18e61249')); ?> <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> <?php echo sr_e($pointUnitLabel); ?></strong></span>
                         </div>
                         <div class="admin-form-row">
                             <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_amount', sr_t('point::ui.text.42607c84'), $pointHelp['refund_amount']['id'], $pointHelpOpenLabel, true); ?>

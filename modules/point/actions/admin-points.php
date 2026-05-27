@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/point/helpers.php';
 
 if (sr_request_method() === 'GET' && sr_request_path() === '/admin/points') {
-    sr_redirect('/admin/points/balances');
+    sr_redirect('/admin/points/settings');
 }
 
 $account = sr_member_require_login($pdo);
@@ -25,6 +25,8 @@ $pointPermissionPath = $pointAdminPage === 'transactions' ? '/admin/points/trans
 sr_admin_require_permission($pdo, (int) $account['id'], $pointPermissionPath, 'view');
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $submittedAccountId = 0;
+$pointDisplayName = sr_point_display_name($pdo);
+$pointUnitLabel = sr_point_unit_label($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();

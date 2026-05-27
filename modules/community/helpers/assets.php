@@ -2,11 +2,31 @@
 
 declare(strict_types=1);
 
-function sr_community_asset_modules(): array
+function sr_community_point_asset_label(?PDO $pdo = null): string
+{
+    if (!$pdo instanceof PDO) {
+        return sr_t('community::asset.point');
+    }
+
+    $helper = SR_ROOT . '/modules/point/helpers.php';
+    if (!is_file($helper)) {
+        return sr_t('community::asset.point');
+    }
+
+    require_once $helper;
+    if (function_exists('sr_point_asset_option')) {
+        $option = sr_point_asset_option($pdo);
+        return (string) ($option['label'] ?? sr_t('community::asset.point'));
+    }
+
+    return function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('community::asset.point');
+}
+
+function sr_community_asset_modules(?PDO $pdo = null): array
 {
     return [
         'point' => [
-            'label' => sr_t('community::asset.point'),
+            'label' => sr_community_point_asset_label($pdo),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -50,7 +70,7 @@ function sr_community_asset_charge_policies(): array
 
 function sr_community_asset_module_is_available(PDO $pdo, string $assetModule): bool
 {
-    $modules = sr_community_asset_modules();
+    $modules = sr_community_asset_modules($pdo);
     if (!isset($modules[$assetModule])) {
         return false;
     }
@@ -70,7 +90,7 @@ function sr_community_asset_module_is_available(PDO $pdo, string $assetModule): 
 function sr_community_asset_module_options(PDO $pdo): array
 {
     $available = [];
-    foreach (sr_community_asset_modules() as $assetModule => $module) {
+    foreach (sr_community_asset_modules($pdo) as $assetModule => $module) {
         if (sr_community_asset_module_is_available($pdo, (string) $assetModule)) {
             $available[$assetModule] = $module;
         }
@@ -79,10 +99,10 @@ function sr_community_asset_module_options(PDO $pdo): array
     return $available;
 }
 
-function sr_community_asset_module_label(string $assetModule): string
+function sr_community_asset_module_label(string $assetModule, ?PDO $pdo = null): string
 {
-    $modules = sr_community_asset_modules();
-    return isset($modules[$assetModule]) ? sr_t('community::asset.' . $assetModule) : sr_t('community::asset.member_asset');
+    $modules = sr_community_asset_modules($pdo);
+    return isset($modules[$assetModule]) ? (string) $modules[$assetModule]['label'] : sr_t('community::asset.member_asset');
 }
 
 function sr_community_asset_module_key(string $value): string
@@ -145,11 +165,11 @@ function sr_community_asset_module_value_from_keys(array $assetModules, bool $al
     return implode(',', sr_community_asset_module_keys_from_value($assetModules, $allowEmpty));
 }
 
-function sr_community_asset_module_labels(string $assetModuleValue): string
+function sr_community_asset_module_labels(string $assetModuleValue, ?PDO $pdo = null): string
 {
     $labels = [];
     foreach (sr_community_asset_module_keys_from_value($assetModuleValue) as $assetModule) {
-        $labels[] = sr_community_asset_module_label($assetModule);
+        $labels[] = sr_community_asset_module_label($assetModule, $pdo);
     }
 
     return $labels !== [] ? implode(', ', $labels) : sr_t('community::asset.member_asset');
@@ -410,7 +430,7 @@ function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountI
         return 0;
     }
 
-    $module = sr_community_asset_modules()[$assetModule];
+    $module = sr_community_asset_modules($pdo)[$assetModule];
     $balanceFunction = (string) $module['balance_function'];
 
     return (int) $balanceFunction($pdo, $accountId);
@@ -623,7 +643,7 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
         throw new RuntimeException('Community asset module is not available.');
     }
 
-    $module = sr_community_asset_modules()[$assetModule];
+    $module = sr_community_asset_modules($pdo)[$assetModule];
     $transactionFunction = (string) $module['transaction_function'];
 
     return (int) $transactionFunction($pdo, $data);
@@ -844,7 +864,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'processed' => false,
             'error_key' => 'asset_modules_unavailable',
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => sr_t('community::action.error.asset_modules_unavailable'),
         ];
@@ -857,7 +877,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'processed' => false,
             'already_processed' => true,
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => '',
         ];
@@ -872,7 +892,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'processed' => false,
             'error_key' => 'asset_balance_low',
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => sr_t('community::action.error.asset_balance_low'),
         ];
@@ -884,7 +904,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) $allocation['amount'];
-            $module = sr_community_asset_modules()[$assetModule];
+            $module = sr_community_asset_modules($pdo)[$assetModule];
             $dedupeKey = $once
                 ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
                 : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
@@ -934,7 +954,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'processed' => false,
             'error_key' => 'asset_processing_failed',
             'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue),
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
             'message' => sr_t('community::action.error.asset_processing_failed'),
         ];
@@ -944,7 +964,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         'allowed' => true,
         'processed' => $processed,
         'asset_module' => $assetModuleValue,
-        'asset_label' => sr_community_asset_module_labels($assetModuleValue),
+        'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'direction' => $direction,
         'message' => '',

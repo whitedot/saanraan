@@ -813,7 +813,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>
                                     <?php if ((int) ($page['asset_access_enabled'] ?? 0) === 1) { ?>
-                                        <?php echo sr_e(sr_content_asset_module_labels((string) ($page['asset_module'] ?? ''))); ?>
+                                        <?php echo sr_e(sr_content_asset_module_labels((string) ($page['asset_module'] ?? ''), $pdo)); ?>
                                         <?php echo sr_e(number_format((int) ($page['asset_access_amount'] ?? 0))); ?>
                                         · <?php echo sr_e(sr_content_asset_charge_policies()[(string) ($page['asset_charge_policy'] ?? 'once')] ?? ''); ?>
                                     <?php } else { ?>

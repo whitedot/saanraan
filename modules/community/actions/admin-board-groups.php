@@ -309,7 +309,7 @@ if (sr_request_method() === 'POST') {
                 } elseif (!isset($assetModuleOptions[$assetModule])) {
                     $errors[] = sr_t('community::action.admin.board_group_asset_module_inactive', [
                         'label' => $assetLabel,
-                        'module' => sr_community_asset_module_label($assetModule),
+                        'module' => sr_community_asset_module_label($assetModule, $pdo),
                     ]);
                 }
             }

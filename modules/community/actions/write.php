@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : ['allowed' => true, 'processed' => false];
         if (!empty($postRewardResult['processed'])) {
             $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.asset_granted', [
-                'asset' => sr_community_asset_module_label((string) $postRewardConfig['asset_module']),
+                'asset' => sr_community_asset_module_label((string) $postRewardConfig['asset_module'], $pdo),
                 'amount' => number_format((int) $postRewardConfig['amount']),
             ]);
         }

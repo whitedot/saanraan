@@ -2,6 +2,95 @@
 
 declare(strict_types=1);
 
+function sr_point_default_settings(): array
+{
+    return [
+        'display_name' => '포인트',
+        'unit_label' => 'P',
+    ];
+}
+
+function sr_point_settings(PDO $pdo): array
+{
+    $settings = array_merge(sr_point_default_settings(), sr_module_settings($pdo, 'point'));
+    $settings['display_name'] = sr_point_clean_text((string) ($settings['display_name'] ?? '포인트'), 40);
+    if ($settings['display_name'] === '') {
+        $settings['display_name'] = '포인트';
+    }
+    $settings['unit_label'] = sr_point_clean_text((string) ($settings['unit_label'] ?? 'P'), 20);
+    if ($settings['unit_label'] === '') {
+        $settings['unit_label'] = 'P';
+    }
+
+    return $settings;
+}
+
+function sr_point_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'point' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('포인트 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $displayName = sr_point_clean_text((string) ($settings['display_name'] ?? ''), 40);
+    $unitLabel = sr_point_clean_text((string) ($settings['unit_label'] ?? 'P'), 20);
+    if ($displayName === '') {
+        throw new InvalidArgumentException('Point display name is required.');
+    }
+    if ($unitLabel === '') {
+        $unitLabel = 'P';
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    foreach ([
+        ['display_name', $displayName, 'string'],
+        ['unit_label', $unitLabel, 'string'],
+    ] as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_clear_module_settings_cache('point');
+}
+
+function sr_point_display_name(PDO $pdo): string
+{
+    $settings = sr_point_settings($pdo);
+    return (string) $settings['display_name'];
+}
+
+function sr_point_unit_label(PDO $pdo): string
+{
+    $settings = sr_point_settings($pdo);
+    return (string) $settings['unit_label'];
+}
+
+function sr_point_asset_option(PDO $pdo): array
+{
+    return [
+        'label' => sr_point_display_name($pdo),
+        'unit_label' => sr_point_unit_label($pdo),
+    ];
+}
+
 function sr_point_balance(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0) {
@@ -169,7 +258,7 @@ function sr_point_notify_transaction_created(PDO $pdo, int $transactionId): ?int
             'module_key' => 'point',
             'event_key' => $eventKey,
             'created_by_account_id' => (int) ($transaction['created_by_account_id'] ?? 0),
-            'metadata' => sr_point_transaction_notification_metadata($transaction),
+            'metadata' => sr_point_transaction_notification_metadata($transaction, $pdo),
         ]);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'point_transaction_notification');
@@ -177,13 +266,14 @@ function sr_point_notify_transaction_created(PDO $pdo, int $transactionId): ?int
     }
 }
 
-function sr_point_transaction_notification_metadata(array $transaction): array
+function sr_point_transaction_notification_metadata(array $transaction, ?PDO $pdo = null): array
 {
     $amount = (int) ($transaction['amount'] ?? 0);
+    $assetLabel = $pdo instanceof PDO ? sr_point_display_name($pdo) : '포인트';
 
     return [
         'transaction_id' => (int) ($transaction['id'] ?? 0),
-        'asset_label' => '포인트',
+        'asset_label' => $assetLabel,
         'amount' => number_format($amount),
         'amount_abs' => number_format(abs($amount)),
         'amount_signed' => ($amount > 0 ? '+' : '') . number_format($amount),

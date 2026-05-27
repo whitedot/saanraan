@@ -1,6 +1,8 @@
 <?php
 
-$pageTitle = '포인트 거래 내역';
+$pointDisplayName = (string) ($pointDisplayName ?? '포인트');
+$pointUnitLabel = (string) ($pointUnitLabel ?? 'P');
+$pageTitle = $pointDisplayName . ' 거래 내역';
 $seo = [
     'title' => $pageTitle,
     'canonical' => sr_canonical_url($site, '/account/points'),
@@ -13,7 +15,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a></p>
         <section>
             <h2>현재 잔액</h2>
-            <p><?php echo sr_e(number_format((int) $balance)); ?>포인트</p>
+            <p><?php echo sr_e(number_format((int) $balance)); ?><?php echo sr_e($pointUnitLabel); ?></p>
         </section>
         <section>
             <h2>거래 내역</h2>

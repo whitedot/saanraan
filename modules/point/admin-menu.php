@@ -5,6 +5,11 @@ return [
     'order' => 40,
     'items' => [
         [
+            'label' => sr_t('point::ui.settings.menu'),
+            'path' => '/admin/points/settings',
+            'order' => 5,
+        ],
+        [
             'label' => sr_t('point::ui.point.47719e8e'),
             'path' => '/admin/points/balances',
             'order' => 10,
