@@ -689,9 +689,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($boardField($formBoard, $assetPrefix . '_asset_module', ''), true); ?>
                     <div class="admin-form-row">
                         <div class="form-label admin-form-label-help"><?php echo $communityBoardHelpButtonHtml($assetLabel, $communityBoardHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
-	                        <div class="admin-form-field">
-	                            <div class="admin-asset-setting-line">
-                                <div class="admin-asset-setting-control<?php echo $usesGroupedAssetAmounts ? ' admin-asset-setting-control-full' : ''; ?>">
+                        <div class="admin-form-field">
+                            <div class="admin-asset-setting-line">
+                                <div class="admin-asset-setting-control">
                                     <div class="admin-asset-setting-primary">
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                             <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -699,50 +699,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                                         <?php if ($usesGroupedAssetAmounts) { ?>
                                             <input type="hidden" name="<?php echo sr_e($assetPrefix); ?>_amount" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>">
-                                            <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
-                                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix, $assetPrefixSettingSource($formBoard, (string) $assetPrefix)); ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <div class="admin-asset-setting-target admin-asset-single-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
-                                            <?php if ($usesCompositeAsset) { ?>
-                                                <?php echo sr_admin_checkbox_list_html('community_board_' . (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_asset_module', $assetModuleChoiceOptions, $selectedAssetModules, sr_t('community::ui.text.3e195cdd')); ?>
-                                            <?php } else { ?>
-                                                <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
-                                                    <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
-                                                    <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                        <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', '') === (string) $assetModule ? ' selected' : ''; ?>>
-                                                            <?php echo sr_e((string) $assetOption['label']); ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
-                                                <?php echo sr_community_asset_single_amount_input_group_html((string) $assetPrefix . '_amount', (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), $assetModuleOptions, $boardField($formBoard, $assetPrefix . '_asset_module', ''), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
-                                            <?php } ?>
-                                            </div>
                                         <?php } ?>
                                     </div>
-                                    <?php if ($usesGroupedAssetAmounts) { ?>
-                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
-                                            <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_' . (string) $assetPrefix . '_asset_amounts', (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $boardField($formBoard, $assetPrefix . '_amounts_json', ''), (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
-                                        </div>
-                                    <?php } ?>
-                                    <?php if (!$usesGroupedAssetAmounts) { ?>
-                                        <div class="admin-asset-setting-secondary">
-                                        <?php if ($usesCompositeAsset) { ?>
-                                            <input type="hidden" name="<?php echo sr_e($assetPrefix); ?>_amount" value="<?php echo sr_e($boardField($formBoard, $assetPrefix . '_amount', '0')); ?>">
-                                            <?php echo sr_community_asset_amount_inputs_html((string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $boardField($formBoard, $assetPrefix . '_amounts_json', ''), (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
-                                        <?php } ?>
-                                        </div>
-                                    <?php } ?>
-                                    <?php if ($usesCompositeAsset) { ?>
-                                        <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                    <?php } ?>
                                 </div>
-                                <?php if (!$usesGroupedAssetAmounts) { ?>
-                                    <div class="admin-asset-setting-scope">
-                                        <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix, $assetPrefixSettingSource($formBoard, (string) $assetPrefix)); ?>
-                                    </div>
-                                <?php } ?>
-	                            </div>
+                                <div class="admin-asset-setting-scope">
+                                    <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_enabled', $boardSettingSource($formBoard, (string) $assetPrefix . '_enabled')); ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label"><?php echo sr_e($assetLabel . ' 자산'); ?></span>
+                        <div class="admin-form-field">
+                            <?php if ($usesGroupedAssetAmounts) { ?>
+                                <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
+                                    <?php echo sr_community_asset_grouped_amount_inputs_html('community_board_' . (string) $assetPrefix . '_asset_amounts', (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $boardField($formBoard, $assetPrefix . '_amounts_json', ''), (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
+                                </div>
+                            <?php } else { ?>
+                                <div class="admin-asset-setting-target admin-asset-single-setting-target"<?php if (!in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true)) { ?> data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>"<?php } ?>>
+                                    <select name="<?php echo sr_e($assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
+                                        <option value=""><?php echo sr_e(sr_t('community::ui.text.3e195cdd')); ?></option>
+                                        <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                            <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo $boardField($formBoard, $assetPrefix . '_asset_module', '') === (string) $assetModule ? ' selected' : ''; ?>>
+                                                <?php echo sr_e((string) $assetOption['label']); ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                    <?php echo sr_community_asset_single_amount_input_group_html((string) $assetPrefix . '_amount', (int) $boardField($formBoard, $assetPrefix . '_amount', '0'), $assetModuleOptions, $boardField($formBoard, $assetPrefix . '_asset_module', ''), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
+                                </div>
+                            <?php } ?>
+                            <?php if ($usesCompositeAsset) { ?>
+                                <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                            <?php } ?>
+                            <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
+                                <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
+                            </div>
                         </div>
                     </div>
                     <?php if ($assetPrefix === 'paid_read') { ?>
@@ -753,6 +744,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <option value="once"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
                                     <option value="every_view"<?php echo $boardField($formBoard, 'paid_read_charge_policy', 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
                                 </select>
+                                <?php echo $settingSourceRadioHtml('source_paid_read_charge_policy', $boardSettingSource($formBoard, 'paid_read_charge_policy')); ?>
                             </div>
                         </div>
                     <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
@@ -763,6 +755,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <option value="once"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
                                     <option value="every_download"<?php echo $boardField($formBoard, 'paid_attachment_download_charge_policy', 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
                                 </select>
+                                <?php echo $settingSourceRadioHtml('source_paid_attachment_download_charge_policy', $boardSettingSource($formBoard, 'paid_attachment_download_charge_policy')); ?>
                             </div>
                         </div>
                     <?php } ?>

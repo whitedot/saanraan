@@ -156,20 +156,15 @@ if (sr_request_method() === 'POST') {
             if ($legacyPrefixSource === '') {
                 $legacyPrefixSource = $legacyAssetSettingSource;
             }
-            $postedPrefixSource = sr_post_string('source_' . $assetPrefix, 20);
-            $postedSettingSource = '';
+            $assetModuleSource = sr_post_string('source_' . $assetPrefix . '_asset_module', 20);
             foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
-                if ($postedSettingSource === '') {
-                    $postedSettingSource = sr_post_string('source_' . $settingKey, 20);
+                $postedSettingSource = sr_post_string('source_' . $settingKey, 20);
+                if ($postedSettingSource === '' && in_array($settingKey, [$assetPrefix . '_amount', $assetPrefix . '_amounts_json'], true)) {
+                    $postedSettingSource = $assetModuleSource;
                 }
+                $assetSettingSources[$settingKey] = sr_community_normalize_board_setting_source($postedSettingSource !== '' ? $postedSettingSource : $legacyPrefixSource);
             }
-            $assetPrefixSource = $postedPrefixSource !== ''
-                ? sr_community_normalize_board_setting_source($postedPrefixSource)
-                : sr_community_normalize_board_setting_source($postedSettingSource !== '' ? $postedSettingSource : $legacyPrefixSource);
-            $assetPrefixSources[$assetPrefix] = $assetPrefixSource;
-            foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
-                $assetSettingSources[$settingKey] = $assetPrefixSource;
-            }
+            $assetPrefixSources[$assetPrefix] = $assetSettingSources[$assetPrefix . '_enabled'] ?? sr_community_normalize_board_setting_source($legacyPrefixSource);
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');

@@ -168,8 +168,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form-actions-primary{justify-content:flex-end}
 .admin-form-actions-split>button[type=submit],.admin-form-actions-split>input[type=submit]{margin-left:auto}
 .admin-form-label-help{gap:calc(var(--spacing) * 1.5)}
-.admin-form-label-help>label{min-width:0}
-.admin-label-help-button{color:var(--color-default-500);flex:0 0 auto}
+.admin-form-label-help>label,
+.admin-form-label-help>span{min-width:0}
+.admin-label-help-button{color:var(--color-default-500);flex:0 0 auto;order:2}
 .admin-label-help-button:hover,.admin-label-help-button:focus-visible{color:var(--color-primary)}
 .admin-help-modal-body{color:var(--color-default-700);line-height:var(--text-sm--line-height)}
 .admin-help-modal-body>*{margin-block:0}
@@ -247,6 +248,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 }
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline){align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{margin-left:auto;order:2}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-form-help{flex-basis:100%;margin-top:0;order:3}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:14px;line-height:1.5;min-height:calc(var(--spacing) * 9.25)}
 .admin-setting-source-options>.admin-form-check:has(input:disabled),
@@ -267,7 +271,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-assets>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
 .admin-page-file-charge-amount{width:10rem}
 .admin-page-file-charge-policy{width:auto}
-.admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-asset-setting-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
 .admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:18rem}
@@ -295,7 +299,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-single-amount-group>.admin-asset-setting-amount,
 .admin-asset-setting-target .admin-asset-grouped-input-group>.admin-asset-setting-amount{flex:0 0 var(--admin-asset-amount-width, 6rem);min-width:0;width:var(--admin-asset-amount-width, 6rem)}
 .admin-asset-setting-policy{width:10rem}
-.admin-asset-setting-scope{align-items:flex-start;display:flex;flex:1 1 13rem;justify-content:flex-end;min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-scope{align-items:center;display:flex;flex:1 1 13rem;justify-content:flex-end;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-scope>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-asset-setting-scope-inline{flex:0 1 auto;justify-content:flex-end;margin-left:auto;min-height:auto}
 .admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
