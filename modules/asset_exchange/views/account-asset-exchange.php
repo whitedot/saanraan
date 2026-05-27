@@ -56,6 +56,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="policy_id" value="<?php echo sr_e((string) $selectedPolicy['id']); ?>">
                         <input type="hidden" name="amount" value="<?php echo sr_e((string) $quote['request_amount']); ?>">
+                        <input type="hidden" name="exchange_submit_token" value="<?php echo sr_e((string) ($exchangeSubmitToken ?? '')); ?>">
                         <p>
                             출금 <?php echo sr_e(number_format((int) $quote['request_amount'])); ?>,
                             입금 <?php echo sr_e(number_format((int) $quote['deposit_before_fee'])); ?>,

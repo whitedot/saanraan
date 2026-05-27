@@ -6,8 +6,12 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/asset_exchange/helpers.php';
 
 $account = sr_member_require_login($pdo);
-$errors = [];
-$notice = '';
+$flash = isset($_SESSION['sr_asset_exchange_flash']) && is_array($_SESSION['sr_asset_exchange_flash'])
+    ? $_SESSION['sr_asset_exchange_flash']
+    : [];
+unset($_SESSION['sr_asset_exchange_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
 $assets = sr_asset_exchange_assets($pdo);
 $policies = sr_asset_exchange_policies($pdo, true);
 $selectedPolicy = null;
@@ -17,20 +21,36 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $policyId = (int) sr_post_string('policy_id', 30);
     $amount = sr_asset_exchange_int_string(sr_post_string('amount', 30));
+    $submitToken = sr_post_string('exchange_submit_token', 80);
+    $validTokens = isset($_SESSION['sr_asset_exchange_submit_tokens']) && is_array($_SESSION['sr_asset_exchange_submit_tokens'])
+        ? $_SESSION['sr_asset_exchange_submit_tokens']
+        : [];
     $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
-    if (!is_array($selectedPolicy)) {
+    if ($submitToken === '' || !isset($validTokens[$submitToken])) {
+        $errors[] = '이미 처리했거나 만료된 환전 요청입니다. 예상 금액을 다시 확인하세요.';
+    } elseif (!is_array($selectedPolicy)) {
         $errors[] = '환전 정책을 선택하세요.';
     } else {
+        unset($validTokens[$submitToken]);
+        $_SESSION['sr_asset_exchange_submit_tokens'] = $validTokens;
         try {
-            $quote = sr_asset_exchange_quote($pdo, $selectedPolicy, (int) $account['id'], $amount);
             $logId = sr_asset_exchange_execute($pdo, $selectedPolicy, (int) $account['id'], $amount, (int) $account['id']);
-            $notice = '환전이 완료되었습니다.';
-            $quote['log_id'] = $logId;
-            $selectedPolicy = null;
+            $_SESSION['sr_asset_exchange_flash'] = [
+                'notice' => '환전이 완료되었습니다.',
+                'errors' => [],
+                'log_id' => $logId,
+            ];
+            sr_redirect('/account/asset-exchange');
         } catch (Throwable $exception) {
-            $errors[] = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException
+            $message = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException
                 ? $exception->getMessage()
                 : '환전 처리에 실패했습니다.';
+            $errors[] = $message;
+            try {
+                sr_asset_exchange_record_failure($pdo, $selectedPolicy, (int) $account['id'], $amount, $message, (int) $account['id']);
+            } catch (Throwable $logException) {
+                sr_log_exception($logException, 'asset_exchange_failure_log_failed');
+            }
         }
     }
 } else {
@@ -46,6 +66,20 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+}
+
+$exchangeSubmitToken = '';
+if (is_array($selectedPolicy) && is_array($quote)) {
+    $exchangeSubmitToken = bin2hex(random_bytes(16));
+    $validTokens = isset($_SESSION['sr_asset_exchange_submit_tokens']) && is_array($_SESSION['sr_asset_exchange_submit_tokens'])
+        ? $_SESSION['sr_asset_exchange_submit_tokens']
+        : [];
+    $validTokens[$exchangeSubmitToken] = time();
+    if (count($validTokens) > 10) {
+        asort($validTokens);
+        $validTokens = array_slice($validTokens, -10, null, true);
+    }
+    $_SESSION['sr_asset_exchange_submit_tokens'] = $validTokens;
 }
 
 $balances = [];

@@ -121,6 +121,10 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         throw new InvalidArgumentException('수수료를 적용하려면 정률, 정액, 최소 수수료 중 하나를 입력하세요.');
     }
 
+    if ($policyId > 0 && sr_asset_exchange_policy($pdo, $policyId) === null) {
+        throw new InvalidArgumentException('수정할 환전 정책을 찾을 수 없습니다.');
+    }
+
     $stmt = $pdo->prepare(
         'SELECT id FROM sr_asset_exchange_policies
          WHERE from_module_key = :from_module_key
@@ -341,6 +345,51 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
     return $logId;
 }
 
+function sr_asset_exchange_record_failure(PDO $pdo, array $policy, int $accountId, int $amount, string $failureReason, ?int $createdByAccountId = null): ?int
+{
+    $policyId = (int) ($policy['id'] ?? 0);
+    $fromModuleKey = (string) ($policy['from_module_key'] ?? '');
+    $toModuleKey = (string) ($policy['to_module_key'] ?? '');
+    if ($policyId <= 0 || $accountId <= 0 || $fromModuleKey === '' || $toModuleKey === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_asset_exchange_logs
+            (exchange_group_id, policy_id, account_id, from_module_key, to_module_key, request_amount,
+             rate_numerator, rate_denominator, rounding_mode, deposit_amount, fee_amount, fee_trigger, fee_basis,
+             status, failure_reason, from_transaction_id, to_transaction_id, fee_transaction_id, created_by_account_id, created_at)
+         VALUES
+            (:exchange_group_id, :policy_id, :account_id, :from_module_key, :to_module_key, :request_amount,
+             :rate_numerator, :rate_denominator, :rounding_mode, :deposit_amount, :fee_amount, :fee_trigger, :fee_basis,
+             :status, :failure_reason, :from_transaction_id, :to_transaction_id, :fee_transaction_id, :created_by_account_id, :created_at)'
+    );
+    $stmt->execute([
+        'exchange_group_id' => sr_asset_exchange_group_id(),
+        'policy_id' => $policyId,
+        'account_id' => $accountId,
+        'from_module_key' => $fromModuleKey,
+        'to_module_key' => $toModuleKey,
+        'request_amount' => $amount,
+        'rate_numerator' => max(1, (int) ($policy['rate_numerator'] ?? 1)),
+        'rate_denominator' => max(1, (int) ($policy['rate_denominator'] ?? 1)),
+        'rounding_mode' => (string) ($policy['rounding_mode'] ?? 'floor'),
+        'deposit_amount' => 0,
+        'fee_amount' => 0,
+        'fee_trigger' => (string) ($policy['fee_trigger'] ?? 'none'),
+        'fee_basis' => (string) ($policy['fee_basis'] ?? 'to_amount'),
+        'status' => 'failed',
+        'failure_reason' => sr_asset_exchange_clean_text($failureReason, 255),
+        'from_transaction_id' => null,
+        'to_transaction_id' => null,
+        'fee_transaction_id' => null,
+        'created_by_account_id' => $createdByAccountId,
+        'created_at' => sr_now(),
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
 function sr_asset_exchange_apply_ratio(int $amount, int $numerator, int $denominator, string $roundingMode): int
 {
     if ($amount <= 0 || $numerator <= 0 || $denominator <= 0) {
@@ -441,6 +490,16 @@ function sr_asset_exchange_int_string(mixed $value): int
     }
 
     return (int) $string;
+}
+
+function sr_asset_exchange_clean_text(string $value, int $maxLength): string
+{
+    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, $maxLength);
+    }
+
+    return substr($value, 0, $maxLength);
 }
 
 function sr_asset_exchange_group_id(): string
