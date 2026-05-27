@@ -23,6 +23,7 @@ return [
     ],
     'settings' => [
         'editor' => 'textarea',
+        'once_history_policy' => 'all_access',
     ],
     'contracts' => [
         'provides' => [

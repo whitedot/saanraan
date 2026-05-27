@@ -224,6 +224,20 @@ function sr_community_asset_charge_policy(string $value, string $fallback = 'onc
     return isset(sr_community_asset_charge_policies()[$value]) ? $value : $fallback;
 }
 
+function sr_community_once_history_policy_values(): array
+{
+    return [
+        'all_access' => sr_t('community::ui.once_history_policy.all_access'),
+        'asset_any' => sr_t('community::ui.once_history_policy.asset_any'),
+        'current_asset_once' => sr_t('community::ui.once_history_policy.current_asset_once'),
+    ];
+}
+
+function sr_community_once_history_policy(string $policy): string
+{
+    return array_key_exists($policy, sr_community_once_history_policy_values()) ? $policy : 'all_access';
+}
+
 function sr_community_asset_policy_source_values(): array
 {
     return ['global', 'group', 'board'];
@@ -402,6 +416,7 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
         $auditSettings['post_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['post_reward_reversal_enabled'] ?? false);
         $auditSettings['comment_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['comment_reward_reversal_enabled'] ?? false);
     }
+    $auditSettings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
 
     return $auditSettings;
 }
@@ -834,6 +849,61 @@ function sr_community_has_asset_event_for_modules(PDO $pdo, array $assetModules,
     return false;
 }
 
+function sr_community_has_asset_event_history(PDO $pdo, array $assetModules, int $accountId, string $eventKey, int $subjectId, string $policy): bool
+{
+    $policy = sr_community_once_history_policy($policy);
+    if ($policy === 'current_asset_once') {
+        return sr_community_has_asset_event_for_modules($pdo, $assetModules, $accountId, $eventKey, $subjectId);
+    }
+
+    $params = [
+        'account_id' => $accountId,
+        'event_key' => $eventKey,
+        'subject_id' => $subjectId,
+    ];
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_community_asset_logs
+         WHERE account_id = :account_id
+           AND event_key = :event_key
+           AND subject_id = :subject_id
+           AND direction = \'use\'
+           AND transaction_id > 0'
+        . ' LIMIT 1'
+    );
+    $stmt->execute($params);
+
+    return is_array($stmt->fetch());
+}
+
+function sr_community_has_coupon_access_history(PDO $pdo, int $accountId, string $dedupeKey): bool
+{
+    if ($accountId <= 0 || $dedupeKey === '' || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_has_redemption')) {
+        return false;
+    }
+
+    return sr_coupon_has_redemption($pdo, $accountId, $dedupeKey);
+}
+
+function sr_community_once_access_already_granted(PDO $pdo, array $config, int $accountId, string $eventKey, int $subjectId, string $couponDedupeKey = ''): bool
+{
+    $settings = sr_community_settings($pdo);
+    $policy = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
+    $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
+    if (sr_community_has_asset_event_history($pdo, $assetModules, $accountId, $eventKey, $subjectId, $policy)) {
+        return true;
+    }
+
+    return $policy === 'all_access'
+        && $couponDedupeKey !== ''
+        && sr_community_has_coupon_access_history($pdo, $accountId, $couponDedupeKey);
+}
+
 function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
     $stmt = $pdo->prepare(
@@ -908,7 +978,15 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
     }
 
     $once = in_array($chargePolicy, ['once'], true) || in_array($direction, ['grant', 'refund'], true);
-    if ($once && sr_community_has_asset_event_for_modules($pdo, $assetModules, $accountId, $eventKey, $subjectId)) {
+    $alreadyProcessed = false;
+    if ($once && $direction === 'use') {
+        $settings = sr_community_settings($pdo);
+        $onceHistoryPolicy = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
+        $alreadyProcessed = sr_community_has_asset_event_history($pdo, $assetModules, $accountId, $eventKey, $subjectId, $onceHistoryPolicy);
+    } elseif ($once) {
+        $alreadyProcessed = sr_community_has_asset_event_for_modules($pdo, $assetModules, $accountId, $eventKey, $subjectId);
+    }
+    if ($alreadyProcessed) {
         return [
             'allowed' => true,
             'processed' => false,

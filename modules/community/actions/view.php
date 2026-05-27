@@ -54,12 +54,20 @@ if (is_array($postBoard)) {
             $account = sr_member_require_login($pdo);
         }
 
+        $couponDedupeKey = 'community.post.read:coupon:' . (string) $account['id'] . ':' . (string) $post['id'];
+        if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
+            $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
+        }
         $couponReadResult = ['allowed' => false, 'processed' => false];
-        if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        if ((string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
+            && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey)
+        ) {
+            $couponReadResult = ['allowed' => true, 'processed' => false, 'already_redeemed' => true];
+        } elseif (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
             require_once SR_ROOT . '/modules/coupon/helpers.php';
             if (function_exists('sr_coupon_redeem_for_target')) {
                 $couponContext = [
-                    'dedupe_key' => 'community.post.read:coupon:' . (string) $account['id'] . ':' . (string) $post['id'],
+                    'dedupe_key' => $couponDedupeKey,
                     'reference_module' => 'community',
                     'reference_type' => 'community.post',
                     'reference_id' => (string) $post['id'],

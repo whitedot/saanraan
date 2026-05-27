@@ -16,6 +16,7 @@ function sr_content_default_settings(): array
 {
     return [
         'editor' => 'textarea',
+        'once_history_policy' => 'all_access',
     ];
 }
 
@@ -23,6 +24,7 @@ function sr_content_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
+    $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
 
     return $settings;
 }
@@ -36,7 +38,10 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         throw new RuntimeException('콘텐츠 모듈이 등록되어 있지 않습니다.');
     }
 
-    $editor = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
+    $rows = [
+        ['editor', sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea')), 'string'],
+        ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
+    ];
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_module_settings
@@ -48,15 +53,31 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
             value_type = VALUES(value_type),
             updated_at = VALUES(updated_at)'
     );
-    $stmt->execute([
-        'module_id' => (int) $module['id'],
-        'setting_key' => 'editor',
-        'setting_value' => $editor,
-        'value_type' => 'string',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    foreach ($rows as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
     sr_clear_module_settings_cache('content');
+}
+
+function sr_content_once_history_policy_values(): array
+{
+    return [
+        'all_access' => '기존 자산 차감과 쿠폰 사용을 모두 인정',
+        'asset_any' => '기존 자산 차감만 인정',
+        'current_asset_once' => '현재 선택 자산의 최초 1회 기록만 인정',
+    ];
+}
+
+function sr_content_once_history_policy(string $policy): string
+{
+    return array_key_exists($policy, sr_content_once_history_policy_values()) ? $policy : 'all_access';
 }
 
 function sr_content_editor_key(PDO $pdo): string
@@ -2627,6 +2648,59 @@ function sr_content_has_paid_access_for_modules(PDO $pdo, array $assetModules, i
     return false;
 }
 
+function sr_content_has_asset_access_history(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind, string $policy): bool
+{
+    $policy = sr_content_once_history_policy($policy);
+    if ($policy === 'current_asset_once') {
+        return sr_content_has_paid_access_for_modules($pdo, $assetModules, $accountId, $subjectId, $accessKind);
+    }
+
+    $params = [
+        'account_id' => $accountId,
+        'reference_id' => (string) $subjectId,
+        'access_kind' => $accessKind,
+    ];
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_content_asset_access_logs
+         WHERE account_id = :account_id
+           AND reference_id = :reference_id
+           AND access_kind = :access_kind
+           AND transaction_id > 0'
+        . ' LIMIT 1'
+    );
+    $stmt->execute($params);
+
+    return is_array($stmt->fetch());
+}
+
+function sr_content_has_coupon_access_history(PDO $pdo, int $pageId, int $accountId): bool
+{
+    if ($pageId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_has_redemption')) {
+        return false;
+    }
+
+    return sr_coupon_has_redemption($pdo, $accountId, 'content.view:coupon:' . (string) $accountId . ':' . (string) $pageId);
+}
+
+function sr_content_once_access_already_granted(PDO $pdo, array $assetModules, int $accountId, int $subjectId, string $accessKind = 'view'): bool
+{
+    $settings = sr_content_settings($pdo);
+    $policy = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
+    if (sr_content_has_asset_access_history($pdo, $assetModules, $accountId, $subjectId, $accessKind, $policy)) {
+        return true;
+    }
+
+    return $policy === 'all_access'
+        && $accessKind === 'view'
+        && sr_content_has_coupon_access_history($pdo, $subjectId, $accountId);
+}
+
 function sr_content_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
 {
     if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
@@ -2760,7 +2834,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ];
     }
 
-    if ($chargePolicy === 'once' && sr_content_has_paid_access_for_modules($pdo, $assetModules, $accountId, $pageId)) {
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
         return [
             'allowed' => true,
             'charged' => false,
@@ -2772,7 +2846,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ];
     }
 
-    $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId);
+    $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy);
     if (!empty($couponResult['allowed'])) {
         return [
             'allowed' => true,
@@ -2854,7 +2928,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
     ];
 }
 
-function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId): array
+function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once'): array
 {
     if ($pageId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return ['allowed' => false, 'processed' => false];
@@ -2865,8 +2939,13 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId): ar
         return ['allowed' => false, 'processed' => false];
     }
 
+    $dedupeKey = 'content.view:coupon:' . (string) $accountId . ':' . (string) $pageId;
+    if ($chargePolicy !== 'once') {
+        $dedupeKey .= ':' . bin2hex(random_bytes(8));
+    }
+
     return sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, [
-        'dedupe_key' => 'content.view:coupon:' . (string) $accountId . ':' . (string) $pageId,
+        'dedupe_key' => $dedupeKey,
         'reference_module' => 'content',
         'reference_type' => 'content.view',
         'reference_id' => (string) $pageId,
@@ -2915,7 +2994,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         ];
     }
 
-    if ($chargePolicy === 'once' && sr_content_has_paid_access_for_modules($pdo, $assetModules, $accountId, $fileId, 'download')) {
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return [
             'allowed' => true,
             'charged' => false,

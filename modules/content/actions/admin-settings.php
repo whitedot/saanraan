@@ -19,12 +19,17 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $postedEditorInput = sr_post_string('editor', 30);
+    $postedOnceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
+        'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
+    }
+    if ($postedOnceHistoryPolicyInput !== (string) $postedSettings['once_history_policy']) {
+        $errors[] = '최초 1회 과거 이용 인정 기준 값이 올바르지 않습니다.';
     }
 
     if ($errors === []) {

@@ -34,6 +34,17 @@ if (array_keys($targets) !== $expectedKeys) {
     sr_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
 
+$forbiddenRetentionTables = [
+    'sr_content_asset_access_logs',
+    'sr_content_asset_action_logs',
+    'sr_community_asset_logs',
+    'sr_point_transactions',
+    'sr_reward_transactions',
+    'sr_deposit_transactions',
+    'sr_coupon_issues',
+    'sr_coupon_redemptions',
+];
+
 foreach ($targets as $key => $target) {
     if (!array_key_exists('enabled', $target) || !is_bool($target['enabled'])) {
         sr_retention_check_error($errors, 'Retention target enabled flag is invalid: ' . $key);
@@ -49,6 +60,17 @@ foreach ($targets as $key => $target) {
 
     if (!isset($target['delete_callback']) && (empty($target['delete_sql']) || !is_array($target['delete_params'] ?? null))) {
         sr_retention_check_error($errors, 'Retention target delete metadata is missing: ' . $key);
+    }
+
+    $targetSql = implode("\n", [
+        (string) ($target['count_sql'] ?? ''),
+        (string) ($target['delete_sql'] ?? ''),
+        (string) ($target['delete_limited_sql'] ?? ''),
+    ]);
+    foreach ($forbiddenRetentionTables as $tableName) {
+        if (preg_match('/\b' . preg_quote($tableName, '/') . '\b/', $targetSql) === 1) {
+            sr_retention_check_error($errors, 'Retention target must not delete asset history table ' . $tableName . ': ' . $key);
+        }
     }
 }
 

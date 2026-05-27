@@ -91,6 +91,7 @@ return [
         'paid_read_amount' => 0,
         'paid_read_amounts_json' => '',
         'paid_read_charge_policy' => 'once',
+        'once_history_policy' => 'all_access',
         'paid_attachment_download_enabled' => false,
         'paid_attachment_download_asset_module' => '',
         'paid_attachment_download_amount' => 0,

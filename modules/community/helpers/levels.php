@@ -56,6 +56,7 @@ function sr_community_default_settings(): array
         'paid_read_asset_module' => is_string($settings['paid_read_asset_module'] ?? null) ? (string) $settings['paid_read_asset_module'] : '',
         'paid_read_amount' => (int) ($settings['paid_read_amount'] ?? 0),
         'paid_read_charge_policy' => is_string($settings['paid_read_charge_policy'] ?? null) ? (string) $settings['paid_read_charge_policy'] : 'once',
+        'once_history_policy' => is_string($settings['once_history_policy'] ?? null) ? (string) $settings['once_history_policy'] : 'all_access',
         'paid_attachment_download_enabled' => (bool) ($settings['paid_attachment_download_enabled'] ?? false),
         'paid_attachment_download_asset_module' => is_string($settings['paid_attachment_download_asset_module'] ?? null) ? (string) $settings['paid_attachment_download_asset_module'] : '',
         'paid_attachment_download_amount' => (int) ($settings['paid_attachment_download_amount'] ?? 0),
@@ -106,6 +107,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
+    $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['nickname_enabled'] = sr_community_bool_setting($settings['nickname_enabled'] ?? true);
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['theme_key'] = sr_community_theme_key($settings);

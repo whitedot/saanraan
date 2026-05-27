@@ -50,6 +50,8 @@ if (sr_request_method() === 'POST') {
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $nicknameEnabled = ($_POST['nickname_enabled'] ?? '') === '1';
         $nicknameRequired = $nicknameEnabled;
+        $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
+        $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
@@ -97,6 +99,10 @@ if (sr_request_method() === 'POST') {
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
             $errors[] = '게시글 에디터 값이 올바르지 않습니다.';
             $postEditor = (string) ($settings['post_editor'] ?? 'textarea');
+        }
+        if ($onceHistoryPolicyInput !== $onceHistoryPolicy) {
+            $errors[] = sr_t('community::action.admin.once_history_policy_invalid');
+            $onceHistoryPolicy = (string) ($settings['once_history_policy'] ?? 'all_access');
         }
 
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
@@ -184,6 +190,7 @@ if (sr_request_method() === 'POST') {
                 ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
                 ['paid_read_amounts_json', (string) $assetSettings['paid_read_amounts_json'], 'json'],
                 ['paid_read_charge_policy', (string) $assetSettings['paid_read_charge_policy'], 'string'],
+                ['once_history_policy', $onceHistoryPolicy, 'string'],
                 ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
                 ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
@@ -239,6 +246,7 @@ if (sr_request_method() === 'POST') {
                         'nickname_required' => $nicknameRequired,
                         'layout_key' => $layoutKey,
                         'post_editor' => $postEditor,
+                        'once_history_policy' => $onceHistoryPolicy,
                         'asset_settings' => $assetSettings,
                     ],
                 ]);

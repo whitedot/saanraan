@@ -269,6 +269,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             <?php } ?>
         </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="modules_community_admin_settings_once_history_policy"><?php echo sr_e(sr_t('community::ui.once_history_policy.label')); ?> <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <select id="modules_community_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
+                    <?php foreach (sr_community_once_history_policy_values() as $policyKey => $policyLabel) { ?>
+                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($settings['once_history_policy'] ?? 'all_access') === (string) $policyKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $policyLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
+            </div>
+        </div>
     </section>
 
     <section class="admin-card card">
