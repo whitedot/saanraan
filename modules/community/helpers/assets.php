@@ -358,7 +358,7 @@ function sr_community_asset_amounts_with_group_policy(PDO $pdo, int $accountId, 
     $snapshots = [];
     foreach ($sourceAmounts as $assetModule => $baseAmount) {
         $baseAmount = max(0, (int) $baseAmount);
-        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies);
+        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies, (string) $assetModule);
         $finalAmount = max(0, (int) ($snapshot['final_amount'] ?? $baseAmount));
         $snapshot['asset_module'] = (string) $assetModule;
         $snapshot['policy_set_id'] = $policySetActive ? (int) ($policySet['id'] ?? 0) : 0;

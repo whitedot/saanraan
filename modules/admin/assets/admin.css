@@ -309,16 +309,19 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-group-policy-notes{display:grid;gap:calc(var(--spacing) * 1);line-height:var(--text-sm--line-height)}
 .admin-asset-group-policy-notes>p{margin:0}
 .admin-asset-group-policy-summary-help{color:var(--color-default-600)}
-.admin-list-form table.admin-asset-group-policy-table{min-width:42rem;table-layout:fixed;width:100%}
+.admin-list-form table.admin-asset-group-policy-table{min-width:38rem;table-layout:fixed;width:100%}
 .admin-list-form table.admin-asset-group-policy-table td :is(input,select){max-width:none;width:100%}
 .admin-asset-group-policy-col-group{width:auto}
-.admin-asset-group-policy-col-level{width:7.5rem}
 .admin-asset-group-policy-col-mode{width:9.5rem}
-.admin-asset-group-policy-col-value{width:10rem}
-.admin-asset-group-policy-col-priority{width:7rem}
+.admin-asset-group-policy-col-target{width:8.5rem}
+.admin-asset-group-policy-col-value{width:8.5rem}
 .admin-asset-group-policy-col-status{width:6.5rem}
 .admin-asset-group-policy-col-actions{width:4.5rem}
 .admin-list-form table.admin-asset-group-policy-table .admin-table-actions-cell{min-width:0}
+.admin-asset-group-policy-heading-help{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1)}
+.admin-asset-group-policy-value-group{width:100%}
+.admin-asset-group-policy-value-group-unitless>.admin-asset-group-policy-value-input{border-start-end-radius:var(--radius);border-end-end-radius:var(--radius)}
+.admin-list-form table.admin-asset-group-policy-table td .admin-asset-group-policy-value-input{width:4.75rem}
 .admin-setting-unit{align-items:flex-start;display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1);min-width:10rem}
 .admin-setting-unit-wide{min-width:16rem}
 .admin-setting-unit>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}

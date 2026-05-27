@@ -19,6 +19,7 @@ if (is_array($sessionErrors)) {
 }
 
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
+$assetModuleOptions = sr_content_asset_module_options($pdo);
 $policySetPage = sr_get_string('mode', 20);
 if (!in_array($policySetPage, ['new', 'edit'], true)) {
     $policySetPage = 'list';
@@ -63,7 +64,7 @@ if (sr_request_method() === 'POST') {
     if (!in_array((string) $values['status'], sr_content_asset_policy_set_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($policiesJson), '콘텐츠 회원 그룹 혜택'));
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($policiesJson), '콘텐츠 회원 그룹 혜택', true, $assetModuleOptions));
 
     if ($errors !== []) {
         $_SESSION['sr_content_asset_policy_set_errors'] = $errors;

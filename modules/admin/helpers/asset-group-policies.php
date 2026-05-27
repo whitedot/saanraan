@@ -59,28 +59,53 @@ function sr_admin_asset_group_policies_from_input(mixed $posted): array
 
     $groupKeys = is_array($posted['group_key'] ?? null) ? $posted['group_key'] : [];
     $modes = is_array($posted['mode'] ?? null) ? $posted['mode'] : [];
+    $assetModules = is_array($posted['asset_module'] ?? null) ? $posted['asset_module'] : [];
     $values = is_array($posted['value'] ?? null) ? $posted['value'] : [];
+    $assetValues = is_array($posted['asset_values'] ?? null) ? $posted['asset_values'] : [];
     $minLevels = is_array($posted['min_level'] ?? null) ? $posted['min_level'] : [];
-    $priorities = is_array($posted['priority'] ?? null) ? $posted['priority'] : [];
     $statuses = is_array($posted['status'] ?? null) ? $posted['status'] : [];
-    $maxRows = max(count($groupKeys), count($modes), count($values), count($minLevels), count($priorities), count($statuses));
+    $maxRows = max(count($groupKeys), count($modes), count($assetModules), count($values), count($minLevels), count($statuses));
+    foreach ($assetValues as $assetRows) {
+        if (is_array($assetRows)) {
+            $maxRows = max($maxRows, count($assetRows));
+        }
+    }
 
     $policies = [];
     for ($index = 0; $index < $maxRows; $index += 1) {
+        $rowAssetValues = [];
+        foreach ($assetValues as $assetKey => $assetRows) {
+            $assetKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $assetKey)) ?? '';
+            if ($assetKey === '' || !is_array($assetRows)) {
+                continue;
+            }
+            $rowAssetValues[$assetKey] = is_scalar($assetRows[$index] ?? null) ? trim((string) $assetRows[$index]) : '';
+        }
+
         $row = [
             'group_key' => is_scalar($groupKeys[$index] ?? null) ? (string) $groupKeys[$index] : '',
             'mode' => is_scalar($modes[$index] ?? null) ? (string) $modes[$index] : '',
+            'asset_module' => is_scalar($assetModules[$index] ?? null) ? (string) $assetModules[$index] : '',
             'value' => is_scalar($values[$index] ?? null) ? (string) $values[$index] : '',
+            'asset_values' => $rowAssetValues,
             'min_level' => is_scalar($minLevels[$index] ?? null) ? (string) $minLevels[$index] : '0',
-            'priority' => is_scalar($priorities[$index] ?? null) ? (string) $priorities[$index] : '',
             'status' => is_scalar($statuses[$index] ?? null) ? (string) $statuses[$index] : '',
         ];
 
+        $assetValuesBlank = true;
+        foreach ($rowAssetValues as $assetValue) {
+            if (trim((string) $assetValue) !== '') {
+                $assetValuesBlank = false;
+                break;
+            }
+        }
+
         $allBlank = trim($row['group_key']) === ''
             && trim($row['mode']) === ''
+            && trim($row['asset_module']) === ''
             && trim($row['value']) === ''
+            && $assetValuesBlank
             && in_array(trim($row['min_level']), ['', '0'], true)
-            && in_array(trim($row['priority']), ['', '0'], true)
             && in_array(trim($row['status']), ['', 'active'], true);
         if ($allBlank) {
             continue;
@@ -96,22 +121,63 @@ function sr_admin_asset_group_policy_normalize(array $row, int $policyId): array
 {
     $mode = strtolower(trim((string) ($row['mode'] ?? $row['adjustment_mode'] ?? '')));
     $groupKey = strtolower(trim((string) ($row['group_key'] ?? '')));
+    $assetModule = strtolower(trim((string) ($row['asset_module'] ?? '')));
     $status = strtolower(trim((string) ($row['status'] ?? 'active')));
     $value = array_key_exists('value', $row) ? $row['value'] : ($row['amount'] ?? ($row['multiplier'] ?? ''));
     $minLevel = array_key_exists('min_level', $row) ? $row['min_level'] : 0;
+    $assetValues = [];
+    if (is_array($row['asset_values'] ?? null)) {
+        foreach ($row['asset_values'] as $assetKey => $assetValue) {
+            $assetKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $assetKey)) ?? '';
+            if ($assetKey === '' || !is_scalar($assetValue)) {
+                continue;
+            }
+            $assetValues[$assetKey] = trim((string) $assetValue);
+        }
+    }
 
     return [
         'policy_id' => (int) ($row['policy_id'] ?? $policyId),
         'group_key' => preg_replace('/[^a-z0-9_]/', '', $groupKey) ?? '',
         'mode' => $mode,
+        'asset_module' => preg_replace('/[^a-z0-9_]/', '', $assetModule) ?? '',
         'value' => is_scalar($value) ? trim((string) $value) : '',
+        'asset_values' => $assetValues,
         'min_level' => max(0, (int) $minLevel),
-        'priority' => (int) ($row['priority'] ?? 0),
         'status' => $status === 'inactive' ? 'inactive' : 'active',
     ];
 }
 
-function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies, string $label): array
+function sr_admin_asset_group_policy_value_for_asset(array $policy, string $assetModule = ''): string
+{
+    $assetModule = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($assetModule))) ?? '';
+    $policyAssetModule = preg_replace('/[^a-z0-9_]/', '', strtolower(trim((string) ($policy['asset_module'] ?? '')))) ?? '';
+    if ($policyAssetModule !== '' && ($assetModule === '' || $policyAssetModule !== $assetModule)) {
+        return '';
+    }
+
+    $assetValues = is_array($policy['asset_values'] ?? null) ? $policy['asset_values'] : [];
+    if ($assetModule !== '' && isset($assetValues[$assetModule]) && trim((string) $assetValues[$assetModule]) !== '') {
+        return trim((string) $assetValues[$assetModule]);
+    }
+
+    return trim((string) ($policy['value'] ?? ''));
+}
+
+function sr_admin_asset_group_policy_filled_asset_values(array $policy): array
+{
+    $values = [];
+    foreach ((array) ($policy['asset_values'] ?? []) as $assetKey => $assetValue) {
+        $assetValue = trim((string) $assetValue);
+        if ($assetValue !== '') {
+            $values[(string) $assetKey] = $assetValue;
+        }
+    }
+
+    return $values;
+}
+
+function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies, string $label, bool $requireAssetModule = false, array $assetModuleOptions = []): array
 {
     $errors = [];
     $seenActiveGroups = [];
@@ -125,7 +191,9 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         $rowLabel = $label . ' 그룹 정책 ' . (string) ($index + 1) . '행';
         $groupKey = (string) ($policy['group_key'] ?? '');
         $mode = (string) ($policy['mode'] ?? '');
+        $assetModule = (string) ($policy['asset_module'] ?? '');
         $value = (string) ($policy['value'] ?? '');
+        $filledAssetValues = sr_admin_asset_group_policy_filled_asset_values($policy);
         $minLevel = max(0, (int) ($policy['min_level'] ?? 0));
         $status = (string) ($policy['status'] ?? 'active');
 
@@ -149,26 +217,67 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
             $errors[] = $rowLabel . '의 적용 방식이 올바르지 않습니다.';
         }
 
+        if ($requireAssetModule && $assetModule === '') {
+            $errors[] = $rowLabel . '의 대상을 선택하세요.';
+        }
+
+        if ($assetModule !== '' && preg_match('/\A[a-z0-9_]+\z/', $assetModule) !== 1) {
+            $errors[] = $rowLabel . '의 대상이 올바르지 않습니다.';
+        }
+
+        if ($assetModule !== '' && $assetModuleOptions !== [] && !isset($assetModuleOptions[$assetModule])) {
+            $errors[] = $rowLabel . '의 대상이 사용 가능한 자산이 아닙니다.';
+        }
+
         if ($minLevel > 0 && function_exists('sr_community_max_level_value') && $minLevel > sr_community_max_level_value()) {
             $errors[] = $rowLabel . '의 최소 레벨은 ' . (string) sr_community_max_level_value() . ' 이하로 입력하세요.';
         }
 
-        if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A-?\d+\z/', $value) !== 1) {
+        if (in_array($mode, ['fixed', 'delta'], true) && $value === '' && $filledAssetValues === []) {
+            $errors[] = $rowLabel . '의 금액을 입력하세요.';
+        }
+
+        if (in_array($mode, ['fixed', 'delta'], true) && $value !== '' && preg_match('/\A-?\d+\z/', $value) !== 1) {
             $errors[] = $rowLabel . '의 금액은 정수로 입력하세요.';
         }
 
-        if ($mode === 'fixed' && (int) $value < 0) {
+        foreach ($filledAssetValues as $assetValue) {
+            if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A-?\d+\z/', $assetValue) !== 1) {
+                $errors[] = $rowLabel . '의 자산별 금액은 정수로 입력하세요.';
+                break;
+            }
+        }
+
+        if ($mode === 'fixed' && $value !== '' && (int) $value < 0) {
             $errors[] = $rowLabel . '의 고정 금액은 0 이상이어야 합니다.';
         }
 
-        if ($mode === 'multiplier' && preg_match('/\A\d+(?:\.\d{1,4})?\z/', $value) !== 1) {
+        foreach ($filledAssetValues as $assetValue) {
+            if ($mode === 'fixed' && (int) $assetValue < 0) {
+                $errors[] = $rowLabel . '의 자산별 고정 금액은 0 이상이어야 합니다.';
+                break;
+            }
+        }
+
+        if ($mode === 'multiplier' && $value === '' && $filledAssetValues === []) {
+            $errors[] = $rowLabel . '의 배율을 입력하세요.';
+        }
+
+        if ($mode === 'multiplier' && $value !== '' && preg_match('/\A\d+(?:\.\d{1,4})?\z/', $value) !== 1) {
             $errors[] = $rowLabel . '의 배율은 0 이상의 숫자로 입력하세요.';
         }
 
+        foreach ($filledAssetValues as $assetValue) {
+            if ($mode === 'multiplier' && preg_match('/\A\d+(?:\.\d{1,4})?\z/', $assetValue) !== 1) {
+                $errors[] = $rowLabel . '의 자산별 배율은 0 이상의 숫자로 입력하세요.';
+                break;
+            }
+        }
+
         if ($status === 'active') {
-            $conditionKey = $groupKey . '|' . (string) $minLevel;
+            $conditionKey = $groupKey . '|' . (string) $minLevel . '|' . $assetModule;
             if (isset($seenActiveGroups[$conditionKey])) {
-                $errors[] = $label . ' 그룹 정책에서 같은 회원 그룹과 최소 레벨의 활성 정책을 중복 저장할 수 없습니다.';
+                $errors[] = $label . ' 그룹 정책에서 같은 회원 그룹과 대상의 활성 정책을 중복 저장할 수 없습니다.';
             }
             $seenActiveGroups[$conditionKey] = true;
         }
@@ -183,8 +292,8 @@ function sr_admin_asset_group_policy_mode_label(string $mode): string
         'fixed' => '고정 금액',
         'multiplier' => '배율',
         'delta' => '증감액',
-        'exempt' => '면제',
-        'disabled' => '미지급/미차감',
+        'exempt' => '차감 면제',
+        'disabled' => '지급/차감 안 함',
     ];
 
     return (string) ($labels[$mode] ?? $mode);
@@ -195,7 +304,7 @@ function sr_admin_asset_group_policy_status_label(string $status): string
     return $status === 'inactive' ? '비활성' : '활성';
 }
 
-function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAmount, array $policies): array
+function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAmount, array $policies, string $assetModule = ''): array
 {
     $snapshot = [
         'base_amount' => $baseAmount,
@@ -208,7 +317,6 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         'applied_policy_id' => 0,
         'adjustment_mode' => '',
         'adjustment_value' => '',
-        'priority' => 0,
         'evaluated_at' => sr_now(),
     ];
 
@@ -274,6 +382,15 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         }
 
         $policy['group_id'] = $memberGroups[$groupKey];
+        $requestedAssetModule = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($assetModule))) ?? '';
+        $policyAssetModule = preg_replace('/[^a-z0-9_]/', '', strtolower(trim((string) ($policy['asset_module'] ?? '')))) ?? '';
+        if ($policyAssetModule !== '' && ($requestedAssetModule === '' || $policyAssetModule !== $requestedAssetModule)) {
+            continue;
+        }
+        $mode = (string) ($policy['mode'] ?? '');
+        if (in_array($mode, ['fixed', 'multiplier', 'delta'], true) && sr_admin_asset_group_policy_value_for_asset($policy, $assetModule) === '') {
+            continue;
+        }
         $matches[] = $policy;
     }
 
@@ -282,11 +399,6 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
     }
 
     usort($matches, static function (array $left, array $right): int {
-        $priority = (int) ($right['priority'] ?? 0) <=> (int) ($left['priority'] ?? 0);
-        if ($priority !== 0) {
-            return $priority;
-        }
-
         $minLevel = (int) ($right['min_level'] ?? 0) <=> (int) ($left['min_level'] ?? 0);
         if ($minLevel !== 0) {
             return $minLevel;
@@ -302,7 +414,7 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
 
     $policy = $matches[0];
     $mode = (string) ($policy['mode'] ?? '');
-    $value = (string) ($policy['value'] ?? '');
+    $value = sr_admin_asset_group_policy_value_for_asset($policy, $assetModule);
     $finalAmount = $baseAmount;
     $sign = $baseAmount < 0 ? -1 : 1;
 
@@ -326,6 +438,5 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
         'applied_policy_id' => (int) ($policy['policy_id'] ?? 0),
         'adjustment_mode' => $mode,
         'adjustment_value' => $value,
-        'priority' => (int) ($policy['priority'] ?? 0),
     ]);
 }
