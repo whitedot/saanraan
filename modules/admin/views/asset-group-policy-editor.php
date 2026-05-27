@@ -162,7 +162,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                         </td>
                         <td>
                             <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_status"><?php echo sr_e('상태'); ?></label>
-                            <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_status" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[status][]" class="form-select">
+                            <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_status" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[status][]" class="form-select" data-admin-asset-group-policy-status>
                                 <?php foreach (['active', 'inactive'] as $assetGroupPolicyStatusValue) { ?>
                                     <option value="<?php echo sr_e($assetGroupPolicyStatusValue); ?>"<?php echo $assetGroupPolicyStatus === $assetGroupPolicyStatusValue ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_asset_group_policy_status_label($assetGroupPolicyStatusValue)); ?>
@@ -236,7 +236,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
             </td>
             <td>
                 <label class="sr-only" data-admin-asset-group-policy-label="status"><?php echo sr_e('상태'); ?></label>
-                <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[status][]" class="form-select" data-admin-asset-group-policy-control="status">
+                <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[status][]" class="form-select" data-admin-asset-group-policy-control="status" data-admin-asset-group-policy-status>
                     <option value="active"><?php echo sr_e('활성'); ?></option>
                     <option value="inactive"><?php echo sr_e('비활성'); ?></option>
                 </select>
@@ -266,6 +266,16 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
     var editors = document.querySelectorAll('[data-admin-asset-group-policy-editor]');
     var rowSequence = 0;
 
+    function setSequentialLock(control, locked) {
+        if (!control) {
+            return;
+        }
+
+        control.classList.toggle('admin-asset-group-policy-locked', locked);
+        control.setAttribute('aria-disabled', locked ? 'true' : 'false');
+        control.tabIndex = locked ? -1 : 0;
+    }
+
     function syncValueHelp(row) {
         if (!row) {
             return;
@@ -275,7 +285,11 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
         var assetModule = row.querySelector('[data-admin-asset-group-policy-asset-module]');
         var values = row.querySelectorAll('[data-admin-asset-group-policy-value]');
         var group = row.querySelector('[data-admin-asset-group-policy-group]');
+        var status = row.querySelector('[data-admin-asset-group-policy-status]');
+        var groupSelected = !!(group && group.value);
         var modeValue = mode ? mode.value : '';
+        var modeSelected = modeValue !== '';
+        var assetModuleSelected = !assetModule || !!assetModule.value;
         var hasValue = false;
         values.forEach(function (valueInput) {
             if (valueInput.value.trim() !== '') {
@@ -293,16 +307,52 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
             group.required = rowActive;
         }
         if (mode) {
+            setSequentialLock(mode, !groupSelected);
+            if (!groupSelected && mode.value !== '') {
+                mode.value = '';
+                modeValue = '';
+                modeSelected = false;
+                requiresValue = false;
+            }
             mode.required = rowActive;
         }
         if (assetModule) {
+            setSequentialLock(assetModule, !groupSelected || !modeSelected);
+            if ((!groupSelected || !modeSelected) && assetModule.value !== '') {
+                assetModule.value = '';
+                assetModuleSelected = false;
+            }
             assetModule.required = rowActive;
         }
+        var requiredSelectionsReady = !!(
+            groupSelected
+            && modeSelected
+            && assetModuleSelected
+        );
+        var valueHasContent = false;
         values.forEach(function (valueInput) {
-            valueInput.required = requiresValue;
+            var valueEnabled = requiredSelectionsReady && requiresValue;
+            valueInput.readOnly = !valueEnabled;
+            valueInput.setAttribute('aria-disabled', valueEnabled ? 'false' : 'true');
+            if (!valueEnabled && valueInput.value !== '') {
+                valueInput.value = '';
+            }
+            if (valueInput.value.trim() !== '') {
+                valueHasContent = true;
+            }
+            valueInput.required = valueEnabled;
             valueInput.setCustomValidity('');
-            valueInput.placeholder = requiresValue ? (modeValue === 'multiplier' ? '예: 1.5' : '예: 1000') : '입력하지 않음';
+            if (!requiredSelectionsReady) {
+                valueInput.placeholder = '대기';
+            } else if (requiresValue) {
+                valueInput.placeholder = modeValue === 'multiplier' ? '필수: 예 1.5' : '필수: 예 1000';
+            } else {
+                valueInput.placeholder = '입력 없음';
+            }
         });
+        if (status) {
+            setSequentialLock(status, !requiredSelectionsReady || (requiresValue && !valueHasContent));
+        }
         syncValueUnit(row);
     }
 

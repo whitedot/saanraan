@@ -319,6 +319,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-group-policy-col-actions{width:4.5rem}
 .admin-list-form table.admin-asset-group-policy-table .admin-table-actions-cell{min-width:0}
 .admin-asset-group-policy-heading-help{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1)}
+.admin-asset-group-policy-locked{background-color:var(--color-default-100);color:var(--color-default-600);pointer-events:none}
 .admin-asset-group-policy-value-group{width:100%}
 .admin-asset-group-policy-value-group-unitless>.admin-asset-group-policy-value-input{border-start-end-radius:var(--radius);border-end-end-radius:var(--radius)}
 .admin-list-form table.admin-asset-group-policy-table td .admin-asset-group-policy-value-input{width:4.75rem}
