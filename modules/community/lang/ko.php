@@ -590,7 +590,7 @@ return [
     'ui.text.39ea7be6' => '총댓글',
     'ui.text.3cf0ac82' => '/
                         허용:',
-    'ui.text.3e195cdd' => '활성 자산 모듈 없음',
+    'ui.text.3e195cdd' => '선택불가',
     'ui.text.3eac8b2a' => '스크랩',
     'ui.text.3eccb18c' => '댓글 최소 레벨',
     'ui.text.3f5e5497' => '방식',

@@ -5,7 +5,7 @@
  * Do not add shared UI kit primitives or module-specific screen layout here.
  */
 
-:root{--admin-shell-bar-height:4.25rem;--admin-sidebar-width:17rem;--admin-sidebar-collapsed-width:5.5rem}
+:root{--admin-shell-bar-height:4.25rem;--admin-sidebar-width:17rem;--admin-sidebar-collapsed-width:5.5rem;--admin-card-header-font-weight:800}
 .admin-content{--admin-muted-text:var(--color-default-600);--admin-subtle-text:var(--color-default-500);color:var(--color-body-color);font-size:var(--text-body)}
 #to_content a{width:1px;height:1px;position:absolute;top:auto;left:-9999px;overflow:hidden}
 #to_content a:focus{top:calc(var(--spacing) * 4);left:calc(var(--spacing) * 4);z-index:50;border-radius:var(--radius-lg);background-color:var(--color-slate-900);width:auto;height:auto;padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-white);position:fixed}
@@ -432,6 +432,11 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-list-card{margin-bottom:calc(var(--spacing) * 4);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .admin-list-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
+#container>section>h2,
+#container>form>section>h2,
+#container>.section-card>h2,
+.admin-card>.card-header>.card-title,
+.admin-module-card-header h3{font-size:var(--text-base);line-height:var(--text-base--line-height);font-weight:var(--admin-card-header-font-weight)}
 .admin-list-card .table-wrapper{min-width:0;width:100%;overflow:auto;padding:0}
 #container>section.admin-list-card>.table-wrapper,
 #container>form>section.admin-list-card>.table-wrapper{padding:0}
