@@ -55,6 +55,14 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - If a code change intentionally does not require a Wiki update, mention that decision in the final response or commit body when useful.
 - Keep repository docs and Wiki docs aligned with the current implementation rather than the initial project plan.
 
+## GitHub Operations
+
+- Do not commit unless the user explicitly asks to commit.
+- Do not push unless the user explicitly asks to push.
+- Do not open, reopen, close, or otherwise change GitHub issue state unless the user explicitly asks for that issue operation.
+- Do not add GitHub issue comments unless the user explicitly asks to comment or to update the issue.
+- When the user asks to implement or modify code, treat that as a request for working tree changes and verification only. Ask or wait for a separate explicit request before committing, pushing, or changing issue state.
+
 ## Admin Form Validation
 
 - Treat server-side validation as the source of truth for required admin fields. Do not rely on HTML `required`, disabled buttons, or JavaScript-only checks as the only protection.
