@@ -234,31 +234,36 @@ function sr_content_normalize_setting_source(string $source): string
     return in_array($source, sr_content_setting_source_values(), true) ? $source : 'content';
 }
 
-function sr_content_point_asset_label(?PDO $pdo = null): string
+function sr_content_point_asset_option(?PDO $pdo = null): array
 {
     if (!$pdo instanceof PDO) {
-        return sr_t('content::asset.point');
+        return ['label' => sr_t('content::asset.point'), 'unit_label' => 'P'];
     }
 
     $helper = SR_ROOT . '/modules/point/helpers.php';
     if (!is_file($helper)) {
-        return sr_t('content::asset.point');
+        return ['label' => sr_t('content::asset.point'), 'unit_label' => 'P'];
     }
 
     require_once $helper;
     if (function_exists('sr_point_asset_option')) {
-        $option = sr_point_asset_option($pdo);
-        return (string) ($option['label'] ?? sr_t('content::asset.point'));
+        return array_merge(['label' => sr_t('content::asset.point'), 'unit_label' => 'P'], sr_point_asset_option($pdo));
     }
 
-    return function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('content::asset.point');
+    return [
+        'label' => function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('content::asset.point'),
+        'unit_label' => function_exists('sr_point_unit_label') ? sr_point_unit_label($pdo) : 'P',
+    ];
 }
 
 function sr_content_asset_modules(?PDO $pdo = null): array
 {
+    $pointAssetOption = sr_content_point_asset_option($pdo);
+
     return [
         'point' => [
-            'label' => sr_content_point_asset_label($pdo),
+            'label' => (string) ($pointAssetOption['label'] ?? sr_t('content::asset.point')),
+            'unit_label' => (string) ($pointAssetOption['unit_label'] ?? 'P'),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -270,6 +275,7 @@ function sr_content_asset_modules(?PDO $pdo = null): array
         ],
         'reward' => [
             'label' => sr_t('content::asset.reward'),
+            'unit_label' => '원',
             'module_key' => 'reward',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
             'balance_function' => 'sr_reward_balance',
@@ -281,6 +287,7 @@ function sr_content_asset_modules(?PDO $pdo = null): array
         ],
         'deposit' => [
             'label' => sr_t('content::asset.deposit'),
+            'unit_label' => '원',
             'module_key' => 'deposit',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
             'balance_function' => 'sr_deposit_balance',
@@ -358,6 +365,37 @@ function sr_content_asset_module_label(string $assetModule, ?PDO $pdo = null): s
 {
     $options = sr_content_asset_modules($pdo);
     return isset($options[$assetModule]) ? (string) $options[$assetModule]['label'] : '회원 자산';
+}
+
+function sr_content_asset_module_unit_label(string $assetModule, ?PDO $pdo = null): string
+{
+    $options = sr_content_asset_modules($pdo);
+    return isset($options[$assetModule]) ? (string) ($options[$assetModule]['unit_label'] ?? '') : '';
+}
+
+function sr_content_asset_option_unit_label(array $assetModuleOptions, string $assetModule): string
+{
+    return isset($assetModuleOptions[$assetModule]) ? (string) ($assetModuleOptions[$assetModule]['unit_label'] ?? '') : '';
+}
+
+function sr_content_asset_single_amount_input_group_html(string $fieldName, int $amount, array $assetModuleOptions, string $assetModule, string $label, string $id = '', bool $hidden = false, string $sourceFieldName = ''): string
+{
+    $unitLabel = sr_content_asset_option_unit_label($assetModuleOptions, $assetModule);
+    $idAttribute = $id !== '' ? ' id="' . sr_e($id) . '"' : '';
+    $hiddenAttribute = $hidden ? ' hidden' : '';
+    $unitOptions = [];
+    foreach ($assetModuleOptions as $optionKey => $option) {
+        $unitOptions[(string) $optionKey] = (string) ($option['unit_label'] ?? '');
+    }
+    $unitSourceAttribute = $sourceFieldName !== '' ? ' data-admin-asset-unit-source="' . sr_e($sourceFieldName) . '"' : '';
+    $unitOptionsAttribute = $sourceFieldName !== ''
+        ? ' data-admin-asset-unit-options="' . sr_e((string) json_encode($unitOptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"'
+        : '';
+
+    return '<div class="input-group admin-asset-single-amount-group" data-admin-asset-unit-group' . $unitSourceAttribute . $unitOptionsAttribute . ' data-content-action-grant-amount' . $hiddenAttribute . '>'
+        . '<input' . $idAttribute . ' type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '" value="' . sr_e((string) max(0, $amount)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($label) . '" data-admin-asset-amount-input>'
+        . '<span class="input-group-text" data-admin-asset-unit-label>' . sr_e($unitLabel) . '</span>'
+        . '</div>';
 }
 
 function sr_content_asset_deduction_order(): array
@@ -441,7 +479,10 @@ function sr_content_asset_amounts_from_value(mixed $value, array $assetModules =
         foreach ($decoded as $assetModule => $amount) {
             $assetModule = sr_content_clean_slug((string) $assetModule);
             if (isset(sr_content_asset_modules()[$assetModule])) {
-                $amounts[$assetModule] = min(999999999, max(0, (int) $amount));
+                $amountValue = is_string($amount) && preg_match('/\A\d{1,3}(?:,\d{3})+\z/', trim($amount)) === 1
+                    ? str_replace(',', '', trim($amount))
+                    : $amount;
+                $amounts[$assetModule] = min(999999999, max(0, (int) $amountValue));
             }
         }
     }
@@ -491,11 +532,15 @@ function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModu
     foreach ($assetModuleOptions as $assetModule => $assetOption) {
         $assetModule = (string) $assetModule;
         $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
+        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_content_asset_module_unit_label($assetModule));
         $isSelected = in_array($assetModule, $selectedAssetModules, true);
-        $html .= '<label class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
-            . '<span>' . sr_e($label) . '</span>'
-            . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
-            . '</label>';
+        $html .= '<div class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
+            . '<div class="input-group admin-asset-grouped-input-group">'
+            . '<span class="input-group-text">' . sr_e($label) . '</span>'
+            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
+            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
+            . '</div>'
+            . '</div>';
     }
     $html .= '</div>';
 
@@ -525,6 +570,7 @@ function sr_content_asset_grouped_amount_inputs_html(string $id, string $moduleF
         }
 
         $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
+        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_content_asset_module_unit_label($assetModule));
         $inputId = $idBase . '_' . (string) $index;
         $isSelected = isset($selectedMap[$assetModule]);
         $html .= '<div class="admin-asset-amount-field admin-asset-grouped-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
@@ -533,7 +579,8 @@ function sr_content_asset_grouped_amount_inputs_html(string $id, string $moduleF
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($moduleFieldName) . '[]" value="' . sr_e($assetModule) . '" class="form-checkbox"' . ($isSelected ? ' checked' : '') . '>'
             . sr_admin_choice_label_html($label)
             . '</label>'
-            . '<input type="number" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
+            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
             . '</div>'
             . '</div>';
         $index++;
@@ -1740,13 +1787,13 @@ function sr_content_input_values(?PDO $pdo = null): array
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
-        'asset_access_amount' => (int) sr_post_string('asset_access_amount', 20),
-        'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_access_amounts', sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? ''), (int) sr_post_string('asset_access_amount', 20))),
+        'asset_access_amount' => sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0,
+        'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_access_amounts', sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? ''), sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0)),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('asset_action_enabled', 1) === '1' ? 1 : 0,
         'asset_action_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? '')),
-        'asset_action_amount' => (int) sr_post_string('asset_action_amount', 20),
-        'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_action_amounts', sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? ''), (int) sr_post_string('asset_action_amount', 20))),
+        'asset_action_amount' => sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0,
+        'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_action_amounts', sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? ''), sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0)),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('asset_action_label', 80), 80),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
@@ -2379,7 +2426,7 @@ function sr_content_file_asset_values_from_group(PDO $pdo, int $groupId): array
 function sr_content_new_file_values_from_post(?PDO $pdo = null, array $pageValues = []): array
 {
     $assetModules = sr_content_asset_module_keys_from_value($_POST['new_content_file_asset_module'] ?? '');
-    $fallbackAmount = (int) sr_post_string('new_content_file_asset_download_amount', 20);
+    $fallbackAmount = sr_admin_post_int_in_range('new_content_file_asset_download_amount', 0, 999999999) ?? 0;
     $values = sr_content_normalize_file_asset_values([
         'title' => sr_content_clean_single_line(sr_post_string('new_content_file_title', 160), 160),
         'asset_download_enabled' => sr_post_string('new_content_file_asset_download_enabled', 1) === '1' ? 1 : 0,

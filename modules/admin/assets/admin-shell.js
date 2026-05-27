@@ -44,6 +44,31 @@ window.AdminShell = {
 
         const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
         const normalizeSlugInputValue = value => value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '');
+        const assetAmountDigits = value => value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '').slice(0, 9);
+        const formatAssetAmountValue = value => {
+            const digits = assetAmountDigits(value);
+            return digits === '' ? '' : digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        };
+
+        const syncAssetAmountInputValue = input => {
+            if (!input || input.readOnly || input.disabled) {
+                return;
+            }
+
+            const nextValue = formatAssetAmountValue(input.value);
+            if (input.value !== nextValue) {
+                input.value = nextValue;
+            }
+        };
+
+        const stripAssetAmountInputValue = input => {
+            if (!input) {
+                return;
+            }
+
+            const digits = assetAmountDigits(input.value);
+            input.value = digits === '' ? '0' : digits;
+        };
 
         const assetEnableControl = target => {
             if (!target || !target.closest || !target.matches) {
@@ -284,6 +309,60 @@ window.AdminShell = {
                 ? Array.prototype.slice.call(line.querySelectorAll('[data-admin-asset-amount-sync]'))
                 : Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-amount-sync]'));
             roots.forEach(syncAssetAmountGroup);
+        };
+
+        const syncAssetUnitGroup = root => {
+            if (!root || !root.querySelector) {
+                return;
+            }
+
+            const line = root.closest('.admin-asset-setting-line') || root.parentElement;
+            const select = line ? line.querySelector('[data-admin-asset-unit-select]') : null;
+            const label = root.querySelector('[data-admin-asset-unit-label]');
+            if (!label) {
+                return;
+            }
+
+            if (select) {
+                const option = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
+                label.textContent = option ? (option.getAttribute('data-admin-asset-unit') || '') : '';
+                return;
+            }
+
+            const sourceName = root.getAttribute('data-admin-asset-unit-source') || '';
+            let unitOptions = {};
+            try {
+                unitOptions = JSON.parse(root.getAttribute('data-admin-asset-unit-options') || '{}');
+            } catch (error) {
+                unitOptions = {};
+            }
+            const form = root.closest('form') || document;
+            const controls = sourceName !== ''
+                ? Array.prototype.slice.call(form.querySelectorAll('input, select')).filter(control => control.name === sourceName)
+                : [];
+            const selected = controls.find(control => {
+                if (control.disabled || !control.value) {
+                    return false;
+                }
+
+                if ((control.type === 'checkbox' || control.type === 'radio') && !control.checked) {
+                    return false;
+                }
+
+                return true;
+            });
+            label.textContent = selected ? (unitOptions[selected.value] || '') : '';
+        };
+
+        const syncAssetUnitGroupsNear = target => {
+            const line = target && target.closest ? target.closest('.admin-asset-setting-line') : null;
+            const form = target && target.closest ? target.closest('form') : null;
+            const roots = line
+                ? Array.prototype.slice.call(line.querySelectorAll('[data-admin-asset-unit-group]'))
+                : (form
+                    ? Array.prototype.slice.call(form.querySelectorAll('[data-admin-asset-unit-group]'))
+                    : Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-unit-group]')));
+            roots.forEach(syncAssetUnitGroup);
         };
 
         const syncSettingSourceGroup = root => {
@@ -736,6 +815,14 @@ window.AdminShell = {
         }
 
         document.addEventListener('input', event => {
+            const assetAmountInput = event.target && event.target.closest
+                ? event.target.closest('[data-admin-asset-amount-input]')
+                : null;
+            if (assetAmountInput) {
+                syncAssetAmountInputValue(assetAmountInput);
+                return;
+            }
+
             const keyInput = event.target && event.target.closest
                 ? event.target.closest('[data-admin-key-input], [data-admin-login-id-input]')
                 : null;
@@ -754,6 +841,7 @@ window.AdminShell = {
         document.querySelectorAll('[data-admin-key-input]').forEach(syncKeyInputValue);
         document.querySelectorAll('[data-admin-login-id-input]').forEach(syncKeyInputValue);
         document.querySelectorAll('[data-admin-slug-input]').forEach(syncSlugInputValue);
+        document.querySelectorAll('[data-admin-asset-amount-input]').forEach(syncAssetAmountInputValue);
 
         document.addEventListener('focusin', event => {
             const control = assetEnableControl(event.target);
@@ -774,6 +862,7 @@ window.AdminShell = {
             if (control) {
                 confirmAssetEnableSelection(control);
                 syncAssetAmountGroupsNear(control);
+                syncAssetUnitGroupsNear(control);
                 return;
             }
 
@@ -793,14 +882,21 @@ window.AdminShell = {
 
             markAssetEnableTargetTouched(event.target);
             syncAssetAmountGroupsNear(event.target);
+            syncAssetUnitGroupsNear(event.target);
         });
 
         document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(syncAssetAmountGroup);
+        document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
 
         document.addEventListener('submit', event => {
             if (!confirmAssetEnableSubmit(event.target)) {
                 event.preventDefault();
+                return;
+            }
+
+            if (event.target && event.target.querySelectorAll) {
+                event.target.querySelectorAll('[data-admin-asset-amount-input]').forEach(stripAssetAmountInputValue);
             }
         });
 

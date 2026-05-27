@@ -2,31 +2,36 @@
 
 declare(strict_types=1);
 
-function sr_community_point_asset_label(?PDO $pdo = null): string
+function sr_community_point_asset_option(?PDO $pdo = null): array
 {
     if (!$pdo instanceof PDO) {
-        return sr_t('community::asset.point');
+        return ['label' => sr_t('community::asset.point'), 'unit_label' => 'P'];
     }
 
     $helper = SR_ROOT . '/modules/point/helpers.php';
     if (!is_file($helper)) {
-        return sr_t('community::asset.point');
+        return ['label' => sr_t('community::asset.point'), 'unit_label' => 'P'];
     }
 
     require_once $helper;
     if (function_exists('sr_point_asset_option')) {
-        $option = sr_point_asset_option($pdo);
-        return (string) ($option['label'] ?? sr_t('community::asset.point'));
+        return array_merge(['label' => sr_t('community::asset.point'), 'unit_label' => 'P'], sr_point_asset_option($pdo));
     }
 
-    return function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('community::asset.point');
+    return [
+        'label' => function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('community::asset.point'),
+        'unit_label' => function_exists('sr_point_unit_label') ? sr_point_unit_label($pdo) : 'P',
+    ];
 }
 
 function sr_community_asset_modules(?PDO $pdo = null): array
 {
+    $pointAssetOption = sr_community_point_asset_option($pdo);
+
     return [
         'point' => [
-            'label' => sr_community_point_asset_label($pdo),
+            'label' => (string) ($pointAssetOption['label'] ?? sr_t('community::asset.point')),
+            'unit_label' => (string) ($pointAssetOption['unit_label'] ?? 'P'),
             'module_key' => 'point',
             'helper' => SR_ROOT . '/modules/point/helpers.php',
             'balance_function' => 'sr_point_balance',
@@ -37,6 +42,7 @@ function sr_community_asset_modules(?PDO $pdo = null): array
         ],
         'reward' => [
             'label' => sr_t('community::asset.reward'),
+            'unit_label' => '원',
             'module_key' => 'reward',
             'helper' => SR_ROOT . '/modules/reward/helpers.php',
             'balance_function' => 'sr_reward_balance',
@@ -47,6 +53,7 @@ function sr_community_asset_modules(?PDO $pdo = null): array
         ],
         'deposit' => [
             'label' => sr_t('community::asset.deposit'),
+            'unit_label' => '원',
             'module_key' => 'deposit',
             'helper' => SR_ROOT . '/modules/deposit/helpers.php',
             'balance_function' => 'sr_deposit_balance',
@@ -103,6 +110,27 @@ function sr_community_asset_module_label(string $assetModule, ?PDO $pdo = null):
 {
     $modules = sr_community_asset_modules($pdo);
     return isset($modules[$assetModule]) ? (string) $modules[$assetModule]['label'] : sr_t('community::asset.member_asset');
+}
+
+function sr_community_asset_module_unit_label(string $assetModule, ?PDO $pdo = null): string
+{
+    $modules = sr_community_asset_modules($pdo);
+    return isset($modules[$assetModule]) ? (string) ($modules[$assetModule]['unit_label'] ?? '') : '';
+}
+
+function sr_community_asset_option_unit_label(array $assetModuleOptions, string $assetModule): string
+{
+    return isset($assetModuleOptions[$assetModule]) ? (string) ($assetModuleOptions[$assetModule]['unit_label'] ?? '') : '';
+}
+
+function sr_community_asset_single_amount_input_group_html(string $fieldName, int $amount, array $assetModuleOptions, string $assetModule, string $label): string
+{
+    $unitLabel = sr_community_asset_option_unit_label($assetModuleOptions, $assetModule);
+
+    return '<div class="input-group admin-asset-single-amount-group" data-admin-asset-unit-group>'
+        . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '" value="' . sr_e((string) max(0, $amount)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($label) . '" data-admin-asset-amount-input>'
+        . '<span class="input-group-text" data-admin-asset-unit-label>' . sr_e($unitLabel) . '</span>'
+        . '</div>';
 }
 
 function sr_community_asset_module_key(string $value): string
@@ -486,7 +514,10 @@ function sr_community_asset_amounts_from_value(mixed $value, array $assetModules
     if (is_array($decoded)) {
         foreach ($decoded as $assetModule => $amount) {
             $assetModule = sr_community_asset_module_key((string) $assetModule);
-            $amounts[$assetModule] = min(999999999, max(0, (int) $amount));
+            $amountValue = is_string($amount) && preg_match('/\A\d{1,3}(?:,\d{3})+\z/', trim($amount)) === 1
+                ? str_replace(',', '', trim($amount))
+                : $amount;
+            $amounts[$assetModule] = min(999999999, max(0, (int) $amountValue));
         }
     }
 
@@ -549,11 +580,15 @@ function sr_community_asset_amount_inputs_html(string $fieldName, array $assetMo
     foreach ($assetModuleOptions as $assetModule => $assetOption) {
         $assetModule = (string) $assetModule;
         $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
+        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_community_asset_module_unit_label($assetModule));
         $isSelected = in_array($assetModule, $selectedAssetModules, true);
-        $html .= '<label class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
-            . '<span>' . sr_e($label) . '</span>'
-            . '<input type="number" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
-            . '</label>';
+        $html .= '<div class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
+            . '<div class="input-group admin-asset-grouped-input-group">'
+            . '<span class="input-group-text">' . sr_e($label) . '</span>'
+            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
+            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
+            . '</div>'
+            . '</div>';
     }
     $html .= '</div>';
 
@@ -583,6 +618,7 @@ function sr_community_asset_grouped_amount_inputs_html(string $id, string $modul
         }
 
         $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
+        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_community_asset_module_unit_label($assetModule));
         $inputId = $idBase . '_' . (string) $index;
         $isSelected = isset($selectedMap[$assetModule]);
         $html .= '<div class="admin-asset-amount-field admin-asset-grouped-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
@@ -591,7 +627,8 @@ function sr_community_asset_grouped_amount_inputs_html(string $id, string $modul
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($moduleFieldName) . '[]" value="' . sr_e($assetModule) . '" class="form-checkbox"' . ($isSelected ? ' checked' : '') . '>'
             . sr_admin_choice_label_html($label)
             . '</label>'
-            . '<input type="number" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" min="0" max="999999999" step="1" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '">'
+            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($amountFieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
+            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
             . '</div>'
             . '</div>';
         $index++;

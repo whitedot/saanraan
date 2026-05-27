@@ -276,30 +276,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </h2>
             <div class="admin-form-row">
+                <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="content_group_asset_access_enabled">
+                        <input id="content_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_asset_charge_policy"><?php echo sr_e(sr_t('content::ui.text.86803f52')); ?></label>
+                <div class="admin-form-field">
+                    <select id="content_group_asset_charge_policy" name="group_asset_charge_policy" class="form-select">
+                        <?php foreach (sr_content_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
+                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $policyLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
-                    <div class="admin-asset-setting-line">
-                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
-                            <div class="admin-asset-setting-primary">
-                                <label class="admin-form-check form-label" for="content_group_asset_access_enabled">
-                                    <input id="content_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
-                                </label>
-                                <select id="content_group_asset_charge_policy" name="group_asset_charge_policy" class="form-select admin-asset-setting-policy">
-                                    <?php foreach (sr_content_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $policyLabel); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled" data-admin-asset-enable-submit-check="always">
-                                <input id="content_group_asset_access_amount" type="hidden" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>">
-                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_asset_access_amounts_grouped', 'group_asset_module', 'group_asset_access_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), $groupSettingValue($groupSettings, 'asset_access_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
-                            </div>
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                        </div>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled" data-admin-asset-enable-submit-check="always">
+                        <input id="content_group_asset_access_amount" type="hidden" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>">
+                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_asset_access_amounts_grouped', 'group_asset_module', 'group_asset_access_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), $groupSettingValue($groupSettings, 'asset_access_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
+                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -340,7 +344,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_action_amount"><?php echo sr_e(sr_t('content::ui.text.5c705e1a')); ?></label>
                 <div class="admin-form-field">
-                    <input id="content_group_asset_action_amount" type="number" name="group_asset_action_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_action_amount', '0')); ?>" class="form-input" min="0" max="999999999" step="1" data-content-action-grant-amount<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? ' hidden' : ''; ?>>
+                    <?php $contentGroupActionAssetModules = sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')); ?>
+                    <?php echo sr_content_asset_single_amount_input_group_html('group_asset_action_amount', (int) $groupSettingValue($groupSettings, 'asset_action_amount', '0'), $assetModuleOptions, (string) ($contentGroupActionAssetModules[0] ?? ''), sr_t('content::ui.text.5c705e1a'), 'content_group_asset_action_amount', $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use', 'group_asset_action_module[]'); ?>
                     <div class="admin-asset-setting-target" data-content-action-use-amounts<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? '' : ' hidden'; ?>>
                         <?php echo sr_content_asset_amount_inputs_html('group_asset_action_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')), $groupSettingValue($groupSettings, 'asset_action_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_amount', '0'), sr_t('content::ui.text.5c705e1a')); ?>
                     </div>
@@ -357,30 +362,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </h2>
             <div class="admin-form-row">
+                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.d07eab27')); ?></span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="content_group_file_asset_download_enabled">
+                        <input id="content_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.d07eab27')); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_file_asset_charge_policy"><?php echo sr_e(sr_t('content::ui.text.51a83be4')); ?></label>
+                <div class="admin-form-field">
+                    <select id="content_group_file_asset_charge_policy" name="group_file_asset_charge_policy" class="form-select">
+                        <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
+                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'file_asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $policyLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
                 <div class="admin-form-field">
-                    <div class="admin-asset-setting-line">
-                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
-                            <div class="admin-asset-setting-primary">
-                                <label class="admin-form-check form-label" for="content_group_file_asset_download_enabled">
-                                    <input id="content_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.d07eab27')); ?>
-                                </label>
-                                <select id="content_group_file_asset_charge_policy" name="group_file_asset_charge_policy" class="form-select admin-asset-setting-policy">
-                                    <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo $groupSettingValue($groupSettings, 'file_asset_charge_policy', 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $policyLabel); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
-                                <input id="content_group_file_asset_download_amount" type="hidden" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>">
-                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_file_asset_download_amounts_grouped', 'group_file_asset_module', 'group_file_asset_download_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), $groupSettingValue($groupSettings, 'file_asset_download_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
-                            </div>
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                        </div>
+                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
+                        <input id="content_group_file_asset_download_amount" type="hidden" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>">
+                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_file_asset_download_amounts_grouped', 'group_file_asset_module', 'group_file_asset_download_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), $groupSettingValue($groupSettings, 'file_asset_download_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
+                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                 </div>
             </div>
         </section>

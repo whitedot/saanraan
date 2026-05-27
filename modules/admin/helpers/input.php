@@ -10,6 +10,9 @@ function sr_admin_post_positive_int(string $key, int $maxLength = 20): int
     }
 
     $value = trim((string) $value);
+    if (preg_match('/\A\d{1,3}(?:,\d{3})+\z/', $value) === 1) {
+        $value = str_replace(',', '', $value);
+    }
     if ($value === '' || strlen($value) > $maxLength || preg_match('/\A[1-9][0-9]*\z/', $value) !== 1) {
         return 0;
     }
@@ -25,6 +28,9 @@ function sr_admin_post_int_in_range(string $key, int $min, int $max, int $maxLen
     }
 
     $value = trim((string) $value);
+    if (preg_match('/\A\d{1,3}(?:,\d{3})+\z/', $value) === 1) {
+        $value = str_replace(',', '', $value);
+    }
     if ($value === '' || strlen($value) > $maxLength || preg_match('/\A\d+\z/', $value) !== 1) {
         return null;
     }

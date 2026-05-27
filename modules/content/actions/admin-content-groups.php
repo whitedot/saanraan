@@ -78,11 +78,11 @@ if (sr_request_method() === 'POST') {
     $status = sr_post_string('status', 30);
     $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
     $groupAccessAssetModules = sr_content_asset_module_keys_from_value($_POST['group_asset_module'] ?? '');
-    $groupAccessAmount = (int) sr_post_string('group_asset_access_amount', 20);
+    $groupAccessAmount = sr_admin_post_int_in_range('group_asset_access_amount', 0, 999999999) ?? 0;
     $groupActionAssetModules = sr_content_asset_module_keys_from_value($_POST['group_asset_action_module'] ?? '');
-    $groupActionAmount = (int) sr_post_string('group_asset_action_amount', 20);
+    $groupActionAmount = sr_admin_post_int_in_range('group_asset_action_amount', 0, 999999999) ?? 0;
     $groupFileAssetModules = sr_content_asset_module_keys_from_value($_POST['group_file_asset_module'] ?? '');
-    $groupFileAmount = (int) sr_post_string('group_file_asset_download_amount', 20);
+    $groupFileAmount = sr_admin_post_int_in_range('group_file_asset_download_amount', 0, 999999999) ?? 0;
     $groupSettings = [
         'status' => sr_post_string('group_content_status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('group_layout_key', 80)),

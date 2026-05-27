@@ -274,10 +274,13 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-setting-control-full{flex:1 1 auto}
 .admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
 .admin-asset-setting-primary>.admin-form-check{min-height:auto}
-.admin-asset-setting-target{min-width:0}
-.admin-asset-setting-target>.admin-check-list{margin-top:0}
+.admin-asset-setting-target{min-width:0;--admin-asset-amount-width:7rem}
+.admin-asset-setting-target>.admin-check-list{align-items:center;margin-top:0;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-target>.form-select{min-width:8rem}
-.admin-asset-setting-amount{width:10rem}
+.admin-asset-single-setting-target{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
+.admin-asset-single-setting-target>.form-select{min-width:8rem;width:auto}
+.admin-asset-single-amount-group{width:auto}
+.admin-asset-setting-amount{text-align:right;width:var(--admin-asset-amount-width, 6rem)}
 .admin-asset-setting-secondary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
 .admin-asset-setting-target .admin-asset-amount-grid[data-admin-asset-amount-sync]{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3)}
 .admin-asset-setting-target .admin-asset-amount-grid[data-admin-asset-amount-sync] .admin-asset-amount-field{display:flex;flex-direction:column;gap:calc(var(--spacing) * 1);transition:opacity .14s}
@@ -288,7 +291,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-setting-target .admin-asset-grouped-input-group{width:auto}
 .admin-asset-setting-target .admin-asset-grouped-amount-field>.admin-form-check{gap:calc(var(--spacing) * 1.5);margin:0}
 .admin-asset-setting-target .admin-asset-grouped-input-group>.admin-form-check{gap:calc(var(--spacing) * 1.5);margin:0;font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
-.admin-asset-setting-target .admin-asset-grouped-input-group>.admin-asset-setting-amount{flex:0 0 7rem;width:7rem}
+.admin-asset-setting-target .admin-asset-grouped-input-group>.admin-form-check>.form-checkbox{width:.8125rem;height:.8125rem;background-size:.625rem .625rem}
+.admin-asset-single-amount-group>.admin-asset-setting-amount,
+.admin-asset-setting-target .admin-asset-grouped-input-group>.admin-asset-setting-amount{flex:0 0 var(--admin-asset-amount-width, 6rem);min-width:0;width:var(--admin-asset-amount-width, 6rem)}
 .admin-asset-setting-policy{width:10rem}
 .admin-asset-setting-scope{align-items:flex-start;display:flex;flex:1 1 13rem;justify-content:flex-end;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-scope>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
