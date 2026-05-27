@@ -100,20 +100,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <span class="form-label">회원 그룹 혜택</span>
-                <div class="admin-form-field">
-                    <?php
-                    $assetGroupPolicyFieldName = 'policies';
-                    $assetGroupPolicyInputId = 'content_asset_policy_set_policies';
-                    $assetGroupPolicyRows = sr_content_asset_group_policies_from_value($values['policies_json'] ?? '');
-                    $assetGroupPolicyGroups = $memberGroups ?? [];
-                    $assetGroupPolicyHelpText = '이 혜택을 선택한 콘텐츠 자산 항목에 적용할 회원 그룹별 금액 혜택입니다.';
-                    include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
-                    ?>
-                </div>
-            </div>
         </section>
+        <?php
+        $assetGroupPolicySectionTitle = '회원 그룹 혜택';
+        $assetGroupPolicyFieldName = 'policies';
+        $assetGroupPolicyInputId = 'content_asset_policy_set_policies';
+        $assetGroupPolicyRows = sr_content_asset_group_policies_from_value($values['policies_json'] ?? '');
+        $assetGroupPolicyGroups = $memberGroups ?? [];
+        $assetGroupPolicyHelpText = '이 혜택을 선택한 콘텐츠 자산 항목에 적용할 회원 그룹별 금액 혜택입니다.';
+        include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
+        ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>

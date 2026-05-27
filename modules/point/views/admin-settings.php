@@ -29,20 +29,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <small class="admin-form-help"><?php echo sr_e(sr_t('point::ui.settings.unit_label_help')); ?></small>
             </div>
         </div>
-        <div class="admin-form-row">
-            <span class="form-label">수동 조정 회원 그룹 정책</span>
-            <div class="admin-form-field">
-                <?php
-                $assetGroupPolicyFieldName = 'manual_adjust_group_policies';
-                $assetGroupPolicyInputId = 'point_settings_manual_adjust_group_policies';
-                $assetGroupPolicyRows = isset($manualAdjustGroupPolicies) && is_array($manualAdjustGroupPolicies) ? $manualAdjustGroupPolicies : [];
-                $assetGroupPolicyGroups = isset($memberGroups) && is_array($memberGroups) ? $memberGroups : [];
-                $assetGroupPolicyHelpText = '회원 그룹별로 포인트 수동 조정 수량을 다르게 적용합니다.';
-                include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
-                ?>
-            </div>
-        </div>
     </section>
+
+    <?php
+    $assetGroupPolicySectionTitle = '수동 조정 회원 그룹 정책';
+    $assetGroupPolicyFieldName = 'manual_adjust_group_policies';
+    $assetGroupPolicyInputId = 'point_settings_manual_adjust_group_policies';
+    $assetGroupPolicyRows = isset($manualAdjustGroupPolicies) && is_array($manualAdjustGroupPolicies) ? $manualAdjustGroupPolicies : [];
+    $assetGroupPolicyGroups = isset($memberGroups) && is_array($memberGroups) ? $memberGroups : [];
+    $assetGroupPolicyHelpText = '회원 그룹별로 포인트 수동 조정 수량을 다르게 적용합니다.';
+    include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
+    ?>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/points/balances')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('point::ui.point.47719e8e')); ?></a>
