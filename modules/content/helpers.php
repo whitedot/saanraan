@@ -2121,7 +2121,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
             $errors[] = '유료 열람 과금 방식이 올바르지 않습니다.';
         }
         if ((int) ($values['asset_access_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_access_policy_set_id']))) {
-            $errors[] = '유료 열람 회원 그룹 정책을 찾을 수 없습니다.';
+            $errors[] = '유료 열람 회원 그룹 혜택을 찾을 수 없습니다.';
         }
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_access_group_policies_json'] ?? ''), '유료 열람'));
     }
@@ -2152,7 +2152,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
             $errors[] = '완료 버튼 문구를 입력하세요.';
         }
         if ((int) ($values['asset_action_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_action_policy_set_id']))) {
-            $errors[] = '완료 버튼 회원 그룹 정책을 찾을 수 없습니다.';
+            $errors[] = '완료 버튼 회원 그룹 혜택을 찾을 수 없습니다.';
         }
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_action_group_policies_json'] ?? ''), '완료 버튼'));
     }
@@ -2570,7 +2570,7 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
         $errors[] = $labelPrefix . ' 과금 방식이 올바르지 않습니다.';
     }
     if ((int) ($values['asset_download_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_download_policy_set_id']))) {
-        $errors[] = $labelPrefix . ' 회원 그룹 정책을 찾을 수 없습니다.';
+        $errors[] = $labelPrefix . ' 회원 그룹 혜택을 찾을 수 없습니다.';
     }
 
     $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_download_group_policies_json'] ?? ''), $labelPrefix));

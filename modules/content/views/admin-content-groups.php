@@ -307,7 +307,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                     <?php echo sr_content_asset_policy_set_select_html('content_group_asset_access_policy_set_id', 'group_asset_access_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'asset_access_policy_set_id', '0')); ?>
-                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -354,7 +354,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_content_asset_amount_inputs_html('group_asset_action_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')), $groupSettingValue($groupSettings, 'asset_action_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_amount', '0'), sr_t('content::ui.text.5c705e1a')); ?>
                     </div>
                     <?php echo sr_content_asset_policy_set_select_html('content_group_asset_action_policy_set_id', 'group_asset_action_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'asset_action_policy_set_id', '0')); ?>
-                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -397,7 +397,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                     <?php echo sr_content_asset_policy_set_select_html('content_group_file_asset_download_policy_set_id', 'group_file_asset_download_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'file_asset_download_policy_set_id', '0')); ?>
-                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>

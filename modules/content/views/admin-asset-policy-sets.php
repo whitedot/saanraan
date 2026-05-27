@@ -1,7 +1,7 @@
 <?php
 
-$adminPageTitle = '콘텐츠 회원 그룹 정책';
-$adminPageSubtitle = '콘텐츠 유료 열람, 다운로드, 완료 버튼에서 사용할 회원 그룹별 정책입니다.';
+$adminPageTitle = '콘텐츠 회원 그룹 혜택';
+$adminPageSubtitle = '콘텐츠 유료 열람, 다운로드, 완료 버튼에서 사용할 회원 그룹별 혜택입니다.';
 $adminContainerClass = 'admin-content-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
 $policySetCount = count($policySets ?? []);
@@ -15,16 +15,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>
-                <h2 class="card-title">회원 그룹 정책 목록</h2>
+                <h2 class="card-title">회원 그룹 혜택 목록</h2>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">새 정책</a>
+            <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">새 혜택</a>
         </div>
         <div class="admin-list-summary-row">
             <?php echo sr_admin_pagination_summary_html($policySetPagination); ?>
         </div>
         <div class="table-wrapper">
             <table class="table">
-                <caption class="sr-only">콘텐츠 회원 그룹 정책 목록</caption>
+                <caption class="sr-only">콘텐츠 회원 그룹 혜택 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
                         <th>이름</th>
@@ -37,7 +37,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if (($policySets ?? []) === []) { ?>
                         <tr>
-                            <td colspan="5" class="admin-empty-state">등록된 회원 그룹 정책이 없습니다.</td>
+                            <td colspan="5" class="admin-empty-state">등록된 회원 그룹 혜택이 없습니다.</td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach (($policySets ?? []) as $policySet) { ?>
@@ -56,7 +56,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($policySet['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
-                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=edit&id=' . (string) (int) ($policySet['id'] ?? 0))); ?>" aria-label="회원 그룹 정책 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=edit&id=' . (string) (int) ($policySet['id'] ?? 0))); ?>" aria-label="회원 그룹 혜택 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     </div>
                                 </td>
                             </tr>
@@ -71,7 +71,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="set_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
         <section class="admin-card card">
-            <h2><?php echo $policySetPage === 'edit' ? '회원 그룹 정책 수정' : '회원 그룹 정책 생성'; ?></h2>
+            <h2><?php echo $policySetPage === 'edit' ? '회원 그룹 혜택 수정' : '회원 그룹 혜택 생성'; ?></h2>
             <div class="admin-form-row">
                 <label class="form-label" for="content_policy_set_key">Key <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
@@ -101,14 +101,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">회원 그룹 정책</span>
+                <span class="form-label">회원 그룹 혜택</span>
                 <div class="admin-form-field">
                     <?php
                     $assetGroupPolicyFieldName = 'policies';
                     $assetGroupPolicyInputId = 'content_asset_policy_set_policies';
                     $assetGroupPolicyRows = sr_content_asset_group_policies_from_value($values['policies_json'] ?? '');
                     $assetGroupPolicyGroups = $memberGroups ?? [];
-                    $assetGroupPolicyHelpText = '이 정책을 선택한 콘텐츠 자산 항목에 적용할 회원 그룹별 금액 정책입니다.';
+                    $assetGroupPolicyHelpText = '이 혜택을 선택한 콘텐츠 자산 항목에 적용할 회원 그룹별 금액 혜택입니다.';
                     include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
                     ?>
                 </div>

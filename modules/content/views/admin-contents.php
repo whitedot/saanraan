@@ -444,7 +444,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_access_policy_set_id', 'asset_access_policy_set_id', $assetPolicySets, (int) ($values['asset_access_policy_set_id'] ?? 0)); ?>
-                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
                 </div>
             </div>
@@ -511,10 +511,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e('회원 그룹 정책'); ?></span>
+                <span class="form-label"><?php echo sr_e('회원 그룹 혜택'); ?></span>
                 <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_action_policy_set_id', 'asset_action_policy_set_id', $assetPolicySets, (int) ($values['asset_action_policy_set_id'] ?? 0)); ?>
-                    <p class="admin-form-help">회원 그룹 정책은 콘텐츠 회원 그룹 정책 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
                 </div>
             </div>

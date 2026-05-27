@@ -20,12 +20,24 @@ if ($assetGroupPolicyRows === []) {
 $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
 ?>
 <div class="admin-asset-group-policy-editor" data-admin-asset-group-policy-editor>
-    <div class="admin-list-summary-row">
+    <div class="admin-asset-group-policy-toolbar">
         <p class="admin-form-help"><?php echo sr_e($assetGroupPolicyHelpText); ?></p>
-        <button type="button" class="btn btn-sm btn-solid-light" data-admin-asset-group-policy-add><?php echo sr_e('정책 추가'); ?></button>
+        <button type="button" class="btn btn-sm btn-solid-light" data-admin-asset-group-policy-add><?php echo sr_material_icon_html('add'); ?><?php echo sr_e('행 추가'); ?></button>
     </div>
-    <div class="table-wrapper">
-        <table class="table admin-asset-group-policy-table">
+    <div class="table-wrapper admin-asset-group-policy-table-wrapper">
+        <table class="table table-hover admin-asset-group-policy-table">
+            <caption class="sr-only"><?php echo sr_e('회원 그룹 조건 행 목록'); ?></caption>
+            <colgroup>
+                <col class="admin-asset-group-policy-col-group">
+                <?php if ($assetGroupPolicyLevelEnabled) { ?>
+                    <col class="admin-asset-group-policy-col-level">
+                <?php } ?>
+                <col class="admin-asset-group-policy-col-mode">
+                <col class="admin-asset-group-policy-col-value">
+                <col class="admin-asset-group-policy-col-priority">
+                <col class="admin-asset-group-policy-col-status">
+                <col class="admin-asset-group-policy-col-actions">
+            </colgroup>
             <thead class="ui-table-head">
                 <tr>
                     <th><?php echo sr_e('회원 그룹'); ?></th>
@@ -107,14 +119,14 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                             </select>
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-asset-group-policy-remove><?php echo sr_e('삭제'); ?></button>
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-asset-group-policy-remove aria-label="<?php echo sr_e('행 삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
-    <p class="admin-form-help"><?php echo sr_e('고정 금액과 증감액은 정수, 배율은 예: 1.5처럼 입력합니다. 면제/미지급은 값이 필요 없습니다.'); ?></p>
+    <p class="admin-form-help admin-asset-group-policy-footer-help"><?php echo sr_e('고정 금액과 증감액은 정수, 배율은 예: 1.5처럼 입력합니다. 면제/미지급은 값이 필요 없습니다.'); ?></p>
     <template data-admin-asset-group-policy-template>
         <tr data-admin-asset-group-policy-row>
             <td>
@@ -155,7 +167,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     <option value="inactive"><?php echo sr_e('비활성'); ?></option>
                 </select>
             </td>
-            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" data-admin-asset-group-policy-remove><?php echo sr_e('삭제'); ?></button></td>
+            <td class="text-end"><button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-asset-group-policy-remove aria-label="<?php echo sr_e('행 삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button></td>
         </tr>
     </template>
 </div>

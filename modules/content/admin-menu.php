@@ -20,7 +20,7 @@ return [
             'order' => 30,
         ],
         [
-            'label' => '회원 그룹 정책',
+            'label' => '회원 그룹 혜택',
             'path' => '/admin/content/asset-policy-sets',
             'order' => 40,
         ],

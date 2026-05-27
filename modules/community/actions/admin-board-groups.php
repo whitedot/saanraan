@@ -318,7 +318,7 @@ if (sr_request_method() === 'POST') {
             }
             $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($assetSettings[$assetPrefix . '_group_policies_json'] ?? ''), $assetLabel));
             if ((int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0) > 0 && !is_array(sr_community_asset_policy_set_by_id($pdo, (int) $assetSettings[$assetPrefix . '_policy_set_id']))) {
-                $errors[] = $assetLabel . ' 회원 그룹 정책을 찾을 수 없습니다.';
+                $errors[] = $assetLabel . ' 회원 그룹/레벨 혜택을 찾을 수 없습니다.';
             }
         }
 
