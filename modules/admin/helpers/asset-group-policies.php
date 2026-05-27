@@ -177,10 +177,11 @@ function sr_admin_asset_group_policy_filled_asset_values(array $policy): array
     return $values;
 }
 
-function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies, string $label, bool $requireAssetModule = false, array $assetModuleOptions = []): array
+function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies, string $label, bool $requireAssetModule = false, array $assetModuleOptions = [], array $allowedModes = []): array
 {
     $errors = [];
     $seenActiveGroups = [];
+    $allowedModes = array_values(array_intersect(sr_admin_asset_group_policy_modes(), array_map('strval', $allowedModes)));
 
     foreach ($policies as $index => $policy) {
         if (!is_array($policy)) {
@@ -215,6 +216,8 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
 
         if (!in_array($mode, sr_admin_asset_group_policy_modes(), true)) {
             $errors[] = $rowLabel . '의 적용 방식이 올바르지 않습니다.';
+        } elseif ($allowedModes !== [] && !in_array($mode, $allowedModes, true)) {
+            $errors[] = $rowLabel . '의 적용 방식은 이 화면에서 사용할 수 없습니다.';
         }
 
         if ($requireAssetModule && $assetModule === '') {

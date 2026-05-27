@@ -18,6 +18,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $assetGroupPolicyInputId = 'reward_settings_manual_adjust_group_policies';
     $assetGroupPolicyRows = isset($manualAdjustGroupPolicies) && is_array($manualAdjustGroupPolicies) ? $manualAdjustGroupPolicies : [];
     $assetGroupPolicyGroups = isset($memberGroups) && is_array($memberGroups) ? $memberGroups : [];
+    $assetGroupPolicyModes = ['fixed', 'multiplier', 'delta'];
+    $assetGroupPolicyShowMinLevel = false;
     $assetGroupPolicyHelpText = '회원 그룹별로 적립금 수동 조정 금액을 다르게 적용합니다.';
     include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
     ?>

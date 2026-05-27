@@ -27,7 +27,7 @@ if (sr_request_method() === 'POST') {
         'manual_adjust_group_policies_json' => sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies),
     ];
     $settings = array_merge($settings, $postedSettings);
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, '적립금'));
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, '적립금', false, [], ['fixed', 'multiplier', 'delta']));
 
     if ($errors === []) {
         try {

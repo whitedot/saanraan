@@ -108,6 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $assetGroupPolicyRows = sr_community_asset_group_policies_from_value($values['policies_json'] ?? '');
         $assetGroupPolicyGroups = $memberGroups ?? [];
         $assetGroupPolicyAssetModules = $assetModuleOptions ?? [];
+        $assetGroupPolicyShowMinLevel = true;
         $assetGroupPolicyHelpText = '이 혜택을 선택한 커뮤니티 자산 항목에 적용할 회원 그룹별 금액 혜택입니다.';
         include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
         ?>

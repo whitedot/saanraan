@@ -35,7 +35,7 @@ if (sr_request_method() === 'POST') {
     $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_post('manual_adjust_group_policies');
     $postedSettings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies);
     $settings['manual_adjust_group_policies_json'] = $postedSettings['manual_adjust_group_policies_json'];
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, $settings['display_name']));
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, $settings['display_name'], false, [], ['fixed', 'multiplier', 'delta']));
 
     if ($errors === []) {
         try {

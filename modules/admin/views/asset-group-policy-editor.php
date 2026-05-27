@@ -7,6 +7,7 @@ $assetGroupPolicyGroups = isset($assetGroupPolicyGroups) && is_array($assetGroup
 $assetGroupPolicyAssetModules = isset($assetGroupPolicyAssetModules) && is_array($assetGroupPolicyAssetModules) ? $assetGroupPolicyAssetModules : [];
 $assetGroupPolicySectionTitle = isset($assetGroupPolicySectionTitle) ? (string) $assetGroupPolicySectionTitle : '회원 그룹 정책';
 $assetGroupPolicyHelpText = isset($assetGroupPolicyHelpText) ? (string) $assetGroupPolicyHelpText : '회원 그룹별로 수동 조정 금액을 다르게 적용합니다.';
+$assetGroupPolicyShowMinLevel = !empty($assetGroupPolicyShowMinLevel);
 $assetGroupPolicyModeHelpModalId = $assetGroupPolicyInputId . '_mode_help_modal';
 if ($assetGroupPolicyAssetModules !== [] && $assetGroupPolicyRows !== []) {
     $assetGroupPolicyExpandedRows = [];
@@ -54,7 +55,21 @@ if ($assetGroupPolicyRows === []) {
         'status' => 'active',
     ];
 }
-$assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
+$assetGroupPolicyModes = isset($assetGroupPolicyModes) && is_array($assetGroupPolicyModes)
+    ? array_values(array_intersect(sr_admin_asset_group_policy_modes(), array_map('strval', $assetGroupPolicyModes)))
+    : sr_admin_asset_group_policy_modes();
+if ($assetGroupPolicyModes === []) {
+    $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
+}
+$assetGroupPolicyMaxLevel = $assetGroupPolicyShowMinLevel && function_exists('sr_community_max_level_value') ? sr_community_max_level_value() : 0;
+foreach ($assetGroupPolicyRows as $assetGroupPolicyRow) {
+    if (is_array($assetGroupPolicyRow)) {
+        $assetGroupPolicyMaxLevel = max($assetGroupPolicyMaxLevel, max(0, (int) ($assetGroupPolicyRow['min_level'] ?? 0)));
+    }
+}
+$assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) || in_array('disabled', $assetGroupPolicyModes, true)
+    ? '고정 금액과 증감액은 정수로 입력하고, 배율은 1.5처럼 입력합니다. 차감 면제와 지급/차감 안 함은 값을 비워도 됩니다.'
+    : '고정 금액과 증감액은 정수로 입력하고, 배율은 1.5처럼 입력합니다.';
 ?>
 <section class="admin-card admin-list-card card admin-list-form admin-asset-group-policy-editor" data-admin-asset-group-policy-editor>
     <div class="card-header">
@@ -71,6 +86,9 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                 <col class="admin-asset-group-policy-col-mode">
                 <?php if ($assetGroupPolicyAssetModules !== []) { ?>
                     <col class="admin-asset-group-policy-col-target">
+                <?php } ?>
+                <?php if ($assetGroupPolicyShowMinLevel) { ?>
+                    <col class="admin-asset-group-policy-col-min-level">
                 <?php } ?>
                 <col class="admin-asset-group-policy-col-value">
                 <col class="admin-asset-group-policy-col-status">
@@ -90,6 +108,9 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     <?php if ($assetGroupPolicyAssetModules !== []) { ?>
                         <th><?php echo sr_e('대상'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></th>
                     <?php } ?>
+                    <?php if ($assetGroupPolicyShowMinLevel) { ?>
+                        <th><?php echo sr_e('최소 레벨'); ?></th>
+                    <?php } ?>
                     <th><?php echo sr_e('값'); ?></th>
                     <th><?php echo sr_e('상태'); ?></th>
                     <th class="text-end"><?php echo sr_e('관리'); ?></th>
@@ -102,6 +123,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     $assetGroupPolicyGroupKey = (string) ($assetGroupPolicyRow['group_key'] ?? '');
                     $assetGroupPolicyMode = (string) ($assetGroupPolicyRow['mode'] ?? '');
                     $assetGroupPolicyAssetModule = (string) ($assetGroupPolicyRow['asset_module'] ?? '');
+                    $assetGroupPolicyMinLevel = max(0, (int) ($assetGroupPolicyRow['min_level'] ?? 0));
                     $assetGroupPolicyValue = (string) ($assetGroupPolicyRow['value'] ?? '');
                     $assetGroupPolicyUnitLabel = isset($assetGroupPolicyAssetModules[$assetGroupPolicyAssetModule])
                         ? (string) ($assetGroupPolicyAssetModules[$assetGroupPolicyAssetModule]['unit_label'] ?? '')
@@ -153,6 +175,16 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                                 </select>
                             </td>
                         <?php } ?>
+                        <?php if ($assetGroupPolicyShowMinLevel) { ?>
+                            <td>
+                                <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_min_level"><?php echo sr_e('최소 레벨'); ?></label>
+                                <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_min_level" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[min_level][]" class="form-select" data-admin-asset-group-policy-min-level>
+                                    <?php for ($assetGroupPolicyLevel = 0; $assetGroupPolicyLevel <= $assetGroupPolicyMaxLevel; $assetGroupPolicyLevel += 1) { ?>
+                                        <option value="<?php echo sr_e((string) $assetGroupPolicyLevel); ?>"<?php echo $assetGroupPolicyMinLevel === $assetGroupPolicyLevel ? ' selected' : ''; ?>><?php echo sr_e((string) $assetGroupPolicyLevel); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        <?php } ?>
                         <td>
                             <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_value"><?php echo sr_e('값'); ?></label>
                             <div class="input-group admin-asset-group-policy-value-group<?php echo $assetGroupPolicyValueSuffix === '' ? ' admin-asset-group-policy-value-group-unitless' : ''; ?>">
@@ -184,7 +216,7 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
         <?php if ($assetGroupPolicyHelpText !== '') { ?>
             <p><?php echo sr_e($assetGroupPolicyHelpText); ?></p>
         <?php } ?>
-        <p class="admin-asset-group-policy-summary-help"><?php echo sr_e('고정 금액과 증감액은 정수로 입력하고, 배율은 1.5처럼 입력합니다. 차감 면제와 지급/차감 안 함은 값을 비워도 됩니다.'); ?></p>
+        <p class="admin-asset-group-policy-summary-help"><?php echo sr_e($assetGroupPolicySummaryHelp); ?></p>
     </div>
     <template data-admin-asset-group-policy-template>
         <tr data-admin-asset-group-policy-row>
@@ -227,6 +259,16 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
                     </select>
                 </td>
             <?php } ?>
+            <?php if ($assetGroupPolicyShowMinLevel) { ?>
+                <td>
+                    <label class="sr-only" data-admin-asset-group-policy-label="min_level"><?php echo sr_e('최소 레벨'); ?></label>
+                    <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[min_level][]" class="form-select" data-admin-asset-group-policy-control="min_level" data-admin-asset-group-policy-min-level>
+                        <?php for ($assetGroupPolicyLevel = 0; $assetGroupPolicyLevel <= $assetGroupPolicyMaxLevel; $assetGroupPolicyLevel += 1) { ?>
+                            <option value="<?php echo sr_e((string) $assetGroupPolicyLevel); ?>"><?php echo sr_e((string) $assetGroupPolicyLevel); ?></option>
+                        <?php } ?>
+                    </select>
+                </td>
+            <?php } ?>
             <td>
                 <label class="sr-only" data-admin-asset-group-policy-label="value"><?php echo sr_e('값'); ?></label>
                 <div class="input-group admin-asset-group-policy-value-group admin-asset-group-policy-value-group-unitless">
@@ -251,13 +293,23 @@ $assetGroupPolicyModes = sr_admin_asset_group_policy_modes();
 </section>
 <?php
 $assetGroupPolicyModeHelpBodyHtml = '<p>' . sr_e('적용 방식에 따라 값 입력 여부와 최종 금액 계산 방식이 달라집니다.') . '</p>'
-    . '<ul>'
-    . '<li><strong>' . sr_e('고정 금액') . '</strong>: ' . sr_e('최종 금액으로 사용할 정수를 입력합니다. 예: 1000') . '</li>'
-    . '<li><strong>' . sr_e('증감액') . '</strong>: ' . sr_e('기본 금액에 더하거나 뺄 정수를 입력합니다. 예: -500') . '</li>'
-    . '<li><strong>' . sr_e('배율') . '</strong>: ' . sr_e('기본 금액에 곱할 숫자를 입력합니다. 예: 1.5') . '</li>'
-    . '<li><strong>' . sr_e('차감 면제') . '</strong>: ' . sr_e('차감 대상 금액을 0으로 처리합니다.') . '</li>'
-    . '<li><strong>' . sr_e('지급/차감 안 함') . '</strong>: ' . sr_e('이 조건에서는 지급 또는 차감 금액을 만들지 않습니다.') . '</li>'
-    . '</ul>'
+    . '<ul>';
+if (in_array('fixed', $assetGroupPolicyModes, true)) {
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('고정 금액') . '</strong>: ' . sr_e('최종 금액으로 사용할 정수를 입력합니다. 예: 1000') . '</li>';
+}
+if (in_array('delta', $assetGroupPolicyModes, true)) {
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('증감액') . '</strong>: ' . sr_e('기본 금액에 더하거나 뺄 정수를 입력합니다. 예: -500') . '</li>';
+}
+if (in_array('multiplier', $assetGroupPolicyModes, true)) {
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('배율') . '</strong>: ' . sr_e('기본 금액에 곱할 숫자를 입력합니다. 예: 1.5') . '</li>';
+}
+if (in_array('exempt', $assetGroupPolicyModes, true)) {
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('차감 면제') . '</strong>: ' . sr_e('차감 대상 금액을 0으로 처리합니다.') . '</li>';
+}
+if (in_array('disabled', $assetGroupPolicyModes, true)) {
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('지급/차감 안 함') . '</strong>: ' . sr_e('이 조건에서는 지급 또는 차감 금액을 만들지 않습니다.') . '</li>';
+}
+$assetGroupPolicyModeHelpBodyHtml .= '</ul>'
     . '<p>' . sr_e('여러 자산을 지원하는 혜택 세트에서는 한 행에 대상 하나와 값 하나만 입력합니다. 다른 대상에는 세트를 추가해 별도 행으로 관리합니다.') . '</p>';
 echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 도움말', $assetGroupPolicyModeHelpBodyHtml);
 ?>
@@ -283,6 +335,7 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
 
         var mode = row.querySelector('[data-admin-asset-group-policy-mode]');
         var assetModule = row.querySelector('[data-admin-asset-group-policy-asset-module]');
+        var minLevel = row.querySelector('[data-admin-asset-group-policy-min-level]');
         var values = row.querySelectorAll('[data-admin-asset-group-policy-value]');
         var group = row.querySelector('[data-admin-asset-group-policy-group]');
         var status = row.querySelector('[data-admin-asset-group-policy-status]');
@@ -300,6 +353,7 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
             (group && group.value)
             || modeValue
             || (assetModule && assetModule.value)
+            || (minLevel && minLevel.value !== '0')
             || hasValue
         );
         var requiresValue = modeValue === 'fixed' || modeValue === 'delta' || modeValue === 'multiplier';
@@ -329,6 +383,9 @@ echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 �
             && modeSelected
             && assetModuleSelected
         );
+        if (minLevel) {
+            setSequentialLock(minLevel, !groupSelected);
+        }
         var valueHasContent = false;
         values.forEach(function (valueInput) {
             var valueEnabled = requiredSelectionsReady && requiresValue;
