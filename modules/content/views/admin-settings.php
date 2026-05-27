@@ -22,7 +22,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_once_history_policy">최초 1회 과거 이용 인정 기준 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="content_admin_settings_once_history_policy">기존 이용자 재결제 기준 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <select id="content_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
                     <?php foreach (sr_content_once_history_policy_values() as $policyKey => $policyLabel) { ?>
@@ -31,7 +31,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">과금 방식을 최초 1회로 운영할 때 기존 유료 열람, 다운로드, 쿠폰 사용을 이미 이용한 것으로 볼지 정합니다. 기존 원장 거래와 쿠폰 사용 로그는 자동 환불하거나 추가 차감하지 않습니다.</p>
+                <p class="admin-form-help">과금 방식을 최초 1회로 운영할 때 예전에 이용한 회원을 다시 결제시킬지 정합니다. 기존 원장 거래와 쿠폰 사용 로그는 자동 환불하거나 추가 차감하지 않습니다.</p>
             </div>
         </div>
     </section>

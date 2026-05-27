@@ -29,7 +29,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
     }
     if ($postedOnceHistoryPolicyInput !== (string) $postedSettings['once_history_policy']) {
-        $errors[] = '최초 1회 과거 이용 인정 기준 값이 올바르지 않습니다.';
+        $errors[] = '기존 이용자 재결제 기준 값이 올바르지 않습니다.';
     }
 
     if ($errors === []) {

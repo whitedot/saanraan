@@ -69,9 +69,9 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
 function sr_content_once_history_policy_values(): array
 {
     return [
-        'all_access' => '기존 자산 차감과 쿠폰 사용을 모두 인정',
-        'asset_any' => '기존 자산 차감만 인정',
-        'current_asset_once' => '현재 선택 자산의 최초 1회 기록만 인정',
+        'all_access' => '이미 이용한 회원은 다시 결제하지 않음',
+        'asset_any' => '자산으로 결제한 회원만 다시 결제하지 않음',
+        'current_asset_once' => '현재 자산으로 최초 1회 결제한 회원만 인정',
     ];
 }
 
