@@ -83,10 +83,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                             <th>입금</th>
                             <th>수수료</th>
                             <th>상태</th>
+                            <th>실패 사유</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($logs as $log) { ?>
+                            <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
                             <tr>
                                 <td><?php echo sr_e((string) $log['created_at']); ?></td>
                                 <td><?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $log['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $log['to_module_key'])); ?></td>
@@ -94,6 +96,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                                 <td><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
                                 <td><?php echo sr_e((string) $log['status']); ?></td>
+                                <td><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                             </tr>
                         <?php } ?>
                     </tbody>

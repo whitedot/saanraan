@@ -21,6 +21,22 @@ $policyForm = array_merge([
     'fee_max_amount' => '',
     'sort_order' => 0,
 ], $editPolicy);
+$fromAssetOptions = $assets;
+$toAssetOptions = $assets;
+$selectedFromModuleKey = (string) ($policyForm['from_module_key'] ?? '');
+$selectedToModuleKey = (string) ($policyForm['to_module_key'] ?? '');
+if ($selectedFromModuleKey !== '' && !isset($fromAssetOptions[$selectedFromModuleKey])) {
+    $fromAssetOptions[$selectedFromModuleKey] = [
+        'module_key' => $selectedFromModuleKey,
+        'label' => $selectedFromModuleKey . ' (비활성)',
+    ];
+}
+if ($selectedToModuleKey !== '' && !isset($toAssetOptions[$selectedToModuleKey])) {
+    $toAssetOptions[$selectedToModuleKey] = [
+        'module_key' => $selectedToModuleKey,
+        'label' => $selectedToModuleKey . ' (비활성)',
+    ];
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -38,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="admin-form-label">출금 자산 <span class="admin-required">(필수)</span></span>
                 <select id="asset_exchange_from_module_key" name="from_module_key" class="form-select" required>
                     <option value="">선택</option>
-                    <?php foreach ($assets as $asset) { ?>
+                    <?php foreach ($fromAssetOptions as $asset) { ?>
                         <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['from_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
                     <?php } ?>
                 </select>
@@ -47,7 +63,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="admin-form-label">입금 자산 <span class="admin-required">(필수)</span></span>
                 <select id="asset_exchange_to_module_key" name="to_module_key" class="form-select" required>
                     <option value="">선택</option>
-                    <?php foreach ($assets as $asset) { ?>
+                    <?php foreach ($toAssetOptions as $asset) { ?>
                         <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['to_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
                     <?php } ?>
                 </select>

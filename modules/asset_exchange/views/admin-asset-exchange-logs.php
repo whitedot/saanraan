@@ -20,13 +20,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>입금</th>
                     <th>수수료</th>
                     <th>상태</th>
+                    <th>실패 사유</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($logs === []) { ?>
-                    <tr><td colspan="8" class="admin-empty-state">환전 로그가 없습니다.</td></tr>
+                    <tr><td colspan="9" class="admin-empty-state">환전 로그가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($logs as $log) { ?>
+                    <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
                     <tr>
                         <td><?php echo sr_e((string) $log['created_at']); ?></td>
                         <td><?php echo sr_e(sr_admin_member_display_name_preview($log)); ?><br><?php echo sr_e(sr_admin_member_email_display($log)); ?></td>
@@ -36,6 +38,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
                         <td><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
                         <td><?php echo sr_e((string) $log['status']); ?></td>
+                        <td><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>

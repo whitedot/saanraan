@@ -93,16 +93,6 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         }
     }
 
-    $assets = sr_asset_exchange_assets($pdo);
-    if (!isset($assets[$fromModuleKey], $assets[$toModuleKey])) {
-        $editingSameInactivePair = is_array($existingPolicy)
-            && (string) ($existingPolicy['from_module_key'] ?? '') === $fromModuleKey
-            && (string) ($existingPolicy['to_module_key'] ?? '') === $toModuleKey
-            && $status === 'disabled';
-        if (!$editingSameInactivePair) {
-            throw new InvalidArgumentException('설치되어 있고 활성화된 자산 모듈만 환전 정책에 사용할 수 있습니다.');
-        }
-    }
     if (!in_array($status, ['enabled', 'disabled'], true)) {
         throw new InvalidArgumentException('정책 상태가 올바르지 않습니다.');
     }
@@ -114,6 +104,17 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     }
     if (!in_array($feeBasis, ['from_amount', 'to_amount'], true)) {
         throw new InvalidArgumentException('수수료 계산 기준이 올바르지 않습니다.');
+    }
+
+    $assets = sr_asset_exchange_assets($pdo);
+    if (!isset($assets[$fromModuleKey], $assets[$toModuleKey])) {
+        $editingSameInactivePair = is_array($existingPolicy)
+            && (string) ($existingPolicy['from_module_key'] ?? '') === $fromModuleKey
+            && (string) ($existingPolicy['to_module_key'] ?? '') === $toModuleKey
+            && $status === 'disabled';
+        if (!$editingSameInactivePair) {
+            throw new InvalidArgumentException('설치되어 있고 활성화된 자산 모듈만 환전 정책에 사용할 수 있습니다.');
+        }
     }
 
     $rateNumerator = sr_asset_exchange_positive_int($data['rate_numerator'] ?? 0, '비율 분자는 1 이상이어야 합니다.');
