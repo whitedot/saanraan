@@ -34,14 +34,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 
         <section>
             <h2>환전 신청</h2>
-            <?php if ($policies === []) { ?>
+            <?php if ($availablePolicies === []) { ?>
                 <p>현재 신청 가능한 환전 정책이 없습니다.</p>
             <?php } else { ?>
                 <form method="get" action="<?php echo sr_e(sr_url('/account/asset-exchange')); ?>">
                     <label for="asset_exchange_policy_id">환전 조합</label>
                     <select id="asset_exchange_policy_id" name="policy_id" required>
-                        <?php foreach ($policies as $policy) { ?>
-                            <?php if (!isset($assets[(string) $policy['from_module_key']], $assets[(string) $policy['to_module_key']])) { continue; } ?>
+                        <?php foreach ($availablePolicies as $policy) { ?>
                             <option value="<?php echo sr_e((string) $policy['id']); ?>"<?php echo is_array($selectedPolicy) && (int) $selectedPolicy['id'] === (int) $policy['id'] ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $policy['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $policy['to_module_key'])); ?>
                             </option>

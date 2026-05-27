@@ -14,6 +14,7 @@ $errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(a
 $notice = (string) ($flash['notice'] ?? '');
 $assets = sr_asset_exchange_assets($pdo);
 $policies = sr_asset_exchange_policies($pdo, true);
+$availablePolicies = sr_asset_exchange_available_policies($policies, $assets);
 $selectedPolicy = null;
 $quote = null;
 
@@ -52,6 +53,14 @@ if (sr_request_method() === 'POST') {
                 sr_log_exception($logException, 'asset_exchange_failure_log_failed');
             }
         }
+    }
+
+    if ($errors !== []) {
+        $_SESSION['sr_asset_exchange_flash'] = [
+            'notice' => '',
+            'errors' => $errors,
+        ];
+        sr_redirect('/account/asset-exchange');
     }
 } else {
     $policyId = (int) ($_GET['policy_id'] ?? 0);

@@ -84,9 +84,24 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     if ($fromModuleKey === '' || $toModuleKey === '' || $fromModuleKey === $toModuleKey) {
         throw new InvalidArgumentException('출금 자산과 입금 자산을 서로 다르게 선택하세요.');
     }
+
+    $existingPolicy = null;
+    if ($policyId > 0) {
+        $existingPolicy = sr_asset_exchange_policy($pdo, $policyId);
+        if ($existingPolicy === null) {
+            throw new InvalidArgumentException('수정할 환전 정책을 찾을 수 없습니다.');
+        }
+    }
+
     $assets = sr_asset_exchange_assets($pdo);
     if (!isset($assets[$fromModuleKey], $assets[$toModuleKey])) {
-        throw new InvalidArgumentException('설치되어 있고 활성화된 자산 모듈만 환전 정책에 사용할 수 있습니다.');
+        $editingSameInactivePair = is_array($existingPolicy)
+            && (string) ($existingPolicy['from_module_key'] ?? '') === $fromModuleKey
+            && (string) ($existingPolicy['to_module_key'] ?? '') === $toModuleKey
+            && $status === 'disabled';
+        if (!$editingSameInactivePair) {
+            throw new InvalidArgumentException('설치되어 있고 활성화된 자산 모듈만 환전 정책에 사용할 수 있습니다.');
+        }
     }
     if (!in_array($status, ['enabled', 'disabled'], true)) {
         throw new InvalidArgumentException('정책 상태가 올바르지 않습니다.');
@@ -119,10 +134,6 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     }
     if ($feeTrigger !== 'none' && $feeRateNumerator === 0 && $feeFixedAmount === 0 && ($feeMinAmount ?? 0) === 0) {
         throw new InvalidArgumentException('수수료를 적용하려면 정률, 정액, 최소 수수료 중 하나를 입력하세요.');
-    }
-
-    if ($policyId > 0 && sr_asset_exchange_policy($pdo, $policyId) === null) {
-        throw new InvalidArgumentException('수정할 환전 정책을 찾을 수 없습니다.');
     }
 
     $stmt = $pdo->prepare(
@@ -510,4 +521,20 @@ function sr_asset_exchange_group_id(): string
 function sr_asset_exchange_asset_label(array $assets, string $moduleKey): string
 {
     return (string) ($assets[$moduleKey]['label'] ?? $moduleKey);
+}
+
+function sr_asset_exchange_available_policies(array $policies, array $assets): array
+{
+    $available = [];
+    foreach ($policies as $policy) {
+        if (!is_array($policy)) {
+            continue;
+        }
+
+        if (isset($assets[(string) ($policy['from_module_key'] ?? '')], $assets[(string) ($policy['to_module_key'] ?? '')])) {
+            $available[] = $policy;
+        }
+    }
+
+    return $available;
 }
