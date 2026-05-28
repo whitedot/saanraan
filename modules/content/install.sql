@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS sr_content_access_entitlements (
 
 CREATE TABLE IF NOT EXISTS sr_content_files (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    content_id BIGINT UNSIGNED NOT NULL,
+    content_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     title VARCHAR(160) NOT NULL,
     original_name VARCHAR(120) NOT NULL,
     stored_name VARCHAR(120) NOT NULL,
@@ -204,6 +204,20 @@ CREATE TABLE IF NOT EXISTS sr_content_files (
     KEY idx_sr_content_files_asset_download (asset_download_enabled, asset_module),
     KEY idx_sr_content_files_storage (storage_driver, storage_key),
     KEY idx_sr_content_files_checksum (checksum_sha256)
+);
+
+CREATE TABLE IF NOT EXISTS sr_content_file_links (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    content_id BIGINT UNSIGNED NOT NULL,
+    file_id BIGINT UNSIGNED NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_content_file_links_content_file (content_id, file_id),
+    KEY idx_sr_content_file_links_file_status (file_id, status),
+    KEY idx_sr_content_file_links_content_status (content_id, status, sort_order, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_content_asset_action_logs (

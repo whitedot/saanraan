@@ -111,14 +111,22 @@ function sr_content_files_for_content(PDO $pdo, int $pageId): array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT *
-         FROM sr_content_files
-         WHERE content_id = :content_id
-           AND status = 'active'
-         ORDER BY id ASC
+        "SELECT DISTINCT f.*, :content_id_result AS content_id, l.sort_order AS link_sort_order
+         FROM sr_content_files f
+         LEFT JOIN sr_content_file_links l
+           ON l.file_id = f.id
+          AND l.content_id = :linked_content_id
+          AND l.status = 'active'
+         WHERE f.status = 'active'
+           AND (l.id IS NOT NULL OR f.content_id = :legacy_content_id)
+         ORDER BY COALESCE(l.sort_order, 0) ASC, f.id ASC
          LIMIT 50"
     );
-    $stmt->execute(['content_id' => $pageId]);
+    $stmt->execute([
+        'content_id_result' => $pageId,
+        'linked_content_id' => $pageId,
+        'legacy_content_id' => $pageId,
+    ]);
 
     return $stmt->fetchAll();
 }
@@ -130,9 +138,26 @@ function sr_content_file_by_id(PDO $pdo, int $fileId): ?array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT f.*, p.slug, p.title AS content_title, p.status AS content_status
+        "SELECT f.*,
+                COALESCE(lp.first_content_id, l.first_content_id, f.content_id) AS content_id,
+                p.slug,
+                p.title AS content_title,
+                p.status AS content_status
          FROM sr_content_files f
-         INNER JOIN sr_content_items p ON p.id = f.content_id
+         LEFT JOIN (
+            SELECT file_id, MIN(content_id) AS first_content_id
+            FROM sr_content_file_links
+            WHERE status = 'active'
+            GROUP BY file_id
+         ) l ON l.file_id = f.id
+         LEFT JOIN (
+            SELECT fl.file_id, MIN(fl.content_id) AS first_content_id
+            FROM sr_content_file_links fl
+            INNER JOIN sr_content_items ci ON ci.id = fl.content_id AND ci.status = 'published'
+            WHERE fl.status = 'active'
+            GROUP BY fl.file_id
+         ) lp ON lp.file_id = f.id
+         LEFT JOIN sr_content_items p ON p.id = COALESCE(lp.first_content_id, l.first_content_id, f.content_id)
          WHERE f.id = :id
            AND f.status = 'active'
          LIMIT 1"
@@ -212,39 +237,11 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
 function sr_content_validate_file_request(PDO $pdo, int $pageId, array $pageValues = []): array
 {
     $errors = [];
-    $existingIds = $_POST['content_file_ids'] ?? [];
-    if (is_array($existingIds)) {
-        foreach ($existingIds as $rawFileId) {
-            $fileId = (int) $rawFileId;
-            if ($fileId < 1) {
-                continue;
-            }
-
-            $file = sr_content_file_by_id($pdo, $fileId);
-            if (!is_array($file) || (int) $file['content_id'] !== $pageId) {
-                $errors[] = '수정할 콘텐츠 파일을 확인할 수 없습니다.';
-                continue;
-            }
-
-            $values = sr_content_file_values_from_post($fileId);
-            $errors = array_merge($errors, sr_content_file_asset_validation_errors($pdo, $values));
+    foreach (sr_content_file_link_ids_from_post('content_file_link_ids') as $fileId) {
+        $file = sr_content_file_by_id($pdo, $fileId);
+        if (!is_array($file)) {
+            $errors[] = '연결할 다운로드 파일을 확인할 수 없습니다.';
         }
-    }
-
-    $upload = $_FILES['content_file_upload'] ?? null;
-    if (sr_content_file_upload_was_provided($upload)) {
-        try {
-            sr_upload_validate_file($upload, [
-                'max_bytes' => sr_content_file_upload_max_bytes(),
-                'allowed_extensions' => sr_content_file_allowed_extensions(),
-                'allowed_mime_types' => sr_content_file_mime_types_for_extensions(sr_content_file_allowed_extensions()),
-            ]);
-        } catch (Throwable $exception) {
-            $errors[] = $exception->getMessage();
-        }
-
-        $values = sr_content_new_file_values_from_post($pdo, $pageValues);
-        $errors = array_merge($errors, sr_content_file_asset_validation_errors($pdo, $values, '새 파일 다운로드'));
     }
 
     return $errors;
@@ -315,31 +312,7 @@ function sr_content_save_files_from_request(PDO $pdo, int $pageId, int $accountI
         return;
     }
 
-    $deleteValues = is_array($_POST['content_file_delete'] ?? null) ? $_POST['content_file_delete'] : [];
-    $existingIds = is_array($_POST['content_file_ids'] ?? null) ? $_POST['content_file_ids'] : [];
-    foreach ($existingIds as $rawFileId) {
-        $fileId = (int) $rawFileId;
-        if ($fileId < 1) {
-            continue;
-        }
-
-        $file = sr_content_file_by_id($pdo, $fileId);
-        if (!is_array($file) || (int) $file['content_id'] !== $pageId) {
-            continue;
-        }
-
-        if ((string) ($deleteValues[$fileId] ?? '') === '1') {
-            sr_content_hide_file($pdo, $fileId);
-            continue;
-        }
-
-        sr_content_update_file($pdo, $fileId, sr_content_file_values_from_post($fileId));
-    }
-
-    $upload = $_FILES['content_file_upload'] ?? null;
-    if (sr_content_file_upload_was_provided($upload)) {
-        sr_content_upload_file($pdo, $pageId, $accountId, $upload, sr_content_new_file_values_from_post($pdo, $pageValues));
-    }
+    sr_content_replace_file_links($pdo, $pageId, sr_content_file_link_ids_from_post('content_file_link_ids'));
 }
 
 function sr_content_update_file(PDO $pdo, int $fileId, array $values): void
@@ -452,4 +425,245 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
         sr_storage_delete((string) $stored['driver'], $storageKey);
         throw $exception;
     }
+}
+
+function sr_content_file_link_ids_from_post(string $field): array
+{
+    $rawValues = $_POST[$field] ?? [];
+    if (!is_array($rawValues)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($rawValues as $rawValue) {
+        $fileId = (int) $rawValue;
+        if ($fileId > 0) {
+            $ids[$fileId] = $fileId;
+        }
+    }
+
+    return array_values($ids);
+}
+
+function sr_content_replace_file_links(PDO $pdo, int $pageId, array $fileIds): void
+{
+    if ($pageId < 1) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_content_file_links
+         SET status = 'hidden', updated_at = :updated_at
+         WHERE content_id = :content_id"
+    );
+    $stmt->execute([
+        'updated_at' => $now,
+        'content_id' => $pageId,
+    ]);
+
+    $stmt = $pdo->prepare(
+        "INSERT INTO sr_content_file_links
+            (content_id, file_id, sort_order, status, created_at, updated_at)
+         VALUES
+            (:content_id, :file_id, :sort_order, 'active', :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            sort_order = VALUES(sort_order),
+            status = 'active',
+            updated_at = VALUES(updated_at)"
+    );
+    $sortOrder = 0;
+    foreach ($fileIds as $fileId) {
+        if (!is_array(sr_content_file_by_id($pdo, (int) $fileId))) {
+            continue;
+        }
+        $stmt->execute([
+            'content_id' => $pageId,
+            'file_id' => (int) $fileId,
+            'sort_order' => $sortOrder,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $sortOrder += 10;
+    }
+}
+
+function sr_content_admin_download_file_count(PDO $pdo, array $filters): int
+{
+    $where = sr_content_admin_download_file_where_sql($filters);
+    $stmt = $pdo->prepare('SELECT COUNT(*) AS count_value FROM sr_content_files f ' . $where['sql']);
+    $stmt->execute($where['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_content_admin_download_file_sort_options(): array
+{
+    return [
+        'title' => [
+            'label' => '파일 제목',
+            'columns' => ['f.title', 'f.id'],
+        ],
+        'original_name' => [
+            'label' => '원본 파일명',
+            'columns' => ['f.original_name', 'f.id'],
+        ],
+        'status' => [
+            'label' => '상태',
+            'columns' => ['f.status', 'f.id'],
+        ],
+        'size_bytes' => [
+            'label' => '크기',
+            'columns' => ['f.size_bytes', 'f.id'],
+        ],
+        'linked_content_count' => [
+            'label' => '연결',
+            'columns' => ['linked_content_count', 'f.id'],
+        ],
+        'updated_at' => [
+            'label' => '수정일',
+            'columns' => ['f.updated_at', 'f.id'],
+        ],
+    ];
+}
+
+function sr_content_admin_download_file_default_sort(): array
+{
+    return sr_admin_sort_default('updated_at', 'desc');
+}
+
+function sr_content_admin_download_file_status_counts(PDO $pdo): array
+{
+    $counts = [
+        'total' => 0,
+        'active' => 0,
+        'hidden' => 0,
+    ];
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_content_files GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        $counts['total'] += $count;
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+    }
+
+    return $counts;
+}
+
+function sr_content_admin_download_files(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    $where = sr_content_admin_download_file_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT f.*,
+                COUNT(DISTINCT CASE WHEN l.status = \'active\' THEN l.content_id END) AS linked_content_count
+         FROM sr_content_files f
+         LEFT JOIN sr_content_file_links l ON l.file_id = f.id
+         ' . $where['sql'] . '
+         GROUP BY f.id
+         ' . sr_admin_sort_order_sql(sr_content_admin_download_file_sort_options(), $sort, sr_content_admin_download_file_default_sort()) . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($where['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_admin_download_file_where_sql(array $filters): array
+{
+    $conditions = [];
+    $params = [];
+    $status = (string) ($filters['status'] ?? 'active');
+    if ($status !== '') {
+        $conditions[] = 'f.status = :status';
+        $params['status'] = $status;
+    }
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $conditions[] = '(f.title LIKE :q OR f.original_name LIKE :q)';
+        $params['q'] = '%' . $q . '%';
+    }
+
+    return [
+        'sql' => $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '',
+        'params' => $params,
+    ];
+}
+
+function sr_content_admin_download_file_by_id(PDO $pdo, int $fileId): ?array
+{
+    if ($fileId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_content_files WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $fileId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_all_active_download_files(PDO $pdo, int $limit = 200): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM sr_content_files
+         WHERE status = 'active'
+         ORDER BY title ASC, id ASC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_linked_file_ids(PDO $pdo, int $pageId): array
+{
+    $ids = [];
+    foreach (sr_content_files_for_content($pdo, $pageId) as $file) {
+        $ids[(int) $file['id']] = true;
+    }
+
+    return $ids;
+}
+
+function sr_content_download_file_link_badge_select_html(string $id, string $name, array $files, array $selectedIds, ?PDO $pdo = null): string
+{
+    $options = [];
+    foreach ($files as $file) {
+        $fileId = (int) ($file['id'] ?? 0);
+        if ($fileId < 1) {
+            continue;
+        }
+
+        $title = trim((string) ($file['title'] ?? ''));
+        $originalName = trim((string) ($file['original_name'] ?? ''));
+        $label = $title !== '' ? $title : ($originalName !== '' ? $originalName : '다운로드 파일 #' . (string) $fileId);
+        $summaryParts = [];
+        if ($originalName !== '' && $originalName !== $label) {
+            $summaryParts[] = $originalName;
+        }
+        $summaryParts[] = sr_content_format_bytes((int) ($file['size_bytes'] ?? 0));
+        if ((int) ($file['asset_download_enabled'] ?? 0) === 1) {
+            $assetLabel = $pdo instanceof PDO ? sr_content_asset_module_labels((string) ($file['asset_module'] ?? ''), $pdo) : (string) ($file['asset_module'] ?? '');
+            $summaryParts[] = trim($assetLabel . ' ' . number_format((int) ($file['asset_download_amount'] ?? 0)));
+        } else {
+            $summaryParts[] = '무료';
+        }
+
+        $options[(string) $fileId] = [
+            'label' => $label,
+            'summary' => implode(' · ', array_filter($summaryParts, static fn (string $part): bool => $part !== '')),
+        ];
+    }
+
+    return sr_admin_select_badge_list_html($id, $name, $options, array_map('strval', $selectedIds), '연결할 다운로드 파일이 없습니다.', '파일 선택');
 }

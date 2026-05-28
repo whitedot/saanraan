@@ -36,11 +36,10 @@ $errors = sr_content_validate_input($pdo, $values, $pageId, $publicBannerIds, $p
 if ($pageId > 0 && !is_array(sr_content_by_id($pdo, $pageId))) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }
-if ($pageId > 0 || sr_content_file_upload_was_provided($_FILES['content_file_upload'] ?? null)) {
-    $errors = array_merge($errors, sr_content_validate_file_request($pdo, $pageId, $values));
-}
+$errors = array_merge($errors, sr_content_validate_file_request($pdo, $pageId, $values));
 
 if ($errors !== []) {
+    $values['content_file_link_ids'] = sr_content_file_link_ids_from_post('content_file_link_ids');
     $_SESSION['sr_content_admin_errors'] = $errors;
     $_SESSION['sr_content_admin_values'] = $values;
     sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');

@@ -21,6 +21,8 @@ $errors = [];
 $pageAdminPage = isset($pageAdminPage) ? (string) $pageAdminPage : 'list';
 $editPage = null;
 $contentFiles = [];
+$downloadFiles = [];
+$linkedDownloadFileIds = [];
 $values = [];
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -35,6 +37,7 @@ $pageGroups = sr_content_groups($pdo);
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
 
 if ($pageAdminPage === 'form') {
+    $downloadFiles = sr_content_all_active_download_files($pdo);
     $pageId = (int) sr_get_string('id', 20);
     if ($pageId > 0) {
         $editPage = sr_content_by_id($pdo, $pageId);
@@ -43,6 +46,7 @@ if ($pageAdminPage === 'form') {
         }
         $editPage['setting_sources'] = sr_content_setting_sources($pdo, $pageId);
         $contentFiles = sr_content_files_for_content($pdo, $pageId);
+        $linkedDownloadFileIds = sr_content_linked_file_ids($pdo, $pageId);
     }
 } else {
     $filters = sr_content_admin_filters();

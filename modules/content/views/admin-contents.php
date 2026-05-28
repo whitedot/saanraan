@@ -9,6 +9,12 @@ if (is_array($sessionErrors)) {
 }
 if ($hasSubmittedValues) {
     $values = $sessionValues;
+    if (is_array($values['content_file_link_ids'] ?? null)) {
+        $linkedDownloadFileIds = [];
+        foreach ($values['content_file_link_ids'] as $submittedFileId) {
+            $linkedDownloadFileIds[(int) $submittedFileId] = true;
+        }
+    }
 }
 $editing = is_array($editPage);
 $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.asset_settings.updated', 'content', (string) (int) ($editPage['id'] ?? 0)) : '';
@@ -528,9 +534,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.a052b2f6')); ?></span>
                 <span class="admin-form-actions">
-                    <?php if ($contentAssetAuditUrl !== '') { ?>
-                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
-                    <?php } ?>
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
                         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('content::ui.banner.42c18eb4')); ?></a>
                     <?php } ?>
@@ -599,134 +602,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
         <section class="admin-card card">
-            <h2><?php echo sr_e(sr_t('content::ui.text.c7c88adc')); ?></h2>
-            <?php if ($editing && $contentFiles !== []) { ?>
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead class="ui-table-head">
-                            <tr>
-                                <th><?php echo sr_e(sr_t('content::ui.text.0c8354d0')); ?></th>
-                                <th><?php echo sr_e(sr_t('content::ui.text.d07eab27')); ?></th>
-                                <th><?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($contentFiles as $contentFile) { ?>
-                                <?php $fileId = (int) $contentFile['id']; ?>
-                                <?php $contentFileTitleId = 'content_file_title_' . (string) $fileId; ?>
-                                <?php $contentFileChargeEnabledId = 'content_file_asset_download_enabled_' . (string) $fileId; ?>
-                                <?php $contentFileAssetModuleId = 'content_file_asset_module_' . (string) $fileId; ?>
-                                <?php $contentFileAmountId = 'content_file_asset_download_amount_' . (string) $fileId; ?>
-                                <?php $contentFileChargePolicyId = 'content_file_asset_charge_policy_' . (string) $fileId; ?>
-                                <?php $contentFileDeleteId = 'content_file_delete_' . (string) $fileId; ?>
-                                <tr>
-                                    <td>
-                                        <input type="hidden" name="content_file_ids[]" value="<?php echo sr_e((string) $fileId); ?>">
-                                        <label for="<?php echo sr_e($contentFileTitleId); ?>">
-                                            <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.c6713aae')); ?></span>
-                                            <input id="<?php echo sr_e($contentFileTitleId); ?>" type="text" name="content_file_title[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) $contentFile['title']); ?>" class="form-input form-control-full" maxlength="160">
-                                        </label>
-                                        <br>
-                                        <small><?php echo sr_e((string) $contentFile['original_name']); ?> · <?php echo sr_e(sr_content_format_bytes((int) $contentFile['size_bytes'])); ?></small>
-                                    </td>
-                                    <td>
-                                        <div class="admin-asset-setting-primary">
-                                            <label class="admin-form-check form-label" for="<?php echo sr_e($contentFileChargeEnabledId); ?>">
-                                                <input id="<?php echo sr_e($contentFileChargeEnabledId); ?>" type="checkbox" name="content_file_asset_download_enabled[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox"<?php echo (int) ($contentFile['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
-                                            </label>
-                                            <label for="<?php echo sr_e($contentFileChargePolicyId); ?>">
-                                                <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.51a83be4')); ?></span>
-                                                <select id="<?php echo sr_e($contentFileChargePolicyId); ?>" name="content_file_asset_charge_policy[<?php echo sr_e((string) $fileId); ?>]" class="form-select admin-asset-setting-policy">
-                                                    <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                                                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($contentFile['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                                            <?php echo sr_e((string) $policyLabel); ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
-                                            </label>
-                                        </div>
-                                        <span class="sr-only"><?php echo sr_e(sr_t('content::ui.text.30430e12')); ?></span>
-                                        <?php $selectedFileAssetModules = sr_content_asset_module_keys_from_value($contentFile['asset_module'] ?? ''); ?>
-                                        <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($contentFileChargeEnabledId); ?>" data-admin-asset-enable-submit-check="always">
-                                            <?php echo sr_content_asset_grouped_amount_inputs_html($contentFileAssetModuleId . '_amounts_grouped', 'content_file_asset_module[' . (string) $fileId . ']', 'content_file_asset_download_amounts[' . (string) $fileId . ']', $assetModuleOptions, $selectedFileAssetModules, $contentFile['asset_download_amounts_json'] ?? '', (int) ($contentFile['asset_download_amount'] ?? 0), sr_t('content::ui.text.c871de35'), sr_t('content::ui.text.3e195cdd')); ?>
-                                        </div>
-                                        <input id="<?php echo sr_e($contentFileAmountId); ?>" type="hidden" name="content_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($contentFile['asset_download_amount'] ?? 0)); ?>">
-                                        <div class="admin-asset-setting-secondary">
-                                            <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_ids_' . (string) $fileId); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label>
-                                            <div class="admin-policy-set-field">
-                                                <?php echo sr_content_asset_policy_set_checkboxes_html('content_file_asset_download_policy_set_ids_' . (string) $fileId, 'content_file_asset_download_policy_set_ids[' . (string) $fileId . ']', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($contentFile['asset_download_group_policies_json'] ?? '', (int) ($contentFile['asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#' . $contentFileAssetModuleId . '_amounts_grouped', $pdo); ?>
-                                                <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다.</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <label class="admin-form-check form-label" for="<?php echo sr_e($contentFileDeleteId); ?>">
-                                            <input id="<?php echo sr_e($contentFileDeleteId); ?>" type="checkbox" name="content_file_delete[<?php echo sr_e((string) $fileId); ?>]" value="1" class="form-checkbox">
-                                            <?php echo sr_admin_choice_label_html(sr_t('content::ui.delete.6139b6c3')); ?>
-                                        </label>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php } elseif ($editing) { ?>
-                <p><?php echo sr_e(sr_t('content::ui.create.c0af4d1f')); ?></p>
-            <?php } else { ?>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.content.save.136c7ad6')); ?></p>
-            <?php } ?>
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.text.c7c88adc')); ?></span>
+                <span class="admin-form-actions">
+                    <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-sm btn-solid-light">파일 관리</a>
+                </span>
+            </h2>
             <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_content_file_upload', sr_t('content::ui.text.45a992ee'), $contentHelp['file_upload']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <input id="content_admin_contents_content_file_upload" type="file" name="content_file_upload" class="form-input">
-                    <br>
-                                        <small><?php echo sr_e(sr_t('content::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())); ?></small>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_new_content_file_title', sr_t('content::ui.text.8d3d9268'), $contentHelp['file_title']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <input id="content_admin_contents_new_content_file_title" type="text" name="new_content_file_title" value="" class="form-input form-control-full" maxlength="160">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.text.b065b16b'), $contentHelp['file_charge']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_content_admin_contents_new_content_file_asset_download_enabled">
-                        <input id="modules_content_admin_contents_new_content_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array((string) ($newContentFileAssetSettings['file_asset_download_enabled'] ?? '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.31833f06')); ?>
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_new_content_file_asset_charge_policy"><?php echo sr_e(sr_t('content::ui.text.153a0e9d')); ?></label>
-                <div class="admin-form-field">
-                    <select id="content_admin_contents_new_content_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select">
-                        <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
-                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($newContentFileAssetSettings['file_asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $policyLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.30430e12')); ?></span>
-                <div class="admin-form-field">
-                    <?php $selectedNewFileAssetModules = sr_content_asset_module_keys_from_value($newContentFileAssetSettings['file_asset_module'] ?? ''); ?>
-                    <div class="admin-content-file-charge-assets admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_new_content_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
-                        <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_new_content_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedNewFileAssetModules, $newContentFileAssetSettings['file_asset_download_amounts_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0), sr_t('content::ui.text.63526029'), sr_t('content::ui.text.3e195cdd')); ?>
-                    </div>
-                    <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0)); ?>">
-                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="new_content_file_asset_download_policy_set_ids"><?php echo sr_e('회원 그룹별 적용'); ?></label>
+                <label class="form-label" for="content_admin_contents_download_file_links_select">연결 파일</label>
                 <div class="admin-form-field admin-policy-set-field">
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('new_content_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($newContentFileAssetSettings['file_asset_download_group_policies_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#content_admin_contents_new_content_file_asset_amounts_grouped', $pdo); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <?php if ($downloadFiles !== []) { ?>
+                        <?php echo sr_content_download_file_link_badge_select_html('content_admin_contents_download_file_links', 'content_file_link_ids', $downloadFiles, array_keys($linkedDownloadFileIds), $pdo); ?>
+                        <p class="admin-form-help">미리 등록한 사용 상태 파일만 연결할 수 있습니다. 파일 제목, 숨김, 다운로드 과금 정책은 파일 관리 화면에서 처리합니다.</p>
+                    <?php } else { ?>
+                        <p class="admin-form-help">연결할 다운로드 파일이 없습니다. 파일 관리 화면에서 파일을 먼저 등록하세요.</p>
+                    <?php } ?>
                 </div>
             </div>
         </section>

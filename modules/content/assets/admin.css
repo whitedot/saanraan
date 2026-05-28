@@ -23,6 +23,12 @@
 .admin-content-group-list .admin-content-group-table th,.admin-content-group-list .admin-content-group-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-content-group-list .admin-content-group-table .admin-table-actions-cell{overflow:visible}
 .admin-content-group-list .admin-content-group-table th:nth-child(2),.admin-content-group-list .admin-content-group-table th:nth-child(3),.admin-content-group-list .admin-content-group-table th:nth-child(4),.admin-content-group-list .admin-content-group-table th:nth-child(5),.admin-content-group-list .admin-content-group-table th:nth-child(6),.admin-content-group-list .admin-content-group-table th:nth-child(7){width:1%}
+.admin-content-download-files .admin-content-download-file-filter{max-width:100%;width:100%}
+.admin-content-download-files .admin-content-download-file-search-grid{align-items:end;grid-template-columns:fit-content(9rem) minmax(16rem,1fr) max-content;justify-content:stretch;width:100%;max-width:100%}
+.admin-content-download-files .admin-content-download-file-filter .admin-filter-field{min-width:0}
+.admin-content-download-files .admin-content-download-file-filter-status .admin-filter-input{width:9rem}
+.admin-content-download-files .admin-content-download-file-filter-keyword .admin-filter-input{width:100%;max-width:100%}
+.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{justify-content:center;width:auto}
 .admin-content-file-charge-control{width:100%}
 .admin-content-file-charge-main{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);width:100%}
 .admin-content-file-charge-main>.admin-form-check{min-height:calc(var(--spacing) * 9)}
@@ -35,14 +41,16 @@
 .admin-asset-amount-field span{font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--admin-muted-text)}
 
 @media (max-width:1023px){
-    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3){grid-column:1 / -1}
-    .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
+    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3),.admin-content-download-files .admin-content-download-file-filter-keyword{grid-column:1 / -1}
+    .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
+    .admin-content-download-files .admin-content-download-file-filter,.admin-content-download-files .admin-content-download-file-search-grid{width:100%}
+    .admin-content-download-files .admin-content-download-file-filter-status .admin-filter-input,.admin-content-download-files .admin-content-download-file-filter-keyword .admin-filter-input{width:100%}
 }
 
 @media (max-width:767px){
-    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid{grid-template-columns:1fr}
-    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3){grid-column:auto}
+    .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:1fr}
+    .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3),.admin-content-download-files .admin-content-download-file-filter-keyword{grid-column:auto}
     .admin-content-list .admin-content-table :is(th,td):nth-child(2),
     .admin-content-list .admin-content-table :is(th,td):nth-child(3),
     .admin-content-list .admin-content-table :is(th,td):nth-child(5),

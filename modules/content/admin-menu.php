@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '다운로드 파일 관리',
+            'path' => '/admin/content/files',
+            'order' => 25,
+        ],
+        [
             'label' => '환경설정',
             'path' => '/admin/content/settings',
             'order' => 30,
