@@ -1,13 +1,25 @@
 <?php
 
 $couponAdminPage = isset($couponAdminPage) ? (string) $couponAdminPage : 'definitions';
-if (!in_array($couponAdminPage, ['definitions', 'issues'], true)) {
+if (!in_array($couponAdminPage, ['definitions', 'issues', 'redemptions'], true)) {
     $couponAdminPage = 'definitions';
 }
-$adminPageTitle = $couponAdminPage === 'issues' ? '지급 내역' : '쿠폰 관리';
-$adminPageSubtitle = $couponAdminPage === 'issues'
-    ? '쿠폰 지급 내역을 확인하고 상태를 관리합니다.'
-    : '지급할 쿠폰 종류를 관리합니다.';
+$couponAdminPageMeta = [
+    'definitions' => [
+        'title' => '쿠폰 관리',
+        'subtitle' => '지급할 쿠폰 종류를 관리합니다.',
+    ],
+    'issues' => [
+        'title' => '지급 내역',
+        'subtitle' => '쿠폰 지급 내역을 확인하고 상태를 관리합니다.',
+    ],
+    'redemptions' => [
+        'title' => '사용 내역',
+        'subtitle' => '쿠폰 사용 내역을 확인하고 환불을 관리합니다.',
+    ],
+];
+$adminPageTitle = $couponAdminPageMeta[$couponAdminPage]['title'];
+$adminPageSubtitle = $couponAdminPageMeta[$couponAdminPage]['subtitle'];
 $targetTypes = sr_coupon_target_types($pdo);
 $couponSearchableTargetTypes = array_filter($targetTypes, static function (string $targetType): bool {
     return $targetType !== 'all';
@@ -407,7 +419,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
 </section>
+<?php } ?>
 
+<?php if ($couponAdminPage === 'redemptions') { ?>
 <section class="admin-card card">
     <h2>최근 사용 내역</h2>
     <table class="table">
@@ -478,7 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundModalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="modal-content ui-form-theme">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="refund_redemption">
                 <input type="hidden" name="redemption_id" value="<?php echo sr_e((string) $redemptionId); ?>">

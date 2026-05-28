@@ -15,9 +15,16 @@ $couponAdminPage = 'definitions';
 $requestPath = sr_request_path();
 if ($requestPath === '/admin/coupons/issues') {
     $couponAdminPage = 'issues';
+} elseif ($requestPath === '/admin/coupons/redemptions') {
+    $couponAdminPage = 'redemptions';
 }
 $account = sr_member_require_login($pdo);
-$couponPermissionPath = $couponAdminPage === 'issues' ? '/admin/coupons/issues' : '/admin/coupons';
+$couponPermissionPath = '/admin/coupons';
+if ($couponAdminPage === 'issues') {
+    $couponPermissionPath = '/admin/coupons/issues';
+} elseif ($couponAdminPage === 'redemptions') {
+    $couponPermissionPath = '/admin/coupons/redemptions';
+}
 sr_admin_require_permission($pdo, (int) $account['id'], $couponPermissionPath, 'view');
 $couponCreateModalOpen = false;
 $couponIssueModalOpenDefinitionId = 0;
@@ -129,7 +136,7 @@ if (sr_request_method() === 'POST') {
             $notice = '지급한 쿠폰 상태를 변경했습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons/issues');
-        } elseif ($intent === 'refund_redemption' && $couponAdminPage === 'issues') {
+        } elseif ($intent === 'refund_redemption' && $couponAdminPage === 'redemptions') {
             $redemptionId = (int) sr_post_string('redemption_id', 20);
             $refundNote = sr_post_string('refund_note', 255);
             $refundResult = sr_coupon_refund_redemption($pdo, $redemptionId, (int) $account['id'], $refundNote);
@@ -147,7 +154,7 @@ if (sr_request_method() === 'POST') {
             ]);
             $notice = '쿠폰 사용 내역을 수동 환불했습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
-            sr_redirect('/admin/coupons/issues');
+            sr_redirect('/admin/coupons/redemptions');
         } else {
             $errors[] = '요청한 작업을 처리할 수 없습니다.';
         }
@@ -158,8 +165,8 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$definitions = sr_coupon_definitions($pdo, 100);
-$memberGroups = sr_coupon_issue_member_groups($pdo);
+$definitions = $couponAdminPage === 'definitions' ? sr_coupon_definitions($pdo, 100) : [];
+$memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_groups($pdo) : [];
 $issues = [];
 $redemptions = [];
 if ($couponAdminPage === 'issues') {
@@ -174,6 +181,7 @@ if ($couponAdminPage === 'issues') {
         $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
         $issues[] = $row;
     }
+} elseif ($couponAdminPage === 'redemptions') {
     $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, 100);
 }
 

@@ -14,5 +14,10 @@ return [
             'path' => '/admin/coupons/issues',
             'order' => 20,
         ],
+        [
+            'label' => '사용 내역',
+            'path' => '/admin/coupons/redemptions',
+            'order' => 30,
+        ],
     ],
 ];

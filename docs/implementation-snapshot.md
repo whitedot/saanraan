@@ -50,7 +50,7 @@
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` |
-| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/coupons/issues` |
+| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 알림/개인정보 | `/account/notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
 
