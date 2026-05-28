@@ -173,13 +173,11 @@ if ($accountIdFilter <= 0 && $submittedAccountId > 0) {
 $selectedAccount = null;
 $selectedBalance = null;
 if ($accountIdFilter > 0) {
-    $stmt = $pdo->prepare('SELECT id, email, display_name, status FROM sr_member_accounts WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $accountIdFilter]);
-    $row = $stmt->fetch();
-    if (is_array($row)) {
-        $selectedAccount = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
-        $accountIdentifierFilter = (string) $selectedAccount['account_public_hash'];
-        $selectedBalance = sr_point_balance($pdo, $accountIdFilter);
+    $selectedAccountData = sr_admin_asset_selected_account($pdo, $runtimeConfig, $accountIdFilter, 'sr_point_balance');
+    if (is_array($selectedAccountData['account'])) {
+        $selectedAccount = $selectedAccountData['account'];
+        $accountIdentifierFilter = (string) $selectedAccountData['identifier'];
+        $selectedBalance = (int) $selectedAccountData['balance'];
     }
 }
 
@@ -187,72 +185,16 @@ $balances = [];
 $balanceSort = sr_admin_sort_from_request(sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort());
 $balancePagination = sr_admin_pagination_from_total($pdo, 0);
 if ($pointAdminPage === 'balances') {
-    $stmt = $pdo->query(
-        'SELECT COUNT(*) AS count_value
-         FROM sr_point_balances b
-         INNER JOIN sr_member_accounts a ON a.id = b.account_id'
-    );
-    $balanceCountRow = $stmt->fetch();
-    $balancePagination = sr_admin_pagination_from_total($pdo, is_array($balanceCountRow) ? (int) ($balanceCountRow['count_value'] ?? 0) : 0);
-    $stmt = $pdo->query(
-        'SELECT b.account_id, b.balance, b.updated_at, a.email, a.display_name, a.status
-         FROM sr_point_balances b
-         INNER JOIN sr_member_accounts a ON a.id = b.account_id
-         ' . sr_admin_sort_order_sql(sr_admin_asset_balance_sort_options(), $balanceSort, sr_admin_asset_balance_default_sort()) . '
-         LIMIT ' . (int) $balancePagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($balancePagination)
-    );
-    foreach ($stmt->fetchAll() as $row) {
-        $balances[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
-    }
+    $balancePagination = sr_admin_pagination_from_total($pdo, sr_admin_asset_balance_count($pdo, 'sr_point_balances'));
+    $balances = sr_admin_asset_balance_rows($pdo, $runtimeConfig, 'sr_point_balances', $balanceSort, $balancePagination);
 }
 
 $transactions = [];
 $transactionSort = sr_admin_sort_from_request(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort());
 $transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($pointAdminPage === 'transactions') {
-    if ($accountIdFilter > 0) {
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*) AS count_value
-             FROM sr_point_transactions t
-             INNER JOIN sr_member_accounts a ON a.id = t.account_id
-             WHERE t.account_id = :account_id'
-        );
-        $stmt->execute(['account_id' => $accountIdFilter]);
-        $transactionCountRow = $stmt->fetch();
-        $transactionPagination = sr_admin_pagination_from_total($pdo, is_array($transactionCountRow) ? (int) ($transactionCountRow['count_value'] ?? 0) : 0);
-        $stmt = $pdo->prepare(
-            'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
-                    a.email, a.display_name
-             FROM sr_point_transactions t
-             INNER JOIN sr_member_accounts a ON a.id = t.account_id
-             WHERE t.account_id = :account_id
-             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $transactionSort, sr_admin_asset_transaction_default_sort()) . '
-             LIMIT :limit_value OFFSET :offset_value'
-        );
-        $stmt->bindValue('account_id', $accountIdFilter, PDO::PARAM_INT);
-        $stmt->bindValue('limit_value', (int) $transactionPagination['per_page'], PDO::PARAM_INT);
-        $stmt->bindValue('offset_value', sr_admin_pagination_offset($transactionPagination), PDO::PARAM_INT);
-        $stmt->execute();
-    } else {
-        $stmt = $pdo->query(
-            'SELECT COUNT(*) AS count_value
-             FROM sr_point_transactions t
-             INNER JOIN sr_member_accounts a ON a.id = t.account_id'
-        );
-        $transactionCountRow = $stmt->fetch();
-        $transactionPagination = sr_admin_pagination_from_total($pdo, is_array($transactionCountRow) ? (int) ($transactionCountRow['count_value'] ?? 0) : 0);
-        $stmt = $pdo->query(
-            'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.created_at,
-                    a.email, a.display_name
-             FROM sr_point_transactions t
-             INNER JOIN sr_member_accounts a ON a.id = t.account_id
-             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $transactionSort, sr_admin_asset_transaction_default_sort()) . '
-             LIMIT ' . (int) $transactionPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($transactionPagination)
-        );
-    }
-    foreach ($stmt->fetchAll() as $row) {
-        $transactions[] = sr_admin_member_row_with_public_hash($runtimeConfig, $row);
-    }
+    $transactionPagination = sr_admin_pagination_from_total($pdo, sr_admin_asset_transaction_count($pdo, 'sr_point_transactions', $accountIdFilter));
+    $transactions = sr_admin_asset_transaction_rows($pdo, $runtimeConfig, 'sr_point_transactions', $transactionSort, $transactionPagination, $accountIdFilter);
 }
 
 include SR_ROOT . '/modules/point/views/admin-points.php';
