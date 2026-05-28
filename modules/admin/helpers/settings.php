@@ -182,8 +182,8 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'site_menu_item' => '사이트 메뉴 항목',
             'notification' => '알림',
             'notification_delivery' => '이메일 발송 작업',
-            'coupon_definition' => '쿠폰 정의',
-            'coupon_issue' => '발급 쿠폰',
+            'coupon_definition' => '쿠폰 종류',
+            'coupon_issue' => '지급 쿠폰',
         ],
         'boolean' => [
             '0' => '아니오',

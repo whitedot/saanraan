@@ -988,6 +988,7 @@ return [
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
 | `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
+| `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면과 저장 검증 | 모듈별 쿠폰 사용처 후보 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
@@ -998,7 +999,7 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php` | 없음 |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `coupon-targets.php` | 없음 |
 | `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
@@ -1006,8 +1007,8 @@ return [
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | `coupon-targets.php`, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 | `ckeditor` | `paths.php`, `admin-menu.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:
@@ -1166,13 +1167,13 @@ return [
 
 커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/적립금/예치금 증감은 활성 자산 모듈 helper를 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시한다. 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 여러 자산을 함께 선택할 수 있으며, 자산 선택과 자산별 금액을 같은 입력 묶음으로 보여주고 선택한 자산마다 금액을 따로 저장해 각 자산 잔액을 개별 확인한다. 기존 단일 금액은 호환용 합계로 유지한다. 게시글/댓글 적립은 단일 자산 지급으로 유지한다. 게시판의 상태, 스킨, 접근, 레벨 활동 점수, 첨부, 배너, 팝업레이어, 게시글 적립, 댓글 적립, 글쓰기 차감, 댓글 차감, 유료 열람, 첨부 다운로드 차감은 현재 게시판에 저장하며, 운영자가 선택한 `그룹`/`전체` 적용 옵션은 현재 편집값을 같은 그룹 또는 전체 게시판에 한 번 복사한다. 게시판 그룹 생성 화면은 전역 에디터, 레벨 점수, 첨부, 파일, 회원 자산 기본값으로 시작하고, 저장 후에는 게시판 그룹 설정값으로 고정한다. 게시판 생성 화면은 저장 시점의 게시판 값을 자체 설정으로 저장한다. 전역 설정이나 게시판 그룹 설정 변경은 기존 게시판 값을 바꾸거나 기존 게시판의 유효값을 다시 계산하지 않는다. 회원 자산 항목의 사용 여부, 자산, 금액, 과금 방식은 같은 항목 설정 묶음으로 저장한다. 커뮤니티 자동 회원 그룹 규칙은 전체 활동, 특정 게시판, 특정 게시판 그룹 기준을 제공하고, 게시판과 게시판 그룹 대상은 관리자 화면에서 선택 셀렉트로 고른다. 별도 적용값 미리보기 문구는 표시하지 않는다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 원장 기록에서는 `sr_community_asset_logs.dedupe_key`로 처리하되, 최초 1회 접근권 판정은 `sr_community_access_entitlements`를 우선 사용한다. 계정별 자산 로그와 접근권 기록은 커뮤니티 모듈의 `privacy-export.php`에 포함하고, 회원 탈퇴/익명화 시 접근권의 `account_id`와 원천 참조를 비운다.
 
-쿠폰은 포인트/적립금/예치금과 다른 발급형 회원 자산이므로 `coupon` 모듈이 정의, 회원별 발급, 사용 이력을 독립 소유한다. 현재 구현된 런타임 사용은 열람권 성격의 `access` 쿠폰이다. 콘텐츠 유료 열람은 `target_type=content`, 커뮤니티 게시글 열람은 `target_type=community_post`, 게시판 열람권은 `target_type=community_board` 쿠폰을 먼저 확인하고, 사용할 쿠폰이 없을 때 기존 금액성 자산 차감으로 내려간다. 쿠폰 사용은 `sr_coupon_redemptions.dedupe_key`로 중복 사용을 막고, 회원 탈퇴 시 활성 쿠폰은 환급 정책에 따라 `withdrawn_expired` 또는 `refund_requested` 상태로 전환한다. 쿠폰 발급/사용 내역은 쿠폰·이용권 모듈의 `privacy-export.php`에 포함한다. 현재 관리자 화면은 쿠폰 정의와 최근 발급 관리를 우선 제공하며, 사용 로그 전용 조회 화면은 1.0 전 보완 대상으로 둔다.
+쿠폰은 포인트/적립금/예치금과 다른 지급형 회원 자산이므로 `coupon` 모듈이 쿠폰 종류, 회원별 지급, 사용 이력을 독립 소유한다. 현재 구현된 런타임 사용은 열람권 성격의 `access` 쿠폰이다. 쿠폰 사용처 후보는 소비 모듈이 `coupon-targets.php` 계약으로 제공하고, 쿠폰 모듈은 활성 모듈의 계약만 읽어 관리자 선택지와 저장 검증에 사용한다. 콘텐츠 유료 열람은 `target_type=content`, 커뮤니티 게시글 열람은 `target_type=community_post`, 게시판 열람권은 `target_type=community_board` 쿠폰을 먼저 확인하고, 사용할 쿠폰이 없을 때 기존 금액성 자산 차감으로 내려간다. 쿠폰 사용은 `sr_coupon_redemptions.dedupe_key`로 중복 사용을 막고, 회원 탈퇴 시 활성 쿠폰은 환급 정책에 따라 `withdrawn_expired` 또는 `refund_requested` 상태로 전환한다. 쿠폰 지급/사용 내역은 쿠폰·이용권 모듈의 `privacy-export.php`에 포함한다. 관리자 화면은 목록(`/admin/coupons`), 쿠폰 종류 만들기(`/admin/coupons/new`), 회원 지급(`/admin/coupons/issue`)을 별도 페이지로 제공하며, 사용 로그 전용 조회 화면은 1.0 전 보완 대상으로 둔다.
 
-정액 할인, 정률 할인, 특정 주문/상품 금액 차감권처럼 금액 계산이 필요한 쿠폰은 쿠폰 모듈 단독 선행 구현 대상이 아니다. 실제 주문, 결제, 콘텐츠 구매, 커뮤니티 유료 기능처럼 적용 도메인이 생길 때 해당 모듈과 함께 계약을 정의한다. 적용 도메인이 최소 금액, 과세/비과세, 배송비, 부분 취소, 환불, 중복 할인 같은 정책을 소유하고, 쿠폰 모듈은 정의/발급/사용 이력과 중복 사용 방지처럼 쿠폰 자체의 생명주기를 맡는다. 금액형 쿠폰을 구현하더라도 포인트/적립금/예치금 원장에 합쳐서 잔액처럼 관리하지 않고, 사용 결과는 `sr_coupon_redemptions` 또는 쿠폰 모듈 소유의 확장 사용 이력 테이블에 기록한다. 소비 도메인은 쿠폰 helper를 통해 계산/사용을 요청하고, 자기 도메인 로그에는 적용된 쿠폰 사용 ID와 할인 결과만 참조한다.
+정액 할인, 정률 할인, 특정 주문/상품 금액 차감권처럼 금액 계산이 필요한 쿠폰은 쿠폰 모듈 단독 선행 구현 대상이 아니다. 실제 주문, 결제, 콘텐츠 구매, 커뮤니티 유료 기능처럼 적용 도메인이 생길 때 해당 모듈과 함께 계약을 정의한다. 적용 도메인이 최소 금액, 과세/비과세, 배송비, 부분 취소, 환불, 중복 할인 같은 정책을 소유하고, 쿠폰 모듈은 쿠폰 종류/지급/사용 이력과 중복 사용 방지처럼 쿠폰 자체의 생명주기를 맡는다. 금액형 쿠폰을 구현하더라도 포인트/적립금/예치금 원장에 합쳐서 잔액처럼 관리하지 않고, 사용 결과는 `sr_coupon_redemptions` 또는 쿠폰 모듈 소유의 확장 사용 이력 테이블에 기록한다. 소비 도메인은 쿠폰 helper를 통해 계산/사용을 요청하고, 자기 도메인 로그에는 적용된 쿠폰 사용 ID와 할인 결과만 참조한다.
 
 회원 탈퇴는 member 모듈이 조정하되 잔액 처리는 각 자산 모듈의 원장 helper를 호출한다. 탈퇴 화면은 포인트/적립금/예치금 잔액이 남아 있을 때만 남은 자산 처리 섹션을 표시한다. 포인트와 적립금은 `member.withdrawal` 참조의 `expire` 거래로 0 처리하고, 예치금은 환불 은행/예금주/계좌번호를 입력받은 뒤 `member.withdrawal` 참조의 `withdraw` 거래로 0 처리한다. 이 자산 원장 처리는 프로필 삭제, 세션 폐기, 동의 철회, 계정 익명화와 같은 탈퇴 트랜잭션 안에서 수행한다.
 
-포인트/적립금/예치금 원장 helper와 쿠폰·이용권 발급/사용/상태 변경 helper는 거래 또는 권리 상태 변경 성공 후 알림 모듈이 활성화되어 있으면 `sr_notification_create_account_event()`를 통해 회원 사이트 알림을 만든다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 자산 처리를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` 화면을 사용한다.
+포인트/적립금/예치금 원장 helper와 쿠폰·이용권 지급/사용/상태 변경 helper는 거래 또는 권리 상태 변경 성공 후 알림 모듈이 활성화되어 있으면 `sr_notification_create_account_event()`를 통해 회원 사이트 알림을 만든다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 자산 처리를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` 화면을 사용한다.
 
 커뮤니티의 게시판 읽기/쓰기/댓글과 쪽지 발송에서 회원 그룹과 최소 레벨이 함께 설정된 경우 두 조건을 모두 통과해야 허용한다. 회원 그룹만 설정된 조건은 회원 그룹만, 최소 레벨만 설정된 조건은 최소 레벨만 확인한다. 게시판과 게시판 그룹에서 선택한 회원 그룹에게만 권한을 부여하려면 해당 읽기/쓰기/댓글 정책을 그룹으로 선택해야 한다. 회원 그룹이 비어 있으면 회원 그룹 제한을 적용하지 않고, 최소 레벨이 있으면 레벨 조건만 확인한다. 게시판과 게시판 그룹 저장 시 쓰기/댓글 회원 그룹은 읽기 회원 그룹의 하위 집합으로 저장한다. 쓰기/댓글에서 선택하면 읽기에도 포함하고, 읽기에서 제거하면 쓰기/댓글에서도 제거한다. 커뮤니티 활동 점수는 게시글과 댓글을 게시판별로 집계한 뒤 각 게시판의 유효 게시글 점수와 댓글 점수를 곱해서 합산한다. 커뮤니티 활동으로 레벨이 바뀔 수 있는 게시글/댓글 생성, 삭제, 상태 변경 흐름은 레벨을 먼저 재계산한 뒤 커뮤니티 자동 회원 그룹 규칙을 평가해야 `community.level_at_least` 규칙이 최신 레벨을 기준으로 동작한다. 레벨 자동 재계산을 사용하지 않을 때 관리자는 멤버 관리 목록에서 활성 멤버를 선택한 뒤 상단 일괄 작업으로 레벨을 직접 변경할 수 있으며, 목록의 레벨 열은 현재 레벨 텍스트만 표시한다.
 
@@ -1206,7 +1207,7 @@ return [
 
 ## 19. 개인정보 사본 제공
 
-`privacy` 모듈은 개인정보 처리 요청과 개인정보 사본 제공 흐름을 조정한다. 회원 계정, 인증, 동의처럼 `member`가 소유한 데이터도 `modules/member/privacy-export.php`로 제공하고, 게시판, 커머스, 예약, 알림, 회원 자산 같은 확장 모듈의 개인정보도 각 모듈이 `privacy-export.php`로 제공한다. 포인트/적립금/예치금 원장, 쿠폰 발급/사용 로그, 콘텐츠/커뮤니티 계정별 자산 처리 로그와 접근권 테이블처럼 `account_id`에 연결되는 운영 기록은 개인정보 사본 제공 대상인지 먼저 검토한다. 접근권 테이블은 서비스 이용 상태이고, 거래 원장과 쿠폰 사용 로그는 증빙 기록이므로 개인정보처리방침의 보유기간을 서로 다르게 둘 수 있다.
+`privacy` 모듈은 개인정보 처리 요청과 개인정보 사본 제공 흐름을 조정한다. 회원 계정, 인증, 동의처럼 `member`가 소유한 데이터도 `modules/member/privacy-export.php`로 제공하고, 게시판, 커머스, 예약, 알림, 회원 자산 같은 확장 모듈의 개인정보도 각 모듈이 `privacy-export.php`로 제공한다. 포인트/적립금/예치금 원장, 쿠폰 지급/사용 로그, 콘텐츠/커뮤니티 계정별 자산 처리 로그와 접근권 테이블처럼 `account_id`에 연결되는 운영 기록은 개인정보 사본 제공 대상인지 먼저 검토한다. 접근권 테이블은 서비스 이용 상태이고, 거래 원장과 쿠폰 사용 로그는 증빙 기록이므로 개인정보처리방침의 보유기간을 서로 다르게 둘 수 있다.
 
 ```php
 <?php

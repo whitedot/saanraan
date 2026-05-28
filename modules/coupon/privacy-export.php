@@ -2,7 +2,7 @@
 
 return [
     'coupon_issues' => [
-        'label' => '쿠폰 발급 내역',
+        'label' => '쿠폰 지급 내역',
         'query' => "SELECT i.id, i.status, i.issued_reason, i.issued_at, i.expires_at, i.used_count, d.coupon_key, d.title, d.target_type, d.target_id
                     FROM sr_coupon_issues i
                     INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id

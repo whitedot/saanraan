@@ -33,6 +33,7 @@ return [
             'member-group-rules.php',
             'dashboard.php',
             'layout-options.php',
+            'coupon-targets.php',
         ],
     ],
     'service_domain' => [

@@ -10,8 +10,16 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/coupons', 'view');
 
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
+$couponAdminPage = 'list';
+$requestPath = sr_request_path();
+if ($requestPath === '/admin/coupons/new') {
+    $couponAdminPage = 'create';
+} elseif ($requestPath === '/admin/coupons/issue') {
+    $couponAdminPage = 'issue';
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -19,7 +27,7 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
     try {
-        if ($intent === 'create_definition') {
+        if ($intent === 'create_definition' && $couponAdminPage === 'create') {
             $definitionId = sr_coupon_create_definition($pdo, [
                 'coupon_key' => sr_post_string('coupon_key', 60),
                 'title' => sr_post_string('title', 120),
@@ -40,12 +48,14 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Coupon definition created.',
             ]);
-            $notice = '쿠폰 정의를 등록했습니다.';
-        } elseif ($intent === 'issue_coupon') {
+            $notice = '쿠폰 종류를 만들었습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/coupons');
+        } elseif ($intent === 'issue_coupon' && $couponAdminPage === 'issue') {
             $targetAccountIdentifier = sr_post_string('account_identifier', 80);
             $targetAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $targetAccountIdentifier);
             if ($targetAccountId <= 0) {
-                throw new InvalidArgumentException('발급 대상 회원을 선택해 주세요.');
+                throw new InvalidArgumentException('쿠폰을 지급할 회원을 선택해 주세요.');
             }
             $issueId = sr_coupon_issue_to_account(
                 $pdo,
@@ -67,8 +77,10 @@ if (sr_request_method() === 'POST') {
                     'coupon_issue_id' => $issueId,
                 ],
             ]);
-            $notice = '쿠폰을 발급했습니다.';
-        } elseif ($intent === 'set_definition_status') {
+            $notice = '쿠폰을 지급했습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/coupons');
+        } elseif ($intent === 'set_definition_status' && $couponAdminPage === 'list') {
             $definitionId = (int) sr_post_string('definition_id', 20);
             $status = sr_post_string('status', 30);
             sr_coupon_update_definition_status($pdo, $definitionId, $status);
@@ -82,8 +94,10 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Coupon definition status updated.',
                 'metadata' => ['status' => $status],
             ]);
-            $notice = '쿠폰 정의 상태를 변경했습니다.';
-        } elseif ($intent === 'set_issue_status') {
+            $notice = '쿠폰 종류의 사용 상태를 변경했습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/coupons');
+        } elseif ($intent === 'set_issue_status' && $couponAdminPage === 'list') {
             $issueId = (int) sr_post_string('issue_id', 20);
             $status = sr_post_string('status', 30);
             sr_coupon_update_issue_status($pdo, $issueId, $status, (int) $account['id']);
@@ -97,7 +111,9 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Coupon issue status updated.',
                 'metadata' => ['status' => $status],
             ]);
-            $notice = '발급 쿠폰 상태를 변경했습니다.';
+            $notice = '지급한 쿠폰 상태를 변경했습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/coupons');
         } else {
             $errors[] = '요청한 작업을 처리할 수 없습니다.';
         }
@@ -116,6 +132,7 @@ $stmt = $pdo->query(
      LIMIT 100'
 );
 foreach ($stmt->fetchAll() as $row) {
+    $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
     $issues[] = $row;
 }
 

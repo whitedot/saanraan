@@ -35,6 +35,7 @@ return [
             'privacy-cleanup.php',
             'sitemap.php',
             'member-group-rules.php',
+            'coupon-targets.php',
         ],
     ],
 ];

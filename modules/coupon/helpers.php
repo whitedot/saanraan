@@ -32,15 +32,38 @@ function sr_coupon_issue_statuses(): array
     return ['active', 'used', 'expired', 'revoked', 'withdrawn_expired', 'refund_requested', 'refunded'];
 }
 
-function sr_coupon_target_types(): array
+function sr_coupon_target_types(?PDO $pdo = null): array
 {
-    return [
+    $targetTypes = [
         'all' => '전체',
-        'content' => '콘텐츠',
-        'community_board' => '커뮤니티 게시판',
-        'community_post' => '커뮤니티 게시글',
-        'shop_product' => '쇼핑몰 상품',
     ];
+
+    if ($pdo === null) {
+        return $targetTypes;
+    }
+
+    foreach (sr_enabled_module_contract_files($pdo, 'coupon-targets.php', ['coupon']) as $moduleKey => $file) {
+        $contractTargets = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contractTargets)) {
+            continue;
+        }
+
+        foreach ($contractTargets as $target) {
+            if (!is_array($target)) {
+                continue;
+            }
+
+            $targetType = (string) ($target['target_type'] ?? '');
+            $label = sr_coupon_clean_text((string) ($target['label'] ?? ''), 80);
+            if ($targetType === '' || $label === '' || preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetType) !== 1) {
+                continue;
+            }
+
+            $targetTypes[$targetType] = $label;
+        }
+    }
+
+    return $targetTypes;
 }
 
 function sr_coupon_refundable_policies(): array
@@ -103,7 +126,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     $description = sr_coupon_clean_text((string) ($data['description'] ?? ''), 1000);
     $status = in_array((string) ($data['status'] ?? 'active'), sr_coupon_statuses(), true) ? (string) $data['status'] : 'active';
     $couponType = sr_coupon_clean_key((string) ($data['coupon_type'] ?? 'access'), 40);
-    $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types()) ? (string) $data['target_type'] : 'all';
+    $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types($pdo)) ? (string) $data['target_type'] : 'all';
     $targetId = sr_coupon_clean_text((string) ($data['target_id'] ?? ''), 80);
     $refundablePolicy = array_key_exists((string) ($data['refundable_policy'] ?? 'none'), sr_coupon_refundable_policies()) ? (string) $data['refundable_policy'] : 'none';
     $maxUsesValue = $data['max_uses_per_issue'] ?? '1';
@@ -160,7 +183,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
 function sr_coupon_update_definition_status(PDO $pdo, int $definitionId, string $status): void
 {
     if ($definitionId <= 0 || !in_array($status, sr_coupon_statuses(), true)) {
-        throw new InvalidArgumentException('Coupon status is invalid.');
+        throw new InvalidArgumentException('쿠폰 종류의 상태가 올바르지 않습니다.');
     }
 
     $stmt = $pdo->prepare(
@@ -179,12 +202,12 @@ function sr_coupon_update_definition_status(PDO $pdo, int $definitionId, string 
 function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId, string $reason = '', ?int $issuedByAccountId = null, ?string $expiresAt = null): int
 {
     if ($definitionId <= 0 || $accountId <= 0) {
-        throw new InvalidArgumentException('Coupon definition and account are required.');
+        throw new InvalidArgumentException('쿠폰 종류와 지급할 회원을 선택해 주세요.');
     }
 
     $definition = sr_coupon_definition_by_id($pdo, $definitionId);
     if (!is_array($definition) || (string) $definition['status'] !== 'active') {
-        throw new InvalidArgumentException('Coupon definition is not active.');
+        throw new InvalidArgumentException('사용 중인 쿠폰 종류만 지급할 수 있습니다.');
     }
 
     $now = sr_now();
@@ -241,7 +264,7 @@ function sr_coupon_issue_status_label(string $status): string
         'active' => '사용 가능',
         'used' => '사용 완료',
         'expired' => '만료',
-        'revoked' => '회수',
+        'revoked' => '지급 취소',
         'withdrawn_expired' => '탈퇴 만료',
         'refund_requested' => '환급 요청',
         'refunded' => '환급 완료',

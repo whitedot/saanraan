@@ -538,6 +538,7 @@ function sr_module_known_contract_files(): array
         'dashboard.php',
         'layout-options.php',
         'asset-exchange.php',
+        'coupon-targets.php',
     ];
 }
 

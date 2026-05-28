@@ -4,7 +4,7 @@ return [
     'name' => '쿠폰·이용권',
     'version' => '2026.05.003',
     'type' => 'module',
-    'description' => '회원별 권리성 쿠폰·이용권 정의, 발급, 사용 로그를 관리합니다.',
+    'description' => '회원별 쿠폰·이용권 종류, 지급, 사용 내역을 관리합니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',
@@ -26,6 +26,9 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+        ],
+        'consumes' => [
+            'coupon-targets.php',
         ],
     ],
 ];

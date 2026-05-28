@@ -24,7 +24,7 @@
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
-| 회원 | `coupon` | 쿠폰·이용권 정의, 발급, 사용 이력 |
+| 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
 | 사이트 | `logo_manager` | 로고 자산과 기간별 대체 |
 | 사이트 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
@@ -50,7 +50,7 @@
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` |
-| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons` |
+| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/coupons/new`, `/admin/coupons/issue` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 알림/개인정보 | `/account/notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
 
