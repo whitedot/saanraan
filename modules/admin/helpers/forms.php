@@ -73,7 +73,7 @@ function sr_admin_checkbox_list_html(string $id, string $name, array $options, a
     return $html . '</div>';
 }
 
-function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택'): string
+function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택', string $rootAttributes = ''): string
 {
     $selectedMap = [];
     foreach ($selectedValues as $selectedValue) {
@@ -82,7 +82,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
 
     $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
     $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_select_badge_list';
-    $html = '<div id="' . sr_e($id) . '" class="admin-select-badge-list" data-admin-select-badge-list>';
+    $html = '<div id="' . sr_e($id) . '" class="admin-select-badge-list" data-admin-select-badge-list' . $rootAttributes . '>';
 
     if ($options === []) {
         $html .= '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span>';
@@ -99,7 +99,16 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
 
         $label = is_array($option) ? (string) ($option['label'] ?? $value) : (string) $option;
         $summary = is_array($option) ? (string) ($option['summary'] ?? '') : '';
-        $html .= '<option value="' . sr_e($value) . '" data-admin-select-badge-label="' . sr_e($label) . '" data-admin-select-badge-summary="' . sr_e($summary) . '">'
+        $summaryAttributes = '';
+        if (is_array($option) && is_array($option['summaries'] ?? null)) {
+            foreach ($option['summaries'] as $summaryKey => $summaryValue) {
+                $summaryKey = preg_replace('/[^a-zA-Z0-9_-]+/', '', (string) $summaryKey) ?? '';
+                if ($summaryKey !== '') {
+                    $summaryAttributes .= ' data-admin-select-badge-summary-' . sr_e($summaryKey) . '="' . sr_e((string) $summaryValue) . '"';
+                }
+            }
+        }
+        $html .= '<option value="' . sr_e($value) . '" data-admin-select-badge-label="' . sr_e($label) . '" data-admin-select-badge-summary="' . sr_e($summary) . '"' . $summaryAttributes . '>'
             . sr_e($label)
             . '</option>';
     }
@@ -126,8 +135,20 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
     function optionLabel(option) {
         return option ? (option.getAttribute("data-admin-select-badge-label") || option.textContent || "").replace(/\s+/g, " ").trim() : "";
     }
-    function optionSummary(option) {
-        return option ? (option.getAttribute("data-admin-select-badge-summary") || "") : "";
+    function optionSummary(option, root) {
+        if (!option) {
+            return "";
+        }
+        var sourceSelector = root ? (root.getAttribute("data-admin-select-badge-summary-source") || "") : "";
+        var source = sourceSelector ? document.querySelector(sourceSelector) : null;
+        var sourceValue = source && source.value ? String(source.value).replace(/[^a-zA-Z0-9_-]/g, "") : "";
+        if (sourceValue) {
+            var sourceSummary = option.getAttribute("data-admin-select-badge-summary-" + sourceValue);
+            if (sourceSummary !== null) {
+                return sourceSummary || "";
+            }
+        }
+        return option.getAttribute("data-admin-select-badge-summary") || "";
     }
     function selectedValues(root) {
         var values = {};
@@ -138,11 +159,46 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         });
         return values;
     }
+    function optionByValue(select, value) {
+        if (!select) {
+            return null;
+        }
+        for (var index = 0; index < select.options.length; index += 1) {
+            if (select.options[index].value === value) {
+                return select.options[index];
+            }
+        }
+        return null;
+    }
+    function syncBadgeSummaries(root) {
+        var select = root.querySelector("[data-admin-select-badge-list-select]");
+        if (!select) {
+            return;
+        }
+        root.querySelectorAll(".admin-select-badge-list-item").forEach(function (item) {
+            var input = item.querySelector("[data-admin-select-badge-value]");
+            var option = input ? optionByValue(select, input.value) : null;
+            var summary = optionSummary(option, root);
+            var meta = item.querySelector(".admin-select-badge-list-summary");
+            if (summary && !meta) {
+                meta = document.createElement("span");
+                meta.className = "admin-select-badge-list-summary";
+                item.insertBefore(meta, input || item.lastChild);
+            }
+            if (meta) {
+                meta.textContent = summary;
+                if (!summary) {
+                    meta.remove();
+                }
+            }
+        });
+    }
     function syncOptions(root) {
         var select = root.querySelector("[data-admin-select-badge-list-select]");
         if (!select) {
             return;
         }
+        syncBadgeSummaries(root);
         var values = selectedValues(root);
         Array.prototype.forEach.call(select.options, function (option) {
             if (!option.value) {
@@ -199,7 +255,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             return;
         }
         var option = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
-        addItem(root, select.value, optionLabel(option), optionSummary(option));
+        addItem(root, select.value, optionLabel(option), optionSummary(option, root));
     });
     document.addEventListener("click", function (event) {
         var button = event.target && event.target.closest ? event.target.closest("[data-admin-select-badge-remove]") : null;
@@ -217,6 +273,14 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
     });
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("[data-admin-select-badge-list]").forEach(syncOptions);
+    });
+    document.addEventListener("change", function (event) {
+        document.querySelectorAll("[data-admin-select-badge-list][data-admin-select-badge-summary-source]").forEach(function (root) {
+            var sourceSelector = root.getAttribute("data-admin-select-badge-summary-source") || "";
+            if (sourceSelector && event.target && event.target.matches && event.target.matches(sourceSelector)) {
+                syncOptions(root);
+            }
+        });
     });
     document.querySelectorAll("[data-admin-select-badge-list]").forEach(syncOptions);
 })();

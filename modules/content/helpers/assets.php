@@ -112,7 +112,7 @@ function sr_content_asset_single_amount_input_group_html(string $fieldName, int 
         ? ' data-admin-asset-unit-options="' . sr_e((string) json_encode($unitOptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"'
         : '';
 
-    return '<div class="input-group admin-asset-single-amount-group" data-admin-asset-unit-group' . $unitSourceAttribute . $unitOptionsAttribute . ' data-content-action-grant-amount' . $hiddenAttribute . '>'
+    return '<div class="input-group admin-asset-single-amount-group" data-admin-asset-unit-group' . $unitSourceAttribute . $unitOptionsAttribute . $hiddenAttribute . '>'
         . '<input' . $idAttribute . ' type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '" value="' . sr_e((string) max(0, $amount)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($label) . '" data-admin-asset-amount-input>'
         . '<span class="input-group-text" data-admin-asset-unit-label>' . sr_e($unitLabel) . '</span>'
         . '</div>';
@@ -400,8 +400,9 @@ function sr_content_asset_policy_set_options(array $policySets): array
     return $options;
 }
 
-function sr_content_asset_policy_set_picker_options(array $policySets): array
+function sr_content_asset_policy_set_picker_options(array $policySets, string $operation = 'neutral'): array
 {
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
     $options = [];
     foreach ($policySets as $policySet) {
         $setId = (int) ($policySet['id'] ?? 0);
@@ -411,16 +412,22 @@ function sr_content_asset_policy_set_picker_options(array $policySets): array
 
         $options[(string) $setId] = [
             'label' => (string) (sr_content_asset_policy_set_options([$policySet])[(string) $setId] ?? $setId),
-            'summary' => sr_content_asset_policy_set_summary($policySet),
+            'summary' => sr_content_asset_policy_set_summary($policySet, $operation),
+            'summaries' => [
+                'grant' => sr_content_asset_policy_set_summary($policySet, 'grant'),
+                'use' => sr_content_asset_policy_set_summary($policySet, 'use'),
+                'neutral' => sr_content_asset_policy_set_summary($policySet, 'neutral'),
+            ],
         ];
     }
 
     return $options;
 }
 
-function sr_content_asset_policy_set_summary(array $policySet): string
+function sr_content_asset_policy_set_summary(array $policySet, string $operation = 'neutral'): string
 {
     sr_content_require_asset_group_policy_helpers();
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
 
     try {
         $policies = sr_admin_asset_group_policies_from_json((string) ($policySet['policies_json'] ?? ''));
@@ -440,7 +447,7 @@ function sr_content_asset_policy_set_summary(array $policySet): string
         $mode = (string) ($policy['mode'] ?? '');
         $modeLabel = function_exists('sr_admin_asset_group_policy_mode_label') ? sr_admin_asset_group_policy_mode_label($mode) : $mode;
         $value = sr_admin_asset_group_policy_value_for_asset($policy, $assetModule);
-        $valueLabel = $value !== '' ? ' ' . $value . ($mode === 'multiplier' ? '배' : '') : '';
+        $valueLabel = $value !== '' ? ' ' . sr_content_asset_policy_set_summary_value_label($value, $mode, $operation) : '';
         $summaries[] = trim($groupKey . ': ' . $assetLabel . ' ' . $modeLabel . $valueLabel);
         if (count($summaries) >= 3) {
             break;
@@ -455,9 +462,30 @@ function sr_content_asset_policy_set_summary(array $policySet): string
     return implode(' / ', $summaries) . ($remaining > 0 ? ' 외 ' . (string) $remaining . '개' : '');
 }
 
-function sr_content_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds): string
+function sr_content_asset_policy_set_summary_value_label(string $value, string $mode, string $operation = 'neutral'): string
 {
-    return sr_admin_select_badge_list_html($id, $name, sr_content_asset_policy_set_picker_options($policySets), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택');
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if ($mode === 'multiplier') {
+        return $value . '배';
+    }
+
+    if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A\d+\z/', $value) === 1 && $operation === 'use' && (int) $value > 0) {
+        return '-' . $value;
+    }
+
+    return $value;
+}
+
+function sr_content_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds, string $operation = 'neutral', string $summarySourceSelector = ''): string
+{
+    $rootAttributes = $summarySourceSelector !== ''
+        ? ' data-admin-select-badge-summary-source="' . sr_e($summarySourceSelector) . '"'
+        : '';
+    return sr_admin_select_badge_list_html($id, $name, sr_content_asset_policy_set_picker_options($policySets, $operation), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택', $rootAttributes);
 }
 
 function sr_content_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array
@@ -642,6 +670,22 @@ function sr_content_asset_amount_total(array $amounts, int $fallbackAmount = 0):
     return $amounts !== [] ? array_sum(array_map('intval', $amounts)) : max(0, $fallbackAmount);
 }
 
+function sr_content_asset_amount_allocations(array $amounts): array
+{
+    $allocations = [];
+    foreach (sr_content_asset_deduction_order() as $assetModule) {
+        $amount = (int) ($amounts[$assetModule] ?? 0);
+        if ($amount > 0) {
+            $allocations[] = [
+                'asset_module' => $assetModule,
+                'amount' => $amount,
+            ];
+        }
+    }
+
+    return $allocations;
+}
+
 function sr_content_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
 {
     $allocations = [];
@@ -686,15 +730,11 @@ function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = 
     }
 
     $actionModule = sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''));
-    $actionAmounts = $actionDirection === 'use'
-        ? sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', sr_content_asset_module_keys_from_value($actionModule), (int) ($values['asset_action_amount'] ?? 0))
-        : [];
+    $actionAmounts = sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', sr_content_asset_module_keys_from_value($actionModule), (int) ($values['asset_action_amount'] ?? 0));
 
     $values['asset_action_enabled'] = (int) ($values['asset_action_enabled'] ?? 0) === 1 ? 1 : 0;
     $values['asset_action_module'] = $actionModule;
-    $values['asset_action_amount'] = $actionDirection === 'use'
-        ? sr_content_asset_amount_total($actionAmounts, max(0, (int) ($values['asset_action_amount'] ?? 0)))
-        : max(0, (int) ($values['asset_action_amount'] ?? 0));
+    $values['asset_action_amount'] = sr_content_asset_amount_total($actionAmounts, max(0, (int) ($values['asset_action_amount'] ?? 0)));
     $values['asset_action_amounts_json'] = sr_content_asset_amounts_json_from_map($actionAmounts);
     $values['asset_action_group_policies_json'] = sr_content_asset_group_policy_json_from_value($values['asset_action_group_policies_json'] ?? '');
     $values['asset_action_policy_set_id'] = max(0, (int) ($values['asset_action_policy_set_id'] ?? 0));
@@ -1526,9 +1566,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_action_module'] ?? '');
     $assetModuleValue = sr_content_asset_module_value_from_keys($assetModules);
     $direction = (string) ($page['asset_action_direction'] ?? 'grant');
-    $amounts = $direction === 'use'
-        ? sr_content_asset_amounts_from_value($page['asset_action_amounts_json'] ?? '', $assetModules, (int) ($page['asset_action_amount'] ?? 0))
-        : [];
+    $amounts = sr_content_asset_amounts_from_value($page['asset_action_amounts_json'] ?? '', $assetModules, (int) ($page['asset_action_amount'] ?? 0));
     $amount = $amounts !== [] ? sr_content_asset_amount_total($amounts) : (int) ($page['asset_action_amount'] ?? 0);
 
     if ($pageId <= 0 || $accountId <= 0 || !sr_content_asset_action_required($page)) {
@@ -1562,9 +1600,9 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
         ];
     }
 
-    $baseActionAmounts = $direction === 'use' ? $amounts : [(string) $assetModules[0] => $amount];
+    $baseActionAmounts = $amounts !== [] ? $amounts : [(string) $assetModules[0] => $amount];
     $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $baseActionAmounts, $amount, $page['asset_action_group_policies_json'] ?? '', (int) ($page['asset_action_policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
-    $amounts = $direction === 'use' ? $policyAmounts['amounts'] : [];
+    $amounts = $policyAmounts['amounts'];
     $amount = (int) $policyAmounts['amount'];
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
@@ -1584,7 +1622,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
 
     $allocations = $direction === 'use'
         ? ($amounts !== [] ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
-        : [['asset_module' => $assetModules[0], 'amount' => $amount]];
+        : sr_content_asset_amount_allocations($amounts !== [] ? $amounts : [(string) $assetModules[0] => $amount]);
     if ($direction === 'use' && $allocations === []) {
         return [
             'allowed' => false,

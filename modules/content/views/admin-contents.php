@@ -398,7 +398,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
                     <span class="admin-form-actions">
-                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
                     </span>
                 <?php } ?>
             </h2>
@@ -451,7 +451,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_access_policy_set_ids', 'asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0))); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 대상 자산에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -460,7 +460,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
                     <span class="admin-form-actions">
-                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
                     </span>
                 <?php } ?>
             </h2>
@@ -499,29 +499,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_module', sr_t('content::ui.text.2f2b6193'), $contentHelp['asset_action_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedActionAssetModules = sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''); ?>
-                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_action_enabled" data-admin-asset-enable-submit-check="always">
-                        <?php echo sr_admin_checkbox_list_html('content_admin_contents_asset_action_module', 'asset_action_module', $assetModuleChoiceOptions, $selectedActionAssetModules, sr_t('content::ui.text.3e195cdd')); ?>
+                    <div class="admin-asset-setting-line" data-admin-setting-source-group>
+                        <div class="admin-asset-setting-control admin-asset-setting-control-full">
+                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_action_enabled" data-admin-asset-enable-submit-check="always">
+                                <input id="content_admin_contents_asset_action_amount" type="hidden" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>">
+                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_action_amounts_grouped', 'asset_action_module', 'asset_action_amounts', $assetModuleOptions, $selectedActionAssetModules, $values['asset_action_amounts_json'] ?? '', (int) ($values['asset_action_amount'] ?? 0), sr_t('content::ui.text.5c705e1a'), sr_t('content::ui.text.3e195cdd')); ?>
+                            </div>
+                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                        </div>
+                        <div class="admin-asset-setting-scope">
+                            <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module'), true); ?>
+                            <input type="hidden" name="source_asset_action_amount" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_module')); ?>" data-admin-setting-source-mirror>
+                            <input type="hidden" name="source_asset_action_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_module')); ?>" data-admin-setting-source-mirror>
+                        </div>
                     </div>
-                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module')); ?>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_amount', sr_t('content::ui.text.5c705e1a'), $contentHelp['asset_action_amount']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <?php echo sr_content_asset_single_amount_input_group_html('asset_action_amount', (int) ($values['asset_action_amount'] ?? 0), $assetModuleOptions, (string) ($selectedActionAssetModules[0] ?? ''), sr_t('content::ui.text.5c705e1a'), 'content_admin_contents_asset_action_amount', (string) ($values['asset_action_direction'] ?? 'grant') === 'use', 'asset_action_module[]'); ?>
-                    <div class="admin-asset-setting-target" data-content-action-use-amounts<?php echo (string) ($values['asset_action_direction'] ?? 'grant') === 'use' ? '' : ' hidden'; ?>>
-                        <?php echo sr_content_asset_amount_inputs_html('asset_action_amounts', $assetModuleOptions, $selectedActionAssetModules, $values['asset_action_amounts_json'] ?? '', (int) ($values['asset_action_amount'] ?? 0), sr_t('content::ui.text.5c705e1a')); ?>
-                    </div>
-                    <?php echo $pageSettingSourceRadioHtml('source_asset_action_amount', $pageSettingSource($values, 'asset_action_amount')); ?>
-                    <input type="hidden" name="source_asset_action_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_amount')); ?>">
                 </div>
             </div>
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e('회원 그룹별 적용'); ?></span>
                 <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0))); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 대상 자산에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), (string) ($values['asset_action_direction'] ?? 'grant'), '#content_admin_contents_asset_action_direction'); ?>
+                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -530,7 +529,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span><?php echo sr_e(sr_t('content::ui.text.a052b2f6')); ?></span>
                 <span class="admin-form-actions">
                     <?php if ($contentAssetAuditUrl !== '') { ?>
-                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                        <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
                     <?php } ?>
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
                         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('content::ui.banner.42c18eb4')); ?></a>
@@ -657,7 +656,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_ids_' . (string) $fileId); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label>
                                             <div class="admin-policy-set-field">
                                                 <?php echo sr_content_asset_policy_set_checkboxes_html('content_file_asset_download_policy_set_ids_' . (string) $fileId, 'content_file_asset_download_policy_set_ids[' . (string) $fileId . ']', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($contentFile['asset_download_group_policies_json'] ?? '', (int) ($contentFile['asset_download_policy_set_id'] ?? 0))); ?>
-                                                <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 대상 자산에 맞는 실제 금액을 계산합니다.</p>
+                                                <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다.</p>
                                             </div>
                                         </div>
                                     </td>
@@ -727,7 +726,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="new_content_file_asset_download_policy_set_ids"><?php echo sr_e('회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
                     <?php echo sr_content_asset_policy_set_checkboxes_html('new_content_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($newContentFileAssetSettings['file_asset_download_group_policies_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0))); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 대상 자산에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -892,9 +891,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var scopeOptions = document.querySelectorAll('[data-content-group-scope-option]');
         var sourceOptions = document.querySelectorAll('input[name^="source_"]');
         var requiredLabel = document.querySelector('[data-content-group-required]');
-        var actionDirection = document.querySelector('[data-content-action-direction]');
-        var grantAmount = document.querySelector('[data-content-action-grant-amount]');
-        var useAmounts = document.querySelector('[data-content-action-use-amounts]');
         var selectFallbackOption = function (option, fallbackValue) {
             var fallback = document.querySelector('input[name="' + option.name + '"][value="' + fallbackValue + '"]');
             if (fallback) {
@@ -954,19 +950,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             groupSelect.addEventListener('change', syncGroupScope);
         }
         syncGroupScope();
-
-        var syncActionAmountMode = function () {
-            if (!actionDirection || !grantAmount || !useAmounts) {
-                return;
-            }
-            var useMode = actionDirection.value === 'use';
-            grantAmount.hidden = useMode;
-            useAmounts.hidden = !useMode;
-        };
-        if (actionDirection) {
-            actionDirection.addEventListener('change', syncActionAmountMode);
-            syncActionAmountMode();
-        }
     });
     </script>
 <?php } ?>

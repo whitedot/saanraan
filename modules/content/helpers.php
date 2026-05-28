@@ -1443,11 +1443,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if (!isset(sr_content_asset_action_directions()[(string) ($values['asset_action_direction'] ?? '')])) {
             $errors[] = '완료 버튼 지급/차감 방향이 올바르지 않습니다.';
         }
-        if ((string) ($values['asset_action_direction'] ?? '') === 'use') {
-            $amounts = sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', $assetModules);
-            if (count($amounts) < count($assetModules)) {
-                $errors[] = '완료 버튼 차감 금액은 선택한 자산마다 1 이상으로 입력하세요.';
-            }
+        $amounts = sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', $assetModules);
+        if (count($amounts) < count($assetModules)) {
+            $errors[] = '완료 버튼 금액은 선택한 자산마다 1 이상으로 입력하세요.';
         }
 
         if ((string) ($values['asset_action_label'] ?? '') === '') {
