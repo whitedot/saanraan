@@ -2,6 +2,7 @@
 
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
 $groupSort = isset($groupSort) && is_array($groupSort) ? $groupSort : sr_admin_member_group_default_sort();
+$groupRuleSort = isset($groupRuleSort) && is_array($groupRuleSort) ? $groupRuleSort : sr_member_group_rule_default_sort();
 $adminContainerClass = 'admin-page-member-groups admin-ui-scope';
 $adminPageTitle = sr_t('member::ui.member.7482bebf');
 if ($memberGroupsPage === 'group_form') {
@@ -697,16 +698,21 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
         </div>
-        <?php echo sr_admin_pagination_summary_html($groupRulePagination); ?>
+        <div class="admin-list-summary-row">
+            <?php if (empty($groupRuleSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="회원 그룹 자동 규칙 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($groupRulePagination); ?>
+        </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></th>
-                    <th><?php echo sr_e(sr_t('member::ui.text.4c544b45')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_title', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.5d908ddd'), 'group_title', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('source_module_key', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.291ac971'), 'source_module_key', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('evaluation_policy', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.ff41d4a4'), 'evaluation_policy', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('last_evaluated_at', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.4c544b45'), 'last_evaluated_at', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>

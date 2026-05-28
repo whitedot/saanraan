@@ -78,13 +78,14 @@ if (is_array($board)) {
             $account = sr_member_require_login($pdo);
         }
 
+        $couponDedupeKey = 'community.post.read:coupon:' . (string) $account['id'] . ':' . (string) $post['id'];
+        if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
+            $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
+        }
         $skipPaidReadCharge = (string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
-            && sr_community_has_paid_read_session((int) $account['id'], (int) ($post['id'] ?? 0));
+            && sr_community_has_paid_read_session((int) $account['id'], (int) ($post['id'] ?? 0))
+            && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey);
         if (!$skipPaidReadCharge) {
-            $couponDedupeKey = 'community.post.read:coupon:' . (string) $account['id'] . ':' . (string) $post['id'];
-            if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
-                $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
-            }
             $couponReadResult = ['allowed' => false, 'processed' => false];
             if ((string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
                 && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey)

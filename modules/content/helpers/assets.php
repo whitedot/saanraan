@@ -212,14 +212,32 @@ function sr_content_asset_policy_set_statuses(): array
     return ['enabled', 'disabled', 'archived'];
 }
 
-function sr_content_asset_policy_sets(PDO $pdo, bool $enabledOnly = false): array
+function sr_content_asset_policy_set_sort_options(): array
+{
+    return [
+        'title' => ['columns' => ['title', 'id']],
+        'set_key' => ['columns' => ['set_key', 'id']],
+        'status' => ['columns' => ['status', 'title', 'id']],
+        'updated_at' => ['columns' => ['updated_at', 'id']],
+        'created_at' => ['columns' => ['created_at', 'id']],
+    ];
+}
+
+function sr_content_asset_policy_set_default_sort(): array
+{
+    return sr_admin_sort_default('title', 'asc');
+}
+
+function sr_content_asset_policy_sets(PDO $pdo, bool $enabledOnly = false, array $sort = []): array
 {
     try {
         $sql = 'SELECT * FROM sr_content_asset_policy_sets';
         if ($enabledOnly) {
             $sql .= " WHERE status = 'enabled'";
         }
-        $sql .= ' ORDER BY title ASC, id ASC';
+        $sql .= function_exists('sr_admin_sort_order_sql')
+            ? sr_admin_sort_order_sql(sr_content_asset_policy_set_sort_options(), $sort, sr_content_asset_policy_set_default_sort())
+            : ' ORDER BY title ASC, id ASC';
         $stmt = $pdo->query($sql);
         return $stmt !== false ? $stmt->fetchAll() : [];
     } catch (Throwable $exception) {
@@ -1140,6 +1158,26 @@ function sr_content_grant_access_entitlement(PDO $pdo, int $accountId, int $cont
         'granted_at' => $now,
         'created_at' => $now,
     ]);
+}
+
+function sr_content_revoke_coupon_access_entitlements(PDO $pdo, int $accountId, string $sourceReference): int
+{
+    if ($accountId <= 0 || $sourceReference === '' || !sr_content_access_entitlements_table_exists($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "DELETE FROM sr_content_access_entitlements
+         WHERE account_id = :account_id
+           AND source_kind = 'coupon'
+           AND source_reference = :source_reference"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'source_reference' => $sourceReference,
+    ]);
+
+    return $stmt->rowCount();
 }
 
 function sr_content_anonymize_access_entitlements(PDO $pdo, int $accountId): int

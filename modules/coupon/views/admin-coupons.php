@@ -407,6 +407,110 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
 </section>
+
+<section class="admin-card card">
+    <h2>최근 사용 내역</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>회원</th>
+                <th>쿠폰</th>
+                <th>사용 대상</th>
+                <th>상태</th>
+                <th>사용일</th>
+                <th>환불일</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (($redemptions ?? []) === []) { ?>
+                <tr>
+                    <td colspan="7" class="admin-empty-state">최근 사용 내역이 없습니다.</td>
+                </tr>
+            <?php } else { ?>
+                <?php foreach (($redemptions ?? []) as $redemption) { ?>
+                    <?php
+                    $redemptionId = (int) ($redemption['id'] ?? 0);
+                    $redemptionStatus = (string) ($redemption['status'] ?? '');
+                    $refundModalId = 'coupon-redemption-refund-modal-' . (string) $redemptionId;
+                    $canRefund = $redemptionStatus === 'redeemed'
+                        && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
+                    ?>
+                    <tr>
+                        <td><?php echo sr_e((string) ($redemption['account_public_hash'] ?? '')); ?></td>
+                        <td>
+                            <?php echo sr_e((string) ($redemption['title'] ?? '')); ?><br>
+                            <code><?php echo sr_e((string) ($redemption['coupon_key'] ?? '')); ?></code>
+                        </td>
+                        <td>
+                            <?php echo sr_e((string) ($redemption['target_type'] ?? '')); ?> #<?php echo sr_e((string) ($redemption['target_id'] ?? '')); ?><br>
+                            <?php echo sr_e((string) ($redemption['reference_module'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_type'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_id'] ?? '')); ?>
+                        </td>
+                        <td><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></td>
+                        <td><?php echo sr_e((string) ($redemption['redeemed_at'] ?? '')); ?></td>
+                        <td>
+                            <?php echo sr_e((string) ($redemption['refunded_at'] ?? '')); ?>
+                            <?php if ((string) ($redemption['refund_note'] ?? '') !== '') { ?>
+                                <br><?php echo sr_e((string) ($redemption['refund_note'] ?? '')); ?>
+                            <?php } ?>
+                        </td>
+                        <td>
+                            <?php if ($canRefund) { ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">수동 환불</button>
+                            <?php } ?>
+                        </td>
+                    </tr>
+                <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>
+
+<?php foreach (($redemptions ?? []) as $redemption) { ?>
+    <?php
+    $redemptionId = (int) ($redemption['id'] ?? 0);
+    $refundModalId = 'coupon-redemption-refund-modal-' . (string) $redemptionId;
+    $canRefund = (string) ($redemption['status'] ?? '') === 'redeemed'
+        && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
+    if (!$canRefund) {
+        continue;
+    }
+    ?>
+    <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundModalId); ?>_title" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="modal-content ui-form-theme">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="refund_redemption">
+                <input type="hidden" name="redemption_id" value="<?php echo sr_e((string) $redemptionId); ?>">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($refundModalId); ?>_title" class="modal-title">쿠폰 사용 수동 환불</h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="admin-form-row">
+                        <span class="form-label">쿠폰</span>
+                        <div class="admin-form-field">
+                            <?php echo sr_e((string) ($redemption['title'] ?? '')); ?> #<?php echo sr_e((string) $redemptionId); ?>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="coupon_refund_note_<?php echo sr_e((string) $redemptionId); ?>">환불 사유 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <input id="coupon_refund_note_<?php echo sr_e((string) $redemptionId); ?>" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-overlay-focus>
+                            <p class="admin-form-help">수동 환불 이력과 관리자 감사 로그에 남길 사유를 입력합니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($refundModalId); ?>">닫기</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">환불 실행</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

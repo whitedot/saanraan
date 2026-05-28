@@ -337,9 +337,10 @@ if ($memberGroupsPage === 'groups') {
     $groups = sr_admin_member_group_list($pdo, $groupListFilter, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination), $groupSort);
 }
 $groupRules = [];
+$groupRuleSort = sr_admin_sort_from_request(sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort());
 $groupRulePagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'rules' ? sr_member_group_rule_count($pdo) : 0);
 if ($memberGroupsPage === 'rules') {
-    $groupRules = sr_member_group_rules($pdo, (int) $groupRulePagination['per_page'], sr_admin_pagination_offset($groupRulePagination));
+    $groupRules = sr_member_group_rules($pdo, (int) $groupRulePagination['per_page'], sr_admin_pagination_offset($groupRulePagination), $groupRuleSort);
 }
 $membershipsByGroupId = [];
 $membershipLogsByGroupId = [];

@@ -4,6 +4,7 @@ $adminPageTitle = '커뮤니티 멤버 그룹별 금액 조정';
 $adminPageSubtitle = '커뮤니티 적립, 차감, 유료 열람, 첨부 다운로드에서 멤버 그룹별로 최종 금액을 조정하는 규칙입니다.';
 $adminContainerClass = 'admin-community-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
+$policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetSort : sr_community_asset_policy_set_default_sort();
 $policySetCount = count($policySets ?? []);
 $policySetPagination = ['total' => $policySetCount, 'start' => $policySetCount > 0 ? 1 : 0, 'end' => $policySetCount];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -20,6 +21,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/community/asset-policy-sets?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">새 조정 규칙</a>
         </div>
         <div class="admin-list-summary-row">
+            <?php if (empty($policySetSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="커뮤니티 멤버 그룹별 금액 조정 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
             <?php echo sr_admin_pagination_summary_html($policySetPagination); ?>
         </div>
         <div class="table-wrapper">
@@ -27,10 +31,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <caption class="sr-only">커뮤니티 멤버 그룹별 금액 조정 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th>이름</th>
-                        <th>Key</th>
-                        <th>상태</th>
-                        <th>수정일</th>
+                        <th<?php echo sr_admin_sort_aria('title', $policySetSort); ?>><?php echo sr_admin_sort_header_html('이름', 'title', $policySetSort, sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('set_key', $policySetSort); ?>><?php echo sr_admin_sort_header_html('Key', 'set_key', $policySetSort, sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('status', $policySetSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $policySetSort, sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('updated_at', $policySetSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $policySetSort, sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort()); ?></th>
                         <th class="text-end">관리</th>
                     </tr>
                 </thead>

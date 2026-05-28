@@ -444,6 +444,16 @@ function sr_coupon_issue_status_label(string $status): string
     return $labels[$status] ?? $status;
 }
 
+function sr_coupon_redemption_status_label(string $status): string
+{
+    $labels = [
+        'redeemed' => '사용 완료',
+        'refunded' => '환불 완료',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
 function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 100): array
 {
     if ($accountId <= 0) {
@@ -537,6 +547,201 @@ function sr_coupon_has_redemption(PDO $pdo, int $accountId, string $dedupeKey): 
     ]);
 
     return is_array($stmt->fetch());
+}
+
+function sr_coupon_redemption_refund_columns_available(PDO $pdo): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT refunded_at, refunded_by_account_id, refund_note FROM sr_coupon_redemptions LIMIT 1');
+        $available = $stmt !== false;
+    } catch (Throwable $exception) {
+        $available = false;
+    }
+
+    return $available;
+}
+
+function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit = 100): array
+{
+    $limit = max(1, min(300, $limit));
+    $refundColumns = sr_coupon_redemption_refund_columns_available($pdo)
+        ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
+        : 'NULL AS refunded_at, NULL AS refunded_by_account_id, \'\' AS refund_note';
+    $stmt = $pdo->query(
+        'SELECT r.id, r.coupon_issue_id, r.coupon_definition_id, r.account_id,
+                r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
+                r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ',
+                d.coupon_key, d.title, d.refundable_policy, i.status AS issue_status, i.used_count
+         FROM sr_coupon_redemptions r
+         INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
+         INNER JOIN sr_coupon_issues i ON i.id = r.coupon_issue_id
+         ORDER BY r.id DESC
+         LIMIT ' . $limit
+    );
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
+        $rows[] = $row;
+    }
+
+    return $rows;
+}
+
+function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote): array
+{
+    $refundNote = sr_coupon_clean_text($refundNote, 255);
+    if ($redemptionId <= 0) {
+        throw new InvalidArgumentException('환불할 쿠폰 사용 내역을 선택하세요.');
+    }
+    if ($adminAccountId <= 0) {
+        throw new InvalidArgumentException('관리자 계정을 확인할 수 없습니다.');
+    }
+    if ($refundNote === '') {
+        throw new InvalidArgumentException('환불 사유를 입력하세요.');
+    }
+    if (!sr_coupon_redemption_refund_columns_available($pdo)) {
+        throw new InvalidArgumentException('쿠폰 환불 컬럼 업데이트를 먼저 적용하세요.');
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT r.*, d.refundable_policy, d.max_uses_per_issue, d.title, i.status AS issue_status, i.used_count
+             FROM sr_coupon_redemptions r
+             INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
+             INNER JOIN sr_coupon_issues i ON i.id = r.coupon_issue_id
+             WHERE r.id = :id
+             LIMIT 1
+             FOR UPDATE'
+        );
+        $stmt->execute(['id' => $redemptionId]);
+        $redemption = $stmt->fetch();
+        if (!is_array($redemption)) {
+            throw new InvalidArgumentException('쿠폰 사용 내역을 찾을 수 없습니다.');
+        }
+        if ((string) ($redemption['status'] ?? '') !== 'redeemed') {
+            throw new InvalidArgumentException('이미 환불되었거나 환불할 수 없는 사용 내역입니다.');
+        }
+        if ((string) ($redemption['refundable_policy'] ?? '') !== 'refundable') {
+            throw new InvalidArgumentException('환급 가능 정책인 쿠폰만 수동 환불할 수 있습니다.');
+        }
+
+        $now = sr_now();
+        $usedCount = max(0, (int) ($redemption['used_count'] ?? 0) - 1);
+        $issueStatus = (string) ($redemption['issue_status'] ?? '');
+        $nextIssueStatus = $issueStatus === 'used' ? 'active' : $issueStatus;
+
+        $originalDedupeKey = (string) ($redemption['dedupe_key'] ?? '');
+        $refundedDedupeKey = sr_coupon_refunded_dedupe_key($redemptionId, $originalDedupeKey);
+
+        $stmt = $pdo->prepare(
+            "UPDATE sr_coupon_redemptions
+             SET status = 'refunded',
+                 dedupe_key = :dedupe_key,
+                 refunded_at = :refunded_at,
+                 refunded_by_account_id = :refunded_by_account_id,
+                 refund_note = :refund_note
+             WHERE id = :id
+               AND status = 'redeemed'"
+        );
+        $stmt->execute([
+            'dedupe_key' => $refundedDedupeKey,
+            'refunded_at' => $now,
+            'refunded_by_account_id' => $adminAccountId,
+            'refund_note' => $refundNote,
+            'id' => $redemptionId,
+        ]);
+        if ($stmt->rowCount() !== 1) {
+            throw new InvalidArgumentException('이미 환불되었거나 환불할 수 없는 사용 내역입니다.');
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE sr_coupon_issues
+             SET used_count = :used_count,
+                 status = :status,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'used_count' => $usedCount,
+            'status' => $nextIssueStatus,
+            'updated_at' => $now,
+            'id' => (int) $redemption['coupon_issue_id'],
+        ]);
+
+        $revokedAccess = sr_coupon_revoke_consumer_access($pdo, (int) $redemption['account_id'], $originalDedupeKey);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        sr_coupon_notify_issue_event($pdo, (int) $redemption['coupon_issue_id'], 'redemption.refunded', $adminAccountId, [
+            'redemption_id' => $redemptionId,
+            'refund_note' => $refundNote,
+            'refunded_at' => $now,
+            'used_count' => $usedCount,
+            'revoked_access_count' => $revokedAccess,
+            'original_dedupe_key' => $originalDedupeKey,
+            'refunded_dedupe_key' => $refundedDedupeKey,
+            'status_label' => sr_coupon_issue_status_label($nextIssueStatus),
+        ]);
+
+        return [
+            'coupon_issue_id' => (int) $redemption['coupon_issue_id'],
+            'coupon_definition_id' => (int) $redemption['coupon_definition_id'],
+            'account_id' => (int) $redemption['account_id'],
+            'coupon_title' => (string) ($redemption['title'] ?? ''),
+            'used_count' => $usedCount,
+            'issue_status' => $nextIssueStatus,
+            'refunded_at' => $now,
+            'revoked_access_count' => $revokedAccess,
+            'original_dedupe_key' => $originalDedupeKey,
+            'refunded_dedupe_key' => $refundedDedupeKey,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function sr_coupon_refunded_dedupe_key(int $redemptionId, string $originalDedupeKey): string
+{
+    return 'refunded:' . (string) $redemptionId . ':' . substr(sha1($originalDedupeKey), 0, 24);
+}
+
+function sr_coupon_revoke_consumer_access(PDO $pdo, int $accountId, string $dedupeKey): int
+{
+    if ($accountId <= 0 || $dedupeKey === '') {
+        return 0;
+    }
+
+    $revoked = 0;
+    if (is_file(SR_ROOT . '/modules/content/helpers/assets.php')) {
+        require_once SR_ROOT . '/modules/content/helpers/assets.php';
+        if (function_exists('sr_content_revoke_coupon_access_entitlements')) {
+            $revoked += sr_content_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
+        }
+    }
+    if (is_file(SR_ROOT . '/modules/community/helpers/assets.php')) {
+        require_once SR_ROOT . '/modules/community/helpers/assets.php';
+        if (function_exists('sr_community_revoke_coupon_access_entitlements')) {
+            $revoked += sr_community_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
+        }
+    }
+
+    return $revoked;
 }
 
 function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetType, string $targetId, array $context = []): array

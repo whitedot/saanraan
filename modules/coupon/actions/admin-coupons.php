@@ -129,6 +129,25 @@ if (sr_request_method() === 'POST') {
             $notice = '지급한 쿠폰 상태를 변경했습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons/issues');
+        } elseif ($intent === 'refund_redemption' && $couponAdminPage === 'issues') {
+            $redemptionId = (int) sr_post_string('redemption_id', 20);
+            $refundNote = sr_post_string('refund_note', 255);
+            $refundResult = sr_coupon_refund_redemption($pdo, $redemptionId, (int) $account['id'], $refundNote);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'coupon.redemption.refunded',
+                'target_type' => 'coupon_redemption',
+                'target_id' => (string) $redemptionId,
+                'result' => 'success',
+                'message' => 'Coupon redemption refunded.',
+                'metadata' => $refundResult + [
+                    'refund_note' => $refundNote,
+                ],
+            ]);
+            $notice = '쿠폰 사용 내역을 수동 환불했습니다.';
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/coupons/issues');
         } else {
             $errors[] = '요청한 작업을 처리할 수 없습니다.';
         }
@@ -142,6 +161,7 @@ if (sr_request_method() === 'POST') {
 $definitions = sr_coupon_definitions($pdo, 100);
 $memberGroups = sr_coupon_issue_member_groups($pdo);
 $issues = [];
+$redemptions = [];
 if ($couponAdminPage === 'issues') {
     $stmt = $pdo->query(
         'SELECT i.id, i.account_id, i.status, i.used_count, i.issued_at, i.expires_at, d.title, d.coupon_key
@@ -154,6 +174,7 @@ if ($couponAdminPage === 'issues') {
         $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
         $issues[] = $row;
     }
+    $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, 100);
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';

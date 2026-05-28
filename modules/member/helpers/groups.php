@@ -732,7 +732,25 @@ function sr_member_group_rule_count(PDO $pdo): int
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
 }
 
-function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0): array
+function sr_member_group_rule_sort_options(): array
+{
+    return [
+        'group_title' => ['columns' => ['g.title', 'g.group_key', 'r.id']],
+        'source_module_key' => ['columns' => ['r.source_module_key', 'r.rule_key', 'r.id']],
+        'rule_key' => ['columns' => ['r.rule_key', 'r.id']],
+        'evaluation_policy' => ['columns' => ['r.evaluation_policy', 'r.id']],
+        'status' => ['columns' => ['r.status', 'r.id']],
+        'last_evaluated_at' => ['columns' => ['r.last_evaluated_at', 'r.id']],
+        'created_at' => ['columns' => ['r.created_at', 'r.id']],
+    ];
+}
+
+function sr_member_group_rule_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0, array $sort = []): array
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return [];
@@ -740,8 +758,10 @@ function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0): array
 
     $sql = 'SELECT r.*, g.group_key, g.title AS group_title
             FROM sr_member_group_rules r
-            INNER JOIN sr_member_groups g ON g.id = r.group_id
-            ORDER BY r.id DESC';
+            INNER JOIN sr_member_groups g ON g.id = r.group_id';
+    $sql .= function_exists('sr_admin_sort_order_sql')
+        ? sr_admin_sort_order_sql(sr_member_group_rule_sort_options(), $sort, sr_member_group_rule_default_sort())
+        : ' ORDER BY r.id DESC';
     if ($limit > 0) {
         $sql .= ' LIMIT :limit_value OFFSET :offset_value';
     }

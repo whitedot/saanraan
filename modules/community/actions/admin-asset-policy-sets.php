@@ -88,7 +88,8 @@ if (sr_request_method() === 'POST') {
     sr_redirect('/admin/community/asset-policy-sets');
 }
 
-$policySets = sr_community_asset_policy_sets($pdo);
+$policySetSort = sr_admin_sort_from_request(sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort());
+$policySets = sr_community_asset_policy_sets($pdo, false, $policySetSort);
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
     : (is_array($editPolicySet) ? $editPolicySet : [
