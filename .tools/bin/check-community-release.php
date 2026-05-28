@@ -193,6 +193,7 @@ $requiredPackageEntries = [
     'skins',
     'themes',
     'views',
+    'coupon-targets.php',
 ];
 $allowedPackageEntries = array_merge($requiredPackageEntries, [
     'lang',

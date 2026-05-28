@@ -53,6 +53,7 @@
 현재 점검 기록:
 
 - [관리자 화면 레이아웃 점검 기록 - 2026-05-18](records/admin-layout-audit-2026-05-18.md)
+- [자산 시스템 운영/보안/정합성 점검 기록 - 2026-05-28](records/asset-system-risk-review-2026-05-28.md)
 
 ## Wiki로 충분한 문서
 

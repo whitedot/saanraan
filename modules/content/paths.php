@@ -2,8 +2,10 @@
 
 return [
     'GET /content/download' => 'actions/download.php',
+    'POST /content/download' => 'actions/download.php',
     'GET /content/group' => 'actions/group.php',
     'POST /content/action' => 'actions/action.php',
+    'POST /content/*' => 'actions/view.php',
     'GET /content/*' => 'actions/view.php',
     'GET /admin/content' => 'actions/admin-contents.php',
     'GET /admin/content/settings' => 'actions/admin-settings.php',

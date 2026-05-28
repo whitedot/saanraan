@@ -156,6 +156,10 @@ function sr_check_module_lifecycle_metadata(): void
         'paths.php' => true,
         'privacy-export.php' => true,
         'sitemap.php' => true,
+        'member-assets.php' => true,
+        'member-withdrawal-assets.php' => true,
+        'editor-options.php' => true,
+        'coupon-targets.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {

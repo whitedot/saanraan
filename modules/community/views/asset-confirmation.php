@@ -1,0 +1,26 @@
+<?php
+
+$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_community_asset_confirmation_required_message());
+$assetConfirmationAction = (string) ($assetConfirmationAction ?? '/community');
+$assetConfirmationId = (int) ($assetConfirmationId ?? 0);
+$assetConfirmationTitle = is_array($post ?? null)
+    ? (string) (($post['title'] ?? '') ?: sr_t('community::ui.community.4a285775'))
+    : sr_t('community::ui.community.4a285775');
+$seo = [
+    'title' => $assetConfirmationTitle,
+    'robots' => 'noindex, nofollow',
+];
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+?>
+<main>
+    <article>
+        <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
+        <p><?php echo sr_e($assetConfirmationMessage); ?></p>
+        <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
+            <button type="submit"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
+        </form>
+    </article>
+</main>
+<?php sr_public_layout_end(); ?>

@@ -6,7 +6,12 @@ require_once SR_ROOT . '/modules/content/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 
-$fileId = (int) sr_get_string('id', 20);
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
+$fileIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
+$fileId = preg_match('/\A[1-9][0-9]*\z/', $fileIdValue) === 1 ? (int) $fileIdValue : 0;
 $file = sr_content_published_file_by_id($pdo, $fileId);
 if (!is_array($file)) {
     sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
@@ -52,10 +57,23 @@ if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id']);
     if (empty($downloadAccess['allowed'])) {
+        if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
+            $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
+            $assetConfirmationAction = '/content/download';
+            $assetConfirmationId = (int) $file['id'];
+            include SR_ROOT . '/modules/content/views/asset-confirmation.php';
+            return;
+        }
         sr_render_error(403, (string) ($downloadAccess['message'] ?? sr_t('content::action.error.download_forbidden')));
     }
     if (!empty($downloadAccess['charged'])) {
         sr_content_member_group_evaluate_after_activity($pdo, (int) $account['id']);
+    }
+    if (sr_request_method() === 'POST') {
+        if (sr_content_asset_policy_requires_confirmation((string) ($file['asset_charge_policy'] ?? 'once'))) {
+            sr_content_mark_asset_confirmation_session('download', (int) $account['id'], (int) $file['id'], (string) ($downloadAccess['confirmation_fingerprint'] ?? ''));
+        }
+        sr_redirect('/content/download?id=' . rawurlencode((string) $file['id']));
     }
 }
 

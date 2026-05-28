@@ -5,8 +5,12 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
 $account = sr_member_current_account($pdo);
-$attachmentIdValue = sr_get_string('id', 20);
+$attachmentIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
 $attachmentId = preg_match('/\A[1-9][0-9]*\z/', $attachmentIdValue) === 1 ? (int) $attachmentIdValue : 0;
 $attachment = sr_community_attachment_for_read($pdo, $attachmentId, is_array($account) ? $account : null);
 if (!is_array($attachment)) {
@@ -82,34 +86,32 @@ if (is_array($board)) {
         if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
             $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
-        $skipPaidReadCharge = (string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
+        $paidReadChargePolicy = (string) ($paidReadConfig['charge_policy'] ?? 'once');
+        $paidReadConfirmationFingerprint = '';
+        $paidReadBridgeCreatedAt = 0;
+        $skipPaidReadCharge = $paidReadChargePolicy === 'once'
             && sr_community_has_paid_read_session((int) $account['id'], (int) ($post['id'] ?? 0))
             && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey);
+        if (
+            !$skipPaidReadCharge
+            && sr_community_asset_policy_requires_confirmation($paidReadChargePolicy)
+        ) {
+            $assetModules = sr_community_asset_module_keys_from_value($paidReadConfig['asset_module'] ?? '', true);
+            $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
+            $amounts = is_array($paidReadConfig['amounts'] ?? null) ? $paidReadConfig['amounts'] : [];
+            $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, (int) $account['id'], $assetModules, $amounts, (int) ($paidReadConfig['amount'] ?? 0), $paidReadConfig['group_policies_json'] ?? '', (int) ($paidReadConfig['policy_set_id'] ?? 0), 'use');
+            $paidReadConfirmationFingerprint = sr_community_asset_confirmation_fingerprint('post_read', 'community.post', $paidReadChargePolicy, $assetModuleValue, (int) $policyAmounts['amount'], is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [], sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+            $paidReadBridgeCreatedAt = sr_community_asset_modules_available($pdo, $assetModules)
+                ? sr_community_consume_attachment_paid_read_bridge_created_at((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint)
+                : 0;
+            if ($paidReadBridgeCreatedAt > 0) {
+                $skipPaidReadCharge = true;
+            }
+        }
         if (!$skipPaidReadCharge) {
             $couponReadResult = ['allowed' => false, 'processed' => false];
-            if ((string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
-                && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey)
-            ) {
-                $couponReadResult = ['allowed' => true, 'processed' => false, 'already_redeemed' => true];
-            } elseif (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
-                require_once SR_ROOT . '/modules/coupon/helpers.php';
-                if (function_exists('sr_coupon_redeem_for_target')) {
-                    $couponContext = [
-                        'dedupe_key' => $couponDedupeKey,
-                        'reference_module' => 'community',
-                        'reference_type' => 'community.post',
-                        'reference_id' => (string) $post['id'],
-                    ];
-                    $couponReadResult = sr_coupon_redeem_for_target($pdo, (int) $account['id'], 'community_post', (string) $post['id'], $couponContext);
-                    if (empty($couponReadResult['allowed'])) {
-                        $couponReadResult = sr_coupon_redeem_for_target($pdo, (int) $account['id'], 'community_board', (string) ($post['board_id'] ?? 0), $couponContext);
-                    }
-                }
-            }
-
-            $paidReadResult = !empty($couponReadResult['allowed'])
-                ? ['allowed' => true, 'processed' => false]
-                : sr_community_run_asset_event(
+            if (sr_community_asset_policy_requires_confirmation($paidReadChargePolicy) && sr_request_method() !== 'POST') {
+                $paidReadResult = sr_community_run_asset_event(
                     $pdo,
                     $paidReadConfig,
                     (int) $account['id'],
@@ -119,11 +121,40 @@ if (is_array($board)) {
                     'use',
                     'community.post.read'
                 );
-            if (!empty($couponReadResult['allowed'])) {
-                sr_community_grant_access_entitlement($pdo, (int) $account['id'], 'community.post', (int) $post['id'], 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+            } else {
+                $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey);
+                $paidReadResult = !empty($couponReadResult['allowed'])
+                    ? [
+                        'allowed' => true,
+                        'processed' => false,
+                        'confirmation_fingerprint' => (string) ($couponReadResult['confirmation_fingerprint'] ?? ''),
+                    ]
+                    : sr_community_run_asset_event(
+                        $pdo,
+                        $paidReadConfig,
+                        (int) $account['id'],
+                        'post_read',
+                        'community.post',
+                        (int) $post['id'],
+                        'use',
+                        'community.post.read'
+                    );
             }
             if (empty($paidReadResult['allowed'])) {
+                if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {
+                    $assetConfirmationMessage = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
+                    $assetConfirmationAction = '/community/attachment';
+                    $assetConfirmationId = (int) $attachment['id'];
+                    include SR_ROOT . '/modules/community/views/asset-confirmation.php';
+                    return;
+                }
                 sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed')));
+            }
+            if (sr_request_method() === 'POST' && sr_community_asset_policy_requires_confirmation($paidReadChargePolicy)) {
+                $paidReadConfirmationFingerprint = (string) ($paidReadResult['confirmation_fingerprint'] ?? '');
+                sr_community_mark_asset_confirmation_session('post_read', 'community.post', (int) $account['id'], (int) $post['id'], $paidReadConfirmationFingerprint);
+                sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint);
+                sr_redirect('/community/attachment?id=' . rawurlencode((string) $attachment['id']));
             }
             sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         }
@@ -148,7 +179,27 @@ if ($disposition === 'attachment' && is_array($board)) {
             'community.attachment.download'
         );
         if (empty($downloadResult['allowed'])) {
+            if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
+                $assetConfirmationMessage = (string) ($downloadResult['message'] ?? sr_community_asset_confirmation_required_message());
+                $assetConfirmationAction = '/community/attachment';
+                $assetConfirmationId = (int) $attachment['id'];
+                if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
+                    sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
+                }
+                include SR_ROOT . '/modules/community/views/asset-confirmation.php';
+                return;
+            }
             sr_render_error(403, (string) ($downloadResult['message'] ?? sr_t('community::action.error.download_attachment_failed')));
+        }
+        if (
+            sr_request_method() === 'POST'
+            && sr_community_asset_policy_requires_confirmation((string) ($downloadConfig['charge_policy'] ?? 'once'))
+        ) {
+            sr_community_mark_asset_confirmation_session('attachment_download', 'community.attachment', (int) $account['id'], (int) $attachment['id'], (string) ($downloadResult['confirmation_fingerprint'] ?? ''));
+            if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
+                sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
+            }
+            sr_redirect('/community/attachment?id=' . rawurlencode((string) $attachment['id']));
         }
     }
 }

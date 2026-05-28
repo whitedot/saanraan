@@ -663,6 +663,63 @@ function sr_community_asset_charge_policy(string $value, string $fallback = 'onc
     return isset(sr_community_asset_charge_policies()[$value]) ? $value : $fallback;
 }
 
+function sr_community_asset_policy_requires_confirmation(string $chargePolicy): bool
+{
+    return in_array($chargePolicy, ['every_view', 'every_download', 'every_action'], true);
+}
+
+function sr_community_asset_confirmation_required_message(): string
+{
+    return sr_t('community::action.error.asset_confirmation_required');
+}
+
+function sr_community_asset_confirmation_session_key(string $eventKey, string $subjectType, int $accountId, int $subjectId): string
+{
+    return $eventKey . ':' . $subjectType . ':' . (string) $accountId . ':' . (string) $subjectId;
+}
+
+function sr_community_asset_confirmation_fingerprint(string $eventKey, string $subjectType, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = ''): string
+{
+    ksort($amounts, SORT_STRING);
+    $amountParts = [];
+    foreach ($amounts as $assetModule => $assetAmount) {
+        $amountParts[] = (string) $assetModule . ':' . (string) max(0, (int) $assetAmount);
+    }
+
+    return hash('sha256', implode('|', [$eventKey, $subjectType, $chargePolicy, $assetModuleValue, (string) max(0, $amount), implode(',', $amountParts), $policySnapshotJson]));
+}
+
+function sr_community_mark_asset_confirmation_session(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint): void
+{
+    if ($eventKey === '' || $subjectType === '' || $accountId < 1 || $subjectId < 1 || $fingerprint === '') {
+        return;
+    }
+
+    if (!isset($_SESSION['sr_community_asset_confirmations']) || !is_array($_SESSION['sr_community_asset_confirmations'])) {
+        $_SESSION['sr_community_asset_confirmations'] = [];
+    }
+
+    $_SESSION['sr_community_asset_confirmations'][sr_community_asset_confirmation_session_key($eventKey, $subjectType, $accountId, $subjectId)] = [
+        'created_at' => time(),
+        'fingerprint' => $fingerprint,
+    ];
+}
+
+function sr_community_consume_asset_confirmation_session(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint): bool
+{
+    $key = sr_community_asset_confirmation_session_key($eventKey, $subjectType, $accountId, $subjectId);
+    $sessions = is_array($_SESSION['sr_community_asset_confirmations'] ?? null) ? $_SESSION['sr_community_asset_confirmations'] : [];
+    $session = isset($sessions[$key]) && is_array($sessions[$key]) ? $sessions[$key] : [];
+    $createdAt = (int) ($session['created_at'] ?? 0);
+    $sessionFingerprint = (string) ($session['fingerprint'] ?? '');
+    unset($_SESSION['sr_community_asset_confirmations'][$key]);
+
+    return $createdAt > 0
+        && $createdAt >= time() - 300
+        && $fingerprint !== ''
+        && hash_equals($sessionFingerprint, $fingerprint);
+}
+
 function sr_community_once_history_policy_values(): array
 {
     return [
@@ -1242,8 +1299,14 @@ function sr_community_has_paid_read_session(int $accountId, int $postId): bool
 {
     $key = sr_community_paid_read_session_key($accountId, $postId);
     $sessions = is_array($_SESSION['sr_community_paid_read_posts'] ?? null) ? $_SESSION['sr_community_paid_read_posts'] : [];
+    $createdAt = isset($sessions[$key]) ? (int) $sessions[$key] : 0;
 
-    return isset($sessions[$key]);
+    if ($createdAt > 0 && $createdAt >= time() - 300) {
+        return true;
+    }
+
+    unset($_SESSION['sr_community_paid_read_posts'][$key]);
+    return false;
 }
 
 function sr_community_mark_paid_read_session(int $accountId, int $postId): void
@@ -1257,6 +1320,52 @@ function sr_community_mark_paid_read_session(int $accountId, int $postId): void
     }
 
     $_SESSION['sr_community_paid_read_posts'][sr_community_paid_read_session_key($accountId, $postId)] = time();
+}
+
+function sr_community_attachment_paid_read_bridge_key(int $accountId, int $attachmentId): string
+{
+    return (string) $accountId . ':' . (string) $attachmentId;
+}
+
+function sr_community_mark_attachment_paid_read_bridge(int $accountId, int $attachmentId, string $fingerprint, int $createdAt = 0): void
+{
+    if ($accountId < 1 || $attachmentId < 1 || $fingerprint === '') {
+        return;
+    }
+
+    if (!isset($_SESSION['sr_community_attachment_paid_read_bridges']) || !is_array($_SESSION['sr_community_attachment_paid_read_bridges'])) {
+        $_SESSION['sr_community_attachment_paid_read_bridges'] = [];
+    }
+
+    $_SESSION['sr_community_attachment_paid_read_bridges'][sr_community_attachment_paid_read_bridge_key($accountId, $attachmentId)] = [
+        'created_at' => $createdAt > 0 ? $createdAt : time(),
+        'fingerprint' => $fingerprint,
+    ];
+}
+
+function sr_community_consume_attachment_paid_read_bridge_created_at(int $accountId, int $attachmentId, string $fingerprint): int
+{
+    $key = sr_community_attachment_paid_read_bridge_key($accountId, $attachmentId);
+    $sessions = is_array($_SESSION['sr_community_attachment_paid_read_bridges'] ?? null) ? $_SESSION['sr_community_attachment_paid_read_bridges'] : [];
+    $session = isset($sessions[$key]) && is_array($sessions[$key]) ? $sessions[$key] : [];
+    $createdAt = (int) ($session['created_at'] ?? 0);
+    $sessionFingerprint = (string) ($session['fingerprint'] ?? '');
+    unset($_SESSION['sr_community_attachment_paid_read_bridges'][$key]);
+
+    if ($createdAt > 0
+        && $createdAt >= time() - 300
+        && $fingerprint !== ''
+        && hash_equals($sessionFingerprint, $fingerprint)
+    ) {
+        return $createdAt;
+    }
+
+    return 0;
+}
+
+function sr_community_consume_attachment_paid_read_bridge(int $accountId, int $attachmentId, string $fingerprint): bool
+{
+    return sr_community_consume_attachment_paid_read_bridge_created_at($accountId, $attachmentId, $fingerprint) > 0;
 }
 
 function sr_community_asset_dedupe_key(string $assetModule, int $accountId, string $eventKey, int $subjectId): string
@@ -1488,6 +1597,91 @@ function sr_community_once_access_already_granted(PDO $pdo, array $config, int $
     return sr_community_has_access_entitlement($pdo, $assetModules, $accountId, $eventKey, $subjectType, $subjectId, $couponDedupeKey, $policy);
 }
 
+// This helper owns its transaction boundary so fallback coupon targets cannot
+// commit partial redemption work from a previous target attempt.
+function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey): array
+{
+    $postId = (int) ($post['id'] ?? 0);
+    $boardId = (int) ($post['board_id'] ?? 0);
+    if ($accountId <= 0 || $postId <= 0 || $couponDedupeKey === '') {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    if ((string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once'
+        && sr_community_once_access_already_granted($pdo, $paidReadConfig, $accountId, 'post_read', $postId, $couponDedupeKey)
+    ) {
+        return ['allowed' => true, 'processed' => false, 'already_redeemed' => true];
+    }
+
+    if (!sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_redeem_for_target')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    $assetModules = sr_community_asset_module_keys_from_value($paidReadConfig['asset_module'] ?? '', true);
+    $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
+    $amounts = is_array($paidReadConfig['amounts'] ?? null) ? $paidReadConfig['amounts'] : [];
+    $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($paidReadConfig['amount'] ?? 0), $paidReadConfig['group_policies_json'] ?? '', (int) ($paidReadConfig['policy_set_id'] ?? 0), 'use');
+    $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $confirmationFingerprint = sr_community_asset_confirmation_fingerprint(
+        'post_read',
+        'community.post',
+        (string) ($paidReadConfig['charge_policy'] ?? 'once'),
+        $assetModuleValue,
+        (int) $policyAmounts['amount'],
+        is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [],
+        $policySnapshotJson
+    );
+
+    $couponContext = [
+        'dedupe_key' => $couponDedupeKey,
+        'reference_module' => 'community',
+        'reference_type' => 'community.post',
+        'reference_id' => (string) $postId,
+    ];
+
+    foreach ([['community_post', (string) $postId], ['community_board', (string) $boardId]] as $target) {
+        if ((string) $target[1] === '0') {
+            continue;
+        }
+
+        $startedTransaction = !$pdo->inTransaction();
+        if ($startedTransaction) {
+            $pdo->beginTransaction();
+        }
+
+        try {
+            $couponResult = sr_coupon_redeem_for_target($pdo, $accountId, (string) $target[0], (string) $target[1], $couponContext);
+            if (!empty($couponResult['allowed'])) {
+                sr_community_grant_access_entitlement($pdo, $accountId, 'community.post', $postId, 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
+
+                $couponResult['confirmation_fingerprint'] = $confirmationFingerprint;
+                return $couponResult;
+            }
+
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+        } catch (Throwable $exception) {
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'community_coupon_entitlement_failed');
+            }
+        }
+    }
+
+    return ['allowed' => false, 'processed' => false];
+}
+
 function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
     $stmt = $pdo->prepare(
@@ -1586,27 +1780,55 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
     $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
     $amounts = $amounts !== [] ? $policyAmounts['amounts'] : [];
     $amount = (int) $policyAmounts['amount'];
+    $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = $once
             ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
             : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
-        sr_community_insert_asset_log_placeholder($pdo, [
-            'account_id' => $accountId,
-            'asset_module' => $assetModule,
-            'reference_type' => $subjectType,
-            'reference_id' => (string) $subjectId,
-            'subject_type' => $subjectType,
-            'subject_id' => $subjectId,
-            'event_key' => $eventKey,
-            'direction' => $direction,
-            'charge_policy' => $chargePolicy,
-            'amount' => 0,
-            'group_policy_snapshot_json' => sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']),
-            'dedupe_key' => $dedupeKey,
-        ]);
-        if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
-            sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+        $startedTransaction = !$pdo->inTransaction();
+        if ($startedTransaction) {
+            $pdo->beginTransaction();
+        }
+        try {
+            sr_community_insert_asset_log_placeholder($pdo, [
+                'account_id' => $accountId,
+                'asset_module' => $assetModule,
+                'reference_type' => $subjectType,
+                'reference_id' => (string) $subjectId,
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'event_key' => $eventKey,
+                'direction' => $direction,
+                'charge_policy' => $chargePolicy,
+                'amount' => 0,
+                'group_policy_snapshot_json' => $policySnapshotJson,
+                'dedupe_key' => $dedupeKey,
+            ]);
+            if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
+                sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+            }
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+        } catch (Throwable $exception) {
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'community_asset_group_event_failed');
+            }
+
+            return [
+                'allowed' => false,
+                'processed' => false,
+                'error_key' => 'asset_processing_failed',
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => 0,
+                'message' => sr_t('community::action.error.asset_processing_failed'),
+            ];
         }
 
         return [
@@ -1621,6 +1843,32 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         ];
     }
 
+    if ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
+        if (sr_community_consume_asset_confirmation_session($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint)) {
+            return [
+                'allowed' => true,
+                'processed' => false,
+                'confirmed_access' => true,
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => $amount,
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'message' => '',
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'processed' => false,
+            'error_key' => 'asset_confirmation_required',
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => $amount,
+            'confirmation_fingerprint' => $confirmationFingerprint,
+            'message' => sr_community_asset_confirmation_required_message(),
+        ];
+    }
+
     $allocations = $direction === 'use'
         ? ($amounts !== [] ? sr_community_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_community_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
@@ -1632,12 +1880,18 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
+            'confirmation_fingerprint' => $confirmationFingerprint,
             'message' => sr_t('community::action.error.asset_balance_low'),
         ];
     }
 
     $processed = false;
     $dedupeKey = '';
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
     try {
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
@@ -1661,6 +1915,9 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
                 'dedupe_key' => $dedupeKey,
             ]);
             if (!$inserted) {
+                if ($once) {
+                    throw new RuntimeException('Incomplete or duplicate community asset event.');
+                }
                 continue;
             }
 
@@ -1683,8 +1940,14 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             }
             $processed = true;
         }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        if ($dedupeKey !== '') {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        } elseif ($dedupeKey !== '') {
             sr_community_delete_asset_log_placeholder($pdo, $dedupeKey);
         }
         if (function_exists('sr_log_exception')) {
@@ -1709,6 +1972,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'direction' => $direction,
+        'confirmation_fingerprint' => $confirmationFingerprint,
         'message' => '',
     ];
 }

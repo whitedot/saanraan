@@ -115,6 +115,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <?php echo sr_banner_render_public_banner($pdo, (int) ($post['banner_before_view_id'] ?? 0)); ?>
             <?php } ?>
 
+            <?php if (!empty($paidReadConfirmationRequired)) { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
+                    <button type="submit"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
+                </form>
+            </article>
+            <?php } else { ?>
             <div>
                 <?php echo sr_community_post_body_html($post); ?>
             </div>
@@ -273,5 +281,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 'subject_id' => (string) $post['id'],
             ]); ?>
         </section>
+        <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>

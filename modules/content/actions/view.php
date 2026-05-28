@@ -12,6 +12,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
 
 $slug = sr_content_slug_from_request_path();
 $page = $slug !== '' ? sr_content_by_slug($pdo, $slug) : null;
@@ -38,6 +41,12 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
     $pageAccess = sr_content_charge_view_access($pdo, $page, (int) $account['id']);
     if (!empty($pageAccess['charged'])) {
         sr_content_member_group_evaluate_after_activity($pdo, (int) $account['id']);
+    }
+    if (sr_request_method() === 'POST' && !empty($pageAccess['allowed'])) {
+        if (sr_content_asset_policy_requires_confirmation((string) ($page['asset_charge_policy'] ?? 'once'))) {
+            sr_content_mark_asset_confirmation_session('view', (int) $account['id'], (int) $page['id'], (string) ($pageAccess['confirmation_fingerprint'] ?? ''));
+        }
+        sr_redirect(sr_content_path((string) $page['slug']));
     }
 }
 

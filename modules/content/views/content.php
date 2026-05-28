@@ -45,6 +45,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php if (empty($pageAccess['allowed'])) { ?>
             <div class="content-body">
                 <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('content::ui.content.7d2dd480'))); ?></p>
+                <?php if ((string) ($pageAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <button type="submit" class="btn btn-solid-primary">
+                            <?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>
+                        </button>
+                    </form>
+                <?php } ?>
             </div>
         <?php } else { ?>
             <?php if ((string) ($pageActionNotice ?? '') !== '') { ?>
@@ -74,9 +82,20 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php foreach ($contentFiles as $contentFile) { ?>
                             <li>
                                 <?php if (empty($contentAdminPreview)) { ?>
-                                    <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']))); ?>">
-                                        <?php echo sr_e((string) $contentFile['title']); ?>
-                                    </a>
+                                    <?php $contentFileNeedsConfirmation = (int) ($contentFile['asset_download_enabled'] ?? 0) === 1 && sr_content_asset_policy_requires_confirmation((string) ($contentFile['asset_charge_policy'] ?? 'once')); ?>
+                                    <?php if ($contentFileNeedsConfirmation) { ?>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/content/download')); ?>">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="id" value="<?php echo sr_e((string) $contentFile['id']); ?>">
+                                            <button type="submit" class="btn btn-solid-light">
+                                                <?php echo sr_e((string) $contentFile['title']); ?>
+                                            </button>
+                                        </form>
+                                    <?php } else { ?>
+                                        <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']))); ?>">
+                                            <?php echo sr_e((string) $contentFile['title']); ?>
+                                        </a>
+                                    <?php } ?>
                                 <?php } else { ?>
                                     <span>
                                         <?php echo sr_e((string) $contentFile['title']); ?>
