@@ -33,10 +33,20 @@ function sr_logo_manager_usage_options(): array
     ];
 }
 
+function sr_logo_manager_default_usage_options(): array
+{
+    return sr_logo_manager_usage_options();
+}
+
 function sr_logo_manager_usage_key(string $usageKey): string
 {
     $usageKey = strtolower(trim($usageKey));
     return isset(sr_logo_manager_usage_options()[$usageKey]) ? $usageKey : 'public_header';
+}
+
+function sr_logo_manager_default_usage_key(string $usageKey): string
+{
+    return sr_logo_manager_usage_key($usageKey);
 }
 
 function sr_logo_manager_usage_label(string $usageKey): string
@@ -520,7 +530,8 @@ function sr_logo_manager_active_assignment(PDO $pdo, string $usageKey, ?string $
                AND asset.status = 'active'
                AND (a.starts_at IS NULL OR a.starts_at <= :now_start)
                AND (a.ends_at IS NULL OR a.ends_at >= :now_end)
-             ORDER BY a.sort_order ASC, a.starts_at DESC, a.id DESC
+             ORDER BY CASE WHEN a.starts_at IS NULL AND a.ends_at IS NULL THEN 1 ELSE 0 END ASC,
+                      a.sort_order ASC, a.starts_at DESC, a.id DESC
              LIMIT 1"
         );
         $stmt->execute([
@@ -533,6 +544,35 @@ function sr_logo_manager_active_assignment(PDO $pdo, string $usageKey, ?string $
         return is_array($row) ? $row : null;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'logo_manager_active_assignment_failed');
+        return null;
+    }
+}
+
+function sr_logo_manager_default_assignment(PDO $pdo, string $usageKey): ?array
+{
+    $usageKey = sr_logo_manager_default_usage_key($usageKey);
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT a.id AS assignment_id, a.usage_key, a.asset_id, a.alt_text AS assignment_alt_text, a.link_url,
+                    a.starts_at, a.ends_at, a.sort_order, asset.title, asset.alt_text AS asset_alt_text,
+                    asset.storage_driver, asset.storage_key, asset.public_url, asset.mime_type,
+                    asset.width, asset.height
+             FROM sr_logo_manager_assignments a
+             INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
+             WHERE a.usage_key = :usage_key
+               AND a.status = 'active'
+               AND asset.status = 'active'
+               AND a.starts_at IS NULL
+               AND a.ends_at IS NULL
+             ORDER BY a.id DESC
+             LIMIT 1"
+        );
+        $stmt->execute(['usage_key' => $usageKey]);
+
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'logo_manager_default_assignment_failed');
         return null;
     }
 }

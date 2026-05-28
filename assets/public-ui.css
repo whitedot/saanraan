@@ -44,6 +44,10 @@
     object-fit: contain;
 }
 
+.public-site-brand-logo-mobile {
+    display: none;
+}
+
 .public-site-brand-text {
     color: var(--sr-text, var(--color-default-900));
     font-size: var(--text-lg);
@@ -60,6 +64,14 @@
     .public-site-header {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .public-site-brand-logo-mobile {
+        display: block;
+    }
+
+    .public-site-brand-logo-mobile + .public-site-brand-logo-desktop {
+        display: none;
     }
 }
 

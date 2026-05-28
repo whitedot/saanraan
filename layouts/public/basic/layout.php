@@ -8,12 +8,18 @@ $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
 $layoutSiteName = trim((string) ($layoutSite['name'] ?? $layoutSite['site_name'] ?? 'Saanraan'));
 $layoutBrandLogoHtml = '';
+$layoutMobileBrandLogoHtml = '';
 $layoutBrandLinkUrl = sr_url('/');
 $layoutFaviconHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public_header', $layoutSite, [
-        'class' => 'public-site-brand-logo',
+        'class' => 'public-site-brand-logo public-site-brand-logo-desktop',
+    ]);
+    $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'mobile', $layoutSite, [
+        'class' => $layoutBrandLogoHtml !== ''
+            ? 'public-site-brand-logo public-site-brand-logo-mobile'
+            : 'public-site-brand-logo',
     ]);
     $layoutBrandAssignment = sr_logo_manager_active_assignment($layoutPdo, 'public_header');
     if (is_array($layoutBrandAssignment)) {
@@ -38,7 +44,8 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 <body>
     <header class="public-site-header">
         <a class="public-site-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
-            <?php if ($layoutBrandLogoHtml !== '') { ?>
+            <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
+                <?php echo $layoutMobileBrandLogoHtml; ?>
                 <?php echo $layoutBrandLogoHtml; ?>
             <?php } else { ?>
                 <span class="public-site-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>

@@ -10,6 +10,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', 'view');
 
 $usageOptions = sr_logo_manager_usage_options();
+$defaultUsageOptions = sr_logo_manager_default_usage_options();
 $assetStatuses = ['active', 'archived'];
 $assignmentStatuses = ['active', 'disabled'];
 $logoManagerDefaultAltText = is_array($site ?? null) ? trim((string) (($site['site_name'] ?? '') !== '' ? $site['site_name'] : ($site['name'] ?? ''))) : '';
@@ -23,17 +24,21 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     $now = sr_now();
 
-    if ($intent === 'upload_asset') {
-        $usageKey = sr_logo_manager_usage_key(sr_post_string('usage_key', 40));
+    if ($intent === 'upload_default_logo' || $intent === 'upload_event_logo') {
+        $isDefaultLogo = $intent === 'upload_default_logo';
+        $usageKey = $isDefaultLogo
+            ? sr_logo_manager_default_usage_key(sr_post_string('usage_key', 40))
+            : sr_logo_manager_usage_key(sr_post_string('usage_key', 40));
         $title = sr_logo_manager_clean_single_line(sr_post_string('title', 120), 120);
         $altText = sr_logo_manager_clean_single_line(sr_post_string('alt_text', 160), 160);
         $linkUrlRaw = sr_post_string('link_url', 255);
         $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
-        $startsAtInput = sr_post_string('starts_at', 30);
-        $endsAtInput = sr_post_string('ends_at', 30);
+        $startsAtInput = $isDefaultLogo ? '' : sr_post_string('starts_at', 30);
+        $endsAtInput = $isDefaultLogo ? '' : sr_post_string('ends_at', 30);
         $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
         $endsAt = sr_logo_manager_clean_admin_datetime($endsAtInput);
-        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $sortOrder = $isDefaultLogo ? 100 : max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $status = $isDefaultLogo || sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
 
@@ -51,6 +56,9 @@ if (sr_request_method() === 'POST') {
         }
         if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
+        }
+        if (!$isDefaultLogo && $startsAt === null && $endsAt === null) {
+            $errors[] = '이벤트 로고는 시작 또는 종료 시각을 입력하세요.';
         }
         if (!sr_logo_manager_upload_was_provided($uploadFile)) {
             $errors[] = '업로드할 로고 이미지를 선택하세요.';
@@ -95,6 +103,21 @@ if (sr_request_method() === 'POST') {
                 ]);
                 $assetId = (int) $pdo->lastInsertId();
 
+                if ($isDefaultLogo) {
+                    $stmt = $pdo->prepare(
+                        "UPDATE sr_logo_manager_assignments
+                         SET status = 'disabled', updated_at = :updated_at
+                         WHERE usage_key = :usage_key
+                           AND status = 'active'
+                           AND starts_at IS NULL
+                           AND ends_at IS NULL"
+                    );
+                    $stmt->execute([
+                        'usage_key' => $usageKey,
+                        'updated_at' => $now,
+                    ]);
+                }
+
                 $stmt = $pdo->prepare(
                     'INSERT INTO sr_logo_manager_assignments
                         (usage_key, asset_id, alt_text, link_url, status, starts_at, ends_at, sort_order, created_by_account_id, created_at, updated_at)
@@ -106,7 +129,7 @@ if (sr_request_method() === 'POST') {
                     'asset_id' => $assetId,
                     'alt_text' => $altText,
                     'link_url' => $linkUrl,
-                    'status' => 'active',
+                    'status' => $status,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
                     'sort_order' => $sortOrder,
@@ -127,12 +150,13 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Logo asset uploaded and assigned.',
                     'metadata' => [
                         'usage_key' => $usageKey,
+                        'assignment_type' => $isDefaultLogo ? 'default' : 'event',
                         'assignment_id' => $assignmentId,
                         'reencoded' => !empty($uploadedImage['reencoded']),
                     ],
                 ]);
 
-                $notice = '로고를 업로드하고 기간별 적용 항목을 추가했습니다.';
+                $notice = $isDefaultLogo ? '기본 로고를 등록했습니다.' : '이벤트 로고를 등록했습니다.';
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -218,7 +242,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            $notice = '기간별 적용 항목을 추가했습니다.';
+            $notice = '이벤트 로고를 추가했습니다.';
         }
     } elseif ($intent === 'asset_status') {
         $assetId = (int) sr_post_string('asset_id', 20);
@@ -258,7 +282,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Logo assignment status changed.',
                 'metadata' => ['status' => $status],
             ]);
-            $notice = '기간별 적용 항목 상태를 변경했습니다.';
+            $notice = '이벤트 로고 상태를 변경했습니다.';
         }
     }
 }
@@ -268,25 +292,16 @@ foreach (array_keys($usageOptions) as $usageKey) {
     $activeAssignments[$usageKey] = sr_logo_manager_active_assignment($pdo, (string) $usageKey);
 }
 
-$stmt = $pdo->query('SELECT COUNT(*) AS count_value FROM sr_logo_manager_assets');
-$assetCountRow = $stmt->fetch();
-$assetPagination = sr_admin_pagination_from_total($pdo, is_array($assetCountRow) ? (int) ($assetCountRow['count_value'] ?? 0) : 0, 'asset_page');
-$assetSortOptions = sr_admin_logo_asset_sort_options();
-$assetDefaultSort = sr_admin_logo_asset_default_sort();
-$assetSort = sr_admin_sort_from_request($assetSortOptions, $assetDefaultSort, 'asset_sort', 'asset_dir');
-$stmt = $pdo->query(
-    'SELECT id, usage_key, title, alt_text, storage_driver, storage_key, public_url, mime_type,
-            size_bytes, width, height, status, created_at, updated_at
-     FROM sr_logo_manager_assets
-     ' . sr_admin_sort_order_sql($assetSortOptions, $assetSort, $assetDefaultSort) . '
-     LIMIT ' . (int) $assetPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($assetPagination)
-);
-$assets = $stmt->fetchAll();
+$defaultAssignments = [];
+foreach (array_keys($defaultUsageOptions) as $usageKey) {
+    $defaultAssignments[$usageKey] = sr_logo_manager_default_assignment($pdo, (string) $usageKey);
+}
 
 $stmt = $pdo->query(
     'SELECT COUNT(*) AS count_value
      FROM sr_logo_manager_assignments a
-     INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id'
+     INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
+     WHERE a.starts_at IS NOT NULL OR a.ends_at IS NOT NULL'
 );
 $assignmentCountRow = $stmt->fetch();
 $assignmentPagination = sr_admin_pagination_from_total($pdo, is_array($assignmentCountRow) ? (int) ($assignmentCountRow['count_value'] ?? 0) : 0, 'assignment_page');
@@ -298,6 +313,7 @@ $stmt = $pdo->query(
             a.sort_order, a.created_at, asset.title, asset.storage_driver, asset.storage_key, asset.public_url
      FROM sr_logo_manager_assignments a
      INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
+     WHERE a.starts_at IS NOT NULL OR a.ends_at IS NOT NULL
      ' . sr_admin_sort_order_sql($assignmentSortOptions, $assignmentSort, $assignmentDefaultSort) . '
      LIMIT ' . (int) $assignmentPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($assignmentPagination)
 );
