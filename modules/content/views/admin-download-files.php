@@ -139,7 +139,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <div>
                 <h2 class="card-title">다운로드 파일 목록</h2>
-                <p class="admin-dashboard-meta">콘텐츠에 연결할 다운로드 파일과 파일별 과금 정책을 관리합니다.</p>
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content/files?new=1')); ?>" class="btn btn-sm btn-outline-secondary">파일 추가</a>
         </div>
