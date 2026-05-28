@@ -306,6 +306,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_asset_access_amounts_grouped', 'group_asset_module', 'group_asset_access_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_module', '')), $groupSettingValue($groupSettings, 'asset_access_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_asset_access_policy_set_id"><?php echo sr_e('유료 열람 회원 그룹 혜택'); ?></label>
+                <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('content_group_asset_access_policy_set_id', 'group_asset_access_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'asset_access_policy_set_id', '0')); ?>
                     <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
@@ -353,6 +358,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-asset-setting-target" data-content-action-use-amounts<?php echo $groupSettingValue($groupSettings, 'asset_action_direction', 'grant') === 'use' ? '' : ' hidden'; ?>>
                         <?php echo sr_content_asset_amount_inputs_html('group_asset_action_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')), $groupSettingValue($groupSettings, 'asset_action_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_amount', '0'), sr_t('content::ui.text.5c705e1a')); ?>
                     </div>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_asset_action_policy_set_id"><?php echo sr_e('완료 버튼 회원 그룹 혜택'); ?></label>
+                <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('content_group_asset_action_policy_set_id', 'group_asset_action_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'asset_action_policy_set_id', '0')); ?>
                     <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
@@ -396,6 +406,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_group_file_asset_download_amounts_grouped', 'group_file_asset_module', 'group_file_asset_download_amounts', $assetModuleOptions, sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'file_asset_module', '')), $groupSettingValue($groupSettings, 'file_asset_download_amounts_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_amount', '0'), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_file_asset_download_policy_set_id"><?php echo sr_e('파일 다운로드 회원 그룹 혜택'); ?></label>
+                <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('content_group_file_asset_download_policy_set_id', 'group_file_asset_download_policy_set_id', $assetPolicySets, (int) $groupSettingValue($groupSettings, 'file_asset_download_policy_set_id', '0')); ?>
                     <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>

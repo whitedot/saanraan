@@ -46,7 +46,10 @@ if (!is_string($view)) {
 
 $module = file_get_contents($root . '/modules/coupon/module.php');
 $update = file_get_contents($root . '/modules/coupon/updates/2026.05.003.sql');
-if (!is_string($module) || strpos($module, "'version' => '2026.05.003'") === false) {
+if (!is_string($module)
+    || preg_match("/'version'\\s*=>\\s*'([0-9]{4}\\.[0-9]{2}\\.[0-9]{3})'/", $module, $versionMatch) !== 1
+    || version_compare($versionMatch[1], '2026.05.003', '<')
+) {
     $errors[] = 'Coupon module version must be bumped for the validation behavior change.';
 }
 if (!is_string($update) || strpos($update, "WHERE module_key = 'coupon'") === false) {

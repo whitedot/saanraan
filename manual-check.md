@@ -164,7 +164,10 @@
 - [ ] `/admin/asset-exchange` 자산 환전 정책 저장, 중복 조합/비율/금액/수수료 서버 검증
 - [ ] `/account/asset-exchange` 환전 예상 금액 확인 후 확정 시 출금/입금/수수료 원장과 환전 로그가 같은 묶음 ID로 저장되고 환전 로그 입금액은 수수료 차감 후 최종 증가액으로 표시됨
 - [ ] 자산 모듈 비활성화 후 환전 정책 후보 제외와 기존 정책 실행 불가 표시 확인
-- [ ] `/admin/coupons` 쿠폰 키는 영문 소문자로 시작하는 key 형식만 저장되고, 중복 키와 숫자가 아닌 사용 가능 횟수는 서버에서 거부됨
+- [ ] `/admin/coupons` 쿠폰 추가 모달에서 쿠폰 키는 영문 소문자로 시작하는 key 형식만 저장되고, 중복 키와 숫자가 아닌 사용 가능 횟수는 서버에서 거부됨
+- [ ] `/admin/coupons` 쿠폰 추가 모달의 대상 번호 검색 스택 모달에서 사용처별 대상을 검색해 선택할 수 있음
+- [ ] `/admin/coupons` 쿠폰 목록의 개별 지급하기 모달에서 회원 검색, 전체, 그룹 대상으로 쿠폰을 지급할 수 있음
+- [ ] `/admin/coupons/issues`에서 최근 지급 내역이 분리 표시되고 활성 지급 건을 취소할 수 있음
 
 메모:
 
@@ -175,7 +178,7 @@
 ## 커뮤니티 관리자 화면
 
 - [ ] `/admin/community/settings` 커뮤니티 설정
-- [ ] `/admin/community/asset-policy-sets`에서 회원 그룹 정책을 저장하고 `/admin/community/settings`, 게시판 그룹, 게시판 수정 화면에서 정책을 선택
+- [ ] `/admin/community/asset-policy-sets`에서 멤버 그룹 혜택을 저장하고 `/admin/community/settings`, 게시판 그룹, 게시판 수정 화면에서 정책을 선택
 - [ ] `/admin/community/boards` 게시판 목록
 - [ ] `/admin/community/boards/new` 게시판 생성
 - [ ] `/admin/community/boards/edit?id=...` 게시판 수정

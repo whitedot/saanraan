@@ -443,6 +443,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="source_asset_access_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_asset_access_policy_set_id"><?php echo sr_e('유료 열람 회원 그룹 혜택'); ?></label>
+                <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_access_policy_set_id', 'asset_access_policy_set_id', $assetPolicySets, (int) ($values['asset_access_policy_set_id'] ?? 0)); ?>
                     <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
@@ -647,7 +652,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_content_asset_grouped_amount_inputs_html($contentFileAssetModuleId . '_amounts_grouped', 'content_file_asset_module[' . (string) $fileId . ']', 'content_file_asset_download_amounts[' . (string) $fileId . ']', $assetModuleOptions, $selectedFileAssetModules, $contentFile['asset_download_amounts_json'] ?? '', (int) ($contentFile['asset_download_amount'] ?? 0), sr_t('content::ui.text.c871de35'), sr_t('content::ui.text.3e195cdd')); ?>
                                         </div>
                                         <input id="<?php echo sr_e($contentFileAmountId); ?>" type="hidden" name="content_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($contentFile['asset_download_amount'] ?? 0)); ?>">
-                                        <?php echo sr_content_asset_policy_set_select_html('content_file_asset_download_policy_set_id_' . (string) $fileId, 'content_file_asset_download_policy_set_id[' . (string) $fileId . ']', $assetPolicySets, (int) ($contentFile['asset_download_policy_set_id'] ?? 0)); ?>
+                                        <div class="admin-asset-setting-secondary">
+                                            <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_id_' . (string) $fileId); ?>"><?php echo sr_e('회원 그룹 혜택'); ?></label>
+                                            <?php echo sr_content_asset_policy_set_select_html('content_file_asset_download_policy_set_id_' . (string) $fileId, 'content_file_asset_download_policy_set_id[' . (string) $fileId . ']', $assetPolicySets, (int) ($contentFile['asset_download_policy_set_id'] ?? 0)); ?>
+                                        </div>
                                     </td>
                                     <td>
                                         <label class="admin-form-check form-label" for="<?php echo sr_e($contentFileDeleteId); ?>">
@@ -709,7 +717,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <input id="content_admin_contents_new_content_file_asset_download_amount" type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($newContentFileAssetSettings['file_asset_download_amount'] ?? 0)); ?>">
                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="new_content_file_asset_download_policy_set_id"><?php echo sr_e('파일 다운로드 회원 그룹 혜택'); ?></label>
+                <div class="admin-form-field">
                     <?php echo sr_content_asset_policy_set_select_html('new_content_file_asset_download_policy_set_id', 'new_content_file_asset_download_policy_set_id', $assetPolicySets, (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0)); ?>
+                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>

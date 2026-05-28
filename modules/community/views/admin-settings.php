@@ -253,10 +253,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </div>
                                     <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                                 <?php } ?>
-                                <?php echo sr_community_asset_policy_set_select_html('community_settings_' . (string) $assetPrefix . '_policy_set_id', (string) $assetPrefix . '_policy_set_id', $assetPolicySets ?? [], (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)); ?>
-                                <p class="admin-form-help">회원 그룹/레벨 혜택은 커뮤니티 회원 그룹/레벨 혜택 화면에서 관리합니다.</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_id'); ?>"><?php echo sr_e($assetLabel . ' 멤버 그룹 혜택'); ?></label>
+                    <div class="admin-form-field">
+                        <?php echo sr_community_asset_policy_set_select_html('community_settings_' . (string) $assetPrefix . '_policy_set_id', (string) $assetPrefix . '_policy_set_id', $assetPolicySets ?? [], (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)); ?>
+                        <p class="admin-form-help">멤버 그룹 혜택은 커뮤니티 멤버 그룹 혜택 화면에서 관리합니다.</p>
                     </div>
                 </div>
                 <?php if ($assetPrefix === 'paid_read') { ?>

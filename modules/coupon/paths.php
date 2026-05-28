@@ -4,8 +4,8 @@ return [
     'GET /account/coupons' => 'actions/account-coupons.php',
     'GET /admin/coupons' => 'actions/admin-coupons.php',
     'POST /admin/coupons' => 'actions/admin-coupons.php',
-    'GET /admin/coupons/new' => 'actions/admin-coupons.php',
-    'POST /admin/coupons/new' => 'actions/admin-coupons.php',
-    'GET /admin/coupons/issue' => 'actions/admin-coupons.php',
-    'POST /admin/coupons/issue' => 'actions/admin-coupons.php',
+    'GET /admin/coupons/issues' => 'actions/admin-coupons.php',
+    'POST /admin/coupons/issues' => 'actions/admin-coupons.php',
+    'GET /admin/coupons/target-search' => 'actions/admin-coupon-target-search.php',
+    'GET /admin/coupons/member-search' => 'actions/admin-coupon-member-search.php',
 ];

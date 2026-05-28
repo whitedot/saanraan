@@ -159,7 +159,7 @@
             button.setAttribute('data-return-overlay', form.getAttribute('data-return-overlay') || '');
 
             var title = document.createElement('strong');
-            title.textContent = (item.reference_type || '') + ':' + (item.reference_id || '');
+            title.textContent = item.title || ((item.reference_type || '') + ':' + (item.reference_id || ''));
             button.appendChild(title);
             appendMeta(button, [
                 item.reason || '',
@@ -301,6 +301,11 @@
             var memberInput = document.querySelector(memberOpen.getAttribute('data-target') || '');
             var memberModal = document.querySelector(memberOpen.getAttribute('data-overlay') || '');
             if (memberInput && memberModal) {
+                var memberForm = memberModal.querySelector(MEMBER_FORM_SELECTOR);
+                if (memberForm) {
+                    memberForm.setAttribute('data-target', memberOpen.getAttribute('data-target') || '');
+                    memberForm.setAttribute('data-return-overlay', memberOpen.getAttribute('data-return-overlay') || '');
+                }
                 var memberQuery = memberModal.querySelector('input[name="q"]');
                 if (memberQuery && memberQuery.value === '') {
                     memberQuery.value = memberInput.value;

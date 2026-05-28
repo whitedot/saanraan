@@ -22,6 +22,11 @@ function sr_coupon_clean_text(string $value, int $maxLength): string
     return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
 }
 
+function sr_coupon_like_keyword(string $keyword): string
+{
+    return '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+}
+
 function sr_coupon_statuses(): array
 {
     return ['active', 'disabled'];
@@ -72,6 +77,172 @@ function sr_coupon_refundable_policies(): array
         'none' => '환급 없음',
         'refundable' => '환급 가능',
     ];
+}
+
+function sr_coupon_issue_member_groups(PDO $pdo): array
+{
+    if (!function_exists('sr_member_groups') || !function_exists('sr_member_groups_table_exists') || !sr_member_groups_table_exists($pdo)) {
+        return [];
+    }
+
+    return array_values(array_filter(sr_member_groups($pdo), static function (array $group): bool {
+        return (string) ($group['status'] ?? '') === 'enabled';
+    }));
+}
+
+function sr_coupon_issue_target_account_ids(PDO $pdo, array $runtimeConfig, string $targetMode, string $accountIdentifier, string $groupKey): array
+{
+    if (!in_array($targetMode, ['member', 'all', 'group'], true)) {
+        throw new InvalidArgumentException('쿠폰 지급 대상을 선택해 주세요.');
+    }
+
+    if ($targetMode === 'member') {
+        $accountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
+        if ($accountId <= 0) {
+            throw new InvalidArgumentException('쿠폰을 지급할 회원을 선택해 주세요.');
+        }
+
+        return [$accountId];
+    }
+
+    if ($targetMode === 'all') {
+        $stmt = $pdo->query("SELECT id FROM sr_member_accounts WHERE status = 'active' ORDER BY id ASC");
+        $accountIds = array_map('intval', array_column($stmt->fetchAll(), 'id'));
+        if ($accountIds === []) {
+            throw new InvalidArgumentException('쿠폰을 지급할 활성 회원이 없습니다.');
+        }
+
+        return $accountIds;
+    }
+
+    if (
+        !function_exists('sr_member_group_by_key')
+        || !function_exists('sr_member_group_key_is_valid')
+        || !sr_member_group_key_is_valid($groupKey)
+    ) {
+        throw new InvalidArgumentException('쿠폰을 지급할 회원 그룹을 선택해 주세요.');
+    }
+
+    $group = sr_member_group_by_key($pdo, $groupKey);
+    if (!is_array($group) || (string) ($group['status'] ?? '') !== 'enabled') {
+        throw new InvalidArgumentException('사용 가능한 회원 그룹을 선택해 주세요.');
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT DISTINCT m.account_id
+         FROM sr_member_group_memberships m
+         INNER JOIN sr_member_accounts a ON a.id = m.account_id
+         WHERE m.group_id = :group_id
+           AND m.status = 'active'
+           AND a.status = 'active'
+           AND (m.expires_at IS NULL OR m.expires_at >= :now)
+         ORDER BY m.account_id ASC"
+    );
+    $stmt->execute([
+        'group_id' => (int) $group['id'],
+        'now' => sr_now(),
+    ]);
+    $accountIds = array_map('intval', array_column($stmt->fetchAll(), 'account_id'));
+    if ($accountIds === []) {
+        throw new InvalidArgumentException('선택한 회원 그룹에 지급 가능한 활성 회원이 없습니다.');
+    }
+
+    return $accountIds;
+}
+
+function sr_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array
+{
+    if (!array_key_exists($targetType, sr_coupon_target_types($pdo)) || $targetType === 'all') {
+        return [];
+    }
+
+    $keyword = sr_coupon_clean_text($keyword, 120);
+    $limit = max(1, min(30, $limit));
+    $keywordLike = sr_coupon_like_keyword($keyword);
+    $idValue = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
+
+    try {
+        if ($targetType === 'content') {
+            $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
+            $stmt = $pdo->prepare(
+                'SELECT id, title, slug, status, updated_at
+                 FROM sr_content_items
+                 WHERE ' . $where . '
+                 ORDER BY id DESC
+                 LIMIT ' . $limit
+            );
+            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
+            $stmt->execute($params);
+
+            return array_map(static function (array $row): array {
+                return [
+                    'reference_type' => 'content',
+                    'reference_id' => (string) (int) ($row['id'] ?? 0),
+                    'title' => (string) ($row['title'] ?? ''),
+                    'reason' => '콘텐츠 #' . (string) (int) ($row['id'] ?? 0),
+                    'member_name' => 'slug: ' . (string) ($row['slug'] ?? ''),
+                    'member_email' => '상태: ' . (string) ($row['status'] ?? ''),
+                    'created_at' => (string) ($row['updated_at'] ?? ''),
+                ];
+            }, $stmt->fetchAll());
+        }
+
+        if ($targetType === 'community_board') {
+            $where = $keyword === '' ? '1 = 1' : "(b.id = :id OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+            $stmt = $pdo->prepare(
+                'SELECT b.id, b.title, b.board_key, b.status, b.updated_at, g.title AS group_title
+                 FROM sr_community_boards b
+                 LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
+                 WHERE ' . $where . '
+                 ORDER BY b.id DESC
+                 LIMIT ' . $limit
+            );
+            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
+            $stmt->execute($params);
+
+            return array_map(static function (array $row): array {
+                return [
+                    'reference_type' => 'community_board',
+                    'reference_id' => (string) (int) ($row['id'] ?? 0),
+                    'title' => (string) ($row['title'] ?? ''),
+                    'reason' => '게시판 #' . (string) (int) ($row['id'] ?? 0),
+                    'member_name' => 'key: ' . (string) ($row['board_key'] ?? ''),
+                    'member_email' => trim('그룹: ' . (string) ($row['group_title'] ?? '')),
+                    'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
+                ];
+            }, $stmt->fetchAll());
+        }
+
+        if ($targetType === 'community_post') {
+            $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+            $stmt = $pdo->prepare(
+                'SELECT p.id, p.title, p.status, p.updated_at, b.title AS board_title, b.board_key
+                 FROM sr_community_posts p
+                 INNER JOIN sr_community_boards b ON b.id = p.board_id
+                 WHERE ' . $where . '
+                 ORDER BY p.id DESC
+                 LIMIT ' . $limit
+            );
+            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
+            $stmt->execute($params);
+
+            return array_map(static function (array $row): array {
+                return [
+                    'reference_type' => 'community_post',
+                    'reference_id' => (string) (int) ($row['id'] ?? 0),
+                    'title' => (string) ($row['title'] ?? ''),
+                    'reason' => '게시글 #' . (string) (int) ($row['id'] ?? 0),
+                    'member_name' => '게시판: ' . (string) ($row['board_title'] ?? ''),
+                    'member_email' => 'key: ' . (string) ($row['board_key'] ?? ''),
+                    'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
+                ];
+            }, $stmt->fetchAll());
+        }
+    } catch (Throwable $exception) {
+        return [];
+    }
+
+    return [];
 }
 
 function sr_coupon_definition_by_id(PDO $pdo, int $definitionId): ?array

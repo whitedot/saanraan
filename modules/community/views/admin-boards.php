@@ -746,8 +746,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
                             </div>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $assetPrefix . '_policy_set_id'); ?>"><?php echo sr_e($assetLabel . ' 멤버 그룹 혜택'); ?></label>
+                        <div class="admin-form-field">
                             <?php echo sr_community_asset_policy_set_select_html('community_board_' . (string) $assetPrefix . '_policy_set_id', (string) $assetPrefix . '_policy_set_id', $assetPolicySets ?? [], (int) $boardField($formBoard, $assetPrefix . '_policy_set_id', '0')); ?>
-                            <p class="admin-form-help">회원 그룹/레벨 혜택은 커뮤니티 회원 그룹/레벨 혜택 화면에서 관리합니다.</p>
+                            <p class="admin-form-help">멤버 그룹 혜택은 커뮤니티 멤버 그룹 혜택 화면에서 관리합니다.</p>
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_policy_set_id', $boardSettingSource($formBoard, (string) $assetPrefix . '_policy_set_id')); ?>
                             </div>

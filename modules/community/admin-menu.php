@@ -45,7 +45,7 @@ return [
             'order' => 80,
         ],
         [
-            'label' => '회원 그룹/레벨 혜택',
+            'label' => '멤버 그룹 혜택',
             'path' => '/admin/community/asset-policy-sets',
             'order' => 90,
         ],
