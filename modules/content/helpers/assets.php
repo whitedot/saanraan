@@ -16,70 +16,11 @@ function sr_content_normalize_setting_source(string $source): string
     return in_array($source, sr_content_setting_source_values(), true) ? $source : 'content';
 }
 
-function sr_content_point_asset_option(?PDO $pdo = null): array
-{
-    if (!$pdo instanceof PDO) {
-        return ['label' => sr_t('content::asset.point'), 'unit_label' => 'P'];
-    }
-
-    $helper = SR_ROOT . '/modules/point/helpers.php';
-    if (!is_file($helper)) {
-        return ['label' => sr_t('content::asset.point'), 'unit_label' => 'P'];
-    }
-
-    require_once $helper;
-    if (function_exists('sr_point_asset_option')) {
-        return array_merge(['label' => sr_t('content::asset.point'), 'unit_label' => 'P'], sr_point_asset_option($pdo));
-    }
-
-    return [
-        'label' => function_exists('sr_point_display_name') ? sr_point_display_name($pdo) : sr_t('content::asset.point'),
-        'unit_label' => function_exists('sr_point_unit_label') ? sr_point_unit_label($pdo) : 'P',
-    ];
-}
-
 function sr_content_asset_modules(?PDO $pdo = null): array
 {
-    $pointAssetOption = sr_content_point_asset_option($pdo);
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
 
-    return [
-        'point' => [
-            'label' => (string) ($pointAssetOption['label'] ?? sr_t('content::asset.point')),
-            'unit_label' => (string) ($pointAssetOption['unit_label'] ?? 'P'),
-            'module_key' => 'point',
-            'helper' => SR_ROOT . '/modules/point/helpers.php',
-            'balance_function' => 'sr_point_balance',
-            'transaction_function' => 'sr_point_create_transaction',
-            'transaction_table' => 'sr_point_transactions',
-            'use_type' => 'use',
-            'credit_type' => 'grant',
-            'refund_type' => 'refund',
-        ],
-        'reward' => [
-            'label' => sr_t('content::asset.reward'),
-            'unit_label' => '원',
-            'module_key' => 'reward',
-            'helper' => SR_ROOT . '/modules/reward/helpers.php',
-            'balance_function' => 'sr_reward_balance',
-            'transaction_function' => 'sr_reward_create_transaction',
-            'transaction_table' => 'sr_reward_transactions',
-            'use_type' => 'use',
-            'credit_type' => 'grant',
-            'refund_type' => 'refund',
-        ],
-        'deposit' => [
-            'label' => sr_t('content::asset.deposit'),
-            'unit_label' => '원',
-            'module_key' => 'deposit',
-            'helper' => SR_ROOT . '/modules/deposit/helpers.php',
-            'balance_function' => 'sr_deposit_balance',
-            'transaction_function' => 'sr_deposit_create_transaction',
-            'transaction_table' => 'sr_deposit_transactions',
-            'use_type' => 'use',
-            'credit_type' => 'deposit',
-            'refund_type' => 'refund',
-        ],
-    ];
+    return sr_member_ledger_asset_definitions($pdo);
 }
 
 function sr_content_asset_charge_policies(): array
@@ -120,12 +61,9 @@ function sr_content_asset_module_is_available(PDO $pdo, string $assetModule): bo
 
     $option = $options[$assetModule];
     $moduleKey = (string) ($option['module_key'] ?? '');
-    $helper = (string) ($option['helper'] ?? '');
-    if (!sr_module_enabled($pdo, $moduleKey) || !is_file($helper)) {
+    if (!sr_module_enabled($pdo, $moduleKey)) {
         return false;
     }
-
-    require_once $helper;
 
     return function_exists((string) ($option['balance_function'] ?? ''))
         && function_exists((string) ($option['transaction_function'] ?? ''));
@@ -182,7 +120,7 @@ function sr_content_asset_single_amount_input_group_html(string $fieldName, int 
 
 function sr_content_asset_deduction_order(): array
 {
-    return ['point', 'reward', 'deposit'];
+    return array_keys(sr_content_asset_modules());
 }
 
 function sr_content_asset_module_keys_from_value(mixed $value): array

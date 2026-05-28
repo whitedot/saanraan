@@ -2,7 +2,7 @@
 
 return [
     'name' => '예치금',
-    'version' => '2026.05.002',
+    'version' => '2026.05.003',
     'type' => 'module',
     'description' => '회원 예치금 잔액과 거래 장부 모듈입니다.',
     'admin' => [
@@ -27,6 +27,8 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'asset-exchange.php',
+            'member-assets.php',
+            'member-withdrawal-assets.php',
         ],
     ],
 ];

@@ -2,7 +2,7 @@
 
 return [
     'name' => '쿠폰·이용권',
-    'version' => '2026.05.003',
+    'version' => '2026.05.004',
     'type' => 'module',
     'description' => '회원별 쿠폰·이용권 종류, 지급, 사용 내역을 관리합니다.',
     'admin' => [
@@ -26,6 +26,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+            'member-withdrawal-assets.php',
         ],
         'consumes' => [
             'coupon-targets.php',

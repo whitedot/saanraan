@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.05.011',
+    'version' => '2026.05.012',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
@@ -29,6 +29,7 @@ return [
         'consumes' => [
             'member-group-rules.php',
             'privacy-cleanup.php',
+            'member-withdrawal-assets.php',
         ],
     ],
     'settings' => [

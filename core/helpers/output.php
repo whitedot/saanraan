@@ -328,7 +328,58 @@ function sr_editor_normalize_key(string $editorKey, bool $allowInherit = false):
         return 'inherit';
     }
 
-    return in_array($editorKey, ['textarea', 'ckeditor'], true) ? $editorKey : 'textarea';
+    return preg_match('/\A[a-z][a-z0-9_]{0,39}\z/', $editorKey) === 1 ? $editorKey : 'textarea';
+}
+
+function sr_editor_contract_module_keys(?PDO $pdo): array
+{
+    if ($pdo instanceof PDO) {
+        return array_keys(sr_enabled_module_contract_files($pdo, 'editor-options.php'));
+    }
+
+    $moduleKeys = [];
+    foreach (glob(SR_ROOT . '/modules/*/editor-options.php') ?: [] as $file) {
+        $moduleKey = basename(dirname($file));
+        if (sr_is_safe_module_key($moduleKey)) {
+            $moduleKeys[] = $moduleKey;
+        }
+    }
+
+    sort($moduleKeys);
+    return $moduleKeys;
+}
+
+function sr_editor_contracts(?PDO $pdo = null): array
+{
+    $contracts = [];
+    foreach (sr_editor_contract_module_keys($pdo) as $moduleKey) {
+        $file = SR_ROOT . '/modules/' . $moduleKey . '/editor-options.php';
+        $contract = is_file($file) ? require $file : null;
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        $editorKey = sr_editor_normalize_key((string) ($contract['key'] ?? ''));
+        if ($editorKey === 'textarea' || isset($contracts[$editorKey])) {
+            continue;
+        }
+
+        $helpers = (string) ($contract['helpers'] ?? '');
+        if ($helpers !== '' && preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) === 1) {
+            $helperPath = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+            if (is_file($helperPath)) {
+                require_once $helperPath;
+            }
+        }
+
+        $contracts[$editorKey] = [
+            'module_key' => $moduleKey,
+            'label' => (string) ($contract['label'] ?? $editorKey),
+            'assets_function' => (string) ($contract['assets_function'] ?? ''),
+        ];
+    }
+
+    return $contracts;
 }
 
 function sr_editor_available(PDO $pdo, string $editorKey): bool
@@ -338,9 +389,7 @@ function sr_editor_available(PDO $pdo, string $editorKey): bool
         return true;
     }
 
-    return $editorKey === 'ckeditor'
-        && sr_module_enabled($pdo, 'ckeditor')
-        && is_file(SR_ROOT . '/modules/ckeditor/helpers.php');
+    return isset(sr_editor_contracts($pdo)[$editorKey]);
 }
 
 function sr_editor_effective_key(PDO $pdo, string $editorKey): string
@@ -353,8 +402,8 @@ function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
 {
     $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
     $options['textarea'] = '기본 textarea';
-    if (sr_editor_available($pdo, 'ckeditor')) {
-        $options['ckeditor'] = 'CKEditor';
+    foreach (sr_editor_contracts($pdo) as $editorKey => $contract) {
+        $options[(string) $editorKey] = (string) ($contract['label'] ?? $editorKey);
     }
 
     return $options;
@@ -362,21 +411,24 @@ function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
 
 function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $presetKey = 'default', string $formatFieldName = 'body_format'): string
 {
-    if (sr_editor_effective_key($pdo, $editorKey) !== 'ckeditor') {
+    $editorKey = sr_editor_effective_key($pdo, $editorKey);
+    if ($editorKey === 'textarea') {
         return '';
     }
 
-    return ' data-sr-editor="ckeditor" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';
+    return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';
 }
 
 function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 'default'): string
 {
-    if (sr_editor_effective_key($pdo, $editorKey) !== 'ckeditor') {
+    $editorKey = sr_editor_effective_key($pdo, $editorKey);
+    if ($editorKey === 'textarea') {
         return '';
     }
 
-    require_once SR_ROOT . '/modules/ckeditor/helpers.php';
-    return function_exists('sr_ckeditor_public_assets_html') ? sr_ckeditor_public_assets_html($pdo, $presetKey) : '';
+    $contract = sr_editor_contracts($pdo)[$editorKey] ?? [];
+    $assetsFunction = (string) ($contract['assets_function'] ?? '');
+    return function_exists($assetsFunction) ? (string) $assetsFunction($pdo, $presetKey) : '';
 }
 
 function sr_material_icon_font_url(): string

@@ -2,46 +2,11 @@
 
 declare(strict_types=1);
 
-function sr_member_withdrawal_asset_definitions(): array
+function sr_member_withdrawal_asset_definitions(PDO $pdo): array
 {
-    return [
-        'point' => [
-            'label' => sr_t('member::asset.point'),
-            'ledger_label' => 'point',
-            'balance_table' => 'sr_point_balances',
-            'transaction_table' => 'sr_point_transactions',
-            'helper' => SR_ROOT . '/modules/point/helpers.php',
-            'balance_function' => 'sr_point_balance',
-            'transaction_function' => 'sr_point_create_transaction',
-            'transaction_type' => 'expire',
-            'process_label' => sr_t('member::asset.process.expire'),
-            'ledger_process_label' => 'expire',
-        ],
-        'reward' => [
-            'label' => sr_t('member::asset.reward'),
-            'ledger_label' => 'reward',
-            'balance_table' => 'sr_reward_balances',
-            'transaction_table' => 'sr_reward_transactions',
-            'helper' => SR_ROOT . '/modules/reward/helpers.php',
-            'balance_function' => 'sr_reward_balance',
-            'transaction_function' => 'sr_reward_create_transaction',
-            'transaction_type' => 'expire',
-            'process_label' => sr_t('member::asset.process.expire'),
-            'ledger_process_label' => 'expire',
-        ],
-        'deposit' => [
-            'label' => sr_t('member::asset.deposit'),
-            'ledger_label' => 'deposit',
-            'balance_table' => 'sr_deposit_balances',
-            'transaction_table' => 'sr_deposit_transactions',
-            'helper' => SR_ROOT . '/modules/deposit/helpers.php',
-            'balance_function' => 'sr_deposit_balance',
-            'transaction_function' => 'sr_deposit_create_transaction',
-            'transaction_type' => 'withdraw',
-            'process_label' => sr_t('member::asset.process.refund'),
-            'ledger_process_label' => 'refund',
-        ],
-    ];
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    return sr_member_withdrawal_asset_contract_definitions($pdo);
 }
 
 function sr_member_withdrawal_asset_table_exists(PDO $pdo, string $tableName): bool
@@ -60,19 +25,19 @@ function sr_member_withdrawal_asset_table_exists(PDO $pdo, string $tableName): b
 
 function sr_member_withdrawal_asset_available(PDO $pdo, array $definition): bool
 {
-    $helper = (string) ($definition['helper'] ?? '');
-    if ($helper === '' || !is_file($helper)) {
-        return false;
-    }
-
-    require_once $helper;
     $balanceFunction = (string) ($definition['balance_function'] ?? '');
-    $transactionFunction = (string) ($definition['transaction_function'] ?? '');
-    if (!function_exists($balanceFunction) || !function_exists($transactionFunction)) {
+    if (!function_exists($balanceFunction)) {
         return false;
     }
 
-    return sr_member_withdrawal_asset_table_exists($pdo, (string) ($definition['balance_table'] ?? ''))
+    $processFunction = (string) ($definition['process_function'] ?? '');
+    if ($processFunction !== '') {
+        return function_exists($processFunction);
+    }
+
+    $transactionFunction = (string) ($definition['transaction_function'] ?? '');
+    return function_exists($transactionFunction)
+        && sr_member_withdrawal_asset_table_exists($pdo, (string) ($definition['balance_table'] ?? ''))
         && sr_member_withdrawal_asset_table_exists($pdo, (string) ($definition['transaction_table'] ?? ''));
 }
 
@@ -83,7 +48,7 @@ function sr_member_withdrawal_asset_balances(PDO $pdo, int $accountId): array
     }
 
     $assets = [];
-    foreach (sr_member_withdrawal_asset_definitions() as $assetKey => $definition) {
+    foreach (sr_member_withdrawal_asset_definitions($pdo) as $assetKey => $definition) {
         if (!sr_member_withdrawal_asset_available($pdo, $definition)) {
             continue;
         }
@@ -100,22 +65,6 @@ function sr_member_withdrawal_asset_balances(PDO $pdo, int $accountId): array
             'balance' => $balance,
             'process_label' => (string) $definition['process_label'],
         ];
-    }
-
-    if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
-        require_once SR_ROOT . '/modules/coupon/helpers.php';
-        if (function_exists('sr_coupon_active_account_issue_count')) {
-            $couponCount = sr_coupon_active_account_issue_count($pdo, $accountId);
-            if ($couponCount > 0) {
-                $assets['coupon'] = [
-                    'asset_key' => 'coupon',
-                    'label' => '쿠폰·이용권',
-                    'balance' => $couponCount,
-                    'unit_label' => '개',
-                    'process_label' => '소멸/환급 검토',
-                ];
-            }
-        }
     }
 
     return $assets;
@@ -166,7 +115,7 @@ function sr_member_withdrawal_refund_account_summary(array $refundAccount): stri
 function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $refundAccount): array
 {
     $processedAssets = [];
-    foreach (sr_member_withdrawal_asset_definitions() as $assetKey => $definition) {
+    foreach (sr_member_withdrawal_asset_definitions($pdo) as $assetKey => $definition) {
         if (!sr_member_withdrawal_asset_available($pdo, $definition)) {
             continue;
         }
@@ -174,6 +123,15 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
         $balanceFunction = (string) $definition['balance_function'];
         $balance = (int) $balanceFunction($pdo, $accountId);
         if ($balance <= 0) {
+            continue;
+        }
+
+        $processFunction = (string) ($definition['process_function'] ?? '');
+        if ($processFunction !== '') {
+            $processResult = $processFunction($pdo, $accountId);
+            if ((int) ($processResult['amount'] ?? 0) > 0) {
+                $processedAssets[$assetKey] = $processResult;
+            }
             continue;
         }
 
@@ -199,16 +157,6 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
             'transaction_id' => $transactionId,
             'process' => (string) $definition['process_label'],
         ];
-    }
-
-    if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
-        require_once SR_ROOT . '/modules/coupon/helpers.php';
-        if (function_exists('sr_coupon_process_account_withdrawal')) {
-            $couponResult = sr_coupon_process_account_withdrawal($pdo, $accountId);
-            if ((int) ($couponResult['amount'] ?? 0) > 0) {
-                $processedAssets['coupon'] = $couponResult;
-            }
-        }
     }
 
     return $processedAssets;

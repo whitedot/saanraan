@@ -862,6 +862,10 @@ return [
 - `dashboard.php`: 관리자 대시보드 모듈 섹션 후보
 - `layout-options.php`: 공개 레이아웃 후보
 - `asset-exchange.php`: 자산 환전 후보와 원장 helper 계약
+- `member-assets.php`: 콘텐츠/커뮤니티에서 쓰는 금액성 회원 자산 후보
+- `member-withdrawal-assets.php`: 회원 탈퇴 시 정리할 자산 후보와 처리 계약
+- `editor-options.php`: textarea 강화 에디터 후보
+- `coupon-targets.php`: 쿠폰 사용처 후보
 
 계약 파일 규칙:
 
@@ -917,6 +921,31 @@ return [
 - `cash_like`는 예치금처럼 환금성 자산 재환전 수수료 판단에 사용할 수 있는 좁은 힌트다.
 - 거래 유형은 기본적으로 `exchange_out`, `exchange_in`, `exchange_fee`이며 자산 모듈의 서버 측 거래 유형 검증에서 부호를 다시 확인해야 한다.
 - 자산 모듈은 자기 balance/transaction 테이블을 계속 소유하고, 환전 모듈은 `reference_type=asset_exchange`와 환전 묶음 ID를 넘겨 원장 간 연결만 남긴다.
+
+`member-assets.php`:
+
+- 배열을 반환한다.
+- 콘텐츠와 커뮤니티가 금액성 회원 자산 후보를 읽을 때 사용한다.
+- 자산 모듈 폴더 기준 `helpers`, `balance_function`, `transaction_function`, 선택 `transaction_table`, 표시용 `label` 또는 `label_function`, `unit_label` 또는 `unit_function`을 제공한다.
+- `use_type`, `credit_type`, `refund_type`으로 소비 모듈이 원장에 넘길 거래 유형을 선언한다.
+- `deduction_order`는 여러 자산을 함께 선택했을 때 기본 차감 순서에 사용한다.
+- 쿠폰처럼 금액 잔액을 차감하지 않는 권리성 자산은 이 계약에 넣지 않는다.
+
+`member-withdrawal-assets.php`:
+
+- 배열을 반환한다.
+- 회원 탈퇴 시 정리할 회원 자산 후보를 회원 모듈이 읽을 때 사용한다.
+- 금액성 원장 자산은 `helpers`, `balance_function`, `transaction_function`, `balance_table`, `transaction_table`, `transaction_type`, `process_label`, `ledger_process_label`을 제공한다.
+- 쿠폰처럼 자체 상태 전환이 필요한 자산은 `balance_function`과 `process_function`을 제공할 수 있다.
+- `sort_order`는 탈퇴 화면과 처리 요약의 표시 순서를 정한다.
+
+`editor-options.php`:
+
+- 배열을 반환한다.
+- `key`, `label`, 선택 `helpers`, 선택 `assets_function`을 제공한다.
+- core의 기본 `textarea` 외 에디터 플러그인이 관리자 설정 후보로 노출될 때 사용한다.
+- `assets_function` callable 형식은 `function (PDO $pdo, string $presetKey): string`이다.
+- 화면 소유 모듈은 저장한 editor key를 core helper에 넘기고, core helper는 활성 플러그인의 계약만 읽어 textarea 속성과 에셋 HTML을 만든다.
 
 `privacy-export.php`:
 
@@ -988,6 +1017,9 @@ return [
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
 | `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
+| `member-assets.php` | `content`, `community` 모듈 | 자산 정책 화면과 금액성 자산 처리 | 금액성 회원 자산 후보와 원장 호출 정보 |
+| `member-withdrawal-assets.php` | `member` 모듈 | 회원 탈퇴/정리 처리 | 탈퇴 시 정리할 회원 자산 후보와 처리 함수 |
+| `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면과 저장 검증 | 모듈별 쿠폰 사용처 후보 |
 
 현재 번들 모듈 기준 제공/소비 지도:
@@ -995,21 +1027,21 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php`, `privacy-cleanup.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `coupon-targets.php` | 없음 |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `coupon-targets.php` | `member-assets.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
-| `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
-| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
-| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | 선택적 notification helper |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php` | `coupon-targets.php`, 선택적 notification helper |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
-| `ckeditor` | `paths.php`, `admin-menu.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
+| `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
+| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
+| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php` | `coupon-targets.php`, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:
 

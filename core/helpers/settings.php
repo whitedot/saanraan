@@ -538,6 +538,9 @@ function sr_module_known_contract_files(): array
         'dashboard.php',
         'layout-options.php',
         'asset-exchange.php',
+        'member-assets.php',
+        'member-withdrawal-assets.php',
+        'editor-options.php',
         'coupon-targets.php',
     ];
 }

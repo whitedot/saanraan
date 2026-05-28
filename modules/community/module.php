@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.05.022',
+    'version' => '2026.05.023',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -34,6 +34,9 @@ return [
             'dashboard.php',
             'layout-options.php',
             'coupon-targets.php',
+        ],
+        'consumes' => [
+            'member-assets.php',
         ],
     ],
     'service_domain' => [
