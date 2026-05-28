@@ -39,14 +39,13 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
 
     if ($intent === 'save_settings') {
-        $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
-        $levelMaxValue = sr_admin_post_int_in_range('level_max_value', 1, 100);
-        $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
-        $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
-        $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
+        $levelEnabled = !empty($settings['level_enabled']);
+        $levelMaxValue = (int) $settings['level_max_value'];
+        $levelAutoRecalculate = !empty($settings['level_auto_recalculate']);
+        $levelPostScore = (int) $settings['level_post_score'];
+        $levelCommentScore = (int) $settings['level_comment_score'];
         $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
-        $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
-        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
+        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
@@ -83,23 +82,8 @@ if (sr_request_method() === 'POST') {
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
         $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
-        if ($levelPostScore === null) {
-            $errors[] = sr_t('community::action.admin.post_score_invalid');
-            $levelPostScore = (int) $settings['level_post_score'];
-        }
-
-        if ($levelMaxValue === null) {
-            $errors[] = sr_t('community::action.admin.level_max_value_invalid');
-            $levelMaxValue = (int) $settings['level_max_value'];
-        }
-
-        if ($levelCommentScore === null) {
-            $errors[] = sr_t('community::action.admin.comment_score_invalid');
-            $levelCommentScore = (int) $settings['level_comment_score'];
-        }
-
         if ($messageWriteMinLevel === null) {
-            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $levelMaxForValidation]);
+            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $maxLevel]);
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
         }
 
@@ -305,11 +289,86 @@ if (sr_request_method() === 'POST') {
                 $errors[] = sr_t('community::action.admin.settings_save_failed');
             }
         }
+    } elseif ($intent === 'save_level_settings') {
+        $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
+        $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
+        $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
+        $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
+
+        if ($levelPostScore === null) {
+            $errors[] = sr_t('community::action.admin.post_score_invalid');
+            $levelPostScore = (int) $settings['level_post_score'];
+        }
+        if ($levelCommentScore === null) {
+            $errors[] = sr_t('community::action.admin.comment_score_invalid');
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+        if ($errors === []) {
+            $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
+            $stmt->execute();
+            $communityModule = $stmt->fetch();
+            if (!is_array($communityModule)) {
+                $errors[] = sr_t('community::action.admin.module_missing');
+            }
+        }
+        if ($errors === [] && is_array($communityModule ?? null)) {
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_module_settings
+                    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+                 VALUES
+                    (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    setting_value = VALUES(setting_value),
+                    value_type = VALUES(value_type),
+                    updated_at = VALUES(updated_at)'
+            );
+            $now = sr_now();
+            foreach ([
+                ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
+                ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
+                ['level_post_score', (string) $levelPostScore, 'int'],
+                ['level_comment_score', (string) $levelCommentScore, 'int'],
+            ] as $row) {
+                $stmt->execute([
+                    'module_id' => (int) $communityModule['id'],
+                    'setting_key' => $row[0],
+                    'setting_value' => $row[1],
+                    'value_type' => $row[2],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+            sr_clear_module_settings_cache('community');
+            $settings = sr_community_settings($pdo);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.level_settings.updated',
+                'target_type' => 'module',
+                'target_id' => 'community',
+                'result' => 'success',
+                'message' => 'Community level settings updated.',
+                'metadata' => [
+                    'level_enabled' => $levelEnabled,
+                    'level_auto_recalculate' => $levelAutoRecalculate,
+                    'level_post_score' => $levelPostScore,
+                    'level_comment_score' => $levelCommentScore,
+                ],
+            ]);
+            $notice = sr_t('community::action.admin.level_settings_saved');
+        }
     } elseif ($intent === 'save_level_definitions') {
         $levelMaxValue = sr_admin_post_int_in_range('level_max_value', 1, 100);
         if ($levelMaxValue === null) {
             $errors[] = sr_t('community::action.admin.level_max_value_invalid');
             $levelMaxValue = (int) $settings['level_max_value'];
+        }
+        $levelMaxChanged = $levelMaxValue !== (int) $settings['level_max_value'];
+        if ($levelMaxChanged && (
+            sr_post_string('level_max_change_confirmed', 1) !== '1'
+            || sr_post_string('level_max_change_confirm_text', 40) !== sr_t('community::ui.level_max_change_confirmation_text')
+        )) {
+            $errors[] = sr_t('community::action.admin.level_max_change_confirmation_required');
         }
         if ($errors === []) {
             $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
@@ -419,7 +478,7 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'recalculate_levels') {
         if (empty($settings['level_enabled'])) {
             $errors[] = sr_t('community::action.admin.level_recalculate_disabled');
-        } elseif (sr_post_string('recalculate_confirmed', 1) !== '1') {
+        } elseif (sr_post_string('recalculate_confirmed', 1) !== '1' || sr_post_string('recalculate_confirm_text', 40) !== sr_t('community::ui.level_recalculate_confirmation_text')) {
             $errors[] = sr_t('community::action.admin.level_recalculate_confirmation_required');
         } else {
             $summary = sr_community_recalculate_recent_account_levels($pdo, 200);

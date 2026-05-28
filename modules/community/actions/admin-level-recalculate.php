@@ -23,7 +23,8 @@ if (empty($settings['level_enabled'])) {
     sr_finish_response();
 }
 
-if (sr_post_string('recalculate_confirmed', 1) !== '1') {
+$confirmationText = sr_post_string('recalculate_confirm_text', 40);
+if (sr_post_string('recalculate_confirmed', 1) !== '1' || $confirmationText !== sr_t('community::ui.level_recalculate_confirmation_text')) {
     http_response_code(422);
     echo json_encode([
         'ok' => false,
