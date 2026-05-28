@@ -107,9 +107,54 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme" data-community-settings-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
+    <input type="hidden" name="level_max_change_confirmed" value="0" data-community-settings-level-max-confirmed>
+    <input type="hidden" name="level_max_change_confirm_text" value="" data-community-settings-level-max-confirm-text>
+
+    <section class="admin-card card">
+        <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="modules_community_admin_settings_level_enabled">
+                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
+                        <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
+                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_settings_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
+                <div class="admin-form-field">
+                    <input id="community_admin_settings_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input" data-community-settings-level-max-value data-community-settings-level-max-initial="<?php echo sr_e((string) $settings['level_max_value']); ?>">
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+                <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
+                <div class="admin-form-field">
+                    <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
+                </div>
+            </div>
+            <div class="admin-form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></span></div>
+                <div class="admin-form-field">
+                    <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('community::ui.text.919bd592')); ?></h2>
@@ -301,66 +346,214 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<button type="button" hidden data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
+<div id="community-settings-level-max-confirm-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-settings-level-max-confirm-modal-label" aria-hidden="true" inert>
+    <div class="modal-dialog-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="community-settings-level-max-confirm-modal-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></h3>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-close>
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div data-community-settings-level-max-step="notice">
+                    <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_notice_1')); ?></p>
+                    <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_notice_2')); ?></p>
+                </div>
+                <div data-community-settings-level-max-step="text" hidden>
+                    <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_text_help', ['text' => sr_t('community::ui.level_max_change_confirmation_text')])); ?></p>
+                    <label class="sr-only" for="community-settings-level-max-confirm-input"><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_label')); ?></label>
+                    <input id="community-settings-level-max-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_text')); ?>" aria-describedby="community-settings-level-max-confirm-error" data-overlay-focus data-community-settings-level-max-confirm-input>
+                    <p id="community-settings-level-max-confirm-error" class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs" data-community-settings-level-max-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_error')); ?></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-cancel><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>
+                <button type="button" class="btn btn-solid-primary modal-action" data-community-settings-level-max-next><?php echo sr_e(sr_t('community::ui.level_max_change_modal_next')); ?></button>
+                <button type="button" class="btn btn-solid-primary modal-action" data-community-settings-level-max-submit hidden><?php echo sr_e(sr_t('community::ui.level_max_change_modal_execute')); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php echo sr_admin_help_modal_html($levelScoreHelpModalId, sr_t('community::ui.level_score_help_title'), $levelScoreHelpBodyHtml); ?>
 <?php foreach ($communitySettingsHelp as $communitySettingsHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $communitySettingsHelpModal['id'], (string) $communitySettingsHelpModal['title'], (string) $communitySettingsHelpModal['body']); ?>
 <?php } ?>
+<script>
+(function () {
+    var toggle = document.querySelector('[data-community-level-auto-toggle]');
+    var fields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-auto-field]'));
+    if (!toggle || fields.length < 1) {
+        return;
+    }
+
+    function syncAutoFields() {
+        fields.forEach(function (field) {
+            field.hidden = !toggle.checked;
+        });
+    }
+
+    toggle.addEventListener('change', syncAutoFields);
+    syncAutoFields();
+})();
+
+(function () {
+    var form = document.querySelector('[data-community-settings-form]');
+    var maxInput = document.querySelector('[data-community-settings-level-max-value]');
+    var openButton = document.querySelector('[data-community-settings-level-max-open]');
+    var confirmedInput = document.querySelector('[data-community-settings-level-max-confirmed]');
+    var confirmTextHidden = document.querySelector('[data-community-settings-level-max-confirm-text]');
+    var confirmTextInput = document.querySelector('[data-community-settings-level-max-confirm-input]');
+    var confirmError = document.querySelector('[data-community-settings-level-max-confirm-error]');
+    var stepNotice = document.querySelector('[data-community-settings-level-max-step="notice"]');
+    var stepText = document.querySelector('[data-community-settings-level-max-step="text"]');
+    var nextButton = document.querySelector('[data-community-settings-level-max-next]');
+    var submitButton = document.querySelector('[data-community-settings-level-max-submit]');
+    var closeButton = document.querySelector('[data-community-settings-level-max-close]');
+    var cancelButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-settings-level-max-cancel]'));
+    var requiredConfirmationText = <?php echo json_encode(sr_t('community::ui.level_max_change_confirmation_text'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+
+    if (!form || !maxInput || !openButton || !confirmedInput || !confirmTextHidden) {
+        return;
+    }
+
+    function maxChanged() {
+        return String(maxInput.value).trim() !== String(maxInput.getAttribute('data-community-settings-level-max-initial') || '').trim();
+    }
+
+    function resetModal() {
+        if (stepNotice) {
+            stepNotice.hidden = false;
+        }
+        if (stepText) {
+            stepText.hidden = true;
+        }
+        if (nextButton) {
+            nextButton.hidden = false;
+        }
+        if (submitButton) {
+            submitButton.hidden = true;
+        }
+        if (confirmTextInput) {
+            confirmTextInput.value = '';
+        }
+        setConfirmInvalid(false);
+    }
+
+    function setConfirmInvalid(isInvalid) {
+        if (confirmTextInput) {
+            confirmTextInput.classList.toggle('form-input-invalid', isInvalid);
+            if (isInvalid) {
+                confirmTextInput.setAttribute('aria-invalid', 'true');
+            } else {
+                confirmTextInput.removeAttribute('aria-invalid');
+            }
+        }
+        if (confirmError) {
+            confirmError.hidden = !isInvalid;
+        }
+    }
+
+    cancelButtons.forEach(function (cancelButton) {
+        cancelButton.addEventListener('click', resetModal);
+    });
+
+    if (nextButton) {
+        nextButton.addEventListener('click', function () {
+            if (stepNotice) {
+                stepNotice.hidden = true;
+            }
+            if (stepText) {
+                stepText.hidden = false;
+            }
+            nextButton.hidden = true;
+            if (submitButton) {
+                submitButton.hidden = false;
+            }
+            if (confirmTextInput) {
+                confirmTextInput.focus();
+            }
+        });
+    }
+
+    if (submitButton) {
+        submitButton.addEventListener('click', function () {
+            var value = confirmTextInput ? confirmTextInput.value.trim() : '';
+            if (value !== requiredConfirmationText) {
+                setConfirmInvalid(true);
+                if (confirmTextInput) {
+                    confirmTextInput.focus();
+                }
+                return;
+            }
+
+            setConfirmInvalid(false);
+            confirmedInput.value = '1';
+            confirmTextHidden.value = value;
+            if (closeButton) {
+                closeButton.click();
+            }
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        });
+    }
+
+    form.addEventListener('submit', function (event) {
+        if (!maxChanged()) {
+            confirmedInput.value = '0';
+            confirmTextHidden.value = '';
+            return;
+        }
+
+        if (confirmedInput.value === '1' && confirmTextHidden.value === requiredConfirmationText) {
+            return;
+        }
+
+        event.preventDefault();
+        resetModal();
+        openButton.click();
+    });
+
+    if (confirmTextInput) {
+        confirmTextInput.addEventListener('input', function () {
+            setConfirmInvalid(false);
+        });
+    }
+})();
+</script>
 
 <?php } ?>
 
 <?php if ($communitySettingsPage === 'levels') { ?>
 <?php $communityLevelEnabled = !empty($settings['level_enabled']); ?>
 <?php $communityLevelRecalculateModalId = 'community-level-recalculate-confirm-modal'; ?>
-<?php $communityLevelMaxModalId = 'community-level-max-modal'; ?>
+<?php if (!$communityLevelEnabled) { ?>
+    <div class="admin-notice">
+        <span class="admin-notice-icon" aria-hidden="true">i</span>
+        <div class="admin-notice-copy">
+            <strong><?php echo sr_e(sr_t('community::ui.level_disabled_notice_title')); ?></strong>
+            <p><?php echo sr_e(sr_t('community::ui.level_disabled_notice_body')); ?></p>
+            <p><a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.level_disabled_notice_link')); ?></a></p>
+        </div>
+    </div>
+<?php } ?>
 <form id="community-level-definitions-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_level_definitions">
     <input type="hidden" name="level_max_value" value="<?php echo sr_e((string) $settings['level_max_value']); ?>">
-    <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_levels_level_enabled">
-                        <input id="modules_community_admin_levels_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_levels_level_auto_recalculate">
-                        <input id="modules_community_admin_levels_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
-                    </label>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="modules_community_admin_levels_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
-                <div class="admin-form-field">
-                    <input id="modules_community_admin_levels_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></span></div>
-                <div class="admin-form-field">
-                    <input id="modules_community_admin_levels_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
-            <?php if ($levels !== []) { ?>
-                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelMaxModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelMaxModalId); ?>" data-community-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
-            <?php } ?>
         </div>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice')); ?></p>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help_score')); ?></p>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help_formula')); ?></p>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice_change')); ?></p>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice_load')); ?></p>
         <div class="table-wrapper">
             <table class="table">
                 <thead class="ui-table-head">
@@ -397,7 +590,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <button type="button" class="btn btn-solid-light"<?php echo $communityLevelEnabled ? '' : ' disabled'; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-community-level-recalculate-open><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
     </div>
@@ -420,53 +613,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <p data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
     <progress value="0" max="100" data-community-level-recalculate-meter></progress>
 </div>
-<?php if ($levels !== []) { ?>
-<div id="<?php echo sr_e($communityLevelMaxModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityLevelMaxModalId); ?>-label" aria-hidden="true" inert>
-    <div class="modal-dialog-center">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="<?php echo sr_e($communityLevelMaxModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityLevelMaxModalId); ?>" data-community-level-max-close>
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>" data-community-level-max-form>
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="save_level_definitions">
-                <input type="hidden" name="level_max_change_confirmed" value="0" data-community-level-max-confirmed>
-                <input type="hidden" name="level_max_change_confirm_text" value="" data-community-level-max-confirm-text>
-                <div class="modal-body">
-                    <div data-community-level-max-step="notice">
-                        <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_notice_1')); ?></p>
-                        <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_notice_2')); ?></p>
-                    </div>
-                    <div data-community-level-max-step="text" hidden>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="community_admin_levels_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
-                                <input id="community_admin_levels_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input" data-community-level-max-value>
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
-                            </div>
-                        </div>
-                        <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_text_help', ['text' => sr_t('community::ui.level_max_change_confirmation_text')])); ?></p>
-                        <label class="sr-only" for="community-level-max-confirm-input"><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_label')); ?></label>
-                        <input id="community-level-max-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_text')); ?>" data-overlay-focus data-community-level-max-confirm-input>
-                        <p class="admin-form-help" data-community-level-max-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_error')); ?></p>
-                    </div>
-                    <?php foreach ($levels as $level) { ?>
-                        <input type="hidden" name="level_min_score[<?php echo sr_e((string) $level['id']); ?>]" value="<?php echo sr_e((string) $level['min_score']); ?>">
-                    <?php } ?>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityLevelMaxModalId); ?>" data-community-level-max-cancel><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>
-                    <button type="button" class="btn btn-solid-primary modal-action" data-community-level-max-next><?php echo sr_e(sr_t('community::ui.level_max_change_modal_next')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action" data-community-level-max-submit hidden><?php echo sr_e(sr_t('community::ui.level_max_change_modal_execute')); ?></button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<?php } ?>
 <div id="<?php echo sr_e($communityLevelRecalculateModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityLevelRecalculateModalId); ?>-label" aria-hidden="true" inert>
     <div class="modal-dialog-center">
         <div class="modal-content">
@@ -484,8 +630,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div data-community-level-recalculate-step="text" hidden>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_text_help', ['text' => sr_t('community::ui.level_recalculate_confirmation_text')])); ?></p>
                     <label class="sr-only" for="community-level-recalculate-confirm-input"><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_label')); ?></label>
-                    <input id="community-level-recalculate-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_text')); ?>" data-overlay-focus data-community-level-recalculate-confirm-input>
-                    <p class="admin-form-help" data-community-level-recalculate-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_error')); ?></p>
+                    <input id="community-level-recalculate-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_text')); ?>" aria-describedby="community-level-recalculate-confirm-error" data-overlay-focus data-community-level-recalculate-confirm-input>
+                    <p id="community-level-recalculate-confirm-error" class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs" data-community-level-recalculate-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_error')); ?></p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -497,105 +643,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 <?php echo sr_admin_help_modal_html((string) $communitySettingsHelp['level_min_score']['id'], (string) $communitySettingsHelp['level_min_score']['title'], (string) $communitySettingsHelp['level_min_score']['body']); ?>
-<?php echo sr_admin_help_modal_html($levelScoreHelpModalId, sr_t('community::ui.level_score_help_title'), $levelScoreHelpBodyHtml); ?>
-<?php foreach (['level_feature', 'level_auto_recalculate'] as $communitySettingsHelpKey) { ?>
-    <?php echo sr_admin_help_modal_html((string) $communitySettingsHelp[$communitySettingsHelpKey]['id'], (string) $communitySettingsHelp[$communitySettingsHelpKey]['title'], (string) $communitySettingsHelp[$communitySettingsHelpKey]['body']); ?>
-<?php } ?>
 <script>
-(function () {
-    var form = document.querySelector('[data-community-level-max-form]');
-    if (!form) {
-        return;
-    }
-
-    var openButton = document.querySelector('[data-community-level-max-open]');
-    var stepNotice = document.querySelector('[data-community-level-max-step="notice"]');
-    var stepText = document.querySelector('[data-community-level-max-step="text"]');
-    var nextButton = document.querySelector('[data-community-level-max-next]');
-    var submitButton = document.querySelector('[data-community-level-max-submit]');
-    var confirmTextInput = document.querySelector('[data-community-level-max-confirm-input]');
-    var confirmTextHidden = document.querySelector('[data-community-level-max-confirm-text]');
-    var confirmedInput = document.querySelector('[data-community-level-max-confirmed]');
-    var confirmError = document.querySelector('[data-community-level-max-confirm-error]');
-    var maxInput = document.querySelector('[data-community-level-max-value]');
-    var cancelButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-max-cancel]'));
-    var requiredConfirmationText = <?php echo json_encode(sr_t('community::ui.level_max_change_confirmation_text'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
-
-    function resetModal() {
-        if (stepNotice) {
-            stepNotice.hidden = false;
-        }
-        if (stepText) {
-            stepText.hidden = true;
-        }
-        if (nextButton) {
-            nextButton.hidden = false;
-        }
-        if (submitButton) {
-            submitButton.hidden = true;
-        }
-        if (confirmTextInput) {
-            confirmTextInput.value = '';
-        }
-        if (confirmTextHidden) {
-            confirmTextHidden.value = '';
-        }
-        if (confirmedInput) {
-            confirmedInput.value = '0';
-        }
-        if (confirmError) {
-            confirmError.hidden = true;
-        }
-    }
-
-    if (openButton) {
-        openButton.addEventListener('click', resetModal);
-    }
-
-    cancelButtons.forEach(function (cancelButton) {
-        cancelButton.addEventListener('click', resetModal);
-    });
-
-    if (nextButton) {
-        nextButton.addEventListener('click', function () {
-            if (stepNotice) {
-                stepNotice.hidden = true;
-            }
-            if (stepText) {
-                stepText.hidden = false;
-            }
-            nextButton.hidden = true;
-            if (submitButton) {
-                submitButton.hidden = false;
-            }
-            if (maxInput) {
-                maxInput.focus();
-            }
-        });
-    }
-
-    form.addEventListener('submit', function (event) {
-        var value = confirmTextInput ? confirmTextInput.value.trim() : '';
-        if (value !== requiredConfirmationText) {
-            event.preventDefault();
-            if (confirmError) {
-                confirmError.hidden = false;
-            }
-            if (confirmTextInput) {
-                confirmTextInput.focus();
-            }
-            return;
-        }
-
-        if (confirmTextHidden) {
-            confirmTextHidden.value = value;
-        }
-        if (confirmedInput) {
-            confirmedInput.value = '1';
-        }
-    });
-})();
-
 (function () {
     var form = document.querySelector('[data-community-level-recalculate-form]');
     if (!form || !window.fetch || !window.FormData) {
@@ -655,8 +703,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (clearConfirmation && confirmedInput) {
             confirmedInput.value = '0';
         }
+        setConfirmInvalid(false);
+    }
+
+    function setConfirmInvalid(isInvalid) {
+        if (confirmTextInput) {
+            confirmTextInput.classList.toggle('form-input-invalid', isInvalid);
+            if (isInvalid) {
+                confirmTextInput.setAttribute('aria-invalid', 'true');
+            } else {
+                confirmTextInput.removeAttribute('aria-invalid');
+            }
+        }
         if (confirmError) {
-            confirmError.hidden = true;
+            confirmError.hidden = !isInvalid;
         }
     }
 
@@ -708,15 +768,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (value !== requiredConfirmationText) {
                 event.preventDefault();
                 event.stopPropagation();
-                if (confirmError) {
-                    confirmError.hidden = false;
-                }
+                setConfirmInvalid(true);
                 if (confirmTextInput) {
                     confirmTextInput.focus();
                 }
                 return;
             }
 
+            setConfirmInvalid(false);
             if (confirmTextHidden) {
                 confirmTextHidden.value = value;
             }
@@ -823,6 +882,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         runBatch();
     });
+
+    if (confirmTextInput) {
+        confirmTextInput.addEventListener('input', function () {
+            setConfirmInvalid(false);
+        });
+    }
 })();
 </script>
 <?php } ?>

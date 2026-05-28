@@ -39,13 +39,14 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
 
     if ($intent === 'save_settings') {
-        $levelEnabled = !empty($settings['level_enabled']);
-        $levelMaxValue = (int) $settings['level_max_value'];
-        $levelAutoRecalculate = !empty($settings['level_auto_recalculate']);
-        $levelPostScore = (int) $settings['level_post_score'];
-        $levelCommentScore = (int) $settings['level_comment_score'];
+        $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
+        $levelMaxValue = sr_admin_post_int_in_range('level_max_value', 1, 100);
+        $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
+        $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
+        $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
-        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $maxLevel);
+        $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
+        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
@@ -82,8 +83,31 @@ if (sr_request_method() === 'POST') {
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
         $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
+        if ($levelPostScore === null) {
+            $errors[] = sr_t('community::action.admin.post_score_invalid');
+            $levelPostScore = (int) $settings['level_post_score'];
+        }
+
+        if ($levelMaxValue === null) {
+            $errors[] = sr_t('community::action.admin.level_max_value_invalid');
+            $levelMaxValue = (int) $settings['level_max_value'];
+        }
+
+        if ($levelCommentScore === null) {
+            $errors[] = sr_t('community::action.admin.comment_score_invalid');
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+
+        $levelMaxChanged = $levelMaxValue !== (int) $settings['level_max_value'];
+        if ($levelMaxChanged && (
+            sr_post_string('level_max_change_confirmed', 1) !== '1'
+            || sr_post_string('level_max_change_confirm_text', 40) !== sr_t('community::ui.level_max_change_confirmation_text')
+        )) {
+            $errors[] = sr_t('community::action.admin.level_max_change_confirmation_required');
+        }
+
         if ($messageWriteMinLevel === null) {
-            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $maxLevel]);
+            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $levelMaxForValidation]);
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
         }
 
