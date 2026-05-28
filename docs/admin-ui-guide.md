@@ -38,7 +38,7 @@ CSS class는 범위를 드러내는 접두어를 사용한다.
 - UI-KIT 조회 화면의 배치와 예시 상태 표시처럼 실제 컴포넌트 원형이 아닌 표현은 `ui-kit-*` 접두어로만 둔다. `ui-bg-*`, `ui-text-*`, `ui-grid`, `ui-flex`, `ui-gap-*` 같은 Tailwind식 범용 utility 표현은 관리자/공개 UI-KIT 샘플에 사용하지 않는다.
 - 공통 UI를 변경하거나 새 관리자 화면에서 UI 조합을 확인할 때는 `/admin/ui-kit` 관리자 조회 화면과 `/ui-kit` public 런타임 UI-KIT에서 런타임별 결과를 확인한다.
 
-버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 관리자에서는 `modules/admin/assets/common.css`, 공개에서는 `assets/common.css`가 각각 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`과 `/ui-kit`에서 상태별 표현을 함께 확인한다.
+버튼, 배지, 탭, 드롭다운, 모달처럼 UI-KIT 샘플과 실제 화면이 함께 쓰는 컴포넌트는 기본, hover, focus-visible, disabled 상태를 관리자에서는 `modules/admin/assets/common.css`, 공개에서는 `assets/common.css`가 각각 소유한다. `btn-solid-*`, `btn-outline-*`, `btn-soft-*`, `btn-ghost-*`, `btn-gradient-*`, `btn-icon`, `badge`, `badge-list`, `tab-trigger-*`, `dropdown-*`, `modal-*` 계열을 새로 쓰면 `/admin/ui-kit`과 `/ui-kit`에서 상태별 표현을 함께 확인한다.
 
 UI-KIT 샘플은 외부 아이콘 런타임에 의존하지 않는다. 실제 아이콘 자리에는 self-hosted Material Symbols helper인 `sr_material_icon_html()`을 사용하고, 샘플 설명이나 임시 보조 표식처럼 아이콘 자체가 목적이 아닌 위치에만 텍스트 보조 라벨을 둔다.
 

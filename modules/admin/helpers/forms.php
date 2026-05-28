@@ -125,7 +125,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             . sr_e($label)
             . '</option>';
     }
-    $html .= '</select><div class="admin-select-badge-list-items" data-admin-select-badge-list-items>';
+    $html .= '</select><div class="badge-list" data-admin-select-badge-list-items>';
 
     foreach ($options as $value => $option) {
         $value = (string) $value;
@@ -240,14 +240,14 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         if (!select) {
             return;
         }
-        root.querySelectorAll(".admin-select-badge-list-item").forEach(function (item) {
+        root.querySelectorAll("[data-admin-select-badge-item]").forEach(function (item) {
             var input = item.querySelector("[data-admin-select-badge-value]");
             var option = input ? optionByValue(select, input.value) : null;
             var summary = optionSummary(option, root);
-            var meta = item.querySelector(".admin-select-badge-list-summary");
+            var meta = item.querySelector(".badge-list-summary");
             if (summary && !meta) {
                 meta = document.createElement("span");
-                meta.className = "admin-select-badge-list-summary";
+                meta.className = "badge-list-summary";
                 item.insertBefore(meta, input || item.lastChild);
             }
             if (meta) {
@@ -265,7 +265,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         }
         syncBadgeSummaries(root);
         var values = selectedValues(root);
-        root.querySelectorAll(".admin-select-badge-list-item").forEach(function (item) {
+        root.querySelectorAll("[data-admin-select-badge-item]").forEach(function (item) {
             var input = item.querySelector("[data-admin-select-badge-value]");
             var option = input ? optionByValue(select, input.value) : null;
             if (option && !optionMatchesAssets(option, root)) {
@@ -292,14 +292,15 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         }
         var name = root.getAttribute("data-admin-select-badge-name") || "";
         var badge = document.createElement("span");
-        badge.className = "admin-select-badge-list-item";
+        badge.className = "badge-list-item";
+        badge.setAttribute("data-admin-select-badge-item", "true");
         var title = document.createElement("span");
-        title.className = "admin-select-badge-list-label";
+        title.className = "badge-list-label";
         title.textContent = label || value;
         badge.appendChild(title);
         if (summary) {
             var meta = document.createElement("span");
-            meta.className = "admin-select-badge-list-summary";
+            meta.className = "badge-list-summary";
             meta.textContent = summary;
             badge.appendChild(meta);
         }
@@ -337,7 +338,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             return;
         }
         var root = button.closest("[data-admin-select-badge-list]");
-        var item = button.closest(".admin-select-badge-list-item");
+        var item = button.closest("[data-admin-select-badge-item]");
         if (item) {
             item.remove();
         }
@@ -371,10 +372,10 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
 
 function sr_admin_select_badge_list_item_html(string $name, string $value, string $label, string $summary = ''): string
 {
-    $html = '<span class="admin-select-badge-list-item">'
-        . '<span class="admin-select-badge-list-label">' . sr_e($label) . '</span>';
+    $html = '<span class="badge-list-item" data-admin-select-badge-item>'
+        . '<span class="badge-list-label">' . sr_e($label) . '</span>';
     if ($summary !== '') {
-        $html .= '<span class="admin-select-badge-list-summary">' . sr_e($summary) . '</span>';
+        $html .= '<span class="badge-list-summary">' . sr_e($summary) . '</span>';
     }
     $html .= '<input type="hidden" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" data-admin-select-badge-value>'
         . '<button type="button" class="btn btn-icon-xs btn-ghost-danger admin-select-badge-list-remove" data-admin-select-badge-remove aria-label="선택 항목 제거">×</button>'

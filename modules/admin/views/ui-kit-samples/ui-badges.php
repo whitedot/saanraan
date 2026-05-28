@@ -177,6 +177,31 @@
 
                         <div class="card">
                             <div class="card-header">
+                                <h4 class="card-title">배지 목록 (Badge Lists)</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4">
+                                    <code>.badge-list</code> 안에 <code>.badge-list-item</code>을 배치하고, 보조 설명은 <code>.badge-list-summary</code>로 표시합니다.
+                                </p>
+
+                                <div class="badge-list">
+                                    <span class="badge-list-item">
+                                        <span class="badge-list-label">쿠키</span>
+                                        <span class="badge-list-summary">최종 금액 2000</span>
+                                    </span>
+                                    <span class="badge-list-item">
+                                        <span class="badge-list-label">적립금</span>
+                                        <span class="badge-list-summary">증감 조정 -100</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- end card-body-->
+                        </div>
+                        <!-- end card-->
+
+                        <div class="card">
+                            <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.square.badges.625e1311')); ?></h4>
                             </div>
 
