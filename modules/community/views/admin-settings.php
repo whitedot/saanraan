@@ -550,10 +550,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
         </div>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help_score')); ?></p>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help_formula')); ?></p>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice_change')); ?></p>
-        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice_load')); ?></p>
+        <p class="admin-form-help">
+            <?php echo sr_e(sr_t('community::ui.level_definitions_help_score')); ?><br>
+            <?php echo sr_e(sr_t('community::ui.level_definitions_help_formula')); ?><br>
+            <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_change')); ?><br>
+            <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_load')); ?>
+        </p>
         <div class="table-wrapper">
             <table class="table">
                 <thead class="ui-table-head">
