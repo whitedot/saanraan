@@ -450,7 +450,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_admin_contents_asset_access_policy_set_ids"><?php echo sr_e('회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_access_policy_set_ids', 'asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0))); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_access_policy_set_ids', 'asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0)), 'neutral', '', '#content_admin_contents_asset_access_amounts_grouped'); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
@@ -503,7 +503,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-asset-setting-control admin-asset-setting-control-full">
                             <div class="admin-asset-setting-target" data-admin-asset-enable-target="#modules_content_admin_contents_asset_action_enabled" data-admin-asset-enable-submit-check="always">
                                 <input id="content_admin_contents_asset_action_amount" type="hidden" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>">
-                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_action_amounts_grouped', 'asset_action_module', 'asset_action_amounts', $assetModuleOptions, $selectedActionAssetModules, $values['asset_action_amounts_json'] ?? '', (int) ($values['asset_action_amount'] ?? 0), sr_t('content::ui.text.5c705e1a'), sr_t('content::ui.text.3e195cdd')); ?>
+                                <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_action_amounts_grouped', 'asset_action_module', 'asset_action_amounts', $assetModuleOptions, $selectedActionAssetModules, $values['asset_action_amounts_json'] ?? '', (int) ($values['asset_action_amount'] ?? 0), sr_t('content::ui.text.5c705e1a'), sr_t('content::ui.text.3e195cdd'), '#content_admin_contents_asset_action_direction', 'grant'); ?>
                             </div>
                             <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         </div>
@@ -519,7 +519,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label"><?php echo sr_e('회원 그룹별 적용'); ?></span>
                 <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), (string) ($values['asset_action_direction'] ?? 'grant'), '#content_admin_contents_asset_action_direction'); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), (string) ($values['asset_action_direction'] ?? 'grant'), '#content_admin_contents_asset_action_direction', '#content_admin_contents_asset_action_amounts_grouped'); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
@@ -655,7 +655,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <div class="admin-asset-setting-secondary">
                                             <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_ids_' . (string) $fileId); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label>
                                             <div class="admin-policy-set-field">
-                                                <?php echo sr_content_asset_policy_set_checkboxes_html('content_file_asset_download_policy_set_ids_' . (string) $fileId, 'content_file_asset_download_policy_set_ids[' . (string) $fileId . ']', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($contentFile['asset_download_group_policies_json'] ?? '', (int) ($contentFile['asset_download_policy_set_id'] ?? 0))); ?>
+                                                <?php echo sr_content_asset_policy_set_checkboxes_html('content_file_asset_download_policy_set_ids_' . (string) $fileId, 'content_file_asset_download_policy_set_ids[' . (string) $fileId . ']', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($contentFile['asset_download_group_policies_json'] ?? '', (int) ($contentFile['asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#' . $contentFileAssetModuleId . '_amounts_grouped'); ?>
                                                 <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다.</p>
                                             </div>
                                         </div>
@@ -725,7 +725,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="new_content_file_asset_download_policy_set_ids"><?php echo sr_e('회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('new_content_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($newContentFileAssetSettings['file_asset_download_group_policies_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0))); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('new_content_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($newContentFileAssetSettings['file_asset_download_group_policies_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#content_admin_contents_new_content_file_asset_amounts_grouped'); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>

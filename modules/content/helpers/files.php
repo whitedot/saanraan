@@ -200,7 +200,9 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
     if (!isset(sr_content_asset_download_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
         $errors[] = $labelPrefix . ' 과금 방식이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_download_group_policies_json'] ?? '', (int) ($values['asset_download_policy_set_id'] ?? 0)), $labelPrefix));
+    $assetDownloadPolicySetIds = sr_content_asset_policy_set_ids_with_legacy($values['asset_download_group_policies_json'] ?? '', (int) ($values['asset_download_policy_set_id'] ?? 0));
+    $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, $assetDownloadPolicySetIds, $labelPrefix));
+    $errors = array_merge($errors, sr_content_asset_policy_set_asset_match_errors($pdo, $assetDownloadPolicySetIds, $assetModules, $labelPrefix));
 
     $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_download_group_policies_json'] ?? ''), $labelPrefix));
 

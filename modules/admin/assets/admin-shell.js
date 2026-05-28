@@ -284,10 +284,64 @@ window.AdminShell = {
             }, 4500);
         };
 
-        const syncAssetAmountGroup = root => {
+        const assetSingleSelectionActive = root => {
+            if (!root || !root.querySelectorAll) {
+                return false;
+            }
+
+            const selector = root.getAttribute('data-admin-asset-single-when-selector') || '';
+            const value = root.getAttribute('data-admin-asset-single-when-value') || '';
+            if (!selector || !value) {
+                return false;
+            }
+
+            const source = document.querySelector(selector);
+            return !!source && source.value === value;
+        };
+
+        const syncAssetSingleSelectionControls = root => {
+            const singleMode = assetSingleSelectionActive(root);
+            Array.prototype.slice.call(root.querySelectorAll('input[type="checkbox"], input[type="radio"]')).forEach(control => {
+                const nextType = singleMode ? 'radio' : 'checkbox';
+                if (control.type !== nextType) {
+                    control.type = nextType;
+                }
+                control.classList.toggle('form-radio', singleMode);
+                control.classList.toggle('form-checkbox', !singleMode);
+            });
+        };
+
+        const enforceAssetSingleSelection = (root, changedControl) => {
+            if (!root || !root.querySelectorAll) {
+                return;
+            }
+
+            syncAssetSingleSelectionControls(root);
+            if (!assetSingleSelectionActive(root)) {
+                return;
+            }
+
+            const checkedControls = Array.prototype.slice.call(root.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked'));
+            if (checkedControls.length <= 1) {
+                return;
+            }
+
+            const keepControl = changedControl && changedControl.nodeType === 1 && root.contains(changedControl) && changedControl.matches('input[type="checkbox"], input[type="radio"]') && changedControl.checked
+                ? changedControl
+                : checkedControls[0];
+            checkedControls.forEach(control => {
+                if (control !== keepControl) {
+                    control.checked = false;
+                }
+            });
+        };
+
+        const syncAssetAmountGroup = (root, changedControl) => {
             if (!root || !root.querySelectorAll || !root.closest) {
                 return;
             }
+
+            enforceAssetSingleSelection(root, changedControl);
 
             const line = root.closest('.admin-asset-setting-line');
             const targetRoot = root.closest('.admin-asset-setting-target');
@@ -322,7 +376,7 @@ window.AdminShell = {
             const roots = line
                 ? Array.prototype.slice.call(line.querySelectorAll('[data-admin-asset-amount-sync]'))
                 : Array.prototype.slice.call(document.querySelectorAll('[data-admin-asset-amount-sync]'));
-            roots.forEach(syncAssetAmountGroup);
+            roots.forEach(root => syncAssetAmountGroup(root, target));
         };
 
         const syncAssetUnitGroup = root => {
@@ -937,7 +991,7 @@ window.AdminShell = {
             syncAssetUnitGroupsNear(event.target);
         });
 
-        document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(syncAssetAmountGroup);
+        document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(root => syncAssetAmountGroup(root));
         document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
 

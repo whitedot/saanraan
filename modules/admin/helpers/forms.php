@@ -108,7 +108,20 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
                 }
             }
         }
-        $html .= '<option value="' . sr_e($value) . '" data-admin-select-badge-label="' . sr_e($label) . '" data-admin-select-badge-summary="' . sr_e($summary) . '"' . $summaryAttributes . '>'
+        $assetAttributes = '';
+        if (is_array($option) && is_array($option['assets'] ?? null)) {
+            $assetValues = [];
+            foreach ($option['assets'] as $assetValue) {
+                $assetValue = preg_replace('/[^a-zA-Z0-9_-]+/', '', (string) $assetValue) ?? '';
+                if ($assetValue !== '') {
+                    $assetValues[] = $assetValue;
+                }
+            }
+            if ($assetValues !== []) {
+                $assetAttributes = ' data-admin-select-badge-assets="' . sr_e(implode(' ', array_values(array_unique($assetValues)))) . '"';
+            }
+        }
+        $html .= '<option value="' . sr_e($value) . '" data-admin-select-badge-label="' . sr_e($label) . '" data-admin-select-badge-summary="' . sr_e($summary) . '"' . $summaryAttributes . $assetAttributes . '>'
             . sr_e($label)
             . '</option>';
     }
@@ -142,6 +155,20 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         var sourceSelector = root ? (root.getAttribute("data-admin-select-badge-summary-source") || "") : "";
         var source = sourceSelector ? document.querySelector(sourceSelector) : null;
         var sourceValue = source && source.value ? String(source.value).replace(/[^a-zA-Z0-9_-]/g, "") : "";
+        var assets = selectedAssets(root);
+        var summarySourceValue = sourceValue || "neutral";
+        if (summarySourceValue && assets.length > 0) {
+            var assetSummaries = [];
+            assets.forEach(function (asset) {
+                var sourceAssetSummary = option.getAttribute("data-admin-select-badge-summary-" + summarySourceValue + "_" + asset);
+                if (sourceAssetSummary) {
+                    assetSummaries.push(sourceAssetSummary);
+                }
+            });
+            if (assetSummaries.length > 0) {
+                return assetSummaries.join(" / ");
+            }
+        }
         if (sourceValue) {
             var sourceSummary = option.getAttribute("data-admin-select-badge-summary-" + sourceValue);
             if (sourceSummary !== null) {
@@ -149,6 +176,43 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             }
         }
         return option.getAttribute("data-admin-select-badge-summary") || "";
+    }
+    function selectedAssets(root) {
+        var sourceSelector = root ? (root.getAttribute("data-admin-select-badge-asset-source") || "") : "";
+        var source = sourceSelector ? document.querySelector(sourceSelector) : null;
+        if (!source) {
+            return [];
+        }
+        var values = [];
+        source.querySelectorAll("input[type=checkbox], input[type=radio]").forEach(function (control) {
+            if (!control.disabled && control.checked && control.value) {
+                values.push(String(control.value).replace(/[^a-zA-Z0-9_-]/g, ""));
+            }
+        });
+        if (values.length === 0 && source.matches && (source.matches("select") || source.matches("input"))) {
+            if (!source.disabled && source.value) {
+                values.push(String(source.value).replace(/[^a-zA-Z0-9_-]/g, ""));
+            }
+        }
+        return values.filter(function (value, index, list) {
+            return value && list.indexOf(value) === index;
+        });
+    }
+    function optionMatchesAssets(option, root) {
+        var assets = selectedAssets(root);
+        var optionAssets = option ? (option.getAttribute("data-admin-select-badge-assets") || "").split(/\s+/).filter(Boolean) : [];
+        if (!root || !root.getAttribute("data-admin-select-badge-asset-source")) {
+            return true;
+        }
+        if (assets.length === 0) {
+            return true;
+        }
+        if (optionAssets.length === 0) {
+            return true;
+        }
+        return optionAssets.some(function (asset) {
+            return assets.indexOf(asset) !== -1;
+        });
     }
     function selectedValues(root) {
         var values = {};
@@ -200,14 +264,23 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         }
         syncBadgeSummaries(root);
         var values = selectedValues(root);
+        root.querySelectorAll(".admin-select-badge-list-item").forEach(function (item) {
+            var input = item.querySelector("[data-admin-select-badge-value]");
+            var option = input ? optionByValue(select, input.value) : null;
+            if (option && !optionMatchesAssets(option, root)) {
+                item.remove();
+            }
+        });
+        values = selectedValues(root);
         Array.prototype.forEach.call(select.options, function (option) {
             if (!option.value) {
                 option.hidden = false;
                 option.disabled = false;
                 return;
             }
-            option.hidden = !!values[option.value];
-            option.disabled = !!values[option.value];
+            var blocked = !!values[option.value] || !optionMatchesAssets(option, root);
+            option.hidden = blocked;
+            option.disabled = blocked;
         });
         select.value = "";
     }
@@ -275,9 +348,14 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         document.querySelectorAll("[data-admin-select-badge-list]").forEach(syncOptions);
     });
     document.addEventListener("change", function (event) {
-        document.querySelectorAll("[data-admin-select-badge-list][data-admin-select-badge-summary-source]").forEach(function (root) {
+        document.querySelectorAll("[data-admin-select-badge-list][data-admin-select-badge-summary-source], [data-admin-select-badge-list][data-admin-select-badge-asset-source]").forEach(function (root) {
             var sourceSelector = root.getAttribute("data-admin-select-badge-summary-source") || "";
-            if (sourceSelector && event.target && event.target.matches && event.target.matches(sourceSelector)) {
+            var assetSelector = root.getAttribute("data-admin-select-badge-asset-source") || "";
+            var source = sourceSelector ? document.querySelector(sourceSelector) : null;
+            var assetSource = assetSelector ? document.querySelector(assetSelector) : null;
+            var sourceChanged = !!(sourceSelector && event.target && event.target.matches && event.target.matches(sourceSelector));
+            var assetChanged = !!(assetSource && event.target && assetSource.contains(event.target));
+            if (sourceChanged || assetChanged) {
                 syncOptions(root);
             }
         });

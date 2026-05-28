@@ -1424,34 +1424,41 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if (!isset(sr_content_asset_view_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
             $errors[] = '유료 열람 과금 방식이 올바르지 않습니다.';
         }
-        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0)), '유료 열람'));
+        $assetAccessPolicySetIds = sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0));
+        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, $assetAccessPolicySetIds, '유료 열람'));
+        $errors = array_merge($errors, sr_content_asset_policy_set_asset_match_errors($pdo, $assetAccessPolicySetIds, $assetModules, '유료 열람'));
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_access_group_policies_json'] ?? ''), '유료 열람'));
     }
 
     if ((int) ($values['asset_action_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? '');
+        $actionDirection = (string) ($values['asset_action_direction'] ?? '');
         if ($assetModules === []) {
-            $errors[] = '완료 버튼 대상 자산이 올바르지 않습니다.';
+            $errors[] = '완료 버튼 처리 항목이 올바르지 않습니다.';
         } elseif (!sr_content_asset_modules_available($pdo, $assetModules)) {
-            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 완료 버튼 대상 자산으로 사용할 수 있습니다.';
+            $errors[] = '선택한 금액 모듈이 모두 활성 상태일 때만 완료 버튼 처리 항목으로 사용할 수 있습니다.';
+        } elseif ($actionDirection === 'grant' && count($assetModules) > 1) {
+            $errors[] = '완료 버튼 지급은 처리 항목을 하나만 선택하세요.';
         }
 
         $amount = (int) ($values['asset_action_amount'] ?? 0);
         if ($amount < 1 || $amount > 999999999) {
             $errors[] = '완료 버튼 금액은 1부터 999999999 사이로 입력하세요.';
         }
-        if (!isset(sr_content_asset_action_directions()[(string) ($values['asset_action_direction'] ?? '')])) {
+        if (!isset(sr_content_asset_action_directions()[$actionDirection])) {
             $errors[] = '완료 버튼 지급/차감 방향이 올바르지 않습니다.';
         }
         $amounts = sr_content_asset_amounts_from_value($values['asset_action_amounts_json'] ?? '', $assetModules);
         if (count($amounts) < count($assetModules)) {
-            $errors[] = '완료 버튼 금액은 선택한 자산마다 1 이상으로 입력하세요.';
+            $errors[] = '완료 버튼 금액은 선택한 처리 항목마다 1 이상으로 입력하세요.';
         }
 
         if ((string) ($values['asset_action_label'] ?? '') === '') {
             $errors[] = '완료 버튼 문구를 입력하세요.';
         }
-        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), '완료 버튼'));
+        $assetActionPolicySetIds = sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0));
+        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, $assetActionPolicySetIds, '완료 버튼'));
+        $errors = array_merge($errors, sr_content_asset_policy_set_asset_match_errors($pdo, $assetActionPolicySetIds, $assetModules, '완료 버튼'));
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_action_group_policies_json'] ?? ''), '완료 버튼'));
     }
 
