@@ -73,6 +73,173 @@ function sr_admin_checkbox_list_html(string $id, string $name, array $options, a
     return $html . '</div>';
 }
 
+function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택'): string
+{
+    $selectedMap = [];
+    foreach ($selectedValues as $selectedValue) {
+        $selectedMap[(string) $selectedValue] = true;
+    }
+
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_select_badge_list';
+    $html = '<div id="' . sr_e($id) . '" class="admin-select-badge-list" data-admin-select-badge-list>';
+
+    if ($options === []) {
+        $html .= '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span>';
+        return $html . '</div>';
+    }
+
+    $html .= '<select id="' . sr_e($idBase . '_select') . '" class="form-select admin-select-badge-list-select" data-admin-select-badge-list-select>'
+        . '<option value="">' . sr_e($placeholder) . '</option>';
+    foreach ($options as $value => $option) {
+        $value = (string) $value;
+        if ($value === '') {
+            continue;
+        }
+
+        $label = is_array($option) ? (string) ($option['label'] ?? $value) : (string) $option;
+        $summary = is_array($option) ? (string) ($option['summary'] ?? '') : '';
+        $html .= '<option value="' . sr_e($value) . '" data-admin-select-badge-label="' . sr_e($label) . '" data-admin-select-badge-summary="' . sr_e($summary) . '">'
+            . sr_e($label)
+            . '</option>';
+    }
+    $html .= '</select><div class="admin-select-badge-list-items" data-admin-select-badge-list-items>';
+
+    foreach ($options as $value => $option) {
+        $value = (string) $value;
+        if ($value === '' || !isset($selectedMap[$value])) {
+            continue;
+        }
+
+        $label = is_array($option) ? (string) ($option['label'] ?? $value) : (string) $option;
+        $summary = is_array($option) ? (string) ($option['summary'] ?? '') : '';
+        $html .= sr_admin_select_badge_list_item_html($name, $value, $label, $summary);
+    }
+
+    $html .= '</div></div>';
+
+    static $scriptPrinted = false;
+    if (!$scriptPrinted) {
+        $scriptPrinted = true;
+        $html .= '<script>
+(function () {
+    function optionLabel(option) {
+        return option ? (option.getAttribute("data-admin-select-badge-label") || option.textContent || "").replace(/\s+/g, " ").trim() : "";
+    }
+    function optionSummary(option) {
+        return option ? (option.getAttribute("data-admin-select-badge-summary") || "") : "";
+    }
+    function selectedValues(root) {
+        var values = {};
+        root.querySelectorAll("[data-admin-select-badge-value]").forEach(function (input) {
+            if (input.value) {
+                values[input.value] = true;
+            }
+        });
+        return values;
+    }
+    function syncOptions(root) {
+        var select = root.querySelector("[data-admin-select-badge-list-select]");
+        if (!select) {
+            return;
+        }
+        var values = selectedValues(root);
+        Array.prototype.forEach.call(select.options, function (option) {
+            if (!option.value) {
+                option.hidden = false;
+                option.disabled = false;
+                return;
+            }
+            option.hidden = !!values[option.value];
+            option.disabled = !!values[option.value];
+        });
+        select.value = "";
+    }
+    function addItem(root, value, label, summary) {
+        var items = root.querySelector("[data-admin-select-badge-list-items]");
+        if (!items || !value || selectedValues(root)[value]) {
+            return;
+        }
+        var name = root.getAttribute("data-admin-select-badge-name") || "";
+        var badge = document.createElement("span");
+        badge.className = "admin-select-badge-list-item";
+        var title = document.createElement("span");
+        title.className = "admin-select-badge-list-label";
+        title.textContent = label || value;
+        badge.appendChild(title);
+        if (summary) {
+            var meta = document.createElement("span");
+            meta.className = "admin-select-badge-list-summary";
+            meta.textContent = summary;
+            badge.appendChild(meta);
+        }
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name + "[]";
+        input.value = value;
+        input.setAttribute("data-admin-select-badge-value", "true");
+        badge.appendChild(input);
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-icon-xs btn-ghost-danger admin-select-badge-list-remove";
+        button.setAttribute("data-admin-select-badge-remove", "true");
+        button.setAttribute("aria-label", "선택 항목 제거");
+        button.textContent = "×";
+        badge.appendChild(button);
+        items.appendChild(badge);
+        syncOptions(root);
+    }
+    document.addEventListener("change", function (event) {
+        var select = event.target && event.target.closest ? event.target.closest("[data-admin-select-badge-list-select]") : null;
+        if (!select || !select.value) {
+            return;
+        }
+        var root = select.closest("[data-admin-select-badge-list]");
+        if (!root) {
+            return;
+        }
+        var option = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
+        addItem(root, select.value, optionLabel(option), optionSummary(option));
+    });
+    document.addEventListener("click", function (event) {
+        var button = event.target && event.target.closest ? event.target.closest("[data-admin-select-badge-remove]") : null;
+        if (!button) {
+            return;
+        }
+        var root = button.closest("[data-admin-select-badge-list]");
+        var item = button.closest(".admin-select-badge-list-item");
+        if (item) {
+            item.remove();
+        }
+        if (root) {
+            syncOptions(root);
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-admin-select-badge-list]").forEach(syncOptions);
+    });
+    document.querySelectorAll("[data-admin-select-badge-list]").forEach(syncOptions);
+})();
+</script>';
+    }
+
+    return str_replace('class="admin-select-badge-list"', 'class="admin-select-badge-list" data-admin-select-badge-name="' . sr_e($name) . '"', $html);
+}
+
+function sr_admin_select_badge_list_item_html(string $name, string $value, string $label, string $summary = ''): string
+{
+    $html = '<span class="admin-select-badge-list-item">'
+        . '<span class="admin-select-badge-list-label">' . sr_e($label) . '</span>';
+    if ($summary !== '') {
+        $html .= '<span class="admin-select-badge-list-summary">' . sr_e($summary) . '</span>';
+    }
+    $html .= '<input type="hidden" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" data-admin-select-badge-value>'
+        . '<button type="button" class="btn btn-icon-xs btn-ghost-danger admin-select-badge-list-remove" data-admin-select-badge-remove aria-label="선택 항목 제거">×</button>'
+        . '</span>';
+
+    return $html;
+}
+
 function sr_admin_member_group_key_select_html(string $id, string $name, array $selectedKeys, array $memberGroups): string
 {
     $options = [];

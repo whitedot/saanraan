@@ -260,6 +260,14 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-form .admin-policy-set-field>.admin-check-list{align-self:center;justify-content:flex-start;margin-top:0;order:1}
 .admin-form .admin-policy-set-field>.admin-form-help{flex-basis:100%;margin-top:0;order:3;text-align:left}
+.admin-form .admin-policy-set-field>.admin-select-badge-list{flex:1 1 22rem;order:1}
+.admin-select-badge-list{display:grid;gap:calc(var(--spacing) * 1.5);min-width:0}
+.admin-select-badge-list-select{max-width:24rem}
+.admin-select-badge-list-items{display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1)}
+.admin-select-badge-list-item{align-items:center;background:var(--color-default-100);border:1px solid var(--color-default-200);border-radius:var(--radius);color:var(--color-default-800);display:inline-flex;gap:calc(var(--spacing) * 1.5);max-width:100%;min-height:2rem;padding:calc(var(--spacing) * .75) calc(var(--spacing) * 1)}
+.admin-select-badge-list-label{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-select-badge-list-summary{color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-select-badge-list-remove{flex:0 0 auto}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:14px;line-height:1.5;min-height:calc(var(--spacing) * 9.25)}
 .admin-setting-source-options>.admin-form-check:has(input:disabled),

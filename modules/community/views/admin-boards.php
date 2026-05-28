@@ -749,13 +749,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('금액 조정 세트'); ?></label>
+                        <label class="form-label" for="<?php echo sr_e('community_board_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('멤버 그룹별 적용'); ?></label>
                         <div class="admin-form-field admin-policy-set-field">
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_policy_set_id', $boardSettingSource($formBoard, (string) $assetPrefix . '_policy_set_id')); ?>
                             </div>
                             <?php echo sr_community_asset_policy_set_checkboxes_html('community_board_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($boardField($formBoard, $assetPrefix . '_group_policies_json', ''), (int) $boardField($formBoard, $assetPrefix . '_policy_set_id', '0'))); ?>
-                            <p class="admin-form-help">세트의 그룹별 계산 방식과 조정값은 커뮤니티 멤버 그룹별 금액 조정 화면에서 관리합니다.</p>
+                            <p class="admin-form-help">도움말: 선택한 멤버 그룹별 적용이 멤버의 그룹, 레벨, 대상 자산에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 멤버 그룹별 적용 화면에서 관리합니다.</p>
                         </div>
                     </div>
                     <?php if ($assetPrefix === 'paid_read') { ?>

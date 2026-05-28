@@ -400,9 +400,64 @@ function sr_content_asset_policy_set_options(array $policySets): array
     return $options;
 }
 
+function sr_content_asset_policy_set_picker_options(array $policySets): array
+{
+    $options = [];
+    foreach ($policySets as $policySet) {
+        $setId = (int) ($policySet['id'] ?? 0);
+        if ($setId < 1) {
+            continue;
+        }
+
+        $options[(string) $setId] = [
+            'label' => (string) (sr_content_asset_policy_set_options([$policySet])[(string) $setId] ?? $setId),
+            'summary' => sr_content_asset_policy_set_summary($policySet),
+        ];
+    }
+
+    return $options;
+}
+
+function sr_content_asset_policy_set_summary(array $policySet): string
+{
+    sr_content_require_asset_group_policy_helpers();
+
+    try {
+        $policies = sr_admin_asset_group_policies_from_json((string) ($policySet['policies_json'] ?? ''));
+    } catch (Throwable) {
+        return '';
+    }
+
+    $summaries = [];
+    foreach ($policies as $policy) {
+        if (!is_array($policy) || (string) ($policy['status'] ?? 'active') !== 'active') {
+            continue;
+        }
+
+        $groupKey = (string) ($policy['group_key'] ?? '');
+        $assetModule = (string) ($policy['asset_module'] ?? '');
+        $assetLabel = $assetModule !== '' ? sr_content_asset_module_label($assetModule) : '전체 자산';
+        $mode = (string) ($policy['mode'] ?? '');
+        $modeLabel = function_exists('sr_admin_asset_group_policy_mode_label') ? sr_admin_asset_group_policy_mode_label($mode) : $mode;
+        $value = sr_admin_asset_group_policy_value_for_asset($policy, $assetModule);
+        $valueLabel = $value !== '' ? ' ' . $value . ($mode === 'multiplier' ? '배' : '') : '';
+        $summaries[] = trim($groupKey . ': ' . $assetLabel . ' ' . $modeLabel . $valueLabel);
+        if (count($summaries) >= 3) {
+            break;
+        }
+    }
+
+    if ($summaries === []) {
+        return '활성 그룹별 적용 없음';
+    }
+
+    $remaining = max(0, count($policies) - count($summaries));
+    return implode(' / ', $summaries) . ($remaining > 0 ? ' 외 ' . (string) $remaining . '개' : '');
+}
+
 function sr_content_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds): string
 {
-    return sr_admin_checkbox_list_html($id, $name, sr_content_asset_policy_set_options($policySets), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 금액 조정 세트 없음');
+    return sr_admin_select_badge_list_html($id, $name, sr_content_asset_policy_set_picker_options($policySets), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택');
 }
 
 function sr_content_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array
@@ -410,7 +465,7 @@ function sr_content_asset_policy_set_ids_validation_errors(PDO $pdo, array $setI
     $errors = [];
     foreach (sr_content_asset_policy_set_ids_from_value($setIds) as $setId) {
         if (!is_array(sr_content_asset_policy_set_by_id($pdo, (int) $setId))) {
-            $errors[] = $label . ' 회원 그룹별 금액 조정 세트를 찾을 수 없습니다.';
+            $errors[] = $label . ' 회원 그룹별 적용을 찾을 수 없습니다.';
             break;
         }
     }
