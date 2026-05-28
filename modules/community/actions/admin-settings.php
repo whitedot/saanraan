@@ -358,6 +358,27 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('community::action.admin.level_settings_saved');
         }
     } elseif ($intent === 'save_level_definitions') {
+        $levelSettingsSubmitted = array_key_exists('level_post_score', $_POST) || array_key_exists('level_comment_score', $_POST);
+        $levelEnabled = !empty($settings['level_enabled']);
+        $levelAutoRecalculate = !empty($settings['level_auto_recalculate']);
+        $levelPostScore = (int) $settings['level_post_score'];
+        $levelCommentScore = (int) $settings['level_comment_score'];
+        if ($levelSettingsSubmitted) {
+            $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
+            $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
+            $postedLevelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
+            $postedLevelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
+            if ($postedLevelPostScore === null) {
+                $errors[] = sr_t('community::action.admin.post_score_invalid');
+            } else {
+                $levelPostScore = $postedLevelPostScore;
+            }
+            if ($postedLevelCommentScore === null) {
+                $errors[] = sr_t('community::action.admin.comment_score_invalid');
+            } else {
+                $levelCommentScore = $postedLevelCommentScore;
+            }
+        }
         $levelMaxValue = sr_admin_post_int_in_range('level_max_value', 1, 100);
         if ($levelMaxValue === null) {
             $errors[] = sr_t('community::action.admin.level_max_value_invalid');
@@ -400,6 +421,23 @@ if (sr_request_method() === 'POST') {
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
+                if ($levelSettingsSubmitted) {
+                    foreach ([
+                        ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
+                        ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
+                        ['level_post_score', (string) $levelPostScore, 'int'],
+                        ['level_comment_score', (string) $levelCommentScore, 'int'],
+                    ] as $row) {
+                        $stmt->execute([
+                            'module_id' => (int) $communityModule['id'],
+                            'setting_key' => $row[0],
+                            'setting_value' => $row[1],
+                            'value_type' => $row[2],
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                    }
+                }
                 $createdLevelCount = sr_community_ensure_level_definitions($pdo, (int) $levelMaxValue);
                 $pdo->commit();
                 sr_clear_module_settings_cache('community');
@@ -464,12 +502,17 @@ if (sr_request_method() === 'POST') {
                         'updated_count' => $updatedCount,
                         'created_level_count' => (int) ($createdLevelCount ?? 0),
                         'level_max_value' => (int) $settings['level_max_value'],
+                        'level_settings_submitted' => $levelSettingsSubmitted,
+                        'level_enabled' => $levelEnabled,
+                        'level_auto_recalculate' => $levelAutoRecalculate,
+                        'level_post_score' => $levelPostScore,
+                        'level_comment_score' => $levelCommentScore,
                     ],
                 ]);
                 if (($createdLevelCount ?? 0) > 0) {
                     $notice = sr_t('community::action.admin.level_definitions_saved_levels_created', ['count' => (string) $createdLevelCount]);
                 } else {
-                    $notice = $updatedCount > 0 ? sr_t('community::action.admin.level_definitions_saved') : sr_t('community::action.admin.level_definitions_no_changes');
+                    $notice = ($updatedCount > 0 || $levelSettingsSubmitted) ? sr_t('community::action.admin.level_definitions_saved') : sr_t('community::action.admin.level_definitions_no_changes');
                 }
             } catch (InvalidArgumentException $exception) {
                 $errors[] = $exception->getMessage();

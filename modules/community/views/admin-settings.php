@@ -312,9 +312,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php $communityLevelEnabled = !empty($settings['level_enabled']); ?>
 <?php $communityLevelRecalculateModalId = 'community-level-recalculate-confirm-modal'; ?>
 <?php $communityLevelMaxModalId = 'community-level-max-modal'; ?>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>" class="admin-form ui-form-theme">
+<form id="community-level-definitions-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
-    <input type="hidden" name="intent" value="save_level_settings">
+    <input type="hidden" name="intent" value="save_level_definitions">
+    <input type="hidden" name="level_max_value" value="<?php echo sr_e((string) $settings['level_max_value']); ?>">
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
         <div class="admin-form-grid">
@@ -349,88 +350,76 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <div class="admin-form-actions admin-form-actions-primary">
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
+    </section>
+
+    <section class="admin-card admin-list-card card admin-list-form">
+        <div class="card-header">
+            <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
+            <?php if ($levels !== []) { ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelMaxModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelMaxModalId); ?>" data-community-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
+            <?php } ?>
+        </div>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
+        <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice')); ?></p>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead class="ui-table-head">
+                    <tr>
+                        <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
+                        <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
+                        <th><span class="admin-form-check admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.2ba8a858'), $communitySettingsHelp['level_min_score']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></span></span></th>
+                        <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($levels === []) { ?>
+                        <tr><td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.b4915f04')); ?></td></tr>
+                    <?php } else { ?>
+                        <?php foreach ($levels as $level) { ?>
+                            <tr>
+                                <td><?php echo sr_e((string) $level['level_value']); ?></td>
+                                <td><?php echo sr_e((string) $level['title']); ?></td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        name="level_min_score[<?php echo sr_e((string) $level['id']); ?>]"
+                                        class="form-input"
+                                        min="0"
+                                        max="1000000000"
+                                        value="<?php echo sr_e((string) $level['min_score']); ?>"
+                                    >
+                                </td>
+                                <td><?php echo sr_e(sr_admin_code_label((string) $level['status'], 'content_status')); ?></td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
         </div>
     </section>
-</form>
-<section class="admin-card admin-list-card card admin-list-form">
-    <div class="card-header">
-        <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
-        <?php if ($levels !== []) { ?>
-            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelMaxModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelMaxModalId); ?>" data-community-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
-        <?php } ?>
-    </div>
-    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
-    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice')); ?></p>
-    <form id="community-level-definitions-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
-        <?php if ($levels !== []) { ?>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="save_level_definitions">
-            <input type="hidden" name="level_max_value" value="<?php echo sr_e((string) $settings['level_max_value']); ?>">
-        <?php } ?>
-    </form>
-    <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
-                <tr>
-                    <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
-                    <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
-                    <th><span class="admin-form-check admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.2ba8a858'), $communitySettingsHelp['level_min_score']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></span></span></th>
-                    <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($levels === []) { ?>
-                    <tr><td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.b4915f04')); ?></td></tr>
-                <?php } else { ?>
-                    <?php foreach ($levels as $level) { ?>
-                        <tr>
-                            <td><?php echo sr_e((string) $level['level_value']); ?></td>
-                            <td><?php echo sr_e((string) $level['title']); ?></td>
-                            <td>
-                                <input
-                                    type="number"
-                                    name="level_min_score[<?php echo sr_e((string) $level['id']); ?>]"
-                                    form="community-level-definitions-form"
-                                    class="form-input"
-                                    min="0"
-                                    max="1000000000"
-                                    value="<?php echo sr_e((string) $level['min_score']); ?>"
-                                >
-                            </td>
-                            <td><?php echo sr_e(sr_admin_code_label((string) $level['status'], 'content_status')); ?></td>
-                        </tr>
-                    <?php } ?>
-                <?php } ?>
-            </tbody>
-        </table>
-    </div>
-
-    <form
-        id="community-level-recalculate-form"
-        method="post"
-        action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>"
-        data-community-level-recalculate-form
-        data-recalculate-url="<?php echo sr_e(sr_url('/admin/community/levels/recalculate')); ?>"
-        data-batch-size="50"
-    >
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="recalculate_levels">
-        <input type="hidden" name="recalculate_confirmed" value="0" data-community-level-recalculate-confirmed>
-        <input type="hidden" name="recalculate_confirm_text" value="" data-community-level-recalculate-confirm-text>
-    </form>
-    <div class="admin-list-actions">
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <button type="button" class="btn btn-solid-light"<?php echo $communityLevelEnabled ? '' : ' disabled'; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-community-level-recalculate-open><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
-        <?php if ($levels !== []) { ?>
-            <button type="submit" form="community-level-definitions-form" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
-        <?php } ?>
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
     </div>
-    <div class="community-level-recalculate-progress" data-community-level-recalculate-progress hidden>
-        <p data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
-        <progress value="0" max="100" data-community-level-recalculate-meter></progress>
-    </div>
-</section>
+</form>
+
+<form
+    id="community-level-recalculate-form"
+    method="post"
+    action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>"
+    data-community-level-recalculate-form
+    data-recalculate-url="<?php echo sr_e(sr_url('/admin/community/levels/recalculate')); ?>"
+    data-batch-size="50"
+>
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="intent" value="recalculate_levels">
+    <input type="hidden" name="recalculate_confirmed" value="0" data-community-level-recalculate-confirmed>
+    <input type="hidden" name="recalculate_confirm_text" value="" data-community-level-recalculate-confirm-text>
+</form>
+<div class="community-level-recalculate-progress" data-community-level-recalculate-progress hidden>
+    <p data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
+    <progress value="0" max="100" data-community-level-recalculate-meter></progress>
+</div>
 <?php if ($levels !== []) { ?>
 <div id="<?php echo sr_e($communityLevelMaxModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityLevelMaxModalId); ?>-label" aria-hidden="true" inert>
     <div class="modal-dialog-center">
