@@ -400,3 +400,20 @@ function sr_admin_member_group_key_select_html(string $id, string $name, array $
 
     return sr_admin_checkbox_list_html($id, $name, $options, $selectedKeys, '활성 회원 그룹 없음');
 }
+
+function sr_admin_member_group_key_badge_select_html(string $id, string $name, array $selectedKeys, array $memberGroups): string
+{
+    $options = [];
+    foreach ($memberGroups as $memberGroup) {
+        $groupKey = (string) ($memberGroup['group_key'] ?? '');
+        if ($groupKey === '') {
+            continue;
+        }
+
+        $title = trim((string) ($memberGroup['title'] ?? ''));
+        $label = $title !== '' ? $title . ' (' . $groupKey . ')' : $groupKey;
+        $options[$groupKey] = $label;
+    }
+
+    return sr_admin_select_badge_list_html($id, $name, $options, $selectedKeys, '활성 회원 그룹 없음', '그룹 선택');
+}
