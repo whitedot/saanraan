@@ -84,10 +84,10 @@ $groupKeysSettingValue = static function (array $settings, string $key): array {
 $groupField = static function (array $group, string $key, string $default = ''): string {
     return (string) ($group[$key] ?? $default);
 };
-$communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel): string {
-    $selectedLevel = sr_community_normalize_level_value($selectedLevel);
+$communityLevelSelectHtml = static function (string $id, string $name, int $selectedLevel) use ($settings): string {
+    $selectedLevel = sr_community_normalize_level_value($selectedLevel, $settings);
     $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
-    for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) {
+    for ($levelValue = 0; $levelValue <= sr_community_max_level_value($settings); $levelValue++) {
         $html .= '<option value="' . sr_e((string) $levelValue) . '"' . ($selectedLevel === $levelValue ? ' selected' : '') . '>';
         $html .= sr_e((string) $levelValue);
         $html .= '</option>';

@@ -16,7 +16,7 @@ $canSendMemberMessages = $memberMessageSendingEnabled && sr_admin_has_permission
 $communityLevelEnabled = !empty($settings['level_enabled']) && sr_community_level_tables_exist($pdo);
 $communityLevelManualEditable = $communityLevelEnabled && empty($settings['level_auto_recalculate']);
 $canEditMemberLevels = $communityLevelManualEditable && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/nicknames', 'edit');
-$communityLevels = $communityLevelEnabled ? sr_community_levels($pdo) : [];
+$communityLevels = $communityLevelEnabled ? sr_community_levels($pdo, $settings) : [];
 
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
@@ -125,7 +125,7 @@ if (sr_request_method() === 'POST') {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_targets_required');
         } elseif (count($targetAccountIds) > 500) {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_targets_too_many');
-        } elseif ($levelValue < 0 || $levelValue > sr_community_max_level_value()) {
+        } elseif ($levelValue < 0 || $levelValue > sr_community_max_level_value($settings)) {
             $postResult['errors'][] = sr_t('community::action.admin.member_level_invalid');
         }
 
@@ -151,7 +151,7 @@ if (sr_request_method() === 'POST') {
             try {
                 foreach (array_keys($targetAccounts) as $targetAccountId) {
                     $beforeLevel = sr_community_account_level_snapshot($pdo, $targetAccountId);
-                    $afterLevel = sr_community_set_account_level($pdo, $targetAccountId, $levelValue);
+                    $afterLevel = sr_community_set_account_level($pdo, $targetAccountId, $levelValue, 'admin_manual_level_update', $settings);
                     sr_audit_log($pdo, [
                         'actor_account_id' => (int) $account['id'],
                         'actor_type' => 'admin',
@@ -197,7 +197,7 @@ if (sr_request_method() === 'POST') {
     sr_redirect($returnPathValue);
 }
 
-$nicknameFilter = sr_community_nickname_filter($pdo, $runtimeConfig, $communityLevelEnabled);
+$nicknameFilter = sr_community_nickname_filter($pdo, $runtimeConfig, $communityLevelEnabled, $settings);
 $nicknameSearchSubmitted = array_key_exists('field', $_GET)
     || array_key_exists('q', $_GET)
     || ($communityLevelEnabled && array_key_exists('level', $_GET));

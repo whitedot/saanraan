@@ -134,6 +134,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="community_admin_settings_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
+            </div>
+        </div>
+        <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_level_post_score', sr_t('community::ui.text.99092cba'), $levelScoreHelpModalId, sr_t('community::ui.level_score_help_open'), true); ?>
             <div class="admin-form-field">
                 <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" required class="form-input">
@@ -170,7 +177,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_min_level', sr_t('community::ui.text.c96c86df'), $communitySettingsHelp['message_min_level']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
-                                    <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) { ?>
+                                    <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value($settings); $levelValue++) { ?>
                                         <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) $levelValue); ?>
                                         </option>
@@ -351,11 +358,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
     </div>
     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_definitions_help')); ?></p>
+    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_recalculate_notice')); ?></p>
     <form id="community-level-definitions-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/levels')); ?>">
         <?php if ($levels !== []) { ?>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_level_definitions">
         <?php } ?>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_levels_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="community_admin_levels_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input">
+                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
+            </div>
+        </div>
         <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
@@ -400,9 +415,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         data-community-level-recalculate-form
         data-recalculate-url="<?php echo sr_e(sr_url('/admin/community/levels/recalculate')); ?>"
         data-batch-size="50"
+        data-confirm-message="<?php echo sr_e(sr_t('community::ui.level_recalculate_confirm')); ?>"
     >
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="recalculate_levels">
+        <input type="hidden" name="recalculate_confirmed" value="0" data-community-level-recalculate-confirmed>
     </form>
     <div class="admin-list-actions">
         <button type="submit" form="community-level-recalculate-form" class="btn btn-solid-light"<?php echo $communityLevelEnabled ? '' : ' disabled'; ?> data-community-level-recalculate-submit><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
@@ -427,6 +444,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var progress = document.querySelector('[data-community-level-recalculate-progress]');
     var status = document.querySelector('[data-community-level-recalculate-status]');
     var meter = document.querySelector('[data-community-level-recalculate-meter]');
+    var confirmedInput = document.querySelector('[data-community-level-recalculate-confirmed]');
     var labels = <?php echo json_encode([
         'start' => sr_t('community::ui.level_recalculate_start'),
         'running' => sr_t('community::ui.level_recalculate_running'),
@@ -466,6 +484,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var batchSize = parseInt(form.getAttribute('data-batch-size') || '50', 10);
         if (!url || !Number.isFinite(batchSize) || batchSize < 1) {
             return;
+        }
+        var confirmMessage = form.getAttribute('data-confirm-message') || '';
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+            return;
+        }
+        if (confirmedInput) {
+            confirmedInput.value = '1';
         }
 
         var cursor = 0;

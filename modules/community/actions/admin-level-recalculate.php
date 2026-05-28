@@ -23,6 +23,15 @@ if (empty($settings['level_enabled'])) {
     sr_finish_response();
 }
 
+if (sr_post_string('recalculate_confirmed', 1) !== '1') {
+    http_response_code(422);
+    echo json_encode([
+        'ok' => false,
+        'message' => sr_t('community::action.admin.level_recalculate_confirmation_required'),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    sr_finish_response();
+}
+
 $cursorInput = sr_post_string('cursor', 20);
 $batchSizeInput = sr_post_string('batch_size', 20);
 $processedTotalInput = sr_post_string('processed_total', 20);

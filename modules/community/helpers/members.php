@@ -216,7 +216,7 @@ function sr_community_public_account_summary_by_hash(PDO $pdo, array $config, st
     return $summary;
 }
 
-function sr_community_nickname_filter(PDO $pdo, array $config, bool $levelFilterEnabled = false): array
+function sr_community_nickname_filter(PDO $pdo, array $config, bool $levelFilterEnabled = false, ?array $settings = null): array
 {
     $field = sr_get_string('field', 30);
     $keyword = trim(sr_get_string('q', 120));
@@ -227,7 +227,7 @@ function sr_community_nickname_filter(PDO $pdo, array $config, bool $levelFilter
     $levelValue = null;
     $levelInput = sr_get_string('level', 20);
     if ($levelFilterEnabled && $levelInput !== '' && preg_match('/\A[0-9]+\z/', $levelInput) === 1) {
-        $levelValue = sr_community_normalize_level_value($levelInput);
+        $levelValue = sr_community_normalize_level_value($levelInput, $settings);
     }
 
     $accountId = 0;
@@ -285,7 +285,7 @@ function sr_community_nickname_query_parts(array $filter = []): array
     }
     if (!empty($filter['level_enabled']) && $levelValue !== null) {
         $where[] = 'COALESCE(l.level_value, 0) = :level_value';
-        $params['level_value'] = sr_community_normalize_level_value($levelValue);
+        $params['level_value'] = (int) $levelValue;
     }
 
     return [

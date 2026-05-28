@@ -1065,7 +1065,7 @@ function sr_community_board_min_level(PDO $pdo, int $boardId, string $settingKey
         return 0;
     }
 
-    return sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, $settingKey, '0'));
+    return sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, $settingKey, '0'), sr_community_settings($pdo));
 }
 
 function sr_community_board_own_min_level(PDO $pdo, int $boardId, string $settingKey): int
@@ -1075,7 +1075,7 @@ function sr_community_board_own_min_level(PDO $pdo, int $boardId, string $settin
     }
 
     $value = sr_community_board_setting_value($pdo, $boardId, $settingKey);
-    return is_string($value) && $value !== '' ? sr_community_normalize_level_value($value) : 0;
+    return is_string($value) && $value !== '' ? sr_community_normalize_level_value($value, sr_community_settings($pdo)) : 0;
 }
 
 function sr_community_board_level_score(PDO $pdo, int $boardId, string $settingKey, array $settings = []): int

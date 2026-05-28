@@ -27,6 +27,7 @@ function sr_community_default_settings(): array
             ? $settings['file_allowed_extensions']
             : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
         'level_enabled' => (bool) ($settings['level_enabled'] ?? false),
+        'level_max_value' => (int) ($settings['level_max_value'] ?? 10),
         'level_auto_recalculate' => (bool) ($settings['level_auto_recalculate'] ?? false),
         'level_post_score' => (int) ($settings['level_post_score'] ?? 10),
         'level_comment_score' => (int) ($settings['level_comment_score'] ?? 2),
@@ -76,14 +77,21 @@ function sr_community_default_settings(): array
     ];
 }
 
-function sr_community_max_level_value(): int
+function sr_community_level_max_setting(mixed $value): int
 {
-    return 10;
+    return min(100, max(1, (int) $value));
 }
 
-function sr_community_normalize_level_value(mixed $value): int
+function sr_community_max_level_value(?array $settings = null): int
 {
-    return min(sr_community_max_level_value(), max(0, (int) $value));
+    $settings = is_array($settings) ? $settings : sr_community_default_settings();
+
+    return sr_community_level_max_setting($settings['level_max_value'] ?? 10);
+}
+
+function sr_community_normalize_level_value(mixed $value, ?array $settings = null): int
+{
+    return min(sr_community_max_level_value($settings), max(0, (int) $value));
 }
 
 function sr_community_settings(PDO $pdo): array
@@ -113,12 +121,13 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
         is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : (string) ($settings['file_allowed_extensions'] ?? '')
     );
     $settings['level_enabled'] = sr_community_bool_setting($settings['level_enabled'] ?? false);
+    $settings['level_max_value'] = sr_community_level_max_setting($settings['level_max_value'] ?? 10);
     $settings['level_auto_recalculate'] = sr_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
     $settings['level_comment_score'] = min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2)));
     $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
     $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
-    $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0);
+    $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0, $settings);
     $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['nickname_enabled'] = sr_community_bool_setting($settings['nickname_enabled'] ?? true);
     $settings['nickname_required'] = $settings['nickname_enabled'];
@@ -209,33 +218,37 @@ function sr_community_level_tables_exist(PDO $pdo): bool
     return $exists;
 }
 
-function sr_community_levels(PDO $pdo): array
+function sr_community_levels(PDO $pdo, ?array $settings = null): array
 {
     if (!sr_community_level_tables_exist($pdo)) {
         return [];
     }
 
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_community_levels
+         WHERE level_value <= :max_level
          ORDER BY level_value ASC, id ASC"
     );
+    $stmt->execute(['max_level' => sr_community_max_level_value($settings)]);
 
     return $stmt->fetchAll();
 }
 
-function sr_community_enabled_levels(PDO $pdo): array
+function sr_community_enabled_levels(PDO $pdo, ?array $settings = null): array
 {
     if (!sr_community_level_tables_exist($pdo)) {
         return [];
     }
 
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_community_levels
          WHERE status = 'enabled'
+           AND level_value <= :max_level
          ORDER BY level_value ASC, id ASC"
     );
+    $stmt->execute(['max_level' => sr_community_max_level_value($settings)]);
 
     return $stmt->fetchAll();
 }
@@ -315,7 +328,7 @@ function sr_community_account_satisfies_access(PDO $pdo, int $accountId, array $
 {
     $settings = sr_community_normalize_settings(is_array($context['settings'] ?? null) ? $context['settings'] : sr_community_settings($pdo));
     $groupKeys = sr_community_normalize_board_group_keys(is_array($context['group_keys'] ?? null) ? $context['group_keys'] : []);
-    $minLevel = sr_community_normalize_level_value($context['min_level'] ?? 0);
+    $minLevel = sr_community_normalize_level_value($context['min_level'] ?? 0, $settings);
     if ($accountId < 1) {
         return [
             'allowed' => false,
@@ -399,9 +412,9 @@ function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array
     foreach ($commentCountsByBoard as $boardId => $boardCommentCount) {
         $scoreValue += $boardCommentCount * sr_community_board_level_score($pdo, (int) $boardId, 'level_comment_score', $settings);
     }
-    $levelValue = sr_community_level_value_for_score($pdo, $scoreValue);
+    $levelValue = sr_community_level_value_for_score($pdo, $scoreValue, $settings);
     if (sr_community_account_is_owner($pdo, $accountId)) {
-        $levelValue = sr_community_max_level_value();
+        $levelValue = sr_community_max_level_value($settings);
     }
     $before = sr_community_account_level_snapshot($pdo, $accountId);
     $now = sr_now();
@@ -466,13 +479,13 @@ function sr_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, 
 }
 
 // Policy checks for manual edits live in the admin action; this helper only persists the requested snapshot.
-function sr_community_set_account_level(PDO $pdo, int $accountId, int $levelValue, string $reasonKey = 'admin_manual_level_update'): array
+function sr_community_set_account_level(PDO $pdo, int $accountId, int $levelValue, string $reasonKey = 'admin_manual_level_update', ?array $settings = null): array
 {
     if ($accountId < 1 || !sr_community_level_tables_exist($pdo)) {
         return sr_community_empty_account_level_snapshot($accountId);
     }
 
-    $levelValue = sr_community_normalize_level_value($levelValue);
+    $levelValue = sr_community_normalize_level_value($levelValue, $settings);
     $before = sr_community_account_level_snapshot($pdo, $accountId);
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -505,10 +518,10 @@ function sr_community_set_account_level(PDO $pdo, int $accountId, int $levelValu
     return sr_community_account_level_snapshot($pdo, $accountId);
 }
 
-function sr_community_level_value_for_score(PDO $pdo, int $scoreValue): int
+function sr_community_level_value_for_score(PDO $pdo, int $scoreValue, ?array $settings = null): int
 {
     $levelValue = 0;
-    foreach (sr_community_enabled_levels($pdo) as $level) {
+    foreach (sr_community_enabled_levels($pdo, $settings) as $level) {
         if ((int) ($level['min_score'] ?? 0) <= $scoreValue) {
             $levelValue = max($levelValue, (int) $level['level_value']);
         }
@@ -517,13 +530,13 @@ function sr_community_level_value_for_score(PDO $pdo, int $scoreValue): int
     return $levelValue;
 }
 
-function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById): int
+function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById, ?array $settings = null): int
 {
     if (!sr_community_level_tables_exist($pdo)) {
         return 0;
     }
 
-    $levels = sr_community_levels($pdo);
+    $levels = sr_community_levels($pdo, $settings);
     $updates = [];
     $lastMinScore = 0;
     foreach ($levels as $level) {
@@ -562,6 +575,90 @@ function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById): i
     }
 
     return count($updates);
+}
+
+function sr_community_default_min_score_for_level(int $levelValue, array $existingLevels = []): int
+{
+    $defaults = [
+        1 => 0,
+        2 => 10,
+        3 => 50,
+        4 => 100,
+        5 => 300,
+        6 => 600,
+        7 => 1000,
+        8 => 1500,
+        9 => 2100,
+        10 => 3000,
+    ];
+    if (isset($defaults[$levelValue])) {
+        return $defaults[$levelValue];
+    }
+
+    $lastScore = 0;
+    foreach ($existingLevels as $level) {
+        $currentValue = (int) ($level['level_value'] ?? 0);
+        if ($currentValue < 1 || $currentValue >= $levelValue) {
+            continue;
+        }
+        $lastScore = max($lastScore, (int) ($level['min_score'] ?? 0));
+    }
+
+    return min(1000000000, $lastScore + 1000);
+}
+
+function sr_community_ensure_level_definitions(PDO $pdo, int $maxLevel): int
+{
+    if (!sr_community_level_tables_exist($pdo)) {
+        return 0;
+    }
+
+    $maxLevel = sr_community_level_max_setting($maxLevel);
+    $stmt = $pdo->query(
+        "SELECT *
+         FROM sr_community_levels
+         ORDER BY level_value ASC, id ASC"
+    );
+    $levels = $stmt->fetchAll();
+    $existingByValue = [];
+    foreach ($levels as $level) {
+        $existingByValue[(int) ($level['level_value'] ?? 0)] = $level;
+    }
+
+    $insert = $pdo->prepare(
+        'INSERT INTO sr_community_levels
+            (level_value, title, description, min_score, status, sort_order, created_at, updated_at)
+         VALUES
+            (:level_value, :title, :description, :min_score, :status, :sort_order, :created_at, :updated_at)'
+    );
+    $created = 0;
+    $now = sr_now();
+    for ($levelValue = 1; $levelValue <= $maxLevel; $levelValue++) {
+        if (isset($existingByValue[$levelValue])) {
+            continue;
+        }
+
+        $minScore = sr_community_default_min_score_for_level($levelValue, $levels);
+        $insert->execute([
+            'level_value' => $levelValue,
+            'title' => '레벨 ' . (string) $levelValue,
+            'description' => $levelValue === 1
+                ? '기본 커뮤니티 레벨입니다.'
+                : '커뮤니티 활동 점수 ' . (string) $minScore . '점 이상입니다.',
+            'min_score' => $minScore,
+            'status' => 'enabled',
+            'sort_order' => $levelValue * 10,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $created++;
+        $levels[] = [
+            'level_value' => $levelValue,
+            'min_score' => $minScore,
+        ];
+    }
+
+    return $created;
 }
 
 function sr_community_log_level_change(PDO $pdo, int $accountId, array $before, array $after, string $reasonKey): void

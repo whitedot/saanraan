@@ -31,7 +31,7 @@ $settings = sr_community_settings($pdo);
 $editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $assetPolicySets = sr_community_asset_policy_sets($pdo);
-$maxLevel = sr_community_max_level_value();
+$maxLevel = sr_community_max_level_value($settings);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
     : [];

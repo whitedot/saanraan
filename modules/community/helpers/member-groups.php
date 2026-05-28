@@ -179,7 +179,7 @@ function sr_community_member_group_rule_comment_count_at_least(PDO $pdo, int $ac
 
 function sr_community_member_group_rule_level_at_least(PDO $pdo, int $accountId, array $params): array
 {
-    $minLevel = sr_community_normalize_level_value($params['min_level'] ?? 0);
+    $minLevel = sr_community_normalize_level_value($params['min_level'] ?? 0, sr_community_settings($pdo));
     $snapshot = sr_community_account_level_snapshot($pdo, $accountId);
     $level = (int) ($snapshot['level_value'] ?? 0);
 

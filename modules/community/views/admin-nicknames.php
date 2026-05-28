@@ -45,7 +45,7 @@ foreach ($communityLevels as $communityLevel) {
             : sr_t('community::ui.member.level.option', ['level' => (string) $levelValue, 'title' => $levelTitle]))
         : sr_t('community::ui.member.level.value', ['level' => (string) $levelValue]);
 }
-for ($levelValue = 0; $levelValue <= sr_community_max_level_value(); $levelValue++) {
+for ($levelValue = 0; $levelValue <= sr_community_max_level_value($settings); $levelValue++) {
     if (!isset($communityLevelLabels[$levelValue])) {
         $communityLevelLabels[$levelValue] = sr_t('community::ui.member.level.value', ['level' => (string) $levelValue]);
     }
@@ -157,7 +157,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $memberStatus = (string) ($member['status'] ?? '');
                     $memberId = (int) ($member['id'] ?? 0);
-                    $memberLevelValue = sr_community_normalize_level_value($member['community_level_value'] ?? 0);
+                    $memberLevelValue = sr_community_normalize_level_value($member['community_level_value'] ?? 0, $settings);
                     $memberLevelLabel = (string) ($communityLevelLabels[$memberLevelValue] ?? sr_t('community::ui.member.level.value', ['level' => (string) $memberLevelValue]));
                     $memberLevelSelectable = $memberLevelBulkEditable && $memberId > 0 && $memberStatus === 'active';
                     $statusClass = match ($memberStatus) {
