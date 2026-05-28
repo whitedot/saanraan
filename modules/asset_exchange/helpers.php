@@ -330,7 +330,7 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
             'rate_numerator' => (int) $policy['rate_numerator'],
             'rate_denominator' => (int) $policy['rate_denominator'],
             'rounding_mode' => (string) $policy['rounding_mode'],
-            'deposit_amount' => (int) $quote['deposit_before_fee'],
+            'deposit_amount' => (int) $quote['deposit_amount'],
             'fee_amount' => (int) $quote['fee_amount'],
             'fee_trigger' => (string) $policy['fee_trigger'],
             'fee_basis' => (string) $policy['fee_basis'],

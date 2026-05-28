@@ -17,8 +17,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="coupon_admin_coupon_key">쿠폰 키 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z0-9_]+" data-admin-key-input required>
-                <p class="admin-form-help">소문자, 숫자, 밑줄만 사용합니다.</p>
+                <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input required>
+                <p class="admin-form-help">영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용합니다.</p>
             </div>
         </div>
         <div class="admin-form-row">

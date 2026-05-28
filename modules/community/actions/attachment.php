@@ -45,12 +45,33 @@ if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum
     sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
+$disposition = sr_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
+$downloadUrl = '';
+$filePath = null;
+if ($driver === 's3') {
+    $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
+        'response-content-type' => sr_download_content_type($mimeType),
+        'response-content-disposition' => $disposition . '; filename="' . sr_download_filename((string) $attachment['original_name']) . '"',
+    ]);
+    if ($downloadUrl === '') {
+        sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
+    }
+} else {
+    $filePath = sr_community_attachment_file_path($attachment);
+    if (!is_string($filePath)) {
+        sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
+    }
+}
+
 $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
 $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
 $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
-if (is_array($board)) {
+if ($disposition === 'attachment' && is_array($board)) {
     $settings = sr_community_settings($pdo);
+}
+if (is_array($board)) {
+    $settings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
     $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
     if (!$isUploader && !$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
         if (!is_array($account)) {
@@ -108,7 +129,6 @@ if (is_array($board)) {
     }
 }
 
-$disposition = sr_community_attachment_is_image($attachment) ? 'inline' : 'attachment';
 if ($disposition === 'attachment' && is_array($board)) {
     $downloadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_attachment_download', 'once');
     if (!$isUploader && !$isAuthor && sr_community_asset_event_required($downloadConfig)) {
@@ -131,22 +151,9 @@ if ($disposition === 'attachment' && is_array($board)) {
         }
     }
 }
-if ($driver === 's3') {
-    $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
-        'response-content-type' => sr_download_content_type($mimeType),
-        'response-content-disposition' => $disposition . '; filename="' . sr_download_filename((string) $attachment['original_name']) . '"',
-    ]);
-    if ($downloadUrl === '') {
-        sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
-    }
-
+if ($downloadUrl !== '') {
     header('Cache-Control: private, max-age=300');
     sr_redirect_external($downloadUrl);
-}
-
-$filePath = sr_community_attachment_file_path($attachment);
-if (!is_string($filePath)) {
-    sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
 }
 
 header('Content-Type: ' . sr_download_content_type($mimeType));

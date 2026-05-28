@@ -11,6 +11,11 @@ function sr_coupon_clean_key(string $value, int $maxLength = 60): string
     return substr($value, 0, $maxLength);
 }
 
+function sr_coupon_key_is_valid(string $couponKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $couponKey) === 1;
+}
+
 function sr_coupon_clean_text(string $value, int $maxLength): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
@@ -101,10 +106,31 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types()) ? (string) $data['target_type'] : 'all';
     $targetId = sr_coupon_clean_text((string) ($data['target_id'] ?? ''), 80);
     $refundablePolicy = array_key_exists((string) ($data['refundable_policy'] ?? 'none'), sr_coupon_refundable_policies()) ? (string) $data['refundable_policy'] : 'none';
-    $maxUses = max(1, min(1000, (int) ($data['max_uses_per_issue'] ?? 1)));
+    $maxUsesValue = $data['max_uses_per_issue'] ?? '1';
+    if (is_array($maxUsesValue)) {
+        throw new InvalidArgumentException('사용 가능 횟수는 1부터 1000 사이의 정수로 입력하세요.');
+    }
+    $maxUsesString = trim((string) $maxUsesValue);
+    if ($maxUsesString === '' || preg_match('/\A[1-9][0-9]*\z/', $maxUsesString) !== 1) {
+        throw new InvalidArgumentException('사용 가능 횟수는 1부터 1000 사이의 정수로 입력하세요.');
+    }
+    $maxUses = (int) $maxUsesString;
+    if ($maxUses < 1 || $maxUses > 1000) {
+        throw new InvalidArgumentException('사용 가능 횟수는 1부터 1000 사이의 정수로 입력하세요.');
+    }
 
-    if ($couponKey === '' || $title === '') {
-        throw new InvalidArgumentException('Coupon key and title are required.');
+    if (!sr_coupon_key_is_valid($couponKey)) {
+        throw new InvalidArgumentException('쿠폰 키는 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용할 수 있습니다.');
+    }
+
+    if ($title === '') {
+        throw new InvalidArgumentException('쿠폰 키와 이름을 입력하세요.');
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM sr_coupon_definitions WHERE coupon_key = :coupon_key LIMIT 1');
+    $stmt->execute(['coupon_key' => $couponKey]);
+    if (is_array($stmt->fetch())) {
+        throw new InvalidArgumentException('이미 사용 중인 쿠폰 키입니다.');
     }
 
     $now = sr_now();

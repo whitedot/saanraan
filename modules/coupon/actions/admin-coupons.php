@@ -29,7 +29,7 @@ if (sr_request_method() === 'POST') {
                 'target_type' => sr_post_string('target_type', 60),
                 'target_id' => sr_post_string('target_id', 80),
                 'refundable_policy' => sr_post_string('refundable_policy', 30),
-                'max_uses_per_issue' => (int) sr_post_string('max_uses_per_issue', 10),
+                'max_uses_per_issue' => sr_post_string('max_uses_per_issue', 10),
             ]);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
