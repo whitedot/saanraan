@@ -154,9 +154,10 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         }
         var sourceSelector = root ? (root.getAttribute("data-admin-select-badge-summary-source") || "") : "";
         var source = sourceSelector ? document.querySelector(sourceSelector) : null;
+        var defaultSourceValue = root ? (root.getAttribute("data-admin-select-badge-summary-default") || "") : "";
         var sourceValue = source && source.value ? String(source.value).replace(/[^a-zA-Z0-9_-]/g, "") : "";
         var assets = selectedAssets(root);
-        var summarySourceValue = sourceValue || "neutral";
+        var summarySourceValue = sourceValue || defaultSourceValue || "neutral";
         if (summarySourceValue && assets.length > 0) {
             var assetSummaries = [];
             assets.forEach(function (asset) {

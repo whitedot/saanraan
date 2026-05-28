@@ -400,7 +400,7 @@ function sr_content_asset_policy_set_options(array $policySets): array
     return $options;
 }
 
-function sr_content_asset_policy_set_picker_options(array $policySets, string $operation = 'neutral'): array
+function sr_content_asset_policy_set_picker_options(array $policySets, string $operation = 'neutral', ?PDO $pdo = null): array
 {
     $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
     $options = [];
@@ -411,20 +411,20 @@ function sr_content_asset_policy_set_picker_options(array $policySets, string $o
         }
 
         $summaries = [
-            'grant' => sr_content_asset_policy_set_summary($policySet, 'grant'),
-            'use' => sr_content_asset_policy_set_summary($policySet, 'use'),
-            'neutral' => sr_content_asset_policy_set_summary($policySet, 'neutral'),
+            'grant' => sr_content_asset_policy_set_summary($policySet, 'grant', [], $pdo),
+            'use' => sr_content_asset_policy_set_summary($policySet, 'use', [], $pdo),
+            'neutral' => sr_content_asset_policy_set_summary($policySet, 'neutral', [], $pdo),
         ];
         $assetModules = sr_content_asset_policy_set_asset_modules($policySet);
         foreach ($assetModules as $assetModule) {
             foreach (['grant', 'use', 'neutral'] as $summaryOperation) {
-                $summaries[$summaryOperation . '_' . $assetModule] = sr_content_asset_policy_set_summary($policySet, $summaryOperation, [$assetModule]);
+                $summaries[$summaryOperation . '_' . $assetModule] = sr_content_asset_policy_set_summary($policySet, $summaryOperation, [$assetModule], $pdo);
             }
         }
 
         $options[(string) $setId] = [
             'label' => (string) (sr_content_asset_policy_set_options([$policySet])[(string) $setId] ?? $setId),
-            'summary' => sr_content_asset_policy_set_summary($policySet, $operation),
+            'summary' => sr_content_asset_policy_set_summary($policySet, $operation, [], $pdo),
             'summaries' => $summaries,
             'assets' => $assetModules,
         ];
@@ -463,7 +463,7 @@ function sr_content_asset_policy_set_asset_modules(array $policySet): array
     return $ordered;
 }
 
-function sr_content_asset_policy_set_summary(array $policySet, string $operation = 'neutral', array $assetModules = []): string
+function sr_content_asset_policy_set_summary(array $policySet, string $operation = 'neutral', array $assetModules = [], ?PDO $pdo = null): string
 {
     sr_content_require_asset_group_policy_helpers();
     $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
@@ -490,7 +490,7 @@ function sr_content_asset_policy_set_summary(array $policySet, string $operation
         }
         $eligibleCount += 1;
         $assetModule = $policyAssetModule !== '' ? $policyAssetModule : (string) ($assetModules[0] ?? '');
-        $assetLabel = $assetModule !== '' ? sr_content_asset_module_label($assetModule) : '전체 항목';
+        $assetLabel = $assetModule !== '' ? sr_content_asset_module_label($assetModule, $pdo) : '전체 항목';
         $mode = (string) ($policy['mode'] ?? '');
         $modeLabel = function_exists('sr_admin_asset_group_policy_mode_label') ? sr_admin_asset_group_policy_mode_label($mode) : $mode;
         $value = sr_admin_asset_group_policy_value_for_asset($policy, $assetModule);
@@ -527,16 +527,19 @@ function sr_content_asset_policy_set_summary_value_label(string $value, string $
     return $value;
 }
 
-function sr_content_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds, string $operation = 'neutral', string $summarySourceSelector = '', string $assetSourceSelector = ''): string
+function sr_content_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds, string $operation = 'neutral', string $summarySourceSelector = '', string $assetSourceSelector = '', ?PDO $pdo = null): string
 {
     $rootAttributes = '';
+    if (in_array($operation, ['grant', 'use', 'neutral'], true)) {
+        $rootAttributes .= ' data-admin-select-badge-summary-default="' . sr_e($operation) . '"';
+    }
     if ($summarySourceSelector !== '') {
         $rootAttributes .= ' data-admin-select-badge-summary-source="' . sr_e($summarySourceSelector) . '"';
     }
     if ($assetSourceSelector !== '') {
         $rootAttributes .= ' data-admin-select-badge-asset-source="' . sr_e($assetSourceSelector) . '"';
     }
-    return sr_admin_select_badge_list_html($id, $name, sr_content_asset_policy_set_picker_options($policySets, $operation), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택', $rootAttributes);
+    return sr_admin_select_badge_list_html($id, $name, sr_content_asset_policy_set_picker_options($policySets, $operation, $pdo), array_map('strval', sr_content_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택', $rootAttributes);
 }
 
 function sr_content_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array

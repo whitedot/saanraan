@@ -311,7 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_access_policy_set_ids"><?php echo sr_e('유료 열람 회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_asset_access_policy_set_ids', 'group_asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'asset_access_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_policy_set_id', '0')), 'neutral', '', '#content_group_asset_access_amounts_grouped'); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_asset_access_policy_set_ids', 'group_asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'asset_access_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'asset_access_policy_set_id', '0')), 'neutral', '', '#content_group_asset_access_amounts_grouped', $pdo); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
@@ -356,7 +356,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_asset_action_policy_set_ids"><?php echo sr_e('완료 버튼 회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_asset_action_policy_set_ids', 'group_asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'asset_action_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_policy_set_id', '0')), $groupSettingValue($groupSettings, 'asset_action_direction', 'grant'), '#content_group_asset_action_direction', '#content_group_asset_action_amounts_grouped'); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_asset_action_policy_set_ids', 'group_asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'asset_action_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'asset_action_policy_set_id', '0')), $groupSettingValue($groupSettings, 'asset_action_direction', 'grant'), '#content_group_asset_action_direction', '#content_group_asset_action_amounts_grouped', $pdo); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
@@ -404,7 +404,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_group_file_asset_download_policy_set_ids"><?php echo sr_e('파일 회원 그룹별 적용'); ?></label>
                 <div class="admin-form-field admin-policy-set-field">
-                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_file_asset_download_policy_set_ids', 'group_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'file_asset_download_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_policy_set_id', '0')), 'neutral', '', '#content_group_file_asset_download_amounts_grouped'); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_group_file_asset_download_policy_set_ids', 'group_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($groupSettingValue($groupSettings, 'file_asset_download_group_policies_json', ''), (int) $groupSettingValue($groupSettings, 'file_asset_download_policy_set_id', '0')), 'neutral', '', '#content_group_file_asset_download_amounts_grouped', $pdo); ?>
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>

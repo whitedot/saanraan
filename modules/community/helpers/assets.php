@@ -372,8 +372,9 @@ function sr_community_asset_policy_set_options(array $policySets): array
     return $options;
 }
 
-function sr_community_asset_policy_set_picker_options(array $policySets): array
+function sr_community_asset_policy_set_picker_options(array $policySets, string $operation = 'neutral', ?PDO $pdo = null): array
 {
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
     $options = [];
     foreach ($policySets as $policySet) {
         $setId = (int) ($policySet['id'] ?? 0);
@@ -381,18 +382,65 @@ function sr_community_asset_policy_set_picker_options(array $policySets): array
             continue;
         }
 
+        $summaries = [
+            'grant' => sr_community_asset_policy_set_summary($policySet, 'grant', [], $pdo),
+            'use' => sr_community_asset_policy_set_summary($policySet, 'use', [], $pdo),
+            'neutral' => sr_community_asset_policy_set_summary($policySet, 'neutral', [], $pdo),
+        ];
+        $assetModules = sr_community_asset_policy_set_asset_modules($policySet);
+        foreach ($assetModules as $assetModule) {
+            foreach (['grant', 'use', 'neutral'] as $summaryOperation) {
+                $summaries[$summaryOperation . '_' . $assetModule] = sr_community_asset_policy_set_summary($policySet, $summaryOperation, [$assetModule], $pdo);
+            }
+        }
+
         $options[(string) $setId] = [
             'label' => (string) (sr_community_asset_policy_set_options([$policySet])[(string) $setId] ?? $setId),
-            'summary' => sr_community_asset_policy_set_summary($policySet),
+            'summary' => sr_community_asset_policy_set_summary($policySet, $operation, [], $pdo),
+            'summaries' => $summaries,
+            'assets' => $assetModules,
         ];
     }
 
     return $options;
 }
 
-function sr_community_asset_policy_set_summary(array $policySet): string
+function sr_community_asset_policy_set_asset_modules(array $policySet): array
 {
     sr_community_require_asset_group_policy_helpers();
+    try {
+        $policies = sr_admin_asset_group_policies_from_json((string) ($policySet['policies_json'] ?? ''));
+    } catch (Throwable) {
+        return [];
+    }
+
+    $assetModules = [];
+    foreach ($policies as $policy) {
+        if (!is_array($policy) || (string) ($policy['status'] ?? 'active') !== 'active') {
+            continue;
+        }
+        $assetModule = strtolower(trim((string) ($policy['asset_module'] ?? '')));
+        if ($assetModule !== '' && isset(sr_community_asset_modules()[$assetModule])) {
+            $assetModules[$assetModule] = true;
+        }
+    }
+
+    $ordered = [];
+    foreach (sr_community_asset_deduction_order() as $assetModule) {
+        if (isset($assetModules[$assetModule])) {
+            $ordered[] = $assetModule;
+        }
+    }
+
+    return $ordered;
+}
+
+function sr_community_asset_policy_set_summary(array $policySet, string $operation = 'neutral', array $assetModules = [], ?PDO $pdo = null): string
+{
+    sr_community_require_asset_group_policy_helpers();
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
+    $assetModules = sr_community_asset_module_keys_from_value($assetModules, true);
+    $assetFilter = array_fill_keys($assetModules, true);
 
     try {
         $policies = sr_admin_asset_group_policies_from_json((string) ($policySet['policies_json'] ?? ''));
@@ -401,18 +449,27 @@ function sr_community_asset_policy_set_summary(array $policySet): string
     }
 
     $summaries = [];
+    $eligibleCount = 0;
     foreach ($policies as $policy) {
         if (!is_array($policy) || (string) ($policy['status'] ?? 'active') !== 'active') {
             continue;
         }
 
         $groupKey = (string) ($policy['group_key'] ?? '');
-        $assetModule = (string) ($policy['asset_module'] ?? '');
-        $assetLabel = $assetModule !== '' ? sr_community_asset_module_label($assetModule) : sr_t('community::asset.member_asset');
+        $policyAssetModule = strtolower(trim((string) ($policy['asset_module'] ?? '')));
+        if ($policyAssetModule !== '' && !isset(sr_community_asset_modules()[$policyAssetModule])) {
+            $policyAssetModule = '';
+        }
+        if ($assetFilter !== [] && $policyAssetModule !== '' && !isset($assetFilter[$policyAssetModule])) {
+            continue;
+        }
+        $eligibleCount += 1;
+        $assetModule = $policyAssetModule !== '' ? $policyAssetModule : (string) ($assetModules[0] ?? '');
+        $assetLabel = $assetModule !== '' ? sr_community_asset_module_label($assetModule, $pdo) : sr_t('community::asset.member_asset');
         $mode = (string) ($policy['mode'] ?? '');
         $modeLabel = function_exists('sr_admin_asset_group_policy_mode_label') ? sr_admin_asset_group_policy_mode_label($mode) : $mode;
         $value = sr_admin_asset_group_policy_value_for_asset($policy, $assetModule);
-        $valueLabel = $value !== '' ? ' ' . $value . ($mode === 'multiplier' ? '배' : '') : '';
+        $valueLabel = $value !== '' ? ' ' . sr_community_asset_policy_set_summary_value_label($value, $mode, $operation) : '';
         $levelLabel = max(0, (int) ($policy['min_level'] ?? 0)) > 0 ? ' L' . (string) max(0, (int) ($policy['min_level'] ?? 0)) . '+' : '';
         $summaries[] = trim($groupKey . $levelLabel . ': ' . $assetLabel . ' ' . $modeLabel . $valueLabel);
         if (count($summaries) >= 3) {
@@ -424,13 +481,36 @@ function sr_community_asset_policy_set_summary(array $policySet): string
         return '활성 멤버 그룹별 적용 없음';
     }
 
-    $remaining = max(0, count($policies) - count($summaries));
+    $remaining = max(0, $eligibleCount - count($summaries));
     return implode(' / ', $summaries) . ($remaining > 0 ? ' 외 ' . (string) $remaining . '개' : '');
 }
 
-function sr_community_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds): string
+function sr_community_asset_policy_set_summary_value_label(string $value, string $mode, string $operation = 'neutral'): string
 {
-    return sr_admin_select_badge_list_html($id, $name, sr_community_asset_policy_set_picker_options($policySets), array_map('strval', sr_community_asset_policy_set_ids_from_value($selectedIds)), '등록된 멤버 그룹별 적용 없음', '그룹 선택');
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if ($mode === 'multiplier') {
+        return $value . '배';
+    }
+
+    if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A\d+\z/', $value) === 1 && $operation === 'use' && (int) $value > 0) {
+        return '-' . $value;
+    }
+
+    return $value;
+}
+
+function sr_community_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds, string $operation = 'neutral', string $assetSourceSelector = '', ?PDO $pdo = null): string
+{
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
+    $rootAttributes = ' data-admin-select-badge-summary-default="' . sr_e($operation) . '"';
+    if ($assetSourceSelector !== '') {
+        $rootAttributes .= ' data-admin-select-badge-asset-source="' . sr_e($assetSourceSelector) . '"';
+    }
+    return sr_admin_select_badge_list_html($id, $name, sr_community_asset_policy_set_picker_options($policySets, $operation, $pdo), array_map('strval', sr_community_asset_policy_set_ids_from_value($selectedIds)), '등록된 멤버 그룹별 적용 없음', '그룹 선택', $rootAttributes);
 }
 
 function sr_community_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array
@@ -439,6 +519,39 @@ function sr_community_asset_policy_set_ids_validation_errors(PDO $pdo, array $se
     foreach (sr_community_asset_policy_set_ids_from_value($setIds) as $setId) {
         if (!is_array(sr_community_asset_policy_set_by_id($pdo, (int) $setId))) {
             $errors[] = $label . ' 멤버 그룹별 적용을 찾을 수 없습니다.';
+            break;
+        }
+    }
+
+    return $errors;
+}
+
+function sr_community_asset_policy_set_asset_match_errors(PDO $pdo, array $setIds, array $assetModules, string $label): array
+{
+    $errors = [];
+    $assetModules = sr_community_asset_module_keys_from_value($assetModules, true);
+    if ($assetModules === []) {
+        return $errors;
+    }
+    $assetMap = array_fill_keys($assetModules, true);
+    foreach (sr_community_asset_policy_set_ids_from_value($setIds) as $setId) {
+        $policySet = sr_community_asset_policy_set_by_id($pdo, (int) $setId);
+        if (!is_array($policySet)) {
+            continue;
+        }
+        $policyAssets = sr_community_asset_policy_set_asset_modules($policySet);
+        if ($policyAssets === []) {
+            continue;
+        }
+        $matched = false;
+        foreach ($policyAssets as $policyAsset) {
+            if (isset($assetMap[$policyAsset])) {
+                $matched = true;
+                break;
+            }
+        }
+        if (!$matched) {
+            $errors[] = $label . ' 멤버 그룹별 적용은 선택한 포인트/금액 항목에 맞는 정책만 선택하세요.';
             break;
         }
     }
