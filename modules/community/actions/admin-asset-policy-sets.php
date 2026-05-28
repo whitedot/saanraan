@@ -29,7 +29,7 @@ if ($policySetPage === 'edit') {
     $setId = (int) sr_get_string('id', 20);
     $editPolicySet = sr_community_asset_policy_set_by_id($pdo, $setId);
     if (!is_array($editPolicySet)) {
-        sr_render_error(404, '커뮤니티 멤버 그룹 혜택을 찾을 수 없습니다.');
+        sr_render_error(404, '커뮤니티 멤버 그룹별 금액 조정 세트를 찾을 수 없습니다.');
     }
 }
 
@@ -41,7 +41,7 @@ if (sr_request_method() === 'POST') {
     $isUpdate = $setId > 0;
     $existing = $isUpdate ? sr_community_asset_policy_set_by_id($pdo, $setId) : null;
     if ($isUpdate && !is_array($existing)) {
-        $errors[] = '수정할 커뮤니티 멤버 그룹 혜택을 찾을 수 없습니다.';
+        $errors[] = '수정할 커뮤니티 멤버 그룹별 금액 조정 세트를 찾을 수 없습니다.';
     }
 
     $policiesJson = sr_community_asset_group_policy_json_from_post('policies');
@@ -54,17 +54,17 @@ if (sr_request_method() === 'POST') {
     ];
 
     if (!sr_community_asset_policy_set_key_is_valid((string) $values['set_key'])) {
-        $errors[] = '멤버 그룹 혜택 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '멤버 그룹별 금액 조정 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_community_asset_policy_set_key_exists($pdo, (string) $values['set_key'], $setId)) {
-        $errors[] = '이미 사용 중인 멤버 그룹 혜택 key입니다.';
+        $errors[] = '이미 사용 중인 멤버 그룹별 금액 조정 key입니다.';
     }
     if ((string) $values['title'] === '') {
-        $errors[] = '멤버 그룹 혜택 이름을 입력하세요.';
+        $errors[] = '멤버 그룹별 금액 조정 이름을 입력하세요.';
     }
     if (!in_array((string) $values['status'], sr_community_asset_policy_set_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($policiesJson), '커뮤니티 멤버 그룹 혜택', true, $assetModuleOptions));
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($policiesJson), '커뮤니티 멤버 그룹별 금액 조정', true, $assetModuleOptions));
 
     if ($errors !== []) {
         $_SESSION['sr_community_asset_policy_set_errors'] = $errors;
@@ -84,7 +84,7 @@ if (sr_request_method() === 'POST') {
         'metadata' => $values,
     ]);
 
-    $_SESSION['sr_community_asset_policy_set_notice'] = '커뮤니티 멤버 그룹 혜택을 저장했습니다.';
+    $_SESSION['sr_community_asset_policy_set_notice'] = '커뮤니티 멤버 그룹별 금액 조정을 저장했습니다.';
     sr_redirect('/admin/community/asset-policy-sets');
 }
 

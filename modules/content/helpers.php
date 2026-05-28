@@ -1266,6 +1266,8 @@ function sr_content_input_values(?PDO $pdo = null): array
         ? sr_sanitize_rich_text_html($bodyText)
         : sr_content_clean_text($bodyText, 100000);
 
+    $assetAccessPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['asset_access_policy_set_ids'] ?? []);
+    $assetActionPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['asset_action_policy_set_ids'] ?? []);
     $values = [
         'content_group_scope' => $pageGroupScope,
         'content_group_id' => $pageGroupId,
@@ -1282,15 +1284,15 @@ function sr_content_input_values(?PDO $pdo = null): array
         'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
         'asset_access_amount' => sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0,
         'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_access_amounts', sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? ''), sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0)),
-        'asset_access_group_policies_json' => sr_content_asset_group_policy_json_from_post('asset_access_group_policies'),
-        'asset_access_policy_set_id' => sr_admin_post_int_in_range('asset_access_policy_set_id', 0, 999999999) ?? 0,
+        'asset_access_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($assetAccessPolicySetIds),
+        'asset_access_policy_set_id' => sr_content_asset_policy_set_first_id($assetAccessPolicySetIds),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('asset_action_enabled', 1) === '1' ? 1 : 0,
         'asset_action_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? '')),
         'asset_action_amount' => sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0,
         'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('asset_action_amounts', sr_content_asset_module_keys_from_value($_POST['asset_action_module'] ?? ''), sr_admin_post_int_in_range('asset_action_amount', 0, 999999999) ?? 0)),
-        'asset_action_group_policies_json' => sr_content_asset_group_policy_json_from_post('asset_action_group_policies'),
-        'asset_action_policy_set_id' => sr_admin_post_int_in_range('asset_action_policy_set_id', 0, 999999999) ?? 0,
+        'asset_action_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($assetActionPolicySetIds),
+        'asset_action_policy_set_id' => sr_content_asset_policy_set_first_id($assetActionPolicySetIds),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('asset_action_label', 80), 80),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
@@ -1331,6 +1333,9 @@ function sr_content_input_values(?PDO $pdo = null): array
             ? sr_content_normalize_setting_source($postedSource)
             : $legacyFileSource;
     }
+    $values['source_asset_access_group_policies_json'] = $values['source_asset_access_policy_set_id'] ?? $legacyAccessSource;
+    $values['source_asset_action_group_policies_json'] = $values['source_asset_action_policy_set_id'] ?? $legacyActionSource;
+    $values['source_file_asset_download_group_policies_json'] = $values['source_file_asset_download_policy_set_id'] ?? $legacyFileSource;
     $values['source_asset_access_amounts_json'] = $values['source_asset_access_amount'] ?? $legacyAccessSource;
     $values['source_asset_action_amounts_json'] = $values['source_asset_action_amount'] ?? $legacyActionSource;
     $values['source_file_asset_download_amounts_json'] = $values['source_file_asset_download_amount'] ?? $legacyFileSource;
@@ -1419,9 +1424,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if (!isset(sr_content_asset_view_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
             $errors[] = '유료 열람 과금 방식이 올바르지 않습니다.';
         }
-        if ((int) ($values['asset_access_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_access_policy_set_id']))) {
-            $errors[] = '유료 열람 회원 그룹 혜택을 찾을 수 없습니다.';
-        }
+        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0)), '유료 열람'));
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_access_group_policies_json'] ?? ''), '유료 열람'));
     }
 
@@ -1450,9 +1453,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if ((string) ($values['asset_action_label'] ?? '') === '') {
             $errors[] = '완료 버튼 문구를 입력하세요.';
         }
-        if ((int) ($values['asset_action_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_action_policy_set_id']))) {
-            $errors[] = '완료 버튼 회원 그룹 혜택을 찾을 수 없습니다.';
-        }
+        $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), '완료 버튼'));
         $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_action_group_policies_json'] ?? ''), '완료 버튼'));
     }
 

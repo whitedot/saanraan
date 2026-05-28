@@ -57,6 +57,7 @@ $newContentFileAssetSettings = [
     'file_asset_module' => '',
     'file_asset_download_amount' => 0,
     'file_asset_download_amounts_json' => '',
+    'file_asset_download_group_policies_json' => '',
     'file_asset_download_policy_set_id' => 0,
     'file_asset_charge_policy' => 'once',
 ];
@@ -446,11 +447,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_asset_access_policy_set_id"><?php echo sr_e('유료 열람 회원 그룹 혜택'); ?></label>
-                <div class="admin-form-field">
-                    <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_access_policy_set_id', 'asset_access_policy_set_id', $assetPolicySets, (int) ($values['asset_access_policy_set_id'] ?? 0)); ?>
-                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
+                <label class="form-label" for="content_admin_contents_asset_access_policy_set_ids"><?php echo sr_e('금액 조정 세트'); ?></label>
+                <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_access_policy_set_ids', 'asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0))); ?>
+                    <p class="admin-form-help">세트의 그룹별 계산 방식과 조정값은 콘텐츠 회원 그룹별 금액 조정 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -516,11 +517,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e('회원 그룹 혜택'); ?></span>
-                <div class="admin-form-field">
-                    <?php echo sr_content_asset_policy_set_select_html('content_admin_contents_asset_action_policy_set_id', 'asset_action_policy_set_id', $assetPolicySets, (int) ($values['asset_action_policy_set_id'] ?? 0)); ?>
-                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
+                <span class="form-label"><?php echo sr_e('금액 조정 세트'); ?></span>
+                <div class="admin-form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0))); ?>
+                    <p class="admin-form-help">세트의 그룹별 계산 방식과 조정값은 콘텐츠 회원 그룹별 금액 조정 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
@@ -653,8 +654,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </div>
                                         <input id="<?php echo sr_e($contentFileAmountId); ?>" type="hidden" name="content_file_asset_download_amount[<?php echo sr_e((string) $fileId); ?>]" value="<?php echo sr_e((string) (int) ($contentFile['asset_download_amount'] ?? 0)); ?>">
                                         <div class="admin-asset-setting-secondary">
-                                            <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_id_' . (string) $fileId); ?>"><?php echo sr_e('회원 그룹 혜택'); ?></label>
-                                            <?php echo sr_content_asset_policy_set_select_html('content_file_asset_download_policy_set_id_' . (string) $fileId, 'content_file_asset_download_policy_set_id[' . (string) $fileId . ']', $assetPolicySets, (int) ($contentFile['asset_download_policy_set_id'] ?? 0)); ?>
+                                            <label class="form-label" for="<?php echo sr_e('content_file_asset_download_policy_set_ids_' . (string) $fileId); ?>"><?php echo sr_e('금액 조정 세트'); ?></label>
+                                            <div class="admin-policy-set-field">
+                                                <?php echo sr_content_asset_policy_set_checkboxes_html('content_file_asset_download_policy_set_ids_' . (string) $fileId, 'content_file_asset_download_policy_set_ids[' . (string) $fileId . ']', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($contentFile['asset_download_group_policies_json'] ?? '', (int) ($contentFile['asset_download_policy_set_id'] ?? 0))); ?>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
@@ -720,10 +723,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="new_content_file_asset_download_policy_set_id"><?php echo sr_e('파일 다운로드 회원 그룹 혜택'); ?></label>
-                <div class="admin-form-field">
-                    <?php echo sr_content_asset_policy_set_select_html('new_content_file_asset_download_policy_set_id', 'new_content_file_asset_download_policy_set_id', $assetPolicySets, (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0)); ?>
-                    <p class="admin-form-help">회원 그룹 혜택은 콘텐츠 회원 그룹 혜택 화면에서 관리합니다.</p>
+                <label class="form-label" for="new_content_file_asset_download_policy_set_ids"><?php echo sr_e('금액 조정 세트'); ?></label>
+                <div class="admin-form-field admin-policy-set-field">
+                    <?php echo sr_content_asset_policy_set_checkboxes_html('new_content_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($newContentFileAssetSettings['file_asset_download_group_policies_json'] ?? '', (int) ($newContentFileAssetSettings['file_asset_download_policy_set_id'] ?? 0))); ?>
+                    <p class="admin-form-help">세트의 그룹별 계산 방식과 조정값은 콘텐츠 회원 그룹별 금액 조정 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>

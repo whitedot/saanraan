@@ -85,6 +85,9 @@ if (sr_request_method() === 'POST') {
     $groupActionAmount = sr_admin_post_int_in_range('group_asset_action_amount', 0, 999999999) ?? 0;
     $groupFileAssetModules = sr_content_asset_module_keys_from_value($_POST['group_file_asset_module'] ?? '');
     $groupFileAmount = sr_admin_post_int_in_range('group_file_asset_download_amount', 0, 999999999) ?? 0;
+    $groupAccessPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['group_asset_access_policy_set_ids'] ?? []);
+    $groupActionPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['group_asset_action_policy_set_ids'] ?? []);
+    $groupFilePolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['group_file_asset_download_policy_set_ids'] ?? []);
     $groupSettings = [
         'status' => sr_post_string('group_content_status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('group_layout_key', 80)),
@@ -92,23 +95,23 @@ if (sr_request_method() === 'POST') {
         'asset_module' => sr_content_asset_module_value_from_keys($groupAccessAssetModules),
         'asset_access_amount' => $groupAccessAmount,
         'asset_access_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_asset_access_amounts', $groupAccessAssetModules, $groupAccessAmount)),
-        'asset_access_group_policies_json' => sr_content_asset_group_policy_json_from_post('group_asset_access_group_policies'),
-        'asset_access_policy_set_id' => sr_admin_post_int_in_range('group_asset_access_policy_set_id', 0, 999999999) ?? 0,
+        'asset_access_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($groupAccessPolicySetIds),
+        'asset_access_policy_set_id' => sr_content_asset_policy_set_first_id($groupAccessPolicySetIds),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('group_asset_charge_policy', 20)),
         'asset_action_enabled' => sr_post_string('group_asset_action_enabled', 1) === '1' ? 1 : 0,
         'asset_action_module' => sr_content_asset_module_value_from_keys($groupActionAssetModules),
         'asset_action_amount' => $groupActionAmount,
         'asset_action_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_asset_action_amounts', $groupActionAssetModules, $groupActionAmount)),
-        'asset_action_group_policies_json' => sr_content_asset_group_policy_json_from_post('group_asset_action_group_policies'),
-        'asset_action_policy_set_id' => sr_admin_post_int_in_range('group_asset_action_policy_set_id', 0, 999999999) ?? 0,
+        'asset_action_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($groupActionPolicySetIds),
+        'asset_action_policy_set_id' => sr_content_asset_policy_set_first_id($groupActionPolicySetIds),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('group_asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('group_asset_action_label', 80), 80),
         'file_asset_download_enabled' => sr_post_string('group_file_asset_download_enabled', 1) === '1' ? 1 : 0,
         'file_asset_module' => sr_content_asset_module_value_from_keys($groupFileAssetModules),
         'file_asset_download_amount' => $groupFileAmount,
         'file_asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('group_file_asset_download_amounts', $groupFileAssetModules, $groupFileAmount)),
-        'file_asset_download_group_policies_json' => sr_content_asset_group_policy_json_from_post('group_file_asset_download_group_policies'),
-        'file_asset_download_policy_set_id' => sr_admin_post_int_in_range('group_file_asset_download_policy_set_id', 0, 999999999) ?? 0,
+        'file_asset_download_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($groupFilePolicySetIds),
+        'file_asset_download_policy_set_id' => sr_content_asset_policy_set_first_id($groupFilePolicySetIds),
         'file_asset_charge_policy' => sr_content_clean_slug(sr_post_string('group_file_asset_charge_policy', 20)),
     ];
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {

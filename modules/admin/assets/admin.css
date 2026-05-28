@@ -254,6 +254,12 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline){align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{margin-left:auto;order:2}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-form-help{flex-basis:100%;margin-top:0;order:3}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field{align-items:center;display:flex;flex-direction:row;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25)}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-setting-source-options,
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline{align-self:center;justify-content:flex-end;margin-left:auto;min-height:auto;order:2}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
+.admin-form .admin-policy-set-field>.admin-check-list{align-self:center;justify-content:flex-start;margin-top:0;order:1}
+.admin-form .admin-policy-set-field>.admin-form-help{flex-basis:100%;margin-top:0;order:3;text-align:left}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:14px;line-height:1.5;min-height:calc(var(--spacing) * 9.25)}
 .admin-setting-source-options>.admin-form-check:has(input:disabled),

@@ -215,9 +215,9 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         }
 
         if (!in_array($mode, sr_admin_asset_group_policy_modes(), true)) {
-            $errors[] = $rowLabel . '의 적용 방식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 계산 방식이 올바르지 않습니다.';
         } elseif ($allowedModes !== [] && !in_array($mode, $allowedModes, true)) {
-            $errors[] = $rowLabel . '의 적용 방식은 이 화면에서 사용할 수 없습니다.';
+            $errors[] = $rowLabel . '의 계산 방식은 이 화면에서 사용할 수 없습니다.';
         }
 
         if ($requireAssetModule && $assetModule === '') {
@@ -240,24 +240,35 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
             $errors[] = $rowLabel . '의 금액을 입력하세요.';
         }
 
-        if (in_array($mode, ['fixed', 'delta'], true) && $value !== '' && preg_match('/\A-?\d+\z/', $value) !== 1) {
+        if ($mode === 'fixed' && $value !== '' && preg_match('/\A-?\d+\z/', $value) !== 1) {
             $errors[] = $rowLabel . '의 금액은 정수로 입력하세요.';
         }
 
+        if ($mode === 'delta' && $value !== '' && preg_match('/\A\d+\z/', $value) !== 1) {
+            $errors[] = $rowLabel . '의 조정값은 0 이상의 정수로 입력하세요.';
+        }
+
         foreach ($filledAssetValues as $assetValue) {
-            if (in_array($mode, ['fixed', 'delta'], true) && preg_match('/\A-?\d+\z/', $assetValue) !== 1) {
+            if ($mode === 'fixed' && preg_match('/\A-?\d+\z/', $assetValue) !== 1) {
                 $errors[] = $rowLabel . '의 자산별 금액은 정수로 입력하세요.';
                 break;
             }
         }
 
+        foreach ($filledAssetValues as $assetValue) {
+            if ($mode === 'delta' && preg_match('/\A\d+\z/', $assetValue) !== 1) {
+                $errors[] = $rowLabel . '의 자산별 조정값은 0 이상의 정수로 입력하세요.';
+                break;
+            }
+        }
+
         if ($mode === 'fixed' && $value !== '' && (int) $value < 0) {
-            $errors[] = $rowLabel . '의 고정 금액은 0 이상이어야 합니다.';
+            $errors[] = $rowLabel . '의 최종 금액은 0 이상이어야 합니다.';
         }
 
         foreach ($filledAssetValues as $assetValue) {
             if ($mode === 'fixed' && (int) $assetValue < 0) {
-                $errors[] = $rowLabel . '의 자산별 고정 금액은 0 이상이어야 합니다.';
+                $errors[] = $rowLabel . '의 자산별 최종 금액은 0 이상이어야 합니다.';
                 break;
             }
         }
@@ -292,11 +303,11 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
 function sr_admin_asset_group_policy_mode_label(string $mode): string
 {
     $labels = [
-        'fixed' => '고정 금액',
-        'multiplier' => '배율',
-        'delta' => '증감액',
-        'exempt' => '차감 면제',
-        'disabled' => '지급/차감 안 함',
+        'fixed' => '최종 금액',
+        'multiplier' => '배율 적용',
+        'delta' => '증감 조정',
+        'exempt' => '금액 0 처리',
+        'disabled' => '처리 안 함',
     ];
 
     return (string) ($labels[$mode] ?? $mode);
@@ -307,11 +318,13 @@ function sr_admin_asset_group_policy_status_label(string $status): string
     return $status === 'inactive' ? '비활성' : '활성';
 }
 
-function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAmount, array $policies, string $assetModule = ''): array
+function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAmount, array $policies, string $assetModule = '', string $operation = 'neutral'): array
 {
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
     $snapshot = [
         'base_amount' => $baseAmount,
         'final_amount' => $baseAmount,
+        'operation' => $operation,
         'matched' => false,
         'matched_group_id' => 0,
         'matched_group_key' => '',
@@ -426,7 +439,10 @@ function sr_admin_asset_group_policy_apply(PDO $pdo, int $accountId, int $baseAm
     } elseif ($mode === 'multiplier') {
         $finalAmount = $sign * (int) floor(abs($baseAmount) * (float) $value);
     } elseif ($mode === 'delta') {
-        $finalAmount = $baseAmount + (int) $value;
+        $delta = abs((int) $value);
+        $finalAmount = $operation === 'use'
+            ? $baseAmount - $delta
+            : $baseAmount + $delta;
     } elseif ($mode === 'exempt' || $mode === 'disabled') {
         $finalAmount = 0;
     }

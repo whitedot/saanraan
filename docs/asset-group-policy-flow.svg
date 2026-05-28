@@ -42,7 +42,7 @@
   <path d="M285 313 L285 360" class="arrow"/>
   <rect x="105" y="360" width="360" height="102" class="box"/>
   <text x="130" y="393" class="box-title">정책 행 입력</text>
-  <text x="130" y="421" class="box-text">회원 그룹, 적용 방식, 값</text>
+  <text x="130" y="421" class="box-text">회원 그룹, 계산 방식, 조정값</text>
   <text x="130" y="443" class="box-text">우선순위, 상태</text>
 
   <path d="M285 462 L285 510" class="arrow"/>
@@ -101,7 +101,7 @@
   <text x="1155" y="558" class="box-title">mode별 최종 금액 계산</text>
   <text x="1155" y="586" class="box-text">fixed: 부호 유지 + 고정 절대금액</text>
   <text x="1155" y="608" class="box-text">multiplier: 배율 후 소수점 버림</text>
-  <text x="1155" y="630" class="box-text">delta: 기본 금액 + 증감액</text>
+  <text x="1155" y="630" class="box-text">delta: 지급은 +조정값, 차감은 -조정값</text>
 
   <path d="M980 964 C1040 964 1040 586 1130 586" class="arrow"/>
   <path d="M480 790 C1030 790 1030 586 1130 586" class="arrow"/>

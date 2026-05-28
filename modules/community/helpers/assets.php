@@ -165,6 +165,10 @@ function sr_community_asset_group_policies_from_value(mixed $value): array
 {
     sr_community_require_asset_group_policy_helpers();
 
+    if (sr_community_asset_policy_set_ids_from_value($value) !== []) {
+        return [];
+    }
+
     try {
         return sr_admin_asset_group_policies_from_json(is_string($value) ? $value : sr_admin_asset_group_policy_json_from_value($value));
     } catch (Throwable $exception) {
@@ -282,14 +286,134 @@ function sr_community_asset_policy_set_select_html(string $id, string $name, arr
     return $html . '</select>';
 }
 
-function sr_community_asset_amounts_with_group_policy(PDO $pdo, int $accountId, array $assetModules, array $amounts, int $fallbackAmount, mixed $policyValue, int $policySetId = 0): array
+function sr_community_asset_policy_set_ids_from_value(mixed $value): array
+{
+    $rawValues = [];
+    if (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return [];
+        }
+        $decoded = json_decode($trimmed, true);
+        if (is_array($decoded)) {
+            if (is_array($decoded['policy_set_ids'] ?? null)) {
+                $rawValues = $decoded['policy_set_ids'];
+            } elseif ($decoded === array_values($decoded)) {
+                $rawValues = $decoded;
+            }
+        } else {
+            $rawValues = preg_split('/[\s,]+/', $trimmed) ?: [];
+        }
+    } elseif (is_array($value)) {
+        $rawValues = is_array($value['policy_set_ids'] ?? null) ? $value['policy_set_ids'] : $value;
+    }
+
+    $selected = [];
+    foreach ($rawValues as $rawValue) {
+        if (!is_scalar($rawValue)) {
+            continue;
+        }
+        $setId = (int) $rawValue;
+        if ($setId > 0) {
+            $selected[$setId] = true;
+        }
+    }
+
+    return array_keys($selected);
+}
+
+function sr_community_asset_policy_set_ids_with_legacy(mixed $value, int $legacySetId = 0): array
+{
+    $setIds = sr_community_asset_policy_set_ids_from_value($value);
+    if ($setIds === [] && $legacySetId > 0) {
+        $setIds[] = $legacySetId;
+    }
+
+    return $setIds;
+}
+
+function sr_community_asset_policy_set_selection_json_from_ids(array $setIds): string
+{
+    $setIds = sr_community_asset_policy_set_ids_from_value($setIds);
+    if ($setIds === []) {
+        return '';
+    }
+
+    $json = json_encode(['policy_set_ids' => $setIds], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '';
+}
+
+function sr_community_asset_policy_set_selection_json_from_post(string $fieldName): string
+{
+    return sr_community_asset_policy_set_selection_json_from_ids(sr_community_asset_policy_set_ids_from_value($_POST[$fieldName] ?? []));
+}
+
+function sr_community_asset_policy_set_first_id(array $setIds): int
+{
+    $setIds = sr_community_asset_policy_set_ids_from_value($setIds);
+    return (int) ($setIds[0] ?? 0);
+}
+
+function sr_community_asset_policy_set_options(array $policySets): array
+{
+    $options = [];
+    foreach ($policySets as $policySet) {
+        $setId = (int) ($policySet['id'] ?? 0);
+        if ($setId < 1) {
+            continue;
+        }
+        $label = (string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId);
+        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
+            $label .= ' (' . sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status') . ')';
+        }
+        $options[(string) $setId] = $label;
+    }
+
+    return $options;
+}
+
+function sr_community_asset_policy_set_checkboxes_html(string $id, string $name, array $policySets, array $selectedIds): string
+{
+    return sr_admin_checkbox_list_html($id, $name, sr_community_asset_policy_set_options($policySets), array_map('strval', sr_community_asset_policy_set_ids_from_value($selectedIds)), '등록된 금액 조정 세트 없음');
+}
+
+function sr_community_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array
+{
+    $errors = [];
+    foreach (sr_community_asset_policy_set_ids_from_value($setIds) as $setId) {
+        if (!is_array(sr_community_asset_policy_set_by_id($pdo, (int) $setId))) {
+            $errors[] = $label . ' 멤버 그룹별 금액 조정 세트를 찾을 수 없습니다.';
+            break;
+        }
+    }
+
+    return $errors;
+}
+
+function sr_community_asset_amounts_with_group_policy(PDO $pdo, int $accountId, array $assetModules, array $amounts, int $fallbackAmount, mixed $policyValue, int $policySetId = 0, string $operation = 'neutral'): array
 {
     sr_community_require_asset_group_policy_helpers();
-    $policySet = $policySetId > 0 ? sr_community_asset_policy_set_by_id($pdo, $policySetId) : null;
-    $policySetActive = is_array($policySet) && (string) ($policySet['status'] ?? '') === 'enabled';
-    $policies = $policySetActive
-        ? sr_community_asset_group_policies_from_value((string) ($policySet['policies_json'] ?? ''))
-        : sr_community_asset_group_policies_from_value($policyValue);
+    $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
+    $policySetIds = sr_community_asset_policy_set_ids_with_legacy($policyValue, $policySetId);
+    $policySetTitles = [];
+    $policies = [];
+    if ($policySetIds !== []) {
+        $policyIndex = 1;
+        foreach ($policySetIds as $selectedSetId) {
+            $policySet = sr_community_asset_policy_set_by_id($pdo, (int) $selectedSetId);
+            if (!is_array($policySet) || (string) ($policySet['status'] ?? '') !== 'enabled') {
+                continue;
+            }
+            $policySetTitles[] = (string) ($policySet['title'] ?? $policySet['set_key'] ?? $selectedSetId);
+            foreach (sr_community_asset_group_policies_from_value((string) ($policySet['policies_json'] ?? '')) as $policy) {
+                $policy['policy_id'] = $policyIndex;
+                $policyIndex += 1;
+                $policies[] = $policy;
+            }
+        }
+    } else {
+        $policies = sr_community_asset_group_policies_from_value($policyValue);
+    }
     $sourceAmounts = $amounts;
     if ($sourceAmounts === [] && $assetModules !== []) {
         $sourceAmounts[(string) $assetModules[0]] = $fallbackAmount;
@@ -299,12 +423,13 @@ function sr_community_asset_amounts_with_group_policy(PDO $pdo, int $accountId, 
     $snapshots = [];
     foreach ($sourceAmounts as $assetModule => $baseAmount) {
         $baseAmount = max(0, (int) $baseAmount);
-        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies, (string) $assetModule);
+        $snapshot = sr_admin_asset_group_policy_apply($pdo, $accountId, $baseAmount, $policies, (string) $assetModule, $operation);
         $finalAmount = max(0, (int) ($snapshot['final_amount'] ?? $baseAmount));
         $snapshot['asset_module'] = (string) $assetModule;
-        $snapshot['policy_set_id'] = $policySetActive ? (int) ($policySet['id'] ?? 0) : 0;
-        $snapshot['policy_set_key'] = $policySetActive ? (string) ($policySet['set_key'] ?? '') : '';
-        $snapshot['policy_set_title'] = $policySetActive ? (string) ($policySet['title'] ?? '') : '';
+        $snapshot['policy_set_id'] = (int) ($policySetIds[0] ?? 0);
+        $snapshot['policy_set_ids'] = $policySetIds;
+        $snapshot['policy_set_key'] = '';
+        $snapshot['policy_set_title'] = implode(', ', $policySetTitles);
         $snapshot['final_amount'] = $finalAmount;
         $snapshots[(string) $assetModule] = $snapshot;
         if ($finalAmount > 0) {
@@ -1251,7 +1376,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         ];
     }
 
-    $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0));
+    $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
     $amounts = $amounts !== [] ? $policyAmounts['amounts'] : [];
     $amount = (int) $policyAmounts['amount'];
     if ($amount <= 0) {

@@ -200,9 +200,7 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
     if (!isset(sr_content_asset_download_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {
         $errors[] = $labelPrefix . ' 과금 방식이 올바르지 않습니다.';
     }
-    if ((int) ($values['asset_download_policy_set_id'] ?? 0) > 0 && !is_array(sr_content_asset_policy_set_by_id($pdo, (int) $values['asset_download_policy_set_id']))) {
-        $errors[] = $labelPrefix . ' 회원 그룹 혜택을 찾을 수 없습니다.';
-    }
+    $errors = array_merge($errors, sr_content_asset_policy_set_ids_validation_errors($pdo, sr_content_asset_policy_set_ids_with_legacy($values['asset_download_group_policies_json'] ?? '', (int) ($values['asset_download_policy_set_id'] ?? 0)), $labelPrefix));
 
     $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($values['asset_download_group_policies_json'] ?? ''), $labelPrefix));
 
@@ -258,10 +256,12 @@ function sr_content_file_values_from_post(int $fileId): array
     $amountValues = is_array($_POST['content_file_asset_download_amount'] ?? null) ? $_POST['content_file_asset_download_amount'] : [];
     $amountsValues = is_array($_POST['content_file_asset_download_amounts'] ?? null) ? $_POST['content_file_asset_download_amounts'] : [];
     $groupPolicyValues = is_array($_POST['content_file_asset_download_group_policies'] ?? null) ? $_POST['content_file_asset_download_group_policies'] : [];
+    $policySetValues = is_array($_POST['content_file_asset_download_policy_set_ids'] ?? null) ? $_POST['content_file_asset_download_policy_set_ids'] : [];
     $policyValues = is_array($_POST['content_file_asset_charge_policy'] ?? null) ? $_POST['content_file_asset_charge_policy'] : [];
     $assetModules = sr_content_asset_module_keys_from_value($moduleValues[$fileId] ?? '');
     $fallbackAmount = (int) ($amountValues[$fileId] ?? 0);
     $postedAmounts = is_array($amountsValues[$fileId] ?? null) ? $amountsValues[$fileId] : null;
+    $policySetIds = sr_content_asset_policy_set_ids_from_value($policySetValues[$fileId] ?? []);
 
     return sr_content_normalize_file_asset_values([
         'title' => sr_content_clean_single_line((string) ($titleValues[$fileId] ?? ''), 160),
@@ -269,8 +269,8 @@ function sr_content_file_values_from_post(int $fileId): array
         'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
         'asset_download_amount' => $fallbackAmount,
         'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_value(is_array($postedAmounts) ? $postedAmounts : [], $assetModules, is_array($postedAmounts) ? 0 : $fallbackAmount)),
-        'asset_download_group_policies_json' => sr_content_asset_group_policy_json_from_input($groupPolicyValues[$fileId] ?? []),
-        'asset_download_policy_set_id' => (int) ((is_array($_POST['content_file_asset_download_policy_set_id'] ?? null) ? $_POST['content_file_asset_download_policy_set_id'] : [])[$fileId] ?? 0),
+        'asset_download_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($policySetIds),
+        'asset_download_policy_set_id' => sr_content_asset_policy_set_first_id($policySetIds),
         'asset_charge_policy' => sr_content_clean_slug((string) ($policyValues[$fileId] ?? '')),
     ], false);
 }
@@ -292,14 +292,15 @@ function sr_content_new_file_values_from_post(?PDO $pdo = null, array $pageValue
 {
     $assetModules = sr_content_asset_module_keys_from_value($_POST['new_content_file_asset_module'] ?? '');
     $fallbackAmount = sr_admin_post_int_in_range('new_content_file_asset_download_amount', 0, 999999999) ?? 0;
+    $policySetIds = sr_content_asset_policy_set_ids_from_value($_POST['new_content_file_asset_download_policy_set_ids'] ?? []);
     $values = sr_content_normalize_file_asset_values([
         'title' => sr_content_clean_single_line(sr_post_string('new_content_file_title', 160), 160),
         'asset_download_enabled' => sr_post_string('new_content_file_asset_download_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_content_asset_module_value_from_keys($assetModules),
         'asset_download_amount' => $fallbackAmount,
         'asset_download_amounts_json' => sr_content_asset_amounts_json_from_map(sr_content_asset_amounts_from_post('new_content_file_asset_download_amounts', $assetModules, $fallbackAmount)),
-        'asset_download_group_policies_json' => sr_content_asset_group_policy_json_from_post('new_content_file_asset_download_group_policies'),
-        'asset_download_policy_set_id' => sr_admin_post_int_in_range('new_content_file_asset_download_policy_set_id', 0, 999999999) ?? 0,
+        'asset_download_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($policySetIds),
+        'asset_download_policy_set_id' => sr_content_asset_policy_set_first_id($policySetIds),
         'asset_charge_policy' => sr_content_clean_slug(sr_post_string('new_content_file_asset_charge_policy', 20)),
     ], false);
 

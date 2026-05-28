@@ -116,13 +116,14 @@ if (sr_request_method() === 'POST') {
         }
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+            $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST['group_' . $assetPrefix . '_policy_set_ids'] ?? []);
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST['group_' . $assetPrefix . '_enabled'] ?? '') === '1';
             $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST['group_' . $assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key_or_empty(sr_post_string('group_' . $assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_amount', 0, 999999999);
-            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_post('group_' . $assetPrefix . '_group_policies');
-            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_admin_post_int_in_range('group_' . $assetPrefix . '_policy_set_id', 0, 999999999) ?? 0;
+            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($policySetIds);
+            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($policySetIds);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
@@ -317,9 +318,7 @@ if (sr_request_method() === 'POST') {
                 }
             }
             $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($assetSettings[$assetPrefix . '_group_policies_json'] ?? ''), $assetLabel));
-            if ((int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0) > 0 && !is_array(sr_community_asset_policy_set_by_id($pdo, (int) $assetSettings[$assetPrefix . '_policy_set_id']))) {
-                $errors[] = $assetLabel . ' 멤버 그룹 혜택을 찾을 수 없습니다.';
-            }
+            $errors = array_merge($errors, sr_community_asset_policy_set_ids_validation_errors($pdo, sr_community_asset_policy_set_ids_with_legacy($assetSettings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0)), $assetLabel));
         }
 
         if ($errors === [] && $intent === 'create_group' && sr_community_board_group_by_key($pdo, $groupKey) !== null) {

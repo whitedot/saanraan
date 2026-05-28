@@ -132,13 +132,14 @@ if (sr_request_method() === 'POST') {
         $commentGroupKeys = sr_community_board_group_keys_from_input_value($commentGroupKeysInput);
         $assetSettings = [];
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
+            $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST[$assetPrefix . '_policy_set_ids'] ?? []);
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
             $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key_or_empty(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
-            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_post($assetPrefix . '_group_policies');
-            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_admin_post_int_in_range($assetPrefix . '_policy_set_id', 0, 999999999) ?? 0;
+            $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($policySetIds);
+            $assetSettings[$assetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($policySetIds);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
@@ -167,6 +168,7 @@ if (sr_request_method() === 'POST') {
                 }
                 $assetSettingSources[$settingKey] = sr_community_normalize_board_setting_source($postedSettingSource !== '' ? $postedSettingSource : $legacyPrefixSource);
             }
+            $assetSettingSources[$assetPrefix . '_group_policies_json'] = $assetSettingSources[$assetPrefix . '_policy_set_id'] ?? $assetSettingSources[$assetPrefix . '_group_policies_json'];
             $assetPrefixSources[$assetPrefix] = $assetSettingSources[$assetPrefix . '_enabled'] ?? sr_community_normalize_board_setting_source($legacyPrefixSource);
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
@@ -378,9 +380,7 @@ if (sr_request_method() === 'POST') {
                 }
             }
             $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_community_asset_group_policies_from_value($assetSettings[$assetPrefix . '_group_policies_json'] ?? ''), $assetLabel));
-            if ((int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0) > 0 && !is_array(sr_community_asset_policy_set_by_id($pdo, (int) $assetSettings[$assetPrefix . '_policy_set_id']))) {
-                $errors[] = $assetLabel . ' 멤버 그룹 혜택을 찾을 수 없습니다.';
-            }
+            $errors = array_merge($errors, sr_community_asset_policy_set_ids_validation_errors($pdo, sr_community_asset_policy_set_ids_with_legacy($assetSettings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($assetSettings[$assetPrefix . '_policy_set_id'] ?? 0)), $assetLabel));
         }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {

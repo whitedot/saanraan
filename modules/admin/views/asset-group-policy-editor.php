@@ -5,8 +5,8 @@ $assetGroupPolicyInputId = isset($assetGroupPolicyInputId) ? (string) $assetGrou
 $assetGroupPolicyRows = isset($assetGroupPolicyRows) && is_array($assetGroupPolicyRows) ? $assetGroupPolicyRows : [];
 $assetGroupPolicyGroups = isset($assetGroupPolicyGroups) && is_array($assetGroupPolicyGroups) ? $assetGroupPolicyGroups : [];
 $assetGroupPolicyAssetModules = isset($assetGroupPolicyAssetModules) && is_array($assetGroupPolicyAssetModules) ? $assetGroupPolicyAssetModules : [];
-$assetGroupPolicySectionTitle = isset($assetGroupPolicySectionTitle) ? (string) $assetGroupPolicySectionTitle : '회원 그룹 정책';
-$assetGroupPolicyHelpText = isset($assetGroupPolicyHelpText) ? (string) $assetGroupPolicyHelpText : '회원 그룹별로 수동 조정 금액을 다르게 적용합니다.';
+$assetGroupPolicySectionTitle = isset($assetGroupPolicySectionTitle) ? (string) $assetGroupPolicySectionTitle : '회원 그룹별 금액 조정 규칙';
+$assetGroupPolicyHelpText = isset($assetGroupPolicyHelpText) ? (string) $assetGroupPolicyHelpText : '회원 그룹 조건에 따라 기본 금액을 최종 금액, 증감 조정, 배율, 0원 처리로 조정합니다. 증감 조정은 지급에서는 더하고 차감에서는 뺍니다.';
 $assetGroupPolicyShowMinLevel = !empty($assetGroupPolicyShowMinLevel);
 $assetGroupPolicyModeHelpModalId = $assetGroupPolicyInputId . '_mode_help_modal';
 if ($assetGroupPolicyAssetModules !== [] && $assetGroupPolicyRows !== []) {
@@ -68,19 +68,19 @@ foreach ($assetGroupPolicyRows as $assetGroupPolicyRow) {
     }
 }
 $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) || in_array('disabled', $assetGroupPolicyModes, true)
-    ? '고정 금액과 증감액은 정수로 입력하고, 배율은 1.5처럼 입력합니다. 차감 면제와 지급/차감 안 함은 값을 비워도 됩니다.'
-    : '고정 금액과 증감액은 정수로 입력하고, 배율은 1.5처럼 입력합니다.';
+    ? '최종 금액과 증감 조정은 0 이상의 정수로 입력하고, 배율 적용은 1.5처럼 입력합니다. 금액 0 처리와 처리 안 함은 값을 비워도 됩니다.'
+    : '최종 금액과 증감 조정은 0 이상의 정수로 입력하고, 배율 적용은 1.5처럼 입력합니다.';
 ?>
 <section class="admin-card admin-list-card card admin-list-form admin-asset-group-policy-editor" data-admin-asset-group-policy-editor>
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e($assetGroupPolicySectionTitle); ?></h2>
         <div class="admin-row-actions">
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-asset-group-policy-add><?php echo sr_material_icon_html('add'); ?><?php echo sr_e('세트 추가'); ?></button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-asset-group-policy-add><?php echo sr_material_icon_html('add'); ?><?php echo sr_e('규칙 추가'); ?></button>
         </div>
     </div>
     <div class="table-wrapper">
         <table class="table admin-asset-group-policy-table">
-            <caption class="sr-only"><?php echo sr_e('회원 그룹 조건 행 목록'); ?></caption>
+            <caption class="sr-only"><?php echo sr_e('회원 그룹별 금액 조정 규칙 목록'); ?></caption>
             <colgroup>
                 <col class="admin-asset-group-policy-col-group">
                 <col class="admin-asset-group-policy-col-mode">
@@ -99,19 +99,19 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                     <th><?php echo sr_e('회원 그룹'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></th>
                     <th>
                         <span class="admin-asset-group-policy-heading-help">
-                            <span><?php echo sr_e('적용 방식'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></span>
-                            <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e('적용 방식 도움말'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($assetGroupPolicyModeHelpModalId); ?>" data-overlay="#<?php echo sr_e($assetGroupPolicyModeHelpModalId); ?>">
+                            <span><?php echo sr_e('계산 방식'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></span>
+                            <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e('계산 방식 도움말'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($assetGroupPolicyModeHelpModalId); ?>" data-overlay="#<?php echo sr_e($assetGroupPolicyModeHelpModalId); ?>">
                                 <?php echo sr_material_icon_html('help'); ?>
                             </button>
                         </span>
                     </th>
                     <?php if ($assetGroupPolicyAssetModules !== []) { ?>
-                        <th><?php echo sr_e('대상'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></th>
+                        <th><?php echo sr_e('자산'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></th>
                     <?php } ?>
                     <?php if ($assetGroupPolicyShowMinLevel) { ?>
                         <th><?php echo sr_e('최소 레벨'); ?></th>
                     <?php } ?>
-                    <th><?php echo sr_e('값'); ?></th>
+                    <th><?php echo sr_e('조정값'); ?></th>
                     <th><?php echo sr_e('상태'); ?></th>
                     <th class="text-end"><?php echo sr_e('관리'); ?></th>
                 </tr>
@@ -149,7 +149,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                             </select>
                         </td>
                         <td>
-                            <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_mode"><?php echo sr_e('적용 방식'); ?></label>
+                            <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_mode"><?php echo sr_e('계산 방식'); ?></label>
                             <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_mode" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[mode][]" class="form-select" data-admin-asset-group-policy-mode>
                                 <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                                 <?php foreach ($assetGroupPolicyModes as $assetGroupPolicyModeValue) { ?>
@@ -161,7 +161,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                         </td>
                         <?php if ($assetGroupPolicyAssetModules !== []) { ?>
                             <td>
-                                <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_asset_module"><?php echo sr_e('대상'); ?></label>
+                                <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_asset_module"><?php echo sr_e('자산'); ?></label>
                                 <select id="<?php echo sr_e($assetGroupPolicyRowId); ?>_asset_module" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[asset_module][]" class="form-select" data-admin-asset-group-policy-asset-module>
                                     <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                                     <?php foreach ($assetGroupPolicyAssetModules as $assetModule => $assetOption) { ?>
@@ -186,9 +186,9 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                             </td>
                         <?php } ?>
                         <td>
-                            <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_value"><?php echo sr_e('값'); ?></label>
+                            <label class="sr-only" for="<?php echo sr_e($assetGroupPolicyRowId); ?>_value"><?php echo sr_e('조정값'); ?></label>
                             <div class="input-group admin-asset-group-policy-value-group<?php echo $assetGroupPolicyValueSuffix === '' ? ' admin-asset-group-policy-value-group-unitless' : ''; ?>">
-                                <input id="<?php echo sr_e($assetGroupPolicyRowId); ?>_value" type="text" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[value][]" value="<?php echo sr_e($assetGroupPolicyValue); ?>" class="form-input admin-asset-group-policy-value-input" maxlength="30" placeholder="<?php echo sr_e('금액 또는 배율'); ?>" data-admin-asset-group-policy-value>
+                                <input id="<?php echo sr_e($assetGroupPolicyRowId); ?>_value" type="text" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[value][]" value="<?php echo sr_e($assetGroupPolicyValue); ?>" class="form-input admin-asset-group-policy-value-input" maxlength="30" placeholder="<?php echo sr_e('최종 금액, 증감 조정, 배율'); ?>" data-admin-asset-group-policy-value>
                                 <span class="input-group-text" data-admin-asset-group-policy-unit-label<?php echo $assetGroupPolicyValueSuffix === '' ? ' hidden' : ''; ?>><?php echo sr_e($assetGroupPolicyValueSuffix); ?></span>
                             </div>
                         </td>
@@ -235,7 +235,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                 </select>
             </td>
             <td>
-                <label class="sr-only" data-admin-asset-group-policy-label="mode"><?php echo sr_e('적용 방식'); ?></label>
+                <label class="sr-only" data-admin-asset-group-policy-label="mode"><?php echo sr_e('계산 방식'); ?></label>
                 <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[mode][]" class="form-select" data-admin-asset-group-policy-control="mode" data-admin-asset-group-policy-mode>
                     <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                     <?php foreach ($assetGroupPolicyModes as $assetGroupPolicyModeValue) { ?>
@@ -245,7 +245,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
             </td>
             <?php if ($assetGroupPolicyAssetModules !== []) { ?>
                 <td>
-                    <label class="sr-only" data-admin-asset-group-policy-label="asset_module"><?php echo sr_e('대상'); ?></label>
+                    <label class="sr-only" data-admin-asset-group-policy-label="asset_module"><?php echo sr_e('자산'); ?></label>
                     <select name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[asset_module][]" class="form-select" data-admin-asset-group-policy-control="asset_module" data-admin-asset-group-policy-asset-module>
                         <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                         <?php foreach ($assetGroupPolicyAssetModules as $assetModule => $assetOption) { ?>
@@ -270,9 +270,9 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                 </td>
             <?php } ?>
             <td>
-                <label class="sr-only" data-admin-asset-group-policy-label="value"><?php echo sr_e('값'); ?></label>
+                <label class="sr-only" data-admin-asset-group-policy-label="value"><?php echo sr_e('조정값'); ?></label>
                 <div class="input-group admin-asset-group-policy-value-group admin-asset-group-policy-value-group-unitless">
-                    <input type="text" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[value][]" class="form-input admin-asset-group-policy-value-input" maxlength="30" placeholder="<?php echo sr_e('금액 또는 배율'); ?>" data-admin-asset-group-policy-control="value" data-admin-asset-group-policy-value>
+                    <input type="text" name="<?php echo sr_e($assetGroupPolicyFieldName); ?>[value][]" class="form-input admin-asset-group-policy-value-input" maxlength="30" placeholder="<?php echo sr_e('최종 금액, 증감 조정, 배율'); ?>" data-admin-asset-group-policy-control="value" data-admin-asset-group-policy-value>
                     <span class="input-group-text" data-admin-asset-group-policy-unit-label hidden></span>
                 </div>
             </td>
@@ -292,26 +292,26 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
     </template>
 </section>
 <?php
-$assetGroupPolicyModeHelpBodyHtml = '<p>' . sr_e('적용 방식에 따라 값 입력 여부와 최종 금액 계산 방식이 달라집니다.') . '</p>'
+$assetGroupPolicyModeHelpBodyHtml = '<p>' . sr_e('계산 방식에 따라 조정값 입력 여부와 최종 금액 계산 방식이 달라집니다.') . '</p>'
     . '<ul>';
 if (in_array('fixed', $assetGroupPolicyModes, true)) {
-    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('고정 금액') . '</strong>: ' . sr_e('최종 금액으로 사용할 정수를 입력합니다. 예: 1000') . '</li>';
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('최종 금액') . '</strong>: ' . sr_e('기본 금액을 이 금액으로 바꿉니다. 예: 기본 500, 조정값 1000이면 최종 1000') . '</li>';
 }
 if (in_array('delta', $assetGroupPolicyModes, true)) {
-    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('증감액') . '</strong>: ' . sr_e('기본 금액에 더하거나 뺄 정수를 입력합니다. 예: -500') . '</li>';
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('증감 조정') . '</strong>: ' . sr_e('0 이상의 정수를 입력합니다. 지급은 기본 금액에 더하고, 차감은 기본 금액에서 뺍니다. 예: 기본 500, 조정값 100이면 지급 600, 차감 400') . '</li>';
 }
 if (in_array('multiplier', $assetGroupPolicyModes, true)) {
-    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('배율') . '</strong>: ' . sr_e('기본 금액에 곱할 숫자를 입력합니다. 예: 1.5') . '</li>';
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('배율 적용') . '</strong>: ' . sr_e('기본 금액에 곱할 숫자를 입력합니다. 예: 0.5') . '</li>';
 }
 if (in_array('exempt', $assetGroupPolicyModes, true)) {
-    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('차감 면제') . '</strong>: ' . sr_e('차감 대상 금액을 0으로 처리합니다.') . '</li>';
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('금액 0 처리') . '</strong>: ' . sr_e('최종 금액을 0으로 처리합니다.') . '</li>';
 }
 if (in_array('disabled', $assetGroupPolicyModes, true)) {
-    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('지급/차감 안 함') . '</strong>: ' . sr_e('이 조건에서는 지급 또는 차감 금액을 만들지 않습니다.') . '</li>';
+    $assetGroupPolicyModeHelpBodyHtml .= '<li><strong>' . sr_e('처리 안 함') . '</strong>: ' . sr_e('이 조건에서는 지급 또는 차감 금액을 만들지 않습니다.') . '</li>';
 }
 $assetGroupPolicyModeHelpBodyHtml .= '</ul>'
-    . '<p>' . sr_e('여러 자산을 지원하는 혜택 세트에서는 한 행에 대상 하나와 값 하나만 입력합니다. 다른 대상에는 세트를 추가해 별도 행으로 관리합니다.') . '</p>';
-echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '적용 방식 도움말', $assetGroupPolicyModeHelpBodyHtml);
+    . '<p>' . sr_e('여러 자산을 지원하는 조정 규칙에서는 한 행에 자산 하나와 조정값 하나만 입력합니다. 다른 자산에는 규칙을 추가해 별도 행으로 관리합니다.') . '</p>';
+echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '계산 방식 도움말', $assetGroupPolicyModeHelpBodyHtml);
 ?>
 <script>
 (function () {
