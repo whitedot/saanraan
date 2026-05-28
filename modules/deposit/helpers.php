@@ -2,55 +2,6 @@
 
 declare(strict_types=1);
 
-require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
-
-function sr_deposit_default_settings(): array
-{
-    return [
-        'manual_adjust_group_policies_json' => '',
-    ];
-}
-
-function sr_deposit_settings(PDO $pdo): array
-{
-    $settings = array_merge(sr_deposit_default_settings(), sr_module_settings($pdo, 'deposit'));
-    $settings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($settings['manual_adjust_group_policies_json'] ?? '');
-
-    return $settings;
-}
-
-function sr_deposit_save_settings(PDO $pdo, array $settings): void
-{
-    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'deposit' LIMIT 1");
-    $stmt->execute();
-    $module = $stmt->fetch();
-    if (!is_array($module)) {
-        throw new RuntimeException('예치금 모듈이 등록되어 있지 않습니다.');
-    }
-
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_module_settings
-            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
-         VALUES
-            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE
-            setting_value = VALUES(setting_value),
-            value_type = VALUES(value_type),
-            updated_at = VALUES(updated_at)'
-    );
-    $stmt->execute([
-        'module_id' => (int) $module['id'],
-        'setting_key' => 'manual_adjust_group_policies_json',
-        'setting_value' => sr_admin_asset_group_policy_json_from_value($settings['manual_adjust_group_policies_json'] ?? ''),
-        'value_type' => 'string',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
-
-    sr_clear_module_settings_cache('deposit');
-}
-
 function sr_deposit_balance(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0) {

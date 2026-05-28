@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
-require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
 require_once SR_ROOT . '/modules/point/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -15,8 +13,6 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_point_settings($pdo);
-$memberGroups = sr_member_groups($pdo);
-$manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_json((string) ($settings['manual_adjust_group_policies_json'] ?? ''));
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -31,11 +27,6 @@ if (sr_request_method() === 'POST') {
     if ($postedSettings['display_name'] === '') {
         $errors[] = sr_t('point::action.admin.settings.display_name_required');
     }
-
-    $manualAdjustGroupPolicies = sr_admin_asset_group_policies_from_post('manual_adjust_group_policies');
-    $postedSettings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($manualAdjustGroupPolicies);
-    $settings['manual_adjust_group_policies_json'] = $postedSettings['manual_adjust_group_policies_json'];
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, $manualAdjustGroupPolicies, $settings['display_name'], false, [], ['fixed', 'multiplier', 'delta']));
 
     if ($errors === []) {
         try {
@@ -53,7 +44,6 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'display_name' => (string) $settings['display_name'],
                     'unit_label' => (string) $settings['unit_label'],
-                    'manual_adjust_group_policies_json' => (string) $settings['manual_adjust_group_policies_json'],
                 ],
             ]);
 

@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-require_once SR_ROOT . '/modules/admin/helpers/asset-group-policies.php';
-
 function sr_point_default_settings(): array
 {
     return [
         'display_name' => '포인트',
         'unit_label' => 'P',
-        'manual_adjust_group_policies_json' => '',
     ];
 }
 
@@ -24,7 +21,7 @@ function sr_point_settings(PDO $pdo): array
     if ($settings['unit_label'] === '') {
         $settings['unit_label'] = 'P';
     }
-    $settings['manual_adjust_group_policies_json'] = sr_admin_asset_group_policy_json_from_value($settings['manual_adjust_group_policies_json'] ?? '');
+    unset($settings['manual_adjust_group_policies_json']);
 
     return $settings;
 }
@@ -40,7 +37,6 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
 
     $displayName = sr_point_clean_text((string) ($settings['display_name'] ?? ''), 40);
     $unitLabel = sr_point_clean_text((string) ($settings['unit_label'] ?? 'P'), 20);
-    $manualAdjustGroupPoliciesJson = sr_admin_asset_group_policy_json_from_value($settings['manual_adjust_group_policies_json'] ?? '');
     if ($displayName === '') {
         throw new InvalidArgumentException('Point display name is required.');
     }
@@ -62,7 +58,6 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     foreach ([
         ['display_name', $displayName, 'string'],
         ['unit_label', $unitLabel, 'string'],
-        ['manual_adjust_group_policies_json', $manualAdjustGroupPoliciesJson, 'string'],
     ] as $row) {
         $stmt->execute([
             'module_id' => (int) $module['id'],
@@ -73,6 +68,13 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
             'updated_at' => $now,
         ]);
     }
+
+    $stmt = $pdo->prepare(
+        "DELETE FROM sr_module_settings
+         WHERE module_id = :module_id
+           AND setting_key = 'manual_adjust_group_policies_json'"
+    );
+    $stmt->execute(['module_id' => (int) $module['id']]);
 
     sr_clear_module_settings_cache('point');
 }

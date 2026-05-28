@@ -1,7 +1,7 @@
 <?php
 
-$assetGroupPolicyFieldName = isset($assetGroupPolicyFieldName) ? (string) $assetGroupPolicyFieldName : 'manual_adjust_group_policies';
-$assetGroupPolicyInputId = isset($assetGroupPolicyInputId) ? (string) $assetGroupPolicyInputId : 'manual_adjust_group_policies';
+$assetGroupPolicyFieldName = isset($assetGroupPolicyFieldName) ? (string) $assetGroupPolicyFieldName : 'asset_group_policies';
+$assetGroupPolicyInputId = isset($assetGroupPolicyInputId) ? (string) $assetGroupPolicyInputId : 'asset_group_policies';
 $assetGroupPolicyRows = isset($assetGroupPolicyRows) && is_array($assetGroupPolicyRows) ? $assetGroupPolicyRows : [];
 $assetGroupPolicyGroups = isset($assetGroupPolicyGroups) && is_array($assetGroupPolicyGroups) ? $assetGroupPolicyGroups : [];
 $assetGroupPolicyAssetModules = isset($assetGroupPolicyAssetModules) && is_array($assetGroupPolicyAssetModules) ? $assetGroupPolicyAssetModules : [];
