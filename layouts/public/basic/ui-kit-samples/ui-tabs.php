@@ -435,7 +435,7 @@
                                             class="tab-trigger-line-danger active"
                                             id="home-icon" aria-selected="true" data-tab="#home-ib1"
                                             aria-controls="home-ib1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.034999fa')); ?></span>
+                                            <?php echo sr_material_icon_html('home', '', sr_t('ui.text.034999fa')); ?>
                                             <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.text.034999fa')); ?></div>
                                         </button>
 
@@ -443,7 +443,7 @@
                                             class="tab-trigger-line-danger"
                                             id="profile-icon" aria-selected="false" data-tab="#profile-ib1"
                                             aria-controls="profile-ib1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.active.1ac6e422')); ?></span>
+                                            <?php echo sr_material_icon_html('person', '', sr_t('ui.active.1ac6e422')); ?>
                                             <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.text.4a784986')); ?></div>
                                         </button>
 
@@ -451,7 +451,7 @@
                                             class="tab-trigger-line-danger"
                                             id="settings-icon" aria-selected="false" data-tab="#settings-ib1"
                                             aria-controls="settings-ib1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.settings.115bced4')); ?></span>
+                                            <?php echo sr_material_icon_html('settings', '', sr_t('ui.settings.115bced4')); ?>
                                             <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.settings.115bced4')); ?></div>
                                         </button>
 
@@ -459,7 +459,7 @@
                                             class="tab-trigger-line-danger"
                                             id="about-icon" aria-selected="false" data-tab="#about-ib1"
                                             aria-controls="about-ib1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                            <?php echo sr_material_icon_html('warning', '', sr_t('ui.text.6c0f7510')); ?>
                                             <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></div>
                                         </button>
                                     </nav>
@@ -503,28 +503,28 @@
                                             class="tab-trigger-line-success active"
                                             id="home-icon-2" aria-selected="true" data-tab="#home-i1"
                                             aria-controls="home-i1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.034999fa')); ?></span>
+                                            <?php echo sr_material_icon_html('home', '', sr_t('ui.text.034999fa')); ?>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="profile-icon-2" aria-selected="false" data-tab="#profile-i1"
                                             aria-controls="profile-i1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.active.1ac6e422')); ?></span>
+                                            <?php echo sr_material_icon_html('person', '', sr_t('ui.active.1ac6e422')); ?>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="settings-icon-2" aria-selected="false" data-tab="#settings-i1"
                                             aria-controls="settings-i1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.settings.115bced4')); ?></span>
+                                            <?php echo sr_material_icon_html('settings', '', sr_t('ui.settings.115bced4')); ?>
                                         </button>
 
                                         <button type="button"
                                             class="tab-trigger-line-success"
                                             id="about-icon-2" aria-selected="false" data-tab="#about-i1"
                                             aria-controls="about-i1" role="tab">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                            <?php echo sr_material_icon_html('warning', '', sr_t('ui.text.6c0f7510')); ?>
                                         </button>
                                     </nav>
                                 </div>
@@ -561,7 +561,7 @@
                                         class="nav-link nav-link-line-primary active"
                                         id="summary" aria-selected="true" data-tab="#home-ct" aria-controls="home-ct"
                                         role="tab">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.034999fa')); ?></span>
+                                        <?php echo sr_material_icon_html('home', '', sr_t('ui.text.034999fa')); ?>
                                         <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.text.50f30154')); ?></div>
                                     </button>
 
@@ -569,7 +569,7 @@
                                         class="nav-link nav-link-line-primary"
                                         id="accounts" aria-selected="false" data-tab="#profile-ct"
                                         aria-controls="profile-ct" role="tab">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.active.1ac6e422')); ?></span>
+                                        <?php echo sr_material_icon_html('person', '', sr_t('ui.active.1ac6e422')); ?>
                                         <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.text.b0b3d3bc')); ?></div>
                                     </button>
 
@@ -577,7 +577,7 @@
                                         class="nav-link nav-link-line-primary"
                                         id="setting" aria-selected="false" data-tab="#settings-ct"
                                         aria-controls="settings-ct" role="tab">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.settings.115bced4')); ?></span>
+                                        <?php echo sr_material_icon_html('settings', '', sr_t('ui.settings.115bced4')); ?>
                                         <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('ui.settings.115bced4')); ?></div>
                                     </button>
                                 </nav>

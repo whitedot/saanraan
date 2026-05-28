@@ -30,7 +30,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#standard-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                            <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                         </button>
                                                     </div>
 
@@ -81,7 +81,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-lg">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                            <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                         </button>
                                                     </div>
                                                     <div class="modal-body"><?php echo sr_e(sr_t('admin::ui.text.01025abc')); ?></div>
@@ -111,7 +111,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-sm">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                            <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                         </button>
                                                     </div>
 
@@ -142,7 +142,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#full-width-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                            <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                         </button>
                                                     </div>
 
@@ -191,7 +191,7 @@
                                                         <button type="button" class="modal-close" aria-label="Close"
                                                             data-overlay="#scrollable-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                            <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                         </button>
                                                     </div>
 
@@ -265,7 +265,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#top-modal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -309,7 +309,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#bottom-modal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -353,7 +353,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#centermodal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -409,7 +409,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#multiple-one">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -443,7 +443,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#multiple-two">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -497,7 +497,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle1">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -534,7 +534,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle2">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -589,7 +589,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#fullscreeexampleModal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -633,7 +633,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenSm">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -677,7 +677,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenMd">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -721,7 +721,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenLg">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -765,7 +765,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXl">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -809,7 +809,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXxl">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 
@@ -860,7 +860,7 @@
                                                     <button type="button" class="modal-close" aria-label="Close"
                                                         data-overlay="#staticBackdrop">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                                     </button>
                                                 </div>
 

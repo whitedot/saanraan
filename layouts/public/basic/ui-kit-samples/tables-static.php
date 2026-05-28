@@ -148,20 +148,20 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                        <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <a class="dropdown-item" href="#">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                            <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                             <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                         </a>
                                                         <a class="dropdown-item" href="#">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                            <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                             <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                         </a>
                                                         <a class="dropdown-item dropdown-item-danger" href="#">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                            <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                             <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                         </a>
                                                     </div>
@@ -183,21 +183,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                        <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                 <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                 <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                 <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
@@ -221,21 +221,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                        <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                 <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                 <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                 <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
@@ -258,21 +258,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                        <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                 <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                 <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                 <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
@@ -295,21 +295,21 @@
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                         aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                        <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                     </button>
                                                     <div class="dropdown-menu" role="menu"
                                                         aria-orientation="vertical">
                                                         <div>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                 <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                             </a>
                                                             <a class="dropdown-item" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                 <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                             </a>
                                                             <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                 <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                             </a>
                                                         </div>
@@ -359,21 +359,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -397,21 +397,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -436,21 +436,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -474,21 +474,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -513,21 +513,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -577,21 +577,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -615,21 +615,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -654,21 +654,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -718,21 +718,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -756,21 +756,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -795,21 +795,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -859,21 +859,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -897,21 +897,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -936,21 +936,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1000,21 +1000,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1038,21 +1038,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1077,21 +1077,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1141,21 +1141,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1179,21 +1179,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1218,21 +1218,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1282,21 +1282,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1320,21 +1320,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1359,21 +1359,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1471,21 +1471,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1509,21 +1509,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1548,21 +1548,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1612,21 +1612,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1680,21 +1680,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1719,21 +1719,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1783,21 +1783,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1821,21 +1821,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1860,21 +1860,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1927,21 +1927,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -1965,21 +1965,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>
@@ -2004,21 +2004,21 @@
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
                                                             aria-haspopup="menu" aria-expanded="false"
                                                             aria-label="Dropdown" data-dropdown-placement="bottom-end">
-                                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6e50bef7')); ?></span>
+                                                            <?php echo sr_material_icon_html('more_horiz', '', sr_t('ui.text.6e50bef7')); ?>
                                                         </button>
                                                         <div class="dropdown-menu" role="menu"
                                                             aria-orientation="vertical">
                                                             <div>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.ac5b575f')); ?></span>
+                                                                    <?php echo sr_material_icon_html('visibility', '', sr_t('ui.text.ac5b575f')); ?>
                                                                     <?php echo sr_e(sr_t('ui.text.dc015df6')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                                                    <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                                                     <?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?>
                                                                 </a>
                                                                 <a class="dropdown-item dropdown-item-danger" href="#">
-                                                                    <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?></span>
+                                                                    <?php echo sr_material_icon_html('delete', '', sr_t('ui.delete.6139b6c3')); ?>
                                                                     <?php echo sr_e(sr_t('ui.delete.6139b6c3')); ?>
                                                                 </a>
                                                             </div>

@@ -112,7 +112,7 @@
                                             class="dropdown-toggle btn btn-outline-primary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             <?php echo sr_e(sr_t('ui.text.13351e0b')); ?>
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.edit.3537f0cc')); ?></span>
+                                            <?php echo sr_material_icon_html('edit', '', sr_t('ui.edit.3537f0cc')); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -388,7 +388,7 @@
                                         <button type="button" class="dropdown-toggle btn btn-soft-default"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             <?php echo sr_e(sr_t('ui.text.c34e13c9')); ?>
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.aba08853')); ?></span>
+                                            <?php echo sr_material_icon_html('expand_less', '', sr_t('ui.text.aba08853')); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">
@@ -691,7 +691,7 @@
                                             class="dropdown-toggle btn btn-solid-secondary"
                                             aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
                                             <?php echo sr_e(sr_t('ui.text.88a39bb6')); ?>
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.aba08853')); ?></span>
+                                            <?php echo sr_material_icon_html('expand_less', '', sr_t('ui.text.aba08853')); ?>
                                         </button>
 
                                         <div class="dropdown-menu" role="menu" aria-orientation="vertical">

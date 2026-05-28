@@ -134,15 +134,15 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.74477bd9')); ?></h4>
                                 <div class="ui-kit-cluster ui-kit-gap-1">
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.aba08853')); ?></span>
+                                        <?php echo sr_material_icon_html('expand_less', '', sr_t('admin::ui.text.aba08853')); ?>
                                     </button>
 
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.text.8259f9d3')); ?></span>
+                                        <?php echo sr_material_icon_html('refresh', '', sr_t('admin::ui.text.8259f9d3')); ?>
                                     </button>
 
                                     <button class="btn btn-icon-xs btn-pill btn-glass-inverse">
-                                        <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
+                                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                     </button>
                                 </div>
                             </div>

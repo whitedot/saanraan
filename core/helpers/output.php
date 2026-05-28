@@ -500,7 +500,7 @@ function sr_material_icon_html(string $name, string $class = '', string $label =
 
 function sr_material_icon_bootstrap_script(): string
 {
-    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","home").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
+    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","check").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
 }
 
 function sr_stylesheet_tag(array $stylesheets = []): string

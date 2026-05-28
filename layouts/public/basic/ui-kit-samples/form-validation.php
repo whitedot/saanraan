@@ -16,8 +16,8 @@
                                             <input type="text" id="customFirstName" value="John" required
                                                 class="input-field form-input" />
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.name.b6997ef6')); ?></p>
@@ -31,8 +31,8 @@
                                             <input type="text" id="customLastName" value="Doe" required
                                                 class="input-field form-input" />
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.90eea241')); ?></p>
@@ -47,8 +47,8 @@
                                             <input type="text" id="customUsername" placeholder="johndoe123" required
                                                 class="input-field form-input" />
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.active.name.select.c8bf3683')); ?></p>
                                     </div>
@@ -61,8 +61,8 @@
                                             <input type="text" id="customCity" placeholder="San Francisco" required
                                                 class="input-field form-input" />
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.name.f5853c38')); ?></p>
                                     </div>
@@ -80,8 +80,8 @@
                                                 <option>Florida</option>
                                             </select>
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.select.684bc485')); ?>
                                         </p>
@@ -95,8 +95,8 @@
                                             <input type="text" id="customZip" placeholder="94107" required
                                                 class="input-field form-input" />
 
-                                            <span class="ui-kit-icon-text valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.35688a85')); ?></span>
-                                            <span class="ui-kit-icon-text invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.b49f20d8')); ?></span>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
                                         <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('ui.text.286154b2')); ?></p>
                                     </div>
@@ -133,7 +133,7 @@
                                                 class="form-input form-input-valid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text">check</span>
+                                                <?php echo sr_material_icon_html('check', 'ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
@@ -147,7 +147,7 @@
                                                 class="form-input form-input-valid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text">check</span>
+                                                <?php echo sr_material_icon_html('check', 'ui-kit-ink-success ui-kit-type-base', sr_t('ui.text.35688a85')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
@@ -164,7 +164,7 @@
                                                 placeholder="johndoe123" required />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.active.name.select.4de06bf1')); ?></p>
@@ -178,7 +178,7 @@
                                                 class="form-input form-input-invalid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.09359b44')); ?></p>
@@ -196,7 +196,7 @@
                                             </select>
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-6 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.select.cf278ee1')); ?></p>
@@ -210,7 +210,7 @@
                                                 class="form-input form-input-invalid" />
                                             <div
                                                 class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <span class="ui-kit-icon-text ui-kit-ink-danger ui-kit-type-base"><?php echo sr_e(sr_t('ui.text.b8cf07ac')); ?></span>
+                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
                                         <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('ui.text.286154b2')); ?></p>

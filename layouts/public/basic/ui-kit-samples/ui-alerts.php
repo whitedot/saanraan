@@ -134,7 +134,7 @@
                                     </div>
 
                                     <div class="alert alert-secondary ui-kit-gap-3 ui-kit-pad-6" role="alert">
-                                        <span class="ui-kit-icon-text">alarm-snooze</span>
+                                        <?php echo sr_material_icon_html('snooze'); ?>
                                         <div>
                                             <h4 class="ui-kit-ink-secondary ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.812eeb2e')); ?></h4>
                                             <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.notification.notification.d20ce911')); ?>
@@ -145,7 +145,7 @@
                                     </div>
 
                                     <div class="alert alert-danger ui-kit-gap-3 ui-kit-pad-6" role="alert">
-                                        <span class="ui-kit-icon-text">phone-ringing</span>
+                                        <?php echo sr_material_icon_html('phone_in_talk'); ?>
                                         <div>
                                             <h4 class="ui-kit-ink-danger ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.notification.2526ab43')); ?></h4>
                                             <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.notification.b7747274')); ?></p>
@@ -171,7 +171,7 @@
                                         <?php echo sr_e(sr_t('ui.notification.08d4de3e')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dark-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
 
@@ -181,7 +181,7 @@
                                         <?php echo sr_e(sr_t('ui.notification.6ed99ebf')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#success-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
 
@@ -191,7 +191,7 @@
                                         <?php echo sr_e(sr_t('ui.notification.0a99c4bf')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#danger-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
 
@@ -203,7 +203,7 @@
                                         <button
                                             class="ui-kit-leading-auto ui-kit-icon-size-7-5 ui-kit-cluster ui-kit-distribute-center ui-kit-align-items-center ui-kit-radius-full ui-kit-surface-warning ui-kit-ink-inverse"
                                             data-remove-element="#warning-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
 
@@ -211,18 +211,18 @@
                                         class="ui-kit-removing-shift ui-kit-removing-fade ui-kit-transition ui-kit-duration-300 alert alert-info"
                                         role="alert">
                                         <div class="ui-kit-cluster ui-kit-gap-3 ui-kit-align-items-center">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.text.6c0f7510')); ?></span>
+                                            <?php echo sr_material_icon_html('warning', '', sr_t('ui.text.6c0f7510')); ?>
                                             <?php echo sr_e(sr_t('ui.notification.fd938fc5')); ?>
                                         </div>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#info-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
 
                                     <div class="alert alert-light ui-kit-gap-base ui-kit-frame-strong ui-kit-pad-6"
                                         role="alert">
-                                        <span class="ui-kit-icon-text">phone-ringing</span>
+                                        <?php echo sr_material_icon_html('phone_in_talk'); ?>
                                         <div class="ui-kit-ink-default-400">
                                             <h4 class="ui-kit-ink-default-400 ui-kit-space-after-2 ui-kit-type-lg ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.9f4b63f6')); ?></h4>
                                             <p><?php echo sr_e(sr_t('ui.notification.96e82fe6')); ?></p>
@@ -247,7 +247,7 @@
                                         <?php echo sr_e(sr_t('ui.notification.close.notification.e9cfda1f')); ?>
 
                                         <button class="ui-kit-leading-auto" data-remove-element="#dismiss-alert">
-                                            <span class="ui-kit-icon-text"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
+                                            <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
                                 </div>
