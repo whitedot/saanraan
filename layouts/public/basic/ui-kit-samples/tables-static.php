@@ -9,7 +9,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -22,7 +22,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.fdbfbd65')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.fdbfbd65')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.3c34d590')); ?></td>
                                                 <td>$99.00</td>
                                                 <td>120</td>
@@ -39,7 +39,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.933b33da')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.933b33da')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.514d3c6f')); ?></td>
                                                 <td>$59.99</td>
                                                 <td>80</td>
@@ -56,7 +56,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.e593251c')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.e593251c')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$129.00</td>
                                                 <td>0</td>
@@ -74,7 +74,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.5d0b5579')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.5d0b5579')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$39.50</td>
                                                 <td>250</td>
@@ -91,7 +91,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f83d3085')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f83d3085')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.7cd1a55d')); ?></td>
                                                 <td>$149.00</td>
                                                 <td>35</td>
@@ -122,7 +122,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                    <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
+                                    <thead class="sample-table-head-tinted">
                                         <tr>
                                             <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                             <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -130,12 +130,12 @@
                                             <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                             <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                             <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                            <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                            <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                            <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                             <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                             <td>$49.00</td>
                                             <td>200</td>
@@ -143,7 +143,7 @@
                                             <td>
                                                 <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                             </td>
-                                            <td class="ui-kit-text-end">
+                                            <td class="sample-table-align-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -170,7 +170,7 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                            <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                             <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                             <td>$29.99</td>
                                             <td>150</td>
@@ -178,7 +178,7 @@
                                             <td>
                                                 <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                             </td>
-                                            <td class="ui-kit-text-end">
+                                            <td class="sample-table-align-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -207,7 +207,7 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                            <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                             <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                             <td>$89.00</td>
                                             <td>60</td>
@@ -216,7 +216,7 @@
                                                 <span class="badge badge-label badge-soft-warning">Limited
                                                     Stock</span>
                                             </td>
-                                            <td class="ui-kit-text-end">
+                                            <td class="sample-table-align-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -245,7 +245,7 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.4k.86c66776')); ?></td>
+                                            <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.4k.86c66776')); ?></td>
                                             <td><?php echo sr_e(sr_t('ui.text.3c34d590')); ?></td>
                                             <td>$349.00</td>
                                             <td>30</td>
@@ -253,7 +253,7 @@
                                             <td>
                                                 <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                             </td>
-                                            <td class="ui-kit-text-end">
+                                            <td class="sample-table-align-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -282,7 +282,7 @@
                                         </tr>
 
                                         <tr>
-                                            <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9a13d293')); ?></td>
+                                            <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9a13d293')); ?></td>
                                             <td><?php echo sr_e(sr_t('ui.text.7cd1a55d')); ?></td>
                                             <td>$499.00</td>
                                             <td>10</td>
@@ -290,7 +290,7 @@
                                             <td>
                                                 <span class="badge badge-label badge-soft-info"><?php echo sr_e(sr_t('ui.text.113ce174')); ?></span>
                                             </td>
-                                            <td class="ui-kit-text-end">
+                                            <td class="sample-table-align-end">
                                                 <div class="dropdown">
                                                     <button type="button"
                                                         class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -332,7 +332,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head-tinted">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -340,12 +340,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-action-cell"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="ui-kit-line-default-300 ui-kit-surface-primary-soft ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                            <tr class="sample-table-row-featured">
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -353,7 +353,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -383,15 +383,15 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
-                                                <td class="ui-kit-surface-warning-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">4.3 ★</td>
+                                                <td class="sample-table-warning-cell">4.3 ★</td>
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -421,16 +421,16 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
-                                                <td class="ui-kit-surface-info-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">$89.00</td>
+                                                <td class="sample-table-info-cell">$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-surface-light-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-text-end">
+                                                <td class="sample-table-light-action-cell">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -460,15 +460,15 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.4k.86c66776')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.4k.86c66776')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.3c34d590')); ?></td>
                                                 <td>$349.00</td>
-                                                <td class="ui-kit-surface-danger-soft ui-kit-inline-pad-2-25 ui-kit-block-pad-3">30</td>
+                                                <td class="sample-table-danger-cell">30</td>
                                                 <td>4.8 ★</td>
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -498,7 +498,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-surface-dark ui-kit-inline-pad-2-25 ui-kit-block-pad-3 ui-kit-weight-medium ui-kit-ink-inverse"><?php echo sr_e(sr_t('ui.text.9a13d293')); ?>
+                                                <td class="sample-table-inverse-cell"><?php echo sr_e(sr_t('ui.text.9a13d293')); ?>
                                                 </td>
                                                 <td><?php echo sr_e(sr_t('ui.text.7cd1a55d')); ?></td>
                                                 <td>$499.00</td>
@@ -507,7 +507,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-info"><?php echo sr_e(sr_t('ui.text.113ce174')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -550,7 +550,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -558,12 +558,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-action-cell"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                            <tr class="sample-table-striped-row">
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -571,7 +571,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -600,8 +600,8 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                            <tr class="sample-table-striped-row">
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -609,7 +609,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -638,8 +638,8 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="ui-kit-line-default-300 ui-kit-row-odd-default ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                            <tr class="sample-table-striped-row">
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -648,7 +648,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -691,28 +691,28 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></td>
+                                                <td class="sample-table-head-cell"><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></td>
                                                 <th><?php echo sr_e(sr_t('ui.text.38c1b407')); ?></th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></td>
+                                                <td class="sample-table-head-cell"><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></td>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
-                                                <td class="ui-kit-surface-default-100 ui-kit-pad-2 ui-kit-text-start"><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></td>
-                                                <th class="ui-kit-text-end ui-kit-action-width"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <td class="sample-table-head-cell"><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></td>
+                                                <th class="sample-table-action-cell"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-muted-cell"><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">200</td>
+                                                <td class="sample-table-muted-cell">200</td>
                                                 <td>4.6 ★</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
+                                                <td class="sample-table-muted-cell">
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -742,15 +742,15 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-muted-cell"><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">150</td>
+                                                <td class="sample-table-muted-cell">150</td>
                                                 <td>4.3 ★</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
+                                                <td class="sample-table-muted-cell">
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -780,16 +780,16 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3"><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-muted-cell"><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">60</td>
+                                                <td class="sample-table-muted-cell">60</td>
                                                 <td>4.1 ★</td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2-25 ui-kit-block-pad-3">
+                                                <td class="sample-table-muted-cell">
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -832,7 +832,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table table-hover">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -840,12 +840,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -853,7 +853,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -883,7 +883,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -891,7 +891,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -921,7 +921,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -930,7 +930,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -973,7 +973,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -981,12 +981,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-divider-bottom">
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                            <tr class="sample-table-divider-row">
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -994,7 +994,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1024,7 +1024,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1032,7 +1032,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1062,16 +1062,16 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
-                                                <td class="ui-kit-surface-default-100 ui-kit-inline-pad-2 ui-kit-block-pad-3">$89.00</td>
+                                                <td class="sample-table-muted-cell">$89.00</td>
                                                 <td>60</td>
                                                 <td>4.1 ★</td>
                                                 <td>
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1122,12 +1122,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end" style="width: 1%"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end" style="width: 1%"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1135,7 +1135,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1165,7 +1165,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1173,7 +1173,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1203,7 +1203,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1212,7 +1212,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1255,7 +1255,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -1263,12 +1263,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end" style="width: 1%"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end" style="width: 1%"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1276,7 +1276,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1306,7 +1306,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1314,7 +1314,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1344,7 +1344,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1353,7 +1353,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1396,7 +1396,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -1407,7 +1407,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-padded-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td class="ui-kit-pad-2">$49.00</td>
                                                 <td class="ui-kit-pad-2">200</td>
@@ -1415,7 +1415,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-padded-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td class="ui-kit-pad-2">$29.99</td>
                                                 <td class="ui-kit-pad-2">150</td>
@@ -1423,7 +1423,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-padded-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td class="ui-kit-pad-2"><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td class="ui-kit-pad-2">$89.00</td>
                                                 <td class="ui-kit-pad-2">60</td>
@@ -1444,7 +1444,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-line-default-600 ui-kit-divider-bottom-strong ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-border-strong alert-strong-bottom sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -1452,12 +1452,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1465,7 +1465,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1495,7 +1495,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1503,7 +1503,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1533,7 +1533,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1542,7 +1542,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1585,7 +1585,7 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -1593,12 +1593,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1606,7 +1606,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1636,9 +1636,9 @@
                                             </tr>
 
                                             <tr>
-                                                <td colspan="7" class="ui-kit-line-default-300 ui-kit-fill-width ui-kit-divider-bottom ui-kit-pad-5">
+                                                <td colspan="7" class="sample-table-bordered-panel">
                                                     <table class="table">
-                                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                                        <thead class="sample-table-head">
                                                             <tr>
                                                                 <th>Variant</th>
                                                                 <th>Color</th>
@@ -1648,14 +1648,14 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td class="ui-kit-pad-2 ui-kit-weight-medium">Mini</td>
+                                                                <td class="sample-table-padded-primary-cell">Mini</td>
                                                                 <td class="ui-kit-pad-2">Black</td>
                                                                 <td class="ui-kit-pad-2">SPK-M-BLK</td>
                                                                 <td class="ui-kit-pad-2">80</td>
                                                             </tr>
 
                                                             <tr>
-                                                                <td class="ui-kit-pad-2 ui-kit-weight-medium">Standard</td>
+                                                                <td class="sample-table-padded-primary-cell">Standard</td>
                                                                 <td class="ui-kit-pad-2">Blue</td>
                                                                 <td class="ui-kit-pad-2">SPK-S-BLU</td>
                                                                 <td class="ui-kit-pad-2">120</td>
@@ -1666,7 +1666,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1674,7 +1674,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1704,7 +1704,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1713,7 +1713,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1756,20 +1756,20 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-kit-surface-dark">
-                                            <tr class="ui-kit-children-ink-inverse">
-                                                <th class="ui-kit-text-start"><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
+                                        <thead class="sample-surface-dark">
+                                            <tr class="sample-children-inverse">
+                                                <th class="sample-table-align-start"><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.38c1b407')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-align-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1777,7 +1777,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1807,7 +1807,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1815,7 +1815,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1845,7 +1845,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1854,7 +1854,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1897,10 +1897,10 @@
                             <div class="card-body">
                                 <div class="table-wrapper">
                                     <table class="table table-hover">
-                                        <caption class="ui-kit-ink-default-400 ui-kit-caption-below ui-kit-block-pad-3 ui-kit-text-start">
+                                        <caption class="sample-table-caption">
                                             <?php echo sr_e(sr_t('ui.list.a1f1cbca')); ?>
                                         </caption>
-                                        <thead class="ui-kit-weight-semibold ui-kit-type-xs">
+                                        <thead class="sample-table-head">
                                             <tr>
                                                 <th><?php echo sr_e(sr_t('ui.text.cf71a62a')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.b68c7d1b')); ?></th>
@@ -1908,12 +1908,12 @@
                                                 <th><?php echo sr_e(sr_t('ui.text.6e1b9aec')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.text.f6b350f7')); ?></th>
                                                 <th><?php echo sr_e(sr_t('ui.status.e10195a1')); ?></th>
-                                                <th class="ui-kit-pad-2 ui-kit-text-end"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
+                                                <th class="sample-table-padded-action-cell"><?php echo sr_e(sr_t('ui.text.01dfd369')); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.f34403ae')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.2059709c')); ?></td>
                                                 <td>$49.00</td>
                                                 <td>200</td>
@@ -1921,7 +1921,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1951,7 +1951,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.ddc3cc33')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.4f972c4b')); ?></td>
                                                 <td>$29.99</td>
                                                 <td>150</td>
@@ -1959,7 +1959,7 @@
                                                 <td>
                                                     <span class="badge badge-label badge-soft-success"><?php echo sr_e(sr_t('ui.text.d9ba6551')); ?></span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"
@@ -1989,7 +1989,7 @@
                                             </tr>
 
                                             <tr>
-                                                <td class="ui-kit-weight-medium"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
+                                                <td class="sample-table-primary-cell"><?php echo sr_e(sr_t('ui.text.9e59e6ef')); ?></td>
                                                 <td><?php echo sr_e(sr_t('ui.text.a274b299')); ?></td>
                                                 <td>$89.00</td>
                                                 <td>60</td>
@@ -1998,7 +1998,7 @@
                                                     <span class="badge badge-label badge-soft-warning">Limited
                                                         Stock</span>
                                                 </td>
-                                                <td class="ui-kit-text-end">
+                                                <td class="sample-table-align-end">
                                                     <div class="dropdown">
                                                         <button type="button"
                                                             class="dropdown-toggle btn btn-soft-default dropdown-toggle-action"

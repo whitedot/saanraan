@@ -20,7 +20,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Floating Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -29,7 +29,7 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context">
+                                                <div class="validation-field">
                                                     <input type="text" id="floatingInput" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingInput"
@@ -38,7 +38,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Validation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -47,19 +47,19 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context">
+                                                <div class="validation-field">
                                                     <input type="text" id="validInput" name="validation-name-success"
                                                         class="form-input form-input-valid" required=""
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
-                                                        class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                        <?php echo sr_material_icon_html('check', 'ui-kit-ink-success', sr_t('ui.text.35688a85')); ?>
+                                                        class="validation-static-icon">
+                                                        <?php echo sr_material_icon_html('check', 'sample-success-text', sr_t('ui.text.35688a85')); ?>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -73,7 +73,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Text Area -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -86,7 +86,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Disabled -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -100,7 +100,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Helping Text -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -111,11 +111,11 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-helping" placeholder="<?php echo sr_e(sr_t('ui.text.318b9368')); ?>"
                                                     class="form-input" />
-                                                <small class="ui-kit-hint"><?php echo sr_e(sr_t('ui.text.b02e5a63')); ?></small>
+                                                <small class="sample-help-text"><?php echo sr_e(sr_t('ui.text.b02e5a63')); ?></small>
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -153,7 +153,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Search Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -170,7 +170,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Invalidation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -184,12 +184,12 @@
                                                         name="validation-name-success"
                                                         class="form-input form-input-invalid" required=""
                                                         aria-describedby="validation-name-success-helper" />
-                                                    <?php echo sr_material_icon_html('info', 'input-icon ui-kit-ink-danger ui-kit-type-base', sr_t('ui.text.b49f20d8')); ?>
+                                                    <?php echo sr_material_icon_html('info', 'input-icon validation-error-icon', sr_t('ui.text.b49f20d8')); ?>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -203,7 +203,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Readonly -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -217,7 +217,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Static Control -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -231,7 +231,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -249,7 +249,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Checkbox List -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -305,7 +305,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Show/Hide Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -314,7 +314,7 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context ui-kit-cluster ui-kit-align-items-center">
+                                                <div class="validation-field ui-kit-cluster ui-kit-align-items-center">
                                                     <input id="password" type="password" class="form-input form-control-icon-end"
                                                         placeholder="<?php echo sr_e(sr_t('ui.password.9e396000')); ?>" />
                                                     <button type="button"
@@ -323,7 +323,7 @@
                                                         data-toggle-password-hide-label="<?php echo sr_e(sr_t('ui.password.52dc26ff')); ?>"
                                                         aria-label="<?php echo sr_e(sr_t('ui.password.ad78e4b8')); ?>"
                                                         aria-pressed="false"
-                                                        class="ui-kit-position-absolute ui-kit-position-end-3 ui-kit-position-top-half ui-kit-inline-cluster ui-kit-icon-size-6 ui-kit-center-y ui-kit-align-items-center ui-kit-distribute-center ui-kit-ink-default-500 ui-kit-transition-colors ui-kit-hover-ink-default-700 ui-kit-focus-plain">
+                                                        class="form-input-action">
                                                         <?php echo sr_material_icon_html('visibility', 'password-active-hide'); ?>
                                                         <?php echo sr_material_icon_html('visibility_off', 'password-active-show'); ?>
                                                     </button>
@@ -331,7 +331,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Time -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -344,7 +344,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Number -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -358,7 +358,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Range -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -386,7 +386,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Month -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -399,7 +399,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Week -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -412,7 +412,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Color -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -452,7 +452,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Currency Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -469,7 +469,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Textarea with Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -485,12 +485,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Flex-nowrap Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.wrapping.4812dc30')); ?></label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow sample-emphasis"><?php echo sr_e(sr_t('ui.wrapping.4812dc30')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -501,7 +501,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Input group with text input and button -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -518,7 +518,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Multiple Files  -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -548,7 +548,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Multi-field Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -565,7 +565,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Vanity URL Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -576,18 +576,18 @@
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
                                                     <span
-                                                        class="input-group-text ui-kit-text-nowrap">https://example.com/users/</span>
+                                                        class="input-group-text sample-nowrap">https://example.com/users/</span>
                                                     <input type="text" class="form-input" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Input group with dropdown and text input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.dropdown.input.ffa2ab72')); ?></label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow sample-emphasis"><?php echo sr_e(sr_t('ui.dropdown.input.ffa2ab72')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -616,7 +616,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- File input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -630,7 +630,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
@@ -670,7 +670,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <!-- Floating Input -->
-                                                <div class="ui-kit-position-context">
+                                                <div class="validation-field">
                                                     <input type="email" id="floating-input-email"
                                                         class="form-floating-control form-input"
                                                         placeholder="you@email.com" />
@@ -681,7 +681,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Floating Textarea -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -690,7 +690,7 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context">
+                                                <div class="validation-field">
                                                     <textarea id="floatingTextarea" rows="4" placeholder=""
                                                         class="form-floating-control form-textarea"></textarea>
                                                     <label for="floatingTextarea"
@@ -708,7 +708,7 @@
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
-                                                <div class="ui-kit-position-context">
+                                                <div class="validation-field">
                                                     <input type="password" id="floatingPassword" placeholder=""
                                                         class="form-floating-control form-input" />
                                                     <label for="floatingPassword"
@@ -742,7 +742,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Large Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -756,7 +756,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Large Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -788,7 +788,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Grid Size Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -806,7 +806,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Small Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -884,7 +884,7 @@
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkSize1" class="form-checkbox form-choice-md"
@@ -901,7 +901,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Switches -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -919,11 +919,11 @@
                                                 <!-- Disabled Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="switch2" class="form-switch" disabled />
-                                                    <label for="switch2" class="ui-kit-ink-default-400"><?php echo sr_e(sr_t('ui.text.b9af9dc0')); ?></label>
+                                                    <label for="switch2" class="sample-muted"><?php echo sr_e(sr_t('ui.text.b9af9dc0')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
@@ -942,7 +942,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -994,7 +994,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -1086,11 +1086,11 @@
                                                     <input type="radio" name="disabledRadioOptions" id="inlineRadio3"
                                                         value="option3" class="form-radio" checked
                                                         disabled />
-                                                    <label for="inlineRadio3" class="ui-kit-ink-default-400"><?php echo sr_e(sr_t('ui.status.457b2a9e')); ?></label>
+                                                    <label for="inlineRadio3" class="sample-muted"><?php echo sr_e(sr_t('ui.status.457b2a9e')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Radios -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-4">
@@ -1124,7 +1124,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Reverse -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -1156,7 +1156,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Colored Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -1209,7 +1209,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Toggle Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -1220,7 +1220,7 @@
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <!-- Single Toggle -->
                                                 <div>
-                                                    <input type="checkbox" id="toggleSingle" class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                    <input type="checkbox" id="toggleSingle" class="form-choice-toggle-input sample-hidden" />
                                                     <label for="toggleSingle"
                                                         class="btn btn-choice-primary"><?php echo sr_e(sr_t('ui.text.07a1a20f')); ?></label>
                                                 </div>
@@ -1228,17 +1228,17 @@
                                                 <!-- Group Toggle -->
                                                 <div class="ui-kit-cluster">
                                                     <div>
-                                                        <input type="checkbox" id="toggle1" class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle1" class="form-choice-toggle-input sample-hidden" />
                                                         <label for="toggle1"
                                                             class="btn btn-choice-primary btn-group-start"><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle2" class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle2" class="form-choice-toggle-input sample-hidden" />
                                                         <label for="toggle2"
                                                             class="btn btn-choice-primary btn-group-middle"><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle3" class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                        <input type="checkbox" id="toggle3" class="form-choice-toggle-input sample-hidden" />
                                                         <label for="toggle3"
                                                             class="btn btn-choice-primary btn-group-end"><?php echo sr_e(sr_t('ui.text.28ed1f7d')); ?></label>
                                                     </div>
@@ -1246,7 +1246,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="ui-kit-line-default-300 ui-kit-block-space-base ui-kit-divider-top ui-kit-line-dashed"></div>
+                                        <div class="sample-field-divider"></div>
 
                                         <!-- Toggle Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
@@ -1257,21 +1257,21 @@
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-column-lg-2">
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioLeft"
-                                                        class="form-choice-toggle-input ui-kit-state-hidden" checked />
+                                                        class="form-choice-toggle-input sample-hidden" checked />
                                                     <label for="radioLeft"
                                                         class="btn btn-choice-secondary btn-group-start"><?php echo sr_e(sr_t('ui.text.dc0103c1')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioMiddle"
-                                                        class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                        class="form-choice-toggle-input sample-hidden" />
                                                     <label for="radioMiddle"
                                                         class="btn btn-choice-secondary btn-group-middle"><?php echo sr_e(sr_t('ui.text.d41ad4fc')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioRight"
-                                                        class="form-choice-toggle-input ui-kit-state-hidden" />
+                                                        class="form-choice-toggle-input sample-hidden" />
                                                     <label for="radioRight"
                                                         class="btn btn-choice-secondary btn-group-end"><?php echo sr_e(sr_t('ui.text.f594aa6a')); ?></label>
                                                 </div>

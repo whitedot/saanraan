@@ -7,7 +7,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7e7bb680')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7e7bb680')); ?></p>
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                     <!-- Standard modal content -->
                                     <div>
@@ -17,7 +17,7 @@
                                             data-overlay="#standard-modal"><?php echo sr_e(sr_t('admin::ui.text.a31d2287')); ?></button>
 
                                         <div id="standard-modal"
-                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                             role="dialog" tabindex="-1" aria-labelledby="standard-modal-label">
                                             <div
                                                 class="modal-dialog">
@@ -38,7 +38,7 @@
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.e2e62d72')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.48bc8889')); ?>
                                                         </p>
-                                                        <hr class="ui-kit-line-default-300 ui-kit-block-space-4" />
+                                                        <hr class="sample-divider" />
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.aa096f4f')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.2d5768ee')); ?>
                                                         </p>
@@ -68,7 +68,7 @@
                                             data-overlay="#bs-example-modal-lg"><?php echo sr_e(sr_t('admin::ui.text.efbc0d6c')); ?></button>
 
                                         <div id="bs-example-modal-lg"
-                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                             role="dialog" tabindex="-1" aria-labelledby="bs-example-modal-lg-label">
                                             <div
                                                 class="modal-dialog modal-dialog-lg">
@@ -99,7 +99,7 @@
                                             data-overlay="#bs-example-modal-sm"><?php echo sr_e(sr_t('admin::ui.text.87b9e8c6')); ?></button>
 
                                         <div id="bs-example-modal-sm"
-                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                             role="dialog" tabindex="-1" aria-labelledby="bs-example-modal-sm-label">
                                             <div class="modal-dialog-sm">
                                                 <div
@@ -129,7 +129,7 @@
                                             aria-controls="full-width-modal" data-overlay="#full-width-modal"><?php echo sr_e(sr_t('admin::ui.all.0c976cbf')); ?></button>
 
                                         <div id="full-width-modal"
-                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                             role="dialog" tabindex="-1" aria-labelledby="full-width-modal-label">
                                             <div
                                                 class="modal-dialog modal-dialog-full">
@@ -149,7 +149,7 @@
                                                     <div class="modal-body">
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.e2e62d72')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.all.active.f80dbc9e')); ?></p>
-                                                        <hr class="ui-kit-line-default-300 ui-kit-block-space-4" />
+                                                        <hr class="sample-divider" />
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.aa096f4f')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.all.active.e049f4e9')); ?></p>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.62923020')); ?></p>
@@ -178,7 +178,7 @@
                                             aria-controls="scrollable-modal" data-overlay="#scrollable-modal"><?php echo sr_e(sr_t('admin::ui.text.1a3608ec')); ?></button>
 
                                         <div id="scrollable-modal"
-                                            class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                            class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                             role="dialog" tabindex="-1" aria-labelledby="scrollable-modal-label">
                                             <div
                                                 class="modal-dialog">
@@ -242,7 +242,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.page.354cddad')); ?></p>
+                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.page.354cddad')); ?></p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Top modal content -->
@@ -253,7 +253,7 @@
                                         data-overlay="#top-modal"><?php echo sr_e(sr_t('admin::ui.text.9b2af47e')); ?></button>
 
                                     <div id="top-modal"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="top-modal-label">
                                         <div class="modal-dialog">
                                             <div
@@ -295,7 +295,7 @@
                                         data-overlay="#bottom-modal"><?php echo sr_e(sr_t('admin::ui.text.08c1e17c')); ?></button>
 
                                     <div id="bottom-modal"
-                                        class="modal-overlay-bottom overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay-bottom overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="bottom-modal-label">
                                         <div
                                             class="modal-dialog-bottom">
@@ -339,7 +339,7 @@
                                         data-overlay="#centermodal"><?php echo sr_e(sr_t('admin::ui.text.aafa9b08')); ?></button>
 
                                     <div id="centermodal"
-                                        class="modal-overlay-bottom overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay-bottom overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="centermodal-label">
                                         <div
                                             class="modal-dialog-center">
@@ -386,7 +386,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.623f1f1c')); ?></p>
+                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.623f1f1c')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Modal Heading -->
                                 <div>
@@ -396,7 +396,7 @@
                                         data-overlay="#multiple-one"><?php echo sr_e(sr_t('admin::ui.text.3303bc36')); ?></button>
 
                                     <div id="multiple-one"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="multiple-one-label">
                                         <div class="modal-dialog">
                                             <div
@@ -430,7 +430,7 @@
                                     </div>
 
                                     <div id="multiple-two"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="multiple-two-label">
                                         <div class="ui-kit-outer-space-3 ui-kit-inline-margin-sm-auto ui-kit-fill-width-sm ui-kit-max-width-sm-lg">
                                             <div
@@ -474,7 +474,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><code>data-overlay</code> <?php echo sr_e(sr_t('admin::ui.text.1f4997e4')); ?></p>
+                            <p class="sample-note ui-kit-space-after-4"><code>data-overlay</code> <?php echo sr_e(sr_t('admin::ui.text.1f4997e4')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <div>
                                     <button type="button"
@@ -483,7 +483,7 @@
                                         data-overlay="#exampleModalToggle1"><?php echo sr_e(sr_t('admin::ui.text.fdc5ece2')); ?></button>
 
                                     <div id="exampleModalToggle1"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalToggle1-label">
                                         <div
                                             class="modal-dialog-center">
@@ -520,7 +520,7 @@
                                     </div>
 
                                     <div id="exampleModalToggle2"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalToggle2-label">
                                         <div
                                             class="modal-dialog-center">
@@ -564,7 +564,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.07d37118')); ?></p>
+                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.07d37118')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Full Screen Modal -->
                                 <div>
@@ -575,7 +575,7 @@
                                         data-overlay="#fullscreeexampleModal"><?php echo sr_e(sr_t('admin::ui.all.a511f914')); ?></button>
 
                                     <div id="fullscreeexampleModal"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed"
                                         role="dialog" tabindex="-1" aria-labelledby="fullscreeexampleModal-label">
                                         <div
                                             class="modal-dialog-fluid">
@@ -619,12 +619,12 @@
                                     </button>
 
                                     <div id="exampleModalFullscreenSm"
-                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenSm-label">
                                         <div
-                                            class="modal-dialog-responsive ui-kit-modal-open-sm-mt ui-kit-inline-margin-sm-auto ui-kit-space-before-sm-0 ui-kit-auto-height-sm ui-kit-max-height-sm-none ui-kit-max-width-sm-lg">
+                                            class="modal-dialog-responsive modal-open-sm-mt ui-kit-inline-margin-sm-auto ui-kit-space-before-sm-0 ui-kit-auto-height-sm ui-kit-max-height-sm-none ui-kit-max-width-sm-lg">
                                             <div
-                                                class="modal-content-fluid ui-kit-radius-md ui-kit-frame">
+                                                class="modal-content-fluid sample-radius-md sample-frame">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenSm-label"
@@ -663,12 +663,12 @@
                                     </button>
 
                                     <div id="exampleModalFullscreenMd"
-                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenMd-label">
                                         <div
-                                            class="modal-dialog-responsive ui-kit-modal-open-md-mt ui-kit-inline-margin-md-auto ui-kit-space-before-md-0 ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg">
+                                            class="modal-dialog-responsive modal-open-md-mt ui-kit-inline-margin-md-auto ui-kit-space-before-md-0 ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg ui-kit-radius-md-xl ui-kit-line-md ui-kit-shadow-md-subtle">
+                                                class="modal-content-fluid ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg sample-radius-md-xl modal-border-md ui-kit-shadow-md-subtle">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenMd-label"
@@ -707,12 +707,12 @@
                                     </button>
 
                                     <div id="exampleModalFullscreenLg"
-                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenLg-label">
                                         <div
-                                            class="modal-dialog-responsive ui-kit-modal-open-lg-mt ui-kit-inline-margin-lg-auto ui-kit-space-before-lg-0 ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg">
+                                            class="modal-dialog-responsive modal-open-lg-mt ui-kit-inline-margin-lg-auto ui-kit-space-before-lg-0 ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg ui-kit-radius-lg-xl ui-kit-line-lg ui-kit-shadow-lg-subtle">
+                                                class="modal-content-fluid ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg modal-radius-lg modal-border-lg ui-kit-shadow-lg-subtle">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenLg-label"
@@ -751,12 +751,12 @@
                                     </button>
 
                                     <div id="exampleModalFullscreenXl"
-                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXl-label">
                                         <div
-                                            class="modal-dialog-responsive ui-kit-modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
+                                            class="modal-dialog-responsive modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg ui-kit-radius-xl-xl ui-kit-line-xl ui-kit-shadow-xl-subtle">
+                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg modal-radius-xl modal-border-xl ui-kit-shadow-xl-subtle">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenXl-label"
@@ -795,12 +795,12 @@
                                     </button>
 
                                     <div id="exampleModalFullscreenXxl"
-                                        class="modal-overlay overlay ui-kit-state-hidden ui-kit-state-disabled-pointer"
+                                        class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXxl-label">
                                         <div
-                                            class="modal-dialog-responsive ui-kit-modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
+                                            class="modal-dialog-responsive modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg ui-kit-radius-xl-xl ui-kit-line-xl ui-kit-shadow-xl-subtle">
+                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg modal-radius-xl modal-border-xl ui-kit-shadow-xl-subtle">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenXxl-label"
@@ -838,7 +838,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.static.settings.4d8a4647')); ?></p>
+                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.static.settings.4d8a4647')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Static Backdrop modal -->
                                 <div>
@@ -847,7 +847,7 @@
                                         data-overlay="#staticBackdrop"><?php echo sr_e(sr_t('admin::ui.text.b1ec1529')); ?></button>
 
                                     <div id="staticBackdrop"
-                                        class="modal-overlay modal-overlay-fade overlay ui-kit-state-hidden ui-kit-state-disabled-pointer ui-kit-state-transparent" data-overlay-static="true"
+                                        class="modal-overlay modal-overlay-fade overlay overlay-closed" data-overlay-static="true"
                                         role="dialog" tabindex="-1" aria-labelledby="staticBackdrop-label">
                                         <div class="modal-dialog">
                                             <div

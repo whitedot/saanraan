@@ -12,66 +12,66 @@
                                     <div class="ui-kit-column-md-4">
                                         <label class="form-label" for="customFirstName"><?php echo sr_e(sr_t('admin::ui.name.first.name.1a3108a8')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="customFirstName" value="John" required
                                                 class="input-field form-input" />
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.name.b6997ef6')); ?></p>
+                                        <p class="valid-msg ui-kit-space-before-1 sample-hidden sample-body-small sample-success-text"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.name.b6997ef6')); ?></p>
                                     </div>
 
                                     <!-- Last Name -->
                                     <div class="ui-kit-column-md-4">
                                         <label class="form-label" for="customLastName"><?php echo sr_e(sr_t('admin::ui.last.name.9b3ddc78')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="customLastName" value="Doe" required
                                                 class="input-field form-input" />
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.90eea241')); ?></p>
+                                        <p class="valid-msg ui-kit-space-before-1 sample-hidden sample-body-small sample-success-text"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.90eea241')); ?></p>
                                     </div>
 
                                     <!-- Username -->
                                     <div class="ui-kit-column-md-4">
                                         <label class="form-label" for="customUsername"><?php echo sr_e(sr_t('admin::ui.active.name.username.b19d3d5e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context input-group">
+                                        <div class="validation-field input-group">
                                             <span class="input-group-text">@</span>
                                             <input type="text" id="customUsername" placeholder="johndoe123" required
                                                 class="input-field form-input" />
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.active.name.select.c8bf3683')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.active.name.select.c8bf3683')); ?></p>
                                     </div>
 
                                     <!-- City -->
                                     <div class="ui-kit-column-md-6">
                                         <label class="form-label" for="customCity"><?php echo sr_e(sr_t('admin::ui.city.68649934')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="customCity" placeholder="San Francisco" required
                                                 class="input-field form-input" />
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.name.f5853c38')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.name.f5853c38')); ?></p>
                                     </div>
 
                                     <!-- State -->
                                     <div class="ui-kit-column-md-3">
                                         <label class="form-label" for="customState"><?php echo sr_e(sr_t('admin::ui.state.b93c5a3b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <select id="customState" required class="input-field form-select">
                                                 <option value=""><?php echo sr_e(sr_t('admin::ui.select.5b1efda0')); ?></option>
                                                 <option>California</option>
@@ -80,10 +80,10 @@
                                                 <option>Florida</option>
                                             </select>
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-9 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-select validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-select validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.select.684bc485')); ?>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.select.684bc485')); ?>
                                         </p>
                                     </div>
 
@@ -91,22 +91,22 @@
                                     <div class="ui-kit-column-md-3">
                                         <label class="form-label" for="customZip"><?php echo sr_e(sr_t('admin::ui.zip.code.45119a29')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
 
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="customZip" placeholder="94107" required
                                                 class="input-field form-input" />
 
-                                            <?php echo sr_material_icon_html('check', 'valid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
-                                            <?php echo sr_material_icon_html('info', 'invalid-icon ui-kit-position-absolute ui-kit-position-top-half ui-kit-position-right-3 ui-kit-state-hidden ui-kit-center-y ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b49f20d8')); ?>
+                                            <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('admin::ui.text.35688a85')); ?>
+                                            <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('admin::ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-state-hidden ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.286154b2')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.286154b2')); ?></p>
                                     </div>
 
                                     <!-- Terms -->
                                     <div class="ui-kit-column-md-12">
                                         <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center">
                                             <input id="customTerms" type="checkbox" required class="form-checkbox" />
-                                            <label for="customTerms" class="ui-kit-start-margin-2 ui-kit-type-sm ui-kit-ink-default-700"><?php echo sr_e(sr_t('admin::ui.text.867eda7d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                            <p class="invalid-msg ui-kit-space-before-2 ui-kit-state-hidden ui-kit-fill-width ui-kit-type-sm ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.6d48c575')); ?></p>
+                                            <label for="customTerms" class="ui-kit-start-margin-2 sample-body-small sample-strong-text"><?php echo sr_e(sr_t('admin::ui.text.867eda7d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                            <p class="invalid-msg ui-kit-space-before-2 sample-hidden ui-kit-fill-width sample-body-small validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.6d48c575')); ?></p>
                                         </div>
                                     </div>
 
@@ -128,66 +128,66 @@
                                     <!-- First name -->
                                     <div class="ui-kit-column-md-4">
                                         <label for="serverFirstName" class="form-label"><?php echo sr_e(sr_t('admin::ui.name.first.name.04ab2143')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="serverFirstName" value="Mark" required
                                                 class="form-input form-input-valid" />
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('check', 'ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
+                                                class="validation-static-icon">
+                                                <?php echo sr_material_icon_html('check', 'validation-success-icon', sr_t('admin::ui.text.35688a85')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
+                                        <p class="validation-success-note"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
                                     </div>
 
                                     <!-- Last name -->
                                     <div class="ui-kit-column-md-4">
                                         <label for="serverLastName" class="form-label"><?php echo sr_e(sr_t('admin::ui.last.name.dfe12126')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="serverLastName" value="Otto" required
                                                 class="form-input form-input-valid" />
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('check', 'ui-kit-ink-success ui-kit-type-base', sr_t('admin::ui.text.35688a85')); ?>
+                                                class="validation-static-icon">
+                                                <?php echo sr_material_icon_html('check', 'validation-success-icon', sr_t('admin::ui.text.35688a85')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-success ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
+                                        <p class="validation-success-note"><?php echo sr_e(sr_t('admin::ui.text.78dc433d')); ?></p>
                                     </div>
 
                                     <!-- Username -->
                                     <div class="ui-kit-column-md-4">
                                         <label for="serverUsername" class="form-label"><?php echo sr_e(sr_t('admin::ui.active.name.username.b19d3d5e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context ui-kit-cluster ui-kit-radius-md">
+                                        <div class="validation-field ui-kit-cluster sample-radius-md">
                                             <span
-                                                class="ui-kit-line-default-300 ui-kit-surface-default-100 ui-kit-ink-default-600 ui-kit-inline-cluster ui-kit-align-items-center ui-kit-radius-s-md ui-kit-frame ui-kit-inline-pad-3 ui-kit-type-sm">@</span>
+                                                class="validation-addon">@</span>
                                             <input type="text" id="serverUsername" name="username"
                                                 class="form-input form-input-invalid form-control-group-end"
                                                 placeholder="johndoe123" required />
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b8cf07ac')); ?>
+                                                class="validation-static-icon">
+                                                <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.active.name.select.4de06bf1')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.active.name.select.4de06bf1')); ?></p>
                                     </div>
 
                                     <!-- City -->
                                     <div class="ui-kit-column-md-6">
                                         <label for="serverCity" class="form-label"><?php echo sr_e(sr_t('admin::ui.city.68649934')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="serverCity" required placeholder="<?php echo sr_e(sr_t('admin::ui.text.51c3d48a')); ?>"
                                                 class="form-input form-input-invalid" />
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b8cf07ac')); ?>
+                                                class="validation-static-icon">
+                                                <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.09359b44')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.09359b44')); ?></p>
                                     </div>
 
                                     <!-- State -->
                                     <div class="ui-kit-column-md-3">
                                         <label for="serverState" class="form-label"><?php echo sr_e(sr_t('admin::ui.state.b93c5a3b')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <select id="serverState" required class="form-select form-select-invalid">
                                                 <option value=""><?php echo sr_e(sr_t('admin::ui.select.5b1efda0')); ?></option>
                                                 <option>California</option>
@@ -195,25 +195,25 @@
                                                 <option>Florida</option>
                                             </select>
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-6 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b8cf07ac')); ?>
+                                                class="validation-static-icon validation-static-icon-select">
+                                                <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.select.cf278ee1')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.select.cf278ee1')); ?></p>
                                     </div>
 
                                     <!-- Zip -->
                                     <div class="ui-kit-column-md-3">
                                         <label for="serverZip" class="form-label"><?php echo sr_e(sr_t('admin::ui.zip.918b7b76')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="ui-kit-position-context">
+                                        <div class="validation-field">
                                             <input type="text" id="serverZip" required placeholder="<?php echo sr_e(sr_t('admin::ui.text.1b50041e')); ?>"
                                                 class="form-input form-input-invalid" />
                                             <div
-                                                class="ui-kit-state-disabled-pointer ui-kit-position-absolute ui-kit-position-block-0 ui-kit-position-end-0 ui-kit-cluster ui-kit-align-items-center ui-kit-end-pad-3">
-                                                <?php echo sr_material_icon_html('info', 'ui-kit-ink-danger ui-kit-type-base', sr_t('admin::ui.text.b8cf07ac')); ?>
+                                                class="validation-static-icon">
+                                                <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::ui.text.b8cf07ac')); ?>
                                             </div>
                                         </div>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.286154b2')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.286154b2')); ?></p>
                                     </div>
 
                                     <!-- Checkbox -->
@@ -221,9 +221,9 @@
                                         <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2" for="serverTerms">
                                             <input type="checkbox" id="serverTerms" required
                                                 class="form-checkbox form-choice-danger" />
-                                            <span class="ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                                            <span class="validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                                         </label>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.e3bc5fd9')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.e3bc5fd9')); ?></p>
                                     </div>
 
                                     <!-- Submit Button -->
@@ -246,7 +246,7 @@
                                         <label for="validationTextarea" class="form-label"><?php echo sr_e(sr_t('admin::ui.textarea.9cbf1bae')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                                         <textarea id="validationTextarea" placeholder="<?php echo sr_e(sr_t('admin::ui.required.9ac81744')); ?>" required
                                             class="form-textarea form-textarea-invalid"></textarea>
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.e7b2bd4a')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.e7b2bd4a')); ?></p>
                                     </div>
 
                                     <!-- Checkbox -->
@@ -254,8 +254,8 @@
                                         <input id="validationFormCheck1" type="checkbox" required
                                             class="form-checkbox form-choice-danger form-choice-invalid form-choice-offset" />
                                         <div>
-                                            <label for="validationFormCheck1" class="ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.31cc6171')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                            <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.3388da7e')); ?></p>
+                                            <label for="validationFormCheck1" class="validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.31cc6171')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                            <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.3388da7e')); ?></p>
                                         </div>
                                     </div>
 
@@ -264,14 +264,14 @@
                                         <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck2" type="radio" name="radio-stacked" required
                                                 class="form-radio form-choice-danger form-choice-invalid" />
-                                            <label for="validationFormCheck2" class="ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.724f8e18')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                            <label for="validationFormCheck2" class="validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.724f8e18')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                                         </div>
 
                                         <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                             <input id="validationFormCheck3" type="radio" name="radio-stacked" required
                                                 class="form-radio form-choice-danger form-choice-invalid" />
-                                            <label for="validationFormCheck3" class="ui-kit-ink-danger"><?php echo sr_e(sr_t('admin::ui.text.2407692e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                            <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.6905bf2e')); ?></p>
+                                            <label for="validationFormCheck3" class="validation-danger-label"><?php echo sr_e(sr_t('admin::ui.text.2407692e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                            <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.6905bf2e')); ?></p>
                                         </div>
                                     </div>
 
@@ -290,7 +290,7 @@
                                     <div>
                                         <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.0c8354d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                                         <input type="file" required class="form-input" />
-                                        <p class="ui-kit-ink-danger ui-kit-space-before-1 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.8bce73cb')); ?></p>
+                                        <p class="validation-error-note"><?php echo sr_e(sr_t('admin::ui.text.8bce73cb')); ?></p>
                                     </div>
 
                                     <!-- Submit -->
@@ -356,7 +356,7 @@
                                     <div>
                                         <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2" for="invalidCheck2">
                                             <input type="checkbox" id="invalidCheck2" required class="form-checkbox" />
-                                            <span class="ui-kit-ink-default-700"><?php echo sr_e(sr_t('admin::ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                                            <span class="sample-strong-text"><?php echo sr_e(sr_t('admin::ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                                         </label>
                                     </div>
 

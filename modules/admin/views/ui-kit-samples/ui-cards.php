@@ -75,9 +75,9 @@
                         <!-- 카드 끝-->
 
                         <div class="card">
-                            <div class="card-header ui-kit-block-flow ui-kit-line-dashed">
+                            <div class="card-header sample-card-header-stacked">
                                 <h4 class="card-title ui-kit-space-after-1-25"><?php echo sr_e(sr_t('admin::ui.text.a3a9bd41')); ?></h4>
-                                <h6 class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.751ad3df')); ?></h6>
+                                <h6 class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.751ad3df')); ?></h6>
                             </div>
 
                             <div class="card-body">
@@ -97,7 +97,7 @@
                             </div>
                             <!-- 카드 본문 끝-->
 
-                            <div class="card-footer ui-kit-ink-default-400"><?php echo sr_e(sr_t('admin::ui.text.5c4a7dbd')); ?></div>
+                            <div class="card-footer sample-card-footer-muted"><?php echo sr_e(sr_t('admin::ui.text.5c4a7dbd')); ?></div>
                         </div>
                         <!-- 카드 끝-->
                                 </div>
@@ -183,7 +183,7 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
-                        <div class="card ui-kit-line-primary ui-kit-frame">
+                        <div class="card sample-border-primary sample-frame">
                             <div class="card-body">
                                 <h4 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
@@ -195,9 +195,9 @@
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-line-primary ui-kit-frame ui-kit-line-dashed">
+                        <div class="card sample-border-primary sample-frame sample-border-dashed">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.8192e13f')); ?></h4>
+                                <h4 class="card-title sample-card-title-primary"><?php echo sr_e(sr_t('admin::ui.text.8192e13f')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
@@ -207,9 +207,9 @@
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-line-primary ui-kit-frame-strong">
+                        <div class="card sample-border-primary sample-frame-strong">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
+                                <h4 class="card-title sample-card-title-primary"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
@@ -219,9 +219,9 @@
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-line-dark ui-kit-accent-line">
+                        <div class="card sample-border-dark sample-card-accent-line">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-dark ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
+                                <h4 class="card-title sample-card-title-dark"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
@@ -231,9 +231,9 @@
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-line-primary ui-kit-accent-line">
+                        <div class="card sample-border-primary sample-card-accent-line">
                             <div class="card-body">
-                                <h4 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
+                                <h4 class="card-title sample-card-title-primary"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
                                 <a href="javascript: void(0);"
@@ -243,7 +243,7 @@
                         </div>
                         <!-- 카드 끝-->
 
-                        <div class="card ui-kit-line-info ui-kit-accent-line">
+                        <div class="card sample-border-info sample-card-accent-line">
                             <div class="card-body">
                                 <h4 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
@@ -268,7 +268,7 @@
                         <div class="card">
                             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-align-items-center ui-kit-grid-md-3">
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-s-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-start-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
 
                                 <div class="ui-kit-column-2">
@@ -277,7 +277,7 @@
                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.054dbe3e')); ?>
                                         </p>
                                         <p>
-                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                            <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                         </p>
                                     </div>
                                 </div>
@@ -292,13 +292,13 @@
                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.054dbe3e')); ?>
                                         </p>
                                         <p>
-                                            <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                            <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                         </p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-e-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
+                                    <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-end-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: center;" />
                                 </div>
                             </div>
                         </div>
@@ -315,7 +315,7 @@
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-gap-base">
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-top-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
@@ -328,9 +328,9 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-top-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
-                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.bbd50f61')); ?></h5>
+                                    <h5 class="card-title sample-card-title-primary"><?php echo sr_e(sr_t('admin::ui.text.bbd50f61')); ?></h5>
                                     <p><?php echo sr_e(sr_t('admin::ui.text.b82ab5cc')); ?>
                                     </p>
                                 </div>
@@ -339,7 +339,7 @@
 
                         <div class="card ui-kit-group">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-top-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             </a>
                             <div class="card-body">
                                 <a href="#">
@@ -352,9 +352,9 @@
 
                         <div class="card">
                             <a href="#">
-                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="ui-kit-radius-t-sm" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
+                                <img src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" class="sample-card-media-top-radius" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                                 <div class="card-body">
-                                    <h5 class="card-title ui-kit-ink-primary ui-kit-space-after-3"><?php echo sr_e(sr_t('admin::ui.text.bbd50f61')); ?></h5>
+                                    <h5 class="card-title sample-card-title-primary"><?php echo sr_e(sr_t('admin::ui.text.bbd50f61')); ?></h5>
                                     <p><?php echo sr_e(sr_t('admin::ui.text.b82ab5cc')); ?>
                                     </p>
                                 </div>
@@ -371,42 +371,42 @@
 
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-3 ui-kit-grid-md-3 ui-kit-gap-md-0 ui-kit-space-after-base">
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
+                        <div class="card ui-kit-fill-height sample-radius-md-s-sm sample-radius-md-e-none">
                             <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.868e2369')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-none">
+                        <div class="card ui-kit-fill-height sample-radius-md-none">
                             <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.993e1da7')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-s-none ui-kit-radius-md-e-sm">
+                        <div class="card ui-kit-fill-height sample-radius-md-s-none sample-radius-md-e-sm">
                             <img class="card-img-top" src="<?php echo sr_e(sr_url('/assets/ui-kit-sample-card.jpg')); ?>" alt="<?php echo sr_e(sr_t('admin::ui.text.af51d6de')); ?>" style="width: 100%; height: 220px; object-fit: cover; object-position: center;" />
                             <div class="card-body">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.bfa30283')); ?></p>
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                                <div class="ui-kit-grid ui-kit-gap-3 ui-kit-radius-base ui-kit-grid-md-3 ui-kit-gap-md-0">
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-s-sm ui-kit-radius-md-e-none">
+                                <div class="ui-kit-grid ui-kit-gap-3 sample-card-radius-base ui-kit-grid-md-3 ui-kit-gap-md-0">
+                        <div class="card ui-kit-fill-height sample-radius-md-s-sm sample-radius-md-e-none">
                             <div class="card-body ui-kit-flex-fill">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p><?php echo sr_e(sr_t('admin::ui.text.868e2369')); ?></p>
@@ -414,12 +414,12 @@
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-none">
+                        <div class="card ui-kit-fill-height sample-radius-md-none">
                             <div class="card-body ui-kit-flex-fill">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p><?php echo sr_e(sr_t('admin::ui.text.5b233465')); ?></p>
@@ -427,12 +427,12 @@
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card ui-kit-fill-height ui-kit-radius-md-s-none ui-kit-radius-md-e-sm">
+                        <div class="card ui-kit-fill-height sample-radius-md-s-none sample-radius-md-e-sm">
                             <div class="card-body ui-kit-flex-fill">
                                 <h5 class="card-title ui-kit-space-after-2-5"><?php echo sr_e(sr_t('admin::ui.text.92ab0fdd')); ?></h5>
                                 <p><?php echo sr_e(sr_t('admin::ui.text.a1740815')); ?></p>
@@ -440,7 +440,7 @@
 
                             <div class="card-footer">
                                 <p>
-                                    <small class="ui-kit-ink-default-400 ui-kit-type-2xs"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
+                                    <small class="sample-caption"><?php echo sr_e(sr_t('admin::ui.text.0ff44489')); ?></small>
                                 </p>
                             </div>
                         </div>
@@ -456,21 +456,21 @@
                             <div class="card-body">
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
-                            <div class="card-header ui-kit-line-dashed ui-kit-pad-after-0">
+                            <div class="card-header sample-card-tab-header">
                                 <nav class="ui-kit-cluster">
                                     <a href="#"
-                                        class="ui-kit-ink-primary ui-kit-line-default-300 ui-kit-radius-t-lg ui-kit-frame ui-kit-divider-bottom-none ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-text-center ui-kit-type-sm ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></a>
+                                        class="sample-card-tab-active"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></a>
 
-                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.3d54da9c')); ?></a>
+                                    <a href="#" class="sample-card-tab-link"><?php echo sr_e(sr_t('admin::ui.text.3d54da9c')); ?></a>
 
-                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled><?php echo sr_e(sr_t('admin::ui.text.cb0f8c54')); ?></a>
+                                    <a href="#" class="sample-card-tab-link" disabled><?php echo sr_e(sr_t('admin::ui.text.cb0f8c54')); ?></a>
                                 </nav>
                             </div>
 
                             <div class="card-body">
-                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center"><?php echo sr_e(sr_t('admin::ui.text.576b084e')); ?></h5>
-                                <p class="ui-kit-space-after-4 ui-kit-text-center"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?></p>
-                                <div class="ui-kit-text-center">
+                                <h5 class="sample-body-md ui-kit-space-after-2 sample-card-center"><?php echo sr_e(sr_t('admin::ui.text.576b084e')); ?></h5>
+                                <p class="sample-card-stat-copy"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?></p>
+                                <div class="sample-card-center">
                                     <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.a63b0796')); ?></a>
                                 </div>
                             </div>
@@ -480,16 +480,16 @@
                             <div class="card-header">
                                 <nav class="ui-kit-cluster">
                                     <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.d9ba6551')); ?></a>
-                                    <a href="#" class="ui-kit-ink-default-600 ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium"><?php echo sr_e(sr_t('admin::ui.text.3d54da9c')); ?></a>
-                                    <a href="#" class="ui-kit-inline-pad-4 ui-kit-block-pad-2 ui-kit-weight-medium" disabled><?php echo sr_e(sr_t('admin::ui.text.cb0f8c54')); ?></a>
+                                    <a href="#" class="sample-card-tab-link"><?php echo sr_e(sr_t('admin::ui.text.3d54da9c')); ?></a>
+                                    <a href="#" class="sample-card-tab-link" disabled><?php echo sr_e(sr_t('admin::ui.text.cb0f8c54')); ?></a>
                                 </nav>
                             </div>
 
                             <div class="card-body">
-                                <h5 class="ui-kit-type-md ui-kit-space-after-2 ui-kit-text-center"><?php echo sr_e(sr_t('admin::ui.text.576b084e')); ?></h5>
-                                <p class="ui-kit-space-after-4 ui-kit-text-center"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?></p>
+                                <h5 class="sample-body-md ui-kit-space-after-2 sample-card-center"><?php echo sr_e(sr_t('admin::ui.text.576b084e')); ?></h5>
+                                <p class="sample-card-stat-copy"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?></p>
 
-                                <div class="ui-kit-text-center">
+                                <div class="sample-card-center">
                                     <a href="#" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.a63b0796')); ?></a>
                                 </div>
                             </div>

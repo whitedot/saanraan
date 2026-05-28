@@ -7,7 +7,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.76d77ea3')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.76d77ea3')); ?></p>
                                 <div>
                                     <nav class="tab-nav" aria-label="Tabs" role="tablist"
                                         data-tab-select="#tab-select">
@@ -47,11 +47,11 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.dashboard.status.login.active.74ffa722')); ?></p>
                                     </div>
 
-                                    <div id="default-activity" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="activity">
+                                    <div id="default-activity" class="sample-hidden" role="tabpanel" aria-labelledby="activity">
                                         <p><?php echo sr_e(sr_t('admin::ui.all.status.notification.status.b3013a7d')); ?></p>
                                     </div>
 
-                                    <div id="default-settings" class="ui-kit-state-hidden" role="tabpanel"
+                                    <div id="default-settings" class="sample-hidden" role="tabpanel"
                                         aria-labelledby="settings">
                                         <p><?php echo sr_e(sr_t('admin::ui.notification.settings.settings.active.251ac9a5')); ?></p>
                                     </div>
@@ -67,7 +67,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.all.d71866ef')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.all.d71866ef')); ?></p>
 
                                 <div>
                                     <nav class="tab-nav-justified" aria-label="Tabs" role="tablist"
@@ -114,19 +114,19 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.text.2d83d75e')); ?></p>
                                     </div>
 
-                                    <div id="profile1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-1">
+                                    <div id="profile1" class="sample-hidden" role="tabpanel" aria-labelledby="profile-1">
                                         <p><?php echo sr_e(sr_t('admin::ui.settings.password.settings.3cf58eeb')); ?></p>
                                     </div>
 
-                                    <div id="settings1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="settings-1">
+                                    <div id="settings1" class="sample-hidden" role="tabpanel" aria-labelledby="settings-1">
                                         <p><?php echo sr_e(sr_t('admin::ui.settings.notification.settings.6ae8f9f3')); ?></p>
                                     </div>
 
-                                    <div id="projects1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="projects-1">
+                                    <div id="projects1" class="sample-hidden" role="tabpanel" aria-labelledby="projects-1">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.6b7a6f12')); ?></p>
                                     </div>
 
-                                    <div id="Support1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="Support-1">
+                                    <div id="Support1" class="sample-hidden" role="tabpanel" aria-labelledby="Support-1">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.4f1ecbca')); ?></p>
                                     </div>
                                 </div>
@@ -141,7 +141,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.flex.1ff5c66c')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.flex.1ff5c66c')); ?></p>
 
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-4 ui-kit-gap-base">
                                     <nav aria-label="Tabs" role="tablist" data-tab-select="#tab-select">
@@ -196,7 +196,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.dashboard.2e6e72bc')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-profile-tab" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-profile-tab" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="vertical-activity">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.f2a801b9')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -207,7 +207,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.status.0577e68a')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-settings-tab" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-settings-tab" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="vertical-settings">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.notification.settings.active.cf8a0dbd')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -218,7 +218,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.settings.5e4833a3')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-projects-tab" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-projects-tab" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="vertical-disabled">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.81672289')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -229,7 +229,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.active.0bf30f64')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-support-tab" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-support-tab" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="vertical-support">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.299130dd')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -252,7 +252,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.pill.status.58fdd3c1')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.pill.status.58fdd3c1')); ?></p>
 
                                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-4 ui-kit-gap-base">
                                     <div class="ui-kit-column-md-3">
@@ -266,7 +266,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.dashboard.2e6e72bc')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-profile-right" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-profile-right" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="right-activity">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.f2a801b9')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -277,7 +277,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.status.0577e68a')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-settings-right" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-settings-right" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="right-settings">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.notification.settings.active.cf8a0dbd')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -288,7 +288,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.settings.5e4833a3')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-projects-right" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-projects-right" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="right-disabled">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.81672289')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -299,7 +299,7 @@
                                             <p><?php echo sr_e(sr_t('admin::ui.active.0bf30f64')); ?></p>
                                         </div>
 
-                                        <div id="v-pills-support-right" class="ui-kit-state-hidden" role="tabpanel"
+                                        <div id="v-pills-support-right" class="sample-hidden" role="tabpanel"
                                             aria-labelledby="right-support">
                                             <p class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.299130dd')); ?></p>
                                             <ul class="ui-kit-space-after-4 ui-kit-list-disc ui-kit-stack-1 ui-kit-start-pad-8">
@@ -362,7 +362,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.status.55c3c3ba')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.status.55c3c3ba')); ?></p>
 
                                 <div>
                                     <nav class="tab-nav-bordered" aria-label="Tabs"
@@ -402,16 +402,16 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.text.4d91b0d6')); ?></p>
                                     </div>
 
-                                    <div id="profile-b1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-border">
+                                    <div id="profile-b1" class="sample-hidden" role="tabpanel" aria-labelledby="profile-border">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.0a90fdd6')); ?></p>
                                     </div>
 
-                                    <div id="settings-b1" class="ui-kit-state-hidden" role="tabpanel"
+                                    <div id="settings-b1" class="sample-hidden" role="tabpanel"
                                         aria-labelledby="settings-border">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.a9441910')); ?></p>
                                     </div>
 
-                                    <div id="about-b1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-border">
+                                    <div id="about-b1" class="sample-hidden" role="tabpanel" aria-labelledby="about-border">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.661a1ea2')); ?></p>
                                     </div>
                                 </div>
@@ -426,7 +426,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.select.active.26177deb')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.select.active.26177deb')); ?></p>
 
                                 <div>
                                     <nav class="tab-nav-bordered-tight" aria-label="Tabs" role="tablist"
@@ -436,7 +436,7 @@
                                             id="home-icon" aria-selected="true" data-tab="#home-ib1"
                                             aria-controls="home-ib1" role="tab">
                                             <?php echo sr_material_icon_html('home', '', sr_t('admin::ui.text.034999fa')); ?>
-                                            <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.text.034999fa')); ?></div>
+                                            <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.text.034999fa')); ?></div>
                                         </button>
 
                                         <button type="button"
@@ -444,7 +444,7 @@
                                             id="profile-icon" aria-selected="false" data-tab="#profile-ib1"
                                             aria-controls="profile-ib1" role="tab">
                                             <?php echo sr_material_icon_html('person', '', sr_t('admin::ui.active.1ac6e422')); ?>
-                                            <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.text.4a784986')); ?></div>
+                                            <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.text.4a784986')); ?></div>
                                         </button>
 
                                         <button type="button"
@@ -452,7 +452,7 @@
                                             id="settings-icon" aria-selected="false" data-tab="#settings-ib1"
                                             aria-controls="settings-ib1" role="tab">
                                             <?php echo sr_material_icon_html('settings', '', sr_t('admin::ui.settings.115bced4')); ?>
-                                            <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.settings.115bced4')); ?></div>
+                                            <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.settings.115bced4')); ?></div>
                                         </button>
 
                                         <button type="button"
@@ -460,7 +460,7 @@
                                             id="about-icon" aria-selected="false" data-tab="#about-ib1"
                                             aria-controls="about-ib1" role="tab">
                                             <?php echo sr_material_icon_html('warning', '', sr_t('admin::ui.text.6c0f7510')); ?>
-                                            <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.text.b8cf07ac')); ?></div>
+                                            <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.text.b8cf07ac')); ?></div>
                                         </button>
                                     </nav>
                                 </div>
@@ -470,16 +470,16 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.text.002c4c0a')); ?></p>
                                     </div>
 
-                                    <div id="profile-ib1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-icon">
+                                    <div id="profile-ib1" class="sample-hidden" role="tabpanel" aria-labelledby="profile-icon">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.d0eb5a5a')); ?></p>
                                     </div>
 
-                                    <div id="settings-ib1" class="ui-kit-state-hidden" role="tabpanel"
+                                    <div id="settings-ib1" class="sample-hidden" role="tabpanel"
                                         aria-labelledby="settings-icon">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.63a0eaba')); ?></p>
                                     </div>
 
-                                    <div id="about-ib1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-icon">
+                                    <div id="about-ib1" class="sample-hidden" role="tabpanel" aria-labelledby="about-icon">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.6e9916b7')); ?></p>
                                     </div>
                                 </div>
@@ -494,7 +494,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-ink-default-400 ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.status.active.700c0ef0')); ?></p>
+                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.status.active.700c0ef0')); ?></p>
 
                                 <div>
                                     <nav class="tab-nav-bordered" aria-label="Tabs"
@@ -534,16 +534,16 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.text.9f084c3a')); ?></p>
                                     </div>
 
-                                    <div id="profile-i1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="profile-icon-2">
+                                    <div id="profile-i1" class="sample-hidden" role="tabpanel" aria-labelledby="profile-icon-2">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.efb948b4')); ?></p>
                                     </div>
 
-                                    <div id="settings-i1" class="ui-kit-state-hidden" role="tabpanel"
+                                    <div id="settings-i1" class="sample-hidden" role="tabpanel"
                                         aria-labelledby="settings-icon-2">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.db8f5867')); ?></p>
                                     </div>
 
-                                    <div id="about-i1" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="about-icon-2">
+                                    <div id="about-i1" class="sample-hidden" role="tabpanel" aria-labelledby="about-icon-2">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.4e442ab1')); ?></p>
                                     </div>
                                 </div>
@@ -553,7 +553,7 @@
                         <!-- end card-->
 
                         <div class="card">
-                            <div class="card-header ui-kit-line-dashed">
+                            <div class="card-header sample-border-dashed">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.card.with.tabs.07403201')); ?></h4>
 
                                 <nav class="nav-tabs" aria-label="Tabs" role="tablist" data-tab-select="#tab-select">
@@ -562,7 +562,7 @@
                                         id="summary" aria-selected="true" data-tab="#home-ct" aria-controls="home-ct"
                                         role="tab">
                                         <?php echo sr_material_icon_html('home', '', sr_t('admin::ui.text.034999fa')); ?>
-                                        <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.text.50f30154')); ?></div>
+                                        <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.text.50f30154')); ?></div>
                                     </button>
 
                                     <button type="button"
@@ -570,7 +570,7 @@
                                         id="accounts" aria-selected="false" data-tab="#profile-ct"
                                         aria-controls="profile-ct" role="tab">
                                         <?php echo sr_material_icon_html('person', '', sr_t('admin::ui.active.1ac6e422')); ?>
-                                        <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.text.b0b3d3bc')); ?></div>
+                                        <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.text.b0b3d3bc')); ?></div>
                                     </button>
 
                                     <button type="button"
@@ -578,7 +578,7 @@
                                         id="setting" aria-selected="false" data-tab="#settings-ct"
                                         aria-controls="settings-ct" role="tab">
                                         <?php echo sr_material_icon_html('settings', '', sr_t('admin::ui.settings.115bced4')); ?>
-                                        <div class="ui-kit-state-hidden ui-kit-show-md"><?php echo sr_e(sr_t('admin::ui.settings.115bced4')); ?></div>
+                                        <div class="tabs-hidden-until-md"><?php echo sr_e(sr_t('admin::ui.settings.115bced4')); ?></div>
                                     </button>
                                 </nav>
                             </div>
@@ -589,11 +589,11 @@
                                         <p><?php echo sr_e(sr_t('admin::ui.dashboard.f6df4a9f')); ?></p>
                                     </div>
 
-                                    <div id="profile-ct" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="accounts">
+                                    <div id="profile-ct" class="sample-hidden" role="tabpanel" aria-labelledby="accounts">
                                         <p><?php echo sr_e(sr_t('admin::ui.text.924c7ec3')); ?></p>
                                     </div>
 
-                                    <div id="settings-ct" class="ui-kit-state-hidden" role="tabpanel" aria-labelledby="setting">
+                                    <div id="settings-ct" class="sample-hidden" role="tabpanel" aria-labelledby="setting">
                                         <p><?php echo sr_e(sr_t('admin::ui.notification.settings.active.notification.select.3f5ffd6a')); ?></p>
                                     </div>
                                 </div>
