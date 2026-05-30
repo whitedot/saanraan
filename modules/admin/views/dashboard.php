@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card card admin-dashboard-manager" data-admin-dashboard-manager hidden>
     <div class="admin-dashboard-manager-header">
-        <h2><?php echo sr_e(sr_t('admin::ui.text.22a12dff')); ?></h2>
+        <h2 class="type-section-title"><?php echo sr_e(sr_t('admin::ui.text.22a12dff')); ?></h2>
         <button type="button" class="btn btn-ghost-default btn-icon" data-admin-dashboard-manager-close aria-label="<?php echo sr_e(sr_t('admin::ui.close.a6d9b729')); ?>"><?php echo sr_material_icon_html('close'); ?></button>
     </div>
     <div class="admin-dashboard-manager-list" data-admin-dashboard-manager-list></div>

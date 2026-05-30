@@ -8,7 +8,7 @@
 .admin-content-list .admin-sort-label{font-weight:inherit}
 .admin-content-list .admin-sort-button-group{display:inline-flex;flex:0 0 auto}
 .admin-content-list .admin-sort-button{min-height:calc(var(--spacing) * 6);min-width:calc(var(--spacing) * 6);padding:calc(var(--spacing) * .75)}
-.admin-content-list .admin-sort-button .material-symbols-outlined{font-size:.875rem;line-height:1}
+.admin-content-list .admin-sort-button .material-symbols-outlined{font-size:var(--text-sm);line-height:1}
 .admin-content-list .admin-content-table{table-layout:auto}
 .admin-content-list .admin-content-table th,.admin-content-list .admin-content-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-content-list .admin-content-table .admin-table-actions-cell{overflow:visible}
@@ -36,10 +36,6 @@
 .admin-content-file-charge-amount{width:8rem}
 .admin-content-file-charge-policy{width:10rem}
 .admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
-.admin-asset-amount-grid{display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));width:100%}
-.admin-asset-amount-field{display:grid;gap:calc(var(--spacing) * 1)}
-.admin-asset-amount-field span{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);color:var(--admin-muted-text)}
-
 @media (max-width:1023px){
     .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     .admin-content-list .admin-content-filter-keyword,.admin-content-group-list .admin-content-group-search-grid .admin-filter-field:nth-child(3),.admin-content-download-files .admin-content-download-file-filter-keyword{grid-column:1 / -1}

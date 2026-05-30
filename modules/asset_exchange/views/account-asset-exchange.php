@@ -23,25 +23,25 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             </div>
 
             <?php foreach ($errors as $error) { ?>
-                <p class="public-ui-feedback public-ui-feedback-error"><?php echo sr_e((string) $error); ?></p>
+                <p class="public-ui-feedback public-ui-feedback-error type-small"><?php echo sr_e((string) $error); ?></p>
             <?php } ?>
             <?php if ($notice !== '') { ?>
-                <p class="public-ui-feedback"><?php echo sr_e($notice); ?></p>
+                <p class="public-ui-feedback type-small"><?php echo sr_e($notice); ?></p>
             <?php } ?>
 
             <section class="public-ui-card sr-asset-exchange-balance-card">
                 <div class="sr-asset-exchange-section-head">
-                    <h2 class="public-ui-title">보유 포인트/금액</h2>
+                    <h2 class="public-ui-title type-section-title">보유 포인트/금액</h2>
                 </div>
                 <?php if ($assets === []) { ?>
-                    <p class="sr-asset-exchange-empty">환전 가능한 포인트/금액 항목이 없습니다.</p>
+                    <p class="sr-asset-exchange-empty type-small">환전 가능한 포인트/금액 항목이 없습니다.</p>
                 <?php } else { ?>
                     <div class="sr-asset-exchange-assets">
                         <?php foreach ($assets as $asset) { ?>
                             <div class="sr-asset-exchange-asset">
-                                <span class="sr-asset-exchange-asset-label"><?php echo sr_e((string) $asset['label']); ?></span>
-                                <strong><?php echo sr_e(number_format((int) ($balances[(string) $asset['module_key']] ?? 0))); ?></strong>
-                                <span class="sr-asset-exchange-unit"><?php echo sr_e((string) $asset['unit_label']); ?></span>
+                                <span class="sr-asset-exchange-asset-label type-small"><?php echo sr_e((string) $asset['label']); ?></span>
+                                <strong class="type-page-title"><?php echo sr_e(number_format((int) ($balances[(string) $asset['module_key']] ?? 0))); ?></strong>
+                                <span class="sr-asset-exchange-unit type-small"><?php echo sr_e((string) $asset['unit_label']); ?></span>
                             </div>
                         <?php } ?>
                     </div>
@@ -50,10 +50,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
             <section class="public-ui-card sr-asset-exchange-request-card">
                 <div class="sr-asset-exchange-section-head">
-                    <h2 class="public-ui-title">환전 신청</h2>
+                    <h2 class="public-ui-title type-section-title">환전 신청</h2>
                 </div>
                 <?php if ($availablePolicies === []) { ?>
-                    <p class="sr-asset-exchange-empty">현재 신청 가능한 환전 정책이 없습니다.</p>
+                    <p class="sr-asset-exchange-empty type-small">현재 신청 가능한 환전 정책이 없습니다.</p>
                 <?php } else { ?>
                     <form method="get" action="<?php echo sr_e(sr_url('/account/asset-exchange')); ?>" class="sr-asset-exchange-form">
                         <label class="public-ui-field" for="asset_exchange_policy_id">
@@ -83,23 +83,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                             <input type="hidden" name="exchange_submit_token" value="<?php echo sr_e((string) ($exchangeSubmitToken ?? '')); ?>">
                             <dl class="sr-asset-exchange-quote-grid">
                                 <div>
-                                    <dt>출금</dt>
-                                    <dd><?php echo sr_e(number_format((int) $quote['request_amount'])); ?></dd>
+                                    <dt class="type-caption">출금</dt>
+                                    <dd class="type-section-title"><?php echo sr_e(number_format((int) $quote['request_amount'])); ?></dd>
                                 </div>
                                 <div>
-                                    <dt>입금</dt>
-                                    <dd><?php echo sr_e(number_format((int) $quote['deposit_before_fee'])); ?></dd>
+                                    <dt class="type-caption">입금</dt>
+                                    <dd class="type-section-title"><?php echo sr_e(number_format((int) $quote['deposit_before_fee'])); ?></dd>
                                 </div>
                                 <div>
-                                    <dt>수수료</dt>
-                                    <dd><?php echo sr_e(number_format((int) $quote['fee_amount'])); ?></dd>
+                                    <dt class="type-caption">수수료</dt>
+                                    <dd class="type-section-title"><?php echo sr_e(number_format((int) $quote['fee_amount'])); ?></dd>
                                 </div>
                                 <div class="sr-asset-exchange-quote-total">
-                                    <dt>최종 증가</dt>
-                                    <dd><?php echo sr_e(number_format((int) $quote['deposit_amount'])); ?></dd>
+                                    <dt class="type-caption">최종 증가</dt>
+                                    <dd class="type-section-title"><?php echo sr_e(number_format((int) $quote['deposit_amount'])); ?></dd>
                                 </div>
                             </dl>
-                            <p class="public-ui-copy">적용 비율 <?php echo sr_e('출금 ' . number_format((int) $selectedPolicy['rate_denominator']) . '당 입금 ' . number_format((int) $selectedPolicy['rate_numerator'])); ?></p>
+                            <p class="public-ui-copy type-body">적용 비율 <?php echo sr_e('출금 ' . number_format((int) $selectedPolicy['rate_denominator']) . '당 입금 ' . number_format((int) $selectedPolicy['rate_numerator'])); ?></p>
                             <button type="submit" class="btn btn-solid-success">
                                 <?php echo sr_material_icon_html('check_circle', 'sr-asset-exchange-button-icon'); ?>
                                 환전 확정
@@ -111,10 +111,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
             <section class="public-ui-card sr-asset-exchange-history-card">
                 <div class="sr-asset-exchange-section-head">
-                    <h2 class="public-ui-title">환전 내역</h2>
+                    <h2 class="public-ui-title type-section-title">환전 내역</h2>
                 </div>
                 <?php if ($logs === []) { ?>
-                    <p class="sr-asset-exchange-empty">환전 내역이 없습니다.</p>
+                    <p class="sr-asset-exchange-empty type-small">환전 내역이 없습니다.</p>
                 <?php } else { ?>
                     <div class="table-wrapper">
                         <table class="table sr-asset-exchange-table">
@@ -138,7 +138,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['request_amount'])); ?></td>
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
-                                        <td><span class="sr-asset-exchange-status sr-asset-exchange-status-<?php echo sr_e((string) $log['status']); ?>"><?php echo sr_e((string) $log['status']); ?></span></td>
+                                        <td><span class="sr-asset-exchange-status sr-asset-exchange-status-<?php echo sr_e((string) $log['status']); ?> type-caption"><?php echo sr_e((string) $log['status']); ?></span></td>
                                         <td><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                                     </tr>
                                 <?php } ?>

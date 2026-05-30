@@ -10,17 +10,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main class="public-ui-scope member-login-public">
         <section class="public-ui-form-panel">
-            <h1 class="public-ui-title"><?php echo sr_e($pageTitle); ?></h1>
-            <p class="public-ui-copy"><?php echo sr_e(sr_t('member::ui.saanraan.cad4cd41')); ?></p>
+            <h1 class="public-ui-title type-section-title"><?php echo sr_e($pageTitle); ?></h1>
+            <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('member::ui.saanraan.cad4cd41')); ?></p>
 
             <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 
             <?php if ($notice !== '') { ?>
-                <p class="public-ui-feedback"><?php echo sr_e($notice); ?></p>
+                <p class="public-ui-feedback type-small"><?php echo sr_e($notice); ?></p>
             <?php } ?>
 
             <?php if ($errors !== []) { ?>
-                <ul class="public-ui-feedback-error">
+                <ul class="public-ui-feedback public-ui-feedback-error type-small">
                     <?php foreach ($errors as $error) { ?>
                         <li><?php echo sr_e($error); ?></li>
                     <?php } ?>

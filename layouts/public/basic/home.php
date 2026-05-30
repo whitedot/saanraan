@@ -30,7 +30,7 @@ sr_public_layout_begin($homePdo, $homeSite, $seo);
         <?php } ?>
         <section class="public-home-hero">
             <h1 class="type-display-fluid"><?php echo sr_e($homeSiteName); ?></h1>
-            <p><?php echo nl2br(sr_e($homeDescription)); ?></p>
+            <p class="type-section-title"><?php echo nl2br(sr_e($homeDescription)); ?></p>
         </section>
         <?php if ($homePdo instanceof PDO) { ?>
             <?php echo sr_render_output_slot($homePdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>

@@ -95,7 +95,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="update_level">
                     <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
-                    <label class="community-member-select-all">
+                    <label class="community-member-select-all type-small">
                         <input type="checkbox" class="form-checkbox" data-community-member-select-all aria-label="<?php echo sr_e(sr_t('community::ui.member.select_all')); ?>">
                         <span class="sr-only"><?php echo sr_e(sr_t('community::ui.member.select_all')); ?></span>
                     </label>
@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="intent" value="send_message">
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
                         <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
-                        <p class="community-nickname-reset-copy"><?php echo sr_e(sr_t('community::ui.member.message.confirm_body')); ?></p>
+                        <p class="community-nickname-reset-copy type-small"><?php echo sr_e(sr_t('community::ui.member.message.confirm_body')); ?></p>
                         <div class="community-nickname-reset-summary" aria-label="<?php echo sr_e(sr_t('community::ui.member.message.target')); ?>">
                             <div>
                                 <span><?php echo sr_e(sr_t('community::ui.public_hash')); ?></span>
@@ -268,7 +268,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="intent" value="reset_nickname">
                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberId); ?>">
                     <input type="hidden" name="return_path" value="<?php echo sr_e($nicknameReturnPath); ?>">
-                    <p class="community-nickname-reset-copy"><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>
+                    <p class="community-nickname-reset-copy type-small"><?php echo sr_e(sr_t($nicknameNotificationAvailable ? 'community::ui.nickname.reset.confirm_body' : 'community::ui.nickname.reset.confirm_body_no_notification')); ?></p>
                     <div class="community-nickname-reset-summary" aria-label="<?php echo sr_e(sr_t('community::ui.nickname.reset.target')); ?>">
                         <div>
                             <span><?php echo sr_e(sr_t('community::ui.public_hash')); ?></span>

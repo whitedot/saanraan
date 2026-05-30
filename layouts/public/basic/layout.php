@@ -64,7 +64,7 @@ if ($layoutPdo instanceof PDO) {
                 <?php echo $layoutMobileBrandLogoHtml; ?>
                 <?php echo $layoutBrandLogoHtml; ?>
             <?php } else { ?>
-                <span class="public-site-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
+                <span class="public-site-brand-text type-section-title"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
             <?php } ?>
         </a>
         <?php if ($layoutPrimaryNavigationHtml !== '') { ?>

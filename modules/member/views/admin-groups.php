@@ -150,10 +150,10 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <?php $panelActive = $currentDefinitionKey === (string) $definitionKey || ($currentDefinitionKey === '' && $definitionKey === array_key_first($ruleDefinitions)); ?>
                     <div class="member-rule-param-panel"<?php echo $panelActive ? '' : ' hidden'; ?> data-rule-param-panel="<?php echo sr_e((string) $definitionKey); ?>">
                         <?php if ((string) ($definition['description'] ?? '') !== '') { ?>
-                            <p><?php echo sr_e((string) $definition['description']); ?></p>
+                            <p class="type-small"><?php echo sr_e((string) $definition['description']); ?></p>
                         <?php } ?>
                         <?php if (($definition['params'] ?? []) === []) { ?>
-                            <p><?php echo sr_e(sr_t('member::ui.settings.1ca7d0dd')); ?></p>
+                            <p class="type-small"><?php echo sr_e(sr_t('member::ui.settings.1ca7d0dd')); ?></p>
                         <?php } ?>
                         <?php foreach ((array) ($definition['params'] ?? []) as $param) { ?>
                             <?php

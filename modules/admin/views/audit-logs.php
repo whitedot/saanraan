@@ -20,7 +20,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
     <?php } ?>
     <div class="admin-filter-header">
-        <strong><?php echo sr_e(sr_t('admin::ui.search.3aa5fca0')); ?></strong>
+        <strong class="type-small"><?php echo sr_e(sr_t('admin::ui.search.3aa5fca0')); ?></strong>
     </div>
     <div class="admin-filter-grid admin-audit-search-grid">
         <label class="admin-filter-field admin-audit-filter-field" for="modules_admin_audit_logs_field">

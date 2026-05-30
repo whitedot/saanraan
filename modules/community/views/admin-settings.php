@@ -407,7 +407,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p><?php echo sr_e(sr_t('community::ui.level_max_change_modal_text_help', ['text' => sr_t('community::ui.level_max_change_confirmation_text')])); ?></p>
                     <label class="sr-only" for="community-settings-level-max-confirm-input"><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_label')); ?></label>
                     <input id="community-settings-level-max-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_text')); ?>" aria-describedby="community-settings-level-max-confirm-error" data-overlay-focus data-community-settings-level-max-confirm-input>
-                    <p id="community-settings-level-max-confirm-error" class="community-confirm-validation-message" data-community-settings-level-max-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_error')); ?></p>
+                    <p id="community-settings-level-max-confirm-error" class="community-confirm-validation-message type-caption" data-community-settings-level-max-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_max_change_confirmation_error')); ?></p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -654,7 +654,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <input type="hidden" name="recalculate_confirm_text" value="" data-community-level-recalculate-confirm-text>
 </form>
 <div class="community-level-recalculate-progress" data-community-level-recalculate-progress hidden>
-    <p data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
+    <p class="type-small" data-community-level-recalculate-status role="status" aria-live="polite"><?php echo sr_e(sr_t('community::ui.level_recalculate_ready')); ?></p>
     <progress value="0" max="100" data-community-level-recalculate-meter></progress>
 </div>
 <div id="<?php echo sr_e($communityLevelRecalculateModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityLevelRecalculateModalId); ?>-label" aria-hidden="true" inert>
@@ -675,7 +675,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_text_help', ['text' => sr_t('community::ui.level_recalculate_confirmation_text')])); ?></p>
                     <label class="sr-only" for="community-level-recalculate-confirm-input"><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_label')); ?></label>
                     <input id="community-level-recalculate-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_text')); ?>" aria-describedby="community-level-recalculate-confirm-error" data-overlay-focus data-community-level-recalculate-confirm-input>
-                    <p id="community-level-recalculate-confirm-error" class="community-confirm-validation-message" data-community-level-recalculate-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_error')); ?></p>
+                    <p id="community-level-recalculate-confirm-error" class="community-confirm-validation-message type-caption" data-community-level-recalculate-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_error')); ?></p>
                 </div>
             </div>
             <div class="modal-footer">

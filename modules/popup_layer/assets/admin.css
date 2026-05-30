@@ -1,10 +1,16 @@
 .popup-layer-dashboard-summary {
-    background: color-mix(in oklab, var(--color-info) 7%, var(--color-card));
+    background: var(--color-card);
     border: 1px solid var(--color-default-300);
     display: grid;
     grid-template-columns: minmax(7rem, .7fr) minmax(0, 1fr);
     min-height: 13rem;
     overflow: hidden;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .popup-layer-dashboard-summary {
+        background: color-mix(in oklab, var(--color-info) 7%, var(--color-card));
+    }
 }
 
 .popup-layer-dashboard-stack {
@@ -17,13 +23,19 @@
 
 .popup-layer-dashboard-stack span {
     background: var(--color-card);
-    border: 1px solid color-mix(in oklab, var(--color-info) 38%, var(--color-default-300));
+    border: 1px solid var(--color-default-300);
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     display: block;
     grid-area: 1 / 1;
     height: 6rem;
     width: 5.25rem;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .popup-layer-dashboard-stack span {
+        border-color: color-mix(in oklab, var(--color-info) 38%, var(--color-default-300));
+    }
 }
 
 .popup-layer-dashboard-stack span:nth-child(1) {
@@ -35,8 +47,14 @@
 }
 
 .popup-layer-dashboard-stack span:nth-child(3) {
-    background: color-mix(in oklab, var(--color-info) 14%, var(--color-card));
+    background: var(--color-card);
     transform: translateY(-.2rem);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .popup-layer-dashboard-stack span:nth-child(3) {
+        background: color-mix(in oklab, var(--color-info) 14%, var(--color-card));
+    }
 }
 
 .popup-layer-dashboard-content {
@@ -46,22 +64,17 @@
 
 .popup-layer-dashboard-content p {
     color: var(--color-info);
-    font-size: var(--type-meta-size);
-    line-height: var(--type-meta-line-height);
     font-weight: var(--font-weight-semibold);
     margin: 0 0 calc(var(--spacing) * 1.5);
 }
 
 .popup-layer-dashboard-content h2 {
-    font-size: var(--type-section-title-size);
-    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
 .popup-layer-dashboard-content strong {
     color: var(--color-info);
     display: block;
-    font-size: var(--type-display-size);
     line-height: 1;
     margin-top: calc(var(--spacing) * 3);
 }

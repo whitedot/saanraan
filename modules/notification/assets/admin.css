@@ -10,15 +10,11 @@
 
 .notification-dashboard-head p {
     color: var(--color-danger);
-    font-size: var(--type-meta-size);
-    line-height: var(--type-meta-line-height);
     font-weight: var(--font-weight-semibold);
     margin: 0 0 calc(var(--spacing) * 1.5);
 }
 
 .notification-dashboard-head h2 {
-    font-size: var(--type-section-title-size);
-    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
@@ -36,7 +32,6 @@
 .notification-dashboard-count strong {
     color: var(--color-danger);
     display: block;
-    font-size: var(--type-display-size);
     line-height: 1;
     margin-top: calc(var(--spacing) * 2);
 }
@@ -75,8 +70,6 @@
 .admin-page-notification-delivery-list .admin-notification-delivery-date-cell{white-space:nowrap}
 .admin-page-notification-delivery-list .admin-notification-delivery-table .admin-row-actions{gap:.5rem}
 .admin-page-notification-delivery-list .admin-notification-delivery-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
-.admin-table-subtext{color:var(--admin-muted-text);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height)}
-
 @media (max-width:1023px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .admin-filter-submit{grid-column:1 / -1}.admin-page-notification-list .admin-notification-filter .admin-filter-submit{width:100%}}
 @media (max-width:767px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .admin-filter-submit{grid-column:auto}}
 @media (max-width:767px){.admin-page-notification-list .admin-notification-table :is(th,td):nth-child(2),.admin-page-notification-list .admin-notification-table :is(th,td):nth-child(4){display:none}}

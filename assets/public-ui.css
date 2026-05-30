@@ -50,9 +50,7 @@
 
 .public-site-brand-text {
     color: var(--sr-text, var(--color-default-900));
-    font-size: var(--type-section-title-size);
     font-weight: var(--font-weight-bold);
-    line-height: var(--type-section-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -123,16 +121,12 @@
 
 .public-ui-scope .public-ui-title {
     color: var(--public-ui-text);
-    font-size: var(--type-section-title-size);
     font-weight: var(--font-weight-bold);
-    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
 .public-ui-scope .public-ui-copy {
     color: var(--public-ui-muted);
-    font-size: var(--type-body-size);
-    line-height: var(--type-body-line-height);
     margin: 0;
 }
 
@@ -201,18 +195,10 @@
     gap: 1rem;
 }
 
-.public-home-eyebrow {
-    color: var(--public-ui-primary);
-    font-size: var(--type-small-size);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--type-small-line-height);
-}
-
-.public-home-hero > p:not(.public-home-eyebrow) {
+.public-home-hero > p {
     color: var(--public-ui-muted);
+    font-weight: var(--font-weight-normal);
     max-width: 42rem;
-    font-size: var(--type-section-title-size);
-    line-height: var(--type-section-title-line-height);
 }
 
 .public-home-actions {
@@ -237,8 +223,14 @@
 
 .public-ui-scope .public-ui-feedback-error {
     border-color: var(--sr-danger-border, var(--color-danger));
-    background: var(--sr-danger-bg, color-mix(in oklab, var(--color-danger) 10%, transparent));
+    background: var(--sr-danger-bg, var(--public-ui-surface-soft));
     color: var(--sr-danger-text, var(--color-danger));
     margin: 0;
     padding: 10px 12px 10px 28px;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .public-ui-scope .public-ui-feedback-error {
+        background: var(--sr-danger-bg, color-mix(in oklab, var(--color-danger) 10%, transparent));
+    }
 }

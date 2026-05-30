@@ -46,14 +46,10 @@
 .sr-asset-exchange-asset-label,
 .sr-asset-exchange-unit {
     color: var(--public-ui-muted);
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
 }
 
 .sr-asset-exchange-asset strong {
     color: var(--public-ui-text);
-    font-size: var(--type-page-title-size);
-    line-height: var(--type-page-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -69,13 +65,20 @@
 }
 
 .sr-asset-exchange-quote {
-    background: color-mix(in oklab, var(--public-ui-primary) 7%, var(--public-ui-surface));
-    border: 1px solid color-mix(in oklab, var(--public-ui-primary) 20%, var(--public-ui-border));
+    background: var(--public-ui-surface-soft);
+    border: 1px solid var(--public-ui-border);
     border-radius: 8px;
     display: grid;
     gap: 14px;
     margin-top: 4px;
     padding: 16px;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .sr-asset-exchange-quote {
+        background: color-mix(in oklab, var(--public-ui-primary) 7%, var(--public-ui-surface));
+        border-color: color-mix(in oklab, var(--public-ui-primary) 20%, var(--public-ui-border));
+    }
 }
 
 .sr-asset-exchange-quote-grid {
@@ -96,21 +99,23 @@
 
 .sr-asset-exchange-quote-grid dt {
     color: var(--public-ui-muted);
-    font-size: var(--type-caption-size);
     font-weight: var(--font-weight-bold);
-    line-height: var(--type-caption-line-height);
 }
 
 .sr-asset-exchange-quote-grid dd {
     color: var(--public-ui-text);
-    font-size: var(--type-section-title-size);
     font-weight: var(--font-weight-bold);
-    line-height: var(--type-section-title-line-height);
     overflow-wrap: anywhere;
 }
 
 .sr-asset-exchange-quote-grid .sr-asset-exchange-quote-total {
-    border-color: color-mix(in oklab, var(--color-success) 45%, var(--public-ui-border));
+    border-color: var(--color-success);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .sr-asset-exchange-quote-grid .sr-asset-exchange-quote-total {
+        border-color: color-mix(in oklab, var(--color-success) 45%, var(--public-ui-border));
+    }
 }
 
 .sr-asset-exchange-table {
@@ -127,9 +132,7 @@
     align-items: center;
     border-radius: 999px;
     display: inline-flex;
-    font-size: var(--type-caption-size);
     font-weight: var(--font-weight-bold);
-    line-height: var(--type-caption-line-height);
     min-height: 1.5rem;
     padding: 2px 8px;
     white-space: nowrap;
@@ -137,13 +140,26 @@
 
 .sr-asset-exchange-status-completed,
 .sr-asset-exchange-status-success {
-    background: color-mix(in oklab, var(--color-success) 14%, transparent);
+    background: var(--public-ui-surface-soft);
     color: var(--color-success);
 }
 
+@supports (color: color-mix(in lab, red, red)) {
+    .sr-asset-exchange-status-completed,
+    .sr-asset-exchange-status-success {
+        background: color-mix(in oklab, var(--color-success) 14%, transparent);
+    }
+}
+
 .sr-asset-exchange-status-failed {
-    background: color-mix(in oklab, var(--color-danger) 12%, transparent);
+    background: var(--public-ui-surface-soft);
     color: var(--color-danger);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .sr-asset-exchange-status-failed {
+        background: color-mix(in oklab, var(--color-danger) 12%, transparent);
+    }
 }
 
 .sr-asset-exchange-empty {
