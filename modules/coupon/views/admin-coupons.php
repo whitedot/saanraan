@@ -29,6 +29,38 @@ $definitionStatusLabels = [
     'active' => '사용 중',
     'disabled' => '중지',
 ];
+$definitionStatusClasses = [
+    'active' => 'is-normal',
+    'disabled' => 'is-blocked',
+];
+$issueStatusClasses = [
+    'active' => 'is-normal',
+    'used' => 'is-normal',
+    'expired' => 'is-blocked',
+    'revoked' => 'is-left',
+    'withdrawn_expired' => 'is-left',
+    'refund_requested' => 'is-blocked',
+    'refunded' => 'is-normal',
+];
+$redemptionStatusClasses = [
+    'redeemed' => 'is-normal',
+    'refunded' => 'is-normal',
+];
+$definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => '', 'target_type' => '', 'q' => ''];
+$issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => '', 'target_type' => '', 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
+$redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ? $redemptionFilters : ['status' => '', 'target_type' => '', 'refundable_policy' => '', 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
+$definitionSort = isset($definitionSort) && is_array($definitionSort) ? $definitionSort : (sr_coupon_admin_definition_default_sort() + ['is_default' => true]);
+$issueSort = isset($issueSort) && is_array($issueSort) ? $issueSort : (sr_coupon_admin_issue_default_sort() + ['is_default' => true]);
+$redemptionSort = isset($redemptionSort) && is_array($redemptionSort) ? $redemptionSort : (sr_coupon_admin_redemption_default_sort() + ['is_default' => true]);
+$issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
+$redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
+$couponAccountSearchFields = [
+    'all' => '전체',
+    'hash' => '공개 해시',
+    'email' => '이메일',
+    'login_id' => '로그인 ID',
+    'name' => '이름',
+];
 $couponCreateModalId = 'coupon-create-modal';
 $couponCreateModalOpen = isset($couponCreateModalOpen) && $couponCreateModalOpen === true;
 $couponCreateModalClass = $couponCreateModalOpen
@@ -47,21 +79,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($couponAdminPage === 'definitions') { ?>
-<section class="admin-card card">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+    <div class="admin-filter-grid admin-coupon-definition-filter-grid">
+        <div class="admin-filter-field">
+            <label for="coupon_definition_status_filter" class="admin-filter-label">상태</label>
+            <select id="coupon_definition_status_filter" name="status" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($definitionStatusLabels as $statusValue => $statusLabel) { ?>
+                    <option value="<?php echo sr_e((string) $statusValue); ?>"<?php echo (string) ($definitionFilters['status'] ?? '') === (string) $statusValue ? ' selected' : ''; ?>><?php echo sr_e((string) $statusLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_definition_target_type_filter" class="admin-filter-label">사용처</label>
+            <select id="coupon_definition_target_type_filter" name="target_type" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($definitionFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <label for="coupon_definition_keyword_filter" class="admin-filter-label">검색어</label>
+            <input id="coupon_definition_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($definitionFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름, 대상 번호">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
+
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <div>
-            <h2>쿠폰 종류</h2>
+            <h2 class="card-title">쿠폰 종류</h2>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponCreateModalId); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">쿠폰 추가</button>
     </div>
-    <table class="table">
+    <?php if (empty($definitionSort['is_default'])) { ?>
+        <div class="admin-list-summary-row">
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 종류 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        </div>
+    <?php } ?>
+    <div class="table-wrapper">
+    <table class="table admin-coupon-definition-table">
         <thead>
             <tr>
-                <th>관리용 키</th>
-                <th>쿠폰 이름</th>
-                <th>사용처</th>
-                <th>상태</th>
-                <th>관리</th>
+                <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('title', $definitionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰 이름', 'title', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('target_type', $definitionSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $definitionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th class="text-end">관리</th>
             </tr>
         </thead>
         <tbody>
@@ -75,28 +141,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
                         <td><?php echo sr_e((string) ($targetTypes[(string) $definition['target_type']] ?? $definition['target_type'])); ?> <?php echo sr_e((string) $definition['target_id']); ?></td>
-                        <td><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? $definition['status'])); ?></td>
-                        <td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? $definition['status'])); ?></span></td>
+                        <td class="admin-table-actions-cell">
                             <?php
                             $definitionId = (int) ($definition['id'] ?? 0);
                             $issueModalId = 'coupon-issue-modal-' . $definitionId;
                             ?>
-                            <?php if ((string) $definition['status'] === 'active') { ?>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($issueModalId); ?>" data-overlay="#<?php echo sr_e($issueModalId); ?>">지급하기</button>
-                            <?php } ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="set_definition_status">
-                                <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
-                                <input type="hidden" name="status" value="<?php echo (string) $definition['status'] === 'active' ? 'disabled' : 'active'; ?>">
-                                <button type="submit" class="btn btn-sm btn-solid-light"><?php echo (string) $definition['status'] === 'active' ? '사용 중지' : '다시 사용'; ?></button>
-                            </form>
+                            <div class="admin-row-actions">
+                                <?php if ((string) $definition['status'] === 'active') { ?>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($issueModalId); ?>" data-overlay="#<?php echo sr_e($issueModalId); ?>">지급하기</button>
+                                <?php } ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="set_definition_status">
+                                    <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
+                                    <input type="hidden" name="status" value="<?php echo (string) $definition['status'] === 'active' ? 'disabled' : 'active'; ?>">
+                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo (string) $definition['status'] === 'active' ? '사용 중지' : '다시 사용'; ?></button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php foreach ($definitions as $definition) { ?>
@@ -376,64 +445,172 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($couponAdminPage === 'issues') { ?>
-<section class="admin-card card">
-    <h2>최근 지급 내역</h2>
-    <table class="table">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+    <div class="admin-filter-grid admin-coupon-history-filter-grid">
+        <div class="admin-filter-field">
+            <label for="coupon_issue_status_filter" class="admin-filter-label">상태</label>
+            <select id="coupon_issue_status_filter" name="status" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach (sr_coupon_issue_statuses() as $issueStatus) { ?>
+                    <option value="<?php echo sr_e((string) $issueStatus); ?>"<?php echo (string) ($issueFilters['status'] ?? '') === (string) $issueStatus ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_issue_status_label((string) $issueStatus)); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_issue_target_type_filter" class="admin-filter-label">사용처</label>
+            <select id="coupon_issue_target_type_filter" name="target_type" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($issueFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_issue_member_field_filter" class="admin-filter-label">회원 검색</label>
+            <select id="coupon_issue_member_field_filter" name="field" class="form-select admin-filter-input">
+                <?php foreach ($couponAccountSearchFields as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e((string) $fieldValue); ?>"<?php echo (string) ($issueAccountFilter['field'] ?? 'all') === (string) $fieldValue ? ' selected' : ''; ?>><?php echo sr_e((string) $fieldLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <label for="coupon_issue_member_keyword_filter" class="admin-filter-label">회원 검색어</label>
+            <input id="coupon_issue_member_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($issueAccountFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="공개 해시, 이메일, 로그인 ID, 이름">
+        </div>
+        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <label for="coupon_issue_keyword_filter" class="admin-filter-label">쿠폰 검색어</label>
+            <input id="coupon_issue_keyword_filter" type="text" name="coupon_q" value="<?php echo sr_e((string) ($issueFilters['coupon_q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
+
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header"><h2 class="card-title">최근 지급 내역</h2></div>
+    <?php if (empty($issueSort['is_default'])) { ?>
+        <div class="admin-list-summary-row">
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 지급 내역 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        </div>
+    <?php } ?>
+    <div class="table-wrapper">
+    <table class="table admin-coupon-issue-table">
         <thead>
             <tr>
-                <th>회원</th>
-                <th>쿠폰</th>
-                <th>상태</th>
-                <th>사용 횟수</th>
-                <th>지급일</th>
-                <th>관리</th>
+                <th<?php echo sr_admin_sort_aria('member', $issueSort); ?>><?php echo sr_admin_sort_header_html('회원', 'member', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('coupon', $issueSort); ?>><?php echo sr_admin_sort_header_html('쿠폰', 'coupon', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('target_type', $issueSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $issueSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('used_count', $issueSort); ?>><?php echo sr_admin_sort_header_html('사용 횟수', 'used_count', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('issued_at', $issueSort); ?>><?php echo sr_admin_sort_header_html('지급일', 'issued_at', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
+                <th class="text-end">관리</th>
             </tr>
         </thead>
         <tbody>
             <?php if ($issues === []) { ?>
                 <tr>
-                    <td colspan="6" class="admin-empty-state">최근 지급 내역이 없습니다.</td>
+                    <td colspan="7" class="admin-empty-state">최근 지급 내역이 없습니다.</td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($issues as $issue) { ?>
                     <tr>
-                        <td><?php echo sr_e((string) $issue['account_public_hash']); ?></td>
-                        <td><?php echo sr_e((string) $issue['title']); ?></td>
-                        <td><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></td>
-                        <td><?php echo sr_e((string) $issue['used_count']); ?></td>
-                        <td><?php echo sr_e((string) $issue['issued_at']); ?></td>
-                        <td>
-                            <?php if ((string) $issue['status'] === 'active') { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="intent" value="set_issue_status">
-                                    <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issue['id']); ?>">
-                                    <input type="hidden" name="status" value="revoked">
-                                    <button type="submit" class="btn btn-sm btn-solid-light">지급 취소</button>
-                                </form>
-                            <?php } ?>
+                        <td><?php echo sr_e(sr_admin_member_display_name_preview($issue)); ?><br><?php echo sr_e(sr_admin_member_email_display($issue)); ?></td>
+                        <td><?php echo sr_e((string) $issue['title']); ?><br><code><?php echo sr_e((string) $issue['coupon_key']); ?></code></td>
+                        <td><?php echo sr_e((string) ($targetTypes[(string) ($issue['target_type'] ?? '')] ?? ($issue['target_type'] ?? ''))); ?> <?php echo sr_e((string) ($issue['target_id'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
+                        <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['used_count']); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['issued_at']); ?></td>
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
+                                <?php if ((string) $issue['status'] === 'active') { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="set_issue_status">
+                                        <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issue['id']); ?>">
+                                        <input type="hidden" name="status" value="revoked">
+                                        <button type="submit" class="btn btn-sm btn-solid-light">지급 취소</button>
+                                    </form>
+                                <?php } else { ?>
+                                    <span class="text-muted">-</span>
+                                <?php } ?>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 <?php } ?>
 
 <?php if ($couponAdminPage === 'redemptions') { ?>
-<section class="admin-card card">
-    <h2>최근 사용 내역</h2>
-    <table class="table">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+    <div class="admin-filter-grid admin-coupon-redemption-filter-grid">
+        <div class="admin-filter-field">
+            <label for="coupon_redemption_status_filter" class="admin-filter-label">상태</label>
+            <select id="coupon_redemption_status_filter" name="status" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach (['redeemed', 'refunded'] as $redemptionStatusOption) { ?>
+                    <option value="<?php echo sr_e((string) $redemptionStatusOption); ?>"<?php echo (string) ($redemptionFilters['status'] ?? '') === (string) $redemptionStatusOption ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_redemption_status_label((string) $redemptionStatusOption)); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_redemption_refundable_policy_filter" class="admin-filter-label">환급 정책</label>
+            <select id="coupon_redemption_refundable_policy_filter" name="refundable_policy" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
+                    <option value="<?php echo sr_e((string) $policy); ?>"<?php echo (string) ($redemptionFilters['refundable_policy'] ?? '') === (string) $policy ? ' selected' : ''; ?>><?php echo sr_e((string) $policyLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_redemption_target_type_filter" class="admin-filter-label">사용처</label>
+            <select id="coupon_redemption_target_type_filter" name="target_type" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($redemptionFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field">
+            <label for="coupon_redemption_member_field_filter" class="admin-filter-label">회원 검색</label>
+            <select id="coupon_redemption_member_field_filter" name="field" class="form-select admin-filter-input">
+                <?php foreach ($couponAccountSearchFields as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e((string) $fieldValue); ?>"<?php echo (string) ($redemptionAccountFilter['field'] ?? 'all') === (string) $fieldValue ? ' selected' : ''; ?>><?php echo sr_e((string) $fieldLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <label for="coupon_redemption_member_keyword_filter" class="admin-filter-label">회원 검색어</label>
+            <input id="coupon_redemption_member_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($redemptionAccountFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="공개 해시, 이메일, 로그인 ID, 이름">
+        </div>
+        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <label for="coupon_redemption_keyword_filter" class="admin-filter-label">쿠폰 검색어</label>
+            <input id="coupon_redemption_keyword_filter" type="text" name="coupon_q" value="<?php echo sr_e((string) ($redemptionFilters['coupon_q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
+
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header"><h2 class="card-title">최근 사용 내역</h2></div>
+    <?php if (empty($redemptionSort['is_default'])) { ?>
+        <div class="admin-list-summary-row">
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 사용 내역 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        </div>
+    <?php } ?>
+    <div class="table-wrapper">
+    <table class="table admin-coupon-redemption-table">
         <thead>
             <tr>
-                <th>회원</th>
-                <th>쿠폰</th>
-                <th>사용 대상</th>
-                <th>상태</th>
-                <th>사용일</th>
-                <th>환불일</th>
-                <th>관리</th>
+                <th<?php echo sr_admin_sort_aria('member', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('회원', 'member', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('coupon', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰', 'coupon', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('target_type', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('사용 대상', 'target_type', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('status', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('redeemed_at', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('사용일', 'redeemed_at', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('refunded_at', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('환불일', 'refunded_at', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th class="text-end">관리</th>
             </tr>
         </thead>
         <tbody>
@@ -451,33 +628,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
                     ?>
                     <tr>
-                        <td><?php echo sr_e((string) ($redemption['account_public_hash'] ?? '')); ?></td>
+                        <td><?php echo sr_e(sr_admin_member_display_name_preview($redemption)); ?><br><?php echo sr_e(sr_admin_member_email_display($redemption)); ?></td>
                         <td>
                             <?php echo sr_e((string) ($redemption['title'] ?? '')); ?><br>
                             <code><?php echo sr_e((string) ($redemption['coupon_key'] ?? '')); ?></code>
                         </td>
                         <td>
-                            <?php echo sr_e((string) ($redemption['target_type'] ?? '')); ?> #<?php echo sr_e((string) ($redemption['target_id'] ?? '')); ?><br>
+                            <?php echo sr_e((string) ($targetTypes[(string) ($redemption['target_type'] ?? '')] ?? ($redemption['target_type'] ?? ''))); ?> #<?php echo sr_e((string) ($redemption['target_id'] ?? '')); ?><br>
                             <?php echo sr_e((string) ($redemption['reference_module'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_type'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_id'] ?? '')); ?>
                         </td>
-                        <td><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></td>
-                        <td><?php echo sr_e((string) ($redemption['redeemed_at'] ?? '')); ?></td>
-                        <td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
+                        <td class="admin-table-nowrap"><?php echo sr_e((string) ($redemption['redeemed_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap">
                             <?php echo sr_e((string) ($redemption['refunded_at'] ?? '')); ?>
                             <?php if ((string) ($redemption['refund_note'] ?? '') !== '') { ?>
                                 <br><?php echo sr_e((string) ($redemption['refund_note'] ?? '')); ?>
                             <?php } ?>
                         </td>
-                        <td>
-                            <?php if ($canRefund) { ?>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">수동 환불</button>
-                            <?php } ?>
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
+                                <?php if ($canRefund) { ?>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">수동 환불</button>
+                                <?php } else { ?>
+                                    <span class="text-muted">-</span>
+                                <?php } ?>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             <?php } ?>
         </tbody>
     </table>
+    </div>
 </section>
 
 <?php foreach (($redemptions ?? []) as $redemption) { ?>

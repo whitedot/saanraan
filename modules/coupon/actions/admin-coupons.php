@@ -165,24 +165,20 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$definitions = $couponAdminPage === 'definitions' ? sr_coupon_definitions($pdo, 100) : [];
+$definitionFilters = $couponAdminPage === 'definitions' ? sr_coupon_admin_definition_filters($pdo) : [];
+$issueFilters = $couponAdminPage === 'issues' ? sr_coupon_admin_issue_filters($pdo, $runtimeConfig) : [];
+$redemptionFilters = $couponAdminPage === 'redemptions' ? sr_coupon_admin_redemption_filters($pdo, $runtimeConfig) : [];
+$definitionSort = $couponAdminPage === 'definitions' ? sr_admin_sort_from_request(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()) : sr_coupon_admin_definition_default_sort();
+$issueSort = $couponAdminPage === 'issues' ? sr_admin_sort_from_request(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()) : sr_coupon_admin_issue_default_sort();
+$redemptionSort = $couponAdminPage === 'redemptions' ? sr_admin_sort_from_request(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()) : sr_coupon_admin_redemption_default_sort();
+$definitions = $couponAdminPage === 'definitions' ? sr_coupon_admin_definitions($pdo, $definitionFilters, 100, $definitionSort) : [];
 $memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_groups($pdo) : [];
 $issues = [];
 $redemptions = [];
 if ($couponAdminPage === 'issues') {
-    $stmt = $pdo->query(
-        'SELECT i.id, i.account_id, i.status, i.used_count, i.issued_at, i.expires_at, d.title, d.coupon_key
-         FROM sr_coupon_issues i
-         INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
-         ORDER BY i.id DESC
-         LIMIT 100'
-    );
-    foreach ($stmt->fetchAll() as $row) {
-        $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
-        $issues[] = $row;
-    }
+    $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, 100, $issueSort);
 } elseif ($couponAdminPage === 'redemptions') {
-    $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, 100);
+    $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, 100, $redemptionFilters, $redemptionSort);
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';

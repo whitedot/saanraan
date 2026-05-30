@@ -1,0 +1,58 @@
+.admin-coupon-filter .admin-filter-grid {
+    gap: .875rem;
+    justify-content: start;
+}
+
+.admin-coupon-definition-filter-grid {
+    grid-template-columns: max-content max-content minmax(16rem, 1fr) max-content;
+}
+
+.admin-coupon-history-filter-grid {
+    grid-template-columns: max-content max-content max-content minmax(14rem, 1fr) minmax(14rem, 1fr) max-content;
+}
+
+.admin-coupon-redemption-filter-grid {
+    grid-template-columns: max-content max-content max-content max-content minmax(14rem, 1fr) minmax(14rem, 1fr) max-content;
+}
+
+.admin-coupon-redemption-table .admin-table-actions-cell,
+.admin-coupon-issue-table .admin-table-actions-cell,
+.admin-coupon-definition-table .admin-table-actions-cell {
+    width: 1%;
+}
+
+.admin-coupon-filter .admin-filter-field {
+    min-width: 0;
+    width: fit-content;
+}
+
+.admin-coupon-filter .admin-filter-input {
+    width: fit-content;
+}
+
+.admin-coupon-filter .admin-coupon-filter-keyword {
+    min-width: 14rem;
+    width: auto;
+}
+
+.admin-coupon-filter .admin-coupon-filter-keyword .admin-filter-input {
+    width: 100%;
+}
+
+.admin-coupon-filter .admin-filter-submit {
+    width: fit-content;
+}
+
+@media (max-width: 1023px) {
+    .admin-coupon-definition-filter-grid,
+    .admin-coupon-history-filter-grid,
+    .admin-coupon-redemption-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-coupon-filter .admin-filter-field,
+    .admin-coupon-filter .admin-filter-input,
+    .admin-coupon-filter .admin-filter-submit {
+        width: 100%;
+    }
+}

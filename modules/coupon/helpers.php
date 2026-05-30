@@ -290,6 +290,222 @@ function sr_coupon_definitions(PDO $pdo, int $limit = 100): array
     return $stmt->fetchAll();
 }
 
+function sr_coupon_admin_definition_filters(PDO $pdo): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, sr_coupon_statuses(), true)) {
+        $status = '';
+    }
+
+    $targetType = sr_get_string('target_type', 60);
+    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
+        $targetType = '';
+    }
+
+    return [
+        'status' => $status,
+        'target_type' => $targetType,
+        'q' => sr_coupon_clean_text(sr_get_string('q', 120), 120),
+    ];
+}
+
+function sr_coupon_admin_definition_sort_options(): array
+{
+    return [
+        'coupon_key' => ['columns' => ['coupon_key', 'id']],
+        'title' => ['columns' => ['title', 'id']],
+        'target_type' => ['columns' => ['target_type', 'target_id', 'id']],
+        'status' => ['columns' => ['status', 'id']],
+        'created_at' => ['columns' => ['created_at', 'id']],
+    ];
+}
+
+function sr_coupon_admin_definition_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_coupon_admin_definitions(PDO $pdo, array $filters, int $limit = 100, array $sort = []): array
+{
+    $limit = max(1, min(300, $limit));
+    $where = [];
+    $params = [];
+    $sortOptions = sr_coupon_admin_definition_sort_options();
+    $defaultSort = sr_coupon_admin_definition_default_sort();
+    $orderSql = sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort);
+    if ($orderSql === '') {
+        $orderSql = ' ORDER BY id DESC';
+    }
+
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'status = :status';
+        $params['status'] = $status;
+    }
+
+    $targetType = (string) ($filters['target_type'] ?? '');
+    if ($targetType !== '') {
+        $where[] = 'target_type = :target_type';
+        $params['target_type'] = $targetType;
+    }
+
+    $keyword = sr_coupon_clean_text((string) ($filters['q'] ?? ''), 120);
+    if ($keyword !== '') {
+        $where[] = "(coupon_key LIKE :keyword_like ESCAPE '\\\\' OR title LIKE :keyword_like ESCAPE '\\\\' OR description LIKE :keyword_like ESCAPE '\\\\' OR target_id LIKE :keyword_like ESCAPE '\\\\')";
+        $params['keyword_like'] = sr_coupon_like_keyword($keyword);
+    }
+
+    $sql = 'SELECT *
+            FROM sr_coupon_definitions'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . $orderSql
+        . ' LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_coupon_admin_issue_filters(PDO $pdo, array $runtimeConfig): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, sr_coupon_issue_statuses(), true)) {
+        $status = '';
+    }
+
+    $targetType = sr_get_string('target_type', 60);
+    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
+        $targetType = '';
+    }
+
+    return [
+        'status' => $status,
+        'target_type' => $targetType,
+        'coupon_q' => sr_coupon_clean_text(sr_get_string('coupon_q', 120), 120),
+        'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
+    ];
+}
+
+function sr_coupon_admin_issue_sort_options(): array
+{
+    return [
+        'member' => ['columns' => ["COALESCE(a.display_name, '')", 'a.email', 'i.account_id', 'i.id']],
+        'coupon' => ['columns' => ['d.title', 'd.coupon_key', 'i.id']],
+        'target_type' => ['columns' => ['d.target_type', 'd.target_id', 'i.id']],
+        'status' => ['columns' => ['i.status', 'i.id']],
+        'used_count' => ['columns' => ['i.used_count', 'i.id']],
+        'issued_at' => ['columns' => ['i.issued_at', 'i.id']],
+    ];
+}
+
+function sr_coupon_admin_issue_default_sort(): array
+{
+    return sr_admin_sort_default('issued_at', 'desc');
+}
+
+function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, int $limit = 100, array $sort = []): array
+{
+    $limit = max(1, min(300, $limit));
+    $where = [];
+    $params = [];
+    $sortOptions = sr_coupon_admin_issue_sort_options();
+    $defaultSort = sr_coupon_admin_issue_default_sort();
+    $orderSql = sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort);
+    if ($orderSql === '') {
+        $orderSql = ' ORDER BY i.id DESC';
+    }
+
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'i.status = :status';
+        $params['status'] = $status;
+    }
+
+    $targetType = (string) ($filters['target_type'] ?? '');
+    if ($targetType !== '') {
+        $where[] = 'd.target_type = :target_type';
+        $params['target_type'] = $targetType;
+    }
+
+    $couponKeyword = sr_coupon_clean_text((string) ($filters['coupon_q'] ?? ''), 120);
+    if ($couponKeyword !== '') {
+        $where[] = "(d.coupon_key LIKE :coupon_keyword_like ESCAPE '\\\\' OR d.title LIKE :coupon_keyword_like ESCAPE '\\\\')";
+        $params['coupon_keyword_like'] = sr_coupon_like_keyword($couponKeyword);
+    }
+
+    $accountFilter = is_array($filters['account'] ?? null) ? $filters['account'] : [];
+    $accountId = (int) ($accountFilter['account_id'] ?? 0);
+    if ($accountId > 0) {
+        $where[] = 'i.account_id = :account_id';
+        $params['account_id'] = $accountId;
+    } elseif (trim((string) ($accountFilter['keyword'] ?? '')) !== '') {
+        $where[] = '1 = 0';
+    }
+
+    $sql = 'SELECT i.id, i.account_id, i.status, i.used_count, i.issued_at, i.expires_at,
+                   d.title, d.coupon_key, d.target_type, d.target_id,
+                   a.display_name, a.email, a.status AS account_status
+            FROM sr_coupon_issues i
+            INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+            LEFT JOIN sr_member_accounts a ON a.id = i.account_id'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . $orderSql
+        . ' LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $row['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
+        $rows[] = $row;
+    }
+
+    return $rows;
+}
+
+function sr_coupon_admin_redemption_filters(PDO $pdo, array $runtimeConfig): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, ['redeemed', 'refunded'], true)) {
+        $status = '';
+    }
+
+    $targetType = sr_get_string('target_type', 60);
+    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
+        $targetType = '';
+    }
+
+    $refundablePolicy = sr_get_string('refundable_policy', 30);
+    if ($refundablePolicy !== '' && !array_key_exists($refundablePolicy, sr_coupon_refundable_policies())) {
+        $refundablePolicy = '';
+    }
+
+    return [
+        'status' => $status,
+        'target_type' => $targetType,
+        'refundable_policy' => $refundablePolicy,
+        'coupon_q' => sr_coupon_clean_text(sr_get_string('coupon_q', 120), 120),
+        'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
+    ];
+}
+
+function sr_coupon_admin_redemption_sort_options(): array
+{
+    return [
+        'member' => ['columns' => ["COALESCE(a.display_name, '')", 'a.email', 'r.account_id', 'r.id']],
+        'coupon' => ['columns' => ['d.title', 'd.coupon_key', 'r.id']],
+        'target_type' => ['columns' => ['r.target_type', 'r.target_id', 'r.id']],
+        'status' => ['columns' => ['r.status', 'r.id']],
+        'redeemed_at' => ['columns' => ['r.redeemed_at', 'r.id']],
+        'refunded_at' => ['columns' => ['refunded_at', 'r.id']],
+    ];
+}
+
+function sr_coupon_admin_redemption_default_sort(): array
+{
+    return sr_admin_sort_default('redeemed_at', 'desc');
+}
+
 function sr_coupon_create_definition(PDO $pdo, array $data): int
 {
     $couponKey = sr_coupon_clean_key((string) ($data['coupon_key'] ?? ''));
@@ -566,23 +782,68 @@ function sr_coupon_redemption_refund_columns_available(PDO $pdo): bool
     return $available;
 }
 
-function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit = 100): array
+function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit = 100, array $filters = [], array $sort = []): array
 {
     $limit = max(1, min(300, $limit));
     $refundColumns = sr_coupon_redemption_refund_columns_available($pdo)
         ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
         : 'NULL AS refunded_at, NULL AS refunded_by_account_id, \'\' AS refund_note';
-    $stmt = $pdo->query(
-        'SELECT r.id, r.coupon_issue_id, r.coupon_definition_id, r.account_id,
-                r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
-                r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ',
-                d.coupon_key, d.title, d.refundable_policy, i.status AS issue_status, i.used_count
-         FROM sr_coupon_redemptions r
-         INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
-         INNER JOIN sr_coupon_issues i ON i.id = r.coupon_issue_id
-         ORDER BY r.id DESC
-         LIMIT ' . $limit
-    );
+    $where = [];
+    $params = [];
+    $sortOptions = sr_coupon_admin_redemption_sort_options();
+    $defaultSort = sr_coupon_admin_redemption_default_sort();
+    $orderSql = sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort);
+    if ($orderSql === '') {
+        $orderSql = ' ORDER BY r.id DESC';
+    }
+
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $targetType = (string) ($filters['target_type'] ?? '');
+    if ($targetType !== '') {
+        $where[] = 'r.target_type = :target_type';
+        $params['target_type'] = $targetType;
+    }
+
+    $refundablePolicy = (string) ($filters['refundable_policy'] ?? '');
+    if ($refundablePolicy !== '') {
+        $where[] = 'd.refundable_policy = :refundable_policy';
+        $params['refundable_policy'] = $refundablePolicy;
+    }
+
+    $couponKeyword = sr_coupon_clean_text((string) ($filters['coupon_q'] ?? ''), 120);
+    if ($couponKeyword !== '') {
+        $where[] = "(d.coupon_key LIKE :coupon_keyword_like ESCAPE '\\\\' OR d.title LIKE :coupon_keyword_like ESCAPE '\\\\')";
+        $params['coupon_keyword_like'] = sr_coupon_like_keyword($couponKeyword);
+    }
+
+    $accountFilter = is_array($filters['account'] ?? null) ? $filters['account'] : [];
+    $accountId = (int) ($accountFilter['account_id'] ?? 0);
+    if ($accountId > 0) {
+        $where[] = 'r.account_id = :account_id';
+        $params['account_id'] = $accountId;
+    } elseif (trim((string) ($accountFilter['keyword'] ?? '')) !== '') {
+        $where[] = '1 = 0';
+    }
+
+    $sql = 'SELECT r.id, r.coupon_issue_id, r.coupon_definition_id, r.account_id,
+                   r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
+                   r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ',
+                   d.coupon_key, d.title, d.refundable_policy, i.status AS issue_status, i.used_count,
+                   a.display_name, a.email, a.status AS account_status
+            FROM sr_coupon_redemptions r
+            INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
+            INNER JOIN sr_coupon_issues i ON i.id = r.coupon_issue_id
+            LEFT JOIN sr_member_accounts a ON a.id = r.account_id'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . $orderSql
+        . ' LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
